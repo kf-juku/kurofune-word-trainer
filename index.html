@@ -103,6 +103,22 @@
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:24px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:70;}
   .toast.show{opacity:1;}
 
+  /* ニックネーム変更モーダル */
+  .nick-edit{margin-left:8px;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--sub);font-size:13px;display:inline-grid;place-items:center;cursor:pointer;vertical-align:middle;transition:transform .15s,color .15s;}
+  .nick-edit:active{transform:scale(.9);}
+  .nick-edit:hover{color:var(--accent);}
+  .modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:80;}
+  .modal-mask.show{display:flex;}
+  .modal{background:var(--surface);width:100%;max-width:460px;border-radius:22px 22px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.18);animation:sheetUp .25s ease;}
+  @keyframes sheetUp{from{transform:translateY(24px);opacity:.6;}to{transform:translateY(0);opacity:1;}}
+  .modal h3{font-size:18px;font-weight:800;margin:0 0 4px;}
+  .modal .hint{font-size:12.5px;color:var(--sub);line-height:1.6;margin:0 0 14px;}
+  .modal .remain{font-size:12.5px;color:var(--sub);margin:0 0 12px;}
+  .modal .remain b{color:var(--accent);}
+  .modal .err{font-size:13px;color:#e0463e;min-height:18px;margin:2px 0 10px;font-weight:600;}
+  .modal .row{display:flex;gap:10px;margin-top:4px;}
+  .modal .row .btn{flex:1;}
+
   /* 間違いノート */
   .note-card{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px 20px;box-shadow:var(--shadow);cursor:pointer;transition:transform .18s;}
   .note-card:active{transform:translateY(2px) scale(.99);}
@@ -137,7 +153,7 @@
 
   <section id="scr-home" class="screen">
     <div class="head">
-      <div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div>
+      <div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div><button class="nick-edit" id="btn-nick-edit" aria-label="ニックネームを変更" title="ニックネームを変更"><i class="ti ti-pencil"></i></button>
       <div class="right">
         <div class="streak"><i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b>日</div>
         <button class="iconbtn" id="themeBtn" aria-label="テーマ切替"><i class="ti ti-moon"></i></button>
@@ -196,6 +212,19 @@
 <div id="confetti"></div>
 <div class="flash" id="flash"></div>
 <div class="combo" id="combo"></div>
+<div class="modal-mask" id="nick-mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="nick-title">
+    <h3 id="nick-title">ニックネームの変更</h3>
+    <p class="hint">2〜10文字。ひらがな・カタカナ・英数字が使えます（漢字・記号・スペースは使えません）。</p>
+    <p class="remain">今月あと <b id="nick-remain">3</b> 回 変えられます</p>
+    <input type="text" id="nick-input" maxlength="10" autocomplete="off" placeholder="あたらしいニックネーム">
+    <div class="err" id="nick-err"></div>
+    <div class="row">
+      <button class="btn ghost" id="nick-cancel" type="button">やめる</button>
+      <button class="btn" id="nick-save" type="button">変更する</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -207,6 +236,45 @@ var session=null, combo=0, audioCtx=null;
 function $(id){return document.getElementById(id);}
 function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');window.scrollTo(0,0);}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1700);}
+
+// ===== ニックネーム変更 =====
+var NICK_RE=/^[ぁ-んァ-ヶーa-zA-Z0-9]+$/;
+function openNickModal(){
+  $('nick-input').value=nickname&&nickname!=='きみ'?nickname:'';
+  $('nick-err').textContent='';
+  $('nick-remain').textContent='–';
+  $('nick-mask').classList.add('show');
+  setTimeout(function(){$('nick-input').focus();},80);
+  // 今月の残り回数を取得（任意・失敗しても変更は可能）
+  call({action:'nickname_status'}).then(function(d){
+    if(d&&d.ok&&d.data&&typeof d.data.remaining==='number'){$('nick-remain').textContent=d.data.remaining;}
+    else{$('nick-remain').textContent='3';}
+  });
+}
+function closeNickModal(){$('nick-mask').classList.remove('show');}
+function validateNickLocal(n){
+  if(!n)return 'ニックネームを入力してね';
+  if(n.length<2||n.length>10)return '2〜10文字で入力してね';
+  if(!NICK_RE.test(n))return 'ひらがな・カタカナ・英数字だけが使えるよ';
+  return '';
+}
+function saveNick(){
+  var n=$('nick-input').value.trim();
+  var local=validateNickLocal(n);
+  if(local){$('nick-err').textContent=local;return;}
+  $('nick-err').textContent='';
+  var btn=$('nick-save');btn.disabled=true;btn.textContent='変更中…';
+  call({action:'nickname_update',nickname:n}).then(function(d){
+    btn.disabled=false;btn.textContent='変更する';
+    if(!d.ok){$('nick-err').textContent=d.error||'変更できませんでした';return;}
+    nickname=d.data.nickname;
+    sessionStorage.setItem('kwt_nick',nickname);
+    $('nick').textContent=nickname;
+    closeNickModal();
+    if(d.data.unchanged){toast('ニックネームはそのままだよ');}
+    else{toast('ニックネームを変更したよ！');}
+  });
+}
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
 function call(b,_try){b.token=token;_try=_try||1;return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json();}).catch(function(){if(_try<3){return sleep(600*_try).then(function(){return call(b,_try+1);});}return {ok:false,error:'通信に失敗しました'};});}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
@@ -230,11 +298,16 @@ function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show'
 
 $('themeBtn').onclick=function(){var d=document.documentElement.getAttribute('data-theme')==='dark';document.documentElement.setAttribute('data-theme',d?'light':'dark');localStorage.setItem('kwt_theme',d?'light':'dark');syncThemeIcon();};
 
+$('nick-cancel').onclick=closeNickModal;
+$('nick-save').onclick=saveNick;
+$('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};
+$('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
 $('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスコードを入れてね';return;}this.disabled=true;this.textContent='確認中…';fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'student_login',login_id:id,passcode:pass})}).then(function(r){return r.json();}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';mode=d.data.student.mode||'normal';sessionStorage.setItem('kwt_token',token);sessionStorage.setItem('kwt_nick',nickname);sessionStorage.setItem('kwt_mode',mode);openHome();});};
 $('btn-logout').onclick=function(){sessionStorage.clear();token='';show('scr-login');};
 
 function openHome(){
   $('nick').textContent=nickname;syncThemeIcon();show('scr-home');
+  $('btn-nick-edit').onclick=openNickModal;
   $('main-list').innerHTML='<div class="loading">読み込み中…</div>';
   $('review-area').innerHTML='<div class="loading">読み込み中…</div>';
   call({action:'student_home'}).then(function(d){
