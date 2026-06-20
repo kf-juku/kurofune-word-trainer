@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kurofune Word Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#f4f5f8;--surface:#fff;--ink:#15161a;--sub:#8a8f99;--line:rgba(0,0,0,.06);
+    --accent:#0a6cff;--accent-soft:#e8f0ff;--gold:#caa24a;--ring-track:#e9ecf2;
+    --ok:#1faa6b;--ng:#e0533c;--shadow:0 2px 20px rgba(20,24,40,.06);--glass:rgba(255,255,255,.65);
+  }
+  [data-theme="dark"]{
+    --bg:#0d1017;--surface:#161a23;--ink:#eef1f6;--sub:#8b93a3;--line:rgba(255,255,255,.08);
+    --accent:#4f8cff;--accent-soft:#15233f;--gold:#e3c477;--ring-track:#252b37;
+    --ok:#3ad08a;--ng:#ff6b54;--shadow:0 2px 24px rgba(0,0,0,.4);--glass:rgba(22,26,35,.6);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:"Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink);transition:background .4s,color .4s;overflow-x:hidden;}
+  .num{font-family:"Manrope",sans-serif;font-variant-numeric:tabular-nums;}
+  .wrap{max-width:430px;margin:0 auto;min-height:100vh;position:relative;}
+  .screen{display:none;}.screen.active{display:block;}
+  .body{padding:20px;}
+  .label{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.14em;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+  .sec{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.14em;margin:28px 0 14px;}
+  .muted{color:var(--sub);font-size:13px;}
+  .center{text-align:center;}
+
+  .head{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;background:var(--glass);backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--line);}
+  .hi{font-size:12px;color:var(--sub);}
+  .nick{font-size:21px;font-weight:700;letter-spacing:-.01em;}
+  .head .right{display:flex;align-items:center;gap:14px;}
+  .streak{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--sub);}
+  .streak b{color:var(--ink);font-weight:700;}
+  .iconbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;display:grid;place-items:center;cursor:pointer;transition:transform .15s;}
+  .iconbtn:active{transform:scale(.9);}
+
+  input{width:100%;padding:14px;font-size:16px;border:1px solid var(--line);border-radius:13px;margin-bottom:11px;background:var(--surface);color:var(--ink);}
+  input:focus{outline:none;border-color:var(--accent);}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;font-family:inherit;font-size:16px;font-weight:700;border:none;border-radius:14px;background:var(--accent);color:#fff;cursor:pointer;transition:transform .12s;}
+  .btn:active{transform:translateY(2px) scale(.99);}
+  .btn.sub{background:var(--surface);color:var(--accent);border:1px solid var(--accent);}
+  .btn.ghost{background:transparent;color:var(--sub);}
+  .btn.gold{background:linear-gradient(135deg,var(--gold),#a9842f);color:#1a1304;}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow);margin-bottom:14px;}
+
+  .hero{display:flex;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow);cursor:pointer;transition:transform .18s,box-shadow .18s;}
+  .hero:active{transform:translateY(2px) scale(.99);}
+  .ring{position:relative;width:78px;height:78px;flex:none;}
+  .ring svg{transform:rotate(-90deg);}
+  .ring .pct{position:absolute;inset:0;display:grid;place-items:center;font-family:"Manrope";font-weight:800;font-size:16px;color:var(--ink);}
+  .hero .course{font-size:18px;font-weight:700;letter-spacing:-.01em;}
+  .hero .list{font-size:13px;color:var(--sub);margin-top:2px;}
+  .hero .cta{margin-top:10px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--accent);}
+
+  .list-row{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s;}
+  .list-row:active{transform:scale(.985);}
+  .dot{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:none;background:var(--accent-soft);color:var(--accent);}
+  .dot.done{background:rgba(31,170,107,.14);color:var(--ok);}
+  .dot.cur{background:var(--accent);color:#fff;}
+  .list-row .t{flex:1;font-size:15px;font-weight:500;}
+  .list-row .s{font-size:12px;color:var(--sub);}
+  .cur-badge{border:1px solid var(--gold);color:var(--gold);font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;}
+
+  .counter{display:flex;gap:12px;}
+  .stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center;box-shadow:var(--shadow);}
+  .stat .v{font-family:"Manrope";font-weight:800;font-size:24px;}
+  .stat .k{font-size:11px;color:var(--sub);margin-top:3px;}
+
+  /* 練習 */
+  .prog{height:8px;background:var(--ring-track);border-radius:6px;overflow:hidden;margin:18px 0 6px;}
+  .prog>i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s;}
+  .word-en{font-size:42px;font-weight:700;text-align:center;letter-spacing:-.01em;margin:14px 0 4px;}
+  .reading{text-align:center;color:var(--sub);margin-bottom:14px;}
+  .choice{display:flex;align-items:center;justify-content:center;width:100%;padding:17px;font-family:inherit;font-size:18px;margin-bottom:12px;border:1px solid var(--line);border-radius:15px;background:var(--surface);color:var(--ink);cursor:pointer;transition:transform .1s;}
+  .choice:active{transform:scale(.98);}
+  .choice.correct{border-color:var(--ok);background:rgba(31,170,107,.12);color:var(--ok);font-weight:700;animation:pop .35s;}
+  .choice.wrong{border-color:var(--ng);background:rgba(224,83,60,.12);color:var(--ng);animation:shake .3s;}
+  .choice:disabled{cursor:default;}
+  @keyframes pop{0%{transform:scale(1);}40%{transform:scale(1.06);}100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+
+  .combo{position:fixed;top:16%;left:50%;transform:translateX(-50%);font-family:"Manrope";font-size:34px;font-weight:800;color:var(--gold);opacity:0;pointer-events:none;z-index:60;}
+  .combo.show{animation:comboPop .8s ease-out;}
+  @keyframes comboPop{0%{opacity:0;transform:translateX(-50%) scale(.5);}30%{opacity:1;transform:translateX(-50%) scale(1.15);}100%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(1);}}
+  .err{color:var(--ng);font-size:14px;margin-bottom:8px;min-height:18px;}
+  .loading{text-align:center;color:var(--sub);padding:30px;}
+
+  .big-badge{font-size:66px;animation:badgeIn .6s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes badgeIn{0%{transform:scale(0) rotate(-18deg);opacity:0;}100%{transform:scale(1) rotate(0);opacity:1;}}
+  .score-line{font-family:"Manrope";font-size:46px;font-weight:800;}
+
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:50;}
+  .conf{position:absolute;width:10px;height:14px;top:-20px;animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.9;}}
+  .flash{position:fixed;inset:0;background:radial-gradient(circle,rgba(202,162,74,.4),transparent 60%);opacity:0;pointer-events:none;z-index:40;}
+  .flash.show{animation:flash .5s;}
+  @keyframes flash{0%{opacity:0;}30%{opacity:1;}100%{opacity:0;}}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:24px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:70;}
+  .toast.show{opacity:1;}
+
+  /* 間違いノート */
+  .note-card{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px 20px;box-shadow:var(--shadow);cursor:pointer;transition:transform .18s;}
+  .note-card:active{transform:translateY(2px) scale(.99);}
+  .note-card.empty{cursor:default;}
+  .note-ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:23px;flex:none;background:rgba(224,83,60,.12);color:var(--ng);}
+  .note-card .t{flex:1;}
+  .note-card .t .ttl{font-size:16px;font-weight:700;}
+  .note-card .t .sub{font-size:12.5px;color:var(--sub);margin-top:2px;}
+  .note-card .cnt{font-family:"Manrope";font-weight:800;font-size:22px;color:var(--ng);}
+  .note-card .cnt small{font-size:11px;color:var(--sub);font-weight:500;}
+  .streak-dots{display:flex;gap:6px;justify-content:center;margin:10px 0 2px;}
+  .streak-dots i{width:9px;height:9px;border-radius:50%;background:var(--ring-track);display:inline-block;}
+  .streak-dots i.on{background:var(--ok);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section id="scr-login" class="screen active">
+    <div class="body" style="padding-top:60px;">
+      <div class="center" style="font-size:40px;color:var(--gold);"><i class="ti ti-anchor"></i></div>
+      <h1 class="center" style="font-size:24px;font-weight:700;margin:8px 0 4px;">Kurofune Word Trainer</h1>
+      <p class="muted center" style="margin-bottom:26px;">先生からもらったIDとパスコードでログイン</p>
+      <div class="card">
+        <div class="err" id="login-err"></div>
+        <input id="in-id" placeholder="ID（例：student1）" autocomplete="username">
+        <input id="in-pass" type="password" placeholder="パスコード" autocomplete="current-password">
+        <button class="btn" id="btn-login">はじめる <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="scr-home" class="screen">
+    <div class="head">
+      <div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div>
+      <div class="right">
+        <div class="streak"><i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b>日</div>
+        <button class="iconbtn" id="themeBtn" aria-label="テーマ切替"><i class="ti ti-moon"></i></button>
+      </div>
+    </div>
+    <div class="body">
+      <div class="label"><i class="ti ti-anchor"></i> 今日のメイン学習</div>
+      <div id="main-list"><div class="loading">読み込み中…</div></div>
+      <div class="sec">じぶんの間違いノート</div>
+      <div id="note-area"><div class="loading">読み込み中…</div></div>
+      <div class="sec">リスト一覧 ・ 何回でも復習</div>
+      <div id="review-area"><div class="loading">読み込み中…</div></div>
+      <div class="sec">クロフネ全体</div>
+      <div class="counter">
+        <div class="stat"><div class="v num" id="cnt-people">–</div><div class="k">今日 学習中</div></div>
+        <div class="stat"><div class="v num" id="cnt-words">–</div><div class="k">今週の語数</div></div>
+      </div>
+      <button class="btn ghost" id="btn-logout" style="margin-top:24px;">ログアウト</button>
+    </div>
+  </section>
+
+  <section id="scr-practice" class="screen">
+    <div class="body">
+      <div class="prog"><i id="prog"></i></div>
+      <div class="muted center" id="step-label"></div>
+      <div class="card" id="step-listen" style="display:none;">
+        <div class="word-en" id="w-en"></div><div class="reading" id="w-reading"></div>
+        <button class="btn sub" id="btn-sound"><i class="ti ti-volume"></i> 音声を聞く</button>
+        <button class="btn" id="btn-spoke" style="margin-top:10px;"><i class="ti ti-microphone"></i> 発音した！つぎへ</button>
+      </div>
+      <div class="card" id="step-e2j" style="display:none;">
+        <div class="word-en" id="e2j-en"></div><p class="center muted" style="margin-bottom:14px;">意味を選ぼう</p><div id="e2j-choices"></div>
+      </div>
+      <div class="card" id="step-j2e" style="display:none;">
+        <div class="word-en" id="j2e-ja" style="font-size:30px;"></div><p class="center muted" style="margin-bottom:14px;">英語を選ぼう</p><div id="j2e-choices"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="scr-done" class="screen">
+    <div class="body" style="padding-top:40px;">
+      <div class="center"><div id="done-badge" class="big-badge"><i class="ti ti-trophy"></i></div></div>
+      <p id="done-result" class="center" style="font-size:20px;font-weight:700;margin:10px 0;"></p>
+      <div class="center"><span class="score-line"><span id="score-anim">0</span></span><span class="muted"> 点</span></div>
+      <p class="muted center" style="margin-top:6px;">意味 <span id="done-mr"></span>％ ・ 日本語→英語 <span id="done-rr"></span>％</p>
+      <p class="muted center" id="done-miss" style="margin-top:8px;"></p>
+      <div style="margin-top:24px;">
+        <button class="btn gold" id="btn-next" style="display:none;"><i class="ti ti-arrow-right"></i> つぎのリストへ進む</button>
+        <button class="btn sub" id="btn-retry" style="margin-top:10px;"><i class="ti ti-refresh"></i> もう一回やる</button>
+        <button class="btn ghost" id="btn-home" style="margin-top:10px;">ホームへもどる</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+<div id="confetti"></div>
+<div class="flash" id="flash"></div>
+<div class="combo" id="combo"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
+var token=sessionStorage.getItem('kwt_token')||'';
+var nickname=sessionStorage.getItem('kwt_nick')||'';
+var mode=sessionStorage.getItem('kwt_mode')||'normal';
+var session=null, combo=0, audioCtx=null;
+function $(id){return document.getElementById(id);}
+function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');window.scrollTo(0,0);}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1700);}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function call(b,_try){b.token=token;_try=_try||1;return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json();}).catch(function(){if(_try<3){return sleep(600*_try).then(function(){return call(b,_try+1);});}return {ok:false,error:'通信に失敗しました'};});}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function animNum(el,to,dur){var st=performance.now();function f(t){var p=Math.min(1,(t-st)/(dur||900));el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+/* テーマ：端末設定に追従＋手動切替 */
+(function(){
+  var saved=localStorage.getItem('kwt_theme');
+  if(saved){document.documentElement.setAttribute('data-theme',saved);}
+  else if(window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.setAttribute('data-theme','dark');}
+})();
+function syncThemeIcon(){var d=document.documentElement.getAttribute('data-theme')==='dark';var b=$('themeBtn');if(b)b.innerHTML='<i class="ti ti-'+(d?'sun':'moon')+'"></i>';}
+
+function beep(f,d,t){try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();var o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t||'sine';o.frequency.value=f;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(0.18,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.start();o.stop(audioCtx.currentTime+d);}catch(e){}}
+function sndCorrect(){beep(660,0.12,'triangle');setTimeout(function(){beep(990,0.14,'triangle');},90);}
+function sndWrong(){beep(180,0.2,'sawtooth');}
+function sndWin(){[523,659,784,1046].forEach(function(f,i){setTimeout(function(){beep(f,0.16,'triangle');},i*120);});}
+function confetti(n){var box=$('confetti');var cs=['#caa24a','#0a6cff','#1faa6b','#e0533c','#9b6dd6'];for(var i=0;i<n;i++){var c=document.createElement('i');c.className='conf';c.style.left=Math.random()*100+'vw';c.style.background=cs[Math.floor(Math.random()*cs.length)];c.style.animationDuration=(1.6+Math.random()*1.4)+'s';c.style.transform='rotate('+Math.random()*360+'deg)';box.appendChild(c);(function(el){setTimeout(function(){el.remove();},3200);})(c);}}
+function flash(){var f=$('flash');f.classList.remove('show');void f.offsetWidth;f.classList.add('show');}
+function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
+
+$('themeBtn').onclick=function(){var d=document.documentElement.getAttribute('data-theme')==='dark';document.documentElement.setAttribute('data-theme',d?'light':'dark');localStorage.setItem('kwt_theme',d?'light':'dark');syncThemeIcon();};
+
+$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスコードを入れてね';return;}this.disabled=true;this.textContent='確認中…';fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'student_login',login_id:id,passcode:pass})}).then(function(r){return r.json();}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';mode=d.data.student.mode||'normal';sessionStorage.setItem('kwt_token',token);sessionStorage.setItem('kwt_nick',nickname);sessionStorage.setItem('kwt_mode',mode);openHome();});};
+$('btn-logout').onclick=function(){sessionStorage.clear();token='';show('scr-login');};
+
+function openHome(){
+  $('nick').textContent=nickname;syncThemeIcon();show('scr-home');
+  $('main-list').innerHTML='<div class="loading">読み込み中…</div>';
+  $('review-area').innerHTML='<div class="loading">読み込み中…</div>';
+  call({action:'student_home'}).then(function(d){
+    if(!d.ok){if(d.error&&d.error.indexOf('ログイン')>=0){sessionStorage.clear();show('scr-login');}return;}
+    var main=d.data.main||[];
+    if(!main.length){$('main-list').innerHTML='<p class="muted">今日のメイン学習はありません。先生にきいてね。</p>';}
+    else{$('main-list').innerHTML='';main.forEach(function(m){
+      var h=document.createElement('div');h.className='hero';
+      h.innerHTML='<div class="ring"><svg width="78" height="78"><circle cx="39" cy="39" r="33" fill="none" stroke="var(--ring-track)" stroke-width="7"></circle><circle cx="39" cy="39" r="33" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="207" stroke-dashoffset="207" class="ringfg"></circle></svg><div class="pct">⚓</div></div><div><div class="course">'+m.course_title+'</div><div class="list">いまここ：'+m.word_list_title+'</div><div class="cta">はじめる <i class="ti ti-arrow-right"></i></div></div>';
+      h.onclick=function(){startPractice(m.word_list_id);};
+      $('main-list').appendChild(h);
+    });}
+    if(d.data.streak!==undefined){animNum($('streak'),d.data.streak||0,800);}
+  });
+  call({action:'course_lists'}).then(function(d){
+    if(!d.ok){$('review-area').innerHTML='<p class="muted">—</p>';return;}
+    var cs=d.data.courses||[];
+    if(!cs.length){$('review-area').innerHTML='<p class="muted">まだコースがありません。</p>';return;}
+    $('review-area').innerHTML='';
+    cs.forEach(function(c){
+      c.lists.forEach(function(l){
+        var row=document.createElement('div');row.className='list-row';
+        var icon=l.is_current?'<div class="dot cur"><i class="ti ti-player-play"></i></div>':(l.passed?'<div class="dot done"><i class="ti ti-check"></i></div>':'<div class="dot"><i class="ti ti-book-2"></i></div>');
+        var st=l.passed?'合格済み':(l.is_current?'':'未挑戦');
+        row.innerHTML=icon+'<div class="t">'+l.title+(st?'<div class="s">'+st+'</div>':'')+'</div>'+(l.is_current?'<span class="cur-badge">いまここ</span>':'');
+        row.onclick=function(){startPractice(l.word_list_id);};
+        $('review-area').appendChild(row);
+      });
+    });
+  });
+  call({action:'mistake_set',subject:'english'}).then(function(d){
+    var area=$('note-area');
+    if(!d.ok){area.innerHTML='<p class="muted">—</p>';return;}
+    var n=d.data.total_active||0;
+    if(!n){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">間違いゼロ！</div><div class="sub">いまは復習する単語がありません</div></div></div>';return;}
+    area.innerHTML='';
+    var card=document.createElement('div');card.className='note-card';
+    card.innerHTML='<div class="note-ic"><i class="ti ti-notebook"></i></div><div class="t"><div class="ttl">間違いノート（英語）</div><div class="sub">2回れんぞく正解で卒業！</div></div><div class="cnt">'+n+'<small> 語</small></div>';
+    card.onclick=function(){startNote('english',d.data.words);};
+    area.appendChild(card);
+  });
+  call({action:'overall_counter'}).then(function(d){
+    if(d.ok&&d.data){animNum($('cnt-people'),d.data.today_people||0,1000);animNum($('cnt-words'),d.data.week_words||0,1200);}
+    else{$('cnt-people').textContent='–';$('cnt-words').textContent='–';}
+  });
+}
+$('btn-home').onclick=openHome;
+
+function startPractice(listId){show('scr-practice');$('step-label').textContent='よみこみ中…';combo=0;$('btn-retry').onclick=function(){if(session)startPractice(session.listId);};$('btn-retry').style.display='flex';$('btn-next').style.display='none';call({action:'student_today',word_list_id:listId}).then(function(d){if(!d.ok){toast(d.error||'読み込み失敗');openHome();return;}session={listId:listId,words:d.data.words,idx:0,step:1,meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[]};renderStep();});}
+function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-label').textContent=(s.idx+1)+' / '+totalSteps+'語目';
+  if(s.step===1){$('w-en').textContent=w.english;$('w-reading').textContent=w.reading_hint||'';$('step-listen').style.display='block';speak(w);}
+  else if(s.step===2){$('e2j-en').textContent=w.english;buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok){if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}setTimeout(function(){s.step=3;renderStep();},650);});$('step-e2j').style.display='block';}
+  else if(s.step===3){$('j2e-ja').textContent=w.japanese;buildChoices('j2e-choices',w.english,s.words.map(function(x){return x.english;}),function(ok){if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}setTimeout(function(){nextWord();},650);});$('step-j2e').style.display='block';}}
+function pushMiss(id){if(session.miss.indexOf(id)<0)session.miss.push(id);}
+function nextWord(){var s=session;s.idx++;s.step=1;if(s.idx>=s.words.length){finishSession();}else renderStep();}
+$('btn-sound').onclick=function(){speak(session.words[session.idx]);};
+$('btn-spoke').onclick=function(){session.step=2;renderStep();};
+function speak(w){try{if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(w.tts_text||w.english);u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}}catch(e){}}
+function buildChoices(containerId,correct,pool,cb){var box=$(containerId);box.innerHTML='';var others=shuffle(pool.filter(function(x){return x!==correct;})).slice(0,3);var opts=shuffle([correct].concat(others));opts.forEach(function(opt){var b=document.createElement('button');b.className='choice';b.textContent=opt;b.onclick=function(){var ok=(opt===correct);Array.prototype.forEach.call(box.children,function(c){c.disabled=true;});b.classList.add(ok?'correct':'wrong');if(ok){combo++;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(c.textContent===correct)c.classList.add('correct');});}cb(ok);};box.appendChild(b);});}
+function finishSession(){var s=session;$('prog').style.width='100%';show('scr-done');$('done-result').textContent='送信中…';$('done-badge').innerHTML='<i class="ti ti-loader-2"></i>';$('btn-next').style.display='none';
+  call({action:'session_complete',word_list_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode}).then(function(d){
+    var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100),score=Math.round((mr+rr)/2);
+    $('done-mr').textContent=mr;$('done-rr').textContent=rr;
+    if(!d.ok){$('done-result').textContent='結果の保存に失敗しました';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}
+    if(d.data.passed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').textContent='合格！よくがんばったね';sndWin();flash();confetti(120);
+      if(d.data.advanced&&d.data.next_word_list_id){$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_word_list_id);};}
+      else if(d.data.completed_course){toast('このコースぜんぶクリア！⚓');}
+    }else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').textContent='もう少し！（合格は80%）';}
+    animNum($('score-anim'),score,1000);
+    if(s.miss.length){$('done-miss').textContent='まちがえた単語：'+s.miss.length+'個（復習にまわしたよ）';}else{$('done-miss').textContent='';}
+  });}
+$('btn-retry').onclick=function(){if(session)startPractice(session.listId);};
+
+/* ===== 間違いノート（自分専用の復習）2026-06-21 ===== */
+/* 1問につき 英→日4択＋日→英4択を出題。両方正解で review_complete(correct:true)、
+   どちらか間違えたら correct:false。誤答選択肢はGASが返した同教科プールを使う。
+   川上さん確定(2026-06-21)：両方正解で1正解／2回連続で卒業／誤答でstreakリセット。 */
+var noteSes=null;
+function startNote(subject,words){
+  if(!words||!words.length){toast('復習する単語がありません');return;}
+  show('scr-practice');combo=0;
+  noteSes={subject:subject,words:words,idx:0,step:2,wordOK:true,cleared:0,total:words.length};
+  renderNoteStep();
+}
+function renderNoteStep(){
+  var s=noteSes,w=s.words[s.idx],tot=s.words.length;
+  $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
+  $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';
+  $('step-label').textContent='復習 '+(s.idx+1)+' / '+tot+'語目';
+  if(s.step===2){
+    $('e2j-en').textContent=w.english;
+    buildNoteChoices('e2j-choices',w.japanese,w.wrong_choices_ja,function(ok){
+      if(!ok)s.wordOK=false;
+      setTimeout(function(){s.step=3;renderNoteStep();},650);
+    });
+    $('step-e2j').style.display='block';
+  }else if(s.step===3){
+    $('j2e-ja').textContent=w.japanese;
+    buildNoteChoices('j2e-choices',w.english,w.wrong_choices_en,function(ok){
+      if(!ok)s.wordOK=false;
+      setTimeout(function(){submitNoteWord();},650);
+    });
+    $('step-j2e').style.display='block';
+  }
+}
+/* 誤答候補が固定で渡ってくる版（pool不足時も落ちない） */
+function buildNoteChoices(containerId,correct,wrongs,cb){
+  var box=$(containerId);box.innerHTML='';
+  var others=shuffle((wrongs||[]).slice()).slice(0,3);
+  var opts=shuffle([correct].concat(others));
+  opts.forEach(function(opt){
+    var b=document.createElement('button');b.className='choice';b.textContent=opt;
+    b.onclick=function(){
+      var ok=(opt===correct);
+      Array.prototype.forEach.call(box.children,function(c){c.disabled=true;});
+      b.classList.add(ok?'correct':'wrong');
+      if(ok){combo++;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0)confetti(20);}
+      else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(c.textContent===correct)c.classList.add('correct');});}
+      cb(ok);
+    };
+    box.appendChild(b);
+  });
+}
+function submitNoteWord(){
+  var s=noteSes,w=s.words[s.idx],correct=s.wordOK;
+  call({action:'review_complete',review_id:w.review_id,correct:correct}).then(function(d){
+    if(d&&d.ok&&d.data&&d.data.cleared){s.cleared++;toast('「'+w.english+'」を卒業！🎓');}
+    s.idx++;s.step=2;s.wordOK=true;
+    if(s.idx>=s.words.length){finishNote();}else renderNoteStep();
+  });
+}
+function finishNote(){
+  var s=noteSes;$('prog').style.width='100%';show('scr-done');
+  $('btn-next').style.display='none';$('btn-retry').style.display='none';
+  $('done-badge').innerHTML='<i class="ti ti-notebook" style="color:var(--ng)"></i>';
+  $('done-result').textContent='復習おつかれさま！';
+  $('done-mr').textContent='–';$('done-rr').textContent='–';
+  $('score-anim').textContent='';
+  $('done-miss').textContent=s.cleared?('今回 '+s.cleared+'語 卒業した！🎓'):('卒業はあと一歩。2回れんぞく正解でクリア！');
+  if(s.cleared){sndWin();flash();confetti(100);}
+  $('btn-retry').style.display='flex';
+  $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> もう一回やる';
+  $('btn-retry').onclick=function(){noteRetry(s.subject);};
+}
+/* 間違いノートの「もう一回」：最新のactiveを取り直して再開（卒業済みは除外される） */
+function noteRetry(subject){
+  show('scr-practice');$('step-label').textContent='よみこみ中…';
+  call({action:'mistake_set',subject:subject}).then(function(d){
+    if(!d.ok||!d.data.words.length){toast('間違いはもうありません！');openHome();return;}
+    startNote(subject,d.data.words);
+  });
+}
+
+if(token){openHome();}
+</script>
+</body>
+</html>

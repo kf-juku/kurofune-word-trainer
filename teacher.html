@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kurofune Word Trainer｜先生ダッシュボード</title>
+<style>
+  :root {
+    --crimson:#C6000B; --crimson-dark:#A00008; --crimson-light:#FFF0F0; --crimson-mid:#f4a0a5;
+    --surface:#f4f6f9; --surface2:#edf0f5; --border:#dde3ec;
+    --text:#1a2535; --text-muted:#5a6a7e; --text-light:#94a3b8;
+    --blue:#3b82f6; --blue-light:#dbeafe; --blue-dark:#1d4ed8;
+    --green:#10b981; --green-light:#d1fae5; --green-dark:#065f46;
+    --amber:#f59e0b; --amber-light:#fef3c7; --amber-dark:#92400e;
+    --gray:#6b7280; --gray-light:#f3f4f6;
+    --shadow-sm:0 1px 3px rgba(0,0,0,0.08); --shadow:0 4px 12px rgba(0,0,0,0.08);
+    --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;background:var(--surface);font-size:14px;color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1100px;margin:0 auto;padding:14px;}
+
+  /* ヘッダー */
+  .head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:14px;}
+  .head .logo{font-size:16px;font-weight:800;color:var(--crimson);display:flex;align-items:center;gap:6px;}
+  .head .sub{font-size:12px;color:var(--text-muted);}
+  .head .right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+  .who{font-size:12px;color:var(--text-muted);}
+  .who b{color:var(--text);}
+
+  /* ログイン */
+  .login-box{max-width:360px;margin:60px auto;background:white;border-radius:var(--radius);box-shadow:var(--shadow);padding:26px;}
+  .login-box h1{font-size:18px;font-weight:800;color:var(--crimson);text-align:center;margin-bottom:4px;}
+  .login-box p{font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:20px;}
+  .form-label{font-size:10.5px;font-weight:700;color:var(--text-muted);margin-bottom:4px;display:block;}
+  .form-input{border:1.5px solid var(--border);border-radius:7px;padding:9px 11px;font-size:14px;font-family:inherit;background:var(--surface);width:100%;margin-bottom:11px;}
+  .form-input:focus{outline:none;border-color:var(--crimson);background:white;box-shadow:0 0 0 3px rgba(198,0,11,0.1);}
+  .btn-primary{background:var(--crimson);color:white;border:none;border-radius:8px;padding:10px 15px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;min-height:40px;}
+  .btn-primary:hover{background:var(--crimson-dark);}
+  .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+  .btn-ghost{background:white;color:var(--text-muted);border:1.5px solid var(--border);border-radius:7px;padding:6px 13px;font-size:12px;cursor:pointer;font-family:inherit;}
+  .btn-ghost:hover{background:var(--surface2);}
+  .err{color:var(--crimson);font-size:12.5px;min-height:18px;margin-bottom:6px;}
+
+  /* 統計カード */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:14px;}
+  .stats-card{background:white;border-radius:10px;padding:11px 14px;box-shadow:var(--shadow-sm);text-align:center;}
+  .stats-num{font-size:24px;font-weight:800;color:var(--text);line-height:1.1;}
+  .stats-lbl{font-size:11px;color:var(--text-muted);margin-top:3px;}
+
+  /* フィルタ */
+  .filter-bar{background:white;border-radius:var(--radius);padding:8px 12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px;box-shadow:var(--shadow-sm);}
+  .filter-search{border:1.5px solid var(--border);border-radius:20px;padding:5px 13px;font-size:12.5px;font-family:inherit;background:white;width:180px;}
+  .filter-search:focus{outline:none;border-color:var(--crimson);box-shadow:0 0 0 3px rgba(198,0,11,0.1);}
+  .filter-chip{display:inline-flex;align-items:center;padding:3px 11px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:11.5px;cursor:pointer;font-family:inherit;color:var(--text-muted);transition:all 0.1s;white-space:nowrap;font-weight:500;}
+  .filter-chip:hover{border-color:var(--crimson-mid);color:var(--crimson-dark);}
+  .filter-chip.active{background:var(--crimson-light);color:var(--crimson-dark);border-color:var(--crimson);font-weight:700;}
+  .filter-count{font-size:12px;color:var(--crimson);font-weight:600;margin-left:auto;}
+
+  /* テーブル */
+  .table-wrap{background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{background:var(--surface2);color:var(--text-muted);font-size:11px;font-weight:700;text-align:left;padding:9px 10px;white-space:nowrap;position:sticky;top:0;}
+  td{padding:9px 10px;border-top:1px solid var(--surface2);white-space:nowrap;}
+  tr:hover td{background:#fafbfc;}
+  .t-name{font-weight:700;color:var(--text);}
+  .t-nick{font-size:11px;color:var(--text-light);}
+  .t-sub{font-size:11px;color:var(--text-muted);}
+  .num{font-variant-numeric:tabular-nums;}
+
+  .badge{font-size:10px;font-weight:700;border-radius:20px;padding:2px 8px;white-space:nowrap;display:inline-block;}
+  .badge-green{background:var(--green-light);color:var(--green-dark);}
+  .badge-gray{background:var(--gray-light);color:var(--gray);}
+  .badge-amber{background:var(--amber-light);color:var(--amber-dark);}
+  .badge-red{background:#fee2e2;color:#991b1b;}
+  .rate-good{color:var(--green-dark);font-weight:700;}
+  .rate-mid{color:var(--amber-dark);font-weight:700;}
+  .rate-low{color:#991b1b;font-weight:700;}
+  .dash{color:var(--text-light);}
+
+  .help-mark{width:14px;height:14px;background:#94a3b8;color:white;border-radius:50%;font-size:8.5px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;cursor:default;vertical-align:middle;margin-left:3px;}
+  .tt{position:relative;display:inline-flex;align-items:center;}
+  .tt-body{display:none;position:fixed;z-index:9000;background:#1e293b;color:white;font-size:11px;border-radius:7px;padding:7px 10px;line-height:1.5;max-width:240px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.25);white-space:normal;}
+
+  .loading-msg{text-align:center;padding:40px;color:var(--text-muted);font-size:13px;}
+  .empty-state{text-align:center;padding:50px 20px;color:var(--text-light);}
+  .empty-state-icon{font-size:32px;margin-bottom:10px;}
+  .empty-state-title{font-size:14px;font-weight:700;color:var(--text-muted);margin-bottom:6px;}
+
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap;}
+  #toast.show{opacity:1;}
+
+  @media (max-width:640px){
+    .filter-bar{flex-direction:column;align-items:stretch;}
+    .filter-search{width:100%;}
+    th,td{padding:7px 8px;font-size:12px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- ログイン画面 -->
+  <section id="scr-login">
+    <div class="login-box">
+      <h1>⚓ 先生ダッシュボード</h1>
+      <p>Kurofune Word Trainer</p>
+      <div class="err" id="login-err"></div>
+      <label class="form-label">ID</label>
+      <input class="form-input" id="in-id" placeholder="例：admin" autocomplete="username">
+      <label class="form-label">パスワード</label>
+      <input class="form-input" id="in-pass" type="password" autocomplete="current-password">
+      <button class="btn-primary" id="btn-login">ログイン</button>
+    </div>
+  </section>
+
+  <!-- ダッシュボード画面 -->
+  <section id="scr-dash" style="display:none;">
+    <div class="head">
+      <div>
+        <div class="logo">⚓ 先生ダッシュボード</div>
+        <div class="sub">生徒の学習状況一覧</div>
+      </div>
+      <div class="right">
+        <span class="who">👤 <b id="who-name">—</b> 先生</span>
+        <button class="btn-ghost" id="btn-reload">🔄 更新</button>
+        <button class="btn-ghost" id="btn-logout">ログアウト</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stats-card"><div class="stats-num" id="st-total">0</div><div class="stats-lbl">在籍生徒</div></div>
+      <div class="stats-card"><div class="stats-num" id="st-today" style="color:var(--green);">0</div><div class="stats-lbl">今日 学習した</div></div>
+      <div class="stats-card"><div class="stats-num" id="st-mistake" style="color:var(--crimson);">0</div><div class="stats-lbl">間違い集 合計語数</div></div>
+    </div>
+
+    <div class="filter-bar">
+      <input class="filter-search" id="searchInput" placeholder="🔍 名前で検索" oninput="renderTable()">
+      <button class="filter-chip active" data-f="all" onclick="setFilter('all',this)">すべて</button>
+      <button class="filter-chip" data-f="today" onclick="setFilter('today',this)">今日やった</button>
+      <button class="filter-chip" data-f="not_today" onclick="setFilter('not_today',this)">今日まだ</button>
+      <span class="filter-count" id="filterCount"></span>
+    </div>
+
+    <div id="dash-body">
+      <div class="loading-msg" id="loadingMsg">⏳ 読み込み中...</div>
+      <div class="table-wrap" id="tableWrap" style="display:none;">
+        <table>
+          <thead>
+            <tr>
+              <th>生徒</th>
+              <th>学年</th>
+              <th>メインコース</th>
+              <th>いまここ</th>
+              <th>今日</th>
+              <th>最終学習</th>
+              <th>練習<br>回数</th>
+              <th>意味<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習での「英語→日本語」正答率</span></span></th>
+              <th>日→英<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習での「日本語→英語」正答率</span></span></th>
+              <th>間違い集<span class="tt"><span class="help-mark">?</span><span class="tt-body">いま復習対象になっている語数（2回連続正解で卒業）</span></span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-state-icon">👥</div>
+        <div class="empty-state-title">生徒がいません</div>
+        <div>条件を変えるか、生徒を登録してください</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
+var token=sessionStorage.getItem('kwt_t_token')||'';
+var teacherName=sessionStorage.getItem('kwt_t_name')||'';
+var _students=[];
+var _filter='all';
+function $(id){return document.getElementById(id);}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._tid);t._tid=setTimeout(function(){t.classList.remove('show');},2000);}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function call(b,_try){b.token=token;_try=_try||1;return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json();}).catch(function(){if(_try<3){return sleep(600*_try).then(function(){return call(b,_try+1);});}return {ok:false,error:'通信に失敗しました'};});}
+
+/* ツールチップ（JS制御・画面端対応） */
+(function(){var PAD=8;document.addEventListener('mouseover',function(e){var tt=e.target.closest('.tt');if(!tt)return;var body=tt.querySelector('.tt-body');if(!body)return;body.style.cssText='display:block;visibility:hidden;position:fixed;left:0;top:0;max-width:240px;';var bw=body.offsetWidth||240,bh=body.offsetHeight||40;var r=tt.getBoundingClientRect();var left=r.left+r.width/2-bw/2;var top=r.top-bh-PAD;if(top<PAD)top=r.bottom+PAD;if(left<PAD)left=PAD;if(left+bw>window.innerWidth-PAD)left=window.innerWidth-bw-PAD;body.style.cssText='display:block;visibility:visible;position:fixed;left:'+left+'px;top:'+top+'px;max-width:240px;';});document.addEventListener('mouseout',function(e){var tt=e.target.closest('.tt');if(!tt)return;var body=tt.querySelector('.tt-body');if(body)body.style.display='none';});})();
+
+/* ログイン */
+$('btn-login').onclick=function(){
+  var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();
+  $('login-err').textContent='';
+  if(!id||!pass){$('login-err').textContent='IDとパスワードを入れてください';return;}
+  this.disabled=true;this.textContent='確認中…';
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'teacher_login',login_id:id,password:pass})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      $('btn-login').disabled=false;$('btn-login').textContent='ログイン';
+      if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}
+      token=d.data.token;teacherName=d.data.teacher.name||'先生';
+      sessionStorage.setItem('kwt_t_token',token);sessionStorage.setItem('kwt_t_name',teacherName);
+      openDash();
+    }).catch(function(){$('btn-login').disabled=false;$('btn-login').textContent='ログイン';$('login-err').textContent='通信に失敗しました';});
+};
+$('btn-logout').onclick=function(){sessionStorage.removeItem('kwt_t_token');sessionStorage.removeItem('kwt_t_name');token='';$('scr-dash').style.display='none';$('scr-login').style.display='';};
+$('btn-reload').onclick=function(){loadDash();};
+
+function openDash(){
+  $('scr-login').style.display='none';$('scr-dash').style.display='';
+  $('who-name').textContent=teacherName;
+  loadDash();
+}
+
+function loadDash(){
+  $('loadingMsg').style.display='';$('tableWrap').style.display='none';$('emptyState').style.display='none';
+  call({action:'dashboard'}).then(function(d){
+    $('loadingMsg').style.display='none';
+    if(!d.ok){
+      if(d.error&&d.error.indexOf('ログイン')>=0){sessionStorage.removeItem('kwt_t_token');token='';$('scr-dash').style.display='none';$('scr-login').style.display='';$('login-err').textContent='再度ログインしてください';return;}
+      toast('読み込み失敗：'+(d.error||''));return;
+    }
+    _students=d.data.students||[];
+    // 統計
+    $('st-total').textContent=_students.length;
+    $('st-today').textContent=_students.filter(function(s){return s.did_today;}).length;
+    $('st-mistake').textContent=_students.reduce(function(a,s){return a+(s.mistake_active||0);},0);
+    renderTable();
+  });
+}
+
+function setFilter(f,el){
+  _filter=f;
+  document.querySelectorAll('.filter-chip').forEach(function(c){c.classList.remove('active');});
+  if(el)el.classList.add('active');
+  renderTable();
+}
+
+function rateCell(v){
+  if(v==='' || v===null || v===undefined)return '<span class="dash">–</span>';
+  var cls=v>=80?'rate-good':(v>=50?'rate-mid':'rate-low');
+  return '<span class="'+cls+' num">'+v+'%</span>';
+}
+function fmtDate(s){
+  if(!s)return '<span class="dash">未学習</span>';
+  // 'yyyy-MM-ddTHH:mm:ss' → 'M/D'
+  var m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(!m)return s;
+  return (parseInt(m[2],10))+'/'+(parseInt(m[3],10));
+}
+
+function renderTable(){
+  var search=($('searchInput').value||'').trim();
+  var rows=_students.filter(function(s){
+    if(_filter==='today'&&!s.did_today)return false;
+    if(_filter==='not_today'&&s.did_today)return false;
+    if(search&&String(s.name).indexOf(search)<0&&String(s.nickname).indexOf(search)<0)return false;
+    return true;
+  });
+  $('filterCount').textContent=rows.length+'名';
+  if(!rows.length){$('tableWrap').style.display='none';$('emptyState').style.display='';return;}
+  $('emptyState').style.display='none';$('tableWrap').style.display='';
+  var tb=$('tbody');tb.innerHTML='';
+  rows.forEach(function(s){
+    var tr=document.createElement('tr');
+    var todayBadge=s.did_today?'<span class="badge badge-green">✓ やった</span>':'<span class="badge badge-gray">まだ</span>';
+    var mistakeBadge=s.mistake_active>0?'<span class="badge badge-amber num">'+s.mistake_active+' 語</span>':'<span class="badge badge-gray">0</span>';
+    var modeBadge=s.mode==='support_5'?' <span class="badge badge-gray">5語</span>':'';
+    tr.innerHTML=
+      '<td><div class="t-name">'+esc(s.name||'(無名)')+modeBadge+'</div>'+(s.nickname?'<div class="t-nick">'+esc(s.nickname)+'</div>':'')+'</td>'
+      +'<td class="t-sub">'+esc(s.grade||'')+'</td>'
+      +'<td>'+(s.course?esc(s.course):'<span class="dash">未割当</span>')+'</td>'
+      +'<td class="t-sub">'+(s.list?esc(s.list):'<span class="dash">–</span>')+'</td>'
+      +'<td>'+todayBadge+'</td>'
+      +'<td class="t-sub num">'+fmtDate(s.last_studied_at)+'</td>'
+      +'<td class="num">'+(s.practice_count||0)+'</td>'
+      +'<td>'+rateCell(s.meaning_rate)+'</td>'
+      +'<td>'+rateCell(s.reverse_rate)+'</td>'
+      +'<td>'+mistakeBadge+'</td>';
+    tb.appendChild(tr);
+  });
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+/* 起動時：トークンがあればダッシュボードへ */
+if(token){openDash();}
+</script>
+</body>
+</html>
