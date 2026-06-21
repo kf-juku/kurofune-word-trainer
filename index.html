@@ -92,6 +92,9 @@
   .badge.got .bic{background:linear-gradient(135deg,var(--gold),#a9842f);color:#fff;}
   .badge.got .bsub{color:var(--gold);font-weight:700;}
   .badge.locked{opacity:.7;}
+  /* 仲間カードの獲得バッジ（最高1個）2026-06-22 */
+  .mate-badge{display:inline-flex;align-items:center;gap:4px;margin-top:4px;font-size:11px;font-weight:700;color:#7a5b16;background:linear-gradient(135deg,rgba(202,162,74,.22),rgba(202,162,74,.10));border:1px solid var(--gold);border-radius:20px;padding:2px 9px;}
+  .mate-badge i{font-size:13px;color:var(--gold);}
   /* 流れ星カード（完了画面・チーム外の合格者が流れてくる） */
   .star-card{margin-top:22px;background:linear-gradient(135deg,rgba(202,162,74,.14),rgba(10,108,255,.08));border:1px solid var(--gold);border-radius:18px;padding:16px;animation:starIn .6s ease;}
   @keyframes starIn{0%{opacity:0;transform:translateY(14px) scale(.96);}100%{opacity:1;transform:none;}}
@@ -493,7 +496,12 @@ function buildMate(m){
     likesHtml+='<button class="likebtn'+(sent?' sent':'')+'" data-to="'+m.student_id+'" data-type="'+t+'" aria-label="'+LIKE_LABEL[t]+'"'+(sent?' disabled':'')+'>'+LIKE_ICONS[t]+'<span class="chk" aria-hidden="true"><i class="ti ti-check"></i></span></button>';
   });
   likesHtml+='</div>';
-  row.innerHTML='<div class="ava">'+ini+'</div><div class="info"><div class="nm">'+m.nickname+'</div><div class="meta">'+meta+'</div></div>'+likesHtml;
+  var badgeHtml='';
+  if(m.top_badge){
+    var bic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[m.top_badge.axis])||'ti-award';
+    badgeHtml='<div class="mate-badge"><i class="ti '+bic+'"></i>'+m.top_badge.label+' '+m.top_badge.goal+m.top_badge.unit+'</div>';
+  }
+  row.innerHTML='<div class="ava">'+ini+'</div><div class="info"><div class="nm">'+m.nickname+'</div><div class="meta">'+meta+'</div>'+badgeHtml+'</div>'+likesHtml;
   var mateNick=m.nickname||'なかま';
   row.querySelectorAll('.likebtn').forEach(function(b){
     if(b.disabled)return;
