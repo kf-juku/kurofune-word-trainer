@@ -257,7 +257,12 @@
 <!-- メンバー編集モーダル -->
 <div class="modal-back" id="memModal">
   <div class="modal">
-    <h3 id="mmTitle">メンバーを選ぶ</h3>
+    <h3 id="mmTitle">チームを編集</h3>
+    <label class="form-label">チーム名</label>
+    <input class="form-input" id="mmName" placeholder="例：中1Aチーム">
+    <label class="form-label">学年の目安（任意）</label>
+    <input class="form-input" id="mmGrade" placeholder="例：中1">
+    <label class="form-label" style="margin-top:6px;">メンバー</label>
     <div class="mhint">3〜5人で1チームが目安です。チェックした生徒がこのチームの応援メンバーになります。<br>※ほかのチームに入っている生徒は薄く表示されます（選ぶとそのチームから移動します）。</div>
     <div class="pick-counter" id="mmCounter">選択中：0人</div>
     <div class="err" id="mmErr"></div>
@@ -432,7 +437,6 @@ function renderTeams(){
       +'<div class="team-members">'+memHtml+'</div>'
       +warn
       +'<div class="team-card-actions">'
-      +'<button class="btn-ghost" onclick="openMembers(\''+t.id+'\')">👥 メンバー</button>'
       +'<button class="btn-ghost" onclick="openTeamEdit(\''+t.id+'\')">✏️ 編集</button>'
       +'<button class="btn-ghost" onclick="toggleTeamActive(\''+t.id+'\')">'+(t.is_active?'⏸ 休止':'▶ 再開')+'</button>'
       +'</div>';
@@ -448,12 +452,8 @@ function openTeamCreate(){
   $('teamModal').classList.add('show');
 }
 function openTeamEdit(id){
-  var t=_teams.filter(function(x){return String(x.id)===String(id);})[0];
-  if(!t)return;
-  _modalMode='edit';_editTeamId=id;
-  $('tmTitle').textContent='チームを編集';
-  $('tmName').value=t.name||'';$('tmGrade').value=t.grade_band||'';$('tmErr').textContent='';
-  $('teamModal').classList.add('show');
+  // 名前・学年・メンバーをまとめて編集する統合モーダルを開く
+  openMembers(id);
 }
 function saveTeam(){
   var name=($('tmName').value||'').trim();
@@ -487,7 +487,9 @@ function openMembers(id){
   var t=_teams.filter(function(x){return String(x.id)===String(id);})[0];
   if(!t)return;
   _editTeamId=id;_editTeamObj=t;
-  $('mmTitle').textContent=esc(t.name||'')+' のメンバー';
+  $('mmTitle').textContent=esc(t.name||'')+' を編集';
+  $('mmName').value=t.name||'';
+  $('mmGrade').value=t.grade_band||'';
   $('mmErr').textContent='';
   // このチームの現メンバーID
   var inThis={};t.members.forEach(function(m){inThis[String(m.student_id)]=true;});
@@ -529,15 +531,22 @@ function updateMmCounter(){
   else {$('mmErr').textContent='';}
 }
 function saveMembers(){
+  // 統合モーダル：チーム名・学年（team_update）→ メンバー（team_member_set）を続けて保存
+  var name=($('mmName').value||'').trim();
+  var gb=($('mmGrade').value||'').trim();
+  if(!name){$('mmErr').textContent='チーム名を入れてください';return;}
   var ids=[];$('mmList').querySelectorAll('input:checked').forEach(function(cb){ids.push(cb.value);});
   if(ids.length>5){$('mmErr').textContent='1チームは最大5人までです';return;}
   var btn=$('mmSave');btn.disabled=true;btn.textContent='保存中…';
-  call({action:'team_member_set',team_id:_editTeamId,student_ids:ids}).then(function(d){
-    btn.disabled=false;btn.textContent='保存する';
-    if(!d.ok){$('mmErr').textContent=d.error||'保存できませんでした';return;}
-    closeModal('memModal');
-    toast('メンバーを更新しました'+(d.data&&d.data.warn?'（'+d.data.warn+'）':''));
-    loadTeams();
+  call({action:'team_update',id:_editTeamId,name:name,grade_band:gb}).then(function(d1){
+    if(!d1.ok){btn.disabled=false;btn.textContent='保存する';$('mmErr').textContent=d1.error||'チーム情報を保存できませんでした';return;}
+    call({action:'team_member_set',team_id:_editTeamId,student_ids:ids}).then(function(d2){
+      btn.disabled=false;btn.textContent='保存する';
+      if(!d2.ok){$('mmErr').textContent=d2.error||'メンバーを保存できませんでした';return;}
+      closeModal('memModal');
+      toast('チームを更新しました'+(d2.data&&d2.data.warn?'（'+d2.data.warn+'）':''));
+      loadTeams();
+    });
   });
 }
 
