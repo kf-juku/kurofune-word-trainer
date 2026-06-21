@@ -83,6 +83,19 @@
   .likebtn .chk{position:absolute;right:-4px;bottom:-4px;width:17px;height:17px;border-radius:50%;background:var(--ok);color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;border:2px solid var(--surface);box-sizing:border-box;}
   .likebtn.sent .chk{display:flex;animation:chkPop .3s ease;}
   .likebtn[disabled]{cursor:default;}
+  /* 流れ星カード（完了画面・チーム外の合格者が流れてくる） */
+  .star-card{margin-top:22px;background:linear-gradient(135deg,rgba(202,162,74,.14),rgba(10,108,255,.08));border:1px solid var(--gold);border-radius:18px;padding:16px;animation:starIn .6s ease;}
+  @keyframes starIn{0%{opacity:0;transform:translateY(14px) scale(.96);}100%{opacity:1;transform:none;}}
+  .star-card .star-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--gold);margin-bottom:10px;}
+  .star-card .star-mate{display:flex;align-items:center;gap:11px;}
+  .star-card .star-ava{width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;}
+  .star-card .star-info{flex:1;min-width:0;}
+  .star-card .star-nick{font-weight:700;font-size:15px;}
+  .star-card .star-ach{font-size:12px;color:var(--sub);margin-top:2px;}
+  .star-card .likes{margin-top:12px;justify-content:center;}
+  /* 受け取った応援の通知（ホーム） */
+  .star-recv{display:flex;align-items:center;gap:8px;background:rgba(202,162,74,.12);border:1px solid var(--gold);border-radius:14px;padding:11px 14px;margin-bottom:14px;font-size:14px;font-weight:700;color:var(--ink);}
+  .star-recv i{color:var(--gold);font-size:20px;}
   @keyframes likeBounce{0%{transform:scale(1);}35%{transform:scale(1.45);}60%{transform:scale(.85);}100%{transform:scale(1);}}
   .likebtn.bounce{animation:likeBounce .45s ease;}
   @keyframes chkPop{0%{transform:scale(0);}60%{transform:scale(1.25);}100%{transform:scale(1);}}
@@ -182,6 +195,7 @@
       </div>
     </div>
     <div class="body">
+      <div id="star-recv-area"></div>
       <div class="label"><i class="ti ti-anchor"></i> 今日のメイン学習</div>
       <div id="main-list"><div class="loading">読み込み中…</div></div>
       <div class="sec">じぶんの間違いノート</div>
@@ -224,6 +238,7 @@
       <div class="center"><span class="score-line"><span id="score-anim">0</span></span><span class="muted"> 点</span></div>
       <p class="muted center" style="margin-top:6px;">意味 <span id="done-mr"></span>％ ・ 日本語→英語 <span id="done-rr"></span>％</p>
       <p class="muted center" id="done-miss" style="margin-top:8px;"></p>
+      <div id="star-area"></div>
       <div style="margin-top:24px;">
         <button class="btn gold" id="btn-next" style="display:none;"><i class="ti ti-arrow-right"></i> つぎのリストへ進む</button>
         <button class="btn sub" id="btn-retry" style="margin-top:10px;"><i class="ti ti-refresh"></i> もう一回やる</button>
@@ -378,6 +393,7 @@ function openHome(){
     else{$('cnt-people').textContent='–';$('cnt-words').textContent='–';}
   });
   loadTeamFeed();
+  loadStarReceived();
 }
 
 // 応援SNS：チームフィード（自チームの仲間＋いいね）2026-06-21
@@ -398,6 +414,56 @@ function loadTeamFeed(){
     if(!ms.length){area.innerHTML='<div class="tmate empty">いまはチームにあなただけ。仲間が増えるのを待ってね。</div>';return;}
     area.innerHTML='';
     ms.forEach(function(m){area.appendChild(buildMate(m));});
+  });
+}
+// 流れ星：学習完了後に「その日合格したチーム外の誰か1人」を出す（いなければ何も出さない）
+function loadStar(){
+  var area=$('star-area');area.innerHTML='';
+  call({action:'shooting_star'}).then(function(d){
+    if(!d.ok||!d.data||!d.data.star)return;   // 相手がいなければ静かに何も出さない
+    area.appendChild(buildStarCard(d.data.star));
+  });
+}
+function buildStarCard(star){
+  var wrap=document.createElement('div');wrap.className='star-card';
+  var ini=(star.nickname||'?').slice(0,1);
+  var likesHtml='<div class="likes">';
+  ['like','great','congrats'].forEach(function(t){
+    likesHtml+='<button class="likebtn" data-to="'+star.student_id+'" data-type="'+t+'" aria-label="'+LIKE_LABEL[t]+'">'+LIKE_ICONS[t]+'<span class="chk" aria-hidden="true"><i class="ti ti-check"></i></span></button>';
+  });
+  likesHtml+='</div>';
+  wrap.innerHTML='<div class="star-head"><i class="ti ti-star"></i> 流れ星がとんできた！</div>'
+    +'<div class="star-mate"><div class="star-ava">'+ini+'</div>'
+    +'<div class="star-info"><div class="star-nick">'+star.nickname+'</div>'
+    +'<div class="star-ach">'+(star.achievement||'')+' に合格したよ</div></div></div>'
+    +likesHtml;
+  var nick=star.nickname||'なかま';
+  wrap.querySelectorAll('.likebtn').forEach(function(b){
+    b.onclick=function(){
+      if(b.classList.contains('sent'))return;
+      var to=b.getAttribute('data-to'),type=b.getAttribute('data-type');
+      markSent(b);
+      playLikeFx(b,wrap,type);
+      toast(nick+'に「'+LIKE_LABEL[type]+'」を送ったよ！');
+      call({action:'star_react',to_student_id:to,type:type}).then(function(r){
+        if(r.ok){return;}
+        if(r.data&&r.data.already){return;}
+        unmarkSent(b);
+        toast(r.error||'送れなかったよ。もう一度ためしてね');
+      });
+    };
+  });
+  return wrap;
+}
+// 受け取った応援の件数（送り主は出さない）
+function loadStarReceived(){
+  var area=$('star-recv-area');area.innerHTML='';
+  call({action:'star_received'}).then(function(d){
+    if(!d.ok||!d.data||!d.data.count)return;   // 0件は出さない
+    var n=d.data.count;
+    var el=document.createElement('div');el.className='star-recv';
+    el.innerHTML='<i class="ti ti-sparkles"></i> きみに '+n+' 個の応援がとどいたよ！';
+    area.appendChild(el);
   });
 }
 function buildMate(m){
@@ -453,7 +519,7 @@ function spawnSparks(btn,row){
   }
 }
 function flyToAvatar(btn,row,type){
-  var ava=row.querySelector('.ava');if(!ava)return;
+  var ava=row.querySelector('.ava')||row.querySelector('.star-ava');if(!ava)return;
   var rb=btn.getBoundingClientRect(),ra=ava.getBoundingClientRect(),rr=row.getBoundingClientRect();
   var f=document.createElement('div');f.className='flyicon';f.innerHTML=LIKE_ICONS[type];
   var sx=rb.left-rr.left+rb.width/2-11, sy=rb.top-rr.top+rb.height/2-11;
@@ -494,6 +560,7 @@ function finishSession(){var s=session;$('prog').style.width='100%';show('scr-do
     }else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').textContent='もう少し！（合格は80%）';}
     animNum($('score-anim'),score,1000);
     if(s.miss.length){$('done-miss').textContent='まちがえた単語：'+s.miss.length+'個（復習にまわしたよ）';}else{$('done-miss').textContent='';}
+    loadStar();
   });}
 $('btn-retry').onclick=function(){if(session)startPractice(session.listId);};
 
