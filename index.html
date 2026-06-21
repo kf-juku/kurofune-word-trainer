@@ -68,19 +68,27 @@
 
   .counter{display:flex;gap:12px;}
   .stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center;box-shadow:var(--shadow);}
-  .tmate{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 14px;box-shadow:var(--shadow);margin-bottom:10px;}
+  .tmate{position:relative;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 14px;box-shadow:var(--shadow);margin-bottom:10px;}
   .tmate .ava{width:42px;height:42px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
   .tmate .info{flex:1;min-width:0;}
   .tmate .nm{font-weight:700;font-size:15px;}
   .tmate .meta{font-size:12px;color:var(--sub);margin-top:2px;}
   .tmate .meta .today{color:var(--ok);font-weight:700;}
   .likes{display:flex;gap:7px;flex-shrink:0;}
-  .likebtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .12s,background .12s;}
+  .likebtn{position:relative;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .12s,background .2s,border-color .2s,opacity .2s;-webkit-tap-highlight-color:transparent;}
   .likebtn:active{transform:scale(.9);}
   .likebtn svg{width:22px;height:22px;display:block;}
-  .likebtn.sent{background:var(--gold);border-color:var(--gold);}
+  .likebtn.sent{background:var(--gold);border-color:var(--gold);opacity:.55;cursor:default;}
   .likebtn.sent svg{filter:none;}
-  .likebtn[disabled]{cursor:default;opacity:1;}
+  .likebtn .chk{position:absolute;right:-4px;bottom:-4px;width:17px;height:17px;border-radius:50%;background:var(--ok);color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;border:2px solid var(--surface);box-sizing:border-box;}
+  .likebtn.sent .chk{display:flex;animation:chkPop .3s ease;}
+  .likebtn[disabled]{cursor:default;}
+  @keyframes likeBounce{0%{transform:scale(1);}35%{transform:scale(1.45);}60%{transform:scale(.85);}100%{transform:scale(1);}}
+  .likebtn.bounce{animation:likeBounce .45s ease;}
+  @keyframes chkPop{0%{transform:scale(0);}60%{transform:scale(1.25);}100%{transform:scale(1);}}
+  .spark{position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:5;}
+  .flyicon{position:absolute;pointer-events:none;z-index:6;width:22px;height:22px;}
+  .flyicon svg{width:22px;height:22px;display:block;}
   .tmate.empty{justify-content:center;color:var(--sub);font-size:13px;}
   .stat .v{font-family:"Manrope";font-weight:800;font-size:24px;}
   .stat .k{font-size:11px;color:var(--sub);margin-top:3px;}
@@ -400,23 +408,67 @@ function buildMate(m){
   var likesHtml='<div class="likes">';
   ['like','great','congrats'].forEach(function(t){
     var sent=m.like_state&&m.like_state[t]==='sent';
-    likesHtml+='<button class="likebtn'+(sent?' sent':'')+'" data-to="'+m.student_id+'" data-type="'+t+'" aria-label="'+LIKE_LABEL[t]+'"'+(sent?' disabled':'')+'>'+LIKE_ICONS[t]+'</button>';
+    likesHtml+='<button class="likebtn'+(sent?' sent':'')+'" data-to="'+m.student_id+'" data-type="'+t+'" aria-label="'+LIKE_LABEL[t]+'"'+(sent?' disabled':'')+'>'+LIKE_ICONS[t]+'<span class="chk" aria-hidden="true"><i class="ti ti-check"></i></span></button>';
   });
   likesHtml+='</div>';
   row.innerHTML='<div class="ava">'+ini+'</div><div class="info"><div class="nm">'+m.nickname+'</div><div class="meta">'+meta+'</div></div>'+likesHtml;
+  var mateNick=m.nickname||'なかま';
   row.querySelectorAll('.likebtn').forEach(function(b){
     if(b.disabled)return;
     b.onclick=function(){
+      if(b.classList.contains('sent'))return;
       var to=b.getAttribute('data-to'),type=b.getAttribute('data-type');
-      b.disabled=true;
+      markSent(b);
+      playLikeFx(b,row,type);
+      toast(mateNick+'に「'+LIKE_LABEL[type]+'」を送ったよ！');
       call({action:'send_like',to_student_id:to,type:type}).then(function(r){
-        if(r.ok){b.classList.add('sent');toast(LIKE_LABEL[type]+'を送ったよ！');}
-        else if(r.data&&r.data.already){b.classList.add('sent');toast('今日はもう送ったよ');}
-        else{b.disabled=false;toast(r.error||'送れませんでした');}
+        if(r.ok){return;}
+        if(r.data&&r.data.already){return;}
+        unmarkSent(b);
+        toast(r.error||'送れなかったよ。もう一度ためしてね');
       });
     };
   });
   return row;
+}
+function markSent(b){b.classList.add('sent');b.disabled=true;}
+function unmarkSent(b){b.classList.remove('sent','bounce');b.disabled=false;}
+function playLikeFx(btn,row,type){
+  btn.classList.remove('bounce');void btn.offsetWidth;btn.classList.add('bounce');
+  spawnSparks(btn,row);
+  flyToAvatar(btn,row,type);
+}
+function spawnSparks(btn,row){
+  var rb=btn.getBoundingClientRect(),rr=row.getBoundingClientRect();
+  var cx=rb.left-rr.left+rb.width/2, cy=rb.top-rr.top+rb.height/2;
+  var cols=['#caa24a','#f0b429','#1faa6b','#ef9f27','#fac775'];
+  for(var i=0;i<7;i++){
+    var s=document.createElement('div');s.className='spark';
+    s.style.left=cx+'px';s.style.top=cy+'px';s.style.background=cols[i%cols.length];
+    row.appendChild(s);
+    var ang=Math.random()*6.283, dist=20+Math.random()*16;
+    var dx=Math.cos(ang)*dist, dy=Math.sin(ang)*dist;
+    s.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:'translate('+dx+'px,'+dy+'px) scale(0)',opacity:0}],{duration:520,easing:'cubic-bezier(.3,.7,.4,1)'});
+    (function(node){setTimeout(function(){if(node.parentNode)node.parentNode.removeChild(node);},560);})(s);
+  }
+}
+function flyToAvatar(btn,row,type){
+  var ava=row.querySelector('.ava');if(!ava)return;
+  var rb=btn.getBoundingClientRect(),ra=ava.getBoundingClientRect(),rr=row.getBoundingClientRect();
+  var f=document.createElement('div');f.className='flyicon';f.innerHTML=LIKE_ICONS[type];
+  var sx=rb.left-rr.left+rb.width/2-11, sy=rb.top-rr.top+rb.height/2-11;
+  var tx=ra.left-rr.left+ra.width/2-11, ty=ra.top-rr.top+ra.height/2-11;
+  f.style.left=sx+'px';f.style.top=sy+'px';
+  row.appendChild(f);
+  f.animate([
+    {left:sx+'px',top:sy+'px',opacity:0,transform:'scale(.5)'},
+    {opacity:1,offset:.2},
+    {left:tx+'px',top:ty+'px',opacity:0,transform:'scale(1.4)'}
+  ],{duration:650,easing:'cubic-bezier(.4,0,.2,1)'});
+  setTimeout(function(){
+    if(f.parentNode)f.parentNode.removeChild(f);
+    ava.animate([{transform:'scale(1)'},{transform:'scale(1.18)'},{transform:'scale(1)'}],{duration:300});
+  },660);
 }
 $('btn-home').onclick=openHome;
 
