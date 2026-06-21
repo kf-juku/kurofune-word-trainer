@@ -87,6 +87,48 @@
   .empty-state-icon{font-size:32px;margin-bottom:10px;}
   .empty-state-title{font-size:14px;font-weight:700;color:var(--text-muted);margin-bottom:6px;}
 
+  /* タブ（生徒一覧／チーム編成）2026-06-21 */
+  .tabs{display:flex;gap:6px;margin-bottom:14px;}
+  .tab{flex:0 0 auto;padding:8px 18px;border-radius:var(--radius);border:1.5px solid var(--border);background:white;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;font-family:inherit;box-shadow:var(--shadow-sm);}
+  .tab:hover{border-color:var(--crimson-mid);color:var(--crimson-dark);}
+  .tab.active{background:var(--crimson);color:white;border-color:var(--crimson);}
+
+  /* チーム編成 */
+  .team-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+  .team-toolbar .filter-count{margin-left:auto;}
+  .team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+  .team-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:14px;border:1.5px solid var(--border);}
+  .team-card.inactive{opacity:0.6;}
+  .team-card-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .team-name{font-size:15px;font-weight:800;color:var(--text);}
+  .team-gb{font-size:11px;color:var(--text-muted);}
+  .team-count{margin-left:auto;font-size:11px;font-weight:700;color:var(--crimson);}
+  .team-members{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0;}
+  .member-chip{font-size:11.5px;background:var(--surface2);border-radius:14px;padding:3px 10px;color:var(--text);}
+  .member-chip .mc-nick{color:var(--text-light);margin-left:4px;font-size:10px;}
+  .team-card-actions{display:flex;gap:6px;margin-top:8px;}
+  .team-empty-mem{font-size:11.5px;color:var(--text-light);font-style:italic;}
+  .warn-line{font-size:11px;color:var(--amber-dark);background:var(--amber-light);border-radius:6px;padding:4px 8px;margin-top:6px;}
+
+  /* モーダル（チーム作成・メンバー編集） */
+  .modal-back{position:fixed;inset:0;background:rgba(15,23,42,0.45);display:none;align-items:center;justify-content:center;z-index:9500;padding:14px;}
+  .modal-back.show{display:flex;}
+  .modal{background:white;border-radius:14px;box-shadow:var(--shadow);width:100%;max-width:440px;max-height:88vh;overflow-y:auto;padding:20px;}
+  .modal h3{font-size:16px;font-weight:800;color:var(--crimson);margin-bottom:12px;}
+  .modal .mhint{font-size:11.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;}
+  .pick-list{border:1.5px solid var(--border);border-radius:8px;max-height:300px;overflow-y:auto;margin-bottom:10px;}
+  .pick-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border-bottom:1px solid var(--surface2);cursor:pointer;font-size:13px;}
+  .pick-item:last-child{border-bottom:none;}
+  .pick-item:hover{background:var(--surface);}
+  .pick-item input{width:16px;height:16px;accent-color:var(--crimson);}
+  .pick-item .pi-nick{font-size:11px;color:var(--text-light);margin-left:4px;}
+  .pick-item .pi-grade{margin-left:auto;font-size:11px;color:var(--text-muted);}
+  .pick-item.assigned-other{opacity:0.55;}
+  .pick-item .pi-warn{font-size:10px;color:var(--amber-dark);margin-left:auto;}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;}
+  .pick-counter{font-size:12px;font-weight:700;margin-bottom:8px;}
+  .pick-counter.over{color:var(--crimson);}
+
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap;}
   #toast.show{opacity:1;}
 
@@ -128,6 +170,14 @@
       </div>
     </div>
 
+    <!-- タブ切替（生徒一覧／チーム編成）2026-06-21 -->
+    <div class="tabs">
+      <button class="tab active" id="tab-dash" onclick="switchTab('dash')">📋 生徒一覧</button>
+      <button class="tab" id="tab-teams" onclick="switchTab('teams')">🤝 チーム編成</button>
+    </div>
+
+    <!-- ===== 生徒一覧ビュー ===== -->
+    <div id="view-dash">
     <div class="stats">
       <div class="stats-card"><div class="stats-num" id="st-total">0</div><div class="stats-lbl">在籍生徒</div></div>
       <div class="stats-card"><div class="stats-num" id="st-today" style="color:var(--green);">0</div><div class="stats-lbl">今日 学習した</div></div>
@@ -169,7 +219,54 @@
         <div>条件を変えるか、生徒を登録してください</div>
       </div>
     </div>
+    </div><!-- /#view-dash -->
+
+    <!-- ===== チーム編成ビュー 2026-06-21 ===== -->
+    <div id="view-teams" style="display:none;">
+      <div class="team-toolbar">
+        <button class="btn-primary" style="width:auto;" onclick="openTeamCreate()">＋ チームを作る</button>
+        <span class="filter-count" id="teamCount"></span>
+      </div>
+      <div class="loading-msg" id="teamLoading" style="display:none;">⏳ 読み込み中...</div>
+      <div class="team-grid" id="teamGrid"></div>
+      <div class="empty-state" id="teamEmpty" style="display:none;">
+        <div class="empty-state-icon">🤝</div>
+        <div class="empty-state-title">チームがまだありません</div>
+        <div>「＋ チームを作る」で3〜5人の応援チームを作れます</div>
+      </div>
+    </div>
   </section>
+</div>
+
+<!-- チーム作成／編集モーダル -->
+<div class="modal-back" id="teamModal">
+  <div class="modal">
+    <h3 id="tmTitle">チームを作る</h3>
+    <div class="err" id="tmErr"></div>
+    <label class="form-label">チーム名</label>
+    <input class="form-input" id="tmName" placeholder="例：中1Aチーム">
+    <label class="form-label">学年の目安（任意）</label>
+    <input class="form-input" id="tmGrade" placeholder="例：中1">
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('teamModal')">やめる</button>
+      <button class="btn-primary" style="width:auto;" id="tmSave" onclick="saveTeam()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- メンバー編集モーダル -->
+<div class="modal-back" id="memModal">
+  <div class="modal">
+    <h3 id="mmTitle">メンバーを選ぶ</h3>
+    <div class="mhint">3〜5人で1チームが目安です。チェックした生徒がこのチームの応援メンバーになります。<br>※ほかのチームに入っている生徒は薄く表示されます（選ぶとそのチームから移動します）。</div>
+    <div class="pick-counter" id="mmCounter">選択中：0人</div>
+    <div class="err" id="mmErr"></div>
+    <div class="pick-list" id="mmList"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('memModal')">やめる</button>
+      <button class="btn-primary" style="width:auto;" id="mmSave" onclick="saveMembers()">保存する</button>
+    </div>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -283,6 +380,172 @@ function renderTable(){
 }
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+/* ===== チーム編成 2026-06-21 ===== */
+var _teams=[];          // teamsList の teams
+var _unassigned=[];     // 未所属の在籍生徒
+var _editTeamId=null;   // メンバー編集中のチームID
+var _editTeamObj=null;  // メンバー編集中のチーム
+var _modalMode='create';// 'create' | 'edit'（チーム情報モーダル）
+
+function switchTab(t){
+  document.getElementById('tab-dash').classList.toggle('active',t==='dash');
+  document.getElementById('tab-teams').classList.toggle('active',t==='teams');
+  $('view-dash').style.display=(t==='dash')?'':'none';
+  $('view-teams').style.display=(t==='teams')?'':'none';
+  if(t==='teams') loadTeams();
+}
+
+function loadTeams(){
+  $('teamLoading').style.display='';$('teamGrid').innerHTML='';$('teamEmpty').style.display='none';
+  call({action:'teams_list'}).then(function(d){
+    $('teamLoading').style.display='none';
+    if(!d.ok){
+      if(d.error&&d.error.indexOf('ログイン')>=0){sessionStorage.removeItem('kwt_t_token');token='';$('scr-dash').style.display='none';$('scr-login').style.display='';$('login-err').textContent='再度ログインしてください';return;}
+      toast('読み込み失敗：'+(d.error||''));return;
+    }
+    _teams=d.data.teams||[];
+    _unassigned=d.data.unassigned||[];
+    renderTeams();
+  });
+}
+
+function renderTeams(){
+  var g=$('teamGrid');g.innerHTML='';
+  $('teamCount').textContent=_teams.length+'チーム';
+  if(!_teams.length){$('teamEmpty').style.display='';return;}
+  $('teamEmpty').style.display='none';
+  _teams.forEach(function(t){
+    var card=document.createElement('div');
+    card.className='team-card'+(t.is_active?'':' inactive');
+    var memHtml=t.members.length
+      ? t.members.map(function(m){return '<span class="member-chip">'+esc(m.name||'(無名)')+(m.nickname?'<span class="mc-nick">'+esc(m.nickname)+'</span>':'')+'</span>';}).join('')
+      : '<span class="team-empty-mem">メンバー未設定</span>';
+    var warn=(t.member_count>0&&t.member_count<3)?'<div class="warn-line">⚠ 3人未満です（目安は3〜5人）</div>':'';
+    var actBadge=t.is_active?'':'<span class="badge badge-gray">休止中</span>';
+    card.innerHTML=
+      '<div class="team-card-head">'
+      +'<span class="team-name">'+esc(t.name||'(無名)')+'</span>'
+      +(t.grade_band?'<span class="team-gb">'+esc(t.grade_band)+'</span>':'')+actBadge
+      +'<span class="team-count">'+t.member_count+'人</span>'
+      +'</div>'
+      +'<div class="team-members">'+memHtml+'</div>'
+      +warn
+      +'<div class="team-card-actions">'
+      +'<button class="btn-ghost" onclick="openMembers(\''+t.id+'\')">👥 メンバー</button>'
+      +'<button class="btn-ghost" onclick="openTeamEdit(\''+t.id+'\')">✏️ 編集</button>'
+      +'<button class="btn-ghost" onclick="toggleTeamActive(\''+t.id+'\')">'+(t.is_active?'⏸ 休止':'▶ 再開')+'</button>'
+      +'</div>';
+    g.appendChild(card);
+  });
+}
+
+/* --- チーム作成／情報編集モーダル --- */
+function openTeamCreate(){
+  _modalMode='create';
+  $('tmTitle').textContent='チームを作る';
+  $('tmName').value='';$('tmGrade').value='';$('tmErr').textContent='';
+  $('teamModal').classList.add('show');
+}
+function openTeamEdit(id){
+  var t=_teams.filter(function(x){return String(x.id)===String(id);})[0];
+  if(!t)return;
+  _modalMode='edit';_editTeamId=id;
+  $('tmTitle').textContent='チームを編集';
+  $('tmName').value=t.name||'';$('tmGrade').value=t.grade_band||'';$('tmErr').textContent='';
+  $('teamModal').classList.add('show');
+}
+function saveTeam(){
+  var name=($('tmName').value||'').trim();
+  var gb=($('tmGrade').value||'').trim();
+  if(!name){$('tmErr').textContent='チーム名を入れてください';return;}
+  var btn=$('tmSave');btn.disabled=true;btn.textContent='保存中…';
+  var body=(_modalMode==='create')
+    ? {action:'team_create',name:name,grade_band:gb}
+    : {action:'team_update',id:_editTeamId,name:name,grade_band:gb};
+  call(body).then(function(d){
+    btn.disabled=false;btn.textContent='保存する';
+    if(!d.ok){$('tmErr').textContent=d.error||'保存できませんでした';return;}
+    closeModal('teamModal');
+    toast(_modalMode==='create'?'チームを作りました':'更新しました');
+    loadTeams();
+  });
+}
+
+function toggleTeamActive(id){
+  var t=_teams.filter(function(x){return String(x.id)===String(id);})[0];
+  if(!t)return;
+  call({action:'team_update',id:id,is_active:!t.is_active}).then(function(d){
+    if(!d.ok){toast('変更できませんでした：'+(d.error||''));return;}
+    toast(t.is_active?'休止しました':'再開しました');
+    loadTeams();
+  });
+}
+
+/* --- メンバー編集モーダル --- */
+function openMembers(id){
+  var t=_teams.filter(function(x){return String(x.id)===String(id);})[0];
+  if(!t)return;
+  _editTeamId=id;_editTeamObj=t;
+  $('mmTitle').textContent=esc(t.name||'')+' のメンバー';
+  $('mmErr').textContent='';
+  // このチームの現メンバーID
+  var inThis={};t.members.forEach(function(m){inThis[String(m.student_id)]=true;});
+  // 他チーム所属マップ（このチーム以外）
+  var otherTeam={};
+  _teams.forEach(function(tt){ if(String(tt.id)===String(id))return;
+    tt.members.forEach(function(m){otherTeam[String(m.student_id)]=tt.name;}); });
+  // 候補＝このチームのメンバー＋未所属＋他チーム所属（全員出すが他チームは薄く）
+  var cand=[];
+  t.members.forEach(function(m){cand.push({student_id:m.student_id,name:m.name,nickname:m.nickname,grade:m.grade});});
+  _unassigned.forEach(function(u){cand.push(u);});
+  // 他チーム所属者も候補に出す（移動できる）
+  _teams.forEach(function(tt){ if(String(tt.id)===String(id))return;
+    tt.members.forEach(function(m){cand.push({student_id:m.student_id,name:m.name,nickname:m.nickname,grade:m.grade});}); });
+  // 重複除去
+  var seen={},uniq=[];
+  cand.forEach(function(c){var k=String(c.student_id);if(!seen[k]){seen[k]=true;uniq.push(c);}});
+  var list=$('mmList');list.innerHTML='';
+  uniq.forEach(function(c){
+    var sid=String(c.student_id);
+    var checked=inThis[sid]?'checked':'';
+    var other=otherTeam[sid];
+    var row=document.createElement('label');
+    row.className='pick-item'+(other?' assigned-other':'');
+    row.innerHTML='<input type="checkbox" value="'+sid+'" '+checked+' onchange="updateMmCounter()">'
+      +'<span>'+esc(c.name||'(無名)')+(c.nickname?'<span class="pi-nick">'+esc(c.nickname)+'</span>':'')+'</span>'
+      +(other?'<span class="pi-warn">'+esc(other)+'に所属</span>':'<span class="pi-grade">'+esc(c.grade||'')+'</span>');
+    list.appendChild(row);
+  });
+  updateMmCounter();
+  $('memModal').classList.add('show');
+}
+function updateMmCounter(){
+  var n=$('mmList').querySelectorAll('input:checked').length;
+  var c=$('mmCounter');c.textContent='選択中：'+n+'人';
+  c.classList.toggle('over',n>5);
+  if(n>5){$('mmErr').textContent='1チームは最大5人までです';}
+  else if(n>0&&n<3){$('mmErr').textContent='3人未満です（目安は3〜5人。保存はできます）';}
+  else {$('mmErr').textContent='';}
+}
+function saveMembers(){
+  var ids=[];$('mmList').querySelectorAll('input:checked').forEach(function(cb){ids.push(cb.value);});
+  if(ids.length>5){$('mmErr').textContent='1チームは最大5人までです';return;}
+  var btn=$('mmSave');btn.disabled=true;btn.textContent='保存中…';
+  call({action:'team_member_set',team_id:_editTeamId,student_ids:ids}).then(function(d){
+    btn.disabled=false;btn.textContent='保存する';
+    if(!d.ok){$('mmErr').textContent=d.error||'保存できませんでした';return;}
+    closeModal('memModal');
+    toast('メンバーを更新しました'+(d.data&&d.data.warn?'（'+d.data.warn+'）':''));
+    loadTeams();
+  });
+}
+
+function closeModal(id){$(id).classList.remove('show');}
+/* モーダル背景クリックで閉じる */
+['teamModal','memModal'].forEach(function(id){
+  var el=$(id);if(el)el.addEventListener('click',function(e){if(e.target===el)closeModal(id);});
+});
 
 /* 起動時：トークンがあればダッシュボードへ */
 if(token){openDash();}
