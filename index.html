@@ -199,6 +199,8 @@
       <div id="main-list"><div class="loading">読み込み中…</div></div>
       <div class="sec">じぶんの間違いノート</div>
       <div id="note-area"><div class="loading">読み込み中…</div></div>
+      <div class="sec">今日の復習（＋α）</div>
+      <div id="review-srs-area"><div class="loading">読み込み中…</div></div>
       <div class="sec">リスト一覧 ・ 何回でも復習</div>
       <div id="review-area"><div class="loading">読み込み中…</div></div>
       <div class="sec">チームの仲間</div>
@@ -393,6 +395,7 @@ function openHome(){
   });
   loadTeamFeed();
   loadStarReceived();
+  loadReviewSrs();
 }
 
 // 応援SNS：スタンプ3種 like/great/congrats（確定デザイン2026-06-21）。
@@ -642,6 +645,73 @@ function noteRetry(subject){
     if(!d.ok||!d.data.words.length){toast('間違いはもうありません！');openHome();return;}
     startNote(subject,d.data.words);
   });
+}
+
+/* ===== 今日の復習（間隔反復・box方式）2026-06-22 ===== */
+/* メインで合格したリストの単語を、忘れたころに再出題。英→日＋日→英の両方正解で review_grade(correct:true)。
+   box3で正解したら卒業。誤答候補は同じ復習セット内の他単語から作る。 */
+var srsSes=null;
+function loadReviewSrs(){
+  var area=$('review-srs-area');
+  call({action:'review_due'}).then(function(d){
+    if(!d.ok){area.innerHTML='<p class="muted">—</p>';return;}
+    var ws=d.data.words||[];
+    if(!ws.length){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">今日の復習はなし！</div><div class="sub">合格した単語が、忘れたころにここへ出てくるよ</div></div></div>';return;}
+    var n=ws.length, total=d.data.due_total||n;
+    area.innerHTML='';
+    var card=document.createElement('div');card.className='note-card';
+    var more=(total>n)?('　ほか'+(total-n)+'語は明日'):'';
+    card.innerHTML='<div class="note-ic"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">今日の復習</div><div class="sub">わすれない うちに もう一回'+more+'</div></div><div class="cnt">'+n+'<small> 語</small></div>';
+    card.onclick=function(){startReviewSrs(ws);};
+    area.appendChild(card);
+  });
+}
+function startReviewSrs(words){
+  if(!words||!words.length){toast('今日の復習はありません');return;}
+  show('scr-practice');combo=0;
+  srsSes={words:words,idx:0,step:2,wordOK:true,graduated:0,total:words.length};
+  renderSrsStep();
+}
+function renderSrsStep(){
+  var s=srsSes,w=s.words[s.idx],tot=s.words.length;
+  $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
+  $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';
+  $('step-label').textContent='復習 '+(s.idx+1)+' / '+tot+'語目';
+  var pool=s.words;
+  if(s.step===2){
+    $('e2j-en').textContent=w.english;
+    buildChoices('e2j-choices',w.japanese,pool.map(function(x){return x.japanese;}),function(ok){
+      if(!ok)s.wordOK=false;
+      setTimeout(function(){s.step=3;renderSrsStep();},650);
+    });
+    $('step-e2j').style.display='block';
+  }else if(s.step===3){
+    $('j2e-ja').textContent=w.japanese;
+    buildChoices('j2e-choices',w.english,pool.map(function(x){return x.english;}),function(ok){
+      if(!ok)s.wordOK=false;
+      setTimeout(function(){submitSrsWord();},650);
+    });
+    $('step-j2e').style.display='block';
+  }
+}
+function submitSrsWord(){
+  var s=srsSes,w=s.words[s.idx],correct=s.wordOK;
+  call({action:'review_grade',progress_id:w.progress_id,correct:correct}).then(function(d){
+    if(d&&d.ok&&d.data&&d.data.graduated){s.graduated++;toast('「'+w.english+'」をマスター！🎓');}
+    s.idx++;s.step=2;s.wordOK=true;
+    if(s.idx>=s.words.length){finishSrs();}else renderSrsStep();
+  });
+}
+function finishSrs(){
+  var s=srsSes;$('prog').style.width='100%';show('scr-done');
+  $('btn-next').style.display='none';
+  $('done-badge').innerHTML='<i class="ti ti-clock-bolt" style="color:var(--gold)"></i>';
+  $('done-result').textContent='今日の復習おつかれさま！';
+  $('done-mr').textContent='–';$('done-rr').textContent='–';$('score-anim').textContent='';
+  $('done-miss').textContent=s.graduated?('今回 '+s.graduated+'語 マスター！🎓'):('この調子でくり返すと だんだん間かくが あくよ');
+  if(s.graduated){sndWin();flash();confetti(100);}
+  $('btn-retry').style.display='none';
+  $('btn-home').onclick=openHome;
 }
 
 if(token){openHome();}
