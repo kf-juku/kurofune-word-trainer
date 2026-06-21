@@ -179,6 +179,12 @@
   .streak-dots{display:flex;gap:6px;justify-content:center;margin:10px 0 2px;}
   .streak-dots i{width:9px;height:9px;border-radius:50%;background:var(--ring-track);display:inline-block;}
   .streak-dots i.on{background:var(--ok);}
+  .pron-result{margin-top:12px;border-radius:14px;padding:12px 14px;font-weight:700;font-size:15px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .pron-result.ok{background:rgba(31,170,107,.12);color:var(--ok);}
+  .pron-result.retry{background:rgba(224,83,60,.10);color:var(--ng);}
+  .pron-result.listening{background:var(--accent-soft);color:var(--accent);}
+  .pron-result .heard{font-weight:500;color:var(--sub);font-size:12.5px;}
+  #btn-mic.rec{background:var(--ng);}
 </style>
 </head>
 <body>
@@ -236,7 +242,9 @@
       <div class="card" id="step-listen" style="display:none;">
         <div class="word-en" id="w-en"></div><div class="reading" id="w-reading"></div>
         <button class="btn sub" id="btn-sound"><i class="ti ti-volume"></i> 音声を聞く</button>
-        <button class="btn" id="btn-spoke" style="margin-top:10px;"><i class="ti ti-microphone"></i> 発音した！つぎへ</button>
+        <button class="btn" id="btn-mic" style="margin-top:10px;"><i class="ti ti-microphone"></i> 声に出して言ってみよう</button>
+        <div id="pron-result" class="pron-result" style="display:none;"></div>
+        <button class="btn ghost" id="btn-spoke" style="margin-top:10px;">発音した！つぎへ <i class="ti ti-arrow-right"></i></button>
       </div>
       <div class="card" id="step-e2j" style="display:none;">
         <div class="word-en" id="e2j-en"></div><p class="center muted" style="margin-bottom:14px;">意味を選ぼう</p><div id="e2j-choices"></div>
@@ -562,19 +570,65 @@ function flyToAvatar(btn,row,type){
 }
 $('btn-home').onclick=openHome;
 
-function startPractice(listId){show('scr-practice');$('step-label').textContent='よみこみ中…';combo=0;$('btn-retry').onclick=function(){if(session)startPractice(session.listId);};$('btn-retry').style.display='flex';$('btn-next').style.display='none';call({action:'student_today',word_list_id:listId}).then(function(d){if(!d.ok){toast(d.error||'読み込み失敗');openHome();return;}session={listId:listId,words:d.data.words,idx:0,step:1,meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[]};renderStep();});}
+function startPractice(listId){show('scr-practice');$('step-label').textContent='よみこみ中…';combo=0;$('btn-retry').onclick=function(){if(session)startPractice(session.listId);};$('btn-retry').style.display='flex';$('btn-next').style.display='none';call({action:'student_today',word_list_id:listId}).then(function(d){if(!d.ok){toast(d.error||'読み込み失敗');openHome();return;}session={listId:listId,words:d.data.words,idx:0,step:1,meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{}};renderStep();});}
 function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-label').textContent=(s.idx+1)+' / '+totalSteps+'語目';
-  if(s.step===1){$('w-en').textContent=w.english;$('w-reading').textContent=w.reading_hint||'';$('step-listen').style.display='block';speak(w);}
+  if(s.step===1){$('w-en').textContent=w.english;$('w-reading').textContent=w.reading_hint||'';$('step-listen').style.display='block';resetPronUI();speak(w);}
   else if(s.step===2){$('e2j-en').textContent=w.english;buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok){if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}setTimeout(function(){s.step=3;renderStep();},650);});$('step-e2j').style.display='block';}
   else if(s.step===3){$('j2e-ja').textContent=w.japanese;buildChoices('j2e-choices',w.english,s.words.map(function(x){return x.english;}),function(ok){if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}setTimeout(function(){nextWord();},650);});$('step-j2e').style.display='block';}}
 function pushMiss(id){if(session.miss.indexOf(id)<0)session.miss.push(id);}
 function nextWord(){var s=session;s.idx++;s.step=1;if(s.idx>=s.words.length){finishSession();}else renderStep();}
 $('btn-sound').onclick=function(){speak(session.words[session.idx]);};
-$('btn-spoke').onclick=function(){session.step=2;renderStep();};
+$('btn-spoke').onclick=function(){countSelfReportIfNeeded();session.step=2;renderStep();};
 function speak(w){try{if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(w.tts_text||w.english);u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}}catch(e){}}
+
+/* ===== 発音認識（参考値・合否に含めない）2026-06-22 =====
+   川上さん確定：マイクで言ってみる→認識できる端末はenglish/acceptable_speech_resultsと照合してOK/もう一回。
+   何回でも試せる。非対応端末・失敗時は「発音した！つぎへ」で自己申告(attemptsのみ加算)。
+   judge：小文字化＋記号/空白除去の完全一致、ダメなら許容語に含むか。あいまい一致は入れない。 */
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+var pronRec=null,pronBusy=false;
+function normWord_(t){return String(t||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
+function judgePron_(heard,w){
+  var h=normWord_(heard);if(!h)return false;
+  if(h===normWord_(w.english))return true;
+  var acc=(w.acceptable_speech_results||'').split(',');
+  for(var i=0;i<acc.length;i++){if(acc[i]&&normWord_(acc[i])===h)return true;}
+  return false;
+}
+function resetPronUI(){
+  var r=$('pron-result');if(r){r.style.display='none';r.className='pron-result';r.innerHTML='';}
+  var b=$('btn-mic');if(b){b.classList.remove('rec');b.innerHTML='<i class="ti ti-microphone"></i> 声に出して言ってみよう';b.disabled=false;}
+  pronBusy=false;
+}
+function pronShow_(cls,html){var r=$('pron-result');if(!r)return;r.className='pron-result '+cls;r.innerHTML=html;r.style.display='flex';}
+/* 自己申告：認識でまだ1回も計上していない単語のみ attempts を1加算（重複加算しない） */
+function countSelfReportIfNeeded(){
+  var s=session;if(!s)return;var k=String(s.idx);
+  if(!s.pronDoneIdx[k]){s.pronAttempts++;s.pronDoneIdx[k]=true;}
+}
+$('btn-mic').onclick=function(){
+  var s=session;if(!s)return;var w=s.words[s.idx];
+  if(!SR){pronShow_('retry','この端末は音声認識に未対応だよ。「発音した！つぎへ」で進もう');return;}
+  if(pronBusy)return;pronBusy=true;
+  var b=$('btn-mic');b.classList.add('rec');b.innerHTML='<i class="ti ti-microphone"></i> きいてるよ…';
+  pronShow_('listening','<i class="ti ti-microphone"></i> マイクに向かって言ってね');
+  try{
+    pronRec=new SR();pronRec.lang='en-US';pronRec.interimResults=false;pronRec.maxAlternatives=3;
+    pronRec.onresult=function(ev){
+      var ok=false,heard='';
+      for(var i=0;i<ev.results[0].length;i++){var alt=ev.results[0][i].transcript;if(i===0)heard=alt;if(judgePron_(alt,w)){ok=true;heard=alt;break;}}
+      s.pronAttempts++;s.pronDoneIdx[String(s.idx)]=true;
+      if(ok){s.pronSuccesses++;pronShow_('ok','<i class="ti ti-check"></i> いいね！うまく言えたよ');sndCorrect&&sndCorrect();}
+      else{pronShow_('retry','<span><i class="ti ti-refresh"></i> もう一回ためしてみよう</span><span class="heard">きこえた音：'+(heard||'…')+'</span>');}
+    };
+    pronRec.onerror=function(){pronShow_('retry','うまくきき取れなかった。もう一回か「発音した！つぎへ」で進もう');};
+    pronRec.onend=function(){pronBusy=false;var bb=$('btn-mic');if(bb){bb.classList.remove('rec');bb.innerHTML='<i class="ti ti-microphone"></i> もう一回言ってみる';}};
+    pronRec.start();
+  }catch(e){pronBusy=false;pronShow_('retry','マイクが使えなかった。「発音した！つぎへ」で進もう');}
+};
 function buildChoices(containerId,correct,pool,cb){var box=$(containerId);box.innerHTML='';var others=shuffle(pool.filter(function(x){return x!==correct;})).slice(0,3);var opts=shuffle([correct].concat(others));opts.forEach(function(opt){var b=document.createElement('button');b.className='choice';b.textContent=opt;b.onclick=function(){var ok=(opt===correct);Array.prototype.forEach.call(box.children,function(c){c.disabled=true;});b.classList.add(ok?'correct':'wrong');if(ok){combo++;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(c.textContent===correct)c.classList.add('correct');});}cb(ok);};box.appendChild(b);});}
 function finishSession(){var s=session;$('prog').style.width='100%';show('scr-done');$('done-result').textContent='送信中…';$('done-badge').innerHTML='<i class="ti ti-loader-2"></i>';$('btn-next').style.display='none';
-  call({action:'session_complete',word_list_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode}).then(function(d){
+  call({action:'session_complete',word_list_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses}).then(function(d){
     var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100),score=Math.round((mr+rr)/2);
     $('done-mr').textContent=mr;$('done-rr').textContent=rr;
     if(!d.ok){$('done-result').textContent='結果の保存に失敗しました';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}
