@@ -68,6 +68,20 @@
 
   .counter{display:flex;gap:12px;}
   .stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center;box-shadow:var(--shadow);}
+  .tmate{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 14px;box-shadow:var(--shadow);margin-bottom:10px;}
+  .tmate .ava{width:42px;height:42px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
+  .tmate .info{flex:1;min-width:0;}
+  .tmate .nm{font-weight:700;font-size:15px;}
+  .tmate .meta{font-size:12px;color:var(--sub);margin-top:2px;}
+  .tmate .meta .today{color:var(--ok);font-weight:700;}
+  .likes{display:flex;gap:7px;flex-shrink:0;}
+  .likebtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .12s,background .12s;}
+  .likebtn:active{transform:scale(.9);}
+  .likebtn svg{width:22px;height:22px;display:block;}
+  .likebtn.sent{background:var(--gold);border-color:var(--gold);}
+  .likebtn.sent svg{filter:none;}
+  .likebtn[disabled]{cursor:default;opacity:1;}
+  .tmate.empty{justify-content:center;color:var(--sub);font-size:13px;}
   .stat .v{font-family:"Manrope";font-weight:800;font-size:24px;}
   .stat .k{font-size:11px;color:var(--sub);margin-top:3px;}
 
@@ -166,6 +180,8 @@
       <div id="note-area"><div class="loading">読み込み中…</div></div>
       <div class="sec">リスト一覧 ・ 何回でも復習</div>
       <div id="review-area"><div class="loading">読み込み中…</div></div>
+      <div class="sec">チームの仲間</div>
+      <div id="team-area"><div class="loading">読み込み中…</div></div>
       <div class="sec">クロフネ全体</div>
       <div class="counter">
         <div class="stat"><div class="v num" id="cnt-people">–</div><div class="k">今日 学習中</div></div>
@@ -353,6 +369,54 @@ function openHome(){
     if(d.ok&&d.data){animNum($('cnt-people'),d.data.today_people||0,1000);animNum($('cnt-words'),d.data.week_words||0,1200);}
     else{$('cnt-people').textContent='–';$('cnt-words').textContent='–';}
   });
+  loadTeamFeed();
+}
+
+// 応援SNS：チームフィード（自チームの仲間＋いいね）2026-06-21
+// スタンプ3種 like/great/congrats（絵柄は仮：錨/金の星/宝箱）。同じ相手・同じ種類は1日1回。
+var LIKE_ICONS={
+  like:'<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#0f6e56" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="2.2"/><line x1="12" y1="6.5" x2="12" y2="19"/><line x1="8" y1="9.5" x2="16" y2="9.5"/><path d="M6.5 14.5 Q6.5 19 12 19 Q17.5 19 17.5 14.5"/></g></svg>',
+  great:'<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,2.5 14.4,8.2 20.6,8.7 15.9,12.8 17.4,18.8 12,15.5 6.6,18.8 8.1,12.8 3.4,8.7 9.6,8.2" fill="#f0b429" stroke="#8a5a00" stroke-width="1"/></svg>',
+  congrats:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="1.5" fill="#ef9f27" stroke="#8a5a00" stroke-width="1.2"/><path d="M4 11 Q4 6 12 6 Q20 6 20 11 Z" fill="#fac775" stroke="#8a5a00" stroke-width="1.2"/><rect x="10.5" y="9" width="3" height="5" rx="1" fill="#8a5a00"/></svg>'
+};
+var LIKE_LABEL={like:'いいね',great:'すごい',congrats:'おめでとう'};
+function loadTeamFeed(){
+  var area=$('team-area');
+  area.innerHTML='<div class="loading">読み込み中…</div>';
+  call({action:'team_feed'}).then(function(d){
+    if(!d.ok){area.innerHTML='<p class="muted">—</p>';return;}
+    if(!d.data.in_team){area.innerHTML='<div class="tmate empty">まだチームに入っていないよ。先生がチームを作ってくれるのを待ってね。</div>';return;}
+    var ms=d.data.members||[];
+    if(!ms.length){area.innerHTML='<div class="tmate empty">いまはチームにあなただけ。仲間が増えるのを待ってね。</div>';return;}
+    area.innerHTML='';
+    ms.forEach(function(m){area.appendChild(buildMate(m));});
+  });
+}
+function buildMate(m){
+  var row=document.createElement('div');row.className='tmate';
+  var ini=(m.nickname||'?').slice(0,1);
+  var meta=m.did_today?'<span class="today">今日やったよ！</span>　今週 '+(m.week_words||0)+'語'
+                       :(m.last_studied?('さいご '+m.last_studied+'　今週 '+(m.week_words||0)+'語'):'まだ学習がないよ');
+  var likesHtml='<div class="likes">';
+  ['like','great','congrats'].forEach(function(t){
+    var sent=m.like_state&&m.like_state[t]==='sent';
+    likesHtml+='<button class="likebtn'+(sent?' sent':'')+'" data-to="'+m.student_id+'" data-type="'+t+'" aria-label="'+LIKE_LABEL[t]+'"'+(sent?' disabled':'')+'>'+LIKE_ICONS[t]+'</button>';
+  });
+  likesHtml+='</div>';
+  row.innerHTML='<div class="ava">'+ini+'</div><div class="info"><div class="nm">'+m.nickname+'</div><div class="meta">'+meta+'</div></div>'+likesHtml;
+  row.querySelectorAll('.likebtn').forEach(function(b){
+    if(b.disabled)return;
+    b.onclick=function(){
+      var to=b.getAttribute('data-to'),type=b.getAttribute('data-type');
+      b.disabled=true;
+      call({action:'send_like',to_student_id:to,type:type}).then(function(r){
+        if(r.ok){b.classList.add('sent');toast(LIKE_LABEL[type]+'を送ったよ！');}
+        else if(r.data&&r.data.already){b.classList.add('sent');toast('今日はもう送ったよ');}
+        else{b.disabled=false;toast(r.error||'送れませんでした');}
+      });
+    };
+  });
+  return row;
 }
 $('btn-home').onclick=openHome;
 
