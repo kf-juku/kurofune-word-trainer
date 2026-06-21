@@ -82,6 +82,16 @@
   .likebtn .chk{position:absolute;right:-4px;bottom:-4px;width:17px;height:17px;border-radius:50%;background:var(--ok);color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;border:2px solid var(--surface);box-sizing:border-box;}
   .likebtn.sent .chk{display:flex;animation:chkPop .3s ease;}
   .likebtn[disabled]{cursor:default;}
+  /* バッジ（実績の節目）2026-06-22 */
+  .badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .badge{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 8px;text-align:center;box-shadow:var(--shadow);}
+  .badge .bic{width:42px;height:42px;border-radius:50%;margin:0 auto 7px;display:flex;align-items:center;justify-content:center;font-size:21px;background:var(--bg);color:var(--sub);}
+  .badge .bttl{font-size:12px;font-weight:700;color:var(--ink);line-height:1.25;}
+  .badge .bsub{font-size:10.5px;color:var(--sub);margin-top:3px;}
+  .badge.got{border-color:var(--gold);background:linear-gradient(135deg,rgba(202,162,74,.13),rgba(202,162,74,.04));}
+  .badge.got .bic{background:linear-gradient(135deg,var(--gold),#a9842f);color:#fff;}
+  .badge.got .bsub{color:var(--gold);font-weight:700;}
+  .badge.locked{opacity:.7;}
   /* 流れ星カード（完了画面・チーム外の合格者が流れてくる） */
   .star-card{margin-top:22px;background:linear-gradient(135deg,rgba(202,162,74,.14),rgba(10,108,255,.08));border:1px solid var(--gold);border-radius:18px;padding:16px;animation:starIn .6s ease;}
   @keyframes starIn{0%{opacity:0;transform:translateY(14px) scale(.96);}100%{opacity:1;transform:none;}}
@@ -201,6 +211,8 @@
       <div id="note-area"><div class="loading">読み込み中…</div></div>
       <div class="sec">今日の復習（＋α）</div>
       <div id="review-srs-area"><div class="loading">読み込み中…</div></div>
+      <div class="sec">バッジ</div>
+      <div id="badge-area"><div class="loading">読み込み中…</div></div>
       <div class="sec">リスト一覧 ・ 何回でも復習</div>
       <div id="review-area"><div class="loading">読み込み中…</div></div>
       <div class="sec">チームの仲間</div>
@@ -396,6 +408,7 @@ function openHome(){
   loadTeamFeed();
   loadStarReceived();
   loadReviewSrs();
+  loadBadges();
 }
 
 // 応援SNS：スタンプ3種 like/great/congrats（確定デザイン2026-06-21）。
@@ -712,6 +725,33 @@ function finishSrs(){
   if(s.graduated){sndWin();flash();confetti(100);}
   $('btn-retry').style.display='none';
   $('btn-home').onclick=openHome;
+}
+
+/* ===== バッジ（実績の節目）2026-06-22 ===== */
+var BADGE_ICONS={streak:'ti-flame',words:'ti-book-2',lists:'ti-trophy',plusalpha:'ti-bolt'};
+function loadBadges(){
+  var area=$('badge-area');
+  call({action:'badges'}).then(function(d){
+    if(!d.ok||!d.data){area.innerHTML='<p class="muted">—</p>';return;}
+    var list=d.data.badges||[];
+    var got=d.data.achieved_count||0, tot=d.data.total||list.length;
+    area.innerHTML='';
+    var head=document.createElement('div');head.className='muted';head.style.marginBottom='10px';
+    head.innerHTML='ゲットしたバッジ <b style="color:var(--gold)">'+got+'</b> / '+tot;
+    area.appendChild(head);
+    var grid=document.createElement('div');grid.className='badge-grid';
+    list.forEach(function(b){
+      var el=document.createElement('div');
+      el.className='badge '+(b.achieved?'got':'locked');
+      var ic=BADGE_ICONS[b.axis]||'ti-award';
+      var sub=b.achieved?'ゲット！':('あと '+b.remaining+b.unit);
+      el.innerHTML='<div class="bic"><i class="ti '+ic+'"></i></div>'
+        +'<div class="bttl">'+b.label+'<br>'+b.goal+b.unit+'</div>'
+        +'<div class="bsub">'+sub+'</div>';
+      grid.appendChild(el);
+    });
+    area.appendChild(grid);
+  });
 }
 
 if(token){openHome();}
