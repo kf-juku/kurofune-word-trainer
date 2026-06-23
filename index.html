@@ -56,6 +56,14 @@
   .hero .course{font-size:18px;font-weight:700;letter-spacing:-.01em;}
   .hero .list{font-size:13px;color:var(--sub);margin-top:2px;}
   .hero .cta{margin-top:10px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--accent);}
+  /* 本日の学習カードの新情報（形式・教科・パート）新構造2026-06-23 */
+  .hero .htop{display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-wrap:wrap;}
+  .hpill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:7px;letter-spacing:.02em;}
+  .hpill.daily{background:rgba(31,170,107,.12);color:var(--ok);}
+  .hpill.test{background:rgba(202,162,74,.16);color:var(--gold);}
+  .hero .hsubj{font-size:11px;color:var(--sub);font-weight:500;}
+  .hero .hdue{font-size:10.5px;color:var(--gold);font-weight:700;}
+  .hero .list .rnd{color:var(--gold);font-weight:700;}
 
   .list-row{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s;}
   .list-row:active{transform:scale(.985);}
@@ -368,6 +376,9 @@ $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.pre
 $('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスコードを入れてね';return;}this.disabled=true;this.textContent='確認中…';fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'student_login',login_id:id,passcode:pass})}).then(function(r){return r.json();}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';mode=d.data.student.mode||'normal';sessionStorage.setItem('kwt_token',token);sessionStorage.setItem('kwt_nick',nickname);sessionStorage.setItem('kwt_mode',mode);openHome();});};
 $('btn-logout').onclick=function(){sessionStorage.clear();token='';show('scr-login');};
 
+/* 新構造ヘルパー（2026-06-23）：教科ラベル＋HTMLエスケープ */
+function subjLabel(s){var m={english:'英語',math:'数学',science:'理科',social:'社会',japanese:'国語'};return m[s]||s;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function openHome(){
   $('nick').textContent=nickname;syncThemeIcon();show('scr-home');
   $('btn-nick-edit').onclick=openNickModal;
@@ -379,7 +390,20 @@ function openHome(){
     if(!main.length){$('main-list').innerHTML='<p class="muted">今日のメイン学習はありません。先生にきいてね。</p>';}
     else{$('main-list').innerHTML='';main.forEach(function(m){
       var h=document.createElement('div');h.className='hero';
-      h.innerHTML='<div class="ring"><svg width="78" height="78"><circle cx="39" cy="39" r="33" fill="none" stroke="var(--ring-track)" stroke-width="7"></circle><circle cx="39" cy="39" r="33" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="207" stroke-dashoffset="207" class="ringfg"></circle></svg><div class="pct">⚓</div></div><div><div class="course">'+m.course_title+'</div><div class="list">いまここ：'+m.word_list_title+'</div><div class="cta">はじめる <i class="ti ti-arrow-right"></i></div></div>';
+      var isTest=(m.content_type==='test');
+      // 形式ピル（毎日学習/テスト配信）＋教科
+      var fmtPill=isTest?'<span class="hpill test">テスト配信</span>':'<span class="hpill daily">毎日学習</span>';
+      var subj=m.subject?'<span class="hsubj">'+subjLabel(m.subject)+'</span>':'';
+      // パート表記：パートが複数ある教材だけ「パート名」を出す（1つだけなら出さない）
+      var partLine=(m.part_count>1)?esc(m.word_list_title):'';
+      // リングのアイコン（形式で色分け・進捗連動は次スライス）
+      var ringStroke=isTest?'var(--gold)':'var(--accent)';
+      var ic=isTest?'<i class="ti ti-flag" style="font-size:22px;color:var(--gold)"></i>':'<i class="ti ti-anchor" style="font-size:22px;color:var(--accent)"></i>';
+      h.innerHTML='<div class="ring"><svg width="78" height="78"><circle cx="39" cy="39" r="33" fill="none" stroke="var(--ring-track)" stroke-width="7"></circle><circle cx="39" cy="39" r="33" fill="none" stroke="'+ringStroke+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="207" stroke-dashoffset="207" class="ringfg"></circle></svg><div class="pct">'+ic+'</div></div>'
+        +'<div style="flex:1;min-width:0;"><div class="htop">'+fmtPill+subj+'</div>'
+        +'<div class="course">'+esc(m.course_title)+'</div>'
+        +(partLine?'<div class="list">'+partLine+'</div>':'')
+        +'<div class="cta">はじめる <i class="ti ti-arrow-right"></i></div></div>';
       h.onclick=function(){startPractice(m.word_list_id);};
       $('main-list').appendChild(h);
     });}
