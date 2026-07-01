@@ -82,12 +82,18 @@
   .print-student:last-child{page-break-after:auto;}
   .print-h{font-size:18px;font-weight:800;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:6px;}
   .print-sub{font-size:12px;color:#333;margin-bottom:12px;}
-  .print-item{border:1px solid #999;border-radius:6px;padding:8px 10px;margin-bottom:8px;}
-  .print-q{font-size:15px;font-weight:700;}
-  .print-a{font-size:14px;margin-top:3px;}
-  .print-r{font-size:12px;color:#555;margin-top:2px;}
-  .print-k{font-size:12px;color:#222;margin-top:4px;border-top:1px dashed #ccc;padding-top:4px;}
+  .print-item{display:flex;border:1px solid #999;border-radius:6px;margin-bottom:6px;overflow:hidden;page-break-inside:avoid;}
+  .pi-q{width:45%;padding:7px 10px;font-size:15px;font-weight:700;border-right:1px dashed #999;}
+  .pi-a{width:55%;padding:7px 10px;}
+  .pi-ans{font-size:14px;font-weight:700;}
+  .pi-r{font-size:12px;color:#555;margin-top:2px;}
+  .pi-k{font-size:12px;color:#222;margin-top:4px;border-top:1px dashed #ccc;padding-top:3px;}
+  .print-cols-head{display:flex;font-size:11px;color:#666;margin-bottom:4px;}
+  .print-cols-head span:first-child{width:45%;}
   .print-none{color:#666;font-size:13px;}
+  .print-ctrl{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-muted);}
+  .print-ctrl select,.print-ctrl input{border:1.5px solid var(--border);border-radius:8px;padding:3px 5px;font-size:12px;font-family:inherit;}
+  .print-ctrl input{width:42px;text-align:center;}
 
   /* テーブル */
   .table-wrap{background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow-x:auto;}
@@ -112,7 +118,8 @@
 
   .help-mark{width:14px;height:14px;background:#94a3b8;color:white;border-radius:50%;font-size:8.5px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;cursor:default;vertical-align:middle;margin-left:3px;}
   .tt{position:relative;display:inline-flex;align-items:center;}
-  .tt-body{display:none;position:fixed;z-index:9000;background:#1e293b;color:white;font-size:11px;border-radius:7px;padding:7px 10px;line-height:1.5;max-width:240px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.25);white-space:normal;}
+  .tt-body{display:none;}
+  .tt-float{position:fixed;z-index:99999;background:#1e293b;color:white;font-size:11px;border-radius:7px;padding:7px 10px;line-height:1.5;max-width:260px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.25);white-space:normal;display:none;}
 
   .loading-msg{text-align:center;padding:40px;color:var(--text-muted);font-size:13px;}
   .empty-state{text-align:center;padding:50px 20px;color:var(--text-light);}
@@ -225,7 +232,16 @@
       <label class="inactive-th">😴 <input id="inactiveDays" type="number" min="1" max="99" value="7" onchange="onInactiveDaysChange()">日以上を色表示</label>
       <button class="sort-chip" id="chip-needhelp" onclick="toggleNeedHelp(this)">📣 指導必要順</button>
       <label class="inactive-th">📣 正答率 <input id="needHelpRate" type="number" min="1" max="100" value="60" onchange="onNeedHelpRateChange()">% 未満を色表示</label>
-      <button class="sort-chip no-print" onclick="printSelected()" style="border-color:var(--crimson);color:var(--crimson);font-weight:700;">🖨 選んだ子を印刷</button>
+      <span class="print-ctrl no-print">🖨
+        <select id="printScope" onchange="onPrintScopeChange()">
+          <option value="active">まちがえ中ぜんぶ</option>
+          <option value="recent">直近</option>
+          <option value="graduated">復習チェック</option>
+        </select>
+        <span id="printDaysWrap" style="display:none;"><input id="printDays" type="number" min="1" max="99" value="7">日</span>
+        上限<input id="printLimit" type="number" min="1" max="99" value="20">語
+        <button class="sort-chip" onclick="printSelected()" style="border-color:var(--crimson);color:var(--crimson);font-weight:700;">選んだ子を印刷</button>
+      </span>
       <span class="filter-count" id="filterCount"></span>
     </div>
 
@@ -330,20 +346,23 @@ function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
 function call(b,_try){b.token=token;_try=_try||1;return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json();}).catch(function(){if(_try<3){return sleep(600*_try).then(function(){return call(b,_try+1);});}return {ok:false,error:'通信に失敗しました'};});}
 
 /* ツールチップ（JS制御・画面端対応） */
-(function(){var PAD=6;
-function place(tt){var body=tt.querySelector('.tt-body');if(!body)return;
-  body.style.cssText='display:block;visibility:hidden;position:fixed;left:0;top:0;max-width:260px;';
-  var bw=body.offsetWidth||240,bh=body.offsetHeight||40;var r=tt.getBoundingClientRect();
+(function(){var PAD=6,tip=null;
+function ensure(){if(!tip){tip=document.createElement('div');tip.className='tt-float';document.body.appendChild(tip);}return tip;}
+document.addEventListener('mouseover',function(e){
+  var tt=e.target.closest('.tt');if(!tt)return;
+  var src=tt.querySelector('.tt-body');if(!src)return;
+  var t=ensure();t.textContent=src.textContent;
+  t.style.cssText='position:fixed;z-index:99999;display:block;visibility:hidden;left:0;top:0;max-width:260px;';
+  var bw=t.offsetWidth||240,bh=t.offsetHeight||40;var r=tt.getBoundingClientRect();
   var left=r.left+r.width/2-bw/2;
-  var top=r.bottom+PAD;                                   // 既定は「?」の直下（つながって見えるように）
-  if(top+bh>window.innerHeight-PAD)top=r.top-bh-PAD;      // 下に入らなければ上に出す
+  var top=r.bottom+PAD;                                   // 既定は「?」の直下
+  if(top+bh>window.innerHeight-PAD)top=r.top-bh-PAD;      // 下に入らなければ上
   if(top<PAD)top=PAD;
   if(left<PAD)left=PAD;
   if(left+bw>window.innerWidth-PAD)left=window.innerWidth-bw-PAD;
-  body.style.cssText='display:block;visibility:visible;position:fixed;left:'+left+'px;top:'+top+'px;max-width:260px;';
-}
-document.addEventListener('mouseover',function(e){var tt=e.target.closest('.tt');if(!tt)return;place(tt);});
-document.addEventListener('mouseout',function(e){var tt=e.target.closest('.tt');if(!tt)return;var body=tt.querySelector('.tt-body');if(body)body.style.display='none';});
+  t.style.cssText='position:fixed;z-index:99999;display:block;visibility:visible;left:'+left+'px;top:'+top+'px;max-width:260px;';
+});
+document.addEventListener('mouseout',function(e){var tt=e.target.closest('.tt');if(!tt)return;if(tip)tip.style.display='none';});
 })();
 
 /* ログイン */
@@ -373,6 +392,10 @@ function openDash(){
 
 function loadDash(){
   $('loadingMsg').style.display='';$('tableWrap').style.display='none';$('emptyState').style.display='none';
+  (function(){var sc=localStorage.getItem('kwt_print_scope');if(sc&&$('printScope'))$('printScope').value=sc;
+    var pd=localStorage.getItem('kwt_print_days');if(pd&&$('printDays'))$('printDays').value=pd;
+    var pl=localStorage.getItem('kwt_print_limit');if(pl&&$('printLimit'))$('printLimit').value=pl;
+    if($('printScope'))onPrintScopeChange();})();
   call({action:'dashboard'}).then(function(d){
     $('loadingMsg').style.display='none';
     if(!d.ok){
@@ -423,27 +446,39 @@ function needsHelp(s){return hasTeach(s)&&s.teach_rate<_needHelpRate;}
 function teachCell(s){if(!hasTeach(s))return '<span class="dash">–</span>';var low=s.teach_rate<_needHelpRate;return '<span class="teach-rate '+(low?'teach-low':'')+' num">'+s.teach_rate+'%</span>';}
 function toggleAll(el){document.querySelectorAll('#tbody .rowchk').forEach(function(c){c.checked=el.checked;});}
 function getCheckedIds(){var a=[];document.querySelectorAll('#tbody .rowchk:checked').forEach(function(c){a.push(c.value);});return a;}
+function onPrintScopeChange(){
+  var sc=$('printScope').value;
+  $('printDaysWrap').style.display=(sc==='recent')?'':'none';
+  localStorage.setItem('kwt_print_scope',sc);
+}
 function printSelected(){
   var ids=getCheckedIds();
   if(!ids.length){toast('印刷する生徒をチェックしてください');return;}
+  var scope=$('printScope').value;
+  var days=parseInt($('printDays').value,10);if(!(days>=1))days=7;
+  var limit=parseInt($('printLimit').value,10);if(!(limit>=1))limit=20;
+  localStorage.setItem('kwt_print_days',days);localStorage.setItem('kwt_print_limit',limit);
+  var subLbl=(scope==='recent')?('直近'+days+'日にまちがえた問題'):(scope==='graduated')?'復習チェック（前にやって克服した語）':'まちがえた問題（間違いノート）';
   toast('印刷データを準備中…');
-  call({action:'teacher_mistakes',student_ids:ids.join(',')}).then(function(d){
+  call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit}).then(function(d){
     if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
     var sts=d.data.students||[];
     var html='';
     sts.forEach(function(s){
       html+='<div class="print-student">';
       html+='<div class="print-h">'+esc(s.name||'(無名)')+(s.grade?' <span style="font-size:13px;font-weight:500;">'+esc(s.grade)+'</span>':'')+'</div>';
-      html+='<div class="print-sub">まちがえた問題（間違いノート）'+(s.nickname?' ／ '+esc(s.nickname):'')+'</div>';
-      if(!s.items||!s.items.length){html+='<div class="print-none">いまはまちがえている問題はありません。</div>';}
-      else{s.items.forEach(function(it,idx){
-        html+='<div class="print-item">';
-        html+='<div class="print-q">'+(idx+1)+'. '+esc(it.english||'')+'</div>';
-        html+='<div class="print-a">答え：'+esc(it.japanese||'')+'</div>';
-        if(it.reading_hint)html+='<div class="print-r">読み方：'+esc(it.reading_hint)+'</div>';
-        if(it.kaisetsu)html+='<div class="print-k">解説：'+esc(it.kaisetsu)+'</div>';
-        html+='</div>';
-      });}
+      html+='<div class="print-sub">'+subLbl+(s.nickname?' ／ '+esc(s.nickname):'')+'</div>';
+      if(!s.items||!s.items.length){html+='<div class="print-none">'+((scope==='graduated')?'まだ克服した語がありません。':'いまはまちがえている問題はありません。')+'</div>';}
+      else{
+        html+='<div class="print-cols-head"><span>問題</span><span>答え・覚え方（折って隠せます）</span></div>';
+        s.items.forEach(function(it,idx){
+          html+='<div class="print-item"><div class="pi-q">'+(idx+1)+'. '+esc(it.english||'')+'</div>';
+          html+='<div class="pi-a"><div class="pi-ans">'+esc(it.japanese||'')+'</div>';
+          if(it.reading_hint)html+='<div class="pi-r">読み方：'+esc(it.reading_hint)+'</div>';
+          if(it.kaisetsu)html+='<div class="pi-k">覚え方：'+esc(it.kaisetsu)+'</div>';
+          html+='</div></div>';
+        });
+      }
       html+='</div>';
     });
     $('printArea').innerHTML=html;
