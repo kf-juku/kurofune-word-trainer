@@ -70,6 +70,24 @@
   tr.row-needhelp td:first-child{box-shadow:inset 3px 0 0 #d9820e;}
   .teach-rate{font-size:12.5px;font-weight:700;}
   .teach-low{color:#d9820e;}
+  /* 印刷（指導が必要な子のまちがえた問題）2026-07-02 */
+  .rowchk,.chkall{width:16px;height:16px;cursor:pointer;}
+  #printArea{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printArea,#printArea *{visibility:visible;}
+    #printArea{position:absolute;left:0;top:0;width:100%;display:block !important;}
+  }
+  .print-student{page-break-after:always;padding:8mm 6mm;color:#000;}
+  .print-student:last-child{page-break-after:auto;}
+  .print-h{font-size:18px;font-weight:800;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:6px;}
+  .print-sub{font-size:12px;color:#333;margin-bottom:12px;}
+  .print-item{border:1px solid #999;border-radius:6px;padding:8px 10px;margin-bottom:8px;}
+  .print-q{font-size:15px;font-weight:700;}
+  .print-a{font-size:14px;margin-top:3px;}
+  .print-r{font-size:12px;color:#555;margin-top:2px;}
+  .print-k{font-size:12px;color:#222;margin-top:4px;border-top:1px dashed #ccc;padding-top:4px;}
+  .print-none{color:#666;font-size:13px;}
 
   /* テーブル */
   .table-wrap{background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow-x:auto;}
@@ -207,6 +225,7 @@
       <label class="inactive-th">😴 <input id="inactiveDays" type="number" min="1" max="99" value="7" onchange="onInactiveDaysChange()">日以上を色表示</label>
       <button class="sort-chip" id="chip-needhelp" onclick="toggleNeedHelp(this)">📣 指導必要順</button>
       <label class="inactive-th">📣 正答率 <input id="needHelpRate" type="number" min="1" max="100" value="60" onchange="onNeedHelpRateChange()">% 未満を色表示</label>
+      <button class="sort-chip no-print" onclick="printSelected()" style="border-color:var(--crimson);color:var(--crimson);font-weight:700;">🖨 選んだ子を印刷</button>
       <span class="filter-count" id="filterCount"></span>
     </div>
 
@@ -216,6 +235,7 @@
         <table>
           <thead>
             <tr>
+              <th style="width:26px;"><input type="checkbox" class="chkall" id="chkAll" onclick="toggleAll(this)" title="全選択"></th>
               <th>生徒</th>
               <th>学年</th>
               <th>メインコース</th>
@@ -297,6 +317,7 @@
 
 <div id="toast"></div>
 
+<div id="printArea"></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
 var token=sessionStorage.getItem('kwt_t_token')||'';
@@ -309,7 +330,21 @@ function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
 function call(b,_try){b.token=token;_try=_try||1;return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json();}).catch(function(){if(_try<3){return sleep(600*_try).then(function(){return call(b,_try+1);});}return {ok:false,error:'通信に失敗しました'};});}
 
 /* ツールチップ（JS制御・画面端対応） */
-(function(){var PAD=8;document.addEventListener('mouseover',function(e){var tt=e.target.closest('.tt');if(!tt)return;var body=tt.querySelector('.tt-body');if(!body)return;body.style.cssText='display:block;visibility:hidden;position:fixed;left:0;top:0;max-width:240px;';var bw=body.offsetWidth||240,bh=body.offsetHeight||40;var r=tt.getBoundingClientRect();var left=r.left+r.width/2-bw/2;var top=r.top-bh-PAD;if(top<PAD)top=r.bottom+PAD;if(left<PAD)left=PAD;if(left+bw>window.innerWidth-PAD)left=window.innerWidth-bw-PAD;body.style.cssText='display:block;visibility:visible;position:fixed;left:'+left+'px;top:'+top+'px;max-width:240px;';});document.addEventListener('mouseout',function(e){var tt=e.target.closest('.tt');if(!tt)return;var body=tt.querySelector('.tt-body');if(body)body.style.display='none';});})();
+(function(){var PAD=6;
+function place(tt){var body=tt.querySelector('.tt-body');if(!body)return;
+  body.style.cssText='display:block;visibility:hidden;position:fixed;left:0;top:0;max-width:260px;';
+  var bw=body.offsetWidth||240,bh=body.offsetHeight||40;var r=tt.getBoundingClientRect();
+  var left=r.left+r.width/2-bw/2;
+  var top=r.bottom+PAD;                                   // 既定は「?」の直下（つながって見えるように）
+  if(top+bh>window.innerHeight-PAD)top=r.top-bh-PAD;      // 下に入らなければ上に出す
+  if(top<PAD)top=PAD;
+  if(left<PAD)left=PAD;
+  if(left+bw>window.innerWidth-PAD)left=window.innerWidth-bw-PAD;
+  body.style.cssText='display:block;visibility:visible;position:fixed;left:'+left+'px;top:'+top+'px;max-width:260px;';
+}
+document.addEventListener('mouseover',function(e){var tt=e.target.closest('.tt');if(!tt)return;place(tt);});
+document.addEventListener('mouseout',function(e){var tt=e.target.closest('.tt');if(!tt)return;var body=tt.querySelector('.tt-body');if(body)body.style.display='none';});
+})();
 
 /* ログイン */
 $('btn-login').onclick=function(){
@@ -386,6 +421,35 @@ function onNeedHelpRateChange(){var v=parseInt($('needHelpRate').value,10);if(!(
 function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate!==undefined;}
 function needsHelp(s){return hasTeach(s)&&s.teach_rate<_needHelpRate;}
 function teachCell(s){if(!hasTeach(s))return '<span class="dash">–</span>';var low=s.teach_rate<_needHelpRate;return '<span class="teach-rate '+(low?'teach-low':'')+' num">'+s.teach_rate+'%</span>';}
+function toggleAll(el){document.querySelectorAll('#tbody .rowchk').forEach(function(c){c.checked=el.checked;});}
+function getCheckedIds(){var a=[];document.querySelectorAll('#tbody .rowchk:checked').forEach(function(c){a.push(c.value);});return a;}
+function printSelected(){
+  var ids=getCheckedIds();
+  if(!ids.length){toast('印刷する生徒をチェックしてください');return;}
+  toast('印刷データを準備中…');
+  call({action:'teacher_mistakes',student_ids:ids.join(',')}).then(function(d){
+    if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
+    var sts=d.data.students||[];
+    var html='';
+    sts.forEach(function(s){
+      html+='<div class="print-student">';
+      html+='<div class="print-h">'+esc(s.name||'(無名)')+(s.grade?' <span style="font-size:13px;font-weight:500;">'+esc(s.grade)+'</span>':'')+'</div>';
+      html+='<div class="print-sub">まちがえた問題（間違いノート）'+(s.nickname?' ／ '+esc(s.nickname):'')+'</div>';
+      if(!s.items||!s.items.length){html+='<div class="print-none">いまはまちがえている問題はありません。</div>';}
+      else{s.items.forEach(function(it,idx){
+        html+='<div class="print-item">';
+        html+='<div class="print-q">'+(idx+1)+'. '+esc(it.english||'')+'</div>';
+        html+='<div class="print-a">答え：'+esc(it.japanese||'')+'</div>';
+        if(it.reading_hint)html+='<div class="print-r">読み方：'+esc(it.reading_hint)+'</div>';
+        if(it.kaisetsu)html+='<div class="print-k">解説：'+esc(it.kaisetsu)+'</div>';
+        html+='</div>';
+      });}
+      html+='</div>';
+    });
+    $('printArea').innerHTML=html;
+    setTimeout(function(){window.print();},80);
+  });
+}
 function lastStudiedCell(s){var da=daysAgo(s.last_studied_at);if(da===null)return '<div class="dash">未学習</div>';var lbl=da<=0?'今日':(da===1?'昨日':da+'日前');var warn=(da>=_inactiveDays)?' warn':'';var m=String(s.last_studied_at).match(/^(\d{4})-(\d{2})-(\d{2})/);var md=m?(parseInt(m[2],10)+'/'+parseInt(m[3],10)):'';return '<div class="num" style="font-size:12px;">'+md+'</div><div class="last-ago'+warn+'">'+lbl+'</div>';}
 function renderTable(){
   var search=($('searchInput').value||'').trim();
@@ -410,7 +474,8 @@ function renderTable(){
     var mistakeBadge=s.mistake_active>0?'<span class="badge badge-amber num">'+s.mistake_active+' 語</span>':'<span class="badge badge-gray">0</span>';
     var modeBadge=s.mode==='support_5'?' <span class="badge badge-gray">5語</span>':'';
     tr.innerHTML=
-      '<td><div class="t-name">'+esc(s.name||'(無名)')+modeBadge+'</div>'+(s.nickname?'<div class="t-nick">'+esc(s.nickname)+'</div>':'')+'</td>'
+      '<td><input type="checkbox" class="rowchk" value="'+esc(String(s.student_id))+'"></td>'
+      +'<td><div class="t-name">'+esc(s.name||'(無名)')+modeBadge+'</div>'+(s.nickname?'<div class="t-nick">'+esc(s.nickname)+'</div>':'')+'</td>'
       +'<td class="t-sub">'+esc(s.grade||'')+'</td>'
       +'<td>'+(s.course?esc(s.course):'<span class="dash">未割当</span>')+'</td>'
       +'<td class="t-sub">'+(s.list?esc(s.list):'<span class="dash">–</span>')+'</td>'
