@@ -56,6 +56,20 @@
   .filter-chip:hover{border-color:var(--crimson-mid);color:var(--crimson-dark);}
   .filter-chip.active{background:var(--crimson-light);color:var(--crimson-dark);border-color:var(--crimson);font-weight:700;}
   .filter-count{font-size:12px;color:var(--crimson);font-weight:600;margin-left:auto;}
+  /* やってない子アラート 2026-07-02 */
+  .sort-chip{display:inline-flex;align-items:center;padding:3px 11px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:11.5px;cursor:pointer;font-family:inherit;color:var(--text-muted);font-weight:500;white-space:nowrap;}
+  .sort-chip.active{background:var(--crimson);color:white;border-color:var(--crimson);}
+  .inactive-th{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--text-muted);font-weight:500;white-space:nowrap;}
+  .inactive-th input{width:42px;border:1.5px solid var(--border);border-radius:8px;padding:3px 5px;font-size:12px;font-family:inherit;text-align:center;}
+  tr.row-inactive td{background:rgba(214,69,69,.07);}
+  tr.row-inactive td:first-child{box-shadow:inset 3px 0 0 var(--crimson);}
+  .last-ago{font-size:11px;color:var(--text-muted);}
+  .last-ago.warn{color:var(--crimson);font-weight:700;}
+  /* 指導必要アラート 2026-07-02 */
+  tr.row-needhelp td{background:rgba(240,159,39,.10);}
+  tr.row-needhelp td:first-child{box-shadow:inset 3px 0 0 #d9820e;}
+  .teach-rate{font-size:12.5px;font-weight:700;}
+  .teach-low{color:#d9820e;}
 
   /* テーブル */
   .table-wrap{background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow-x:auto;}
@@ -189,6 +203,10 @@
       <button class="filter-chip active" data-f="all" onclick="setFilter('all',this)">すべて</button>
       <button class="filter-chip" data-f="today" onclick="setFilter('today',this)">今日やった</button>
       <button class="filter-chip" data-f="not_today" onclick="setFilter('not_today',this)">今日まだ</button>
+      <button class="sort-chip" id="chip-oldest" onclick="toggleOldest(this)">😴 やってない順</button>
+      <label class="inactive-th">😴 <input id="inactiveDays" type="number" min="1" max="99" value="7" onchange="onInactiveDaysChange()">日以上を色表示</label>
+      <button class="sort-chip" id="chip-needhelp" onclick="toggleNeedHelp(this)">📣 指導必要順</button>
+      <label class="inactive-th">📣 正答率 <input id="needHelpRate" type="number" min="1" max="100" value="60" onchange="onNeedHelpRateChange()">% 未満を色表示</label>
       <span class="filter-count" id="filterCount"></span>
     </div>
 
@@ -207,6 +225,7 @@
               <th>練習<br>回数</th>
               <th>意味<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習での「英語→日本語」正答率</span></span></th>
               <th>日→英<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習での「日本語→英語」正答率</span></span></th>
+              <th>指導<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近3セッションの平均正答率（意味と日→英の平均）。設定した％未満は「指導おすすめ」で色付き。まだ練習がない子は未評価（–）。</span></span></th>
               <th>発音<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習でマイクに向かって発音した回数と、うち正しく認識された回数（参考値・合否には使いません）</span></span></th>
               <th>間違い集<span class="tt"><span class="help-mark">?</span><span class="tt-body">いま復習対象になっている語数（2回連続正解で卒業）</span></span></th>
               <th>定着度<span class="tt"><span class="help-mark">?</span><span class="tt-body">この生徒の単語の記憶状態。緑=覚えた／黄=覚えかけ／青=学習中／赤=弱点（間違いノート）。未学習は未集計。</span></span></th>
@@ -354,6 +373,20 @@ function fmtDate(s){
   return (parseInt(m[2],10))+'/'+(parseInt(m[3],10));
 }
 
+var _sortOldest=false;
+var _inactiveDays=(function(){var v=parseInt(localStorage.getItem('kwt_inactive_days'),10);return (v>=1&&v<=99)?v:7;})();
+function toggleOldest(el){_sortOldest=!_sortOldest;if(_sortOldest){_sortNeedHelp=false;var c=$('chip-needhelp');if(c)c.classList.remove('active');}el.classList.toggle('active',_sortOldest);renderTable();}
+function onInactiveDaysChange(){var v=parseInt($('inactiveDays').value,10);if(!(v>=1&&v<=99)){v=7;$('inactiveDays').value=7;}_inactiveDays=v;localStorage.setItem('kwt_inactive_days',v);renderTable();}
+function daysAgo(ss){if(!ss)return null;var m=String(ss).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return null;var d=new Date(parseInt(m[1],10),parseInt(m[2],10)-1,parseInt(m[3],10));var t=new Date();var t0=new Date(t.getFullYear(),t.getMonth(),t.getDate());return Math.round((t0-d)/86400000);}
+function isInactive(s){var da=daysAgo(s.last_studied_at);return da===null||da>=_inactiveDays;}
+var _sortNeedHelp=false;
+var _needHelpRate=(function(){var v=parseInt(localStorage.getItem('kwt_needhelp_rate'),10);return (v>=1&&v<=100)?v:60;})();
+function toggleNeedHelp(el){_sortNeedHelp=!_sortNeedHelp;if(_sortNeedHelp){_sortOldest=false;var c=$('chip-oldest');if(c)c.classList.remove('active');}el.classList.toggle('active',_sortNeedHelp);renderTable();}
+function onNeedHelpRateChange(){var v=parseInt($('needHelpRate').value,10);if(!(v>=1&&v<=100)){v=60;$('needHelpRate').value=60;}_needHelpRate=v;localStorage.setItem('kwt_needhelp_rate',v);renderTable();}
+function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate!==undefined;}
+function needsHelp(s){return hasTeach(s)&&s.teach_rate<_needHelpRate;}
+function teachCell(s){if(!hasTeach(s))return '<span class="dash">–</span>';var low=s.teach_rate<_needHelpRate;return '<span class="teach-rate '+(low?'teach-low':'')+' num">'+s.teach_rate+'%</span>';}
+function lastStudiedCell(s){var da=daysAgo(s.last_studied_at);if(da===null)return '<div class="dash">未学習</div>';var lbl=da<=0?'今日':(da===1?'昨日':da+'日前');var warn=(da>=_inactiveDays)?' warn':'';var m=String(s.last_studied_at).match(/^(\d{4})-(\d{2})-(\d{2})/);var md=m?(parseInt(m[2],10)+'/'+parseInt(m[3],10)):'';return '<div class="num" style="font-size:12px;">'+md+'</div><div class="last-ago'+warn+'">'+lbl+'</div>';}
 function renderTable(){
   var search=($('searchInput').value||'').trim();
   var rows=_students.filter(function(s){
@@ -362,12 +395,17 @@ function renderTable(){
     if(search&&String(s.name).indexOf(search)<0&&String(s.nickname).indexOf(search)<0)return false;
     return true;
   });
+  var _idi=$('inactiveDays');if(_idi&&String(_inactiveDays)!==_idi.value)_idi.value=_inactiveDays;
+  var _nhr=$('needHelpRate');if(_nhr&&String(_needHelpRate)!==_nhr.value)_nhr.value=_needHelpRate;
+  if(_sortOldest){rows.sort(function(a,b){var da=daysAgo(a.last_studied_at),db=daysAgo(b.last_studied_at);var va=(da===null)?1e9:da,vb=(db===null)?1e9:db;return vb-va;});}
+  else if(_sortNeedHelp){rows.sort(function(a,b){var va=hasTeach(a)?a.teach_rate:1e9,vb=hasTeach(b)?b.teach_rate:1e9;return va-vb;});}
   $('filterCount').textContent=rows.length+'名';
   if(!rows.length){$('tableWrap').style.display='none';$('emptyState').style.display='';return;}
   $('emptyState').style.display='none';$('tableWrap').style.display='';
   var tb=$('tbody');tb.innerHTML='';
   rows.forEach(function(s){
     var tr=document.createElement('tr');
+    var _cls=[];if(isInactive(s))_cls.push('row-inactive');if(needsHelp(s))_cls.push('row-needhelp');tr.className=_cls.join(' ');
     var todayBadge=s.did_today?'<span class="badge badge-green">✓ やった</span>':'<span class="badge badge-gray">まだ</span>';
     var mistakeBadge=s.mistake_active>0?'<span class="badge badge-amber num">'+s.mistake_active+' 語</span>':'<span class="badge badge-gray">0</span>';
     var modeBadge=s.mode==='support_5'?' <span class="badge badge-gray">5語</span>':'';
@@ -377,10 +415,11 @@ function renderTable(){
       +'<td>'+(s.course?esc(s.course):'<span class="dash">未割当</span>')+'</td>'
       +'<td class="t-sub">'+(s.list?esc(s.list):'<span class="dash">–</span>')+'</td>'
       +'<td>'+todayBadge+'</td>'
-      +'<td class="t-sub num">'+fmtDate(s.last_studied_at)+'</td>'
+      +'<td class="t-sub">'+lastStudiedCell(s)+'</td>'
       +'<td class="num">'+(s.practice_count||0)+'</td>'
       +'<td>'+rateCell(s.meaning_rate)+'</td>'
       +'<td>'+rateCell(s.reverse_rate)+'</td>'
+      +'<td>'+teachCell(s)+'</td>'
       +'<td>'+pronCell(s.pron_attempts,s.pron_successes)+'</td>'
       +'<td>'+mistakeBadge+'</td>'
       +'<td>'+retentionCell(s.retention)+'</td>';
