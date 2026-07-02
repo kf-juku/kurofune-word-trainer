@@ -365,9 +365,9 @@
 
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
-var token=sessionStorage.getItem('kwt_token')||'';
-var nickname=sessionStorage.getItem('kwt_nick')||'';
-var mode=sessionStorage.getItem('kwt_mode')||'normal';
+var token=localStorage.getItem('kwt_token')||'';
+var nickname=localStorage.getItem('kwt_nick')||'';
+var mode=localStorage.getItem('kwt_mode')||'normal';
 var session=null, combo=0, audioCtx=null;
 function $(id){return document.getElementById(id);}
 function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');window.scrollTo(0,0);}
@@ -420,7 +420,7 @@ function saveNick(){
     btn.disabled=false;btn.textContent='変更する';
     if(!d.ok){$('nick-err').textContent=d.error||'変更できませんでした';return;}
     nickname=d.data.nickname;
-    sessionStorage.setItem('kwt_nick',nickname);
+    localStorage.setItem('kwt_nick',nickname);
     $('nick').textContent=nickname;
     closeNickModal();
     if(d.data.unchanged){toast('ニックネームはそのままだよ');}
@@ -454,8 +454,8 @@ $('nick-cancel').onclick=closeNickModal;
 $('nick-save').onclick=saveNick;
 $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
-$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスコードを入れてね';return;}this.disabled=true;this.textContent='確認中…';fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'student_login',login_id:id,passcode:pass})}).then(function(r){return r.json();}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';mode=d.data.student.mode||'normal';sessionStorage.setItem('kwt_token',token);sessionStorage.setItem('kwt_nick',nickname);sessionStorage.setItem('kwt_mode',mode);openHome();});};
-$('btn-logout').onclick=function(){sessionStorage.clear();token='';show('scr-login');};
+$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスコードを入れてね';return;}this.disabled=true;this.textContent='確認中…';fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'student_login',login_id:id,passcode:pass})}).then(function(r){return r.json();}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';mode=d.data.student.mode||'normal';localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
+$('btn-logout').onclick=function(){localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');token='';show('scr-login');};
 
 /* 新構造ヘルパー（2026-06-23）：教科ラベル＋HTMLエスケープ */
 function subjLabel(s){var m={english:'英語',math:'数学',science:'理科',social:'社会',japanese:'国語'};return m[s]||s;}
@@ -475,7 +475,7 @@ function openHome(){
   $('main-list').innerHTML='<div class="loading">読み込み中…</div>';
   $('review-area').innerHTML='<div class="loading">読み込み中…</div>';
   call({action:'student_home'}).then(function(d){
-    if(!d.ok){if(d.error&&d.error.indexOf('ログイン')>=0){sessionStorage.clear();show('scr-login');}return;}
+    if(!d.ok){if(d.error&&d.error.indexOf('ログイン')>=0){localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');show('scr-login');}return;}
     var main=d.data.main||[];
     if(!main.length){$('main-list').innerHTML='<p class="muted">今日のメイン学習はありません。先生にきいてね。</p>';}
     else{$('main-list').innerHTML='';main.forEach(function(m){
