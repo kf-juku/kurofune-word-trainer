@@ -12,6 +12,7 @@
     --blue:#3b82f6; --blue-light:#dbeafe; --blue-dark:#1d4ed8;
     --green:#10b981; --green-light:#d1fae5; --green-dark:#065f46;
     --amber:#f59e0b; --amber-light:#fef3c7; --amber-dark:#92400e;
+    --purple:#8b5cf6; --purple-light:#ede9fe; --purple-dark:#5b21b6;
     --gray:#6b7280; --gray-light:#f3f4f6;
     --shadow-sm:0 1px 3px rgba(0,0,0,0.08); --shadow:0 4px 12px rgba(0,0,0,0.08);
     --radius:10px;
@@ -56,6 +57,9 @@
   .filter-chip:hover{border-color:var(--crimson-mid);color:var(--crimson-dark);}
   .filter-chip.active{background:var(--crimson-light);color:var(--crimson-dark);border-color:var(--crimson);font-weight:700;}
   .filter-count{font-size:12px;color:var(--crimson);font-weight:600;margin-left:auto;}
+  /* 川上さん指示(2026-07-02)：学年の複数選択フィルタ＋教室フィルタ */
+  .filter-row2{flex-basis:100%;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+  .filter-label{font-size:10px;font-weight:700;color:var(--text-muted);white-space:nowrap;}
   /* やってない子アラート 2026-07-02 */
   .sort-chip{display:inline-flex;align-items:center;padding:3px 11px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:11.5px;cursor:pointer;font-family:inherit;color:var(--text-muted);font-weight:500;white-space:nowrap;}
   .sort-chip.active{background:var(--crimson);color:white;border-color:var(--crimson);}
@@ -94,6 +98,10 @@
   .print-ctrl{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-muted);}
   .print-ctrl select,.print-ctrl input{border:1.5px solid var(--border);border-radius:8px;padding:3px 5px;font-size:12px;font-family:inherit;}
   .print-ctrl input{width:42px;text-align:center;}
+  /* 川上さん指示(2026-07-02)：印刷ボタンは一目で印刷と分かる見た目（標準アイコン＋ボタンらしい形） */
+  .btn-print{display:inline-flex;align-items:center;gap:5px;background:var(--crimson);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;min-height:32px;}
+  .btn-print:hover{background:var(--crimson-dark);}
+  .btn-print svg{flex-shrink:0;}
 
   /* テーブル */
   .table-wrap{background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow-x:auto;}
@@ -121,6 +129,13 @@
   .tt-body{display:none;}
   .tt-float{position:fixed;z-index:99999;background:#1e293b;color:white;font-size:11px;border-radius:7px;padding:7px 10px;line-height:1.5;max-width:260px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.25);white-space:normal;display:none;}
 
+  /* 処理中オーバーレイ（ui-standards 22-B）2026-07-02 */
+  .loading-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.45);z-index:9999;align-items:center;justify-content:center;}
+  .loading-overlay.show{display:flex;}
+  .loading-box{background:#fff;border-radius:14px;padding:28px 36px;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:0 10px 40px rgba(0,0,0,0.25);}
+  .loading-spinner{width:44px;height:44px;border:4px solid #e5e7eb;border-top-color:var(--crimson);border-radius:50%;animation:kwtspin 0.8s linear infinite;}
+  @keyframes kwtspin{to{transform:rotate(360deg);}}
+  .loading-text{font-size:14px;font-weight:bold;color:#374151;}
   .loading-msg{text-align:center;padding:40px;color:var(--text-muted);font-size:13px;}
   .empty-state{text-align:center;padding:50px 20px;color:var(--text-light);}
   .empty-state-icon{font-size:32px;margin-bottom:10px;}
@@ -168,7 +183,7 @@
   .pick-counter{font-size:12px;font-weight:700;margin-bottom:8px;}
   .pick-counter.over{color:var(--crimson);}
 
-  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap;}
+  #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e293b;color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap;}
   #toast.show{opacity:1;}
 
   @media (max-width:640px){
@@ -231,18 +246,26 @@
       <button class="sort-chip" id="chip-oldest" onclick="toggleOldest(this)">😴 やってない順</button>
       <label class="inactive-th">😴 <input id="inactiveDays" type="number" min="1" max="99" value="7" onchange="onInactiveDaysChange()">日以上を色表示</label>
       <button class="sort-chip" id="chip-needhelp" onclick="toggleNeedHelp(this)">📣 指導必要順</button>
+      <button class="sort-chip" id="chip-grade" onclick="toggleGradeSort(this)">🎓 学年順</button>
       <label class="inactive-th">📣 正答率 <input id="needHelpRate" type="number" min="1" max="100" value="60" onchange="onNeedHelpRateChange()">% 未満を色表示</label>
-      <span class="print-ctrl no-print">🖨
+      <span class="print-ctrl no-print">
+        <span style="font-weight:700;">印刷内容</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">印刷する「内容」を選びます（並び順ではありません）。／まちがえ中ぜんぶ＝いま間違いノートにある語（新しくまちがえた順）。／直近◯日＝その日数内に新しくまちがえた語だけ。毎週のルーティン印刷向け。／復習チェック＝前にまちがえて克服した語からランダム。「前にやったの覚えてる？」の確認用。／どれも上限語数までで打ち切ります。</span></span>
         <select id="printScope" onchange="onPrintScopeChange()">
           <option value="active">まちがえ中ぜんぶ</option>
-          <option value="recent">直近</option>
-          <option value="graduated">復習チェック</option>
+          <option value="recent">直近◯日のまちがえ</option>
+          <option value="graduated">復習チェック（克服した語）</option>
         </select>
         <span id="printDaysWrap" style="display:none;"><input id="printDays" type="number" min="1" max="99" value="7">日</span>
         上限<input id="printLimit" type="number" min="1" max="99" value="20">語
-        <button class="sort-chip" onclick="printSelected()" style="border-color:var(--crimson);color:var(--crimson);font-weight:700;">選んだ子を印刷</button>
+        <button class="btn-print" onclick="printSelected()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>選んだ子を印刷</button>
       </span>
       <span class="filter-count" id="filterCount"></span>
+      <div class="filter-row2">
+        <span class="filter-label">学年</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">クリックで学年を絞り込みます。複数選択できます（例：中1と中2）。何も選ばないと全学年を表示します。</span></span>
+        <span id="gradeChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
+        <span class="filter-label" id="classLabel" style="margin-left:12px;display:none;">教室</span>
+        <span id="classChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
+      </div>
     </div>
 
     <div id="dash-body">
@@ -333,6 +356,13 @@
 
 <div id="toast"></div>
 
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loadingText">保存中…</div>
+  </div>
+</div>
+
 <div id="printArea"></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
@@ -343,6 +373,9 @@ var _filter='all';
 function $(id){return document.getElementById(id);}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._tid);t._tid=setTimeout(function(){t.classList.remove('show');},2000);}
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+/* 処理中オーバーレイ（ui-standards 22-B）2026-07-02 */
+function showLoading(text){var t=$('loadingText');if(t)t.textContent=text||'保存中…';var el=$('loadingOverlay');if(el)el.classList.add('show');}
+function hideLoading(){var el=$('loadingOverlay');if(el)el.classList.remove('show');}
 function call(b,_try){b.token=token;_try=_try||1;return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json();}).catch(function(){if(_try<3){return sleep(600*_try).then(function(){return call(b,_try+1);});}return {ok:false,error:'通信に失敗しました'};});}
 
 /* ツールチップ（JS制御・画面端対応） */
@@ -396,6 +429,7 @@ function loadDash(){
     var pd=localStorage.getItem('kwt_print_days');if(pd&&$('printDays'))$('printDays').value=pd;
     var pl=localStorage.getItem('kwt_print_limit');if(pl&&$('printLimit'))$('printLimit').value=pl;
     if($('printScope'))onPrintScopeChange();})();
+  showLoading('読み込み中…');
   call({action:'dashboard'}).then(function(d){
     $('loadingMsg').style.display='none';
     if(!d.ok){
@@ -407,13 +441,14 @@ function loadDash(){
     $('st-total').textContent=_students.length;
     $('st-today').textContent=_students.filter(function(s){return s.did_today;}).length;
     $('st-mistake').textContent=_students.reduce(function(a,s){return a+(s.mistake_active||0);},0);
+    buildFilterChips();
     renderTable();
-  });
+  }).finally(function(){hideLoading();});
 }
 
 function setFilter(f,el){
   _filter=f;
-  document.querySelectorAll('.filter-chip').forEach(function(c){c.classList.remove('active');});
+  document.querySelectorAll('.filter-chip[data-f]').forEach(function(c){c.classList.remove('active');});
   if(el)el.classList.add('active');
   renderTable();
 }
@@ -431,15 +466,44 @@ function fmtDate(s){
   return (parseInt(m[2],10))+'/'+(parseInt(m[3],10));
 }
 
+/* 学年・教室フィルタ＋学年ソート 2026-07-02 川上さん指示：学年ソート＋学年の複数選択・教室(class_name)フィルタ */
+var _gradeSel={};var _classSel={};var _sortGrade=false;
+function gradeRank(g){var m=String(g||'').match(/^(小|中|高)\s*(\d)/);if(!m)return 99;var base={'小':0,'中':10,'高':20}[m[1]];return base+parseInt(m[2],10);}
+function buildFilterChips(){
+  var grades=[],classes=[];
+  _students.forEach(function(s){
+    if(s.grade&&grades.indexOf(s.grade)<0)grades.push(s.grade);
+    if(s.class_name&&classes.indexOf(s.class_name)<0)classes.push(s.class_name);
+  });
+  grades.sort(function(a,b){var d=gradeRank(a)-gradeRank(b);return d!==0?d:String(a).localeCompare(String(b),'ja');});
+  classes.sort(function(a,b){return String(a).localeCompare(String(b),'ja');});
+  var gw=$('gradeChips');gw.innerHTML='';
+  grades.forEach(function(g){
+    var b=document.createElement('button');
+    b.className='filter-chip'+(_gradeSel[g]?' active':'');b.type='button';b.textContent=g;
+    b.onclick=function(){toggleSelChip(_gradeSel,g,b);};
+    gw.appendChild(b);
+  });
+  var cw=$('classChips');cw.innerHTML='';
+  $('classLabel').style.display=classes.length?'':'none';
+  classes.forEach(function(c){
+    var b=document.createElement('button');
+    b.className='filter-chip'+(_classSel[c]?' active':'');b.type='button';b.textContent=c;
+    b.onclick=function(){toggleSelChip(_classSel,c,b);};
+    cw.appendChild(b);
+  });
+}
+function toggleSelChip(sel,v,el){if(sel[v])delete sel[v];else sel[v]=true;el.classList.toggle('active',!!sel[v]);renderTable();}
+function toggleGradeSort(el){_sortGrade=!_sortGrade;if(_sortGrade){_sortOldest=false;_sortNeedHelp=false;var c=$('chip-oldest');if(c)c.classList.remove('active');c=$('chip-needhelp');if(c)c.classList.remove('active');}el.classList.toggle('active',_sortGrade);renderTable();}
 var _sortOldest=false;
 var _inactiveDays=(function(){var v=parseInt(localStorage.getItem('kwt_inactive_days'),10);return (v>=1&&v<=99)?v:7;})();
-function toggleOldest(el){_sortOldest=!_sortOldest;if(_sortOldest){_sortNeedHelp=false;var c=$('chip-needhelp');if(c)c.classList.remove('active');}el.classList.toggle('active',_sortOldest);renderTable();}
+function toggleOldest(el){_sortOldest=!_sortOldest;if(_sortOldest){_sortNeedHelp=false;_sortGrade=false;var c=$('chip-needhelp');if(c)c.classList.remove('active');c=$('chip-grade');if(c)c.classList.remove('active');}el.classList.toggle('active',_sortOldest);renderTable();}
 function onInactiveDaysChange(){var v=parseInt($('inactiveDays').value,10);if(!(v>=1&&v<=99)){v=7;$('inactiveDays').value=7;}_inactiveDays=v;localStorage.setItem('kwt_inactive_days',v);renderTable();}
 function daysAgo(ss){if(!ss)return null;var m=String(ss).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return null;var d=new Date(parseInt(m[1],10),parseInt(m[2],10)-1,parseInt(m[3],10));var t=new Date();var t0=new Date(t.getFullYear(),t.getMonth(),t.getDate());return Math.round((t0-d)/86400000);}
 function isInactive(s){var da=daysAgo(s.last_studied_at);return da===null||da>=_inactiveDays;}
 var _sortNeedHelp=false;
 var _needHelpRate=(function(){var v=parseInt(localStorage.getItem('kwt_needhelp_rate'),10);return (v>=1&&v<=100)?v:60;})();
-function toggleNeedHelp(el){_sortNeedHelp=!_sortNeedHelp;if(_sortNeedHelp){_sortOldest=false;var c=$('chip-oldest');if(c)c.classList.remove('active');}el.classList.toggle('active',_sortNeedHelp);renderTable();}
+function toggleNeedHelp(el){_sortNeedHelp=!_sortNeedHelp;if(_sortNeedHelp){_sortOldest=false;_sortGrade=false;var c=$('chip-oldest');if(c)c.classList.remove('active');c=$('chip-grade');if(c)c.classList.remove('active');}el.classList.toggle('active',_sortNeedHelp);renderTable();}
 function onNeedHelpRateChange(){var v=parseInt($('needHelpRate').value,10);if(!(v>=1&&v<=100)){v=60;$('needHelpRate').value=60;}_needHelpRate=v;localStorage.setItem('kwt_needhelp_rate',v);renderTable();}
 function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate!==undefined;}
 function needsHelp(s){return hasTeach(s)&&s.teach_rate<_needHelpRate;}
@@ -459,7 +523,7 @@ function printSelected(){
   var limit=parseInt($('printLimit').value,10);if(!(limit>=1))limit=20;
   localStorage.setItem('kwt_print_days',days);localStorage.setItem('kwt_print_limit',limit);
   var subLbl=(scope==='recent')?('直近'+days+'日にまちがえた問題'):(scope==='graduated')?'復習チェック（前にやって克服した語）':'まちがえた問題（間違いノート）';
-  toast('印刷データを準備中…');
+  showLoading('印刷データを準備中…');
   call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit}).then(function(d){
     if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
     var sts=d.data.students||[];
@@ -483,14 +547,17 @@ function printSelected(){
     });
     $('printArea').innerHTML=html;
     setTimeout(function(){window.print();},80);
-  });
+  }).finally(function(){hideLoading();});
 }
 function lastStudiedCell(s){var da=daysAgo(s.last_studied_at);if(da===null)return '<div class="dash">未学習</div>';var lbl=da<=0?'今日':(da===1?'昨日':da+'日前');var warn=(da>=_inactiveDays)?' warn':'';var m=String(s.last_studied_at).match(/^(\d{4})-(\d{2})-(\d{2})/);var md=m?(parseInt(m[2],10)+'/'+parseInt(m[3],10)):'';return '<div class="num" style="font-size:12px;">'+md+'</div><div class="last-ago'+warn+'">'+lbl+'</div>';}
 function renderTable(){
   var search=($('searchInput').value||'').trim();
+  var gsel=Object.keys(_gradeSel),csel=Object.keys(_classSel);
   var rows=_students.filter(function(s){
     if(_filter==='today'&&!s.did_today)return false;
     if(_filter==='not_today'&&s.did_today)return false;
+    if(gsel.length&&gsel.indexOf(String(s.grade))<0)return false;
+    if(csel.length&&csel.indexOf(String(s.class_name))<0)return false;
     if(search&&String(s.name).indexOf(search)<0&&String(s.nickname).indexOf(search)<0)return false;
     return true;
   });
@@ -498,6 +565,7 @@ function renderTable(){
   var _nhr=$('needHelpRate');if(_nhr&&String(_needHelpRate)!==_nhr.value)_nhr.value=_needHelpRate;
   if(_sortOldest){rows.sort(function(a,b){var da=daysAgo(a.last_studied_at),db=daysAgo(b.last_studied_at);var va=(da===null)?1e9:da,vb=(db===null)?1e9:db;return vb-va;});}
   else if(_sortNeedHelp){rows.sort(function(a,b){var va=hasTeach(a)?a.teach_rate:1e9,vb=hasTeach(b)?b.teach_rate:1e9;return va-vb;});}
+  else if(_sortGrade){rows.sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);return d!==0?d:String(a.name).localeCompare(String(b.name),'ja');});}
   $('filterCount').textContent=rows.length+'名';
   if(!rows.length){$('tableWrap').style.display='none';$('emptyState').style.display='';return;}
   $('emptyState').style.display='none';$('tableWrap').style.display='';
@@ -561,6 +629,7 @@ function switchTab(t){
 
 function loadTeams(){
   $('teamLoading').style.display='';$('teamGrid').innerHTML='';$('teamEmpty').style.display='none';
+  showLoading('読み込み中…');
   call({action:'teams_list'}).then(function(d){
     $('teamLoading').style.display='none';
     if(!d.ok){
@@ -570,7 +639,7 @@ function loadTeams(){
     _teams=d.data.teams||[];
     _unassigned=d.data.unassigned||[];
     renderTeams();
-  });
+  }).finally(function(){hideLoading();});
 }
 
 function renderTeams(){
@@ -618,6 +687,7 @@ function saveTeam(){
   var gb=($('tmGrade').value||'').trim();
   if(!name){$('tmErr').textContent='チーム名を入れてください';return;}
   var btn=$('tmSave');btn.disabled=true;btn.textContent='保存中…';
+  showLoading('保存中…');
   var body=(_modalMode==='create')
     ? {action:'team_create',name:name,grade_band:gb}
     : {action:'team_update',id:_editTeamId,name:name,grade_band:gb};
@@ -627,17 +697,18 @@ function saveTeam(){
     closeModal('teamModal');
     toast(_modalMode==='create'?'チームを作りました':'更新しました');
     loadTeams();
-  });
+  }).finally(function(){hideLoading();});
 }
 
 function toggleTeamActive(id){
   var t=_teams.filter(function(x){return String(x.id)===String(id);})[0];
   if(!t)return;
+  showLoading('保存中…');
   call({action:'team_update',id:id,is_active:!t.is_active}).then(function(d){
     if(!d.ok){toast('変更できませんでした：'+(d.error||''));return;}
     toast(t.is_active?'休止しました':'再開しました');
     loadTeams();
-  });
+  }).finally(function(){hideLoading();});
 }
 
 /* --- メンバー編集モーダル --- */
@@ -696,16 +767,17 @@ function saveMembers(){
   var ids=[];$('mmList').querySelectorAll('input:checked').forEach(function(cb){ids.push(cb.value);});
   if(ids.length>5){$('mmErr').textContent='1チームは最大5人までです';return;}
   var btn=$('mmSave');btn.disabled=true;btn.textContent='保存中…';
+  showLoading('保存中…');
   call({action:'team_update',id:_editTeamId,name:name,grade_band:gb}).then(function(d1){
     if(!d1.ok){btn.disabled=false;btn.textContent='保存する';$('mmErr').textContent=d1.error||'チーム情報を保存できませんでした';return;}
-    call({action:'team_member_set',team_id:_editTeamId,student_ids:ids}).then(function(d2){
+    return call({action:'team_member_set',team_id:_editTeamId,student_ids:ids}).then(function(d2){
       btn.disabled=false;btn.textContent='保存する';
       if(!d2.ok){$('mmErr').textContent=d2.error||'メンバーを保存できませんでした';return;}
       closeModal('memModal');
       toast('チームを更新しました'+(d2.data&&d2.data.warn?'（'+d2.data.warn+'）':''));
       loadTeams();
     });
-  });
+  }).finally(function(){hideLoading();});
 }
 
 function closeModal(id){$(id).classList.remove('show');}
