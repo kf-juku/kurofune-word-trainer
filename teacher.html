@@ -219,6 +219,7 @@
       </div>
       <div class="right">
         <span class="who">👤 <b id="who-name">—</b> 先生</span>
+        <button class="btn-ghost" id="btn-sync" title="会員管理からKWTアカウントを同期（作成・更新・停止）">🔁 今すぐ同期</button>
         <button class="btn-ghost" id="btn-reload">🔄 更新</button>
         <button class="btn-ghost" id="btn-logout">ログアウト</button>
       </div>
@@ -354,6 +355,21 @@
   </div>
 </div>
 
+<!-- 同期結果モーダル（生徒アカウント管理 2026-07-02） -->
+<div class="modal-back" id="syncResultModal">
+  <div class="modal">
+    <h3>会員管理との同期結果</h3>
+    <div id="syncSummary" style="font-size:14px;margin:6px 0 10px;"></div>
+    <div id="syncNoIdWrap" style="display:none;">
+      <div style="font-weight:700;font-size:13px;color:#c2410c;margin-bottom:4px;">フォレスタID未設定（在籍・塾生）— アカウント未作成</div>
+      <div id="syncNoIdList" style="font-size:13px;line-height:1.7;max-height:220px;overflow:auto;"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" style="width:auto;" onclick="closeModal('syncResultModal')">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <div id="loadingOverlay" class="loading-overlay">
@@ -416,6 +432,20 @@ $('btn-login').onclick=function(){
 };
 $('btn-logout').onclick=function(){sessionStorage.removeItem('kwt_t_token');sessionStorage.removeItem('kwt_t_name');token='';$('scr-dash').style.display='none';$('scr-login').style.display='';};
 $('btn-reload').onclick=function(){loadDash();};
+$('btn-sync').onclick=function(){
+  var b=this; if(b.disabled)return; b.disabled=true; var old=b.textContent; b.textContent='⏳ 同期中…';
+  call({action:'sync_students'}).then(function(d){
+    b.disabled=false; b.textContent=old;
+    if(!d||!d.ok){ toast('同期失敗：'+((d&&d.error)||'')); return; }
+    var x=d.data||{};
+    $('syncSummary').textContent='新規 '+(x.created||0)+'人 ／ 更新 '+(x.updated||0)+'人 ／ 停止 '+(x.deactivated||0)+'人';
+    var noId=x.no_id||[];
+    if(noId.length){ $('syncNoIdWrap').style.display=''; $('syncNoIdList').textContent=noId.join('、'); }
+    else{ $('syncNoIdWrap').style.display='none'; }
+    $('syncResultModal').classList.add('show');
+    loadDash();
+  });
+};
 
 function openDash(){
   $('scr-login').style.display='none';$('scr-dash').style.display='';
@@ -578,7 +608,7 @@ function renderTable(){
     var modeBadge=s.mode==='support_5'?' <span class="badge badge-gray">5語</span>':'';
     tr.innerHTML=
       '<td><input type="checkbox" class="rowchk" value="'+esc(String(s.student_id))+'"></td>'
-      +'<td><div class="t-name">'+esc(s.name||'(無名)')+modeBadge+'</div>'+(s.nickname?'<div class="t-nick">'+esc(s.nickname)+'</div>':'')+'</td>'
+      +'<td><div class="t-name">'+esc(s.name||'(無名)')+modeBadge+'</div>'+(s.nickname?'<div class="t-nick">'+esc(s.nickname)+'</div>':'')+(s.login_id?'<div class="t-nick">ID:'+esc(s.login_id)+'</div>':'')+'</td>'
       +'<td class="t-sub">'+esc(s.grade||'')+'</td>'
       +'<td>'+(s.course?esc(s.course):'<span class="dash">未割当</span>')+'</td>'
       +'<td class="t-sub">'+(s.list?esc(s.list):'<span class="dash">–</span>')+'</td>'
@@ -782,7 +812,7 @@ function saveMembers(){
 
 function closeModal(id){$(id).classList.remove('show');}
 /* モーダル背景クリックで閉じる */
-['teamModal','memModal'].forEach(function(id){
+['teamModal','memModal','syncResultModal'].forEach(function(id){
   var el=$(id);if(el)el.addEventListener('click',function(e){if(e.target===el)closeModal(id);});
 });
 
