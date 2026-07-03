@@ -61,6 +61,8 @@
   .hpill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:7px;letter-spacing:.02em;}
   .hpill.daily{background:rgba(31,170,107,.12);color:var(--ok);}
   .hpill.test{background:rgba(202,162,74,.16);color:var(--gold);}
+  .hpill.lap{background:rgba(202,162,74,.12);color:var(--gold);border:1px solid rgba(202,162,74,.35);} /* 周バッジ 2026-07-03 */
+  .mat-head{font-size:12px;font-weight:700;color:var(--sub);margin:12px 2px 6px;} /* DAY一覧の教材見出し 2026-07-03 */
   .hero .hsubj{font-size:11px;color:var(--sub);font-weight:500;}
   .hero .hdue{font-size:10.5px;color:var(--gold);font-weight:700;}
   .hero .list .rnd{color:var(--gold);font-weight:700;}
@@ -309,7 +311,7 @@
         <div class="learn-row" id="tile-review"><div class="lr-ic"><i class="ti ti-clock-bolt"></i></div><div class="lr-nm">今日の復習</div><div class="lr-cnt"><span class="tdot" id="dot-review">0</span><span id="cnt-review">–</span></div></div>
         <div class="tiles" style="margin-top:16px;">
           <div class="tile" id="tile-note"><div class="tdot" id="dot-note">0</div><div class="tic"><i class="ti ti-notebook"></i></div><div class="tnm">間違いノート</div><div class="tcnt" id="cnt-note">–</div></div>
-          <div class="tile" id="tile-records"><div class="tic"><i class="ti ti-folder"></i></div><div class="tnm">じぶんの記録</div><div class="tcnt">リスト・バッジ・なかま</div></div>
+          <div class="tile" id="tile-records"><div class="tic"><i class="ti ti-folder"></i></div><div class="tnm">じぶんの記録</div><div class="tcnt">DAY・バッジ・なかま</div></div>
         </div>
         <!-- クロフネ全体（じぶんの記録の外・数値直接表示）2026-07-02 -->
         <div class="overall-card" id="overall-card"><div class="oc-ic"><i class="ti ti-world"></i></div><div class="oc-nm">クロフネ全体</div><div class="oc-stats"><div class="oc-st"><div class="v num" id="cnt-people">–</div><div class="k">今日</div></div><div class="oc-st"><div class="v num" id="cnt-words">–</div><div class="k">今週</div></div></div></div>
@@ -322,7 +324,7 @@
 
         <div class="subview" id="sv-records">
           <div class="tiles">
-            <div class="tile" id="tile-lists"><div class="tic"><i class="ti ti-list-check"></i></div><div class="tnm">リスト一覧</div><div class="tcnt">何回でも復習</div></div>
+            <div class="tile" id="tile-lists"><div class="tic"><i class="ti ti-list-check"></i></div><div class="tnm">DAY一覧</div><div class="tcnt">何回でも復習</div></div>
             <div class="tile" id="tile-badge"><div class="tic"><i class="ti ti-award"></i></div><div class="tnm">バッジ</div><div class="tcnt" id="cnt-badge">–</div></div>
             <div class="tile" id="tile-team"><div class="tdot" id="dot-team">0</div><div class="tic"><i class="ti ti-users"></i></div><div class="tnm">なかま</div><div class="tcnt" id="cnt-team">–</div></div>
           </div>
@@ -371,12 +373,13 @@
     <div class="body" style="padding-top:40px;">
       <div class="center"><div id="done-badge" class="big-badge"><i class="ti ti-trophy"></i></div></div>
       <p id="done-result" class="center" style="font-size:20px;font-weight:700;margin:10px 0;"></p>
+      <p class="center" id="done-lap" style="display:none;margin:-4px 0 6px;"><span class="hpill lap"></span></p><!-- 周バッジ 2026-07-03 -->
       <div class="center"><span class="score-line"><span id="score-anim">0</span></span><span class="muted"> 点</span></div>
       <p class="muted center" style="margin-top:6px;">意味 <span id="done-mr"></span>％ ・ 日本語→英語 <span id="done-rr"></span>％</p>
       <p class="muted center" id="done-miss" style="margin-top:8px;"></p>
       <div id="star-area"></div>
       <div style="margin-top:24px;">
-        <button class="btn gold" id="btn-next" style="display:none;"><i class="ti ti-arrow-right"></i> つぎのリストへ進む</button>
+        <button class="btn gold" id="btn-next" style="display:none;"><i class="ti ti-arrow-right"></i> つぎのDAYへ進む</button>
         <button class="btn sub" id="btn-retry" style="margin-top:10px;"><i class="ti ti-refresh"></i> もう一回やる</button>
         <button class="btn ghost" id="btn-home" style="margin-top:10px;">ホームへもどる</button>
       </div>
@@ -411,7 +414,7 @@ var session=null, combo=0, audioCtx=null;
 function $(id){return document.getElementById(id);}
 function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');window.scrollTo(0,0);}
 /* ===== タイル型ホームのビュー切替（2026-06-24）===== */
-var SUB_TITLES={note:'間違いノート',review:'今日の復習',badge:'バッジ',lists:'リスト一覧 ・ 何回でも復習',team:'チームの仲間',overall:'クロフネ全体',records:'じぶんの記録'};
+var SUB_TITLES={note:'間違いノート',review:'今日の復習',badge:'バッジ',lists:'DAY一覧 ・ 何回でも復習',team:'チームの仲間',overall:'クロフネ全体',records:'じぶんの記録'};
 function showSub(name){
   $('home-tiles').style.display='none';
   $('home-sub').style.display='block';
@@ -528,33 +531,46 @@ function openHome(){
       // 形式ピル（毎日学習/テスト配信）＋教科
       var fmtPill=isTest?'<span class="hpill test">テスト配信</span>':'<span class="hpill daily">毎日学習</span>';
       var subj=m.subject?'<span class="hsubj">'+subjLabel(m.subject)+'</span>':'';
-      // パート表記：パートが複数ある教材だけ「パート名」を出す（1つだけなら出さない）
-      var partLine=(m.part_count>1)?esc(m.word_list_title):'';
+      // 周バッジ：2周目以降だけ表示（川上さん確定 2026-07-03）
+      var lapPill=(m.lap>=2)?'<span class="hpill lap">'+m.lap+'周目</span>':'';
+      // パート表記（川上さん確定 2026-07-03）：毎日学習=DAY n／テスト配信=教材由来名。複数パートの教材だけ出す
+      var partLine='';
+      if(m.part_count>1){ partLine=isTest?esc(m.part_title):('DAY '+(m.part_order||1)); }
+      // ○回目：2回目以降だけ金色で出す（川上さん確定 2026-07-03）
+      if((m.times||1)>=2){ partLine=(partLine?partLine+' <span class="rnd">・'+m.times+'回目</span>':'<span class="rnd">'+m.times+'回目</span>'); }
       // リングのアイコン（形式で色分け・進捗連動は次スライス）
       var ringStroke=isTest?'var(--gold)':'var(--accent)';
       var ic=isTest?'<i class="ti ti-flag" style="font-size:22px;color:var(--gold)"></i>':'<i class="ti ti-anchor" style="font-size:22px;color:var(--accent)"></i>';
       h.innerHTML='<div class="ring"><svg width="78" height="78"><circle cx="39" cy="39" r="33" fill="none" stroke="var(--ring-track)" stroke-width="7"></circle><circle cx="39" cy="39" r="33" fill="none" stroke="'+ringStroke+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="207" stroke-dashoffset="207" class="ringfg"></circle></svg><div class="pct">'+ic+'</div></div>'
-        +'<div style="flex:1;min-width:0;"><div class="htop">'+fmtPill+subj+'</div>'
-        +'<div class="course">'+esc(m.course_title)+'</div>'
+        +'<div style="flex:1;min-width:0;"><div class="htop">'+fmtPill+subj+lapPill+'</div>'
+        +'<div class="course">'+esc(m.material_title)+'</div>'
         +(partLine?'<div class="list">'+partLine+'</div>':'')
         +'<div class="cta">はじめる <i class="ti ti-arrow-right"></i></div></div>';
-      h.onclick=function(){startPractice(m.word_list_id);};
+      h.onclick=function(){startPractice(m.part_id);};
       $('main-list').appendChild(h);
     });}
     if(d.data.streak!==undefined){animNum($('streak'),d.data.streak||0,800);}
   });
-  call({action:'course_lists'}).then(function(d){
+  call({action:'material_parts'}).then(function(d){
     if(!d.ok){$('review-area').innerHTML='<p class="muted">—</p>';return;}
-    var cs=d.data.courses||[];
-    if(!cs.length){$('review-area').innerHTML='<p class="muted">まだコースがありません。</p>';return;}
+    var cs=d.data.materials||[];
+    if(!cs.length){$('review-area').innerHTML='<p class="muted">まだ教材がありません。</p>';return;}
     $('review-area').innerHTML='';
     cs.forEach(function(c){
-      c.lists.forEach(function(l){
+      var isTest=(c.content_type==='test');
+      // 教材見出し：複数教材 or 2周目以降のとき出す（周バッジは全画面一斉・川上さん指示 2026-07-03）
+      if(cs.length>1||c.lap>=2){
+        var hd=document.createElement('div');hd.className='mat-head';
+        hd.innerHTML=esc(c.material_title)+(c.lap>=2?' <span class="rnd">'+c.lap+'周目</span>':'');
+        $('review-area').appendChild(hd);
+      }
+      c.parts.forEach(function(l){
         var row=document.createElement('div');row.className='list-row';
         var icon=l.is_current?'<div class="dot cur"><i class="ti ti-player-play"></i></div>':(l.passed?'<div class="dot done"><i class="ti ti-check"></i></div>':'<div class="dot"><i class="ti ti-book-2"></i></div>');
         var st=l.passed?'合格済み':(l.is_current?'':'未挑戦');
-        row.innerHTML=icon+'<div class="t">'+l.title+(st?'<div class="s">'+st+'</div>':'')+'</div>'+(l.is_current?'<span class="cur-badge">いまここ</span>':'');
-        row.onclick=function(){startPractice(l.word_list_id);};
+        var ttl=isTest?esc(l.title):('DAY '+(l.part_order||1)); // 毎日学習=DAY表記（川上さん確定 2026-07-03）
+        row.innerHTML=icon+'<div class="t">'+ttl+(st?'<div class="s">'+st+'</div>':'')+'</div>'+(l.is_current?'<span class="cur-badge">いまここ</span>':'');
+        row.onclick=function(){startPractice(l.part_id);};
         $('review-area').appendChild(row);
       });
     });
@@ -810,7 +826,7 @@ function flyToAvatar(btn,row,type){
 }
 $('btn-home').onclick=openHome;
 
-function startPractice(listId){show('scr-practice');$('step-label').textContent='よみこみ中…';combo=0;$('btn-retry').onclick=function(){if(session)startPractice(session.listId);};$('btn-retry').style.display='flex';$('btn-next').style.display='none';call({action:'student_today',word_list_id:listId}).then(function(d){if(!d.ok){toast(d.error||'読み込み失敗');openHome();return;}session={listId:listId,words:d.data.words,idx:0,step:1,meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{}};renderStep();});}
+function startPractice(listId){show('scr-practice');$('step-label').textContent='よみこみ中…';combo=0;$('btn-retry').onclick=function(){if(session)startPractice(session.listId);};$('btn-retry').style.display='flex';$('btn-next').style.display='none';call({action:'student_today',part_id:listId}).then(function(d){if(!d.ok){toast(d.error||'読み込み失敗');openHome();return;}session={listId:listId,words:d.data.words,idx:0,step:1,meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{}};renderStep();});}
 function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-label').textContent=(s.idx+1)+' / '+totalSteps+'語目';
   if(s.step===1){$('w-en').textContent=w.english;$('w-reading').textContent=w.reading_hint||'';$('step-listen').style.display='block';resetPronUI();speak(w);}
   else if(s.step===2){$('e2j-en').textContent=w.english;buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok){if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}setTimeout(function(){s.step=3;renderStep();},650);});$('step-e2j').style.display='block';}
@@ -868,13 +884,14 @@ $('btn-mic').onclick=function(){
 };
 function buildChoices(containerId,correct,pool,cb){var box=$(containerId);box.innerHTML='';var others=shuffle(pool.filter(function(x){return x!==correct;})).slice(0,3);var opts=shuffle([correct].concat(others));opts.forEach(function(opt){var b=document.createElement('button');b.className='choice';b.textContent=opt;b.onclick=function(){var ok=(opt===correct);Array.prototype.forEach.call(box.children,function(c){c.disabled=true;});b.classList.add(ok?'correct':'wrong');if(ok){combo++;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(c.textContent===correct)c.classList.add('correct');});}cb(ok);};box.appendChild(b);});}
 function finishSession(){var s=session;$('prog').style.width='100%';show('scr-done');$('done-result').textContent='送信中…';$('done-badge').innerHTML='<i class="ti ti-loader-2"></i>';$('btn-next').style.display='none';
-  call({action:'session_complete',word_list_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses}).then(function(d){
+  call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses}).then(function(d){
     var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100),score=Math.round((mr+rr)/2);
     $('done-mr').textContent=mr;$('done-rr').textContent=rr;
     if(!d.ok){$('done-result').textContent='結果の保存に失敗しました';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}
+    var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').textContent=d.data.lap+'周目';}else{dl.style.display='none';}}
     if(d.data.passed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').textContent='合格！よくがんばったね';sndWin();flash();confetti(120);
-      if(d.data.advanced&&d.data.next_word_list_id){$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_word_list_id);};}
-      else if(d.data.completed_course){toast('このコースぜんぶクリア！⚓');}
+      if(d.data.advanced&&d.data.next_part_id){$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}
+      else if(d.data.completed_material){toast('この教材ぜんぶクリア！⚓');}
     }else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').textContent='もう少し！（合格は80%）';}
     animNum($('score-anim'),score,1000);
     if(s.miss.length){$('done-miss').textContent='まちがえた単語：'+s.miss.length+'個（復習にまわしたよ）';}else{$('done-miss').textContent='';}
