@@ -404,7 +404,7 @@
       <p id="done-result" class="center" style="font-size:20px;font-weight:700;margin:10px 0;"></p>
       <p class="center" id="done-lap" style="display:none;margin:-4px 0 6px;"><span class="hpill lap"></span></p><!-- 周バッジ 2026-07-03 -->
       <div class="center"><span class="score-line"><span id="score-anim">0</span></span><span class="muted"> 点</span></div>
-      <p class="muted center" style="margin-top:6px;">意味 <span id="done-mr"></span>％ ・ 日本語→英語 <span id="done-rr"></span>％</p>
+      <p class="muted center" id="done-rate" style="margin-top:6px;">意味 <span id="done-mr"></span>％ ・ 日本語→英語 <span id="done-rr"></span>％</p>
       <p class="muted center" id="done-miss" style="margin-top:8px;"></p>
       <div id="star-area"></div>
       <div style="margin-top:24px;">
@@ -862,14 +862,14 @@ $('btn-home').onclick=openHome;
 
 function startPractice(listId){show('scr-practice');$('step-label').textContent='よみこみ中…';combo=0;$('btn-retry').onclick=function(){if(session)startPractice(session.listId);};$('btn-retry').style.display='flex';$('btn-next').style.display='none';call({action:'student_today',part_id:listId}).then(function(d){if(!d.ok){toast(d.error||'読み込み失敗');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
-session={listId:listId,words:d.data.words,idx:0,step:isEn?1:2,subject:sj,isEnglish:isEn,content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{}};renderStep();});}
+session={listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{}};renderStep();});}
 function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-label').textContent=(s.idx+1)+' / '+totalSteps+'語目';
   var _tl=(s.content_type==='test')?0:qSecFor(s.subject); // テスト配信は制限なし（川上さん確定2026-07-04）
   if(s.step===1){hideQTimer();$('w-en').textContent=w.english;$('w-reading').textContent=w.reading_hint||'';$('step-listen').style.display='block';resetPronUI();speak(w);}
   else if(s.step===2){$('e2j-label').textContent='意味を選ぼう';$('e2j-en').textContent=w.english;buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok){if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderStep();}});$('step-e2j').style.display='block';}
-  else if(s.step===3){$('j2e-label').textContent=(s.isEnglish===false)?'用語を選ぼう':'英語を選ぼう';$('j2e-ja').textContent=w.japanese;buildChoices('j2e-choices',w.english,s.words.map(function(x){return x.english;}),function(ok){if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){nextWord();}});$('step-j2e').style.display='block';}}
+  else if(s.step===3){$('j2e-label').textContent=(s.isEnglish===false)?'用語を選ぼう':'英語を選ぼう';$('j2e-ja').textContent=w.japanese;buildChoices('j2e-choices',w.english,s.words.map(function(x){return x.english;}),function(ok){if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,reading:(s.isEnglish===false?w.reading_hint:''),next:function(){nextWord();}});$('step-j2e').style.display='block';}}
 function pushMiss(id){if(session.miss.indexOf(id)<0)session.miss.push(id);}
-function nextWord(){var s=session;s.idx++;s.step=(s.isEnglish===false)?2:1;if(s.idx>=s.words.length){finishSession();}else renderStep();}
+function nextWord(){var s=session;s.idx++;s.step=(s.isEnglish===false)?3:1;if(s.idx>=s.words.length){finishSession();}else renderStep();}
 $('btn-sound').onclick=function(){speak(session.words[session.idx]);};
 $('btn-spoke').onclick=function(){countSelfReportIfNeeded();session.step=2;renderStep();};
 /* 練習をやめてホームへ（まちがえて始めた時の中断・2026-07-04）。途中の記録は保存しない（session_complete前に抜けるだけ） */
@@ -945,7 +945,7 @@ function buildChoices(containerId,correct,pool,onResult,opts){
     if(ok){combo++;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
     else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(c.textContent===correct)c.classList.add('correct');});}
     onResult(ok);
-    afterAnswer(ok,correct,opts.kaisetsu,opts.next);
+    afterAnswer(ok,correct,opts.kaisetsu,opts.reading,opts.next);
   }
   choices.forEach(function(opt){var b=document.createElement('button');b.className='choice';b.textContent=opt;
     b.onclick=function(){finish(opt===correct,b);};box.appendChild(b);});
@@ -953,13 +953,14 @@ function buildChoices(containerId,correct,pool,onResult,opts){
 }
 
 /* 解答後の進行：正解=自動360ms／不正解=解答＋解説を出してタップで次へ（2026-07-04） */
-function afterAnswer(ok,correct,kaisetsu,next){
+function afterAnswer(ok,correct,kaisetsu,reading,next){
+  if(typeof reading==='function'){next=reading;reading='';} // 旧シグネチャ互換
   if(!next)next=function(){};
   if(ok){hideExplain();setTimeout(next,360);}
-  else{showExplain(correct,kaisetsu);waitTap(next);}
+  else{showExplain(correct,kaisetsu,reading);waitTap(next);}
 }
-function showExplain(correct,kaisetsu){
-  $('ex-ans').innerHTML='せいかい：<b>'+esc(correct)+'</b>';
+function showExplain(correct,kaisetsu,reading){
+  $('ex-ans').innerHTML='せいかい：<b>'+esc(correct)+'</b>'+(reading?'<span style="font-size:13px;color:var(--sub);font-weight:400;">（'+esc(reading)+'）</span>':'');
   var kai=$('ex-kai');
   if(kaisetsu){kai.textContent=kaisetsu;kai.style.display='';}else{kai.style.display='none';}
   $('explain').style.display='block';
@@ -997,8 +998,11 @@ function hideQTimer(){stopQTimer();var w=$('qtimer');if(w)w.style.display='none'
 var QSEC={english:10};function qSecFor(subj){return QSEC[subj]||15;}
 function finishSession(){var s=session;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-result').textContent='送信中…';$('done-badge').innerHTML='<i class="ti ti-loader-2"></i>';$('btn-next').style.display='none';
   call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses}).then(function(d){
-    var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100),score=Math.round((mr+rr)/2);
-    $('done-mr').textContent=mr;$('done-rr').textContent=rr;
+    var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
+    var termOnly=(s.isEnglish===false); // 理科など＝用語選択のみ 2026-07-04
+    var score=termOnly?rr:Math.round((mr+rr)/2);
+    if(termOnly){$('done-rate').innerHTML='用語 <b>'+rr+'</b>％';}
+    else{$('done-rate').innerHTML='意味 <span id="done-mr">'+mr+'</span>％ ・ 日本語→英語 <span id="done-rr">'+rr+'</span>％';}
     if(!d.ok){$('done-result').textContent='結果の保存に失敗しました';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}
     var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').textContent=d.data.lap+'周目';}else{dl.style.display='none';}}
     if(d.data.is_test){
@@ -1056,7 +1060,7 @@ function openNote(subject){
 function startNote(subject,words){
   if(!words||!words.length){toast('復習する単語がありません');return;}
   show('scr-practice');combo=0;
-  noteSes={subject:subject,words:words,idx:0,step:2,wordOK:true,cleared:0,total:words.length};
+  noteSes={subject:subject,words:words,idx:0,step:(subject==='english'?2:3),wordOK:true,cleared:0,total:words.length};
   renderNoteStep();
 }
 function renderNoteStep(){hideQTimer();
@@ -1075,7 +1079,7 @@ function renderNoteStep(){hideQTimer();
     $('j2e-ja').textContent=w.japanese;
     buildNoteChoices('j2e-choices',w.english,w.wrong_choices_en,function(ok){
       if(!ok)s.wordOK=false;
-    },{kaisetsu:w.kaisetsu,next:function(){submitNoteWord();}});
+    },{kaisetsu:w.kaisetsu,reading:(s.subject!=='english'?w.reading_hint:''),next:function(){submitNoteWord();}});
     $('step-j2e').style.display='block';
   }
 }
@@ -1093,7 +1097,7 @@ function buildNoteChoices(containerId,correct,wrongs,onResult,opts){
     if(ok){combo++;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0)confetti(20);}
     else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(c.textContent===correct)c.classList.add('correct');});}
     onResult(ok);
-    afterAnswer(ok,correct,opts.kaisetsu,opts.next);
+    afterAnswer(ok,correct,opts.kaisetsu,opts.reading,opts.next);
   }
   choices.forEach(function(opt){
     var b=document.createElement('button');b.className='choice';b.textContent=opt;
@@ -1105,7 +1109,7 @@ function submitNoteWord(){
   var s=noteSes,w=s.words[s.idx],correct=s.wordOK;
   call({action:'review_complete',review_id:w.review_id,correct:correct}).then(function(d){
     if(d&&d.ok&&d.data&&d.data.cleared){s.cleared++;toast('「'+w.english+'」を卒業！🎓');}
-    s.idx++;s.step=2;s.wordOK=true;
+    s.idx++;s.step=(s.subject==='english'?2:3);s.wordOK=true;
     if(s.idx>=s.words.length){finishNote();}else renderNoteStep();
   });
 }
