@@ -968,8 +968,10 @@ function hideExplain(){var e=$('explain');if(e)e.style.display='none';}
 /* 画面のどこかをタップで次へ（同じクリックで即進まないよう少し遅らせて登録）2026-07-04 */
 function waitTap(next){
   var scr=$('scr-practice');if(!scr){next();return;}
-  function go(){scr.removeEventListener('click',go,true);hideExplain();next();}
-  setTimeout(function(){scr.addEventListener('click',go,true);},80);
+  var done=false;
+  function go(){if(done)return;done=true;scr.removeEventListener('click',go,true);var ex=$('explain');if(ex)ex.onclick=null;hideExplain();next();}
+  // 画面どこでもタップ（capture）＋解説ボックス自体のタップの二重で確実に進む（2026-07-04）
+  setTimeout(function(){scr.addEventListener('click',go,true);var ex=$('explain');if(ex)ex.onclick=go;},80);
 }
 
 /* 制限時間バー（案C・2026-07-04）：残り割合で 青→黄→赤・残り秒数を表示。0で onEnd。 */
