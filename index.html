@@ -249,7 +249,10 @@
   .modal{background:var(--surface);width:100%;max-width:460px;border-radius:22px 22px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.18);animation:sheetUp .25s ease;}
   @keyframes sheetUp{from{transform:translateY(24px);opacity:.6;}to{transform:translateY(0);opacity:1;}}
   .modal h3{font-size:18px;font-weight:800;margin:0 0 4px;}
-  .modal .hint{font-size:12.5px;color:var(--sub);line-height:1.6;margin:0 0 14px;}
+  .modal .hint{font-size:12.5px;color:var(--sub);line-height:1.6;margin:0 0 10px;}
+  .modal .nick-see{font-size:12.5px;line-height:1.6;margin:0 0 14px;padding:9px 11px;border-radius:10px;background:rgba(47,111,217,.08);color:#2f6fd9;}
+  .modal .nick-see i{vertical-align:-2px;margin-right:3px;}
+  .modal .nick-see b{color:#1f56b0;}
   .modal .remain{font-size:12.5px;color:var(--sub);margin:0 0 12px;}
   .modal .remain b{color:var(--accent);}
   .modal .err{font-size:13px;color:#e0463e;min-height:18px;margin:2px 0 10px;font-weight:600;}
@@ -398,6 +401,7 @@
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="nick-title">
     <h3 id="nick-title">ニックネームの変更</h3>
     <p class="hint">2〜10文字。ひらがな・カタカナ・英数字が使えます（漢字・記号・スペースは使えません）。</p>
+    <p class="nick-see"><i class="ti ti-users"></i> このニックネームは、なかまや応援の画面で <b>ほかの生徒にも見えます</b>。本名は使わないでね。</p>
     <p class="remain">今月あと <b id="nick-remain">3</b> 回 変えられます</p>
     <input type="text" id="nick-input" maxlength="10" autocomplete="off" placeholder="あたらしいニックネーム">
     <div class="err" id="nick-err"></div>
@@ -438,7 +442,9 @@ function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTi
 // ===== ニックネーム変更 =====
 var NICK_RE=/^[ぁ-んァ-ヶーa-zA-Z0-9]+$/;
 function openNickModal(){
-  $('nick-input').value=nickname&&nickname!=='きみ'?nickname:'';
+  var first=(!nickname||nickname==='きみ');
+  $('nick-title').textContent=first?'ニックネームを決めよう':'ニックネームの変更';
+  $('nick-input').value=first?'':nickname;
   $('nick-err').textContent='';
   $('nick-remain').textContent='–';
   $('nick-mask').classList.add('show');
