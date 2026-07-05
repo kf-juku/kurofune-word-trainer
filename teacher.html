@@ -53,6 +53,33 @@
   .filter-bar{background:white;border-radius:var(--radius);padding:8px 12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px;box-shadow:var(--shadow-sm);}
   .filter-search{border:1.5px solid var(--border);border-radius:20px;padding:5px 13px;font-size:12.5px;font-family:inherit;background:white;width:180px;}
   .filter-search:focus{outline:none;border-color:var(--crimson);box-shadow:0 0 0 3px rgba(198,0,11,0.1);}
+  /* 割当教材ピル（全割当を一覧で見せる・川上さん承認モック 2026-07-05） */
+  .mat-pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:9px;margin:1px 3px 1px 0;white-space:nowrap;}
+  .mat-pill.daily{background:var(--blue-light);color:var(--blue-dark);}
+  .mat-pill.test{background:var(--amber-light);color:var(--amber-dark);}
+  .mat-pill.more{background:var(--surface2);color:var(--text-muted);}
+  /* 一括操作モーダル（アクション起点・川上さん承認モック 2026-07-05） */
+  .btn-outlineK{background:#fff !important;color:var(--crimson) !important;border:1.5px solid var(--crimson) !important;}
+  .btn-teach-print{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--crimson);background:#fff;color:var(--crimson);border-radius:9px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .btn-teach-print:hover{background:var(--crimson-light);}
+  .tm-steps{display:flex;gap:6px;margin:2px 0 8px;}
+  .tm-step{padding:3px 10px;border-radius:20px;background:var(--surface2);font-size:11.5px;color:var(--text-light);}
+  .tm-step.on{background:var(--crimson);color:#fff;font-weight:700;}
+  .tm-qh{font-size:11px;color:var(--text-muted);margin:4px 0 6px;}
+  .tm-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .tm-qchip{border:1.5px solid var(--border);background:#fff;border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;color:var(--text-muted);}
+  .tm-qchip:hover{border-color:var(--crimson);color:var(--crimson);}
+  .tm-qchip.warn{border-color:#f4a0a5;color:var(--crimson);}
+  .tm-search{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;margin-bottom:8px;font-family:inherit;box-sizing:border-box;}
+  .tm-list{border:1px solid var(--border);border-radius:10px;max-height:240px;overflow-y:auto;}
+  .tm-srow{display:flex;align-items:center;gap:9px;padding:7px 11px;border-bottom:1px solid var(--surface2);font-size:13px;cursor:pointer;}
+  .tm-srow:last-child{border-bottom:none;}
+  .tm-srow .tm-meta{margin-left:auto;font-size:11px;color:var(--text-light);}
+  .tm-cb{width:16px;height:16px;border-radius:4px;border:1.5px solid #cbd5e1;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;}
+  .tm-srow.on .tm-cb{background:var(--crimson);border-color:var(--crimson);}
+  .tm-note{border:1px solid var(--border);background:var(--surface2);border-radius:10px;padding:9px 12px;font-size:11.5px;color:var(--text-muted);margin-top:10px;line-height:1.6;}
+  .tm-sel{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;}
+  .tm-num{width:56px;padding:4px 7px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;}
   .filter-chip{display:inline-flex;align-items:center;padding:3px 11px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:11.5px;cursor:pointer;font-family:inherit;color:var(--text-muted);transition:all 0.1s;white-space:nowrap;font-weight:500;}
   .filter-chip:hover{border-color:var(--crimson-mid);color:var(--crimson-dark);}
   .filter-chip.active{background:var(--crimson-light);color:var(--crimson-dark);border-color:var(--crimson);font-weight:700;}
@@ -75,15 +102,14 @@
   .teach-rate{font-size:12.5px;font-weight:700;}
   .teach-low{color:#d9820e;}
   /* 印刷（指導が必要な子のまちがえた問題）2026-07-02 */
-  .rowchk,.chkall{width:16px;height:16px;cursor:pointer;}
   #printArea{display:none;}
   @media print{
     body *{visibility:hidden;}
     #printArea,#printArea *{visibility:visible;}
     #printArea{position:absolute;left:0;top:0;width:100%;display:block !important;}
   }
-  .print-student{page-break-after:always;padding:8mm 6mm;color:#000;}
-  .print-student:last-child{page-break-after:auto;}
+  .print-student{page-break-before:right;padding:8mm 6mm;color:#000;} /* 生徒が変わったら新しい紙の表＝奇数ページから（川上さん指示 2026-07-05） */
+  .print-student:first-child{page-break-before:auto;}
   .print-h{font-size:18px;font-weight:800;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:6px;}
   .print-sub{font-size:12px;color:#333;margin-bottom:12px;}
   .print-item{display:flex;border:1px solid #999;border-radius:6px;margin-bottom:6px;overflow:hidden;page-break-inside:avoid;}
@@ -251,9 +277,6 @@
 .alert-setK input{width:46px;padding:2px 4px;border:1px solid #dde3ec;border-radius:6px;text-align:right;margin:0 2px}
 .cfg-tag{background:#dbeafe;color:#1d4ed8;border-radius:6px;padding:1px 8px;font-size:11px;margin-left:6px}
 .topbarK{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
-.bulkbarK{display:none;position:sticky;top:0;z-index:5;background:#FFF0F0;border:1px solid #f4a0a5;border-radius:10px;padding:8px 14px;margin-bottom:10px;align-items:center;gap:12px}
-.bulkbarK.show{display:flex}
-.bulkbarK b{color:#C6000B}
 .inline-sel{border:1px solid transparent;background:transparent;font-size:12px;padding:2px 3px;border-radius:6px;max-width:160px;cursor:pointer}
 .inline-sel:hover{border-color:#dde3ec;background:#f3f4f6}
 .bulk-selK{background:#d1fae5;border-radius:8px;padding:8px 12px;font-size:12px;color:#065f46;margin-bottom:10px;line-height:1.7}
@@ -308,17 +331,19 @@
     <!-- 要注意（メール通知と同じ基準・共通しきい値）teacher-dashboard-design 2026-07-05 -->
     <div class="alertsK">
       <div class="alert-cardK"><div class="ac-h">😴 やってない子 <b id="alIdleN">–</b>名<span class="ac-sub">最終学習のあきが <span id="alIdleDaysLbl">1</span>日超</span></div><div class="chipsK" id="alIdleChips"></div></div>
-      <div class="alert-cardK bad"><div class="ac-h">📣 指導必要 <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span></div><div class="chipsK" id="alTeachChips"></div></div>
+      <div class="alert-cardK bad"><div class="ac-h">📣 指導必要 <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span></div><div class="chipsK" id="alTeachChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTeachPrintBtn" onclick="printTeachAll()" style="display:none;">🖨 この<span id="alTeachPrintN">0</span>名のまちがいを印刷</button></div></div>
       <div class="alert-setK">⚙ この基準は毎朝のメール通知と共通：やってない＝あき<input id="cfgIdle" type="number" min="1" max="99" value="1" onchange="saveAlertConfig()">日超／指導必要＝正答率<input id="cfgAcc" type="number" min="1" max="100" value="60" onchange="saveAlertConfig()">%未満<span class="cfg-tag">ここを変えると画面もメールも両方変わります</span></div>
     </div>
-    <div style="margin-bottom:12px;"><button class="btn-primary" style="width:auto;" onclick="openBulkAssign()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>教材をまとめて割り当てる</button></div>
+    <div style="margin-bottom:12px;display:flex;gap:10px;">
+      <button class="btn-primary" style="width:auto;" onclick="openTargetModal('assign')">📚 まとめて割り当てる</button>
+      <button class="btn-primary btn-outlineK" style="width:auto;" onclick="openTargetModal('print')">🖨 まとめて印刷</button>
+    </div>
 
     <div class="topbarK">
       <input class="filter-search" id="searchInput" placeholder="🔍 名前で検索" oninput="renderTable()" style="flex:1;min-width:160px;">
       <button class="btn-ghost" id="advToggle" onclick="toggleAdvK(this)">詳しく絞り込む ▾</button>
       <span class="filter-count" id="filterCount"></span>
     </div>
-    <div class="bulkbarK" id="bulkbarK"><b><span id="bulkbarN">0</span>名 選択中</b><button class="btn-primary" style="width:auto;" onclick="openBulkAssign()">選択した子に教材を割り当てる</button><button class="btn-ghost" onclick="clearRowChecks()">選択解除</button></div>
     <div class="filter-bar" id="advFilters" style="display:none;">
       <button class="filter-chip active" data-f="all" onclick="setFilter('all',this)">すべて</button>
       <button class="filter-chip" data-f="today" onclick="setFilter('today',this)">今日やった</button>
@@ -328,17 +353,7 @@
       <button class="sort-chip" id="chip-needhelp" onclick="toggleNeedHelp(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;flex-shrink:0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>指導必要順</button>
       <button class="sort-chip" id="chip-grade" onclick="toggleGradeSort(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;flex-shrink:0;"><path d="M22 9l-10 -4l-10 4l10 4l10 -4v6"></path><path d="M6 10.6v5.4a6 3 0 0 0 12 0v-5.4"></path></svg>学年順</button>
       <label class="inactive-th"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>正答率 <input id="needHelpRate" type="number" min="1" max="100" value="60" onchange="onNeedHelpRateChange()">% 未満を色表示</label>
-      <span class="print-ctrl no-print">
-        <span style="font-weight:700;">印刷内容</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">印刷する「内容」を選びます（並び順ではありません）。／まちがえ中ぜんぶ＝いま間違いノートにある語（新しくまちがえた順）。／直近◯日＝その日数内に新しくまちがえた語だけ。毎週のルーティン印刷向け。／復習チェック＝前にまちがえて克服した語からランダム。「前にやったの覚えてる？」の確認用。／どれも上限語数までで打ち切ります。</span></span>
-        <select id="printScope" onchange="onPrintScopeChange()">
-          <option value="active">まちがえ中ぜんぶ</option>
-          <option value="recent">直近◯日のまちがえ</option>
-          <option value="graduated">復習チェック（克服した語）</option>
-        </select>
-        <span id="printDaysWrap" style="display:none;"><input id="printDays" type="number" min="1" max="99" value="7">日</span>
-        上限<input id="printLimit" type="number" min="1" max="99" value="20">語
-        <button class="btn-print" onclick="printSelected()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>選んだ子を印刷</button>
-      </span>
+      <!-- 印刷は「まとめて印刷」モーダルへ一本化（川上さん承認 2026-07-05） -->
       <div class="filter-row2">
         <span class="filter-label">学年</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">クリックで学年を絞り込みます。複数選択できます（例：中1と中2）。何も選ばないと全学年を表示します。</span></span>
         <span id="gradeChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
@@ -353,10 +368,9 @@
         <table>
           <thead>
             <tr>
-              <th style="width:26px;"><input type="checkbox" class="chkall" id="chkAll" onclick="toggleAll(this)" title="全選択"></th>
               <th>生徒</th>
               <th>学年</th>
-              <th>メイン教材</th>
+              <th>割当教材</th>
               <th>いまここ</th>
               <th>1日<br>パート</th>
               <th>今日</th>
@@ -455,18 +469,15 @@
 <!-- 教材の一括割当モーダル（クロフネLINE方式・2026-07-04） -->
 <div class="modal-back" id="bulkModal">
   <div class="modal">
-    <h3>教材をまとめて割り当てる</h3>
-    <div class="mhint">対象は<b>一覧でチェックした生徒</b>です（このモーダルでは選び直しません）。</div>
+    <h3 id="tmTitle">まとめて割り当てる</h3>
+    <div class="tm-steps"><span class="tm-step on" id="tmSt1">1 だれに</span><span class="tm-step" id="tmSt2">2 なにを</span></div>
     <div class="err" id="bulkErr"></div>
-    <div class="bulk-selK" id="bulkWho"></div>
-    <div class="bulk-mat">
-      <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">割り当てる教材（複数可）</div>
-      <div id="bulkMatList"></div>
-    </div>
-    <div style="font-size:11px;color:var(--text-light);margin-bottom:12px;">開始＝先頭パート・1日1パート。すでに割り当て済みの生徒はスキップ。細かい調整は各生徒の「教材」から。</div>
-    <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModal('bulkModal')">とじる</button>
-      <button class="btn-primary" style="width:auto;" id="bulkApplyBtn" onclick="applyBulk()">割り当てる</button>
+    <div id="tmBody" style="overflow-y:auto;max-height:52vh;"></div>
+    <div class="modal-actions" style="align-items:center;">
+      <span style="font-weight:800;color:var(--crimson);font-size:13px;" id="tmCount">0名 選択中</span>
+      <span style="flex:1;"></span>
+      <button class="btn-ghost" id="tmBack" onclick="tmBack()">やめる</button>
+      <button class="btn-primary" style="width:auto;" id="tmGo" onclick="tmNext()">次へ</button>
     </div>
   </div>
 </div>
@@ -571,10 +582,9 @@ function openDash(){
 
 function loadDash(){
   $('loadingMsg').style.display='';$('tableWrap').style.display='none';$('emptyState').style.display='none';
-  (function(){var sc=localStorage.getItem('kwt_print_scope');if(sc&&$('printScope'))$('printScope').value=sc;
-    var pd=localStorage.getItem('kwt_print_days');if(pd&&$('printDays'))$('printDays').value=pd;
+  (function(){
     var pl=localStorage.getItem('kwt_print_limit');if(pl&&$('printLimit'))$('printLimit').value=pl;
-    if($('printScope'))onPrintScopeChange();})();
+    })();
   showLoading('読み込み中…');
   call({action:'dashboard'}).then(function(d){
     $('loadingMsg').style.display='none';
@@ -654,20 +664,9 @@ function onNeedHelpRateChange(){var v=parseInt($('needHelpRate').value,10);if(!(
 function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate!==undefined;}
 function needsHelp(s){return hasTeach(s)&&s.teach_rate<_needHelpRate;}
 function teachCell(s){if(!hasTeach(s))return '<span class="dash">–</span>';var low=s.teach_rate<_needHelpRate;return '<span class="teach-rate '+(low?'teach-low':'')+' num">'+s.teach_rate+'%</span>';}
-function toggleAll(el){document.querySelectorAll('#tbody .rowchk').forEach(function(c){c.checked=el.checked;});}
-function getCheckedIds(){var a=[];document.querySelectorAll('#tbody .rowchk:checked').forEach(function(c){a.push(c.value);});return a;}
-function onPrintScopeChange(){
-  var sc=$('printScope').value;
-  $('printDaysWrap').style.display=(sc==='recent')?'':'none';
-  localStorage.setItem('kwt_print_scope',sc);
-}
-function printSelected(){
-  var ids=getCheckedIds();
-  if(!ids.length){toast('印刷する生徒をチェックしてください');return;}
-  var scope=$('printScope').value;
-  var days=parseInt($('printDays').value,10);if(!(days>=1))days=7;
-  var limit=parseInt($('printLimit').value,10);if(!(limit>=1))limit=20;
-  localStorage.setItem('kwt_print_days',days);localStorage.setItem('kwt_print_limit',limit);
+/* 一括印刷の実行部（対象・内容はモーダルから渡す）2026-07-05 */
+function runPrint_(ids,scope,days,limit){
+  if(!ids.length){toast('印刷する生徒がいません');return;}
   var subLbl=(scope==='recent')?('直近'+days+'日にまちがえた問題'):(scope==='graduated')?'復習チェック（前にやって克服した語）':'まちがえた問題（間違いノート）';
   showLoading('印刷データを準備中…');
   call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit}).then(function(d){
@@ -696,6 +695,16 @@ function printSelected(){
   }).finally(function(){hideLoading();});
 }
 function lastStudiedCell(s){var da=daysAgo(s.last_studied_at);if(da===null)return '<div class="dash">未学習</div>';var lbl=da<=0?'今日':(da===1?'昨日':da+'日前');var warn=(da>=_inactiveDays)?' warn':'';var m=String(s.last_studied_at).match(/^(\d{4})-(\d{2})-(\d{2})/);var md=m?(parseInt(m[2],10)+'/'+parseInt(m[3],10)):'';return '<div class="num" style="font-size:12px;">'+md+'</div><div class="last-ago'+warn+'">'+lbl+'</div>';}
+/* 割当教材ピル：全割当を表示（青=毎日学習/金=テスト配信・3件目からは+◯・川上さん承認モック 2026-07-05）
+   旧GAS（assignments無し）でも s.material にフォールバックして壊れない */
+function matPills(s){
+  var a=s.assignments;
+  if(!a){return s.material?esc(s.material):'<span class="dash">未割当</span>';}
+  if(!a.length)return '<span class="dash">未割当</span>';
+  var h=a.slice(0,2).map(function(m){return '<span class="mat-pill '+(m.type==='test'?'test':'daily')+'">'+esc(m.title||'(無題)')+'</span>';}).join('');
+  if(a.length>2)h+='<span class="mat-pill more" title="「教材」ボタンで全件見られます">+'+(a.length-2)+'</span>';
+  return h;
+}
 function renderTable(){
   var search=($('searchInput').value||'').trim();
   var gsel=Object.keys(_gradeSel),csel=Object.keys(_classSel);
@@ -723,10 +732,9 @@ function renderTable(){
     var mistakeBadge=s.mistake_active>0?'<span class="badge badge-amber num">'+s.mistake_active+' 語</span>':'<span class="badge badge-gray">0</span>';
     var modeBadge=s.mode==='support_5'?' <span class="badge badge-gray">5語</span>':'';
     tr.innerHTML=
-      '<td><input type="checkbox" class="rowchk" value="'+esc(String(s.student_id))+'"></td>'
-      +'<td><div class="t-name">'+esc(s.name||'(無名)')+modeBadge+'</div>'+(s.nickname?'<div class="t-nick">'+esc(s.nickname)+'</div>':'')+(s.login_id?'<div class="t-nick">ID:'+esc(s.login_id)+'</div>':'')+'</td>'
+      '<td><div class="t-name">'+esc(s.name||'(無名)')+modeBadge+'</div>'+(s.nickname?'<div class="t-nick">'+esc(s.nickname)+'</div>':'')+(s.login_id?'<div class="t-nick">ID:'+esc(s.login_id)+'</div>':'')+'</td>'
       +'<td class="t-sub">'+esc(s.grade||'')+'</td>'
-      +'<td>'+(s.material?esc(s.material):'<span class="dash">未割当</span>')+' <button class="asg-btn" onclick="openAssign('+"'"+esc(String(s.student_id))+"'"+')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg> 教材</button></td>'
+      +'<td>'+matPills(s)+' <button class="asg-btn" onclick="openAssign('+"'"+esc(String(s.student_id))+"'"+')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg> 教材</button></td>'
       +'<td class="t-sub">'+partCellK(s)+'</td>'
       +'<td>'+dailyCellK(s)+'</td>'
       +'<td>'+todayBadge+'</td>'
@@ -764,9 +772,6 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp
 /* --- フィルタ畳み --- */
 function toggleAdvK(btn){var f=$('advFilters');var on=f.style.display==='none';f.style.display=on?'':'none';btn.textContent=on?'詳しく絞り込む ▴':'詳しく絞り込む ▾';}
 /* --- 一括アクションバー --- */
-function checkedSids(){return Array.prototype.map.call(document.querySelectorAll('.rowchk:checked'),function(c){return String(c.value);});}
-function updateBulkbarK(){var n=checkedSids().length;$('bulkbarN').textContent=n;$('bulkbarK').classList.toggle('show',n>0);}
-function clearRowChecks(){Array.prototype.forEach.call(document.querySelectorAll('.rowchk:checked'),function(c){c.checked=false;});var ca=$('chkAll');if(ca)ca.checked=false;updateBulkbarK();}
 /* --- 行内プルダウン（いまここ・1日パート）: GAS完了後トースト・失敗時ロールバック（gas-html-checklist準拠） --- */
 var _partsByMat=null;
 function ensureMatParts(cb){
@@ -820,11 +825,9 @@ function rowDailyChange(sel){
 /* --- 変更イベントの一括デリゲーション --- */
 document.addEventListener('change',function(e){
   var t=e.target;if(!t||!t.classList)return;
-  if(t.classList.contains('rowchk')){updateBulkbarK();return;}
   if(t.classList.contains('js-part')){rowPartChange(t);return;}
   if(t.classList.contains('js-daily')){rowDailyChange(t);return;}
 });
-document.addEventListener('click',function(e){if(e.target&&e.target.id==='chkAll'){setTimeout(updateBulkbarK,0);}});
 /* --- 要注意カード＋共通しきい値（メール通知と同じ基準・alert_config_get/set） --- */
 var _alertCfg={idle_days:1,accuracy:60};
 function loadAlertConfig(){
@@ -848,7 +851,7 @@ function renderAlertsK(){
     if(!st.material)return; // 割当なしは対象外（メール通知と同じ）
     var da=daysAgo(st.last_studied_at);
     if(da===null||da>_alertCfg.idle_days)idle.push({n:st.name||st.nickname||'',d:(da===null?'未学習':'あき'+da+'日')});
-    if(hasTeach(st)&&st.teach_rate<_alertCfg.accuracy)teach.push({n:st.name||st.nickname||'',r:st.teach_rate});
+    if(hasTeach(st)&&st.teach_rate<_alertCfg.accuracy)teach.push({id:String(st.student_id),n:st.name||st.nickname||'',r:st.teach_rate});
   });
   idle.sort(function(a,b){return (b.d==='未学習'?1e9:parseInt(b.d.replace(/\D/g,''),10))-(a.d==='未学習'?1e9:parseInt(a.d.replace(/\D/g,''),10));});
   teach.sort(function(a,b){return a.r-b.r;});
@@ -859,6 +862,10 @@ function renderAlertsK(){
   };
   mk('alIdleChips',idle,function(x){return x.n+'（'+x.d+'）';});
   mk('alTeachChips',teach,function(x){return x.n+'（'+x.r+'%）';});
+  // 印刷ショートカット（川上さん承認モック 2026-07-05）：対象プリセットで印刷モーダルへ
+  window._teachIds=teach.map(function(x){return x.id;});
+  var tb=$('alTeachPrintBtn');
+  if(tb){$('alTeachPrintN').textContent=teach.length;tb.style.display=teach.length?'inline-flex':'none';}
 }
 if(token){setTimeout(loadAlertConfig,400);setTimeout(function(){ensureMatParts(function(){if(_students&&_students.length)renderTable();});},600);}
 
@@ -1032,87 +1039,117 @@ function saveMembers(){
 
 function closeModal(id){$(id).classList.remove('show');}
 
-/* ===== 教材の一括割当（クロフネLINE方式・2026-07-04） =====
-   絞り込み（教室・学年・中学校）で「映る人」を絞るだけ。チェックは bulkSel に保持し、
-   絞り込みを変えても消えない（右の選択中エリアに常時表示）。教材は複数選択→assignment_bulk。 */
-var bulkSel={}, bulkMat={}, bulkFilter={cls:{},grade:{},school:{}}, bulkMaterials=[];
-function openBulkAssign(){
-  // 対象＝一覧のチェック（teacher-dashboard-design原則4：モーダル内で選び直さない）2026-07-05
-  var sids=checkedSids();
-  if(!sids.length){toast('先に一覧で生徒にチェック✓を入れてください');return;}
-  bulkSel={};sids.forEach(function(x){bulkSel[x]=1;});
-  bulkMat={};$('bulkErr').textContent='';
-  var names=_students.filter(function(st){return bulkSel[String(st.student_id)];}).map(function(st){return esc(st.name||'(無名)');});
-  $('bulkWho').innerHTML='✓ '+names.join('／')+'<div style="margin-top:2px;"><b>'+names.length+'名</b>に割り当てます</div>';
+/* ===== 一括操作（アクション起点）2026-07-05 川上さん承認モック =====
+   入口＝「まとめて割り当てる」「まとめて印刷」ボタン。流れは だれに→なにを→実行。
+   クイックチップ＝学年・教室・中学校（07-04n実装→07-05gで消失→復活）。
+   やってない子・指導必要チップは印刷のときだけ（川上さん指示 2026-07-05：割当に不要）。 */
+var bulkMat={}, bulkMaterials=[];
+var tmMode='assign', tmStep=1, tmSel={}, tmSearch='';
+function openTargetModal(mode,presetIds){
+  tmMode=mode;tmStep=1;tmSel={};tmSearch='';bulkMat={};
+  (presetIds||[]).forEach(function(id){tmSel[String(id)]=1;});
+  $('tmTitle').textContent=(mode==='assign')?'まとめて割り当てる':'まとめて印刷';
+  $('bulkErr').textContent='';
   $('bulkModal').classList.add('show');
-  $('bulkMatList').innerHTML='<div style="color:#94a3b8;font-size:13px;">読み込み中…</div>';
-  call({action:'materials_list'}).then(function(d){
-    bulkMaterials=(d&&d.ok?(d.data.materials||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}):[]);
-    renderBulkMaterials();
-  });
+  tmRender();
 }
-/* 絞り込みチップを _students から動的生成 */
-function buildBulkFilters(){
-  var cls={},grades={},schools={};
-  _students.forEach(function(s){
-    if(s.class_name)cls[s.class_name]=1;
-    if(s.grade)grades[s.grade]=1;
-    if(s.school)schools[s.school]=1;
-  });
-  var gArr=Object.keys(grades).sort(function(a,b){var d=gradeRank(a)-gradeRank(b);return d!==0?d:String(a).localeCompare(String(b),'ja');});
-  var mkChips=function(host,keys,group){
-    var el=$(host);el.innerHTML='';
-    keys.forEach(function(k){
-      var b=document.createElement('button');b.className='bulk-chip'+(bulkFilter[group][k]?' on':'');b.textContent=k;
-      b.onclick=function(){if(bulkFilter[group][k])delete bulkFilter[group][k];else bulkFilter[group][k]=1;b.classList.toggle('on');renderBulkList();};
-      el.appendChild(b);
-    });
-    if(!keys.length)el.innerHTML='<span style="font-size:11px;color:#cbd5e1;">なし</span>';
-  };
-  mkChips('bfClass',Object.keys(cls).sort(),'cls');
-  mkChips('bfGrade',gArr,'grade');
-  mkChips('bfSchool',Object.keys(schools).sort(),'school');
+function printTeachAll(){openTargetModal('print',window._teachIds||[]);}
+function tmBack(){if(tmStep===2){tmStep=1;tmRender();}else{closeModal('bulkModal');}}
+function tmNext(){
+  if(tmStep===1){
+    if(!Object.keys(tmSel).length){$('bulkErr').textContent='対象の生徒を選んでください';return;}
+    $('bulkErr').textContent='';tmStep=2;tmRender();return;
+  }
+  if(tmMode==='assign')applyBulk();else tmPrint();
 }
-/* 絞り込み適用（各項目内OR・項目間AND） */
-function bulkShown(){
-  var fc=bulkFilter.cls,fg=bulkFilter.grade,fs=bulkFilter.school;
-  var anyC=Object.keys(fc).length,anyG=Object.keys(fg).length,anyS=Object.keys(fs).length;
-  return _students.filter(function(s){
-    if(anyC&&!fc[s.class_name])return false;
-    if(anyG&&!fg[s.grade])return false;
-    if(anyS&&!fs[s.school])return false;
-    return true;
-  });
+function tmQuick(fn){(_students||[]).forEach(function(s){if(fn(s))tmSel[String(s.student_id)]=1;});tmRender();}
+function tmUniq(k){var m={};(_students||[]).forEach(function(s){var v=String(s[k]||'').trim();if(v)m[v]=1;});var a=Object.keys(m);return (k==='grade')?a.sort(function(x,y){return gradeRank(x)-gradeRank(y);}):a.sort(function(x,y){return String(x).localeCompare(String(y),'ja');});}
+function tmUpdateFoot(){
+  $('tmSt1').className='tm-step'+(tmStep===1?' on':'');
+  $('tmSt2').className='tm-step'+(tmStep===2?' on':'');
+  $('tmCount').textContent=Object.keys(tmSel).length+'名 選択中';
+  $('tmBack').textContent=(tmStep===2)?'← 対象にもどる':'やめる';
+  var go=$('tmGo');
+  if(tmStep===1){go.textContent='次へ';go.disabled=!Object.keys(tmSel).length;}
+  else if(tmMode==='assign'){go.textContent=Object.keys(tmSel).length+'名に割り当てる';go.disabled=!Object.keys(bulkMat).length;}
+  else{go.textContent='🖨 印刷する';go.disabled=false;}
 }
-function renderBulkList(){
-  var shown=bulkShown();
-  $('bulkResultCount').textContent='絞り込み結果 '+shown.length+'名';
-  var box=$('bulkList');box.innerHTML='';
-  if(!shown.length){box.innerHTML='<div style="padding:10px;color:#94a3b8;font-size:13px;">該当する生徒がいません</div>';return;}
-  shown.forEach(function(s){
+function tmRender(){
+  var body=$('tmBody');body.innerHTML='';
+  if(tmStep===1)tmStep1_(body);
+  else if(tmMode==='assign')tmStepAssign_(body);
+  else tmStepPrint_(body);
+  tmUpdateFoot();
+}
+function tmStep1_(body){
+  var qh=document.createElement('div');qh.className='tm-qh';qh.textContent='クイック選択（押すと該当の子にまとめてチェック）';body.appendChild(qh);
+  var chips=document.createElement('div');chips.className='tm-chips';body.appendChild(chips);
+  function addChip(label,fn,warn){var b=document.createElement('button');b.type='button';b.className='tm-qchip'+(warn?' warn':'');b.textContent=label;b.onclick=fn;chips.appendChild(b);}
+  addChip('全員',function(){tmQuick(function(){return true;});});
+  tmUniq('grade').forEach(function(g){addChip(g,function(){tmQuick(function(s){return String(s.grade)===g;});});});
+  tmUniq('class_name').forEach(function(c){addChip(c,function(){tmQuick(function(s){return String(s.class_name)===c;});});});
+  tmUniq('school').forEach(function(sc){addChip(sc,function(){tmQuick(function(s){return String(s.school)===sc;});});});
+  if(tmMode==='print'){
+    addChip('😴 やってない子',function(){tmQuick(function(s){return isInactive(s);});},true);
+    addChip('📣 指導必要',function(){tmQuick(function(s){return needsHelp(s);});},true);
+  }
+  addChip('選択解除',function(){tmSel={};tmRender();});
+  var inp=document.createElement('input');inp.className='tm-search';inp.placeholder='なまえで探す';inp.value=tmSearch;
+  inp.oninput=function(){tmSearch=this.value;tmList_();};
+  body.appendChild(inp);
+  var list=document.createElement('div');list.className='tm-list';list.id='tmList';body.appendChild(list);
+  tmList_();
+}
+function tmList_(){
+  var list=$('tmList');if(!list)return;
+  list.innerHTML='';
+  var v=(tmSearch||'').trim();
+  (_students||[]).filter(function(s){return !v||String(s.name||'').indexOf(v)>=0||String(s.nickname||'').indexOf(v)>=0;}).forEach(function(s){
     var sid=String(s.student_id);
-    var row=document.createElement('div');row.className='bulk-row';
-    var on=!!bulkSel[sid];
-    var meta=[s.class_name,s.school,s.grade].filter(Boolean).join('・');
-    row.innerHTML='<span class="bulk-cb'+(on?' on':'')+'">'+(on?'✓':'')+'</span><span>'+esc(s.name||'(無名)')+'</span><span class="br-meta">'+esc(meta)+'</span>';
-    row.onclick=function(){ if(bulkSel[sid])delete bulkSel[sid];else bulkSel[sid]={name:s.name,meta:meta}; renderBulkList();renderBulkSel(); };
-    box.appendChild(row);
+    var row=document.createElement('div');row.className='tm-srow'+(tmSel[sid]?' on':'');
+    var cb=document.createElement('span');cb.className='tm-cb';cb.textContent=tmSel[sid]?'✓':'';
+    var nm=document.createElement('span');nm.textContent=s.name||'(無名)';
+    var meta=document.createElement('span');meta.className='tm-meta';meta.textContent=[s.grade,s.school,s.class_name].filter(Boolean).join('・');
+    row.appendChild(cb);row.appendChild(nm);row.appendChild(meta);
+    row.onclick=function(){if(tmSel[sid])delete tmSel[sid];else tmSel[sid]=1;tmList_();tmUpdateFoot();};
+    list.appendChild(row);
   });
 }
-function renderBulkSel(){
-  var ids=Object.keys(bulkSel);
-  $('bulkSelCount').textContent=ids.length;
-  var box=$('bulkSelList');box.innerHTML='';
-  if(!ids.length){box.innerHTML='<div style="font-size:11px;color:#94a3b8;">まだ選択なし</div>';return;}
-  ids.forEach(function(sid){
-    var it=bulkSel[sid];
-    var d=document.createElement('div');d.className='bulk-sel-item';
-    d.innerHTML='<span style="color:#1b7a43;">✓</span><span>'+esc(it.name||'')+'</span><span class="bx">✕</span>';
-    d.querySelector('.bx').onclick=function(){delete bulkSel[sid];renderBulkList();renderBulkSel();};
-    box.appendChild(d);
-  });
+function tmStepAssign_(body){
+  var h=document.createElement('div');h.className='tm-qh';h.textContent='割り当てる教材（複数えらべます）';body.appendChild(h);
+  var box=document.createElement('div');box.id='bulkMatList';body.appendChild(box);
+  var note=document.createElement('div');note.className='tm-note';note.textContent='開始＝先頭パート・1日1パート。すでに割り当て済みの生徒はスキップ。細かい調整は各生徒の「教材」から。';body.appendChild(note);
+  if(!bulkMaterials.length){
+    box.innerHTML='<div style="color:#94a3b8;font-size:13px;">読み込み中…</div>';
+    call({action:'materials_list'}).then(function(d){
+      bulkMaterials=(d&&d.ok?(d.data.materials||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}):[]);
+      renderBulkMaterials();
+    });
+  }else renderBulkMaterials();
 }
-function bulkSelectAllShown(){ bulkShown().forEach(function(s){var sid=String(s.student_id);var meta=[s.class_name,s.school,s.grade].filter(Boolean).join('・');bulkSel[sid]={name:s.name,meta:meta};}); renderBulkList();renderBulkSel(); }
+function tmStepPrint_(body){
+  var scope=localStorage.getItem('kwt_print_scope')||'active';
+  var days=localStorage.getItem('kwt_print_days')||'7';
+  var limit=localStorage.getItem('kwt_print_limit')||'20';
+  body.innerHTML=
+    '<div class="tm-qh">印刷する内容</div>'
+    +'<select id="tmScope" class="tm-sel">'
+    +'<option value="active"'+(scope==='active'?' selected':'')+'>まちがえ中ぜんぶ（いま間違いノートにある語）</option>'
+    +'<option value="recent"'+(scope==='recent'?' selected':'')+'>直近◯日のまちがえ</option>'
+    +'<option value="graduated"'+(scope==='graduated'?' selected':'')+'>復習チェック（克服した語）</option>'
+    +'</select>'
+    +'<div class="tm-qh" style="margin-top:10px;">直近 <input id="tmDays" type="number" min="1" max="99" value="'+esc(days)+'" class="tm-num"> 日（「直近◯日」のときだけ）　／　1人あたり上限 <input id="tmLimit" type="number" min="1" max="99" value="'+esc(limit)+'" class="tm-num"> 語</div>'
+    +'<div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">🖨 生徒ごとに<b>新しい紙の表（奇数ページ）から</b>印刷されます。両面印刷でも、前の子の裏面に次の子が入りません。</div>';
+}
+function tmPrint(){
+  var ids=Object.keys(tmSel);
+  var scope=$('tmScope').value;
+  var days=parseInt($('tmDays').value,10);if(!(days>=1))days=7;
+  var limit=parseInt($('tmLimit').value,10);if(!(limit>=1))limit=20;
+  localStorage.setItem('kwt_print_scope',scope);localStorage.setItem('kwt_print_days',days);localStorage.setItem('kwt_print_limit',limit);
+  closeModal('bulkModal');
+  runPrint_(ids,scope,days,limit);
+}
 function renderBulkMaterials(){
   var box=$('bulkMatList');box.innerHTML='';
   if(!bulkMaterials.length){box.innerHTML='<div style="font-size:12px;color:#94a3b8;">教材がありません</div>';return;}
@@ -1121,12 +1158,12 @@ function renderBulkMaterials(){
     var mid=String(m.id),on=!!bulkMat[mid];
     var row=document.createElement('div');row.className='bm-row';
     row.innerHTML='<span class="bulk-cb'+(on?' on':'')+'">'+(on?'✓':'')+'</span><span class="bulk-pill '+(isTest?'test':'daily')+'">'+(isTest?'テスト配信':'毎日学習')+'</span><span style="font-weight:700;">'+esc(m.title||'(無題)')+'</span>';
-    row.onclick=function(){if(bulkMat[mid])delete bulkMat[mid];else bulkMat[mid]=1;renderBulkMaterials();};
+    row.onclick=function(){if(bulkMat[mid])delete bulkMat[mid];else bulkMat[mid]=1;renderBulkMaterials();if(typeof tmUpdateFoot==='function')tmUpdateFoot();};
     box.appendChild(row);
   });
 }
 function applyBulk(){
-  var sids=Object.keys(bulkSel),mids=Object.keys(bulkMat);
+  var sids=Object.keys(tmSel),mids=Object.keys(bulkMat);
   if(!sids.length){$('bulkErr').textContent='生徒を選んでください';return;}
   if(!mids.length){$('bulkErr').textContent='教材を選んでください';return;}
   $('bulkErr').textContent='';
@@ -1138,7 +1175,6 @@ function applyBulk(){
     if(d.data.skipped)msg+='／既存スキップ '+d.data.skipped+'件';
     toast(msg);
     closeModal('bulkModal');
-    clearRowChecks();
     loadDash_silent();
   });
 }
