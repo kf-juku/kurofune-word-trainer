@@ -55,7 +55,7 @@
 
   .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow);margin-bottom:14px;}
 
-  .hero{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);cursor:pointer;transition:transform .18s,box-shadow .18s;}
+  .hero{position:relative;display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);cursor:pointer;transition:transform .18s,box-shadow .18s;}
   .hero:active{transform:translateY(2px) scale(.99);}
   .ring{position:relative;width:60px;height:60px;flex:none;} /* 78→60 縦圧縮 2026-07-05 */
   .ring svg{transform:rotate(-90deg);}
@@ -229,13 +229,16 @@
   .star-pop i:first-child{color:var(--gold);font-size:19px;}
   .star-pop .sp-txt{flex:1;}
   .star-pop .sp-arw{color:var(--sub);font-size:18px;}
-  .learn-row{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:9px 13px;box-shadow:var(--shadow);margin-top:10px;cursor:pointer;transition:transform .15s;}
+  .learn-row{position:relative;display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:9px 13px;box-shadow:var(--shadow);margin-top:10px;cursor:pointer;transition:transform .15s;}
   .learn-row:active{transform:scale(.99);}
   .learn-row .lr-ic{width:30px;height:30px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;}
   .learn-row .lr-nm{flex:1;font-size:14px;font-weight:700;}
   .learn-row .lr-cnt{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--sub);}
   .learn-row .lr-cnt .tdot{min-width:20px;height:20px;padding:0 5px;border-radius:11px;background:var(--ng);color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;}
   .learn-row .lr-cnt .tdot.on{display:inline-flex;}
+  /* 赤丸統一（川上さん指示 2026-07-05）：デイリー未完了＝カード右上の赤丸（数字なし）に一本化 */
+  .reddot{position:absolute;top:10px;right:10px;width:10px;height:10px;border-radius:50%;background:var(--ng);z-index:2;}
+  .learn-row.dim{opacity:.55;} /* おさらい0件は薄く（川上さん承認 2026-07-05） */
   .overall-card{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:9px 13px;box-shadow:var(--shadow);margin-top:10px;}
   .overall-card .oc-ic{width:30px;height:30px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;}
   .overall-card .oc-nm{flex:1;font-size:14px;font-weight:700;}
@@ -396,17 +399,17 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="star-pop" id="home-star-pop" style="display:none;"><i class="ti ti-sparkles"></i><span class="sp-txt" id="star-pop-txt"></span><i class="ti ti-chevron-right sp-arw"></i></div>
         <!-- 仲間チル演出（今日がんばってる仲間の気配・きらめき粒ON・音なし。川上さん確定 2026-07-03 grill＋モック選定） -->
         <div id="chill-area"></div>
-        <div class="daily-bar" id="daily-bar" style="display:none;"><span class="db-t">デイリー</span><span class="db-n" id="daily-remain"></span></div>
-        <div class="label"><i class="ti ti-anchor"></i> 今日のメイン学習 <span class="ldot" id="dot-main"></span></div>
+        <div class="daily-bar done" id="daily-bar" style="display:none;"><span class="db-t" style="color:var(--gold)">🎉 今日ぜんぶ完了！</span><span class="db-n"><i class="ti ti-check"></i></span></div>
+        <div class="label"><i class="ti ti-anchor"></i> 今日のメイン学習</div>
         <div id="main-list"><div class="loading">読み込み中…</div></div>
         <!-- 今日の復習（自動反復＝学習側・横長行）2026-07-02 -->
-        <div class="learn-row" id="tile-review"><div class="lr-ic"><i class="ti ti-clock-bolt"></i></div><div class="lr-nm">おさらい</div><div class="lr-cnt"><span class="tdot" id="dot-review">0</span><span id="cnt-review">–</span></div></div>
+        <div class="learn-row" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="lr-ic"><i class="ti ti-clock-bolt"></i></div><div class="lr-nm">おさらい</div><div class="lr-cnt"><span id="cnt-review">–</span></div></div>
         <div class="tiles" style="margin-top:16px;">
-          <div class="tile" id="tile-note"><div class="tdot" id="dot-note">0</div><div class="tic"><i class="ti ti-notebook"></i></div><div class="tnm">間違いノート</div><div class="tcnt" id="cnt-note">–</div></div>
+          <div class="tile" id="tile-note"><span class="reddot" id="dot-note" style="display:none;"></span><div class="tic"><i class="ti ti-notebook"></i></div><div class="tnm">間違いノート</div><div class="tcnt" id="cnt-note">–</div></div>
           <div class="tile" id="tile-records"><div class="tic"><i class="ti ti-folder"></i></div><div class="tnm">じぶんの記録</div><div class="tcnt">DAY・バッジ・なかま</div></div>
         </div>
         <!-- クロフネ全体（じぶんの記録の外・数値直接表示）2026-07-02 -->
-        <div class="overall-card" id="overall-card"><div class="oc-ic"><i class="ti ti-world"></i></div><div class="oc-nm">クロフネ全体</div><div class="oc-stats"><div class="oc-st"><div class="v num" id="cnt-people">–</div><div class="k">今日</div></div><div class="oc-st"><div class="v num" id="cnt-words">–</div><div class="k">今週</div></div></div></div>
+        <div class="overall-card" id="overall-card"><div class="oc-ic"><i class="ti ti-world"></i></div><div class="oc-nm">クロフネ全体</div><div class="oc-stats"><div class="oc-st"><div class="v"><span class="num" id="cnt-people">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> 人</small></div><div class="k">今日</div></div><div class="oc-st"><div class="v"><span class="num" id="cnt-words">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> 語</small></div><div class="k">今週</div></div></div></div>
         <button class="logout-link" id="btn-logout">ログアウト</button>
       </div>
 
@@ -522,13 +525,12 @@ var nickname=localStorage.getItem('kwt_nick')||'';
 function todayStr_(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
 var dailyState={main:null,review:null,note:null};
 function renderDaily(){
+  // 赤丸統一（川上さん指示 2026-07-05）：未完了は各カード右上の赤丸で示す。バーは全部完了のときだけ「今日ぜんぶ完了！」
   var st=dailyState;
-  var dm=$('dot-main');if(dm)dm.classList.toggle('on',st.main===false);
+  var allKnown=(st.main!==null&&st.review!==null&&st.note!==null);
   var remain=[st.main,st.review,st.note].filter(function(x){return x===false;}).length;
-  var bar=$('daily-bar'),n=$('daily-remain');if(!bar||!n)return;
-  bar.style.display='flex';
-  if(remain>0){n.textContent='のこり '+remain;n.className='db-n rem';bar.classList.remove('done');}
-  else{n.textContent='ぜんぶ完了';n.className='db-n';bar.classList.add('done');}
+  var bar=$('daily-bar');if(!bar)return;
+  bar.style.display=(allKnown&&remain===0)?'flex':'none';
 }
 var mode=localStorage.getItem('kwt_mode')||'normal';
 var session=null, combo=0, audioCtx=null;
@@ -596,7 +598,7 @@ function saveNick(){
     btn.disabled=false;btn.textContent='変更する';
     if(!d.ok){$('nick-err').textContent=d.error||'変更できませんでした';return;}
     nickname=d.data.nickname;
-    localStorage.setItem('kwt_nick',nickname);
+    localStorage.setItem('kwt_nick',nickname);try{localStorage.removeItem('kwt_nick_auto');}catch(e){} // 自分で決めたら案内終了 2026-07-05
     $('nick').textContent=nickname;
     closeNickModal();
     if(d.data.unchanged){toast('ニックネームはそのままだよ');}
@@ -635,7 +637,7 @@ $('nick-cancel').onclick=closeNickModal;
 $('nick-save').onclick=saveNick;
 $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
-$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスコードを入れてね';return;}this.disabled=true;this.textContent='確認中…';fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'student_login',login_id:id,passcode:pass})}).then(function(r){return r.json();}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';mode=d.data.student.mode||'normal';localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
+$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスコードを入れてね';return;}this.disabled=true;this.textContent='確認中…';fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'student_login',login_id:id,passcode:pass})}).then(function(r){return r.json();}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
 $('btn-logout').onclick=function(){localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');token='';show('scr-login');};
 
 /* 新構造ヘルパー（2026-06-23）：教科ラベル＋HTMLエスケープ */
@@ -644,7 +646,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
 function openHome(){
   $('nick').textContent=nickname;syncThemeIcon();show('scr-home');
   // 初回ログイン：ニックネーム未設定なら設定モーダルを自動表示（スキップ可・1ログイン1回だけ・川上さん確定 2026-07-04 機能仕様書_テスト配信 §5-2）
-  if((!nickname||nickname==='きみ')&&!window._nickPrompted){window._nickPrompted=true;setTimeout(openNickModal,600);}
+  if((!nickname||nickname==='きみ'||localStorage.getItem('kwt_nick_auto')==='1')&&!window._nickPrompted){window._nickPrompted=true;setTimeout(openNickModal,600);} // 自動付与された子にも初回1回だけ案内（§5-2踏襲・2026-07-05）
   $('btn-nick-edit').onclick=openNickModal;
   backToTiles();
   $('btn-back').onclick=backToTiles;
@@ -692,17 +694,30 @@ function openHome(){
         +'<div class="cta">はじめる <i class="ti ti-arrow-right"></i></div></div>';
       // テスト配信：リング＝直近の正規セッションの正解数/全問（機能仕様書_テスト配信 §3-4・2026-07-04）
       if(isTest&&m.last_total>0){var off=157*(1-Math.min(1,m.last_correct/m.last_total));h.querySelector('.ringfg').style.strokeDashoffset=off;} // リング縮小 207→157 2026-07-05
+      // 毎日学習：リング＝クリア済みDAY数/全DAY（川上さん承認 2026-07-05）
+      else if(!isTest){var _pc=(m.part_count!==undefined?m.part_count:0)|0,_po=(m.part_order||1)|0;
+        if(_pc>0){h.querySelector('.ringfg').style.strokeDashoffset=157*(1-Math.min(1,Math.max(0,_po-1)/_pc));}}
+      // 今日まだやってない毎日必須カードは右上に赤丸（赤丸統一・川上さん指示 2026-07-05）
+      var _undone=isTest?(!(m.studied_today||m.graduated)):(String(m.last_studied_at||'').slice(0,10)!==todayStr_());
+      if(_undone){var _rd=document.createElement('span');_rd.className='reddot';h.appendChild(_rd);}
       // テスト配信：今日卒業したパートはグレー沈め（押せない・「きょうはクリア！」）2026-07-04
       if(isTest&&m.graduated){
         h.classList.add('done');
         var ctaEl=h.querySelector('.cta');if(ctaEl)ctaEl.innerHTML='きょうはクリア！ <i class="ti ti-check"></i>';
+        h.onclick=null;
+      }else if(!isTest&&!_undone){
+        // 毎日学習：今日クリア済みもグレー沈め（テスト配信と対称・川上さん承認 2026-07-05）
+        h.classList.add('done');
+        var ctaEl2=h.querySelector('.cta');if(ctaEl2)ctaEl2.innerHTML='きょうはクリア！ <i class="ti ti-check"></i>';
         h.onclick=null;
       }else{
         h.onclick=function(){startPractice(m.part_id);};
       }
       $('main-list').appendChild(h);
     });}
-    if(d.data.streak!==undefined){animNum($('streak'),d.data.streak||0,800);}
+    if(d.data.streak!==undefined){var _stk=d.data.streak||0;var _sw=document.querySelector('.head .streak');
+      if(_sw){if(_stk>0){_sw.innerHTML='<i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b>日';animNum($('streak'),_stk,800);}
+      else{_sw.innerHTML='<span style="font-size:12px;color:var(--sub)">今日からスタート！</span>';}}} // ストリーク0日表示（川上さん承認 2026-07-05）
   });
   call({action:'material_parts'}).then(function(d){
     if(!d.ok){$('review-area').innerHTML='<p class="muted">—</p>';return;}
@@ -1210,7 +1225,7 @@ function loadNotes(){
     $('cnt-note').innerHTML=totalN?('<b>'+totalN+'</b> 語のこり'):'ぜんぶ卒業！';
     var noteDoneToday=(localStorage.getItem('kwt_note_done')===todayStr_());
     var noteDaily=(totalN===0)?true:noteDoneToday; // 本日1セットやれば完了（間違いが残っていても）2026-07-04
-    var dn=$('dot-note');dn.textContent=totalN;dn.classList.toggle('on',totalN>0 && !noteDoneToday);
+    var dn=$('dot-note');if(dn)dn.style.display=(totalN>0&&!noteDoneToday)?'block':'none'; // 赤丸統一 2026-07-05
     dailyState.note=noteDaily;renderDaily();
     area.innerHTML='';
     if(!totalN){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">間違いゼロ！</div><div class="sub">いまは復習する単語がありません</div></div></div>';return;}
@@ -1326,7 +1341,8 @@ function loadReviewSrs(){
     var ws=d.data.words||[];
     var rtot=(d.data.due_total||ws.length);
     $('cnt-review').innerHTML=rtot?('<b>'+rtot+'</b> 語'):'なし';
-    var dr=$('dot-review');dr.textContent=rtot;dr.classList.toggle('on',rtot>0);
+    var dr=$('dot-review');if(dr)dr.style.display=rtot>0?'block':'none'; // 赤丸統一 2026-07-05
+    var trow=$('tile-review');if(trow)trow.classList.toggle('dim',rtot===0); // 0件は薄く（川上さん承認 2026-07-05）
     dailyState.review=(rtot===0);renderDaily(); // デイリー：おさらい完了判定 2026-07-04
     if(!ws.length){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub">合格した単語が、忘れたころにここへ出てくるよ</div></div></div>';return;}
     var n=ws.length, total=d.data.due_total||n;
@@ -1427,7 +1443,7 @@ function loadBadges(){
     area.appendChild(grid);
   });
 }
- 
+
 if(token){openHome();}
 </script>
 </body>
