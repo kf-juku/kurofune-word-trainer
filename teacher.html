@@ -234,6 +234,29 @@
     .filter-search{width:100%;}
     th,td{padding:7px 8px;font-size:12px;}
   }
+/* ===== 注目ファースト改修（teacher-dashboard-design）2026-07-05 ===== */
+.alertsK{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:760px){.alertsK{grid-template-columns:1fr}}
+.alert-cardK{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:11px 14px;border-left:4px solid #f59e0b}
+.alert-cardK.bad{border-left-color:#C6000B}
+.alert-cardK .ac-h{font-weight:700;font-size:13px}
+.alert-cardK .ac-h b{font-size:17px}
+.alert-cardK .ac-sub{font-size:11px;color:#5a6a7e;font-weight:400;margin-left:6px}
+.chipsK{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.chipK{background:#f3f4f6;border:1px solid #dde3ec;border-radius:99px;padding:2px 10px;font-size:12px;cursor:pointer}
+.chipK:hover{background:#fef3c7}
+.alert-cardK.bad .chipK:hover{background:#FFF0F0}
+.chip-none{font-size:12px;color:#94a3b8}
+.alert-setK{grid-column:1/-1;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:7px 14px;font-size:12px;color:#5a6a7e}
+.alert-setK input{width:46px;padding:2px 4px;border:1px solid #dde3ec;border-radius:6px;text-align:right;margin:0 2px}
+.cfg-tag{background:#dbeafe;color:#1d4ed8;border-radius:6px;padding:1px 8px;font-size:11px;margin-left:6px}
+.topbarK{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.bulkbarK{display:none;position:sticky;top:0;z-index:5;background:#FFF0F0;border:1px solid #f4a0a5;border-radius:10px;padding:8px 14px;margin-bottom:10px;align-items:center;gap:12px}
+.bulkbarK.show{display:flex}
+.bulkbarK b{color:#C6000B}
+.inline-sel{border:1px solid transparent;background:transparent;font-size:12px;padding:2px 3px;border-radius:6px;max-width:160px;cursor:pointer}
+.inline-sel:hover{border-color:#dde3ec;background:#f3f4f6}
+.bulk-selK{background:#d1fae5;border-radius:8px;padding:8px 12px;font-size:12px;color:#065f46;margin-bottom:10px;line-height:1.7}
 </style>
 </head>
 <body>
@@ -282,11 +305,21 @@
       <div class="stats-card"><div class="stats-num" id="st-mistake" style="color:var(--crimson);">0</div><div class="stats-lbl">間違い集 合計語数</div></div>
     </div>
 
+    <!-- 要注意（メール通知と同じ基準・共通しきい値）teacher-dashboard-design 2026-07-05 -->
+    <div class="alertsK">
+      <div class="alert-cardK"><div class="ac-h">😴 やってない子 <b id="alIdleN">–</b>名<span class="ac-sub">最終学習のあきが <span id="alIdleDaysLbl">1</span>日超</span></div><div class="chipsK" id="alIdleChips"></div></div>
+      <div class="alert-cardK bad"><div class="ac-h">📣 指導必要 <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span></div><div class="chipsK" id="alTeachChips"></div></div>
+      <div class="alert-setK">⚙ この基準は毎朝のメール通知と共通：やってない＝あき<input id="cfgIdle" type="number" min="1" max="99" value="1" onchange="saveAlertConfig()">日超／指導必要＝正答率<input id="cfgAcc" type="number" min="1" max="100" value="60" onchange="saveAlertConfig()">%未満<span class="cfg-tag">ここを変えると画面もメールも両方変わります</span></div>
+    </div>
     <div style="margin-bottom:12px;"><button class="btn-primary" style="width:auto;" onclick="openBulkAssign()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>教材をまとめて割り当てる</button></div>
 
-    <div class="filter-bar">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input class="filter-search" id="searchInput" placeholder="名前で検索" oninput="renderTable()">
+    <div class="topbarK">
+      <input class="filter-search" id="searchInput" placeholder="🔍 名前で検索" oninput="renderTable()" style="flex:1;min-width:160px;">
+      <button class="btn-ghost" id="advToggle" onclick="toggleAdvK(this)">詳しく絞り込む ▾</button>
+      <span class="filter-count" id="filterCount"></span>
+    </div>
+    <div class="bulkbarK" id="bulkbarK"><b><span id="bulkbarN">0</span>名 選択中</b><button class="btn-primary" style="width:auto;" onclick="openBulkAssign()">選択した子に教材を割り当てる</button><button class="btn-ghost" onclick="clearRowChecks()">選択解除</button></div>
+    <div class="filter-bar" id="advFilters" style="display:none;">
       <button class="filter-chip active" data-f="all" onclick="setFilter('all',this)">すべて</button>
       <button class="filter-chip" data-f="today" onclick="setFilter('today',this)">今日やった</button>
       <button class="filter-chip" data-f="not_today" onclick="setFilter('not_today',this)">今日まだ</button>
@@ -306,7 +339,6 @@
         上限<input id="printLimit" type="number" min="1" max="99" value="20">語
         <button class="btn-print" onclick="printSelected()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>選んだ子を印刷</button>
       </span>
-      <span class="filter-count" id="filterCount"></span>
       <div class="filter-row2">
         <span class="filter-label">学年</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">クリックで学年を絞り込みます。複数選択できます（例：中1と中2）。何も選ばないと全学年を表示します。</span></span>
         <span id="gradeChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
@@ -326,6 +358,7 @@
               <th>学年</th>
               <th>メイン教材</th>
               <th>いまここ</th>
+              <th>1日<br>パート</th>
               <th>今日</th>
               <th>最終学習</th>
               <th>練習<br>回数</th>
@@ -423,28 +456,9 @@
 <div class="modal-back" id="bulkModal">
   <div class="modal">
     <h3>教材をまとめて割り当てる</h3>
-    <div class="mhint">生徒を選び（絞り込みを変えても選択は消えません）、下で教材を選んで割り当てます。</div>
+    <div class="mhint">対象は<b>一覧でチェックした生徒</b>です（このモーダルでは選び直しません）。</div>
     <div class="err" id="bulkErr"></div>
-    <div class="bulk-cols">
-      <div>
-        <div class="bulk-filter">
-          <div style="font-size:12px;font-weight:700;">🔍 絞り込み <span style="color:var(--text-light);font-weight:400;font-size:11px;">（映る人を絞るだけ・選択は消えません）</span></div>
-          <div class="bf-h">教室</div><div id="bfClass" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
-          <div class="bf-h">学年</div><div id="bfGrade" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
-          <div class="bf-h">中学校</div><div id="bfSchool" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
-        </div>
-        <div style="display:flex;align-items:center;margin-bottom:6px;">
-          <span style="font-size:12px;color:var(--text-muted);" id="bulkResultCount">絞り込み結果 0名</span>
-          <button class="btn-ghost" style="margin-left:auto;font-size:11px;padding:4px 10px;" onclick="bulkSelectAllShown()">☑ 表示中を全て選択に追加</button>
-        </div>
-        <div class="bulk-list" id="bulkList"></div>
-      </div>
-      <div class="bulk-sel">
-        <div class="bs-h">👥 選択中 <span id="bulkSelCount">0</span>名</div>
-        <div class="bs-sub">絞り込みを変えても消えません</div>
-        <div id="bulkSelList"></div>
-      </div>
-    </div>
+    <div class="bulk-selK" id="bulkWho"></div>
     <div class="bulk-mat">
       <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">割り当てる教材（複数可）</div>
       <div id="bulkMatList"></div>
@@ -713,7 +727,8 @@ function renderTable(){
       +'<td><div class="t-name">'+esc(s.name||'(無名)')+modeBadge+'</div>'+(s.nickname?'<div class="t-nick">'+esc(s.nickname)+'</div>':'')+(s.login_id?'<div class="t-nick">ID:'+esc(s.login_id)+'</div>':'')+'</td>'
       +'<td class="t-sub">'+esc(s.grade||'')+'</td>'
       +'<td>'+(s.material?esc(s.material):'<span class="dash">未割当</span>')+' <button class="asg-btn" onclick="openAssign('+"'"+esc(String(s.student_id))+"'"+')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg> 教材</button></td>'
-      +'<td class="t-sub">'+(s.part?esc(s.part):'<span class="dash">–</span>')+'</td>'
+      +'<td class="t-sub">'+partCellK(s)+'</td>'
+      +'<td>'+dailyCellK(s)+'</td>'
       +'<td>'+todayBadge+'</td>'
       +'<td class="t-sub">'+lastStudiedCell(s)+'</td>'
       +'<td class="num">'+(s.practice_count||0)+'</td>'
@@ -725,6 +740,7 @@ function renderTable(){
       +'<td>'+retentionCell(s.retention)+'</td>';
     tb.appendChild(tr);
   });
+  renderAlertsK();
 }
 
 /* 発音セル：直近セッションの「成功/試行」。試行0は「–」。2026-06-22
@@ -743,6 +759,108 @@ function retentionCell(r){
   return '<span style="white-space:nowrap;">'+chip(g,'#22a06b')+chip(y,'#d9a514')+chip(b,'#2f6fd9')+chip(rd,'#d64545')+'</span>';
 }
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+/* ===== 注目ファースト改修（teacher-dashboard-design）2026-07-05 ===== */
+/* --- フィルタ畳み --- */
+function toggleAdvK(btn){var f=$('advFilters');var on=f.style.display==='none';f.style.display=on?'':'none';btn.textContent=on?'詳しく絞り込む ▴':'詳しく絞り込む ▾';}
+/* --- 一括アクションバー --- */
+function checkedSids(){return Array.prototype.map.call(document.querySelectorAll('.rowchk:checked'),function(c){return String(c.value);});}
+function updateBulkbarK(){var n=checkedSids().length;$('bulkbarN').textContent=n;$('bulkbarK').classList.toggle('show',n>0);}
+function clearRowChecks(){Array.prototype.forEach.call(document.querySelectorAll('.rowchk:checked'),function(c){c.checked=false;});var ca=$('chkAll');if(ca)ca.checked=false;updateBulkbarK();}
+/* --- 行内プルダウン（いまここ・1日パート）: GAS完了後トースト・失敗時ロールバック（gas-html-checklist準拠） --- */
+var _partsByMat=null;
+function ensureMatParts(cb){
+  if(_partsByMat){if(cb)cb();return;}
+  call({action:'materials_list'}).then(function(d){
+    _partsByMat={};
+    if(d&&d.ok){(d.data.parts||[]).forEach(function(pp){
+      if(pp.is_active===false||pp.is_active==='FALSE')return;
+      var k=String(pp.material_id);(_partsByMat[k]=_partsByMat[k]||[]).push(pp);
+    });
+    Object.keys(_partsByMat).forEach(function(k){_partsByMat[k].sort(function(a,b){return (parseInt(a.part_order,10)||0)-(parseInt(b.part_order,10)||0);});});}
+    if(cb)cb();
+  });
+}
+function partCellK(s){
+  var mid=String(s.material_id||'');
+  if(!mid||!_partsByMat||!_partsByMat[mid]||!_partsByMat[mid].length){return s.part?esc(s.part):'<span class="dash">–</span>';}
+  var h='<select class="inline-sel js-part" data-sid="'+esc(String(s.student_id))+'" data-mid="'+esc(mid)+'" data-prev="'+esc(String(s.part_id||''))+'">';
+  _partsByMat[mid].forEach(function(pp){h+='<option value="'+esc(String(pp.id))+'"'+(String(pp.id)===String(s.part_id)?' selected':'')+'>'+esc(pp.title||('パート'+pp.part_order))+'</option>';});
+  return h+'</select>';
+}
+function dailyCellK(s){
+  if(!s.material_id)return '<span class="dash">–</span>';
+  var cur=parseInt(s.daily_parts,10)||1;
+  var h='<select class="inline-sel js-daily" data-sid="'+esc(String(s.student_id))+'" data-mid="'+esc(String(s.material_id))+'" data-prev="'+cur+'">';
+  [1,2,3,4,5].forEach(function(n){h+='<option value="'+n+'"'+(n===cur?' selected':'')+'>'+n+'</option>';});
+  return h+'</select>';
+}
+function rowPartChange(sel){
+  var sid=sel.getAttribute('data-sid'),mid=sel.getAttribute('data-mid'),prev=sel.getAttribute('data-prev'),val=sel.value;
+  sel.disabled=true;toast('⏳ 保存中…');
+  call({action:'assignment_update',student_id:sid,material_id:mid,start_part_id:val}).then(function(d){
+    sel.disabled=false;
+    if(!d||!d.ok){sel.value=prev;toast('⚠ 保存に失敗しました：'+((d&&d.error)||'通信エラー'));return;}
+    sel.setAttribute('data-prev',val);
+    _students.forEach(function(st){if(String(st.student_id)===sid){st.part_id=val;var ps=(_partsByMat[mid]||[]).filter(function(pp){return String(pp.id)===val;});if(ps.length)st.part=ps[0].title;}});
+    toast('「いまここ」を保存しました');
+  });
+}
+function rowDailyChange(sel){
+  var sid=sel.getAttribute('data-sid'),mid=sel.getAttribute('data-mid'),prev=sel.getAttribute('data-prev'),val=sel.value;
+  sel.disabled=true;toast('⏳ 保存中…');
+  call({action:'assignment_update',student_id:sid,material_id:mid,daily_parts:val}).then(function(d){
+    sel.disabled=false;
+    if(!d||!d.ok){sel.value=prev;toast('⚠ 保存に失敗しました：'+((d&&d.error)||'通信エラー'));return;}
+    sel.setAttribute('data-prev',val);
+    _students.forEach(function(st){if(String(st.student_id)===sid){st.daily_parts=val;}});
+    toast('1日パート数を保存しました');
+  });
+}
+/* --- 変更イベントの一括デリゲーション --- */
+document.addEventListener('change',function(e){
+  var t=e.target;if(!t||!t.classList)return;
+  if(t.classList.contains('rowchk')){updateBulkbarK();return;}
+  if(t.classList.contains('js-part')){rowPartChange(t);return;}
+  if(t.classList.contains('js-daily')){rowDailyChange(t);return;}
+});
+document.addEventListener('click',function(e){if(e.target&&e.target.id==='chkAll'){setTimeout(updateBulkbarK,0);}});
+/* --- 要注意カード＋共通しきい値（メール通知と同じ基準・alert_config_get/set） --- */
+var _alertCfg={idle_days:1,accuracy:60};
+function loadAlertConfig(){
+  call({action:'alert_config_get'}).then(function(d){
+    if(d&&d.ok){_alertCfg=d.data;var i=$('cfgIdle'),a=$('cfgAcc');if(i)i.value=_alertCfg.idle_days;if(a)a.value=_alertCfg.accuracy;renderAlertsK();}
+  });
+}
+function saveAlertConfig(){
+  var dI=parseInt($('cfgIdle').value,10),aC=parseInt($('cfgAcc').value,10);
+  toast('⏳ 保存中…');
+  call({action:'alert_config_set',idle_days:dI,accuracy:aC}).then(function(d){
+    if(!d||!d.ok){toast('⚠ '+((d&&d.error)||'保存に失敗しました'));$('cfgIdle').value=_alertCfg.idle_days;$('cfgAcc').value=_alertCfg.accuracy;return;}
+    _alertCfg=d.data;toast('しきい値を保存しました（メール通知にも反映されます）');renderAlertsK();
+  });
+}
+function renderAlertsK(){
+  if(!$('alIdleChips'))return;
+  $('alIdleDaysLbl').textContent=_alertCfg.idle_days;$('alAccLbl').textContent=_alertCfg.accuracy;
+  var idle=[],teach=[];
+  (_students||[]).forEach(function(st){
+    if(!st.material)return; // 割当なしは対象外（メール通知と同じ）
+    var da=daysAgo(st.last_studied_at);
+    if(da===null||da>_alertCfg.idle_days)idle.push({n:st.name||st.nickname||'',d:(da===null?'未学習':'あき'+da+'日')});
+    if(hasTeach(st)&&st.teach_rate<_alertCfg.accuracy)teach.push({n:st.name||st.nickname||'',r:st.teach_rate});
+  });
+  idle.sort(function(a,b){return (b.d==='未学習'?1e9:parseInt(b.d.replace(/\D/g,''),10))-(a.d==='未学習'?1e9:parseInt(a.d.replace(/\D/g,''),10));});
+  teach.sort(function(a,b){return a.r-b.r;});
+  $('alIdleN').textContent=idle.length;$('alTeachN').textContent=teach.length;
+  var mk=function(host,arr,fmt){
+    var el=$(host);el.innerHTML=arr.length?'':'<span class="chip-none">なし 🎉</span>';
+    arr.forEach(function(x){var b=document.createElement('span');b.className='chipK';b.textContent=fmt(x);b.title='クリックで検索';b.onclick=function(){$('searchInput').value=x.n;renderTable();};el.appendChild(b);});
+  };
+  mk('alIdleChips',idle,function(x){return x.n+'（'+x.d+'）';});
+  mk('alTeachChips',teach,function(x){return x.n+'（'+x.r+'%）';});
+}
+if(token){setTimeout(loadAlertConfig,400);setTimeout(function(){ensureMatParts(function(){if(_students&&_students.length)renderTable();});},600);}
 
 /* ===== チーム編成 2026-06-21 ===== */
 var _teams=[];          // teamsList の teams
@@ -919,18 +1037,19 @@ function closeModal(id){$(id).classList.remove('show');}
    絞り込みを変えても消えない（右の選択中エリアに常時表示）。教材は複数選択→assignment_bulk。 */
 var bulkSel={}, bulkMat={}, bulkFilter={cls:{},grade:{},school:{}}, bulkMaterials=[];
 function openBulkAssign(){
-  bulkSel={};bulkMat={};bulkFilter={cls:{},grade:{},school:{}};
-  $('bulkErr').textContent='';
+  // 対象＝一覧のチェック（teacher-dashboard-design原則4：モーダル内で選び直さない）2026-07-05
+  var sids=checkedSids();
+  if(!sids.length){toast('先に一覧で生徒にチェック✓を入れてください');return;}
+  bulkSel={};sids.forEach(function(x){bulkSel[x]=1;});
+  bulkMat={};$('bulkErr').textContent='';
+  var names=_students.filter(function(st){return bulkSel[String(st.student_id)];}).map(function(st){return esc(st.name||'(無名)');});
+  $('bulkWho').innerHTML='✓ '+names.join('／')+'<div style="margin-top:2px;"><b>'+names.length+'名</b>に割り当てます</div>';
   $('bulkModal').classList.add('show');
-  // 教材候補
   $('bulkMatList').innerHTML='<div style="color:#94a3b8;font-size:13px;">読み込み中…</div>';
   call({action:'materials_list'}).then(function(d){
     bulkMaterials=(d&&d.ok?(d.data.materials||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}):[]);
     renderBulkMaterials();
   });
-  buildBulkFilters();
-  renderBulkList();
-  renderBulkSel();
 }
 /* 絞り込みチップを _students から動的生成 */
 function buildBulkFilters(){
@@ -1019,6 +1138,7 @@ function applyBulk(){
     if(d.data.skipped)msg+='／既存スキップ '+d.data.skipped+'件';
     toast(msg);
     closeModal('bulkModal');
+    clearRowChecks();
     loadDash_silent();
   });
 }
