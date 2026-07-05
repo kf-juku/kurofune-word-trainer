@@ -1101,11 +1101,52 @@ function speak(w){try{if(window.speechSynthesis){var u=new SpeechSynthesisUttera
 var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 var pronRec=null,pronBusy=false;
 function normWord_(t){return String(t||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
+/* ===== ゆるい発音判定（川上さん承認 2026-07-05）=====
+   目的：「発音が上手か」ではなく「その単語の読み方（母音・子音の組み合わせ）を知っているか」を見る。
+   1) 完全一致・単語ごとの許容リスト（acceptable_speech_results 列）→ 従来どおりOK
+   2) よくある同音語（hour=our 等）→ OK（HOMOPHONESで調整可）
+   3) 日本語話者が区別しにくい音を同一視した「発音キー」が一致 → OK（l=r・th=s・v=b・母音の長短など）
+   4) 発音キーの編集距離1以内（キー5文字以上のときだけ）→ OK
+   判定はこれまでどおり参考値（合否に使わない）。 */
+var HOMOPHONES={hour:['our','r','are'],our:['hour'],know:['no'],no:['know'],write:['right'],right:['write'],
+  knight:['night'],night:['knight'],two:['to','too'],too:['two','to'],four:['for'],for:['four'],one:['won'],won:['one'],
+  eight:['ate'],ate:['eight'],see:['sea'],sea:['see'],hear:['here'],here:['hear'],meet:['meat'],meat:['meet'],
+  week:['weak'],weak:['week'],new:['knew'],knew:['new'],son:['sun'],sun:['son'],by:['buy','bye'],buy:['by','bye'],
+  there:['their'],their:['there'],wear:['where'],where:['wear'],hi:['high'],high:['hi']};
+function pronKey_(t){
+  var s=String(t||'').toLowerCase().replace(/[^a-z]/g,'');
+  if(!s)return '';
+  s=s.replace(/ph/g,'f').replace(/th/g,'s').replace(/^kn/,'n').replace(/^wr/,'r').replace(/mb$/,'m').replace(/gh/g,'');
+  s=s.replace(/ee|ea|ie|ei/g,'i').replace(/oo|ou|ow|au|aw/g,'o').replace(/ai|ay|ey/g,'e');
+  s=s.replace(/l/g,'r').replace(/v/g,'b').replace(/q/g,'k').replace(/c/g,'k').replace(/x/g,'ks');
+  s=s.replace(/e$/,'');
+  s=s.replace(/(.)\1+/g,'$1');
+  return s;
+}
+function editDist1_(a,b){
+  if(a===b)return true;
+  var la=a.length,lb=b.length;
+  if(Math.abs(la-lb)>1)return false;
+  var i=0,j=0,diff=0;
+  while(i<la&&j<lb){
+    if(a[i]===b[j]){i++;j++;continue;}
+    diff++;if(diff>1)return false;
+    if(la===lb){i++;j++;}else if(la>lb){i++;}else{j++;}
+  }
+  diff+=(la-i)+(lb-j);
+  return diff<=1;
+}
 function judgePron_(heard,w){
   var h=normWord_(heard);if(!h)return false;
-  if(h===normWord_(w.english))return true;
+  var tgt=normWord_(w.english);
+  if(h===tgt)return true;
   var acc=(w.acceptable_speech_results||'').split(',');
   for(var i=0;i<acc.length;i++){if(acc[i]&&normWord_(acc[i])===h)return true;}
+  var hp=HOMOPHONES[tgt];
+  if(hp){for(var j=0;j<hp.length;j++){if(normWord_(hp[j])===h)return true;}}
+  var kh=pronKey_(h),kt=pronKey_(tgt);
+  if(kh&&kt&&kh===kt)return true;
+  if(kt.length>=5&&editDist1_(kh,kt))return true;
   return false;
 }
 function resetPronUI(){

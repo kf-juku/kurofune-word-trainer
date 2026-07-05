@@ -1150,10 +1150,23 @@ function tmPrint(){
   closeModal('bulkModal');
   runPrint_(ids,scope,days,limit);
 }
+/* 教材の表示順：毎日学習→テスト配信、各グループ内はタイトル五十音順（川上さん承認 2026-07-05）
+   ※シートの行順に依存しない。教材が増えても探しやすさを保つ */
+function sortMaterials_(arr){
+  return (arr||[]).slice().sort(function(a,b){
+    var ta=(a.content_type==='test')?1:0, tb=(b.content_type==='test')?1:0;
+    if(ta!==tb)return ta-tb;
+    return String(a.title||'').localeCompare(String(b.title||''),'ja');
+  });
+}
 function renderBulkMaterials(){
   var box=$('bulkMatList');box.innerHTML='';
   if(!bulkMaterials.length){box.innerHTML='<div style="font-size:12px;color:#94a3b8;">教材がありません</div>';return;}
-  bulkMaterials.forEach(function(m){
+  var _lastType=null;
+  sortMaterials_(bulkMaterials).forEach(function(m){
+    // グループ見出し（毎日学習／テスト配信）2026-07-05
+    var _t=(m.content_type==='test')?'テスト配信':'毎日学習';
+    if(_t!==_lastType){_lastType=_t;var hd=document.createElement('div');hd.style.cssText='font-size:11px;font-weight:800;color:var(--text-muted);margin:8px 2px 4px;';hd.textContent='── '+_t+' ──';box.appendChild(hd);}
     var isTest=(m.content_type==='test');
     var mid=String(m.id),on=!!bulkMat[mid];
     var row=document.createElement('div');row.className='bm-row';
@@ -1248,11 +1261,14 @@ function renderAssignList(){
 function renderAddOptions(){
   var sel=$('asgAddSel');sel.innerHTML='<option value="">教材を選ぶ…</option>';
   var assigned={};_asgList.forEach(function(a){assigned[String(a.material_id)]=true;});
-  _asgMaterials.forEach(function(m){
+  // ソート＋グループ見出し（毎日学習→テスト配信・各五十音順・川上さん承認 2026-07-05）
+  var _grp=null;
+  sortMaterials_(_asgMaterials).forEach(function(m){
     if(assigned[String(m.id)])return; // 既に割当済みは出さない
-    var tag=(m.content_type==='test')?'［テスト配信］':'［毎日学習］';
-    var opt=document.createElement('option');opt.value=m.id;opt.textContent=tag+' '+(m.title||'(無題)');
-    sel.appendChild(opt);
+    var _t=(m.content_type==='test')?'テスト配信':'毎日学習';
+    if(_t!==(_grp&&_grp.label)){_grp=document.createElement('optgroup');_grp.label=_t;sel.appendChild(_grp);}
+    var opt=document.createElement('option');opt.value=m.id;opt.textContent=(m.title||'(無題)');
+    _grp.appendChild(opt);
   });
 }
 function addAssign(){
