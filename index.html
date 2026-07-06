@@ -1665,7 +1665,7 @@ function loadBadges(){
   });
 }
 
-if(token){openHome();try{var _rv=sessionStorage.getItem('kwt_view');if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}}catch(e){}} // 更新後に最後のサブ画面を復元（川上さん確定2026-07-06）
+if(token){var _rv=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}openHome();try{if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}}catch(e){}} // 更新後に最後のサブ画面を復元（openHome内のbackToTiles()が復元キーを消すので、必ず先に読む・川上さん確定2026-07-06）
 </script>
 </body>
 </html>
