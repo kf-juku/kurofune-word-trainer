@@ -78,6 +78,21 @@
   /* 印刷モードは色を変えて割当と区別（item7・2026-07-07） */
   #bulkModal.printmode .tm-step.on{background:#1f56b0;}
   #bulkModal.printmode .btn-primary{background:#1f56b0;}
+  /* 生徒 個人詳細モーダル（item5・2026-07-07） */
+  .sd-head{display:flex;align-items:flex-start;}
+  .sd-name{font-size:17px;font-weight:800;}
+  .sd-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .sd-chip{border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:11px;color:var(--text-muted);}
+  .sd-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:14px;}
+  .sd-card{background:var(--surface2);border-radius:9px;padding:9px 8px;text-align:center;}
+  .sd-card .l{font-size:10.5px;color:var(--text-muted);}
+  .sd-card .v{font-size:19px;font-weight:800;}
+  .sd-sec{font-size:11px;font-weight:800;color:var(--text-muted);margin:14px 0 5px;}
+  .sd-bar{display:flex;height:16px;border-radius:6px;overflow:hidden;}
+  .sd-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+  .sd-tbl th{padding:5px 6px;font-weight:700;color:var(--text-light);font-size:10.5px;text-align:left;}
+  .sd-tbl td{padding:6px;border-top:1px solid var(--surface2);}
+  #tableWrap tbody tr{cursor:pointer;}
   .tm-search{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;margin-bottom:8px;font-family:inherit;box-sizing:border-box;}
   .tm-list{border:1px solid var(--border);border-radius:10px;max-height:240px;overflow-y:auto;}
   .tm-srow{display:flex;align-items:center;gap:9px;padding:7px 11px;border-bottom:1px solid var(--surface2);font-size:13px;cursor:pointer;}
@@ -491,6 +506,13 @@
   </div>
 </div>
 
+<!-- 生徒 個人詳細モーダル（item5・2026-07-07） -->
+<div class="modal-back" id="studentModal">
+  <div class="modal" style="max-width:600px;max-height:82vh;overflow-y:auto;">
+    <div id="sdBody"></div>
+  </div>
+</div>
+
 <!-- 同期結果モーダル（生徒アカウント管理 2026-07-02） -->
 <div class="modal-back" id="syncResultModal">
   <div class="modal">
@@ -737,6 +759,7 @@ function renderTable(){
   rows.forEach(function(s){
     var tr=document.createElement('tr');
     var _cls=[];if(isInactive(s))_cls.push('row-inactive');if(needsHelp(s))_cls.push('row-needhelp');tr.className=_cls.join(' ');
+    (function(_sid){tr.onclick=function(e){if(e.target.closest('button')||e.target.closest('a'))return;openStudentDetail(_sid);};})(String(s.student_id));
     var todayBadge=s.did_today?'<span class="badge badge-green">✓ やった</span>':'<span class="badge badge-gray">まだ</span>';
     var mistakeBadge=s.mistake_active>0?'<span class="badge badge-amber num">'+s.mistake_active+' 語</span>':'<span class="badge badge-gray">0</span>';
     var modeBadge=s.mode==='support_5'?' <span class="badge badge-gray">5語</span>':'';
@@ -763,6 +786,58 @@ function renderTable(){
 
 /* 学習時間セル：直近セッションの実解答時間（active_ms）を 分:秒 で。0は「–」。2026-07-06 */
 function timeCell(ms){ms=parseInt(ms,10)||0;if(ms<=0)return '<span class="dash">–</span>';var sec=Math.round(ms/1000);var m=Math.floor(sec/60),ss=sec%60;return '<span class="num">'+(m>0?(m+'分'+('0'+ss).slice(-2)+'秒'):(ss+'秒'))+'</span>';}
+/* 生徒 個人詳細モーダル（item5・2026-07-07）：一覧の行クリックで開く。サマリは_students、履歴はstudent_sessions。 */
+function fmtMs_(ms){ms=parseInt(ms,10)||0;if(ms<=0)return '–';var sec=Math.round(ms/1000);return Math.floor(sec/60)+':'+('0'+(sec%60)).slice(-2);}
+function printOne(sid){closeModal('studentModal');openTargetModal('print',[sid]);}
+function openStudentDetail(sid){
+  var s=null;for(var i=0;i<_students.length;i++){if(String(_students[i].student_id)===String(sid)){s=_students[i];break;}}
+  if(!s)return;
+  var r=s.retention||{green:0,yellow:0,blue:0,red:0};
+  var g=r.green||0,y=r.yellow||0,bl=r.blue||0,rd=r.red||0,tot=g+y+bl+rd;
+  var mr=(s.meaning_rate===''||s.meaning_rate==null)?'–':s.meaning_rate;
+  var rr=(s.reverse_rate===''||s.reverse_rate==null)?'–':s.reverse_rate;
+  var tr2=hasTeach(s)?(s.teach_rate+'%'):'–';
+  var chips=[s.grade,s.school,s.class_name].filter(Boolean).map(function(x){return '<span class="sd-chip">'+esc(x)+'</span>';}).join('');
+  if(s.material)chips+='<span class="sd-chip" style="background:var(--crimson-light);color:var(--crimson);border-color:var(--crimson-mid);font-weight:700;">'+esc(s.material)+'</span>';
+  var bar;
+  if(tot>0){bar='<div class="sd-bar">'
+    +(g?'<div style="flex:'+g+';background:#1faa6b;"></div>':'')
+    +(y?'<div style="flex:'+y+';background:#e6b800;"></div>':'')
+    +(bl?'<div style="flex:'+bl+';background:#4d8fd6;"></div>':'')
+    +(rd?'<div style="flex:'+rd+';background:var(--crimson);"></div>':'')
+    +'</div><div style="display:flex;gap:12px;margin-top:5px;font-size:11px;color:var(--text-muted);flex-wrap:wrap;"><span><span style="color:#1faa6b;">■</span> 覚えた '+g+'</span><span><span style="color:#e6b800;">■</span> 覚えかけ '+y+'</span><span><span style="color:#4d8fd6;">■</span> 学習中 '+bl+'</span><span><span style="color:var(--crimson);">■</span> 弱点 '+rd+'</span></div>';
+  }else{bar='<div style="font-size:12px;color:var(--text-light);">まだ定着度データがありません</div>';}
+  $('sdBody').innerHTML=''
+    +'<div class="sd-head"><div><div class="sd-name">'+esc(s.name||'(無名)')+(s.nickname?' <span style="font-size:12px;font-weight:600;color:var(--text-light);">'+esc(s.nickname)+'</span>':'')+'</div><div class="sd-chips">'+chips+'</div></div><span style="flex:1;"></span><button id="sdClose1" class="btn-ghost" style="border:none;font-size:18px;padding:2px 9px;">×</button></div>'
+    +'<div class="sd-cards">'
+      +'<div class="sd-card"><div class="l">学習時間</div><div class="v">'+fmtMs_(s.last_active_ms)+'</div></div>'
+      +'<div class="sd-card"><div class="l">意味/日英</div><div class="v">'+mr+'/'+rr+'<span style="font-size:11px;font-weight:600;">%</span></div></div>'
+      +'<div class="sd-card"><div class="l">指導(3平均)</div><div class="v">'+tr2+'</div></div>'
+      +'<div class="sd-card"><div class="l">練習回数</div><div class="v">'+(s.practice_count||0)+'</div></div>'
+      +'<div class="sd-card"><div class="l">間違い集</div><div class="v">'+(s.mistake_active||0)+'<span style="font-size:11px;font-weight:600;">語</span></div></div>'
+    +'</div>'
+    +'<div class="sd-sec">定着度'+(tot>0?'（'+tot+'語）':'')+'</div>'+bar
+    +'<div class="sd-sec">直近の学習（新しい順）</div><div id="sdHist"><div style="font-size:12px;color:var(--text-light);">読み込み中…</div></div>'
+    +'<div style="display:flex;gap:8px;margin-top:14px;align-items:center;"><button id="sdPrint" class="btn-ghost">まちがいを印刷</button><span style="flex:1;"></span><button id="sdClose2" class="btn-primary" style="width:auto;">閉じる</button></div>';
+  $('sdClose1').onclick=function(){closeModal('studentModal');};
+  $('sdClose2').onclick=function(){closeModal('studentModal');};
+  $('sdPrint').onclick=function(){printOne(sid);};
+  $('studentModal').classList.add('show');
+  call({action:'student_sessions',student_id:sid,limit:10}).then(function(d){
+    var el=$('sdHist');if(!el)return;
+    if(!d||!d.ok){el.innerHTML='<div style="font-size:12px;color:var(--crimson);">履歴の取得に失敗しました</div>';return;}
+    var ss=(d.data&&d.data.sessions)||[];
+    if(!ss.length){el.innerHTML='<div style="font-size:12px;color:var(--text-light);">まだ学習履歴がありません</div>';return;}
+    var body=ss.map(function(x){
+      var rate=(x.meaning_rate===''&&x.reverse_rate==='')?'–':((x.meaning_rate===''?'–':x.meaning_rate)+'/'+(x.reverse_rate===''?'–':x.reverse_rate)+'%');
+      var d2=String(x.date||'');var md=d2.length>=10?(parseInt(d2.slice(5,7),10)+'/'+parseInt(d2.slice(8,10),10)):d2;
+      var mp=esc((x.material||'')+(x.part?'・'+x.part:''))+(x.is_plus_alpha?' <span style="color:var(--text-light);font-size:10px;">+α</span>':'');
+      var rush=(x.rush_wrong_count>=1)?'<span style="color:var(--crimson);font-weight:700;">'+x.rush_wrong_count+'</span>':'<span style="color:var(--text-light);">0</span>';
+      return '<tr><td>'+md+'</td><td>'+mp+'</td><td style="text-align:center;">'+rate+'</td><td style="text-align:center;">'+fmtMs_(x.active_ms)+'</td><td style="text-align:center;">'+rush+'</td></tr>';
+    }).join('');
+    el.innerHTML='<table class="sd-tbl"><thead><tr><th>日付</th><th>教材・パート</th><th style="text-align:center;">正答率</th><th style="text-align:center;">学習時間</th><th style="text-align:center;">パッと押し</th></tr></thead><tbody>'+body+'</tbody></table>';
+  });
+}
 /* 発音セル：直近セッションの「成功/試行」。試行0は「–」。2026-06-22
    川上さん確定：参考値・合否に使わない。セッション単位の集計のみ表示。 */
 function pronCell(att,suc){
