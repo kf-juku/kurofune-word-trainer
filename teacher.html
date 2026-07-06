@@ -70,6 +70,14 @@
   .tm-qchip{border:1.5px solid var(--border);background:#fff;border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;color:var(--text-muted);}
   .tm-qchip:hover{border-color:var(--crimson);color:var(--crimson);}
   .tm-qchip.warn{border-color:#f4a0a5;color:var(--crimson);}
+  /* 絞り込みのカテゴリ分け（item1・2026-07-07）：何の条件か一目で分かるように */
+  .tm-qgroup{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;}
+  .tm-qglabel{flex:0 0 46px;font-size:11px;font-weight:800;color:var(--text-light);padding-top:6px;}
+  .tm-qgroup .tm-chips{margin-bottom:0;}
+  .tm-qclear{border:none;background:none;color:var(--text-light);font-size:11.5px;cursor:pointer;text-decoration:underline;font-family:inherit;margin:0 0 8px;padding:0;}
+  /* 印刷モードは色を変えて割当と区別（item7・2026-07-07） */
+  #bulkModal.printmode .tm-step.on{background:#1f56b0;}
+  #bulkModal.printmode .btn-primary{background:#1f56b0;}
   .tm-search{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;margin-bottom:8px;font-family:inherit;box-sizing:border-box;}
   .tm-list{border:1px solid var(--border);border-radius:10px;max-height:240px;overflow-y:auto;}
   .tm-srow{display:flex;align-items:center;gap:9px;padding:7px 11px;border-bottom:1px solid var(--surface2);font-size:13px;cursor:pointer;}
@@ -1053,6 +1061,7 @@ function openTargetModal(mode,presetIds){
   tmMode=mode;tmStep=1;tmSel={};tmSearch='';bulkMat={};
   (presetIds||[]).forEach(function(id){tmSel[String(id)]=1;});
   $('tmTitle').textContent=(mode==='assign')?'まとめて割り当てる':'まとめて印刷';
+  $('bulkModal').classList.toggle('printmode',mode==='print');
   $('bulkErr').textContent='';
   $('bulkModal').classList.add('show');
   tmRender();
@@ -1071,6 +1080,8 @@ function tmUniq(k){var m={};(_students||[]).forEach(function(s){var v=String(s[k
 function tmUpdateFoot(){
   $('tmSt1').className='tm-step'+(tmStep===1?' on':'');
   $('tmSt2').className='tm-step'+(tmStep===2?' on':'');
+  $('tmSt1').textContent=(tmMode==='print')?'1 だれの分を':'1 だれに';
+  $('tmSt2').textContent=(tmMode==='print')?'2 印刷内容':'2 なにを';
   $('tmCount').textContent=Object.keys(tmSel).length+'名 選択中';
   $('tmBack').textContent=(tmStep===2)?'← 対象にもどる':'やめる';
   var go=$('tmGo');
@@ -1086,18 +1097,23 @@ function tmRender(){
   tmUpdateFoot();
 }
 function tmStep1_(body){
-  var qh=document.createElement('div');qh.className='tm-qh';qh.textContent='クイック選択（押すと該当の子にまとめてチェック）';body.appendChild(qh);
-  var chips=document.createElement('div');chips.className='tm-chips';body.appendChild(chips);
-  function addChip(label,fn,warn){var b=document.createElement('button');b.type='button';b.className='tm-qchip'+(warn?' warn':'');b.textContent=label;b.onclick=fn;chips.appendChild(b);}
-  addChip('全員',function(){tmQuick(function(){return true;});});
-  tmUniq('grade').forEach(function(g){addChip(g,function(){tmQuick(function(s){return String(s.grade)===g;});});});
-  tmUniq('class_name').forEach(function(c){addChip(c,function(){tmQuick(function(s){return String(s.class_name)===c;});});});
-  tmUniq('school').forEach(function(sc){addChip(sc,function(){tmQuick(function(s){return String(s.school)===sc;});});});
-  if(tmMode==='print'){
-    addChip('😴 やってない子',function(){tmQuick(function(s){return isInactive(s);});},true);
-    addChip('📣 指導必要',function(){tmQuick(function(s){return needsHelp(s);});},true);
+  var qh=document.createElement('div');qh.className='tm-qh';qh.textContent='絞り込みで選ぶ（押すと その条件の子が選択に加わります＝足し算）';body.appendChild(qh);
+  function addGroup(label,items){
+    if(!items.length)return;
+    var row=document.createElement('div');row.className='tm-qgroup';
+    var lb=document.createElement('span');lb.className='tm-qglabel';lb.textContent=label;row.appendChild(lb);
+    var chips=document.createElement('div');chips.className='tm-chips';
+    items.forEach(function(it){var b=document.createElement('button');b.type='button';b.className='tm-qchip'+(it.warn?' warn':'');b.textContent=it.label;b.onclick=it.fn;chips.appendChild(b);});
+    row.appendChild(chips);body.appendChild(row);
   }
-  addChip('選択解除',function(){tmSel={};tmRender();});
+  addGroup('まとめて',[{label:'全員',fn:function(){tmQuick(function(){return true;});}}]);
+  addGroup('学年',tmUniq('grade').map(function(g){return {label:g,fn:function(){tmQuick(function(s){return String(s.grade)===g;});}};}));
+  addGroup('教室',tmUniq('class_name').map(function(c){return {label:c,fn:function(){tmQuick(function(s){return String(s.class_name)===c;});}};}));
+  addGroup('中学校',tmUniq('school').map(function(sc){return {label:sc,fn:function(){tmQuick(function(s){return String(s.school)===sc;});}};}));
+  if(tmMode==='print'){
+    addGroup('状態',[{label:'😴 やってない子',warn:true,fn:function(){tmQuick(function(s){return isInactive(s);});}},{label:'📣 指導必要',warn:true,fn:function(){tmQuick(function(s){return needsHelp(s);});}}]);
+  }
+  var clr=document.createElement('button');clr.type='button';clr.className='tm-qclear';clr.textContent='選択をぜんぶ解除';clr.onclick=function(){tmSel={};tmRender();};body.appendChild(clr);
   var inp=document.createElement('input');inp.className='tm-search';inp.placeholder='なまえで探す';inp.value=tmSearch;
   inp.oninput=function(){tmSearch=this.value;tmList_();};
   body.appendChild(inp);
