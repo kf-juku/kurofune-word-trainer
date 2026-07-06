@@ -348,11 +348,26 @@
   .streak-dots{display:flex;gap:6px;justify-content:center;margin:10px 0 2px;}
   .streak-dots i{width:9px;height:9px;border-radius:50%;background:var(--ring-track);display:inline-block;}
   .streak-dots i.on{background:var(--ok);}
-  .pron-result{margin-top:12px;border-radius:14px;padding:12px 14px;font-weight:700;font-size:15px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;}
-  .pron-result.ok{background:rgba(31,170,107,.12);color:var(--ok);}
-  .pron-result.retry{background:rgba(224,83,60,.10);color:var(--ng);}
-  .pron-result.listening{background:var(--accent-soft);color:var(--accent);}
-  .pron-result .heard{font-weight:500;color:var(--sub);font-size:12.5px;}
+  /* 発音ステップ（川上さん承認モック 2026-07-06：20260706_モック_発音ステップ改善.html）*/
+  .mic-orb{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;font-size:40px;margin:6px auto 14px;transition:all .3s;}
+  .mic-orb.ready{background:var(--accent-soft);color:var(--accent);}
+  .mic-orb.listening{background:var(--accent);color:#fff;box-shadow:0 0 0 0 rgba(10,108,255,.45);animation:pronpulse 1.3s infinite;}
+  .mic-orb.ok{background:rgba(31,170,107,.14);color:var(--ok);}
+  .mic-orb.miss{background:rgba(202,162,74,.16);color:var(--gold);}
+  @keyframes pronpulse{0%{box-shadow:0 0 0 0 rgba(10,108,255,.45);}70%{box-shadow:0 0 0 18px rgba(10,108,255,0);}100%{box-shadow:0 0 0 0 rgba(10,108,255,0);}}
+  .pron-msg{font-weight:700;font-size:17px;text-align:center;line-height:1.5;min-height:26px;}
+  .pron-msg.ok{color:var(--ok);}
+  .pron-msg.miss{color:var(--gold);}
+  .pron-msg.ready,.pron-msg.listening{color:var(--accent);}
+  .pron-sub{color:var(--sub);font-size:13px;margin-top:7px;text-align:center;min-height:20px;}
+  .pron-cnt{font-family:"Manrope";font-weight:800;font-size:30px;color:var(--accent);text-align:center;min-height:36px;}
+  .pron-foot{display:flex;gap:8px;margin-top:16px;}
+  .fbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:9px 4px 8px;font-family:inherit;font-size:11.5px;font-weight:700;color:var(--sub);cursor:pointer;transition:transform .12s;}
+  .fbtn .fic{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:23px;}
+  .fic.hear{background:var(--accent-soft);color:var(--accent);}
+  .fic.mic{background:rgba(31,170,107,.14);color:var(--ok);}
+  .fic.skip{background:var(--ring-track);color:var(--sub);}
+  .fbtn:active{transform:translateY(2px) scale(.98);}
   #btn-mic.rec{background:var(--ng);}
 /* ===== 表穴埋め（table_fill・問題タイプ拡張）2026-07-05 ===== */
 .tf-title{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px;text-align:center}
@@ -452,10 +467,16 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       <div class="qtimer" id="qtimer" style="display:none;"><div class="qbar"><i id="qbar-fill"></i></div><span class="qsec num" id="qsec">10秒</span></div>
       <div class="card" id="step-listen" style="display:none;">
         <div class="word-en" id="w-en"></div><div class="reading" id="w-reading"></div>
-        <button class="btn sub" id="btn-sound"><i class="ti ti-volume"></i> 音声を聞く</button>
-        <button class="btn" id="btn-mic" style="margin-top:10px;"><i class="ti ti-microphone"></i> 声に出して言ってみよう</button>
-        <div id="pron-result" class="pron-result" style="display:none;"></div>
-        <button class="btn ghost" id="btn-spoke" style="margin-top:10px;">発音した！つぎへ <i class="ti ti-arrow-right"></i></button>
+        <!-- 発音ステップ（川上さん承認モック 2026-07-06）：正解音声を先に流さない→3・2・1でマイク自動起動→お手本自動再生→自動進行 -->
+        <div class="mic-orb ready" id="pron-orb"><i class="ti ti-microphone"></i></div>
+        <div class="pron-msg" id="pron-msg"></div>
+        <div class="pron-sub" id="pron-sub"></div>
+        <div class="pron-cnt num" id="pron-cnt"></div>
+        <div class="pron-foot">
+          <button class="fbtn" id="btn-sound" type="button"><span class="fic hear"><i class="ti ti-volume"></i></span>もう一回聞く</button>
+          <button class="fbtn" id="btn-mic" type="button"><span class="fic mic"><i class="ti ti-microphone"></i></span>もう一回言う</button>
+          <button class="fbtn" id="btn-skip" type="button"><span class="fic skip"><i class="ti ti-player-skip-forward"></i></span>スキップ</button>
+        </div>
       </div>
       <div class="card" id="step-e2j" style="display:none;">
         <div class="word-en" id="e2j-en"></div><p class="center muted" id="e2j-label" style="margin-bottom:14px;">意味を選ぼう</p><div id="e2j-choices"></div>
@@ -540,7 +561,8 @@ function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.cl
 function buildMapRow(l,isTest,inFold){
   var row=document.createElement('div');row.className='list-row';
   var icon=l.is_current?'<div class="dot cur"><i class="ti ti-player-play"></i></div>':(l.passed?'<div class="dot done"><i class="ti ti-check"></i></div>':'<div class="dot"><i class="ti ti-book-2"></i></div>');
-  var st=inFold?'':(l.passed?'合格済み':(l.is_current?'':'未挑戦'));
+  // テスト配信＝クリア済/挑戦中の2状態（「いまここ」なし・川上さん確定 2026-07-06）
+  var st=inFold?'':(isTest?(l.passed?'クリア済':'挑戦中'):(l.passed?'合格済み':(l.is_current?'':'未挑戦')));
   var ttl=isTest?esc(l.title):('DAY '+(l.part_order||1)); // 毎日学習=DAY表記（川上さん確定 2026-07-03）
   var redo=inFold?'<span class="redo-pill"><i class="ti ti-refresh"></i> もう一回</span>':'';
   row.innerHTML=icon+'<div class="t">'+ttl+(st?'<div class="s">'+st+'</div>':'')+'</div>'+(l.is_current?'<span class="cur-badge">いまここ</span>':'')+redo;
@@ -1049,7 +1071,7 @@ session={listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEngli
 function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';$('step-label').textContent=(s.idx+1)+' / '+totalSteps+'語目';
   if(w.qtype==='table_fill'){renderTF();return;} // 表穴埋め（問題タイプ拡張 2026-07-05）
   var _tl=(s.content_type==='test')?0:qSecFor(s.subject); // テスト配信は制限なし（川上さん確定2026-07-04）
-  if(s.step===1){hideQTimer();$('w-en').textContent=w.english;$('w-reading').textContent=w.reading_hint||'';$('step-listen').style.display='block';resetPronUI();speak(w);}
+  if(s.step===1){hideQTimer();$('w-en').textContent=w.english;$('w-reading').textContent=w.reading_hint||'';$('step-listen').style.display='block';pronBegin_();} // 正解音声は先に流さない（川上さん確定 2026-07-06）
   else if(s.step===2){$('e2j-label').textContent='意味を選ぼう';$('e2j-en').textContent=w.english;buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok){if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderStep();}});$('step-e2j').style.display='block';}
   else if(s.step===3){$('j2e-label').textContent=(s.isEnglish===false)?'用語を選ぼう':'英語を選ぼう';$('j2e-ja').textContent=w.japanese;buildChoices('j2e-choices',w.english,s.words.map(function(x){return x.english;}),function(ok){if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,reading:(s.isEnglish===false?w.reading_hint:''),next:function(){nextWord();}});$('step-j2e').style.display='block';}}
 function pushMiss(id){if(session.miss.indexOf(id)<0)session.miss.push(id);}
@@ -1082,11 +1104,10 @@ function renderTF(){
   $('step-tf').style.display='block';
 }
 function nextWord(){var s=session;s.idx++;s.step=(s.isEnglish===false)?3:1;if(s.idx>=s.words.length){finishSession();}else renderStep();}
-$('btn-sound').onclick=function(){speak(session.words[session.idx]);};
-$('btn-spoke').onclick=function(){countSelfReportIfNeeded();session.step=2;renderStep();};
 /* 練習をやめてホームへ（まちがえて始めた時の中断・2026-07-04）。途中の記録は保存しない（session_complete前に抜けるだけ） */
 $('btn-quit').onclick=function(){
   if(confirm('学習をやめてホームにもどる？\nとちゅうの記録はのこりません。')){
+    pronStop_(); // 発音のタイマー・音声認識を止める（2026-07-06）
     session=null;noteSes=null;srsSes=null;hideQTimer();hideExplain();
     try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
     openHome();
@@ -1149,37 +1170,97 @@ function judgePron_(heard,w){
   if(kt.length>=5&&editDist1_(kh,kt))return true;
   return false;
 }
-function resetPronUI(){
-  var r=$('pron-result');if(r){r.style.display='none';r.className='pron-result';r.innerHTML='';}
-  var b=$('btn-mic');if(b){b.classList.remove('rec');b.innerHTML='<i class="ti ti-microphone"></i> 声に出して言ってみよう';b.disabled=false;}
-  pronBusy=false;
-}
-function pronShow_(cls,html){var r=$('pron-result');if(!r)return;r.className='pron-result '+cls;r.innerHTML=html;r.style.display='flex';}
 /* 自己申告：認識でまだ1回も計上していない単語のみ attempts を1加算（重複加算しない） */
 function countSelfReportIfNeeded(){
   var s=session;if(!s)return;var k=String(s.idx);
   if(!s.pronDoneIdx[k]){s.pronAttempts++;s.pronDoneIdx[k]=true;}
 }
-$('btn-mic').onclick=function(){
+/* ===== 発音ステップ新フロー（川上さん承認モック 2026-07-06：20260706_モック_発音ステップ改善.html）=====
+   ・正解音声は先に流さない → 「3・2・1」の合図でマイク自動起動（気づかず言えない対策）
+   ・だいたい読めてた（judgePron_＝07-05tのゆるい判定そのまま）→「いいね！読めてるね」＋お手本自動再生→自動で次へ
+   ・ぜんぜん違う → お手本を聞かせて もう一回だけ 言わせる → 結果を問わず次へ（やり直しは1回のみ）
+   ・丸バツは出さない・うまい下手は見ない。pron_attempts/successes の意味は従来どおり参考値で不変
+   ・下部常時ボタン：もう一回聞く／もう一回言う／スキップ（いつでも押せる） */
+var PRON_READY_MS=1200, PRON_AFTER_AUDIO=1400, PRON_MISS_WAIT=1700; // テンポはジョブス裁量（川上さん 2026-07-06）
+var pronTimer=null, pronCntIv=null, pronTries=0, pronAdvanced=false;
+function pronStop_(){ // タイマー・音声認識を全部止める（やめる・スキップ・次へ進む時）
+  clearTimeout(pronTimer);pronTimer=null;
+  clearInterval(pronCntIv);pronCntIv=null;
+  try{if(pronRec)pronRec.abort();}catch(e){}
+  pronBusy=false;
+}
+function pronUI_(orbCls,orbIcon,msgCls,msg,sub,cnt){
+  var o=$('pron-orb');if(o){o.className='mic-orb '+orbCls;o.innerHTML='<i class="ti '+orbIcon+'"></i>';}
+  var m=$('pron-msg');if(m){m.className='pron-msg '+msgCls;m.textContent=msg;}
+  var su=$('pron-sub');if(su)su.innerHTML=sub||'';
+  var c=$('pron-cnt');if(c)c.textContent=cnt||'';
+}
+function pronBegin_(){ // 単語表示：正解音声なし→3・2・1→マイク自動起動
+  pronStop_();pronTries=0;pronAdvanced=false;
+  var s=session;if(!s)return;
+  if(!SR){ // 音声認識非対応端末：お手本を聞いて自動で次へ（自己申告扱い・attemptsのみ加算）
+    countSelfReportIfNeeded();
+    pronUI_('ok','ti-volume','ok','お手本の音をきいてね','きこえたら まねして言ってみよう','');
+    speak(s.words[s.idx]);
+    pronTimer=setTimeout(pronNext_,2200);
+    return;
+  }
+  pronUI_('ready','ti-microphone','ready','まもなくマイクが始まるよ','読み方を声に出してみよう','3');
+  var n=3;
+  pronCntIv=setInterval(function(){n--;var c=$('pron-cnt');if(c)c.textContent=n>0?n:'';if(n<=0){clearInterval(pronCntIv);pronCntIv=null;pronListen_();}},Math.round(PRON_READY_MS/3));
+}
+function pronListen_(){
   var s=session;if(!s)return;var w=s.words[s.idx];
-  if(!SR){pronShow_('retry','この端末は音声認識に未対応だよ。「発音した！つぎへ」で進もう');return;}
-  if(pronBusy)return;pronBusy=true;
-  var b=$('btn-mic');b.classList.add('rec');b.innerHTML='<i class="ti ti-microphone"></i> きいてるよ…';
-  pronShow_('listening','<i class="ti ti-microphone"></i> マイクに向かって言ってね');
+  pronUI_('listening','ti-microphone','listening','マイクに向かって言ってね',(pronTries>0?'もう一回！ さっきのお手本みたいに':''),'');
+  try{if(pronRec)pronRec.abort();}catch(e){} // 前の認識が残っていたら止めてから開始
   try{
-    pronRec=new SR();pronRec.lang='en-US';pronRec.interimResults=false;pronRec.maxAlternatives=3;
-    pronRec.onresult=function(ev){
+    var rec=new SR();pronRec=rec;pronBusy=true;
+    rec.lang='en-US';rec.interimResults=false;rec.maxAlternatives=3;
+    // 古いインスタンスのイベントが後から飛んできても無視する（pronRec===rec のときだけ有効・2026-07-06）
+    rec.onresult=function(ev){
+      if(pronRec!==rec)return;
       var ok=false,heard='';
       for(var i=0;i<ev.results[0].length;i++){var alt=ev.results[0][i].transcript;if(i===0)heard=alt;if(judgePron_(alt,w)){ok=true;heard=alt;break;}}
       s.pronAttempts++;s.pronDoneIdx[String(s.idx)]=true;
-      if(ok){s.pronSuccesses++;pronShow_('ok','<i class="ti ti-check"></i> いいね！うまく言えたよ');sndCorrect&&sndCorrect();}
-      else{pronShow_('retry','<span><i class="ti ti-refresh"></i> もう一回ためしてみよう</span><span class="heard">きこえた音：'+(heard||'…')+'</span>');}
+      if(ok){s.pronSuccesses++;sndCorrect&&sndCorrect();pronOk_(false);}
+      else if(pronTries===0){pronMiss_();}
+      else{pronOk_(true);} // やり直し後は結果を問わず前へ（丸バツは出さない・川上さん確定 2026-07-06）
     };
-    pronRec.onerror=function(){pronShow_('retry','うまくきき取れなかった。もう一回か「発音した！つぎへ」で進もう');};
-    pronRec.onend=function(){pronBusy=false;var bb=$('btn-mic');if(bb){bb.classList.remove('rec');bb.innerHTML='<i class="ti ti-microphone"></i> もう一回言ってみる';}};
-    pronRec.start();
-  }catch(e){pronBusy=false;pronShow_('retry','マイクが使えなかった。「発音した！つぎへ」で進もう');}
+    rec.onend=function(){if(pronRec===rec)pronBusy=false;};
+    rec.onerror=function(){if(pronRec!==rec)return;pronBusy=false;if(pronTries===0){pronMiss_();}else{pronOk_(true);}}; // きき取れなくても止めない
+    rec.start();
+  }catch(e){pronBusy=false;pronOk_(true);} // マイク不可→お手本だけ流して進む
+}
+function pronOk_(second){
+  var s=session;if(!s)return;
+  pronUI_('ok','ti-check','ok',(second?'オッケー！':'いいね！読めてるね'),'<i class="ti ti-volume"></i> お手本の音を流すよ','');
+  speak(s.words[s.idx]);
+  clearTimeout(pronTimer);
+  pronTimer=setTimeout(pronNext_,PRON_AFTER_AUDIO);
+}
+function pronMiss_(){
+  var s=session;if(!s)return;
+  pronTries=1;
+  pronUI_('miss','ti-volume','miss','この音だよ、よく聞いてね','お手本のあと、もう一回だけ言ってみよう','');
+  speak(s.words[s.idx]);
+  clearTimeout(pronTimer);
+  pronTimer=setTimeout(pronListen_,PRON_MISS_WAIT);
+}
+function pronNext_(){ // 発音→意味クイズへ（二重進行ガードつき）
+  if(pronAdvanced)return;pronAdvanced=true;
+  pronStop_();
+  var s=session;if(!s)return;
+  s.step=2;renderStep();
+}
+$('btn-sound').onclick=function(){var s=session;if(!s)return;speak(s.words[s.idx]);}; // もう一回聞く
+$('btn-mic').onclick=function(){ // もう一回言う（やり直し回数もリセット・モックsayAgain準拠）
+  var s=session;if(!s)return;
+  clearTimeout(pronTimer);pronTimer=null;
+  try{if(pronRec)pronRec.abort();}catch(e){}
+  pronBusy=false;pronTries=0;
+  pronListen_();
 };
+$('btn-skip').onclick=function(){countSelfReportIfNeeded();pronNext_();}; // スキップ
 /* 4択を作る。timeLimitSec>0 なら制限時間バーを回し、時間切れは不正解扱いで自動的にcb(false)（2026-07-04）。
    選択時・時間切れ時とも answered で1回だけ確定。既存の演出（コンボ・紙吹雪・正解ハイライト）は維持。 */
 /* 4択。onResult(ok)＝集計だけ。進行は opts.next。正解は自動で次へ、
