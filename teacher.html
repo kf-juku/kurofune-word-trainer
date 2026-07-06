@@ -376,6 +376,7 @@
               <th>今日</th>
               <th>最終学習</th>
               <th>練習<br>回数</th>
+              <th>学習<br>時間<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習でかかった実解答時間（分:秒）。短すぎ＝パッと押しの目安。1問30秒で上限カット。</span></span></th>
               <th>意味<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習での「英語→日本語」正答率</span></span></th>
               <th>日→英<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習での「日本語→英語」正答率</span></span></th>
               <th>指導<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近3セッションの平均正答率（意味と日→英の平均）。設定した％未満は「指導おすすめ」で色付き。まだ練習がない子は未評価（–）。</span></span></th>
@@ -740,6 +741,7 @@ function renderTable(){
       +'<td>'+todayBadge+'</td>'
       +'<td class="t-sub">'+lastStudiedCell(s)+'</td>'
       +'<td class="num">'+(s.practice_count||0)+'</td>'
+      +'<td class="num">'+timeCell(s.last_active_ms)+'</td>'
       +'<td>'+rateCell(s.meaning_rate)+'</td>'
       +'<td>'+rateCell(s.reverse_rate)+'</td>'
       +'<td>'+teachCell(s)+'</td>'
@@ -751,6 +753,8 @@ function renderTable(){
   renderAlertsK();
 }
 
+/* 学習時間セル：直近セッションの実解答時間（active_ms）を 分:秒 で。0は「–」。2026-07-06 */
+function timeCell(ms){ms=parseInt(ms,10)||0;if(ms<=0)return '<span class="dash">–</span>';var sec=Math.round(ms/1000);var m=Math.floor(sec/60),ss=sec%60;return '<span class="num">'+(m>0?(m+'分'+('0'+ss).slice(-2)+'秒'):(ss+'秒'))+'</span>';}
 /* 発音セル：直近セッションの「成功/試行」。試行0は「–」。2026-06-22
    川上さん確定：参考値・合否に使わない。セッション単位の集計のみ表示。 */
 function pronCell(att,suc){

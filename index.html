@@ -1080,13 +1080,13 @@ function startPractice(listId){show('scr-practice');$('step-label').innerHTML=kw
   call({action:'student_today',part_id:listId}).then(function(d){_startPracticeWith_(listId,d);});}
 function _startPracticeWith_(listId,d){if(!d.ok){toast(d.error||'読み込み失敗');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
-session={listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{}};renderStep();}
+session={listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now()};renderStep();}
 function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';$('step-label').textContent=(s.idx+1)+' / '+totalSteps+'語目';
   if(w.qtype==='table_fill'){renderTF();return;} // 表穴埋め（問題タイプ拡張 2026-07-05）
   var _tl=(s.content_type==='test')?0:qSecFor(s.subject); // テスト配信は制限なし（川上さん確定2026-07-04）
   if(s.step===1){hideQTimer();$('w-en').textContent=w.english;$('w-reading').textContent=w.reading_hint||'';$('step-listen').style.display='block';pronBegin_();} // 正解音声は先に流さない（川上さん確定 2026-07-06）
-  else if(s.step===2){$('e2j-label').textContent='意味を選ぼう';$('e2j-en').textContent=w.english;buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok){if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderStep();}});$('step-e2j').style.display='block';}
-  else if(s.step===3){$('j2e-label').textContent=(s.isEnglish===false)?'用語を選ぼう':'英語を選ぼう';$('j2e-ja').textContent=w.japanese;buildChoices('j2e-choices',w.english,s.words.map(function(x){return x.english;}),function(ok){if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,reading:(s.isEnglish===false?w.reading_hint:''),next:function(){nextWord();}});$('step-j2e').style.display='block';}}
+  else if(s.step===2){$('e2j-label').textContent='意味を選ぼう';$('e2j-en').textContent=w.english;buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok,_el){measAns_(_el,ok);if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderStep();}});$('step-e2j').style.display='block';}
+  else if(s.step===3){$('j2e-label').textContent=(s.isEnglish===false)?'用語を選ぼう':'英語を選ぼう';$('j2e-ja').textContent=w.japanese;buildChoices('j2e-choices',w.english,s.words.map(function(x){return x.english;}),function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,reading:(s.isEnglish===false?w.reading_hint:''),next:function(){nextWord();}});$('step-j2e').style.display='block';}}
 function pushMiss(id){if(session.miss.indexOf(id)<0)session.miss.push(id);}
 /* ===== 表穴埋め（table_fill）レンダラー：同一asset保持・連続出題の汎用フロー（設計仕様_問題タイプ拡張 2026-07-05） ===== */
 function tfParse(w){try{return JSON.parse(w.qdata||'{}');}catch(e){return{};}}
@@ -1112,7 +1112,7 @@ function renderTF(){
   $('tf-table').innerHTML=h;
   $('tf-ask').innerHTML='<b style="color:var(--accent)">'+(TF_CIRC[myN]||myN)+'</b> に入る形をえらぼう';
   var _tl=(s.content_type==='test')?0:qSecFor('table_fill'); // 表を読むため理社と同じ秒数（15秒）
-  buildChoices('tf-choices',w.english,[],function(ok){if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},
+  buildChoices('tf-choices',w.english,[],function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},
     {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,next:function(){nextWord();}});
   $('step-tf').style.display='block';
 }
@@ -1280,7 +1280,7 @@ $('btn-skip').onclick=function(){countSelfReportIfNeeded();pronNext_();}; // ス
    不正解は 正解＋解説（opts.kaisetsu）を出してタップで次へ（2026-07-04・川上さん確定）。
    opts.timeLimit>0 なら制限時間バー（時間切れ＝不正解）。 */
 function buildChoices(containerId,correct,pool,onResult,opts){
-  opts=opts||{};
+  opts=opts||{};var _t0=Date.now();
   var box=$(containerId);box.innerHTML='';
   var others=opts.fixedChoices?shuffle(opts.fixedChoices.filter(function(x){return x!==correct;})).slice(0,3):shuffle(pool.filter(function(x){return x!==correct;})).slice(0,3); // fixedChoices=表穴埋め等の固定選択肢 2026-07-05
   var choices=shuffle([correct].concat(others));
@@ -1291,7 +1291,7 @@ function buildChoices(containerId,correct,pool,onResult,opts){
     if(picked)picked.classList.add(ok?'correct':'wrong');
     if(ok){combo++;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
     else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(c.textContent===correct)c.classList.add('correct');});}
-    onResult(ok);
+    onResult(ok,(Date.now()-_t0));
     afterAnswer(ok,correct,opts.kaisetsu,opts.reading,opts.next);
   }
   applyChoiceCols(box,choices); // 2列/1列 自動分岐 2026-07-05
@@ -1303,6 +1303,9 @@ function buildChoices(containerId,correct,pool,onResult,opts){
 /* 4択の2列化：川上さん承認(2026-07-05 モック)。最長選択肢が10文字以内なら2×2、超えたら1列。
    しきい値は CHOICE_COL_LIMIT で調整可。 */
 var CHOICE_COL_LIMIT=10;
+/* 学習データ強化：滞在時間・ずる検知の計測 2026-07-06（要件定義書_学習データ強化 v0.5） */
+var RUSH_MS=2000, ACTIVE_CAP_MS=30000;
+function measAns_(el,ok){var s=session;if(!s)return;s.activeMs=(s.activeMs||0)+Math.min(el||0,ACTIVE_CAP_MS);if(!ok&&(el||0)<RUSH_MS){(s._rushWords||(s._rushWords={}))[s.idx]=1;}}
 function applyChoiceCols(box,choices){
   var mx=0;choices.forEach(function(c){var L=String(c).length;if(L>mx)mx=L;});
   box.classList.toggle('g2',mx<=CHOICE_COL_LIMIT);
@@ -1352,7 +1355,7 @@ function hideQTimer(){stopQTimer();var w=$('qtimer');if(w)w.style.display='none'
 /* 教科別の制限秒数（英語10・その他15。後で調整可）2026-07-04 */
 var QSEC={english:10};function qSecFor(subj){return QSEC[subj]||15;}
 function finishSession(){var s=session;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';$('btn-retry').style.display='flex';/* おさらい(finishSrs)がretryを消したままになる潜在バグ対策 2026-07-05 */$('done-result').textContent='採点中…';$('done-badge').innerHTML=kwtSpin(40);$('btn-next').style.display='none';
-  call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses}).then(function(d){
+  call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:(Date.now()-(s.startedMs||Date.now())),rush_wrong_count:Object.keys(s._rushWords||{}).length}).then(function(d){
     var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
     var termOnly=(s.isEnglish===false)||s.tfOnly; // 理科など＝用語選択のみ。表穴埋めパートも一方向 2026-07-05
     var score=termOnly?rr:Math.round((mr+rr)/2);
