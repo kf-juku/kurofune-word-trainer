@@ -561,8 +561,8 @@ function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.cl
 function buildMapRow(l,isTest,inFold){
   var row=document.createElement('div');row.className='list-row';
   var icon=l.is_current?'<div class="dot cur"><i class="ti ti-player-play"></i></div>':(l.passed?'<div class="dot done"><i class="ti ti-check"></i></div>':'<div class="dot"><i class="ti ti-book-2"></i></div>');
-  // テスト配信＝クリア済/挑戦中の2状態（「いまここ」なし・川上さん確定 2026-07-06）
-  var st=inFold?'':(isTest?(l.passed?'クリア済':'挑戦中'):(l.passed?'合格済み':(l.is_current?'':'未挑戦')));
+  // テスト配信＝クリア済/挑戦中/未挑戦の3状態（未挑戦=この周で未着手・「いまここ」なし・川上さん確定 2026-07-06）
+  var st=inFold?'':(isTest?(l.passed?'クリア済':(l.attempted?'挑戦中':'未挑戦')):(l.passed?'合格済み':(l.is_current?'':'未挑戦')));
   var ttl=isTest?esc(l.title):('DAY '+(l.part_order||1)); // 毎日学習=DAY表記（川上さん確定 2026-07-03）
   var redo=inFold?'<span class="redo-pill"><i class="ti ti-refresh"></i> もう一回</span>':'';
   row.innerHTML=icon+'<div class="t">'+ttl+(st?'<div class="s">'+st+'</div>':'')+'</div>'+(l.is_current?'<span class="cur-badge">いまここ</span>':'')+redo;
@@ -1651,7 +1651,7 @@ function loadBadges(){
     area.appendChild(grid);
   });
 }
- 
+
 if(token){openHome();}
 </script>
 </body>
