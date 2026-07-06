@@ -380,6 +380,12 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 .tf-hole.cur{background:var(--accent-soft);border-bottom-color:var(--accent);color:var(--accent);animation:tfpulse 1.2s infinite}
 .tf-hole.ok{border-bottom-color:transparent;color:var(--ok)}
 @keyframes tfpulse{50%{opacity:.55}}
+  /* 幾何学スピナー（kurofune-testから流用・KWT色。川上さん指示2026-07-06：待ちのストレス軽減） */
+  @keyframes kwtldspin{to{transform:rotate(360deg);}}
+  @keyframes kwtldrspin{to{transform:rotate(-360deg);}}
+  .kwtld{display:inline-block;vertical-align:middle;}
+  .kwtld .o{animation:kwtldspin 9s linear infinite;transform-origin:50% 50%;}
+  .kwtld .i{animation:kwtldrspin 5s linear infinite;transform-origin:50% 50%;}
 </style>
 </head>
 <body>
@@ -556,6 +562,11 @@ function renderDaily(){
 var mode=localStorage.getItem('kwt_mode')||'normal';
 var session=null, combo=0, audioCtx=null;
 function $(id){return document.getElementById(id);}
+/* 幾何学スピナーSVGを返す（px=一辺）。二重の四角形が逆回転。川上さん指示2026-07-06：待ちのストレス軽減 */
+function kwtSpin(px){px=px||44;return '<svg class="kwtld" viewBox="0 0 120 120" width="'+px+'" height="'+px+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="よみこみ中">'
+  +'<g class="o" style="transform-origin:60px 60px"><rect x="36" y="36" width="48" height="48" rx="3" fill="none" stroke="#caa24a" stroke-width="2" opacity=".55" transform="rotate(45 60 60)"/></g>'
+  +'<g class="i" style="transform-origin:60px 60px"><rect x="48" y="48" width="24" height="24" rx="2" fill="none" stroke="#0a6cff" stroke-width="2.6" opacity=".85"/></g>'
+  +'<circle cx="60" cy="60" r="4" fill="#0a6cff"/></svg>';}
 function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');window.scrollTo(0,0);}
 /* 学習マップの1行（川上さん承認モック 2026-07-05）。inFold=クリアずみ枠内（「もう一回」バッジつき・状態文言なし） */
 function buildMapRow(l,isTest,inFold){
@@ -572,6 +583,7 @@ function buildMapRow(l,isTest,inFold){
 /* ===== タイル型ホームのビュー切替（2026-06-24）===== */
 var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でも復習',team:'チームの仲間',overall:'クロフネ全体',records:'じぶんの記録'};
 function showSub(name){
+  try{sessionStorage.setItem('kwt_view',name);}catch(e){} // スマホ更新で最後の画面を復元（川上さん確定2026-07-06）
   $('home-tiles').style.display='none';
   $('home-sub').style.display='block';
   $('sub-title').textContent=SUB_TITLES[name]||'';
@@ -580,6 +592,7 @@ function showSub(name){
   window.scrollTo(0,0);
 }
 function backToTiles(){
+  try{sessionStorage.removeItem('kwt_view');}catch(e){} // ホームに戻ったら復元対象を解除
   $('home-sub').style.display='none';
   $('home-tiles').style.display='block';
   document.querySelectorAll('#home-sub .subview').forEach(function(v){v.classList.remove('active');});
@@ -685,8 +698,8 @@ $('nick-cancel').onclick=closeNickModal;
 $('nick-save').onclick=saveNick;
 $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
-$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスコードを入れてね';return;}this.disabled=true;this.textContent='確認中…';fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'student_login',login_id:id,passcode:pass})}).then(function(r){return r.json();}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
-$('btn-logout').onclick=function(){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');token='';show('scr-login');};
+$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスコードを入れてね';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> 確認中…</span>';fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'student_login',login_id:id,passcode:pass})}).then(function(r){return r.json();}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
+$('btn-logout').onclick=function(){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');};
 
 /* 新構造ヘルパー（2026-06-23）：教科ラベル＋HTMLエスケープ */
 function subjLabel(s){var m={english:'英語',math:'数学',science:'理科',social:'社会',japanese:'国語'};return m[s]||s;}
@@ -1056,7 +1069,7 @@ function flyToAvatar(btn,row,type){
 }
 $('btn-home').onclick=openHome;
 
-function startPractice(listId){show('scr-practice');$('step-label').textContent='よみこみ中…';combo=0;$('btn-retry').onclick=function(){if(session)startPractice(session.listId);};$('btn-retry').style.display='flex';$('btn-next').style.display='none';
+function startPractice(listId){show('scr-practice');$('step-label').innerHTML=kwtSpin(44)+'<div style="margin-top:6px">よみこみ中…</div>';combo=0;$('btn-retry').onclick=function(){if(session)startPractice(session.listId);};$('btn-retry').style.display='flex';$('btn-next').style.display='none';
   var _pf=_prefetch[listId]; /* 先読みD：取得済みなら即開始・取得中なら続きを待つだけ（使ったら破棄）2026-07-05 */
   if(_pf){delete _prefetch[listId];
     Promise.resolve(_pf).then(function(d){
@@ -1338,7 +1351,7 @@ function stopQTimer(){if(_qtId){clearInterval(_qtId);_qtId=null;}}
 function hideQTimer(){stopQTimer();var w=$('qtimer');if(w)w.style.display='none';}
 /* 教科別の制限秒数（英語10・その他15。後で調整可）2026-07-04 */
 var QSEC={english:10};function qSecFor(subj){return QSEC[subj]||15;}
-function finishSession(){var s=session;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';$('btn-retry').style.display='flex';/* おさらい(finishSrs)がretryを消したままになる潜在バグ対策 2026-07-05 */$('done-result').textContent='送信中…';$('done-badge').innerHTML='<i class="ti ti-loader-2"></i>';$('btn-next').style.display='none';
+function finishSession(){var s=session;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';$('btn-retry').style.display='flex';/* おさらい(finishSrs)がretryを消したままになる潜在バグ対策 2026-07-05 */$('done-result').textContent='採点中…';$('done-badge').innerHTML=kwtSpin(40);$('btn-next').style.display='none';
   call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses}).then(function(d){
     var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
     var termOnly=(s.isEnglish===false)||s.tfOnly; // 理科など＝用語選択のみ。表穴埋めパートも一方向 2026-07-05
@@ -1515,7 +1528,7 @@ function finishNote(){
 }
 /* 間違いノートの「もう一回」：最新のactiveを取り直して再開（卒業済みは除外される） */
 function noteRetry(subject){
-  show('scr-practice');$('step-label').textContent='よみこみ中…';
+  show('scr-practice');$('step-label').innerHTML=kwtSpin(44)+'<div style="margin-top:6px">よみこみ中…</div>';
   whenGradesFlushed(function(){ // 裏送信が残ったまま取り直すと卒業済みが混ざる 2026-07-05
   call({action:'mistake_set',subject:subject}).then(function(d){
     if(!d.ok||!d.data.words.length){toast('間違いはもうありません！');openHome();return;}
@@ -1652,7 +1665,7 @@ function loadBadges(){
   });
 }
 
-if(token){openHome();}
+if(token){openHome();try{var _rv=sessionStorage.getItem('kwt_view');if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}}catch(e){}} // 更新後に最後のサブ画面を復元（川上さん確定2026-07-06）
 </script>
 </body>
 </html>
