@@ -305,6 +305,7 @@
   .done-rate{font-size:11.5px;color:var(--sub);}
   .done-miss{font-size:11.5px;color:var(--sub);margin-top:3px;}
   .btnrow{display:flex;gap:10px;margin-top:8px;}
+  .done-guide{display:inline-block;margin-top:5px;font-size:12px;color:var(--sub);font-weight:600;line-height:1.5;} /* 前進条件の案内 2026-07-07 */
   .btnrow .btn{padding:11px;font-size:13.5px;}
 
   #confetti{position:fixed;inset:0;pointer-events:none;z-index:50;}
@@ -1364,15 +1365,14 @@ function finishSession(){var s=session;$('prog').style.width='100%';show('scr-do
     if(!d.ok){$('done-result').textContent='結果の保存に失敗しました';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}
     var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').textContent=d.data.lap+'周目';}else{dl.style.display='none';}}
     if(d.data.is_test){
-      // テスト配信：満点＝passed。卒業/練習/未達で文言を変える（機能仕様書_テスト配信 §3-4・川上さん確定 2026-07-04）
-      if(d.data.passed&&d.data.test_graduated){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').textContent='満点卒業！すごい！';sndWin();flash();confetti(120);
-        if(d.data.completed_material){toast('このテストぜんぶ卒業！⚓');}}
-      else if(d.data.passed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').textContent='満点！よくがんばったね';sndWin();flash();}
-      else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').textContent='あと少し！満点で卒業だよ。また明日チャレンジ！';}
-    }else if(d.data.passed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').textContent='合格！よくがんばったね';sndWin();flash();confetti(120);
+      // 2026-07-07 grill確定：テスト配信も毎日学習と同じ80%で前進（満点前進は廃止）。おさらいの100%卒業案内はスライス3で追加。正＝機能仕様書_テスト配信 0章。
+      if(d.data.passed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').textContent='合格！あす つぎに進めるよ';sndWin();flash();confetti(120);
+        if(d.data.completed_material){toast('このテストぜんぶ進んだ！⚓');}}
+      else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='もう少し！つぎに進むには <b>80%</b> だよ<br><span class=\"done-guide\">いまのうちに「もう一回やる」で80%を目指そう。とれたら あす つぎに進めるよ</span>';}
+    }else if(d.data.passed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').textContent='合格！あす つぎに進めるよ';sndWin();flash();confetti(120);
       if(d.data.advanced&&d.data.next_part_id){$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}
       else if(d.data.completed_material){toast('この教材ぜんぶクリア！⚓');}
-    }else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').textContent='もう少し！（合格は80%）';}
+    }else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='もう少し！つぎに進むには <b>80%</b> だよ<br><span class=\"done-guide\">いまのうちに「もう一回やる」で80%を目指そう。とれたら あす つぎに進めるよ</span>';}
     animNum($('score-anim'),score,1000);
     if(s.miss.length){$('done-miss').textContent='まちがえた単語：'+s.miss.length+'個（復習にまわしたよ）';}else{$('done-miss').textContent='';}
     loadStar();
