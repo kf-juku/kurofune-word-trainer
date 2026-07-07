@@ -792,7 +792,7 @@ function sortVal_(s,key){switch(key){
 function updateSortIndicators(){var ars=document.querySelectorAll('.sort-ar');Array.prototype.forEach.call(ars,function(a){var k=a.getAttribute('data-ar');a.textContent=(k===_sortKey)?(_sortDir>0?'▲':'▼'):'';var th=a.closest('th');if(th)th.classList.toggle('sorted',k===_sortKey);});}
 var _inactiveDays=(function(){var v=parseInt(localStorage.getItem('kwt_inactive_days'),10);return (v>=1&&v<=99)?v:7;})();
 function onInactiveDaysChange(){var v=parseInt($('inactiveDays').value,10);if(!(v>=1&&v<=99)){v=7;$('inactiveDays').value=7;}_inactiveDays=v;localStorage.setItem('kwt_inactive_days',v);renderTable();}
-function daysAgo(ss){if(!ss)return null;var m=String(ss).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return null;var d=new Date(parseInt(m[1],10),parseInt(m[2],10)-1,parseInt(m[3],10));var t=new Date();var t0=new Date(t.getFullYear(),t.getMonth(),t.getDate());return Math.round((t0-d)/86400000);}
+function daysAgo(ss){if(!ss)return null;var m=String(ss).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return null;var d=Date.UTC(parseInt(m[1],10),parseInt(m[2],10)-1,parseInt(m[3],10));var jn=new Date(Date.now()+9*3600*1000);var t0=Date.UTC(jn.getUTCFullYear(),jn.getUTCMonth(),jn.getUTCDate());return Math.round((t0-d)/86400000);}/* JST固定 2026-07-08 */
 function isInactive(s){var da=daysAgo(s.last_studied_at);return da===null||da>=_inactiveDays;}
 var _needHelpRate=(function(){var v=parseInt(localStorage.getItem('kwt_needhelp_rate'),10);return (v>=1&&v<=100)?v:60;})();
 function onNeedHelpRateChange(){var v=parseInt($('needHelpRate').value,10);if(!(v>=1&&v<=100)){v=60;$('needHelpRate').value=60;}_needHelpRate=v;localStorage.setItem('kwt_needhelp_rate',v);renderTable();}

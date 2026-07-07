@@ -550,7 +550,7 @@ var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJts
 var token=localStorage.getItem('kwt_token')||'';
 var nickname=localStorage.getItem('kwt_nick')||'';
 /* ===== デイリー未完了●（本日の学習/おさらい/間違いノート）2026-07-04 ===== */
-function todayStr_(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function todayStr_(){var d=new Date(Date.now()+9*3600*1000);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}/* JST固定 2026-07-08 */
 var dailyState={main:null,review:null,note:null};
 function renderDaily(){
   // 赤丸統一（川上さん指示 2026-07-05）：未完了は各カード右上の赤丸で示す。バーは全部完了のときだけ「今日ぜんぶ完了！」
@@ -884,7 +884,7 @@ function renderChill(ms){
   area.appendChild(box);
   requestAnimationFrame(function(){box.classList.add('show');});
 }
-function yesterdayStr_(){var d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function yesterdayStr_(){var d=new Date(Date.now()+9*3600*1000-86400000);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}/* JST固定 2026-07-08 */
 // 流れ星：学習完了後に「その日合格したチーム外の誰か1人」を出す（いなければ何も出さない）
 function loadStar(){
   var area=$('star-area');area.innerHTML='';
@@ -946,8 +946,9 @@ function buildStarCard(star){
 // 受け取った応援：件数＋送り主つき直近10件（川上さん確定 2026-07-03 grill）
 function relDay(day){
   if(!day)return '';
-  var t=new Date();t.setHours(0,0,0,0);
-  var d=new Date(day+'T00:00:00');
+  var jn=new Date(Date.now()+9*3600*1000);var t=Date.UTC(jn.getUTCFullYear(),jn.getUTCMonth(),jn.getUTCDate()); // JST固定 2026-07-08
+  var _m=String(day).match(/^(\d{4})-(\d{2})-(\d{2})/); if(!_m)return '';
+  var d=Date.UTC(parseInt(_m[1],10),parseInt(_m[2],10)-1,parseInt(_m[3],10));
   var diff=Math.round((t-d)/86400000);
   if(diff<=0)return 'きょう';
   if(diff===1)return 'きのう';
