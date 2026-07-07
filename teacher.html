@@ -367,6 +367,7 @@
     <div class="tabs">
       <button class="tab active" id="tab-dash" onclick="switchTab('dash')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>生徒一覧</button>
       <button class="tab" id="tab-teams" onclick="switchTab('teams')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>チーム編成</button>
+      <button class="tab" id="tab-settings" onclick="switchTab('settings')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>先生設定</button>
     </div>
 
     <!-- ===== 生徒一覧ビュー ===== -->
@@ -382,59 +383,6 @@
       <div class="alert-cardK"><div class="ac-h">😴 やってない子 <b id="alIdleN">–</b>名<span class="ac-sub">最終学習のあきが <span id="alIdleDaysLbl">1</span>日超</span></div><div class="chipsK" id="alIdleChips"></div></div>
       <div class="alert-cardK bad"><div class="ac-h">📣 指導必要 <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span></div><div class="chipsK" id="alTeachChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTeachPrintBtn" onclick="printTeachAll()" style="display:none;">🖨 この<span id="alTeachPrintN">0</span>名のまちがいを印刷</button></div></div>
       <div class="alert-setK">⚙ この基準は毎朝のメール通知と共通：やってない＝あき<input id="cfgIdle" type="number" min="1" max="99" value="1" onchange="saveAlertConfig()">日超／指導必要＝正答率<input id="cfgAcc" type="number" min="1" max="100" value="60" onchange="saveAlertConfig()">%未満<span class="cfg-tag">ここを変えると画面もメールも両方変わります</span></div>
-      <!-- 先生応援の設定（先生アカウントの特別仕様・全項目ON/OFF）2026-07-07 -->
-      <style>
-        .cheer-setK{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;margin-top:8px;}
-        .cheer-title{font-weight:800;color:#1d4ed8;font-size:13px;margin-bottom:4px;}
-        .cheer-lead{color:#64748b;font-size:11px;margin-bottom:8px;}
-        .cheer-trow{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #dbeafe;}
-        .cheer-tmain{flex:1;}
-        .cheer-tlbl{font-weight:700;color:#1e3a8a;font-size:13px;}
-        .cheer-tdesc{color:#64748b;font-size:11px;margin-top:2px;}
-        .cheer-state{font-weight:700;min-width:34px;text-align:right;font-size:12px;}
-        .cheer-state.on{color:#2563eb;} .cheer-state.off{color:#94a3b8;}
-        .cheer-sw{position:relative;display:inline-block;width:44px;height:25px;flex:none;}
-        .cheer-sw input{opacity:0;width:0;height:0;}
-        .cheer-track{position:absolute;inset:0;background:#cbd5e1;border-radius:25px;transition:.2s;}
-        .cheer-track:before{content:"";position:absolute;height:19px;width:19px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.3);}
-        .cheer-sw input:checked + .cheer-track{background:#2563eb;}
-        .cheer-sw input:checked + .cheer-track:before{transform:translateX(19px);}
-        .cheer-sub{margin:4px 0 2px 14px;padding-left:12px;border-left:2px solid #dbeafe;}
-        .cheer-sub.dim{opacity:.4;pointer-events:none;}
-        .cheer-shead{font-size:11px;font-weight:700;color:#1d4ed8;margin:4px 0;}
-        .cheer-senderit{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;}
-        .cheer-snm{flex:1;}
-        .cheer-sw.sm{width:36px;height:21px;} .cheer-sw.sm .cheer-track:before{height:15px;width:15px;} .cheer-sw.sm input:checked + .cheer-track:before{transform:translateX(15px);}
-        .cheer-prep{display:inline-block;background:#e2e8f0;color:#64748b;border-radius:5px;padding:0 6px;font-size:10px;margin-left:6px;}
-      </style>
-      <div class="cheer-setK" id="cheerSetBox">
-        <div class="cheer-title">🌟 先生アカウントの特別設定</div>
-        <div class="cheer-lead">先生アカウント（テスト用）は生徒一覧には出ますが、下の設定で特別な挙動を切り替えられます。</div>
-        <div class="cheer-trow">
-          <div class="cheer-tmain"><div class="cheer-tlbl">① 自動応援を送る</div><div class="cheer-tdesc">毎晩23時、その日学習したのに応援ゼロの子へ、先生から応援を1件送る。</div></div>
-          <span class="cheer-state off" id="cheerS1">OFF</span>
-          <label class="cheer-sw"><input type="checkbox" id="cheerT1" onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
-        </div>
-        <div class="cheer-sub dim" id="cheerSub2">
-          <div class="cheer-shead">② 送り手にする先生アカウント（ONの中からランダムで送信）</div>
-          <div id="cheerSenders"></div>
-        </div>
-        <div class="cheer-trow">
-          <div class="cheer-tmain"><div class="cheer-tlbl">③ 要注意・毎朝メールから外す</div><div class="cheer-tdesc">先生アカウントを「やってない/指導必要」の集計と毎朝メールの対象から外す。</div></div>
-          <span class="cheer-state on" id="cheerS3">ON</span>
-          <label class="cheer-sw"><input type="checkbox" id="cheerT3" checked onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
-        </div>
-        <div class="cheer-trow">
-          <div class="cheer-tmain"><div class="cheer-tlbl">④ 一括印刷の対象から外す</div><div class="cheer-tdesc">「まとめて印刷」の相手候補から先生アカウントを外す。</div></div>
-          <span class="cheer-state on" id="cheerS4">ON</span>
-          <label class="cheer-sw"><input type="checkbox" id="cheerT4" checked onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
-        </div>
-        <div class="cheer-trow">
-          <div class="cheer-tmain"><div class="cheer-tlbl">⑤ 流れ星に先生を出す<span class="cheer-prep">準備中</span></div><div class="cheer-tdesc">チーム外合格者がいないとき流れ星に先生を出す。※機能は今後実装。ONにしても今は動きません。</div></div>
-          <span class="cheer-state off" id="cheerS5">OFF</span>
-          <label class="cheer-sw"><input type="checkbox" id="cheerT5" onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
-        </div>
-      </div>
     </div>
     <div style="margin-bottom:12px;display:flex;gap:10px;">
       <button class="btn-primary" style="width:auto;" onclick="openTargetModal('assign')">📚 まとめて割り当てる</button>
@@ -500,6 +448,63 @@
       </div>
     </div>
     </div><!-- /#view-dash -->
+
+    <!-- ===== 先生設定ビュー（先生アカウントの特別仕様）2026-07-07 ===== -->
+    <div id="view-settings" style="display:none;">
+      <!-- 先生応援の設定（先生アカウントの特別仕様・全項目ON/OFF）2026-07-07 -->
+      <style>
+        .cheer-setK{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;margin-top:8px;}
+        .cheer-title{font-weight:800;color:#1d4ed8;font-size:13px;margin-bottom:4px;}
+        .cheer-lead{color:#64748b;font-size:11px;margin-bottom:8px;}
+        .cheer-trow{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #dbeafe;}
+        .cheer-tmain{flex:1;}
+        .cheer-tlbl{font-weight:700;color:#1e3a8a;font-size:13px;}
+        .cheer-tdesc{color:#64748b;font-size:11px;margin-top:2px;}
+        .cheer-state{font-weight:700;min-width:34px;text-align:right;font-size:12px;}
+        .cheer-state.on{color:#2563eb;} .cheer-state.off{color:#94a3b8;}
+        .cheer-sw{position:relative;display:inline-block;width:44px;height:25px;flex:none;}
+        .cheer-sw input{opacity:0;width:0;height:0;}
+        .cheer-track{position:absolute;inset:0;background:#cbd5e1;border-radius:25px;transition:.2s;}
+        .cheer-track:before{content:"";position:absolute;height:19px;width:19px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.3);}
+        .cheer-sw input:checked + .cheer-track{background:#2563eb;}
+        .cheer-sw input:checked + .cheer-track:before{transform:translateX(19px);}
+        .cheer-sub{margin:4px 0 2px 14px;padding-left:12px;border-left:2px solid #dbeafe;}
+        .cheer-sub.dim{opacity:.4;pointer-events:none;}
+        .cheer-shead{font-size:11px;font-weight:700;color:#1d4ed8;margin:4px 0;}
+        .cheer-senderit{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;}
+        .cheer-snm{flex:1;}
+        .cheer-sw.sm{width:36px;height:21px;} .cheer-sw.sm .cheer-track:before{height:15px;width:15px;} .cheer-sw.sm input:checked + .cheer-track:before{transform:translateX(15px);}
+        .cheer-prep{display:inline-block;background:#e2e8f0;color:#64748b;border-radius:5px;padding:0 6px;font-size:10px;margin-left:6px;}
+      </style>
+      <div class="cheer-setK" id="cheerSetBox">
+        <div class="cheer-title">🌟 先生アカウントの特別設定</div>
+        <div class="cheer-lead">先生アカウント（テスト用）は生徒一覧には出ますが、下の設定で特別な挙動を切り替えられます。</div>
+        <div class="cheer-trow">
+          <div class="cheer-tmain"><div class="cheer-tlbl">① 自動応援を送る</div><div class="cheer-tdesc">毎晩23時、その日学習したのに応援ゼロの子へ、先生から応援を1件送る。</div></div>
+          <span class="cheer-state off" id="cheerS1">OFF</span>
+          <label class="cheer-sw"><input type="checkbox" id="cheerT1" onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
+        </div>
+        <div class="cheer-sub dim" id="cheerSub2">
+          <div class="cheer-shead">② 送り手にする先生アカウント（ONの中からランダムで送信）</div>
+          <div id="cheerSenders"></div>
+        </div>
+        <div class="cheer-trow">
+          <div class="cheer-tmain"><div class="cheer-tlbl">③ 要注意・毎朝メールから外す</div><div class="cheer-tdesc">先生アカウントを「やってない/指導必要」の集計と毎朝メールの対象から外す。</div></div>
+          <span class="cheer-state on" id="cheerS3">ON</span>
+          <label class="cheer-sw"><input type="checkbox" id="cheerT3" checked onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
+        </div>
+        <div class="cheer-trow">
+          <div class="cheer-tmain"><div class="cheer-tlbl">④ 一括印刷の対象から外す</div><div class="cheer-tdesc">「まとめて印刷」の相手候補から先生アカウントを外す。</div></div>
+          <span class="cheer-state on" id="cheerS4">ON</span>
+          <label class="cheer-sw"><input type="checkbox" id="cheerT4" checked onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
+        </div>
+        <div class="cheer-trow">
+          <div class="cheer-tmain"><div class="cheer-tlbl">⑤ 流れ星に先生を出す<span class="cheer-prep">準備中</span></div><div class="cheer-tdesc">チーム外合格者がいないとき流れ星に先生を出す。※機能は今後実装。ONにしても今は動きません。</div></div>
+          <span class="cheer-state off" id="cheerS5">OFF</span>
+          <label class="cheer-sw"><input type="checkbox" id="cheerT5" onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
+        </div>
+      </div>
+    </div><!-- /#view-settings -->
 
     <!-- ===== チーム編成ビュー 2026-06-21 ===== -->
     <div id="view-teams" style="display:none;">
@@ -1103,9 +1108,12 @@ var _modalMode='create';// 'create' | 'edit'（チーム情報モーダル）
 function switchTab(t){
   document.getElementById('tab-dash').classList.toggle('active',t==='dash');
   document.getElementById('tab-teams').classList.toggle('active',t==='teams');
+  var ts=document.getElementById('tab-settings'); if(ts) ts.classList.toggle('active',t==='settings');
   $('view-dash').style.display=(t==='dash')?'':'none';
   $('view-teams').style.display=(t==='teams')?'':'none';
+  var vs=$('view-settings'); if(vs) vs.style.display=(t==='settings')?'':'none';
   if(t==='teams') loadTeams();
+  if(t==='settings') renderCheerPanel(); // 設定タブを開いたら最新状態で描画（loadCheerConfigは起動時に実行済み）
 }
 
 function loadTeams(){
