@@ -729,7 +729,7 @@ function openHome(){
     // デイリー：本日の学習の完了判定（今日やってないカードが無ければ完了）2026-07-04
     (function(){var td=todayStr_();var undone=cards.filter(function(m){
       if(m.content_type==='test'){return !(m.studied_today||m.graduated);}
-      return String(m.last_studied_at||'').slice(0,10)!==td;
+      return !m.studied_today;/* 毎日学習も studied_today(JST) で判定・案A 2026-07-08 */
     });dailyState.main=(cards.length===0)?true:(undone.length===0);renderDaily();})();
     prefetchParts_(cards); // 先読みD：キャッシュ描画の時点で開始（重複は_prefetch側で防止）。開いた直後のタップに間に合わせる 2026-07-05
     if(!cards.length){$('main-list').innerHTML='<p class="muted">今日のメイン学習はありません。先生にきいてね。</p>';}
@@ -761,7 +761,7 @@ function openHome(){
       else if(!isTest){var _pc=(m.part_count!==undefined?m.part_count:0)|0,_po=(m.part_order||1)|0;
         if(_pc>0){h.querySelector('.ringfg').style.strokeDashoffset=157*(1-Math.min(1,Math.max(0,_po-1)/_pc));}}
       // 今日まだやってない毎日必須カードは右上に赤丸（赤丸統一・川上さん指示 2026-07-05）
-      var _undone=isTest?(!(m.studied_today||m.graduated)):(String(m.last_studied_at||'').slice(0,10)!==todayStr_());
+      var _undone=isTest?(!(m.studied_today||m.graduated)):(!m.studied_today);/* UTC文字列切り出しをやめJST studied_today で判定・案A 2026-07-08 */
       if(_undone){var _rd=document.createElement('span');_rd.className='reddot';h.appendChild(_rd);}
       // テスト配信：今日卒業したパートはグレー沈め（押せない・「きょうはクリア！」）2026-07-04
       if(isTest&&m.graduated){
