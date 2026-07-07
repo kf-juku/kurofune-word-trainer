@@ -133,6 +133,14 @@
   .sort-chip.active{background:var(--crimson);color:white;border-color:var(--crimson);}
   .inactive-th{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--text-muted);font-weight:500;white-space:nowrap;}
   .inactive-th input{width:42px;border:1.5px solid var(--border);border-radius:8px;padding:3px 5px;font-size:12px;font-family:inherit;text-align:center;}
+  /* 設定バーのグループ化＋列ソート（item3/4・2026-07-07） */
+  .filter-grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-basis:100%;}
+  .filter-colorset{gap:14px;}
+  .filter-hint{flex-basis:100%;font-size:10.5px;color:var(--text-light);}
+  th[data-sk]{cursor:pointer;user-select:none;}
+  th[data-sk]:hover{color:var(--crimson);}
+  th.sorted{color:var(--crimson);}
+  .sort-ar{font-size:10px;}
   tr.row-inactive td{background:rgba(214,69,69,.07);}
   tr.row-inactive td:first-child{box-shadow:inset 3px 0 0 var(--crimson);}
   .last-ago{font-size:11px;color:var(--text-muted);}
@@ -386,21 +394,24 @@
       <span class="filter-count" id="filterCount"></span>
     </div>
     <div class="filter-bar" id="advFilters" style="display:none;">
-      <button class="filter-chip active" data-f="all" onclick="setFilter('all',this)">すべて</button>
-      <button class="filter-chip" data-f="today" onclick="setFilter('today',this)">今日やった</button>
-      <button class="filter-chip" data-f="not_today" onclick="setFilter('not_today',this)">今日まだ</button>
-      <button class="sort-chip" id="chip-oldest" onclick="toggleOldest(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;flex-shrink:0;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>やってない順</button>
-      <label class="inactive-th"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><input id="inactiveDays" type="number" min="1" max="99" value="7" onchange="onInactiveDaysChange()">日以上を色表示</label>
-      <button class="sort-chip" id="chip-needhelp" onclick="toggleNeedHelp(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;flex-shrink:0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>指導必要順</button>
-      <button class="sort-chip" id="chip-grade" onclick="toggleGradeSort(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;flex-shrink:0;"><path d="M22 9l-10 -4l-10 4l10 4l10 -4v6"></path><path d="M6 10.6v5.4a6 3 0 0 0 12 0v-5.4"></path></svg>学年順</button>
-      <label class="inactive-th"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>正答率 <input id="needHelpRate" type="number" min="1" max="100" value="60" onchange="onNeedHelpRateChange()">% 未満を色表示</label>
-      <!-- 印刷は「まとめて印刷」モーダルへ一本化（川上さん承認 2026-07-05） -->
-      <div class="filter-row2">
-        <span class="filter-label">学年</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">クリックで学年を絞り込みます。複数選択できます（例：中1と中2）。何も選ばないと全学年を表示します。</span></span>
+      <div class="filter-grp">
+        <span class="filter-label">表示</span>
+        <button class="filter-chip active" data-f="all" onclick="setFilter('all',this)">すべて</button>
+        <button class="filter-chip" data-f="today" onclick="setFilter('today',this)">今日やった</button>
+        <button class="filter-chip" data-f="not_today" onclick="setFilter('not_today',this)">今日まだ</button>
+      </div>
+      <div class="filter-grp">
+        <span class="filter-label">学年</span>
         <span id="gradeChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
-        <span class="filter-label" id="classLabel" style="margin-left:12px;display:none;">教室</span>
+        <span class="filter-label" id="classLabel" style="margin-left:8px;display:none;">教室</span>
         <span id="classChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
       </div>
+      <div class="filter-grp filter-colorset">
+        <span class="filter-label">色分け（注意の目印）</span>
+        <label class="inactive-th"><input id="inactiveDays" type="number" min="1" max="99" value="7" onchange="onInactiveDaysChange()">日以上あいた子に色</label>
+        <label class="inactive-th">正答率 <input id="needHelpRate" type="number" min="1" max="100" value="60" onchange="onNeedHelpRateChange()">％未満に色</label>
+      </div>
+      <div class="filter-hint">並び替えは表の見出しをクリック（もう一度で昇順↔降順）</div>
     </div>
 
     <div id="dash-body">
@@ -409,20 +420,20 @@
         <table>
           <thead>
             <tr>
-              <th>生徒</th>
-              <th>学年</th>
+              <th data-sk="name" onclick="sortBy('name')">生徒 <span class="sort-ar" data-ar="name"></span></th>
+              <th data-sk="grade" onclick="sortBy('grade')">学年 <span class="sort-ar" data-ar="grade"></span></th>
               <th>割当教材</th>
               <th>いまここ</th>
               <th>1日<br>パート</th>
               <th>今日</th>
-              <th>最終学習</th>
-              <th>練習<br>回数</th>
-              <th>学習<br>時間<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習でかかった実解答時間（分:秒）。短すぎ＝パッと押しの目安。1問30秒で上限カット。</span></span></th>
-              <th>意味<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習での「英語→日本語」正答率</span></span></th>
-              <th>日→英<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習での「日本語→英語」正答率</span></span></th>
-              <th>指導<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近3セッションの平均正答率（意味と日→英の平均）。設定した％未満は「指導おすすめ」で色付き。まだ練習がない子は未評価（–）。</span></span></th>
+              <th data-sk="last" onclick="sortBy('last')">最終学習 <span class="sort-ar" data-ar="last"></span></th>
+              <th data-sk="practice_count" onclick="sortBy('practice_count')">練習<br>回数 <span class="sort-ar" data-ar="practice_count"></span></th>
+              <th data-sk="last_active_ms" onclick="sortBy('last_active_ms')">学習<br>時間<span class="sort-ar" data-ar="last_active_ms"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習でかかった実解答時間（分:秒）。短すぎ＝パッと押しの目安。1問30秒で上限カット。</span></span></th>
+              <th data-sk="meaning_rate" onclick="sortBy('meaning_rate')">意味<span class="sort-ar" data-ar="meaning_rate"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習での「英語→日本語」正答率</span></span></th>
+              <th data-sk="reverse_rate" onclick="sortBy('reverse_rate')">日→英<span class="sort-ar" data-ar="reverse_rate"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習での「日本語→英語」正答率</span></span></th>
+              <th data-sk="teach_rate" onclick="sortBy('teach_rate')">指導<span class="sort-ar" data-ar="teach_rate"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">直近3セッションの平均正答率（意味と日→英の平均）。設定した％未満は「指導おすすめ」で色付き。まだ練習がない子は未評価（–）。</span></span></th>
               <th>発音<span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習でマイクに向かって発音した回数と、うち正しく認識された回数（参考値・合否には使いません）</span></span></th>
-              <th>間違い集<span class="tt"><span class="help-mark">?</span><span class="tt-body">いま復習対象になっている語数（2回連続正解で卒業）</span></span></th>
+              <th data-sk="mistake_active" onclick="sortBy('mistake_active')">間違い集<span class="sort-ar" data-ar="mistake_active"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">いま復習対象になっている語数（2回連続正解で卒業）</span></span></th>
               <th>定着度<span class="tt"><span class="help-mark">?</span><span class="tt-body">この生徒の単語の記憶状態。緑=覚えた／黄=覚えかけ／青=学習中／赤=弱点（間違いノート）。未学習は未集計。</span></span></th>
             </tr>
           </thead>
@@ -682,7 +693,7 @@ function fmtDate(s){
 }
 
 /* 学年・教室フィルタ＋学年ソート 2026-07-02 川上さん指示：学年ソート＋学年の複数選択・教室(class_name)フィルタ */
-var _gradeSel={};var _classSel={};var _sortGrade=false;
+var _gradeSel={};var _classSel={};var _sortKey=null,_sortDir=1;
 function gradeRank(g){var m=String(g||'').match(/^(小|中|高)\s*(\d)/);if(!m)return 99;var base={'小':0,'中':10,'高':20}[m[1]];return base+parseInt(m[2],10);}
 function buildFilterChips(){
   var grades=[],classes=[];
@@ -709,16 +720,23 @@ function buildFilterChips(){
   });
 }
 function toggleSelChip(sel,v,el){if(sel[v])delete sel[v];else sel[v]=true;el.classList.toggle('active',!!sel[v]);renderTable();}
-function toggleGradeSort(el){_sortGrade=!_sortGrade;if(_sortGrade){_sortOldest=false;_sortNeedHelp=false;var c=$('chip-oldest');if(c)c.classList.remove('active');c=$('chip-needhelp');if(c)c.classList.remove('active');}el.classList.toggle('active',_sortGrade);renderTable();}
-var _sortOldest=false;
+function sortBy(key){if(_sortKey===key){_sortDir=-_sortDir;}else{_sortKey=key;_sortDir=1;}renderTable();}
+function sortVal_(s,key){switch(key){
+  case 'grade':return gradeRank(s.grade);
+  case 'last':{var da=daysAgo(s.last_studied_at);return da===null?1e9:da;}
+  case 'practice_count':return parseInt(s.practice_count,10)||0;
+  case 'last_active_ms':return parseInt(s.last_active_ms,10)||0;
+  case 'meaning_rate':return (s.meaning_rate===''||s.meaning_rate==null)?-1:s.meaning_rate;
+  case 'reverse_rate':return (s.reverse_rate===''||s.reverse_rate==null)?-1:s.reverse_rate;
+  case 'teach_rate':return hasTeach(s)?s.teach_rate:1e9;
+  case 'mistake_active':return parseInt(s.mistake_active,10)||0;
+  }return 0;}
+function updateSortIndicators(){var ars=document.querySelectorAll('.sort-ar');Array.prototype.forEach.call(ars,function(a){var k=a.getAttribute('data-ar');a.textContent=(k===_sortKey)?(_sortDir>0?'▲':'▼'):'';var th=a.closest('th');if(th)th.classList.toggle('sorted',k===_sortKey);});}
 var _inactiveDays=(function(){var v=parseInt(localStorage.getItem('kwt_inactive_days'),10);return (v>=1&&v<=99)?v:7;})();
-function toggleOldest(el){_sortOldest=!_sortOldest;if(_sortOldest){_sortNeedHelp=false;_sortGrade=false;var c=$('chip-needhelp');if(c)c.classList.remove('active');c=$('chip-grade');if(c)c.classList.remove('active');}el.classList.toggle('active',_sortOldest);renderTable();}
 function onInactiveDaysChange(){var v=parseInt($('inactiveDays').value,10);if(!(v>=1&&v<=99)){v=7;$('inactiveDays').value=7;}_inactiveDays=v;localStorage.setItem('kwt_inactive_days',v);renderTable();}
 function daysAgo(ss){if(!ss)return null;var m=String(ss).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return null;var d=new Date(parseInt(m[1],10),parseInt(m[2],10)-1,parseInt(m[3],10));var t=new Date();var t0=new Date(t.getFullYear(),t.getMonth(),t.getDate());return Math.round((t0-d)/86400000);}
 function isInactive(s){var da=daysAgo(s.last_studied_at);return da===null||da>=_inactiveDays;}
-var _sortNeedHelp=false;
 var _needHelpRate=(function(){var v=parseInt(localStorage.getItem('kwt_needhelp_rate'),10);return (v>=1&&v<=100)?v:60;})();
-function toggleNeedHelp(el){_sortNeedHelp=!_sortNeedHelp;if(_sortNeedHelp){_sortOldest=false;_sortGrade=false;var c=$('chip-oldest');if(c)c.classList.remove('active');c=$('chip-grade');if(c)c.classList.remove('active');}el.classList.toggle('active',_sortNeedHelp);renderTable();}
 function onNeedHelpRateChange(){var v=parseInt($('needHelpRate').value,10);if(!(v>=1&&v<=100)){v=60;$('needHelpRate').value=60;}_needHelpRate=v;localStorage.setItem('kwt_needhelp_rate',v);renderTable();}
 function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate!==undefined;}
 function needsHelp(s){return hasTeach(s)&&s.teach_rate<_needHelpRate;}
@@ -777,12 +795,11 @@ function renderTable(){
   });
   var _idi=$('inactiveDays');if(_idi&&String(_inactiveDays)!==_idi.value)_idi.value=_inactiveDays;
   var _nhr=$('needHelpRate');if(_nhr&&String(_needHelpRate)!==_nhr.value)_nhr.value=_needHelpRate;
-  if(_sortOldest){rows.sort(function(a,b){var da=daysAgo(a.last_studied_at),db=daysAgo(b.last_studied_at);var va=(da===null)?1e9:da,vb=(db===null)?1e9:db;return vb-va;});}
-  else if(_sortNeedHelp){rows.sort(function(a,b){var va=hasTeach(a)?a.teach_rate:1e9,vb=hasTeach(b)?b.teach_rate:1e9;return va-vb;});}
-  else if(_sortGrade){rows.sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);return d!==0?d:String(a.name).localeCompare(String(b.name),'ja');});}
+  if(_sortKey==='name'){rows.sort(function(a,b){return _sortDir*String(a.name||'').localeCompare(String(b.name||''),'ja');});}
+  else if(_sortKey){rows.sort(function(a,b){var d=sortVal_(a,_sortKey)-sortVal_(b,_sortKey);if(d===0)d=String(a.name||'').localeCompare(String(b.name||''),'ja');return _sortDir*d;});}
   $('filterCount').textContent=rows.length+'名';
   if(!rows.length){$('tableWrap').style.display='none';$('emptyState').style.display='';return;}
-  $('emptyState').style.display='none';$('tableWrap').style.display='';
+  $('emptyState').style.display='none';$('tableWrap').style.display='';updateSortIndicators();
   var tb=$('tbody');tb.innerHTML='';
   rows.forEach(function(s){
     var tr=document.createElement('tr');
