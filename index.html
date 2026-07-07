@@ -1362,7 +1362,7 @@ function finishSession(){var s=session;$('prog').style.width='100%';show('scr-do
     var score=termOnly?rr:Math.round((mr+rr)/2);
     if(termOnly){$('done-rate').innerHTML=(s.tfOnly?'正答':'用語')+' <b>'+rr+'</b>％';} // 表穴埋めは「正答」表記 2026-07-05
     else{$('done-rate').innerHTML='意味 <span id="done-mr">'+mr+'</span>％ ・ 日本語→英語 <span id="done-rr">'+rr+'</span>％';}
-    if(!d.ok){$('done-result').textContent='結果の保存に失敗しました';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}
+    if(!d.ok){$('done-result').textContent='結果の保存に失敗しました';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得。古い赤●/Day残りを防ぐ（案A・川上さん承認 2026-07-08）*/
     var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').textContent=d.data.lap+'周目';}else{dl.style.display='none';}}
     if(d.data.is_test){
       // 2026-07-07 grill確定：テスト配信も毎日学習と同じ80%で前進（満点前進は廃止）。おさらいの100%卒業案内はスライス3で追加。正＝機能仕様書_テスト配信 0章。
@@ -1522,7 +1522,7 @@ function finishNote(){
     if(gradeFailed>0){$('done-miss').textContent='⚠ 一部の記録を保存できませんでした。電波の良いところで もう一回やってね';}
     else{
       $('done-miss').textContent=s.cleared?('今回 '+s.cleared+'語 卒業した！🎓'):('卒業はあと一歩。2回れんぞく正解でクリア！');
-      if(s.cleared){sndWin();flash();confetti(100);}
+      if(s.cleared){sndWin();flash();confetti(100);}homeCacheClear_();/* ノート完了でホームキャッシュ無効化（案A 2026-07-08）*/
     }
     $('btn-retry').style.display='flex';
     $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> もう一回やる';
@@ -1621,7 +1621,7 @@ function finishSrs(){
   // 記録の保存（裏送信キュー）が終わるまで結果を確定しない（gas-html-checklist：成功と偽らない）2026-07-05
   $('done-miss').textContent='記録を保存中…';
   whenGradesFlushed(function(){
-    if(gradeFailed>0){$('done-miss').textContent='⚠ 一部の記録を保存できませんでした。電波の良いところで もう一回やってね';return;}
+    if(gradeFailed>0){$('done-miss').textContent='⚠ 一部の記録を保存できませんでした。電波の良いところで もう一回やってね';return;}homeCacheClear_();/* おさらい完了でホームキャッシュ無効化（案A 2026-07-08）*/
     // つぎはいつ出るか（川上さん承認モック 2026-07-05）：今日やった語のうち最短の次回日数
     var _ls=[];
     if(s.graduated)_ls.push('今回 '+s.graduated+'語 マスター！🎓');
