@@ -93,6 +93,24 @@
   .sd-tbl th{padding:5px 6px;font-weight:700;color:var(--text-light);font-size:10.5px;text-align:left;}
   .sd-tbl td{padding:6px;border-top:1px solid var(--surface2);}
   #tableWrap tbody tr{cursor:pointer;}
+  /* チーム編成 2列トランスファー（item6・2026-07-07） */
+  .mem-two{display:flex;gap:12px;}
+  .mem-col{flex:1;min-width:0;}
+  .mem-coltitle{font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;}
+  .mem-count{color:#1faa6b;}
+  .mem-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;}
+  .mem-chip{border:1.5px solid var(--border);background:#fff;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--text-muted);cursor:pointer;font-family:inherit;}
+  .mem-chip.active{background:var(--crimson-light);color:var(--crimson-dark);border-color:var(--crimson);font-weight:700;}
+  .mem-list{border:1px solid var(--border);border-radius:10px;overflow-y:auto;max-height:240px;min-height:120px;}
+  .mem-team{border-color:#cfe8db;background:#f2faf6;}
+  .mem-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--surface2);font-size:12.5px;}
+  .mem-row:last-child{border-bottom:none;}
+  .mem-row .mem-meta{margin-left:auto;font-size:10px;color:var(--text-light);}
+  .mem-row .mem-badge{margin-left:auto;font-size:10px;font-weight:700;color:#b8860b;background:#fbf3df;border-radius:10px;padding:1px 7px;}
+  .mem-btn{border:none;background:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:16px;line-height:1;padding:0 2px;margin-left:8px;}
+  .mem-add{color:var(--crimson);}
+  .mem-rm{color:var(--text-light);font-size:14px;}
+  .mem-empty{padding:16px;text-align:center;color:var(--text-light);font-size:12px;}
   .tm-search{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;margin-bottom:8px;font-family:inherit;box-sizing:border-box;}
   .tm-list{border:1px solid var(--border);border-radius:10px;max-height:240px;overflow-y:auto;}
   .tm-srow{display:flex;align-items:center;gap:9px;padding:7px 11px;border-bottom:1px solid var(--surface2);font-size:13px;cursor:pointer;}
@@ -460,11 +478,21 @@
     <input class="form-input" id="mmName" placeholder="例：中1Aチーム">
     <label class="form-label">学年の目安（任意）</label>
     <input class="form-input" id="mmGrade" placeholder="例：中1">
-    <label class="form-label" style="margin-top:6px;">メンバー</label>
-    <div class="mhint">3〜5人で1チームが目安です。チェックした生徒がこのチームの応援メンバーになります。<br>※ほかのチームに入っている生徒は薄く表示されます（選ぶとそのチームから移動します）。</div>
-    <div class="pick-counter" id="mmCounter">選択中：0人</div>
+    <label class="form-label" style="margin-top:6px;">メンバー（3〜5人が目安）</label>
     <div class="err" id="mmErr"></div>
-    <div class="pick-list" id="mmList"></div>
+    <div class="mem-two">
+      <div class="mem-col">
+        <div class="mem-coltitle">候補から選ぶ</div>
+        <div class="mem-chips" id="memChips"></div>
+        <input class="tm-search" id="memSearch" placeholder="なまえで探す" style="margin-bottom:7px;" oninput="_memSearch=this.value;renderMemEditor();">
+        <div class="mem-list" id="memCand"></div>
+      </div>
+      <div class="mem-col">
+        <div class="mem-coltitle">このチーム <span class="mem-count" id="memCount">0人</span> <span style="color:var(--text-light);font-weight:600;">（3〜5人）</span></div>
+        <div class="mem-list mem-team" id="memTeam"></div>
+        <div style="font-size:10px;color:var(--text-light);margin-top:5px;">＋で追加・✕で外す。ほかのチームの子は確認のうえ移動します。</div>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal('memModal')">やめる</button>
       <button class="btn-primary" style="width:auto;" id="mmSave" onclick="saveMembers()">保存する</button>
@@ -1056,6 +1084,7 @@ function toggleTeamActive(id){
 }
 
 /* --- メンバー編集モーダル --- */
+var _memSel={}, _memMeta={}, _memOther={}, _memFilter={grade:null,school:null}, _memSearch='';
 function openMembers(id){
   var t=_teams.filter(function(x){return String(x.id)===String(id);})[0];
   if(!t)return;
@@ -1064,51 +1093,75 @@ function openMembers(id){
   $('mmName').value=t.name||'';
   $('mmGrade').value=t.grade_band||'';
   $('mmErr').textContent='';
-  // このチームの現メンバーID
-  var inThis={};t.members.forEach(function(m){inThis[String(m.student_id)]=true;});
-  // 他チーム所属マップ（このチーム以外）
-  var otherTeam={};
-  _teams.forEach(function(tt){ if(String(tt.id)===String(id))return;
-    tt.members.forEach(function(m){otherTeam[String(m.student_id)]=tt.name;}); });
-  // 候補＝このチームのメンバー＋未所属＋他チーム所属（全員出すが他チームは薄く）
-  var cand=[];
-  t.members.forEach(function(m){cand.push({student_id:m.student_id,name:m.name,nickname:m.nickname,grade:m.grade});});
-  _unassigned.forEach(function(u){cand.push(u);});
-  // 他チーム所属者も候補に出す（移動できる）
-  _teams.forEach(function(tt){ if(String(tt.id)===String(id))return;
-    tt.members.forEach(function(m){cand.push({student_id:m.student_id,name:m.name,nickname:m.nickname,grade:m.grade});}); });
-  // 重複除去
-  var seen={},uniq=[];
-  cand.forEach(function(c){var k=String(c.student_id);if(!seen[k]){seen[k]=true;uniq.push(c);}});
-  var list=$('mmList');list.innerHTML='';
-  uniq.forEach(function(c){
-    var sid=String(c.student_id);
-    var checked=inThis[sid]?'checked':'';
-    var other=otherTeam[sid];
-    var row=document.createElement('label');
-    row.className='pick-item'+(other?' assigned-other':'');
-    row.innerHTML='<input type="checkbox" value="'+sid+'" '+checked+' onchange="updateMmCounter()">'
-      +'<span>'+esc(c.name||'(無名)')+(c.nickname?'<span class="pi-nick">'+esc(c.nickname)+'</span>':'')+'</span>'
-      +(other?'<span class="pi-warn">'+esc(other)+'に所属</span>':'<span class="pi-grade">'+esc(c.grade||'')+'</span>');
-    list.appendChild(row);
-  });
-  updateMmCounter();
+  // 候補メタ（学年・中学校・教室）：_students優先、無ければ_unassigned・各チームメンバーで補完
+  _memMeta={};
+  (_students||[]).forEach(function(s){_memMeta[String(s.student_id)]={name:s.name,nickname:s.nickname,grade:s.grade||'',school:s.school||'',class_name:s.class_name||''};});
+  (_unassigned||[]).forEach(function(u){var k=String(u.student_id);if(!_memMeta[k])_memMeta[k]={name:u.name,nickname:u.nickname,grade:u.grade||'',school:u.school||'',class_name:u.class_name||''};});
+  _memOther={};
+  _teams.forEach(function(tt){tt.members.forEach(function(m){var k=String(m.student_id);
+    if(!_memMeta[k])_memMeta[k]={name:m.name,nickname:m.nickname,grade:m.grade||'',school:'',class_name:''};
+    if(String(tt.id)!==String(id))_memOther[k]=tt.name;});});
+  _memSel={};t.members.forEach(function(m){_memSel[String(m.student_id)]=1;});
+  _memFilter={grade:null,school:null};_memSearch='';var se=$('memSearch');if(se)se.value='';
+  renderMemEditor();
   $('memModal').classList.add('show');
 }
-function updateMmCounter(){
-  var n=$('mmList').querySelectorAll('input:checked').length;
-  var c=$('mmCounter');c.textContent='選択中：'+n+'人';
-  c.classList.toggle('over',n>5);
+function memUniq_(field){var m={};Object.keys(_memMeta).forEach(function(k){var v=String(_memMeta[k][field]||'').trim();if(v)m[v]=1;});var a=Object.keys(m);return field==='grade'?a.sort(function(x,y){return gradeRank(x)-gradeRank(y);}):a.sort(function(x,y){return String(x).localeCompare(String(y),'ja');});}
+function renderMemEditor(){
+  var cw=$('memChips');
+  if(cw){cw.innerHTML='';
+    var addChip=function(label,field,val){var b=document.createElement('button');b.type='button';b.className='mem-chip'+(_memFilter[field]===val?' active':'');b.textContent=label;b.onclick=function(){_memFilter[field]=(_memFilter[field]===val)?null:val;renderMemEditor();};cw.appendChild(b);};
+    memUniq_('grade').forEach(function(g){addChip(g,'grade',g);});
+    memUniq_('school').forEach(function(sc){addChip(sc,'school',sc);});
+  }
+  var left=$('memCand');
+  if(left){left.innerHTML='';
+    var pool=Object.keys(_memMeta).filter(function(k){return !_memSel[k];});
+    pool=pool.filter(function(k){var meta=_memMeta[k];
+      if(_memFilter.grade&&String(meta.grade)!==_memFilter.grade)return false;
+      if(_memFilter.school&&String(meta.school)!==_memFilter.school)return false;
+      if(_memSearch&&String(meta.name||'').indexOf(_memSearch)<0&&String(meta.nickname||'').indexOf(_memSearch)<0)return false;
+      return true;});
+    pool.sort(function(a,b){var ma=_memMeta[a],mb=_memMeta[b];var d=gradeRank(ma.grade)-gradeRank(mb.grade);return d!==0?d:String(ma.name||'').localeCompare(String(mb.name||''),'ja');});
+    if(!pool.length){left.innerHTML='<div class="mem-empty">該当なし</div>';}
+    pool.forEach(function(k){var meta=_memMeta[k];var other=_memOther[k];
+      var row=document.createElement('div');row.className='mem-row';
+      row.innerHTML='<span>'+esc(meta.name||'(無名)')+(meta.nickname?'<span class="pi-nick"> '+esc(meta.nickname)+'</span>':'')+'</span>'
+        +(other?'<span class="mem-badge">'+esc(other)+'に所属</span>':'<span class="mem-meta">'+esc(meta.grade||'未所属')+'</span>')
+        +'<button class="mem-btn mem-add" title="追加">＋</button>';
+      row.querySelector('.mem-add').onclick=function(){memAdd_(k);};
+      left.appendChild(row);});
+  }
+  var right=$('memTeam');
+  if(right){right.innerHTML='';
+    var sel=Object.keys(_memSel);
+    if(!sel.length){right.innerHTML='<div class="mem-empty">まだメンバーがいません</div>';}
+    sel.forEach(function(k){var meta=_memMeta[k]||{name:'',grade:''};
+      var row=document.createElement('div');row.className='mem-row';
+      row.innerHTML='<span>'+esc(meta.name||'(無名)')+(meta.nickname?'<span class="pi-nick"> '+esc(meta.nickname)+'</span>':'')+'</span><span class="mem-meta">'+esc(meta.grade||'')+'</span><button class="mem-btn mem-rm" title="外す">✕</button>';
+      row.querySelector('.mem-rm').onclick=function(){memRemove_(k);};
+      right.appendChild(row);});
+  }
+  var n=Object.keys(_memSel).length;
+  var mc=$('memCount');if(mc){mc.textContent=n+'人';mc.style.color=(n>5)?'var(--crimson)':(n>=3?'#1faa6b':'var(--text-light)');}
   if(n>5){$('mmErr').textContent='1チームは最大5人までです';}
   else if(n>0&&n<3){$('mmErr').textContent='3人未満です（目安は3〜5人。保存はできます）';}
-  else {$('mmErr').textContent='';}
+  else{$('mmErr').textContent='';}
 }
+function memAdd_(sid){
+  if(Object.keys(_memSel).length>=5){toast('1チームは最大5人までです');return;}
+  var other=_memOther[sid];
+  if(other){var nm=(_memMeta[sid]&&_memMeta[sid].name)||'この生徒';
+    if(!confirm(nm+' さんを「'+other+'」から このチームに移動します。よろしいですか？'))return;}
+  _memSel[sid]=1;renderMemEditor();
+}
+function memRemove_(sid){delete _memSel[sid];renderMemEditor();}
 function saveMembers(){
   // 統合モーダル：チーム名・学年（team_update）→ メンバー（team_member_set）を続けて保存
   var name=($('mmName').value||'').trim();
   var gb=($('mmGrade').value||'').trim();
   if(!name){$('mmErr').textContent='チーム名を入れてください';return;}
-  var ids=[];$('mmList').querySelectorAll('input:checked').forEach(function(cb){ids.push(cb.value);});
+  var ids=Object.keys(_memSel);
   if(ids.length>5){$('mmErr').textContent='1チームは最大5人までです';return;}
   var btn=$('mmSave');btn.disabled=true;btn.textContent='保存中…';
   showLoading('保存中…');
