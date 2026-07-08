@@ -1272,9 +1272,9 @@ function pronUI_(orbCls,orbIcon,msgCls,msg,sub,cnt){
   var su=$('pron-sub');if(su)su.innerHTML=sub||'';
   var c=$('pron-cnt');if(c)c.textContent=cnt||'';
 }
+function pronShowHeard_(t){var su=$('pron-sub');if(su&&t)su.innerHTML='「<b>'+esc(t)+'</b>」ってきこえたよ';} // 認識が拾えているサイン（2026-07-08 メーター廃止の代わり）
 function pronBegin_(){ // 単語表示：正解音声なし→3・2・1→マイク自動起動
   pronStop_();pronTries=0;pronAdvanced=false;
-  micInit_(); // 声反応orb用にマイク音量を用意（初回だけ許可を聞く・失敗しても続行）
   var s=session;if(!s)return;
   if(!SR){ // 音声認識非対応端末：お手本を聞いて自動で次へ（自己申告扱い・attemptsのみ加算）
     countSelfReportIfNeeded();
@@ -1296,18 +1296,23 @@ function pronListen_(){
   clearTimeout(pronWatch);pronWatch=null;
   try{
     var rec=new SR();pronRec=rec;pronBusy=true;
-    rec.lang='en-US';rec.interimResults=false;rec.maxAlternatives=3;
+    rec.lang='en-US';rec.interimResults=true;rec.maxAlternatives=3;
     // 古いインスタンスのイベントが後から飛んできても無視する（pronRec===rec のときだけ有効・2026-07-06）
     rec.onstart=function(){ if(pronRec!==rec)return;
-      // ここで初めて「録音中」＝画面のプルプル/声反応と端末マイクを連動（2026-07-08）
-      pronUI_('live','ti-microphone','listening','声に出して 言ってみよう！',(pronTries>0?'お手本みたいにね':'マイクに はっきり'),'');
-      if(micReady){orbReactStart_();}else{var o=$('pron-orb');if(o)o.className='mic-orb listening';}
+      // 録音が本当に始まった＝「録音中」表示。メーター(getUserMedia)は使わない（Androidでマイクを奪い認識が無視される問題の対策 2026-07-08）
+      pronUI_('listening','ti-microphone','listening','声に出して 言ってみよう！','マイクに はっきり','');
     };
     rec.onspeechstart=function(){ if(pronRec!==rec)return; pronHeard=true; };
     rec.onresult=function(ev){
-      if(pronRec!==rec)return; pronGotResult=true; orbReactStop_();
+      if(pronRec!==rec)return;
+      var interim='',finalRes=null;
+      for(var i=ev.resultIndex;i<ev.results.length;i++){ if(ev.results[i].isFinal){finalRes=ev.results[i];} else {interim+=ev.results[i][0].transcript;} }
+      if(interim&&!finalRes){ pronHeard=true; pronShowHeard_(interim); return; } // 途中経過：きこえている言葉を出す＝拾えているサイン
+      if(!finalRes)return;
+      pronGotResult=true;
       var ok=false,heard='';
-      for(var i=0;i<ev.results[0].length;i++){var alt=ev.results[0][i].transcript;if(i===0)heard=alt;if(judgePron_(alt,w)){ok=true;heard=alt;break;}}
+      for(var j=0;j<finalRes.length;j++){var alt=finalRes[j].transcript;if(j===0)heard=alt;if(judgePron_(alt,w)){ok=true;heard=alt;break;}}
+      pronShowHeard_(heard);
       s.pronAttempts++;s.pronDoneIdx[String(s.idx)]=true;
       if(ok){s.pronSuccesses++;sndCorrect&&sndCorrect();pronOk_(false);}
       else if(pronTries===0){pronMiss_();}
