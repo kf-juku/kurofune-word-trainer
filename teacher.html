@@ -361,6 +361,20 @@
 .inline-sel{border:1px solid transparent;background:transparent;font-size:12px;padding:2px 3px;border-radius:6px;max-width:160px;cursor:pointer}
 .inline-sel:hover{border-color:#dde3ec;background:#f3f4f6}
 .bulk-selK{background:#d1fae5;border-radius:8px;padding:8px 12px;font-size:12px;color:#065f46;margin-bottom:10px;line-height:1.7}
+  .asg-addbox{border:1.5px dashed var(--border);border-radius:12px;padding:12px 14px;margin-top:6px;}
+  .asg-add-h{font-size:11.5px;font-weight:800;color:var(--text-muted);margin:2px 0 6px;}
+  .asg-grp-h{font-size:10px;font-weight:800;color:var(--text-light);margin:7px 0 2px;}
+  .asg-opt{display:inline-block;border:1px solid var(--border);border-radius:8px;padding:5px 10px;margin:3px 5px 3px 0;font-size:12px;font-weight:700;cursor:pointer;background:#fff;}
+  .asg-opt:hover{border-color:var(--crimson);color:var(--crimson);}
+  .asg-opt.picked{opacity:.35;pointer-events:none;}
+  .asg-pchip{display:inline-flex;align-items:center;gap:6px;background:#eaf5ee;border:1px solid #bfe6cf;color:#14663a;border-radius:20px;padding:4px 10px;margin:3px 6px 3px 0;font-size:12px;font-weight:700;}
+  .asg-pnum{background:#1f9d57;color:#fff;width:17px;height:17px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;}
+  .asg-px{cursor:pointer;color:#9c2a2a;font-weight:800;}
+  .asg-field{display:inline-flex;align-items:center;gap:6px;}
+  .asg-lbl{color:var(--text-light);font-size:11px;font-weight:700;}
+  .asg-sel{border:1px solid var(--border);border-radius:7px;padding:3px 7px;font-family:inherit;font-size:12.5px;background:#fff;}
+  .asg-prog{font-size:12.5px;color:var(--text-muted);margin:2px 0 6px;}
+  .asg-note2{font-size:11px;color:var(--text-light);margin-top:6px;}
 </style>
 </head>
 <body>
@@ -599,7 +613,60 @@
 <div class="modal-back" id="assignModal">
   <div class="modal">
     <h3 id="asgTitle">教材の割当</h3>
-    <div class="mhint">この生徒に割り当てる教材を編集します。テスト配信は「1日のパート数」で1日に出す量を決めます。</div>
+    <div class="mhint">この生徒の教材を編集します。「いまここ」を変えると生徒画面の次のパートが変わります。テスト配信は「1日に出す数」で1日の量を決めます（毎日学習は1日1つずつ進みます）。</div>
+    <div class="err" id="asgErr"></div>
+    <div id="asgList"></div>
+    <div class="asg-addbox">
+      <div class="asg-add-h">＋ 教材を追加（複数OK・クリックした順に追加）</div>
+      <div id="asgAddOpts"></div>
+      <div id="asgPickedWrap" style="display:none;margin-top:10px;">
+        <div class="asg-add-h" style="color:var(--crimson);">追加する教材（この順で追加）</div>
+        <div id="asgPicked"></div>
+      </div>
+      <button class="btn-primary" id="asgAddBtn" style="width:auto;padding:8px 16px;margin-top:10px;" disabled onclick="addPicked()">教材を選んでください</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('teamModal')">やめる</button>
+      <button class="btn-primary" style="width:auto;" id="tmSave" onclick="saveTeam()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- メンバー編集モーダル -->
+<div class="modal-back" id="memModal">
+  <div class="modal">
+    <h3 id="mmTitle">チームを編集</h3>
+    <label class="form-label">チーム名</label>
+    <input class="form-input" id="mmName" placeholder="例：中1Aチーム">
+    <label class="form-label">学年の目安（任意）</label>
+    <input class="form-input" id="mmGrade" placeholder="例：中1">
+    <label class="form-label" style="margin-top:6px;">メンバー（3〜5人が目安）</label>
+    <div class="err" id="mmErr"></div>
+    <div class="mem-two">
+      <div class="mem-col">
+        <div class="mem-coltitle">候補から選ぶ</div>
+        <div class="mem-chips" id="memChips"></div>
+        <input class="tm-search" id="memSearch" placeholder="なまえで探す" style="margin-bottom:7px;" oninput="_memSearch=this.value;renderMemEditor();">
+        <div class="mem-list" id="memCand"></div>
+      </div>
+      <div class="mem-col">
+        <div class="mem-coltitle">このチーム <span class="mem-count" id="memCount">0人</span> <span style="color:var(--text-light);font-weight:600;">（3〜5人）</span></div>
+        <div class="mem-list mem-team" id="memTeam"></div>
+        <div style="font-size:10px;color:var(--text-light);margin-top:5px;">＋で追加・✕で外す。ほかのチームの子は確認のうえ移動します。</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('memModal')">やめる</button>
+      <button class="btn-primary" style="width:auto;" id="mmSave" onclick="saveMembers()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 教材割当モーダル（案A・2026-07-04） -->
+<div class="modal-back" id="assignModal">
+  <div class="modal">
+    <h3 id="asgTitle">教材の割当</h3>
+    <div class="mhint">この生徒の教材を編集します。「いまここ」を変えると生徒画面の次のパートが変わります。テスト配信は「1日に出す数」で1日の量を決めます（毎日学習は1日1つずつ進みます）。</div>
     <div class="err" id="asgErr"></div>
     <div id="asgList"></div>
     <div class="asg-add">
@@ -1499,7 +1566,7 @@ function applyBulk(){
    もう一周＝assignment_restart_lap。materials_list の教材を追加候補に出す。 */
 var _asgSid='', _asgName='', _asgMaterials=[], _asgParts=[], _asgList=[];
 function openAssign(sid){
-  _asgSid=sid;
+  _asgSid=sid;_asgPicked=[];
   var st=null;for(var i=0;i<_students.length;i++){if(String(_students[i].student_id)===String(sid)){st=_students[i];break;}}
   _asgName=st?(st.name||''):'';
   $('asgTitle').textContent=(_asgName||'この生徒')+' の教材';
@@ -1529,26 +1596,27 @@ function renderAssignList(){
     var pill=isTest?'<span class="asg-pill test">テスト配信</span>':'<span class="asg-pill daily">毎日学習</span>';
     var lapTxt=(a.lap>=2)?' <span class="asg-pill" style="background:#ede9fe;color:#5b21b6;">'+a.lap+'周目</span>':'';
     // 進み表示
-    var prog;
-    if(isTest){prog='進み：<b>'+esc(a.current_part_title||'-')+'</b>（'+(a.graduated_parts||0)+'/'+(a.total_parts||0)+' 卒業）';}
-    else{var dayn=a.current_part_order||1;prog='開始：<b>'+(a.total_parts>1?('DAY '+dayn):'-')+'</b>';}
-    // 開始パート選択（複数パートのみ）
     var startSel='';
     if(a.total_parts>1){
-      startSel='<label style="font-size:12px;color:var(--text-muted);">開始 <select onchange="setStart('+"'"+esc(a.material_id)+"'"+',this.value)" style="border:1px solid var(--border);border-radius:6px;padding:2px 4px;font-family:inherit;">';
+      startSel='<span class="asg-field"><span class="asg-lbl">いまここ</span><select class="asg-sel" onchange="setStart('+"'"+esc(a.material_id)+"'"+',this.value)">';
       a.parts.forEach(function(pt){
         var lbl=isTest?(pt.title||('パート'+pt.part_order)):('DAY '+(pt.part_order||1));
         startSel+='<option value="'+esc(pt.part_id)+'"'+(String(pt.part_id)===String(a.current_part_id)?' selected':'')+'>'+esc(lbl)+'</option>';
       });
-      startSel+='</select></label>';
+      startSel+='</select></span>';
+    }else{
+      startSel='<span class="asg-field"><span class="asg-lbl">いまここ</span><b>'+(isTest?esc(a.current_part_title||'-'):('DAY '+(a.current_part_order||1)))+'</b></span>';
     }
+    var dailyCtrl=isTest?('<span class="asg-field"><span class="asg-lbl">1日に出す数</span><span class="asg-step" onclick="bumpDaily('+"'"+esc(a.material_id)+"'"+',-1)">−</span><b id="dp-'+esc(a.material_id)+'">'+(a.daily_parts||1)+'</b><span class="asg-step" onclick="bumpDaily('+"'"+esc(a.material_id)+"'"+',1)">＋</span>パート</span>'):'';
+    var progLine=isTest?('<div class="asg-prog">進み：<b>'+esc(a.current_part_title||'-')+'</b>（'+(a.graduated_parts||0)+'/'+(a.total_parts||0)+' 卒業）</div>'):'';
+    var dailyNote=isTest?'':'<div class="asg-note2">毎日学習は1日1DAYずつ自動で進みます。</div>';
     var card=document.createElement('div');card.className='asg-card';
     card.innerHTML=
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;flex-wrap:wrap;">'+pill+lapTxt+'<span style="font-weight:700;font-size:13px;">'+esc(a.material_title)+'</span></div>'
-      +'<div class="asg-row"><span>'+prog+'</span>'
-      +'<span>1日<span class="asg-step" onclick="bumpDaily('+"'"+esc(a.material_id)+"'"+',-1)">−</span><b id="dp-'+esc(a.material_id)+'">'+(a.daily_parts||1)+'</b><span class="asg-step" onclick="bumpDaily('+"'"+esc(a.material_id)+"'"+',1)">＋</span>パート</span>'
-      +startSel
-      +'<span class="asg-del" onclick="removeAssign('+"'"+esc(a.id)+"'"+')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> 解除</span></div>';
+      +progLine
+      +'<div class="asg-row">'+dailyCtrl+startSel
+      +'<span class="asg-del" onclick="removeAssign('+"'"+esc(a.id)+"'"+')">🗑 解除</span></div>'
+      +dailyNote;
     // テスト配信で全パート卒業なら「もう一周」
     if(isTest && (a.graduated_parts||0)>=a.total_parts && a.total_parts>0){
       var note=document.createElement('div');note.className='asg-note';
@@ -1559,26 +1627,43 @@ function renderAssignList(){
     box.appendChild(card);
   });
 }
+var _asgPicked=[];
 function renderAddOptions(){
-  var sel=$('asgAddSel');sel.innerHTML='<option value="">教材を選ぶ…</option>';
   var assigned={};_asgList.forEach(function(a){assigned[String(a.material_id)]=true;});
-  // ソート＋グループ見出し（毎日学習→テスト配信・各五十音順・川上さん承認 2026-07-05）
-  var _grp=null;
+  _asgPicked=_asgPicked.filter(function(mid){return !assigned[String(mid)] && _asgMaterials.some(function(m){return String(m.id)===String(mid);});});
+  var pickedSet={};_asgPicked.forEach(function(x){pickedSet[String(x)]=true;});
+  var box=$('asgAddOpts');box.innerHTML='';var _grp=null;
   sortMaterials_(_asgMaterials).forEach(function(m){
-    if(assigned[String(m.id)])return; // 既に割当済みは出さない
+    if(assigned[String(m.id)])return;
     var _t=(m.content_type==='test')?'テスト配信':'毎日学習';
-    if(_t!==(_grp&&_grp.label)){_grp=document.createElement('optgroup');_grp.label=_t;sel.appendChild(_grp);}
-    var opt=document.createElement('option');opt.value=m.id;opt.textContent=(m.title||'(無題)');
-    _grp.appendChild(opt);
+    if(!_grp||_grp.getAttribute('data-l')!==_t){_grp=document.createElement('div');_grp.className='asg-grp-h';_grp.setAttribute('data-l',_t);_grp.textContent=_t;box.appendChild(_grp);}
+    var op=document.createElement('span');op.className='asg-opt'+(pickedSet[String(m.id)]?' picked':'');op.textContent='＋ '+(m.title||'(無題)');
+    op.onclick=(function(mid){return function(){_asgPicked.push(String(mid));renderAddOptions();};})(m.id);
+    box.appendChild(op);
   });
+  renderPicked_();
 }
-function addAssign(){
-  var mid=$('asgAddSel').value;if(!mid){return;}
+function renderPicked_(){
+  var wrap=$('asgPickedWrap'),el=$('asgPicked'),bt=$('asgAddBtn');
+  if(!_asgPicked.length){wrap.style.display='none';bt.disabled=true;bt.textContent='教材を選んでください';return;}
+  wrap.style.display='';el.innerHTML='';
+  var titleOf=function(mid){var m=_asgMaterials.filter(function(x){return String(x.id)===String(mid);})[0];return m?(m.title||'(無題)'):mid;};
+  _asgPicked.forEach(function(mid,i){
+    var c=document.createElement('span');c.className='asg-pchip';
+    c.innerHTML='<span class="asg-pnum">'+(i+1)+'</span>'+esc(titleOf(mid))+' <span class="asg-px">✕</span>';
+    c.querySelector('.asg-px').onclick=(function(idx){return function(){_asgPicked.splice(idx,1);renderAddOptions();};})(i);
+    el.appendChild(c);
+  });
+  bt.disabled=false;bt.textContent='選んだ '+_asgPicked.length+' 教材を追加';
+}
+function addPicked(){
+  if(!_asgPicked.length)return;
   showLoading('割り当て中…');
-  call({action:'assignment_update',student_id:_asgSid,material_id:mid,daily_parts:1}).then(function(d){
+  call({action:'assignment_bulk',student_ids:[_asgSid],material_ids:_asgPicked.slice()}).then(function(d){
     hideLoading();
-    if(!d.ok){$('asgErr').textContent=d.error||'追加に失敗しました';return;}
-    toast('教材を追加しました');loadAssignList();loadDash_silent();
+    if(!d||!d.ok){$('asgErr').textContent=(d&&d.error)||'追加に失敗しました';return;}
+    var n=(d.data&&d.data.assigned!=null)?d.data.assigned:_asgPicked.length;
+    _asgPicked=[];toast(n+' 教材を追加しました');loadAssignList();loadDash_silent();
   });
 }
 function removeAssign(aid){
