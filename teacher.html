@@ -154,6 +154,15 @@
   .acc-hi{color:#1f9d57;}
   .acc-mid{color:#c98a12;}
   .acc-low{color:#d64545;}
+  .mchip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;margin:2px 3px 2px 0;border:1px solid transparent;white-space:nowrap;}
+  .mchip .mdot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .mchip .mhere{font-size:10px;font-weight:600;color:var(--text-muted);}
+  .m-hi{background:#e6f6ee;color:#14663a;border-color:#bfe6cf;}.m-hi .mdot{background:#1f9d57;}
+  .m-mid{background:#fdf3dd;color:#8a5e08;border-color:#f0dca6;}.m-mid .mdot{background:#c98a12;}
+  .m-low{background:#fdeaea;color:#9c2a2a;border-color:#f3c7c7;}.m-low .mdot{background:#d64545;}
+  .m-na{background:#eef1f5;color:#8a97a6;border-color:#e2e7ee;}.m-na .mdot{background:#c3cbd6;}
+  .reten{font-size:11px;color:var(--text-muted);}.reten b{color:var(--text);}.reten .weak{color:#d64545;font-weight:700;}
+  th.gcol,td.gcol{border-left:2px solid var(--border);}
   /* 印刷（指導が必要な子のまちがえた問題）2026-07-02 */
   #printArea{display:none;}
   @media print{
@@ -431,17 +440,13 @@
             <tr>
               <th data-sk="name" onclick="sortBy('name')">生徒 <span class="sort-ar" data-ar="name"></span></th>
               <th data-sk="grade" onclick="sortBy('grade')">学年 <span class="sort-ar" data-ar="grade"></span></th>
-              <th>割当教材</th>
-              <th>いまここ</th>
-              <th>1日<br>パート</th>
-              <th>今日</th>
+              <th>教材と進み<span class="tt"><span class="help-mark">?</span><span class="tt-body">割当教材ごとの状態（閲覧のみ）。色＝その教材の直近3回の平均正答率（緑80/黄60/赤=60%未満は要指導）。→いまここ。🔊＝英語の発音（○大半/△一部/–）。</span></span></th>
+              <th class="gcol">今日</th>
               <th data-sk="last" onclick="sortBy('last')">最終学習 <span class="sort-ar" data-ar="last"></span></th>
-              <th data-sk="practice_count" onclick="sortBy('practice_count')">練習<br>回数 <span class="sort-ar" data-ar="practice_count"></span></th>
-              <th data-sk="last_active_ms" onclick="sortBy('last_active_ms')">学習<br>時間<span class="sort-ar" data-ar="last_active_ms"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">直近の練習でかかった実解答時間（分:秒）。短すぎ＝パッと押しの目安。1問30秒で上限カット。</span></span></th>
-              <th data-sk="teach_rate" onclick="sortBy('teach_rate')">正答率<span class="sort-ar" data-ar="teach_rate"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">直近3回の平均正答率（教科・問題タイプ共通＝正解数/出題数）。緑＝80%以上／黄＝60〜79%／赤＝60%未満（要指導・まとめて印刷の対象）。練習がまだの子は未評価（–）。意味/日→英の内訳は生徒をクリックで確認。</span></span></th>
-              <th>発音<span class="tt"><span class="help-mark">?</span><span class="tt-body">英語で発音練習を「やっているか」の確認。○＝直近の練習でマイクに発音した／–＝していない・英語以外（参考値・合否には使いません）</span></span></th>
-              <th data-sk="mistake_active" onclick="sortBy('mistake_active')">間違い集<span class="sort-ar" data-ar="mistake_active"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">いま復習対象になっている語数（2回連続正解で卒業）</span></span></th>
-              <th>定着度<span class="tt"><span class="help-mark">?</span><span class="tt-body">この生徒の単語の記憶状態。緑=覚えた／黄=覚えかけ／青=学習中／赤=弱点（間違いノート）。未学習は未集計。</span></span></th>
+              <th data-sk="practice_count" onclick="sortBy('practice_count')">練習<br><small style="font-weight:400">累計</small> <span class="sort-ar" data-ar="practice_count"></span></th>
+              <th data-sk="mistake_active" onclick="sortBy('mistake_active')">間違い<br><small style="font-weight:400">累計</small><span class="sort-ar" data-ar="mistake_active"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">いま復習対象になっている語数（2回連続正解で卒業）</span></span></th>
+              <th>定着度<br><small style="font-weight:400">累計</small><span class="tt"><span class="help-mark">?</span><span class="tt-body">覚えた％＝box3到達の割合／弱点＝間違いノート中の語。詳細は生徒をクリック。</span></span></th>
+              <th>教材<br><small style="font-weight:400">指定</small></th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -846,6 +851,23 @@ function matPills(s){
   if(a.length>2)h+='<span class="mat-pill more" title="「教材」ボタンで全件見られます">+'+(a.length-2)+'</span>';
   return h;
 }
+function matViewCell(s){
+  var mv=s.materials_view||[];
+  if(!mv.length) return '<span class="dash">未割当</span>';
+  return mv.map(function(m){
+    var acc=m.acc; var cls=(acc===''||acc==null)?'m-na':(acc<_needHelpRate?'m-low':(acc<80?'m-mid':'m-hi'));
+    var pron=(m.subject==='english')?(' <span style="opacity:.75;font-size:10px;">🔊'+(m.pron==='o'?'○':(m.pron==='t'?'△':'–'))+'</span>'):'';
+    return '<span class="mchip '+cls+'"><span class="mdot"></span>'+esc(m.title)+' <span class="mhere">→'+esc(m.here||'-')+'</span> '+((acc===''||acc==null)?'未評価':acc+'%')+pron+'</span>';
+  }).join('');
+}
+function gearBtn(s){return '<button class="asg-btn" onclick="openAssign('+"'"+esc(String(s.student_id))+"'"+')">⚙ 教材</button>';}
+function retentionCell2(s){
+  var r=s.retention||{green:0,yellow:0,blue:0,red:0};
+  var tot=(r.green||0)+(r.yellow||0)+(r.blue||0)+(r.red||0);
+  if(tot===0) return '<span class="dash">–</span>';
+  var mastered=Math.round((r.green||0)/tot*100), weak=r.red||0;
+  return '<span class="reten">覚えた <b>'+mastered+'%</b>　<span class="weak">弱点 '+weak+'</span></span>';
+}
 function renderTable(){
   var search=($('searchInput').value||'').trim();
   var gsel=Object.keys(_gradeSel),csel=Object.keys(_classSel);
@@ -875,17 +897,13 @@ function renderTable(){
     tr.innerHTML=
       '<td><div class="t-name">'+esc(s.name||'(無名)')+modeBadge+'</div>'+(s.nickname?'<div class="t-nick">'+esc(s.nickname)+'</div>':'')+(s.login_id?'<div class="t-nick">ID:'+esc(s.login_id)+'</div>':'')+'</td>'
       +'<td class="t-sub">'+esc(s.grade||'')+'</td>'
-      +'<td>'+matPills(s)+' <button class="asg-btn" onclick="openAssign('+"'"+esc(String(s.student_id))+"'"+')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg> 教材</button></td>'
-      +'<td class="t-sub">'+partCellK(s)+'</td>'
-      +'<td>'+dailyCellK(s)+'</td>'
-      +'<td>'+todayBadge+'</td>'
+      +'<td>'+matViewCell(s)+'</td>'
+      +'<td class="gcol">'+todayBadge+'</td>'
       +'<td class="t-sub">'+lastStudiedCell(s)+'</td>'
       +'<td class="num">'+(s.practice_count||0)+'</td>'
-      +'<td class="num">'+timeCell(s.last_active_ms)+'</td>'
-      +'<td>'+teachCell(s)+'</td>'
-      +'<td>'+pronCell(s)+'</td>'
       +'<td>'+mistakeBadge+'</td>'
-      +'<td>'+retentionCell(s.retention)+'</td>';
+      +'<td>'+retentionCell2(s)+'</td>'
+      +'<td>'+gearBtn(s)+'</td>';
     tb.appendChild(tr);
   });
   renderAlertsK();
