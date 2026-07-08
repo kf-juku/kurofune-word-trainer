@@ -1071,7 +1071,7 @@ function flyToAvatar(btn,row,type){
 }
 $('btn-home').onclick=openHome;
 
-function startPractice(listId){show('scr-practice');$('step-label').innerHTML=kwtSpin(44)+'<div style="margin-top:6px">よみこみ中…</div>';combo=0;$('btn-retry').onclick=function(){if(session)startPractice(session.listId);};$('btn-retry').style.display='flex';$('btn-next').style.display='none';
+function startPractice(listId){show('scr-practice');$('step-label').innerHTML=kwtSpin(44)+'<div style="margin-top:6px">よみこみ中…</div>';combo=0;$('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromReview;startPractice(session.listId);}};$('btn-retry').style.display='flex';$('btn-next').style.display='none';
   var _pf=_prefetch[listId]; /* 先読みD：取得済みなら即開始・取得中なら続きを待つだけ（使ったら破棄）2026-07-05 */
   if(_pf){delete _prefetch[listId];
     Promise.resolve(_pf).then(function(d){
@@ -1082,7 +1082,7 @@ function startPractice(listId){show('scr-practice');$('step-label').innerHTML=kw
   call({action:'student_today',part_id:listId}).then(function(d){_startPracticeWith_(listId,d);});}
 function _startPracticeWith_(listId,d){if(!d.ok){toast(d.error||'読み込み失敗');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
-session={listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now()};renderStep();}
+session={listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now()};session.fromReview=_fromReviewTest;_fromReviewTest=false;renderStep();}
 function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';$('step-label').textContent=(s.idx+1)+' / '+totalSteps+'語目';
   if(w.qtype==='table_fill'){renderTF();return;} // 表穴埋め（問題タイプ拡張 2026-07-05）
   var _tl=(s.content_type==='test')?0:qSecFor(s.subject); // テスト配信は制限なし（川上さん確定2026-07-04）
@@ -1365,6 +1365,16 @@ function finishSession(){var s=session;$('prog').style.width='100%';show('scr-do
     else{$('done-rate').innerHTML='意味 <span id="done-mr">'+mr+'</span>％ ・ 日本語→英語 <span id="done-rr">'+rr+'</span>％';}
     if(!d.ok){$('done-result').textContent='結果の保存に失敗しました';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得。古い赤●/Day残りを防ぐ（案A・川上さん承認 2026-07-08）*/
     var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').textContent=d.data.lap+'周目';}else{dl.style.display='none';}}
+    if(s.fromReview){
+      /* テスト配信おさらい（卒業方式）の完了画面。機能仕様書_テスト配信 0章§5。2026-07-08 スライス3 */
+      $('btn-next').style.display='none';
+      if(d.data.review_graduated){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML='卒業！🎓 このパートは もう出てこないよ';sndWin();flash();confetti(140);}
+      else if(d.data.review_full){$('done-badge').innerHTML='<i class="ti ti-star" style="color:var(--gold)"></i>';$('done-result').innerHTML='今日は 100%！ でも卒業は、あした もう一度 100%を とれたら だよ';sndWin();flash();}
+      else{var _rem=termOnly?(s.total-s.reverseCorrect):((s.total-s.meaningCorrect)+(s.total-s.reverseCorrect));$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='あと <b>'+_rem+'</b>問で 100%！<br><span class="done-guide">今日は「もう一回やる」で練習できるよ。あした 100%で 卒業（もう出てこない）だよ</span>';}
+      animNum($('score-anim'),score,1000);
+      if(s.miss.length){$('done-miss').textContent='まちがえた単語：'+s.miss.length+'個（復習にまわしたよ）';}else{$('done-miss').textContent='';}
+      loadStar();return;
+    }
     if(d.data.is_test){
       // 2026-07-07 grill確定：テスト配信も毎日学習と同じ80%で前進（満点前進は廃止）。おさらいの100%卒業案内はスライス3で追加。正＝機能仕様書_テスト配信 0章。
       if(d.data.passed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').textContent='合格！あす つぎに進めるよ';sndWin();flash();confetti(120);
@@ -1378,7 +1388,7 @@ function finishSession(){var s=session;$('prog').style.width='100%';show('scr-do
     if(s.miss.length){$('done-miss').textContent='まちがえた単語：'+s.miss.length+'個（復習にまわしたよ）';}else{$('done-miss').textContent='';}
     loadStar();
   });}
-$('btn-retry').onclick=function(){if(session)startPractice(session.listId);};
+$('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromReview;startPractice(session.listId);}};
 
 /* ===== 間違いノート（自分専用の復習）2026-06-21 ===== */
 /* 1問につき 英→日4択＋日→英4択を出題。両方正解で review_complete(correct:true)、
@@ -1545,24 +1555,51 @@ function noteRetry(subject){
 /* メインで合格したリストの単語を、忘れたころに再出題。英→日＋日→英の両方正解で review_grade(correct:true)。
    box3で正解したら卒業。誤答候補は同じ復習セット内の他単語から作る。 */
 var srsSes=null;
+/* ===== テスト配信おさらい（卒業方式）スライス3 2026-07-08 ===== */
+/* 前進済み×未100%卒業パートを、本日の学習と同じ様式のカードでおさらい枠に出す。正＝機能仕様書_テスト配信 0章。 */
+var _fromReviewTest=false;
+function startReviewTest(partId){_fromReviewTest=true;startPractice(partId);}
+function buildReviewTestCard(m){
+  var h=document.createElement('div');h.className='hero';
+  var subj=m.subject?'<span class="hsubj">'+subjLabel(m.subject)+'</span>':'';
+  var lapPill=(m.lap>=2)?'<span class="hpill lap">'+m.lap+'周目</span>':'';
+  var partLine=esc(m.part_title||'');
+  if((m.times||1)>=2){partLine=(partLine?partLine+' <span class="rnd">・'+m.times+'回目</span>':'<span class="rnd">'+m.times+'回目</span>');}
+  h.innerHTML='<div class="ring"><svg width="60" height="60"><circle cx="30" cy="30" r="25" fill="none" stroke="var(--ring-track)" stroke-width="6"></circle><circle cx="30" cy="30" r="25" fill="none" stroke="var(--gold)" stroke-width="6" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157" class="ringfg"></circle></svg><div class="pct"><i class="ti ti-flag" style="font-size:18px;color:var(--gold)"></i></div></div>'
+    +'<div style="flex:1;min-width:0;"><div class="htop"><span class="hpill test">テスト配信</span><span class="hpill" style="background:rgba(212,160,23,.14);color:var(--gold)">おさらい</span>'+subj+lapPill+'</div>'
+    +'<div class="course">'+esc(m.material_title)+'</div>'
+    +(partLine?'<div class="list">'+partLine+'</div>':'')
+    +'<div class="cta">はじめる <i class="ti ti-arrow-right"></i></div></div>';
+  if(m.last_total>0){h.querySelector('.ringfg').style.strokeDashoffset=157*(1-Math.min(1,m.last_correct/m.last_total));}
+  if(m.graduated_today){h.classList.add('done');var c=h.querySelector('.cta');if(c)c.innerHTML='きょうはクリア！ <i class="ti ti-check"></i>';h.onclick=null;}
+  else{if(!m.studied_today){var rd=document.createElement('span');rd.className='reddot';h.appendChild(rd);}h.onclick=function(){startReviewTest(m.part_id);};}
+  return h;
+}
 function loadReviewSrs(){
   var area=$('review-srs-area');
   callCached({action:'review_due'},function(d){
     if(!d.ok){area.innerHTML='<p class="muted">—</p>';$('cnt-review').textContent='–';return;}
     var ws=d.data.words||[];
     var rtot=(d.data.due_total||ws.length);
-    $('cnt-review').innerHTML=rtot?('<b>'+rtot+'</b> 語'):'なし';
-    var dr=$('dot-review');if(dr)dr.style.display=rtot>0?'block':'none'; // 赤丸統一 2026-07-05
-    var trow=$('tile-review');if(trow)trow.classList.toggle('dim',rtot===0); // 0件は薄く（川上さん承認 2026-07-05）
-    dailyState.review=(rtot===0);renderDaily(); // デイリー：おさらい完了判定 2026-07-04
-    if(!ws.length){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub">合格した単語が、忘れたころにここへ出てくるよ</div></div></div>';return;}
-    var n=ws.length, total=d.data.due_total||n;
+    var trv=d.data.test_reviews||[]; // テスト配信おさらい（卒業方式・スライス3 2026-07-08）
+    var trvUndone=trv.filter(function(c){return !c.studied_today;}).length;
+    var lbl=[];if(rtot>0)lbl.push('<b>'+rtot+'</b> 語');if(trvUndone>0)lbl.push('<b>'+trvUndone+'</b> パート');
+    $('cnt-review').innerHTML=lbl.length?lbl.join(' + '):'なし';
+    var anyReview=(rtot>0)||(trvUndone>0);
+    var dr=$('dot-review');if(dr)dr.style.display=anyReview?'block':'none';
+    var trow=$('tile-review');if(trow)trow.classList.toggle('dim',!anyReview);
+    dailyState.review=!anyReview;renderDaily(); // おさらい完了＝自動反復due0 かつ テスト配信おさらい今日ぶん完了（0章§6）
     area.innerHTML='';
-    var card=document.createElement('div');card.className='note-card';
-    var more=(total>n)?('　ほか'+(total-n)+'語は明日'):'';
-    card.innerHTML='<div class="note-ic"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おさらい</div><div class="sub">わすれない うちに もう一回'+more+'</div></div><div class="cnt">'+n+'<small> 語</small></div>';
-    card.onclick=function(){startReviewSrs(ws);};
-    area.appendChild(card);
+    if(ws.length){
+      var n=ws.length, total=d.data.due_total||n;
+      var card=document.createElement('div');card.className='note-card';
+      var more=(total>n)?('　ほか'+(total-n)+'語は明日'):'';
+      card.innerHTML='<div class="note-ic"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おさらい</div><div class="sub">わすれない うちに もう一回'+more+'</div></div><div class="cnt">'+n+'<small> 語</small></div>';
+      card.onclick=function(){startReviewSrs(ws);};
+      area.appendChild(card);
+    }
+    trv.forEach(function(m){area.appendChild(buildReviewTestCard(m));}); // 本日の学習と同じ様式・自動反復の後に並べる
+    if(!ws.length&&!trv.length){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub">合格した単語やテストが、ここに出てくるよ</div></div></div>';}
   });
 }
 function startReviewSrs(words){
