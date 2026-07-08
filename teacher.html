@@ -154,7 +154,7 @@
   .acc-hi{color:#1f9d57;}
   .acc-mid{color:#c98a12;}
   .acc-low{color:#d64545;}
-  .mchip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;margin:2px 3px 2px 0;border:1px solid transparent;white-space:nowrap;}
+  .mchip{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;margin:2px 4px 2px 0;border:1px solid transparent;white-space:nowrap;vertical-align:top;}
   .mchip .mdot{width:8px;height:8px;border-radius:50%;flex:none;}
   .mchip .mhere{font-size:10px;font-weight:600;color:var(--text-muted);}
   .m-hi{background:#e6f6ee;color:#14663a;border-color:#bfe6cf;}.m-hi .mdot{background:#1f9d57;}
@@ -163,6 +163,19 @@
   .m-na{background:#eef1f5;color:#8a97a6;border-color:#e2e7ee;}.m-na .mdot{background:#c3cbd6;}
   .reten{font-size:11px;color:var(--text-muted);}.reten b{color:var(--text);}.reten .weak{color:#d64545;font-weight:700;}
   th.gcol,td.gcol{border-left:2px solid var(--border);}
+  .mchip .mtop{display:inline-flex;align-items:center;gap:5px;}
+  .mchip .mbot{font-size:10px;font-weight:600;color:var(--text-muted);}
+  .sdm-list{display:flex;flex-direction:column;gap:6px;margin:6px 0;}
+  .sdm-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;}
+  .sdm-t{flex:1;font-weight:700;font-size:12.5px;min-width:0;}
+  .sdm-here{font-size:11px;color:var(--text-muted);white-space:nowrap;}
+  .sdm-acc{font-weight:800;font-size:13px;}.acc-na{color:var(--text-light);}
+  .wgrp{margin:4px 0 10px;}.wgrp-h{font-size:12px;font-weight:800;color:var(--crimson);margin-bottom:4px;}
+  .wrongrow{display:flex;gap:8px;align-items:baseline;padding:3px 0;border-bottom:1px dashed var(--surface2);font-size:12.5px;}
+  .wrongrow b{min-width:120px;}
+  .sd-fold{margin-top:10px;border-top:1px solid var(--surface2);padding-top:8px;}
+  .sd-fold summary{font-size:12px;color:var(--text-muted);cursor:pointer;}
+  .pastrow{font-size:12px;padding:3px 0;color:var(--text);}
   /* 印刷（指導が必要な子のまちがえた問題）2026-07-02 */
   #printArea{display:none;}
   @media print{
@@ -857,7 +870,7 @@ function matViewCell(s){
   return mv.map(function(m){
     var acc=m.acc; var cls=(acc===''||acc==null)?'m-na':(acc<_needHelpRate?'m-low':(acc<80?'m-mid':'m-hi'));
     var pron=(m.subject==='english')?(' <span style="opacity:.75;font-size:10px;">🔊'+(m.pron==='o'?'○':(m.pron==='t'?'△':'–'))+'</span>'):'';
-    return '<span class="mchip '+cls+'"><span class="mdot"></span>'+esc(m.title)+' <span class="mhere">→'+esc(m.here||'-')+'</span> '+((acc===''||acc==null)?'未評価':acc+'%')+pron+'</span>';
+    return '<span class="mchip '+cls+'"><span class="mtop"><span class="mdot"></span>'+esc(m.title)+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+((acc===''||acc==null)?'未評価':acc+'%')+pron+'</span></span>';
   }).join('');
 }
 function gearBtn(s){return '<button class="asg-btn" onclick="openAssign('+"'"+esc(String(s.student_id))+"'"+')">⚙ 教材</button>';}
@@ -919,48 +932,42 @@ function openStudentDetail(sid){
   if(!s)return;
   var r=s.retention||{green:0,yellow:0,blue:0,red:0};
   var g=r.green||0,y=r.yellow||0,bl=r.blue||0,rd=r.red||0,tot=g+y+bl+rd;
-  var mr=(s.meaning_rate===''||s.meaning_rate==null)?'–':s.meaning_rate;
-  var rr=(s.reverse_rate===''||s.reverse_rate==null)?'–':s.reverse_rate;
-  var tr2=hasTeach(s)?(s.teach_rate+'%'):'–';
   var chips=[s.grade,s.school,s.class_name].filter(Boolean).map(function(x){return '<span class="sd-chip">'+esc(x)+'</span>';}).join('');
-  if(s.material)chips+='<span class="sd-chip" style="background:var(--crimson-light);color:var(--crimson);border-color:var(--crimson-mid);font-weight:700;">'+esc(s.material)+'</span>';
+  var needBadge=needsHelp(s)?'<span class="badge b-red" style="margin-left:8px;">要指導</span>':'';
+  var mv=s.materials_view||[];
+  var matHtml=mv.length?mv.map(function(m){
+    var acc=m.acc; var cls=(acc===''||acc==null)?'acc-na':(acc<_needHelpRate?'acc-low':(acc<80?'acc-mid':'acc-hi'));
+    var pron=(m.subject==='english')?('　🔊'+(m.pron==='o'?'○':(m.pron==='t'?'△':'–'))):'';
+    return '<div class="sdm-row"><div class="sdm-t">'+esc(m.title)+'</div><div class="sdm-here">→'+esc(m.here||'-')+'</div><div class="sdm-acc '+cls+'">'+((acc===''||acc==null)?'未評価':acc+'%')+'</div><div class="sdm-here">'+pron+'</div></div>';
+  }).join(''):'<div style="font-size:12px;color:var(--text-light);">いま割り当てている教材はありません</div>';
   var bar;
-  if(tot>0){bar='<div class="sd-bar">'
-    +(g?'<div style="flex:'+g+';background:#1faa6b;"></div>':'')
-    +(y?'<div style="flex:'+y+';background:#e6b800;"></div>':'')
-    +(bl?'<div style="flex:'+bl+';background:#4d8fd6;"></div>':'')
-    +(rd?'<div style="flex:'+rd+';background:var(--crimson);"></div>':'')
-    +'</div><div style="display:flex;gap:12px;margin-top:5px;font-size:11px;color:var(--text-muted);flex-wrap:wrap;"><span><span style="color:#1faa6b;">■</span> 覚えた '+g+'</span><span><span style="color:#e6b800;">■</span> 覚えかけ '+y+'</span><span><span style="color:#4d8fd6;">■</span> 学習中 '+bl+'</span><span><span style="color:var(--crimson);">■</span> 弱点 '+rd+'</span></div>';
-  }else{bar='<div style="font-size:12px;color:var(--text-light);">まだ定着度データがありません</div>';}
+  if(tot>0){bar='<div class="sd-bar">'+(g?'<div style="flex:'+g+';background:#1faa6b;"></div>':'')+(y?'<div style="flex:'+y+';background:#e6b800;"></div>':'')+(bl?'<div style="flex:'+bl+';background:#4d8fd6;"></div>':'')+(rd?'<div style="flex:'+rd+';background:var(--crimson);"></div>':'')+'</div><div style="display:flex;gap:12px;margin-top:5px;font-size:11px;color:var(--text-muted);flex-wrap:wrap;"><span><span style="color:#1faa6b;">■</span> 覚えた '+g+'</span><span><span style="color:#e6b800;">■</span> 覚えかけ '+y+'</span><span><span style="color:#4d8fd6;">■</span> 学習中 '+bl+'</span><span><span style="color:var(--crimson);">■</span> 弱点 '+rd+'</span></div>';}
+  else{bar='<div style="font-size:12px;color:var(--text-light);">まだ定着度データがありません</div>';}
+  var pm=s.past_materials||[];
+  var pastHtml=pm.length?('<details class="sd-fold"><summary>過去にやった教材（'+pm.length+'）</summary><div style="margin-top:6px;">'+pm.map(function(x){return '<div class="pastrow">'+esc(x.title)+' <span class="t-sub">最終 '+esc(x.last||'')+'</span></div>';}).join('')+'</div></details>'):'';
   $('sdBody').innerHTML=''
-    +'<div class="sd-head"><div><div class="sd-name">'+esc(s.name||'(無名)')+(s.nickname?' <span style="font-size:12px;font-weight:600;color:var(--text-light);">'+esc(s.nickname)+'</span>':'')+'</div><div class="sd-chips">'+chips+'</div></div><span style="flex:1;"></span><button id="sdClose1" class="btn-ghost" style="border:none;font-size:18px;padding:2px 9px;">×</button></div>'
-    +'<div class="sd-cards">'
-      +'<div class="sd-card"><div class="l">学習時間</div><div class="v">'+fmtMs_(s.last_active_ms)+'</div></div>'
-      +'<div class="sd-card"><div class="l">意味/日英</div><div class="v">'+mr+'/'+rr+'<span style="font-size:11px;font-weight:600;">%</span></div></div>'
-      +'<div class="sd-card"><div class="l">正答率(3平均)</div><div class="v">'+tr2+'</div></div>'
-      +'<div class="sd-card"><div class="l">練習回数</div><div class="v">'+(s.practice_count||0)+'</div></div>'
-      +'<div class="sd-card"><div class="l">間違い集</div><div class="v">'+(s.mistake_active||0)+'<span style="font-size:11px;font-weight:600;">語</span></div></div>'
-    +'</div>'
+    +'<div class="sd-head"><div><div class="sd-name">'+esc(s.name||'(無名)')+(s.nickname?' <span style="font-size:12px;font-weight:600;color:var(--text-light);">'+esc(s.nickname)+'</span>':'')+needBadge+'</div><div class="sd-chips">'+chips+'</div></div><span style="flex:1;"></span><button id="sdClose1" class="btn-ghost" style="border:none;font-size:18px;padding:2px 9px;">×</button></div>'
+    +'<div class="sd-sec">教材ごとの状態（いまの割当）</div><div class="sdm-list">'+matHtml+'</div>'
+    +'<div class="sd-sec">いま間違えている単語（＝対策の対象）</div><div id="sdWrong"><div style="font-size:12px;color:var(--text-light);">読み込み中…</div></div>'
     +'<div class="sd-sec">定着度'+(tot>0?'（'+tot+'語）':'')+'</div>'+bar
-    +'<div class="sd-sec">直近の学習（新しい順）</div><div id="sdHist"><div style="font-size:12px;color:var(--text-light);">読み込み中…</div></div>'
-    +'<div style="display:flex;gap:8px;margin-top:14px;align-items:center;"><button id="sdPrint" class="btn-ghost">まちがいを印刷</button><span style="flex:1;"></span><button id="sdClose2" class="btn-primary" style="width:auto;">閉じる</button></div>';
+    +pastHtml
+    +'<div style="display:flex;gap:8px;margin-top:14px;align-items:center;"><button id="sdPrint" class="btn-primary" style="width:auto;">この子のまちがいを印刷</button><span style="flex:1;"></span><button id="sdClose2" class="btn-ghost">閉じる</button></div>';
   $('sdClose1').onclick=function(){closeModal('studentModal');};
   $('sdClose2').onclick=function(){closeModal('studentModal');};
   $('sdPrint').onclick=function(){printOne(sid);};
   $('studentModal').classList.add('show');
-  call({action:'student_sessions',student_id:sid,limit:10}).then(function(d){
-    var el=$('sdHist');if(!el)return;
-    if(!d||!d.ok){el.innerHTML='<div style="font-size:12px;color:var(--crimson);">履歴の取得に失敗しました</div>';return;}
-    var ss=(d.data&&d.data.sessions)||[];
-    if(!ss.length){el.innerHTML='<div style="font-size:12px;color:var(--text-light);">まだ学習履歴がありません</div>';return;}
-    var body=ss.map(function(x){
-      var rate=(x.meaning_rate===''&&x.reverse_rate==='')?'–':((x.meaning_rate===''?'–':x.meaning_rate)+'/'+(x.reverse_rate===''?'–':x.reverse_rate)+'%');
-      var d2=String(x.date||'');var md=d2.length>=10?(parseInt(d2.slice(5,7),10)+'/'+parseInt(d2.slice(8,10),10)):d2;
-      var mp=esc((x.material||'')+(x.part?'・'+x.part:''))+(x.is_plus_alpha?' <span style="color:var(--text-light);font-size:10px;">+α</span>':'');
-      var rush=(x.rush_wrong_count>=1)?'<span style="color:var(--crimson);font-weight:700;">'+x.rush_wrong_count+'</span>':'<span style="color:var(--text-light);">0</span>';
-      return '<tr><td>'+md+'</td><td>'+mp+'</td><td style="text-align:center;">'+rate+'</td><td style="text-align:center;">'+fmtMs_(x.active_ms)+'</td><td style="text-align:center;">'+rush+'</td></tr>';
+  call({action:'teacher_mistakes',student_ids:sid,mode:'active',limit:60}).then(function(d){
+    var el=$('sdWrong');if(!el)return;
+    if(!d||!d.ok){el.innerHTML='<div style="font-size:12px;color:var(--crimson);">取得に失敗しました</div>';return;}
+    var stu=((d.data&&d.data.students)||[])[0]||{items:[]};
+    var items=stu.items||[];
+    if(!items.length){el.innerHTML='<div style="font-size:12px;color:var(--text-light);">いま間違えている単語はありません（弱点なし）</div>';return;}
+    var subjLabel={english:'英語',science:'理科',social:'社会',math:'数学',japanese:'国語'};
+    var groups={},order=[];items.forEach(function(it){var k=it.subject||'その他';if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(it);});
+    el.innerHTML=order.map(function(k){
+      var rows=groups[k].map(function(it){return '<div class="wrongrow"><b>'+esc(it.english||'')+'</b><span class="t-sub">'+esc(it.japanese||'')+'</span></div>';}).join('');
+      return '<div class="wgrp"><div class="wgrp-h">'+(subjLabel[k]||k)+' <span class="t-sub">'+groups[k].length+'語</span></div>'+rows+'</div>';
     }).join('');
-    el.innerHTML='<table class="sd-tbl"><thead><tr><th>日付</th><th>教材・パート</th><th style="text-align:center;">正答率</th><th style="text-align:center;">学習時間</th><th style="text-align:center;">パッと押し</th></tr></thead><tbody>'+body+'</tbody></table>';
   });
 }
 /* 発音セル：直近セッションの「成功/試行」。試行0は「–」。2026-06-22
