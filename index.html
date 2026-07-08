@@ -110,6 +110,12 @@
   .done-fold.open .df-arw{transform:rotate(180deg);}
   .fold-area{display:none;}
   .fold-area.open{display:block;}
+  /* 学習マップ アコーディオン（川上さん確定 2026-07-08：2教材以上でも各教材カードが上に並ぶ・既定は全畳み） */
+  .macc .ov-card{cursor:pointer;margin-bottom:10px;}
+  .macc .ov-card .acc-arw{transition:transform .2s;color:var(--sub);font-size:18px;margin-left:6px;vertical-align:-3px;}
+  .macc .ov-card.open .acc-arw{transform:rotate(180deg);}
+  .macc-detail{display:none;margin-bottom:14px;}
+  .macc-detail.open{display:block;}
   .redo-pill{border:1px solid var(--ok);color:var(--ok);font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:3px;flex:none;}
 
   /* ===== タイル型ホーム（2026-06-24）===== */
@@ -786,8 +792,9 @@ function openHome(){
     var cs=d.data.materials||[];
     if(!cs.length){$('review-area').innerHTML='<p class="muted">まだ教材がありません。</p>';return;}
     $('review-area').innerHTML='';
-    // 学習マップ（川上さん承認モック 2026-07-05）：全体像カード＋クリアずみは1行にたたむ＋「もう一回」バッジ
-    var hintDone=false;
+    // 学習マップ アコーディオン（A案・既定全畳み・川上さん確定 2026-07-08：2教材以上でも各教材カードが上に並び、2つ目が埋もれない）
+    var hint=document.createElement('p');hint.className='map-hint';hint.innerHTML='<i class="ti ti-refresh"></i> 教材をタップすると その中のDAYがひらくよ';$('review-area').appendChild(hint);
+    var macc=document.createElement('div');macc.className='macc';$('review-area').appendChild(macc);
     cs.forEach(function(c){
       var isTest=(c.content_type==='test');
       var parts=c.parts||[];
@@ -795,7 +802,7 @@ function openHome(){
       var passedN=parts.filter(function(l){return l.passed;}).length;
       var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
       var curLbl=curPart?(isTest?esc(curPart.l.title):('DAY '+(curPart.l.part_order||curPart.idx+1))):''; // 表記はDAY（川上さん確定 2026-07-03）
-      // 全体像カード：教材名・DAY◯/全◯・緑メーター・マップ（緑=クリア・青=いまここ）
+      // 全体像カード＝アコーディオンのヘッダー（タップで開閉）。右端に開閉シェブロン。
       var ov=document.createElement('div');ov.className='ov-card';
       var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'周目</span>':'');
       var right=curPart?(curLbl+' <small>/ 全'+total+'</small>'):('クリア '+passedN+' <small>/ 全'+total+'</small>');
@@ -803,12 +810,11 @@ function openHome(){
       var map='<div class="dotmap">';
       parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
       map+='</div>';
-      ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(c.material_title)+lapPill+'</div><div class="ov-now num">'+right+'</div></div>'
+      ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(c.material_title)+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
         +'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>'+map
         +'<div class="ov-sub"><span class="dm-s done"></span>クリアずみ <b>'+passedN+'</b>　'+(curPart?'<span class="dm-s cur"></span>いまここ <b>'+curLbl+'</b>　':'')+'のこり <b>'+(total-passedN)+'</b></div>';
-      $('review-area').appendChild(ov);
-      if(!hintDone){hintDone=true;var hint=document.createElement('p');hint.className='map-hint';hint.innerHTML='<i class="ti ti-refresh"></i> クリアずみのDAYは 何回でも復習できるよ';$('review-area').appendChild(hint);}
-      // クリアずみ（いまここ以外の合格済み）を1行にたたむ（既定は閉じる）
+      // 詳細（DAY行）＝既定は畳む。カードをタップで開閉。
+      var detail=document.createElement('div');detail.className='macc-detail';
       var cleared=parts.filter(function(l){return l.passed&&!l.is_current;});
       var rest=parts.filter(function(l){return !(l.passed&&!l.is_current);});
       if(cleared.length){
@@ -818,10 +824,12 @@ function openHome(){
         fold.innerHTML='<div class="df-ic"><i class="ti ti-check"></i></div><div class="df-t">'+lbl+'</div><i class="ti ti-chevron-down df-arw"></i>';
         var farea=document.createElement('div');farea.className='fold-area';
         cleared.forEach(function(l){farea.appendChild(buildMapRow(l,isTest,true));});
-        fold.onclick=function(){fold.classList.toggle('open');farea.classList.toggle('open');};
-        $('review-area').appendChild(fold);$('review-area').appendChild(farea);
+        fold.onclick=function(e){e.stopPropagation();fold.classList.toggle('open');farea.classList.toggle('open');};
+        detail.appendChild(fold);detail.appendChild(farea);
       }
-      rest.forEach(function(l){$('review-area').appendChild(buildMapRow(l,isTest,false));});
+      rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false));});
+      ov.onclick=function(){ov.classList.toggle('open');detail.classList.toggle('open');};
+      macc.appendChild(ov);macc.appendChild(detail);
     });
   });
   // 間違いノート：教科ごとにカードを出す（理社対応・機能仕様書_テスト配信 §3-5・2026-07-04）。0件の教科はカードを出さない。
