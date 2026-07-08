@@ -88,6 +88,8 @@
   .sd-card .l{font-size:10.5px;color:var(--text-muted);}
   .sd-card .v{font-size:19px;font-weight:800;}
   .sd-sec{font-size:11px;font-weight:800;color:var(--text-muted);margin:14px 0 5px;}
+  .sd-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start;margin-top:4px;}
+  @media(max-width:780px){.sd-grid{grid-template-columns:1fr;gap:6px;}}
   .sd-bar{display:flex;height:16px;border-radius:6px;overflow:hidden;}
   .sd-tbl{width:100%;border-collapse:collapse;font-size:12px;}
   .sd-tbl th{padding:5px 6px;font-weight:700;color:var(--text-light);font-size:10.5px;text-align:left;}
@@ -629,7 +631,7 @@
 
 <!-- 生徒 個人詳細モーダル（item5・2026-07-07） -->
 <div class="modal-back" id="studentModal">
-  <div class="modal" style="max-width:600px;max-height:82vh;overflow-y:auto;">
+  <div class="modal" style="max-width:920px;max-height:86vh;overflow-y:auto;">
     <div id="sdBody"></div>
   </div>
 </div>
@@ -947,10 +949,16 @@ function openStudentDetail(sid){
   var pastHtml=pm.length?('<details class="sd-fold"><summary>過去にやった教材（'+pm.length+'）</summary><div style="margin-top:6px;">'+pm.map(function(x){return '<div class="pastrow">'+esc(x.title)+' <span class="t-sub">最終 '+esc(x.last||'')+'</span></div>';}).join('')+'</div></details>'):'';
   $('sdBody').innerHTML=''
     +'<div class="sd-head"><div><div class="sd-name">'+esc(s.name||'(無名)')+(s.nickname?' <span style="font-size:12px;font-weight:600;color:var(--text-light);">'+esc(s.nickname)+'</span>':'')+needBadge+'</div><div class="sd-chips">'+chips+'</div></div><span style="flex:1;"></span><button id="sdClose1" class="btn-ghost" style="border:none;font-size:18px;padding:2px 9px;">×</button></div>'
-    +'<div class="sd-sec">教材ごとの状態（いまの割当）</div><div class="sdm-list">'+matHtml+'</div>'
-    +'<div class="sd-sec">いま間違えている単語（＝対策の対象）</div><div id="sdWrong"><div style="font-size:12px;color:var(--text-light);">読み込み中…</div></div>'
-    +'<div class="sd-sec">定着度'+(tot>0?'（'+tot+'語）':'')+'</div>'+bar
-    +pastHtml
+    +'<div class="sd-grid">'
+      +'<div>'
+        +'<div class="sd-sec">教材ごとの状態（いまの割当）</div><div class="sdm-list">'+matHtml+'</div>'
+        +'<div class="sd-sec">定着度（累計・全教材）'+(tot>0?' '+tot+'語':'')+'</div>'+bar
+        +pastHtml
+      +'</div>'
+      +'<div>'
+        +'<div class="sd-sec">いま間違えている単語（＝対策の対象）</div><div id="sdWrong"><div style="font-size:12px;color:var(--text-light);">読み込み中…</div></div>'
+      +'</div>'
+    +'</div>'
     +'<div style="display:flex;gap:8px;margin-top:14px;align-items:center;"><button id="sdPrint" class="btn-primary" style="width:auto;">この子のまちがいを印刷</button><span style="flex:1;"></span><button id="sdClose2" class="btn-ghost">閉じる</button></div>';
   $('sdClose1').onclick=function(){closeModal('studentModal');};
   $('sdClose2').onclick=function(){closeModal('studentModal');};
