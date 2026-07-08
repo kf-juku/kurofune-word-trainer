@@ -372,6 +372,14 @@
   .listen-btn{display:flex;align-items:center;justify-content:center;gap:7px;margin:14px auto 0;padding:10px 18px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:14px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:transform .12s;}
   .listen-btn:active{transform:translateY(2px) scale(.99);}
   .listen-btn i{font-size:18px;}
+  /* 採点中のTips＋保存中ローダー（2026-07-09） */
+  .sw-load{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--sub);font-size:12px;font-weight:700;margin:2px 0 12px;}
+  .tip-card{display:flex;gap:11px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:left;}
+  .tip-emb{width:66px;flex:none;border-radius:12px;padding:8px 5px;text-align:center;border:1px solid var(--line);background:var(--bg);}
+  .tip-emb i{font-size:23px;display:block;}
+  .tip-emb b{font-size:10px;font-weight:700;display:block;margin-top:3px;color:var(--sub);}
+  .tip-txt{font-size:12.5px;line-height:1.6;color:var(--ink);}
+  .tip-txt b{color:var(--accent);}
   .pron-msg{font-weight:700;font-size:17px;text-align:center;line-height:1.5;min-height:26px;}
   .pron-msg.ok{color:var(--ok);}
   .pron-msg.miss{color:var(--gold);}
@@ -1444,6 +1452,26 @@ function stopQTimer(){if(_qtId){clearInterval(_qtId);_qtId=null;}}
 function hideQTimer(){stopQTimer();var w=$('qtimer');if(w)w.style.display='none';}
 /* 教科別の制限秒数（英語10・その他15。後で調整可）2026-07-04 */
 var QSEC={english:10};function qSecFor(subj){return QSEC[subj]||15;}
+/* ===== 採点中のTips（勉強法＋機能紹介・ランダム1つ）2026-07-09 川上さん承認。文＋エンブレム(任意)で拡張可 ===== */
+var TIPS=[
+ {t:'暗記は「覚える」より「思い出す」ほうが力になる。答えを見る前に、まず思い出してみよう。'},
+ {t:'一回で完ぺきにしなくていい。日をあけて「まだ覚えてる?」と試すほど、記憶に残る。'},
+ {t:'見ながら「できた」は本番では出せない。何も見ずにできるかで確かめよう。'},
+ {t:'まちがえた単語ほど、あとでもう一回やると効く。まちがいは伸びしろ。'},
+ {t:'短くても毎日つづけるほうが、たまに長くやるより覚えやすい。'},
+ {e:'star',t:'<b>【流れ星】</b>は、今日きみと同じようにがんばった仲間。タップで応援を送ってみよう。'},
+ {e:'review',t:'<b>【おさらい】</b>は、忘れたころにもう一度出てくるしくみ。ここで思い出せると、しっかり定着する。'},
+ {e:'note',t:'<b>【間違いノート】</b>は、きみがまちがえた単語だけを集めた自分専用の復習。ここをつぶすと点が伸びる。'},
+ {e:'daily',t:'今日のぶんが終わっても、その先に進んでOK。<b>【毎日学習】</b>はやる気があるだけ先に行ける。'}
+];
+function tipEmblem_(e){
+  if(e==='star')return '<div class="tip-emb" style="background:rgba(202,162,74,.16);border-color:rgba(202,162,74,.35)"><i class="ti ti-star" style="color:var(--gold)"></i><b style="color:var(--gold)">流れ星</b></div>';
+  if(e==='review')return '<div class="tip-emb" style="background:rgba(31,170,107,.12);border-color:rgba(31,170,107,.3)"><i class="ti ti-clock-bolt" style="color:var(--ok)"></i><b style="color:var(--ok)">おさらい</b></div>';
+  if(e==='note')return '<div class="tip-emb"><i class="ti ti-notebook" style="color:var(--accent)"></i><b>間違いノート</b></div>';
+  if(e==='daily')return '<div class="tip-emb" style="background:var(--accent-soft);border-color:rgba(10,108,255,.2)"><i class="ti ti-anchor" style="color:var(--accent)"></i><b style="color:var(--accent)">毎日学習</b></div>';
+  return '<div class="tip-emb" style="background:rgba(202,162,74,.14);border-color:rgba(202,162,74,.3)"><i class="ti ti-bulb" style="color:var(--gold)"></i><b style="color:var(--gold)">コツ</b></div>';
+}
+function tipHtml_(){var tp=TIPS[Math.floor(Math.random()*TIPS.length)];return '<div class="tip-card">'+tipEmblem_(tp.e)+'<div class="tip-txt">'+tp.t+'</div></div>';}
 function finishSession(){var s=session;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';
   _starPre=call({action:'shooting_star'}).catch(function(){return {ok:false};}); // 流れ星を採点と並行取得（体感改善 2026-07-08）
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
@@ -1452,13 +1480,14 @@ function finishSession(){var s=session;$('prog').style.width='100%';show('scr-do
   if(termOnly){$('done-rate').innerHTML=(s.tfOnly?'正答':'用語')+' <b>'+rr+'</b>％';}
   else{$('done-rate').innerHTML='意味 <span id="done-mr">'+mr+'</span>％ ・ 日本語→英語 <span id="done-rr">'+rr+'</span>％';}
   animNum($('score-anim'),score,900); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）
-  $('done-result').innerHTML='<span class="done-guide"><i class="ti ti-device-floppy"></i> 記録を保存中…</span>';$('done-badge').innerHTML=kwtSpin(72);$('done-miss').textContent='';
+  $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
+  $('star-area').innerHTML='<div class="sw-load">'+kwtSpin(24)+'<span>保存中…</span></div>'+tipHtml_();
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
   $('btn-retry').style.display='flex';$('btn-next').style.display='none';lockBtns(true);
   var _saveGuard=setTimeout(function(){lockBtns(false);},12000); // 保存が返らなくてもボタンは戻す（詰み防止）
   call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:(Date.now()-(s.startedMs||Date.now())),rush_wrong_count:Object.keys(s._rushWords||{}).length}).then(function(d){
-    clearTimeout(_saveGuard);lockBtns(false);
-    if(!d.ok){$('done-result').textContent='結果の保存に失敗しました。もう一回ためしてね';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
+    clearTimeout(_saveGuard);lockBtns(false);var _db2=$('done-badge');if(_db2)_db2.style.display='';
+    if(!d.ok){$('star-area').innerHTML='';$('done-result').textContent='結果の保存に失敗しました。もう一回ためしてね';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
     var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').textContent=d.data.lap+'周目';}else{dl.style.display='none';}}
     if(s.fromReview){
       /* テスト配信おさらい（卒業方式）の完了画面。機能仕様書_テスト配信 0章§5。2026-07-08 スライス3 */
