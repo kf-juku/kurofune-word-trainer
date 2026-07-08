@@ -719,8 +719,7 @@ $('btn-login').onclick=function(){
   $('login-err').textContent='';
   if(!id||!pass){$('login-err').textContent='IDとパスワードを入れてください';return;}
   this.disabled=true;this.textContent='確認中…';
-  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'teacher_login',login_id:id,password:pass})})
-    .then(function(r){return r.json();})
+  call({action:'teacher_login',login_id:id,password:pass})
     .then(function(d){
       $('btn-login').disabled=false;$('btn-login').textContent='ログイン';
       if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}
