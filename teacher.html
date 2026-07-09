@@ -600,6 +600,19 @@
     <!-- ===== 教材ごとビュー 2026-07-09 ===== -->
     <div id="view-mat" style="display:none;">
       <div style="background:#fff;border-radius:var(--radius);padding:8px 12px;margin-bottom:10px;box-shadow:var(--shadow-sm);font-size:12px;color:var(--text-muted);">教材ごとに「今 誰が持っているか」を見て、行をクリックすると名簿（追加・外す）を編集できます。外しても進捗・間違いノートは残ります。</div>
+      <details style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:10px;font-size:12px;color:var(--text-muted);">
+        <summary style="cursor:pointer;padding:8px 12px;font-weight:800;color:var(--text);">教材の並び・ラベルの仕組み（メモ）</summary>
+        <div style="padding:0 14px 12px;line-height:1.75;">
+          <b>並び順</b>：教科 → 学年 → 番号（この順で自動で並ぶ。追加した順は関係なし）<br>
+          <b>スプレッドシートの列と意味</b><br>
+          ・subject（教科）：english=英語／science=理科／social=社会<br>
+          ・grade（学年）：中1／中2／中3／全学年（空欄=学年未設定）<br>
+          ・display_order（番号）：教科×学年の中の並び順。1,2,3…＝単元順<br>
+          ・target（レベル）：beginner=基礎／junior_high=中学／entrance_exam=受験／eiken=英検／school_test=学校テスト<br>
+          ・content_type（形式）：daily=毎日学習／test=単元別対策<br>
+          <b>大事なルール</b>：番号（display_order）を変えても生徒の履歴は影響なし（教材はIDで管理）。改修は同じIDのまま中身を直す。足すのは新規、消して作り直さない。
+        </div>
+      </details>
       <div id="matList" style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;"></div>
     </div>
 
@@ -673,7 +686,7 @@
 <div class="modal-back" id="assignModal">
   <div class="modal">
     <h3 id="asgTitle">教材の割当</h3>
-    <div class="mhint">この生徒の教材を編集します。「いまここ」を変えると生徒画面の次のパートが変わります。テスト配信は「1日に出す数」で1日の量を決めます（毎日学習は1日1つずつ進みます）。</div>
+    <div class="mhint">この生徒の教材を編集します。「いまここ」を変えると生徒画面の次のパートが変わります。単元別対策は「1日に出す数」で1日の量を決めます（毎日学習は1日1つずつ進みます）。</div>
     <div class="err" id="asgErr"></div>
     <div id="asgList"></div>
     <div class="asg-addbox">
@@ -1268,7 +1281,7 @@ function renderMatTab(){
       var row=document.createElement('div');row.className='mgrow';row.onclick=(function(mid){return function(){openRosterMaterial(mid);};})(String(m.id));
       var _num=_ordNum(m.display_order);var _nb=(_num<99999)?('<span class="mgnum">'+_num+'</span>'):'';
       var _lv=_levelLabel(m.target);var _lb=_lv?('<span class="mglevel">'+_lv+'</span>'):'';
-      row.innerHTML='<span class="mgpill '+(isTest?'test':'daily')+'">'+(isTest?'テスト配信':'毎日学習')+'</span>'
+      row.innerHTML='<span class="mgpill '+(isTest?'test':'daily')+'">'+(isTest?'単元別対策':'毎日学習')+'</span>'
         +_nb
         +'<span class="mgtitle">'+esc(m.title||'(無題)')+'</span>'
         +_lb
@@ -1715,12 +1728,12 @@ function renderBulkMaterials(){
   var _lastType=null;
   sortMaterials_(bulkMaterials).forEach(function(m){
     // グループ見出し（毎日学習／テスト配信）2026-07-05
-    var _t=(m.content_type==='test')?'テスト配信':'毎日学習';
+    var _t=(m.content_type==='test')?'単元別対策':'毎日学習';
     if(_t!==_lastType){_lastType=_t;var hd=document.createElement('div');hd.style.cssText='font-size:11px;font-weight:800;color:var(--text-muted);margin:8px 2px 4px;';hd.textContent='── '+_t+' ──';box.appendChild(hd);}
     var isTest=(m.content_type==='test');
     var mid=String(m.id),on=!!bulkMat[mid];
     var row=document.createElement('div');row.className='bm-row';
-    row.innerHTML='<span class="bulk-cb'+(on?' on':'')+'">'+(on?'✓':'')+'</span><span class="bulk-pill '+(isTest?'test':'daily')+'">'+(isTest?'テスト配信':'毎日学習')+'</span><span style="font-weight:700;">'+esc(m.title||'(無題)')+'</span>';
+    row.innerHTML='<span class="bulk-cb'+(on?' on':'')+'">'+(on?'✓':'')+'</span><span class="bulk-pill '+(isTest?'test':'daily')+'">'+(isTest?'単元別対策':'毎日学習')+'</span><span style="font-weight:700;">'+esc(m.title||'(無題)')+'</span>';
     row.onclick=function(){if(bulkMat[mid])delete bulkMat[mid];else bulkMat[mid]=1;renderBulkMaterials();if(typeof tmUpdateFoot==='function')tmUpdateFoot();};
     box.appendChild(row);
   });
@@ -1775,7 +1788,7 @@ function renderAssignList(){
   box.innerHTML='';
   _asgList.forEach(function(a){
     var isTest=(a.content_type==='test');
-    var pill=isTest?'<span class="asg-pill test">テスト配信</span>':'<span class="asg-pill daily">毎日学習</span>';
+    var pill=isTest?'<span class="asg-pill test">単元別対策</span>':'<span class="asg-pill daily">毎日学習</span>';
     var lapTxt=(a.lap>=2)?' <span class="asg-pill" style="background:#ede9fe;color:#5b21b6;">'+a.lap+'周目</span>':'';
     // 進み表示
     var startSel='';
@@ -1817,7 +1830,7 @@ function renderAddOptions(){
   var box=$('asgAddOpts');box.innerHTML='';var _grp=null;
   sortMaterials_(_asgMaterials).forEach(function(m){
     if(assigned[String(m.id)])return;
-    var _t=(m.content_type==='test')?'テスト配信':'毎日学習';
+    var _t=(m.content_type==='test')?'単元別対策':'毎日学習';
     if(!_grp||_grp.getAttribute('data-l')!==_t){_grp=document.createElement('div');_grp.className='asg-grp-h';_grp.setAttribute('data-l',_t);_grp.textContent=_t;box.appendChild(_grp);}
     var op=document.createElement('span');op.className='asg-opt'+(pickedSet[String(m.id)]?' picked':'');op.textContent='＋ '+(m.title||'(無題)');
     op.onclick=(function(mid){return function(){_asgPicked.push(String(mid));renderAddOptions();};})(m.id);
