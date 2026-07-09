@@ -420,6 +420,11 @@
   .mchipname{display:inline-block;background:var(--surface2);border-radius:9px;padding:1px 7px;margin:1px 2px;font-size:11px;color:var(--text-muted);}
   .mchipname.more{background:#e8edf5;}
   .mgarrow{color:var(--text-light);font-size:16px;}
+  .mggroup{display:flex;align-items:center;gap:8px;padding:9px 13px 5px;background:var(--surface2);border-bottom:1px solid var(--surface2);}
+  .mgg-subj{font-size:12px;font-weight:800;color:var(--text);}
+  .mgg-grade{font-size:11px;font-weight:700;color:var(--text-muted);background:#fff;border-radius:8px;padding:1px 8px;}
+  .mgnum{font-size:11px;font-weight:800;color:var(--text-muted);min-width:20px;text-align:center;flex-shrink:0;}
+  .mglevel{font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;background:#eef2f7;color:#64748b;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -1237,23 +1242,36 @@ function _holdersMap(){
   });
   return h;
 }
+function _subjOrder(s){var o={english:1,science:2,social:3};return o[s]||9;}
+function _subjLabel(s){var o={english:'英語',science:'理科',social:'社会'};return o[s]||(s||'その他');}
+function _gradeOrder(g){var o={'中1':1,'中2':2,'中3':3,'全学年':8};return o[g]||9;}
+function _gradeLabel(g){return g||'学年未設定';}
+function _levelLabel(t){var o={beginner:'基礎',junior_high:'中学',entrance_exam:'受験',eiken:'英検',school_test:'学校テスト'};return o[t]||'';}
+function _ordNum(v){var n=parseInt(v,10);return isNaN(n)?99999:n;}
 function renderMatTab(){
   var box=$('matList'); if(!box)return;
   box.innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
   var draw=function(mats){
     var holders=_holdersMap();
     var arr=(mats||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');})
-      .sort(function(a,b){var ta=a.content_type==='test'?1:0,tb=b.content_type==='test'?1:0;if(ta!==tb)return ta-tb;return String(a.title||'').localeCompare(String(b.title||''),'ja');});
+      .sort(function(a,b){var sa=_subjOrder(a.subject),sb=_subjOrder(b.subject);if(sa!==sb)return sa-sb;var ga=_gradeOrder(a.grade),gb=_gradeOrder(b.grade);if(ga!==gb)return ga-gb;var na=_ordNum(a.display_order),nb=_ordNum(b.display_order);if(na!==nb)return na-nb;return String(a.title||'').localeCompare(String(b.title||''),'ja');});
     box.innerHTML='';
     if(!arr.length){box.innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">教材がありません</div>';return;}
+    var _curg=null;
     arr.forEach(function(m){
+      var _gk=(m.subject||'')+'|'+(m.grade||'');
+      if(_gk!==_curg){_curg=_gk;var _gh=document.createElement('div');_gh.className='mggroup';_gh.innerHTML='<span class="mgg-subj">'+esc(_subjLabel(m.subject))+'</span><span class="mgg-grade">'+esc(_gradeLabel(m.grade))+'</span>';box.appendChild(_gh);}
       var isTest=(m.content_type==='test');
       var hs=holders[String(m.id)]||[];
       var chips=hs.slice(0,8).map(function(s){return '<span class="mchipname">'+esc(s.name||s.nickname||'(無名)')+'</span>';}).join('')+(hs.length>8?'<span class="mchipname more">＋'+(hs.length-8)+'</span>':'');
       if(!hs.length)chips='<span style="color:var(--text-light);font-size:11px;">まだ誰も持っていません</span>';
       var row=document.createElement('div');row.className='mgrow';row.onclick=(function(mid){return function(){openRosterMaterial(mid);};})(String(m.id));
+      var _num=_ordNum(m.display_order);var _nb=(_num<99999)?('<span class="mgnum">'+_num+'</span>'):'';
+      var _lv=_levelLabel(m.target);var _lb=_lv?('<span class="mglevel">'+_lv+'</span>'):'';
       row.innerHTML='<span class="mgpill '+(isTest?'test':'daily')+'">'+(isTest?'テスト配信':'毎日学習')+'</span>'
+        +_nb
         +'<span class="mgtitle">'+esc(m.title||'(無題)')+'</span>'
+        +_lb
         +'<span class="mgcount">'+hs.length+'名</span>'
         +'<span class="mgmem">'+chips+'</span>'
         +'<span class="mgarrow">›</span>';
