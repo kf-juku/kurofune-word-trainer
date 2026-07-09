@@ -375,6 +375,48 @@
   .asg-sel{border:1px solid var(--border);border-radius:7px;padding:3px 7px;font-family:inherit;font-size:12.5px;background:#fff;}
   .asg-prog{font-size:12.5px;color:var(--text-muted);margin:2px 0 6px;}
   .asg-note2{font-size:11px;color:var(--text-light);margin-top:6px;}
+  /* ===== 共通 対象選択 Picker（2列・カテゴリ内OR/カテゴリ間AND・チェック・全員選択）2026-07-09 ===== */
+  .pk-qh2{font-size:11px;color:var(--text-muted);margin:2px 0 8px;line-height:1.6;}
+  .pk-two{display:flex;gap:12px;}
+  .pk-col{flex:1;min-width:0;}
+  .pk-coltitle{font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+  .pk-count{color:#1faa6b;font-weight:800;}
+  .pk-fgroup{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;}
+  .pk-flabel{flex:0 0 44px;font-size:11px;font-weight:800;color:var(--text-light);padding-top:5px;}
+  .pk-chips{display:flex;flex-wrap:wrap;gap:5px;}
+  .pk-chip{border:1.5px solid var(--border);background:#fff;border-radius:20px;padding:3px 11px;font-size:11.5px;cursor:pointer;font-family:inherit;font-weight:600;color:var(--text-muted);}
+  .pk-chip:hover{border-color:var(--crimson);color:var(--crimson);}
+  .pk-chip.on{background:var(--crimson);color:#fff;border-color:var(--crimson);font-weight:800;box-shadow:0 1px 3px rgba(198,0,11,.25);}
+  .pk-chip.warn{border-color:var(--amber);color:var(--amber-dark);background:var(--amber-light);}
+  .pk-chip.warn.on{background:var(--crimson);color:#fff;border-color:var(--crimson);}
+  #bulkModal.printmode .pk-chip.on{background:var(--blue-dark);border-color:var(--blue-dark);box-shadow:none;}
+  .pk-search2{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;margin:4px 0 7px;font-family:inherit;box-sizing:border-box;}
+  .pk-list{border:1px solid var(--border);border-radius:10px;max-height:260px;min-height:140px;overflow-y:auto;}
+  .pk-list.sel{border-color:#cfe8db;background:#f2faf6;}
+  .pk-selall{display:flex;align-items:center;gap:9px;padding:8px 11px;border-bottom:2px solid var(--surface2);font-size:12.5px;cursor:pointer;font-weight:700;color:var(--crimson-dark);background:#fff;position:sticky;top:0;z-index:1;}
+  .pk-row{display:flex;align-items:center;gap:9px;padding:7px 11px;border-bottom:1px solid var(--surface2);font-size:13px;cursor:pointer;}
+  .pk-row:last-child{border-bottom:none;}
+  .pk-row .pk-meta{margin-left:auto;font-size:10.5px;color:var(--text-light);}
+  .pk-row .pk-badge{margin-left:auto;font-size:10px;font-weight:700;color:#b8860b;background:#fbf3df;border-radius:10px;padding:1px 7px;}
+  .pk-cb{width:17px;height:17px;border-radius:5px;border:1.5px solid #cbd5e1;display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0;}
+  .pk-cb.on{background:var(--crimson);border-color:var(--crimson);}
+  .pk-cb.rm{background:#8aa0b5;border-color:#8aa0b5;}
+  .pk-x{margin-left:8px;color:var(--text-light);font-weight:800;cursor:pointer;}
+  .pk-empty{padding:18px;text-align:center;color:var(--text-light);font-size:12px;}
+  .pk-hint{font-size:10px;color:var(--text-light);margin-top:5px;}
+  /* 教材ごとタブ 2026-07-09 */
+  .mgrow{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--surface2);cursor:pointer;}
+  .mgrow:last-child{border-bottom:none;}
+  .mgrow:hover{background:var(--surface2);}
+  .mgpill{font-size:11px;font-weight:700;padding:2px 9px;border-radius:9px;flex-shrink:0;}
+  .mgpill.daily{background:var(--blue-light);color:var(--blue-dark);}
+  .mgpill.test{background:var(--amber-light);color:var(--amber-dark);}
+  .mgtitle{font-weight:800;min-width:130px;}
+  .mgcount{font-size:12px;color:var(--text-muted);font-weight:700;min-width:52px;}
+  .mgmem{font-size:11px;color:var(--text-light);flex:1;}
+  .mchipname{display:inline-block;background:var(--surface2);border-radius:9px;padding:1px 7px;margin:1px 2px;font-size:11px;color:var(--text-muted);}
+  .mchipname.more{background:#e8edf5;}
+  .mgarrow{color:var(--text-light);font-size:16px;}
 </style>
 </head>
 <body>
@@ -412,6 +454,7 @@
     <!-- タブ切替（生徒一覧／チーム編成）2026-06-21 -->
     <div class="tabs">
       <button class="tab active" id="tab-dash" onclick="switchTab('dash')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>生徒一覧</button>
+      <button class="tab" id="tab-mat" onclick="switchTab('mat')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>教材ごと</button>
       <button class="tab" id="tab-teams" onclick="switchTab('teams')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>チーム編成</button>
       <button class="tab" id="tab-settings" onclick="switchTab('settings')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>先生設定</button>
     </div>
@@ -546,6 +589,12 @@
       </div>
     </div><!-- /#view-settings -->
 
+    <!-- ===== 教材ごとビュー 2026-07-09 ===== -->
+    <div id="view-mat" style="display:none;">
+      <div style="background:#fff;border-radius:var(--radius);padding:8px 12px;margin-bottom:10px;box-shadow:var(--shadow-sm);font-size:12px;color:var(--text-muted);">教材ごとに「今 誰が持っているか」を見て、行をクリックすると名簿（追加・外す）を編集できます。外しても進捗・間違いノートは残ります。</div>
+      <div id="matList" style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;"></div>
+    </div>
+
     <!-- ===== チーム編成ビュー 2026-06-21 ===== -->
     <div id="view-teams" style="display:none;">
       <div class="team-toolbar">
@@ -589,22 +638,25 @@
     <input class="form-input" id="mmGrade" placeholder="例：中1">
     <label class="form-label" style="margin-top:6px;">メンバー（3〜5人が目安）</label>
     <div class="err" id="mmErr"></div>
-    <div class="mem-two">
-      <div class="mem-col">
-        <div class="mem-coltitle">候補から選ぶ</div>
-        <div class="mem-chips" id="memChips"></div>
-        <input class="tm-search" id="memSearch" placeholder="なまえで探す" style="margin-bottom:7px;" oninput="_memSearch=this.value;renderMemEditor();">
-        <div class="mem-list" id="memCand"></div>
-      </div>
-      <div class="mem-col">
-        <div class="mem-coltitle">このチーム <span class="mem-count" id="memCount">0人</span> <span style="color:var(--text-light);font-weight:600;">（3〜5人）</span></div>
-        <div class="mem-list mem-team" id="memTeam"></div>
-        <div style="font-size:10px;color:var(--text-light);margin-top:5px;">＋で追加・✕で外す。ほかのチームの子は確認のうえ移動します。</div>
-      </div>
-    </div>
+    <div id="memPicker"></div>
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal('memModal')">やめる</button>
       <button class="btn-primary" style="width:auto;" id="mmSave" onclick="saveMembers()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 教材ごと 名簿編集モーダル 2026-07-09 -->
+<div class="modal-back" id="rosterModal">
+  <div class="modal">
+    <h3 id="rmTitle">名簿を編集</h3>
+    <div class="mhint">この教材を「持っている子」が右にいます。左から追加、右の✕で外します（外しても進捗・間違いノートは残ります。もう一度割り当てれば続きから）。</div>
+    <div class="err" id="rmErr"></div>
+    <div id="rmBody"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('rosterModal')">やめる</button>
+      <span id="rmCount" style="font-size:12px;color:var(--text-muted);"></span>
+      <button class="btn-primary" style="width:auto;margin-left:auto;" id="rmSave" onclick="saveRoster()">保存する</button>
     </div>
   </div>
 </div>
@@ -634,7 +686,7 @@
 <!-- 教材の一括割当モーダル（クロフネLINE方式・2026-07-04） -->
 <div class="modal-back" id="bulkModal">
   <div class="modal">
-    <h3 id="tmTitle">まとめて割り当てる</h3>
+    <h3 id="bulkTitle">まとめて割り当てる</h3>
     <div class="tm-steps"><span class="tm-step on" id="tmSt1">1 だれに</span><span class="tm-step" id="tmSt2">2 なにを</span></div>
     <div class="err" id="bulkErr"></div>
     <div id="tmBody" style="overflow-y:auto;max-height:52vh;"></div>
@@ -889,7 +941,7 @@ function matViewCell(s){
   return mv.map(function(m){
     var acc=m.acc; var cls=(acc===''||acc==null)?'m-na':(acc<_needHelpRate?'m-low':(acc<80?'m-mid':'m-hi'));
     var pron=(m.subject==='english')?(' <span style="opacity:.75;font-size:10px;">🔊'+(m.pron==='o'?'○':(m.pron==='t'?'△':'–'))+'</span>'):'';
-    return '<span class="mchip '+cls+'"><span class="mtop"><span class="mdot"></span>'+esc(m.title)+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+((acc===''||acc==null)?'未評価':acc+'%')+pron+'</span></span>';
+    return '<span class="mchip '+cls+'" title="クリックで教材ごとの名簿へ" style="cursor:pointer;" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="mtop"><span class="mdot"></span>'+esc(m.title)+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+((acc===''||acc==null)?'未評価':acc+'%')+pron+'</span></span>';
   }).join('');
 }
 function gearBtn(s){return '<button class="asg-btn" onclick="openAssign('+"'"+esc(String(s.student_id))+"'"+')">⚙ 教材</button>';}
@@ -1160,14 +1212,90 @@ var _modalMode='create';// 'create' | 'edit'（チーム情報モーダル）
 
 function switchTab(t){
   document.getElementById('tab-dash').classList.toggle('active',t==='dash');
+  var tm=document.getElementById('tab-mat'); if(tm) tm.classList.toggle('active',t==='mat');
   document.getElementById('tab-teams').classList.toggle('active',t==='teams');
   var ts=document.getElementById('tab-settings'); if(ts) ts.classList.toggle('active',t==='settings');
   $('view-dash').style.display=(t==='dash')?'':'none';
+  var vm=$('view-mat'); if(vm) vm.style.display=(t==='mat')?'':'none';
   $('view-teams').style.display=(t==='teams')?'':'none';
   var vs=$('view-settings'); if(vs) vs.style.display=(t==='settings')?'':'none';
   if(t==='teams') loadTeams();
+  if(t==='mat') renderMatTab();
   if(t==='settings') renderCheerPanel(); // 設定タブを開いたら最新状態で描画（loadCheerConfigは起動時に実行済み）
 }
+
+/* ===== 教材ごとタブ（閲覧＋名簿編集）2026-07-09 ===== */
+function _holdersMap(){
+  var h={};
+  (_students||[]).forEach(function(s){
+    (s.materials_view||[]).forEach(function(m){
+      var mid=String(m.material_id); (h[mid]=h[mid]||[]).push(s);
+    });
+  });
+  return h;
+}
+function renderMatTab(){
+  var box=$('matList'); if(!box)return;
+  box.innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
+  var draw=function(mats){
+    var holders=_holdersMap();
+    var arr=(mats||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');})
+      .sort(function(a,b){var ta=a.content_type==='test'?1:0,tb=b.content_type==='test'?1:0;if(ta!==tb)return ta-tb;return String(a.title||'').localeCompare(String(b.title||''),'ja');});
+    box.innerHTML='';
+    if(!arr.length){box.innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">教材がありません</div>';return;}
+    arr.forEach(function(m){
+      var isTest=(m.content_type==='test');
+      var hs=holders[String(m.id)]||[];
+      var chips=hs.slice(0,8).map(function(s){return '<span class="mchipname">'+esc(s.name||s.nickname||'(無名)')+'</span>';}).join('')+(hs.length>8?'<span class="mchipname more">＋'+(hs.length-8)+'</span>':'');
+      if(!hs.length)chips='<span style="color:var(--text-light);font-size:11px;">まだ誰も持っていません</span>';
+      var row=document.createElement('div');row.className='mgrow';row.onclick=(function(mid){return function(){openRosterMaterial(mid);};})(String(m.id));
+      row.innerHTML='<span class="mgpill '+(isTest?'test':'daily')+'">'+(isTest?'テスト配信':'毎日学習')+'</span>'
+        +'<span class="mgtitle">'+esc(m.title||'(無題)')+'</span>'
+        +'<span class="mgcount">'+hs.length+'名</span>'
+        +'<span class="mgmem">'+chips+'</span>'
+        +'<span class="mgarrow">›</span>';
+      box.appendChild(row);
+    });
+  };
+  if(bulkMaterials&&bulkMaterials.length){draw(bulkMaterials);}
+  else{ call({action:'materials_list'}).then(function(d){ var mats=(d&&d.ok)?(d.data.materials||[]):[]; bulkMaterials=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}); draw(bulkMaterials); }); }
+}
+var _rosterMid=null,_rosterInit=[],_rosterSel={};
+function openRosterMaterial(mid){
+  _rosterMid=String(mid);
+  var m=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===_rosterMid)m=x;});
+  $('rmTitle').textContent=((m&&m.title)||'教材')+' の名簿';
+  $('rmErr').textContent='';
+  var init={};
+  (_students||[]).forEach(function(s){ (s.materials_view||[]).forEach(function(mm){ if(String(mm.material_id)===_rosterMid) init[String(s.student_id)]=1; }); });
+  _rosterInit=Object.keys(init);
+  _rosterSel={}; _rosterInit.forEach(function(id){_rosterSel[id]=1;});
+  Picker.open({container:$('rmBody'),sel:_rosterSel,cand:function(){return _students||[];},showStatus:false,rightTitle:'この教材を持っている子',onChange:function(ids){rmFoot(ids);}});
+  rmFoot(_rosterInit);
+  $('rosterModal').classList.add('show');
+}
+function rmFoot(ids){
+  var before=_rosterInit||[];
+  var add=ids.filter(function(x){return before.indexOf(x)<0;}).length;
+  var rem=before.filter(function(x){return ids.indexOf(x)<0;}).length;
+  var el=$('rmCount'); if(el)el.textContent='今：'+ids.length+'名（＋'+add+'／−'+rem+'）';
+}
+function saveRoster(){
+  var now=Object.keys(_rosterSel||{});
+  var before=_rosterInit||[];
+  var rem=before.filter(function(x){return now.indexOf(x)<0;});
+  if(rem.length){ if(!confirm('この教材から '+rem.length+'名 を外します。進捗・間違いノートは残ります（もう一度割り当てれば続きから）。よろしいですか？'))return; }
+  var btn=$('rmSave');btn.disabled=true;btn.textContent='⏳ 保存中…';
+  call({action:'material_roster_set',material_id:_rosterMid,student_ids:now}).then(function(d){
+    btn.disabled=false;btn.textContent='保存する';
+    if(!d.ok){$('rmErr').textContent=d.error||'保存に失敗しました';return;}
+    var dd=d.data||{};
+    toast('追加 '+((dd.added||0)+(dd.activated||0))+'名／外す '+(dd.removed||0)+'名（進捗は残ります）');
+    closeModal('rosterModal');
+    call({action:'dashboard'}).then(function(r){ if(r&&r.ok&&r.data){_students=r.data.students||_students;renderTable();renderMatTab();} });
+  });
+}
+function jumpToMaterial(mid){ if(!mid)return; switchTab('mat'); setTimeout(function(){openRosterMaterial(String(mid));},80); }
 
 function loadTeams(){
   $('teamLoading').style.display='';$('teamGrid').innerHTML='';$('teamEmpty').style.display='none';
@@ -1278,45 +1406,23 @@ function openMembers(id){
 }
 function memUniq_(field){var m={};Object.keys(_memMeta).forEach(function(k){var v=String(_memMeta[k][field]||'').trim();if(v)m[v]=1;});var a=Object.keys(m);return field==='grade'?a.sort(function(x,y){return gradeRank(x)-gradeRank(y);}):a.sort(function(x,y){return String(x).localeCompare(String(y),'ja');});}
 function renderMemEditor(){
-  var cw=$('memChips');
-  if(cw){cw.innerHTML='';
-    var addChip=function(label,field,val){var b=document.createElement('button');b.type='button';b.className='mem-chip'+(_memFilter[field]===val?' active':'');b.textContent=label;b.onclick=function(){_memFilter[field]=(_memFilter[field]===val)?null:val;renderMemEditor();};cw.appendChild(b);};
-    memUniq_('grade').forEach(function(g){addChip(g,'grade',g);});
-    memUniq_('school').forEach(function(sc){addChip(sc,'school',sc);});
-  }
-  var left=$('memCand');
-  if(left){left.innerHTML='';
-    var pool=Object.keys(_memMeta).filter(function(k){return !_memSel[k];});
-    pool=pool.filter(function(k){var meta=_memMeta[k];
-      if(_memFilter.grade&&String(meta.grade)!==_memFilter.grade)return false;
-      if(_memFilter.school&&String(meta.school)!==_memFilter.school)return false;
-      if(_memSearch&&String(meta.name||'').indexOf(_memSearch)<0&&String(meta.nickname||'').indexOf(_memSearch)<0)return false;
-      return true;});
-    pool.sort(function(a,b){var ma=_memMeta[a],mb=_memMeta[b];var d=gradeRank(ma.grade)-gradeRank(mb.grade);return d!==0?d:String(ma.name||'').localeCompare(String(mb.name||''),'ja');});
-    if(!pool.length){left.innerHTML='<div class="mem-empty">該当なし</div>';}
-    pool.forEach(function(k){var meta=_memMeta[k];var other=_memOther[k];
-      var row=document.createElement('div');row.className='mem-row';
-      row.innerHTML='<span>'+esc(meta.name||'(無名)')+(meta.nickname?'<span class="pi-nick"> '+esc(meta.nickname)+'</span>':'')+'</span>'
-        +(other?'<span class="mem-badge">'+esc(other)+'に所属</span>':'<span class="mem-meta">'+esc(meta.grade||'未所属')+'</span>')
-        +'<button class="mem-btn mem-add" title="追加">＋</button>';
-      row.querySelector('.mem-add').onclick=function(){memAdd_(k);};
-      left.appendChild(row);});
-  }
-  var right=$('memTeam');
-  if(right){right.innerHTML='';
-    var sel=Object.keys(_memSel);
-    if(!sel.length){right.innerHTML='<div class="mem-empty">まだメンバーがいません</div>';}
-    sel.forEach(function(k){var meta=_memMeta[k]||{name:'',grade:''};
-      var row=document.createElement('div');row.className='mem-row';
-      row.innerHTML='<span>'+esc(meta.name||'(無名)')+(meta.nickname?'<span class="pi-nick"> '+esc(meta.nickname)+'</span>':'')+'</span><span class="mem-meta">'+esc(meta.grade||'')+'</span><button class="mem-btn mem-rm" title="外す">✕</button>';
-      row.querySelector('.mem-rm').onclick=function(){memRemove_(k);};
-      right.appendChild(row);});
-  }
-  var n=Object.keys(_memSel).length;
-  var mc=$('memCount');if(mc){mc.textContent=n+'人';mc.style.color=(n>5)?'var(--crimson)':(n>=3?'#1faa6b':'var(--text-light)');}
-  if(n>5){$('mmErr').textContent='1チームは最大5人までです';}
-  else if(n>0&&n<3){$('mmErr').textContent='3人未満です（目安は3〜5人。保存はできます）';}
-  else{$('mmErr').textContent='';}
+  var host=$('memPicker'); if(!host) return;
+  Picker.open({
+    container:host,
+    sel:_memSel,
+    cand:function(){return Object.keys(_memMeta).map(function(k){var m=_memMeta[k];return {student_id:k,name:m.name,nickname:m.nickname,grade:m.grade||'',class_name:m.class_name||'',school:m.school||''};});},
+    showStatus:false,
+    rightTitle:'このチーム（3〜5人）',
+    max:5,
+    badgeOf:function(id){return _memOther[id]?('「'+_memOther[id]+'」に所属'):'';},
+    onAddGuard:function(id){var o=_memOther[id];if(o){return confirm(((_memMeta[id]&&_memMeta[id].name)||'この生徒')+' さんを「'+o+'」から このチームに移動します。よろしいですか？');}return true;},
+    onChange:function(ids){
+      var n=ids.length;
+      if(n>5){$('mmErr').textContent='1チームは最大5人までです';}
+      else if(n>0&&n<3){$('mmErr').textContent='3人未満です（目安は3〜5人。保存はできます）';}
+      else{$('mmErr').textContent='';}
+    }
+  });
 }
 function memAdd_(sid){
   if(Object.keys(_memSel).length>=5){toast('1チームは最大5人までです');return;}
@@ -1349,6 +1455,125 @@ function saveMembers(){
 
 function closeModal(id){$(id).classList.remove('show');}
 
+/* ===== 共通 対象選択 Picker（2026-07-09）=====
+   絞り込み＝左の表示を絞るだけ（カテゴリ内OR・カテゴリ間AND・デフォルト在籍のみ）。
+   選択はチェック／全員選択で右へ、右の✕で左へ戻す。左の絞り込みを変えても右は消えない。
+   cfg: {container, sel(外部オブジェクト・破壊的に更新), cand(()->配列),
+         showStatus(印刷のみ状態チップ), rightTitle, max, badgeOf(id)->str, onAddGuard(id)->bool, onChange(ids)} */
+var Picker=(function(){
+  var C=null, els=null, filt={cls:{},grade:{},school:{},status:{}}, search='';
+  function reset(cfg){C=cfg;filt={cls:{},grade:{},school:{},status:{}};search='';render();}
+  function cand(){return (C.cand?C.cand():[])||[];}
+  function sid_(s){return String(s.student_id!=null?s.student_id:(s.id!=null?s.id:''));}
+  function candById(){var m={};cand().forEach(function(s){m[sid_(s)]=s;});return m;}
+  function uniq(field){var m={};cand().forEach(function(s){var v=String(s[field]||'').trim();if(v)m[v]=1;});var a=Object.keys(m);return field==='grade'?a.sort(function(x,y){return gradeRank(x)-gradeRank(y);}):a.sort(function(x,y){return x.localeCompare(y,'ja');});}
+  function anyOn(o){return Object.keys(o).some(function(k){return o[k];});}
+  function matches(s){
+    if(anyOn(filt.cls)&&!filt.cls[String(s.class_name||'')])return false;
+    if(anyOn(filt.grade)&&!filt.grade[String(s.grade||'')])return false;
+    if(anyOn(filt.school)&&!filt.school[String(s.school||'')])return false;
+    if(C.showStatus&&anyOn(filt.status)){
+      var ok=false;
+      if(filt.status.idle&&typeof isInactive==='function'&&isInactive(s))ok=true;
+      if(filt.status.help&&typeof needsHelp==='function'&&needsHelp(s))ok=true;
+      if(!ok)return false;
+    }
+    if(search){var v=search;if(String(s.name||'').indexOf(v)<0&&String(s.nickname||'').indexOf(v)<0)return false;}
+    return true;
+  }
+  function leftPool(){return cand().filter(function(s){return !C.sel[sid_(s)]&&matches(s);}).sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);return d!==0?d:String(a.name||'').localeCompare(String(b.name||''),'ja');});}
+  function render(){
+    var box=C.container;box.innerHTML='';
+    var qh=document.createElement('div');qh.className='pk-qh2';
+    qh.textContent='絞り込みは「左に出す子」を絞るだけ。同じ種類はORで足し算（教室Aと教室B＝どちらか）、違う種類はAND（教室かつ学年）。そこからチェックで右に移します。';
+    box.appendChild(qh);
+    var two=document.createElement('div');two.className='pk-two';
+    var left=document.createElement('div');left.className='pk-col';
+    var lt=document.createElement('div');lt.className='pk-coltitle';lt.textContent='候補（在籍の子）';left.appendChild(lt);
+    addGroup(left,'教室','cls',uniq('class_name'));
+    addGroup(left,'学年','grade',uniq('grade'));
+    addGroup(left,'中学校','school',uniq('school'));
+    if(C.showStatus){
+      var row=document.createElement('div');row.className='pk-fgroup';
+      var lb=document.createElement('span');lb.className='pk-flabel';lb.textContent='状態';row.appendChild(lb);
+      var chips=document.createElement('div');chips.className='pk-chips';
+      chips.appendChild(statusChip('😴 やってない子','idle'));
+      chips.appendChild(statusChip('📣 指導必要','help'));
+      row.appendChild(chips);left.appendChild(row);
+    }
+    var inp=document.createElement('input');inp.className='pk-search2';inp.placeholder='なまえで探す';inp.value=search;
+    inp.oninput=function(){search=this.value;renderLists();};
+    left.appendChild(inp);
+    var ll=document.createElement('div');ll.className='pk-list';left.appendChild(ll);
+    var right=document.createElement('div');right.className='pk-col';
+    var rt=document.createElement('div');rt.className='pk-coltitle';
+    var rtL=document.createElement('span');rtL.textContent=C.rightTitle||'選択中';
+    var rtC=document.createElement('span');rtC.className='pk-count';
+    rt.appendChild(rtL);rt.appendChild(rtC);right.appendChild(rt);
+    var rl=document.createElement('div');rl.className='pk-list sel';right.appendChild(rl);
+    var hint=document.createElement('div');hint.className='pk-hint';hint.textContent='左の絞り込みを変えても、ここに入れた子は消えません。✕で左にもどります。';
+    right.appendChild(hint);
+    two.appendChild(left);two.appendChild(right);box.appendChild(two);
+    els={left:ll,right:rl,count:rtC};
+    renderLists();
+  }
+  function addGroup(parent,label,field,items){
+    if(!items.length)return;
+    var row=document.createElement('div');row.className='pk-fgroup';
+    var lb=document.createElement('span');lb.className='pk-flabel';lb.textContent=label;row.appendChild(lb);
+    var chips=document.createElement('div');chips.className='pk-chips';
+    items.forEach(function(v){
+      var b=document.createElement('button');b.type='button';b.className='pk-chip'+(filt[field][v]?' on':'');b.textContent=(filt[field][v]?'✓ ':'')+v;
+      b.onclick=function(){filt[field][v]=!filt[field][v];render();};
+      chips.appendChild(b);
+    });
+    row.appendChild(chips);parent.appendChild(row);
+  }
+  function statusChip(label,key){
+    var b=document.createElement('button');b.type='button';b.className='pk-chip warn'+(filt.status[key]?' on':'');b.textContent=(filt.status[key]?'✓ ':'')+label;
+    b.onclick=function(){filt.status[key]=!filt.status[key];render();};
+    return b;
+  }
+  function renderLists(){
+    if(!els)return;
+    var byId=candById();
+    var pool=leftPool();
+    var ll=els.left;ll.innerHTML='';
+    var all=document.createElement('div');all.className='pk-selall';
+    all.innerHTML='<span class="pk-cb"></span><span>表示中の子を全員 選択に追加（'+pool.length+'名）</span>';
+    all.onclick=function(){pool.forEach(function(s){var id=sid_(s);if(C.max&&Object.keys(C.sel).length>=C.max)return;C.sel[id]=1;});renderLists();fire();};
+    ll.appendChild(all);
+    if(!pool.length){var e=document.createElement('div');e.className='pk-empty';e.textContent='該当なし';ll.appendChild(e);}
+    pool.forEach(function(s){
+      var id=sid_(s);
+      var row=document.createElement('div');row.className='pk-row';
+      var badge=C.badgeOf?C.badgeOf(id):'';
+      var meta=badge?('<span class="pk-badge">'+esc(badge)+'</span>'):('<span class="pk-meta">'+esc([s.grade,s.class_name].filter(Boolean).join('・'))+'</span>');
+      row.innerHTML='<span class="pk-cb"></span><span>'+esc(s.name||'(無名)')+(s.nickname?'<span class="pk-meta" style="margin-left:6px;">'+esc(s.nickname)+'</span>':'')+'</span>'+meta;
+      row.onclick=function(){addOne(id);};
+      ll.appendChild(row);
+    });
+    var rl=els.right;rl.innerHTML='';
+    var ids=Object.keys(C.sel).sort(function(a,b){var A=byId[a]||{},B=byId[b]||{};var d=gradeRank(A.grade)-gradeRank(B.grade);return d!==0?d:String(A.name||'').localeCompare(String(B.name||''),'ja');});
+    if(!ids.length){var e2=document.createElement('div');e2.className='pk-empty';e2.textContent='まだ選んでいません';rl.appendChild(e2);}
+    ids.forEach(function(id){var s=byId[id]||{name:'',grade:''};
+      var row=document.createElement('div');row.className='pk-row';
+      row.innerHTML='<span class="pk-cb rm">✓</span><span>'+esc(s.name||'(無名)')+(s.nickname?'<span class="pk-meta" style="margin-left:6px;">'+esc(s.nickname)+'</span>':'')+'</span><span class="pk-meta">'+esc(s.grade||'')+'</span><span class="pk-x">✕</span>';
+      row.onclick=function(){delete C.sel[id];renderLists();fire();};
+      rl.appendChild(row);
+    });
+    var c=els.count;if(c){var n=ids.length;c.textContent=n+'名'+(C.max?(' / '+C.max):'');c.style.color=(C.max&&n>C.max)?'var(--crimson)':'#1faa6b';}
+  }
+  function addOne(id){
+    if(C.max&&Object.keys(C.sel).length>=C.max&&!C.sel[id]){if(typeof toast==='function')toast('上限は'+C.max+'名です');return;}
+    if(C.onAddGuard&&!C.onAddGuard(id))return;
+    C.sel[id]=1;renderLists();fire();
+  }
+  function fire(){if(C.onChange)C.onChange(Object.keys(C.sel));}
+  return {open:reset};
+})();
+
+
 /* ===== 一括操作（アクション起点）2026-07-05 川上さん承認モック =====
    入口＝「まとめて割り当てる」「まとめて印刷」ボタン。流れは だれに→なにを→実行。
    クイックチップ＝学年・教室・中学校（07-04n実装→07-05gで消失→復活）。
@@ -1358,7 +1583,7 @@ var tmMode='assign', tmStep=1, tmSel={}, tmSearch='';
 function openTargetModal(mode,presetIds){
   tmMode=mode;tmStep=1;tmSel={};tmSearch='';bulkMat={};
   (presetIds||[]).forEach(function(id){tmSel[String(id)]=1;});
-  $('tmTitle').textContent=(mode==='assign')?'まとめて割り当てる':'まとめて印刷';
+  $('bulkTitle').textContent=(mode==='assign')?'まとめて割り当てる':'まとめて印刷';
   $('bulkModal').classList.toggle('printmode',mode==='print');
   $('bulkErr').textContent='';
   $('bulkModal').classList.add('show');
@@ -1395,28 +1620,14 @@ function tmRender(){
   tmUpdateFoot();
 }
 function tmStep1_(body){
-  var qh=document.createElement('div');qh.className='tm-qh';qh.textContent='絞り込みで選ぶ（押すと その条件の子が選択に加わります＝足し算）';body.appendChild(qh);
-  function addGroup(label,items){
-    if(!items.length)return;
-    var row=document.createElement('div');row.className='tm-qgroup';
-    var lb=document.createElement('span');lb.className='tm-qglabel';lb.textContent=label;row.appendChild(lb);
-    var chips=document.createElement('div');chips.className='tm-chips';
-    items.forEach(function(it){var b=document.createElement('button');b.type='button';b.className='tm-qchip'+(it.warn?' warn':'');b.textContent=it.label;b.onclick=it.fn;chips.appendChild(b);});
-    row.appendChild(chips);body.appendChild(row);
-  }
-  addGroup('まとめて',[{label:'全員',fn:function(){tmQuick(function(){return true;});}}]);
-  addGroup('学年',tmUniq('grade').map(function(g){return {label:g,fn:function(){tmQuick(function(s){return String(s.grade)===g;});}};}));
-  addGroup('教室',tmUniq('class_name').map(function(c){return {label:c,fn:function(){tmQuick(function(s){return String(s.class_name)===c;});}};}));
-  addGroup('中学校',tmUniq('school').map(function(sc){return {label:sc,fn:function(){tmQuick(function(s){return String(s.school)===sc;});}};}));
-  if(tmMode==='print'){
-    addGroup('状態',[{label:'😴 やってない子',warn:true,fn:function(){tmQuick(function(s){return isInactive(s);});}},{label:'📣 指導必要',warn:true,fn:function(){tmQuick(function(s){return needsHelp(s);});}}]);
-  }
-  var clr=document.createElement('button');clr.type='button';clr.className='tm-qclear';clr.textContent='選択をぜんぶ解除';clr.onclick=function(){tmSel={};tmRender();};body.appendChild(clr);
-  var inp=document.createElement('input');inp.className='tm-search';inp.placeholder='なまえで探す';inp.value=tmSearch;
-  inp.oninput=function(){tmSearch=this.value;tmList_();};
-  body.appendChild(inp);
-  var list=document.createElement('div');list.className='tm-list';list.id='tmList';body.appendChild(list);
-  tmList_();
+  Picker.open({
+    container:body,
+    sel:tmSel,
+    cand:function(){return tmPool();},
+    showStatus:(tmMode==='print'),
+    rightTitle:(tmMode==='print')?'印刷する子':'割り当てる子',
+    onChange:function(){tmUpdateFoot();}
+  });
 }
 function tmList_(){
   var list=$('tmList');if(!list)return;
