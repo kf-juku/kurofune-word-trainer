@@ -274,7 +274,7 @@
   /* モーダル（チーム作成・メンバー編集） */
   .modal-back{position:fixed;inset:0;background:rgba(15,23,42,0.45);display:none;align-items:center;justify-content:center;z-index:9500;padding:14px;}
   .modal-back.show{display:flex;}
-  .modal{background:white;border-radius:14px;box-shadow:var(--shadow);box-sizing:border-box;width:100%;max-width:440px;max-height:88vh;overflow-y:auto;overflow-x:hidden;padding:20px;}
+  .modal{background:white;border-radius:14px;box-shadow:var(--shadow);box-sizing:border-box;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;overflow-x:hidden;padding:20px;}
   .modal h3{font-size:16px;font-weight:800;color:var(--crimson);margin-bottom:12px;}
   .modal .mhint{font-size:11.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;}
   .pick-list{border:1.5px solid var(--border);border-radius:8px;max-height:300px;overflow-y:auto;margin-bottom:10px;}
@@ -308,7 +308,7 @@
   .asg-add select{flex:1 1 150px;min-width:0;max-width:100%;border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:13px;font-family:inherit;}
   .asg-note{margin-top:8px;font-size:11.5px;color:var(--green-dark);background:var(--green-light);border-radius:7px;padding:5px 9px;display:inline-block;cursor:pointer;}
   /* 一括割当モーダル（クロフネLINE方式）2026-07-04 */
-  #bulkModal .modal{max-width:720px;display:flex;flex-direction:column;overflow:hidden;}
+  #bulkModal .modal{max-width:none;width:min(96vw,1040px);display:flex;flex-direction:column;overflow:hidden;}
   .bulk-cols{display:grid;grid-template-columns:1fr 230px;gap:12px;align-items:start;min-height:0;}
   .bulk-filter{border:1px solid var(--border);border-radius:10px;padding:10px 11px;margin-bottom:8px;}
   .bulk-filter .bf-h{font-size:11px;color:var(--text-muted);margin:6px 0 4px;}
@@ -332,6 +332,9 @@
   .bulk-pill.test{background:var(--amber-light);color:var(--amber-dark);}
   .pick-counter{font-size:12px;font-weight:700;margin-bottom:8px;}
   .pick-counter.over{color:var(--crimson);}
+  /* モーダル幅整理 2026-07-09 川上さん指示：2列モーダルが440pxで縦積み・保存ボタン画面外だったのをPC前提の広さに直す（幅は同日の設計判断 min(96vw,1040px) に合わせる） */
+  #memModal .modal,#rosterModal .modal{max-width:none;width:min(96vw,1040px);}
+  @media(max-width:700px){.pk-two{flex-direction:column;}}/* 狭い画面では候補/選択中を縦に積む */
 
   #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e293b;color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap;}
   #toast.show{opacity:1;}
