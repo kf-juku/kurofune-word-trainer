@@ -452,6 +452,30 @@
   .pst-pass{background:#e6f6ee;color:#14663a;}
   .pst-try{background:#fdf3dd;color:#8a5e08;}
   .pst-tryw{background:#f7d3d3;color:#9c2a2a;}
+  /* 確認テストタブ（2026-07-10） */
+  #view-quiz .qcard{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:14px;margin-bottom:14px;}
+  #view-quiz .qch{font-size:13px;color:var(--text-muted);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  #view-quiz .qch .c2cnt{background:#fdeaea;color:#d64545;font-weight:800;border-radius:12px;padding:1px 9px;font-size:12px;}
+  .qachip{display:inline-flex;align-items:center;gap:5px;border-radius:16px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;margin:2px 4px 2px 0;border:1px solid transparent;}
+  .qa-miss{background:#eef1f5;color:#5a6a7e;border-color:#dfe4ec;}.qa-ng{background:#fdeaea;color:#d64545;border-color:#f3c7c7;}
+  .qachip small{font-weight:500;opacity:.8;}
+  .qmatsel{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .qmtab{padding:7px 13px;border-radius:8px;border:1px solid var(--border);background:#fff;font-weight:700;font-size:13px;cursor:pointer;}
+  .qmtab.on{background:#e7f0fd;border-color:#bcd6f7;color:#1b4f9c;}
+  table.qtable{width:100%;border-collapse:collapse;}
+  table.qtable th,table.qtable td{padding:8px 6px;font-size:12.5px;text-align:center;border-bottom:1px solid var(--surface2);}
+  table.qtable th{background:var(--surface2);color:var(--text-muted);font-size:11px;font-weight:700;}
+  table.qtable th.stu,table.qtable td.stu{text-align:left;font-weight:700;white-space:nowrap;}
+  .qcell{display:inline-block;min-width:46px;border-radius:8px;padding:5px 4px;font-weight:800;font-size:12px;cursor:pointer;}
+  .q-ok{background:#e6f6ee;color:#1f9d57;}.q-ng{background:#fdeaea;color:#d64545;}.q-miss{background:#eef1f5;color:#9aa6b3;}
+  .qlegend{font-size:11px;color:var(--text-muted);margin-top:10px;display:flex;gap:14px;flex-wrap:wrap;}
+  .qlegend i.qlg{width:13px;height:13px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:-2px;}
+  .qsendbtn{background:#caa24a;color:#3a2e08;border:none;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:800;cursor:pointer;margin-left:6px;white-space:nowrap;}
+  .qm-sub{font-size:12px;color:var(--text-light);margin-bottom:8px;}
+  .qm-big{font-size:34px;font-weight:900;text-align:center;margin:4px 0;}.qm-big small{font-size:16px;}
+  .qm-kv{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--surface2);font-size:13px;}
+  .qdelta{font-weight:800;font-size:13px;padding:3px 11px;border-radius:14px;}.qdelta.d-up{background:#e6f6ee;color:#1f9d57;}.qdelta.d-dn{background:#fdeaea;color:#d64545;}
+  .qmw{font-size:13px;padding:4px 0;border-top:1px dashed var(--border);}
   .mgarrow{color:var(--text-light);font-size:16px;}
   .mggroup{display:flex;align-items:center;gap:8px;padding:9px 13px 5px;background:var(--surface2);border-bottom:1px solid var(--surface2);}
   .mgg-subj{font-size:12px;font-weight:800;color:var(--text);}
@@ -496,6 +520,7 @@
     <div class="tabs">
       <button class="tab active" id="tab-dash" onclick="switchTab('dash')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>生徒一覧</button>
       <button class="tab" id="tab-mat" onclick="switchTab('mat')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>教材ごと</button>
+      <button class="tab" id="tab-quiz" onclick="switchTab('quiz')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>確認テスト</button>
       <button class="tab" id="tab-teams" onclick="switchTab('teams')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>チーム編成</button>
       <button class="tab" id="tab-settings" onclick="switchTab('settings')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>先生設定</button>
     </div>
@@ -650,6 +675,14 @@
       <div id="matList" style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;"></div>
     </div>
 
+    <!-- ===== 確認テストビュー（閲覧専用）2026-07-10 ===== -->
+    <div id="view-quiz" style="display:none;">
+      <div class="qcard"><div class="qch">注目リスト（未実施・未合格の子）<span class="c2cnt" id="qtAttCnt">–</span></div><div id="qtAtt"></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">※配信は「教材ごと」タブの各教材の「確認テストを配信」ボタンから。</div></div>
+      <div class="qcard"><div class="qch">点数表（教材ごと）</div><div class="qmatsel" id="qtMatSel"></div><div id="qtBoard"></div>
+        <div class="qlegend"><span><i class="qlg q-ok"></i>合格</span><span><i class="qlg q-ng"></i>未合格</span><span><i class="qlg q-miss"></i>未実施</span><span>セルをタップで詳細</span></div></div>
+    </div>
+
     <!-- ===== チーム編成ビュー 2026-06-21 ===== -->
     <div id="view-teams" style="display:none;">
       <div class="team-toolbar">
@@ -712,6 +745,27 @@
       <button class="btn-ghost" onclick="closeModal('rosterModal')">やめる</button>
       <span id="rmCount" style="font-size:12px;color:var(--text-muted);"></span>
       <button class="btn-primary" style="width:auto;margin-left:auto;" id="rmSave" onclick="saveRoster()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 確認テスト 詳細モーダル（閲覧）2026-07-10 -->
+<div class="modal-back" id="quizCellModal">
+  <div class="modal"><div id="quizCellBody"></div>
+    <div class="modal-actions"><button class="btn-ghost" style="margin-left:auto;" onclick="closeModal('quizCellModal')">閉じる</button></div>
+  </div>
+</div>
+<!-- 確認テスト 配信モーダル（教材ごとタブのボタンから）2026-07-10 -->
+<div class="modal-back" id="quizDeliverModal">
+  <div class="modal">
+    <h3 id="qdTitle">確認テストを配信</h3>
+    <div class="mhint">押した時点でスタート。全パートが「未実施」に戻ります（過去の点数は消えません）。2回目でも受け直すまで「未実施」です。対象＝この教材の名簿をプリセット、左から追加・右の✕で外せます。</div>
+    <div class="err" id="qdErr"></div>
+    <div id="qdBody"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('quizDeliverModal')">やめる</button>
+      <span id="qdCount" style="font-size:12px;color:var(--text-muted);"></span>
+      <button class="btn-primary" style="width:auto;margin-left:auto;" id="qdSend" onclick="doQuizAssign()">配信開始</button>
     </div>
   </div>
 </div>
@@ -1306,12 +1360,15 @@ function switchTab(t){
   var tm=document.getElementById('tab-mat'); if(tm) tm.classList.toggle('active',t==='mat');
   document.getElementById('tab-teams').classList.toggle('active',t==='teams');
   var ts=document.getElementById('tab-settings'); if(ts) ts.classList.toggle('active',t==='settings');
+  var tq=document.getElementById('tab-quiz'); if(tq) tq.classList.toggle('active',t==='quiz');
   $('view-dash').style.display=(t==='dash')?'':'none';
   var vm=$('view-mat'); if(vm) vm.style.display=(t==='mat')?'':'none';
   $('view-teams').style.display=(t==='teams')?'':'none';
   var vs=$('view-settings'); if(vs) vs.style.display=(t==='settings')?'':'none';
+  var vq=$('view-quiz'); if(vq) vq.style.display=(t==='quiz')?'':'none';
   if(t==='teams') loadTeams();
   if(t==='mat') renderMatTab();
+  if(t==='quiz') renderQuizTab();
   if(t==='settings') renderCheerPanel(); // 設定タブを開いたら最新状態で描画（loadCheerConfigは起動時に実行済み）
 }
 
@@ -1357,12 +1414,101 @@ function renderMatTab(){
         +_lb
         +'<span class="mgcount">'+hs.length+'名</span>'
         +'<span class="mgmem">'+chips+'</span>'
+        +(isTest?'<button class="qsendbtn" onclick="event.stopPropagation();openQuizDeliver(\''+esc(String(m.id))+'\')">✔ 確認テストを配信</button>':'')
         +'<span class="mgarrow">›</span>';
       box.appendChild(row);
     });
   };
   if(bulkMaterials&&bulkMaterials.length){draw(bulkMaterials);}
   else{ call({action:'materials_list'}).then(function(d){ var mats=(d&&d.ok)?(d.data.materials||[]):[]; bulkMaterials=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}); draw(bulkMaterials); }); }
+}
+/* ===== 確認テストタブ（閲覧：注目リスト＋点数表＋詳細）2026-07-10 ===== */
+var _quizBoard=null,_quizCurMat=null;
+function renderQuizTab(){
+  var att=$('qtAtt'),board=$('qtBoard');
+  if(att)att.innerHTML='<div style="padding:10px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
+  if(board)board.innerHTML='';
+  call({action:'quiz_board'}).then(function(d){
+    if(!d.ok){if(att)att.innerHTML='<div style="color:var(--crimson);font-size:12px;">取得に失敗しました'+(d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
+    _quizBoard=d.data;var mats=d.data.materials||[];
+    if((!_quizCurMat||!mats.some(function(m){return m.material_id===_quizCurMat;}))&&mats.length)_quizCurMat=mats[0].material_id;
+    renderQuizAtt();renderQuizMatSel();renderQuizBoard();
+  });
+}
+function _qEntries(){return (_quizBoard&&_quizBoard.entries)||[];}
+function renderQuizAtt(){
+  var el=$('qtAtt');if(!el)return;
+  var need=_qEntries().filter(function(e){return e.status==='miss'||e.status==='ng';});
+  need.sort(function(a,b){return (a.status==='ng'?0:1)-(b.status==='ng'?0:1);});
+  $('qtAttCnt').textContent=need.length+'件';
+  el.innerHTML=need.map(function(e){var cls=(e.status==='ng')?'qa-ng':'qa-miss';var lbl=(e.status==='ng')?(e.latest_rate+'%'):'未実施';
+    return '<span class="qachip '+cls+'" onclick="openQuizCell(\''+esc(e.student_id)+'\',\''+esc(e.part_id)+'\')">'+esc(e.student_name)+' <small>'+esc(e.part_title)+'・'+lbl+'</small></span>';}).join('')
+    ||'<span style="color:var(--text-light);font-size:12px;">未実施・未合格はありません 🎉</span>';
+}
+function renderQuizMatSel(){
+  var el=$('qtMatSel');if(!el)return;var mats=(_quizBoard&&_quizBoard.materials)||[];
+  el.innerHTML=mats.map(function(m){return '<div class="qmtab'+(m.material_id===_quizCurMat?' on':'')+'" onclick="_quizCurMat=\''+esc(m.material_id)+'\';renderQuizMatSel();renderQuizBoard();">'+esc(m.title)+'</div>';}).join('');
+}
+function renderQuizBoard(){
+  var el=$('qtBoard');if(!el)return;
+  var ents=_qEntries().filter(function(e){return e.material_id===_quizCurMat;});
+  if(!ents.length){el.innerHTML='<div style="color:var(--text-light);font-size:13px;padding:10px;">まだ配信されていません（「教材ごと」タブの「確認テストを配信」から）</div>';return;}
+  var partMap={};ents.forEach(function(e){partMap[e.part_id]={id:e.part_id,title:e.part_title,order:e.part_order};});
+  var parts=Object.keys(partMap).map(function(k){return partMap[k];}).sort(function(a,b){return a.order-b.order;});
+  var stuMap={},stuOrder=[];ents.forEach(function(e){if(!stuMap[e.student_id]){stuMap[e.student_id]=e.student_name;stuOrder.push(e.student_id);}});
+  stuOrder.sort(function(a,b){return String(stuMap[a]).localeCompare(String(stuMap[b]),'ja');});
+  var cellOf={};ents.forEach(function(e){cellOf[e.student_id+'|'+e.part_id]=e;});
+  var h='<table class="qtable"><thead><tr><th class="stu">生徒</th>'+parts.map(function(p){return '<th>'+esc(p.title)+'</th>';}).join('')+'</tr></thead><tbody>';
+  stuOrder.forEach(function(sid){
+    h+='<tr><td class="stu">'+esc(stuMap[sid])+'</td>'+parts.map(function(p){
+      var e=cellOf[sid+'|'+p.id];var cell;
+      if(!e||e.status==='miss')cell='<span class="qcell q-miss">—</span>';
+      else if(e.status==='ok')cell='<span class="qcell q-ok">'+e.latest_rate+'%</span>';
+      else cell='<span class="qcell q-ng">'+e.latest_rate+'%</span>';
+      return '<td onclick="openQuizCell(\''+esc(sid)+'\',\''+esc(p.id)+'\')">'+cell+'</td>';
+    }).join('')+'</tr>';
+  });
+  el.innerHTML=h+'</tbody></table>';
+}
+function openQuizCell(sid,pid){
+  var e=null;_qEntries().forEach(function(x){if(x.student_id===sid&&x.part_id===pid)e=x;});
+  if(!e){toast('データがありません');return;}
+  var body;
+  if(e.status==='miss'){body='<div class="qm-sub">'+esc(e.part_title)+'</div><div style="text-align:center;color:var(--text-light);padding:16px;">まだ受けていません（未実施）</div>';}
+  else{
+    var dv=(e.prev_rate==null)?'<span class="qdelta" style="background:#eef1f5;color:#8a97a6;">初回</span>':((e.latest_rate-e.prev_rate)>=0?'<span class="qdelta d-up">前回より ＋'+(e.latest_rate-e.prev_rate)+'%</span>':'<span class="qdelta d-dn">前回より '+(e.latest_rate-e.prev_rate)+'%</span>');
+    var miss=(e.missed_words&&e.missed_words.length)?('<div style="margin-top:12px"><div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:4px;">まちがえた単語（'+e.missed_words.length+'）</div>'+e.missed_words.map(function(w){return '<div class="qmw"><b>'+esc(w.en||'')+'</b> <span class="t-sub">'+esc(w.ja||'')+'</span></div>';}).join('')+'</div>'):'<div style="margin-top:12px;color:#1f9d57;font-weight:700;font-size:13px;">全部正解！</div>';
+    body='<div class="qm-sub">'+esc(e.part_title)+'</div><div class="qm-big" style="color:'+(e.status==='ok'?'#1f9d57':'#d64545')+'">'+e.latest_rate+'<small>%</small></div>'
+      +'<div style="text-align:center;margin-bottom:10px;">'+dv+' <span class="qdelta '+(e.status==='ok'?'d-up':'d-dn')+'">'+(e.status==='ok'?'合格':'未合格')+'</span></div>'
+      +'<div class="qm-kv"><span>受けた日</span><b>'+esc(e.last_date||'-')+'</b></div><div class="qm-kv"><span>通算回数</span><b>'+e.attempt_count+'回</b></div>'
+      +((e.correct_count!=null&&e.total_count!=null)?'<div class="qm-kv"><span>正解</span><b>'+e.correct_count+' / '+e.total_count+'問</b></div>':'')+miss;
+  }
+  $('quizCellBody').innerHTML='<h3 style="font-size:16px;font-weight:800;margin-bottom:2px;">'+esc(e.student_name)+'</h3>'+body;
+  $('quizCellModal').classList.add('show');
+}
+/* 確認テスト 配信（教材ごとタブの「確認テストを配信」ボタンから）2026-07-10 */
+var _qdMid=null,_qdSel={};
+function openQuizDeliver(mid){
+  _qdMid=String(mid);
+  var m=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===_qdMid)m=x;});
+  $('qdTitle').textContent='確認テストを配信：'+((m&&m.title)||'教材');
+  $('qdErr').textContent='';
+  var init={};(_students||[]).forEach(function(s){(s.materials_view||[]).forEach(function(mm){if(String(mm.material_id)===_qdMid)init[String(s.student_id)]=1;});});
+  _qdSel={};Object.keys(init).forEach(function(id){_qdSel[id]=1;});
+  Picker.open({container:$('qdBody'),sel:_qdSel,cand:function(){return _students||[];},showStatus:false,rightTitle:'配信する子',onChange:function(ids){var c=$('qdCount');if(c)c.textContent=ids.length+'名に配信';}});
+  $('qdCount').textContent=Object.keys(_qdSel).length+'名に配信';
+  $('quizDeliverModal').classList.add('show');
+}
+function doQuizAssign(){
+  var ids=Object.keys(_qdSel).filter(function(k){return _qdSel[k];});
+  if(!ids.length){$('qdErr').textContent='配信する子を選んでください';return;}
+  var btn=$('qdSend');btn.disabled=true;btn.textContent='配信中…';
+  call({action:'quiz_assign',material_id:_qdMid,student_ids:ids}).then(function(d){
+    btn.disabled=false;btn.textContent='配信開始';
+    if(!d.ok){$('qdErr').textContent=d.error||'配信に失敗しました';return;}
+    closeModal('quizDeliverModal');
+    toast(ids.length+'名に配信しました（未実施スタート・過去の点数は保持）');
+  });
 }
 var _rosterMid=null,_rosterInit=[],_rosterSel={};
 function openRosterMaterial(mid){

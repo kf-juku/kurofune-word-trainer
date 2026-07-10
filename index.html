@@ -450,6 +450,8 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div id="main-list"><div class="loading">読み込み中…</div></div>
         <!-- 今日の復習（自動反復＝学習側・横長行）2026-07-02 -->
         <div class="learn-row" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="lr-ic"><i class="ti ti-clock-bolt"></i></div><div class="lr-nm">おさらい</div><div class="lr-cnt"><span id="cnt-review">–</span></div></div>
+        <!-- 確認テスト（教室でその場・自動採点）2026-07-10 -->
+        <div class="learn-row" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="lr-ic" style="background:rgba(214,175,60,.15);color:var(--gold)"><i class="ti ti-checkup-list"></i></div><div class="lr-nm">確認テスト</div><div class="lr-cnt"><span id="cnt-quiz">–</span></div></div>
         <div class="tiles" style="margin-top:16px;">
           <div class="tile" id="tile-note"><span class="reddot" id="dot-note" style="display:none;"></span><div class="tic"><i class="ti ti-notebook"></i></div><div class="tnm">間違いノート</div><div class="tcnt" id="cnt-note">–</div></div>
           <div class="tile" id="tile-records"><div class="tic"><i class="ti ti-folder"></i></div><div class="tnm">じぶんの記録</div><div class="tcnt">DAY・バッジ・なかま</div></div>
@@ -485,6 +487,9 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="subview" id="sv-team">
           <div id="star-recv-area"></div>
           <div id="team-area"><div class="loading">読み込み中…</div></div>
+        </div>
+        <div class="subview" id="sv-quiz">
+          <div id="quiz-area"><div class="loading">読み込み中…</div></div>
         </div>
       </div>
     </div>
@@ -607,7 +612,7 @@ function buildMapRow(l,isTest,inFold){
   return row;
 }
 /* ===== タイル型ホームのビュー切替（2026-06-24）===== */
-var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でも復習',team:'チームの仲間',overall:'クロフネ全体',records:'じぶんの記録'};
+var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でも復習',team:'チームの仲間',overall:'クロフネ全体',records:'じぶんの記録',quiz:'確認テスト'};
 function showSub(name){
   try{sessionStorage.setItem('kwt_view',name);}catch(e){} // スマホ更新で最後の画面を復元（川上さん確定2026-07-06）
   $('home-tiles').style.display='none';
@@ -625,6 +630,59 @@ function backToTiles(){
   window.scrollTo(0,0);
 }
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1700);}
+
+/* ===== 確認テスト（生徒）2026-07-10：点数表。受験は startQuiz（スライス3b）===== */
+var _quizData=null;
+function quizRenderHome_(d){
+  if(!d||!d.ok)return;
+  var mats=(d.data&&d.data.materials)||[];_quizData=d.data;
+  var tile=$('tile-quiz');if(!tile)return;
+  if(!mats.length){tile.style.display='none';return;}
+  var miss=0;mats.forEach(function(g){(g.parts||[]).forEach(function(p){if(p.status==='miss'||p.status==='ng')miss++;});});
+  tile.style.display='';
+  $('cnt-quiz').textContent=miss>0?(miss+'こ のこり'):'ぜんぶOK';
+  var dq=$('dot-quiz');if(dq)dq.style.display=miss>0?'':'none';
+}
+function quizPill_(p){
+  if(p.status==='ok')return '<span style="background:rgba(31,157,87,.15);color:#1f9d57;font-weight:800;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">合格 '+(p.latest_rate!=null?p.latest_rate+'%':'')+'</span>';
+  if(p.status==='ng')return '<span style="background:rgba(214,69,69,.13);color:#d64545;font-weight:800;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">もう一歩 '+(p.latest_rate!=null?p.latest_rate+'%':'')+'</span>';
+  return '<span style="background:rgba(148,163,184,.18);color:#7a8699;font-weight:700;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">まだ</span>';
+}
+function renderQuiz(){
+  var el=$('quiz-area');if(!el)return;
+  callCached({action:'quiz_list'},function(d){
+    quizRenderHome_(d);
+    if(!d.ok){el.innerHTML='<p class="muted">読み込みに失敗しました。もう一度ひらいてね。</p>';return;}
+    var mats=(d.data&&d.data.materials)||[];
+    if(!mats.length){el.innerHTML='<p class="muted">まだ確認テストは配信されていません。先生が配信すると ここに出るよ。</p>';return;}
+    var html='';
+    mats.forEach(function(g){
+      html+='<div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);">';
+      html+='<div style="font-weight:800;font-size:15px;margin-bottom:2px;">'+esc(g.title||'教材')+'</div>';
+      if(g.all_pass)html+='<div style="margin:8px 0;padding:10px;border-radius:10px;background:rgba(214,175,60,.15);color:#8a6d1a;font-weight:800;text-align:center;">🎉 全部合格！ すごい！</div>';
+      (g.parts||[]).forEach(function(p){
+        html+='<div onclick="startQuiz(\''+esc(p.part_id)+'\')" style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-top:1px solid rgba(0,0,0,.06);cursor:pointer;">'
+          +'<div style="flex:1;font-weight:700;font-size:14px;min-width:0;">'+esc(p.title||'パート')+(p.attempt_count>0?'<span style="font-size:11px;color:#94a3b8;font-weight:500;"> ・'+p.attempt_count+'回</span>':'')+'</div>'
+          +quizPill_(p)+'<i class="ti ti-chevron-right" style="color:#cbd5e1"></i></div>';
+      });
+      html+='</div>';
+    });
+    el.innerHTML=html;
+  });
+}
+/* 確認テスト 受験：既存の出題エンジン(_startPracticeWith_)を quizMode で流用。毎回シャッフル。2026-07-10 */
+function quizShuffle_(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function startQuiz(partId){
+  show('scr-practice');$('step-label').innerHTML=kwtSpin(64)+'<div style="margin-top:6px">よみこみ中…</div>';
+  $('btn-next').style.display='none';$('btn-retry').style.display='flex';combo=0;
+  call({action:'quiz_words',part_id:partId}).then(function(d){
+    if(!d.ok||!d.data||!d.data.words||!d.data.words.length){toast((d&&d.error)||'単語がありません');openHome();showSub('quiz');renderQuiz();return;}
+    var words=quizShuffle_(d.data.words.slice()); // 毎回シャッフル
+    _fromReviewTest=false;
+    _startPracticeWith_(partId,{ok:true,data:{words:words,subject:(d.data.subject||'english'),assets:{},content_type:'test'}});
+    if(session){session.quizMode=true;session.quizPartId=partId;} // 別セッション変数で確認テストと判別
+  });
+}
 
 // ===== ニックネーム変更 =====
 var NICK_RE=/^[ぁ-んァ-ヶーa-zA-Z0-9]+$/;
@@ -744,6 +802,7 @@ function openHome(){
   $('tile-badge').onclick=function(){showSub('badge');};
   $('tile-lists').onclick=function(){showSub('lists');};
   $('tile-team').onclick=function(){showSub('team');};
+  $('tile-quiz').onclick=function(){showSub('quiz');renderQuiz();};
   $('main-list').innerHTML='<div class="loading">読み込み中…</div>';
   $('review-area').innerHTML='<div class="loading">読み込み中…</div>';
   callCached({action:'student_home'},function(d,_cached){
@@ -814,6 +873,7 @@ function openHome(){
     /* 連続日数のヘッダー表示は loadBadges 内で更新する（studentHome は streak を返していない。
        ヘッダーが常に0日のままだった潜在バグの修正・2026-07-05発見） */
   });
+  callCached({action:'quiz_list'},quizRenderHome_); // 確認テストの入口表示（配信があれば出す）2026-07-10
   callCached({action:'material_parts'},function(d){
     if(!d.ok){$('review-area').innerHTML='<p class="muted">—</p>';return;}
     var cs=d.data.materials||[];
@@ -1472,7 +1532,45 @@ function tipEmblem_(e){
   return '<div class="tip-emb" style="background:rgba(202,162,74,.14);border-color:rgba(202,162,74,.3)"><i class="ti ti-bulb" style="color:var(--gold)"></i><b style="color:var(--gold)">コツ</b></div>';
 }
 function tipHtml_(){var tp=TIPS[Math.floor(Math.random()*TIPS.length)];return '<div class="tip-card">'+tipEmblem_(tp.e)+'<div class="tip-txt">'+tp.t+'</div></div>';}
-function finishSession(){var s=session;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';
+/* 確認テストの完了：quiz_submit へ記録し、結果画面（正答率・前回比・間違えた単語）を出す。2026-07-10
+   採点・合格判定はGAS側(quizSubmit)が sessionComplete と同一ロジックで実施。ここは表示のみ。 */
+function finishQuizSubmit_(){
+  var s=session;show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';
+  var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
+  var termOnly=(s.isEnglish===false)||s.tfOnly;
+  var score=termOnly?rr:Math.round((mr+rr)/2);
+  $('done-rate').innerHTML=termOnly?('正答 <b>'+rr+'</b>％'):('意味 '+mr+'％ ・ 日本語→英語 '+rr+'％');
+  animNum($('score-anim'),score,900);
+  $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
+  $('star-area').innerHTML='<div class="sw-load">'+kwtSpin(24)+'<span>保存中…</span></div>';
+  var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
+  $('btn-retry').style.display='flex';$('btn-next').style.display='none';lockBtns(true);
+  $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> もう一回うける';
+  $('btn-retry').onclick=function(){startQuiz(s.quizPartId);};
+  $('btn-home').textContent='点数表にもどる';
+  $('btn-home').onclick=function(){openHome();showSub('quiz');renderQuiz();};
+  var _g=setTimeout(function(){lockBtns(false);},12000);
+  var missU=(s.miss||[]).filter(function(v,i){return s.miss.indexOf(v)===i;}); // 重複除去（意味と日英で二重に入るため）
+  call({action:'quiz_submit',part_id:s.quizPartId,total:s.total,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,miss_word_ids:missU}).then(function(d){
+    clearTimeout(_g);lockBtns(false);var _db2=$('done-badge');if(_db2)_db2.style.display='';
+    if(!d.ok){$('star-area').innerHTML='';$('done-result').textContent='結果の保存に失敗しました。もう一回ためしてね';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}
+    homeCacheClear_(); // 点数表を次に開くとき最新に
+    var r=d.data;
+    if(r.passed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').textContent='合格！（'+r.pass_line+'％以上）';sndWin();flash();confetti(120);}
+    else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='あと <b>'+Math.max(0,r.pass_line-r.latest_rate)+'</b>％で合格！ もう一回うけてみよう';}
+    var delta=(r.delta==null)?'<span style="background:#eef1f5;color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;">はじめての受験</span>'
+      :(r.delta>0?'<span style="background:rgba(31,170,107,.15);color:var(--ok);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;">前回より ＋'+r.delta+'％</span>'
+      :(r.delta<0?'<span style="background:rgba(224,83,60,.13);color:var(--ng);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;">前回より '+r.delta+'％</span>'
+      :'<span style="background:#eef1f5;color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;">前回と同じ</span>'));
+    var byId={};(s.words||[]).forEach(function(w){byId[String(w.id)]=w;});
+    var missWords=missU.map(function(id){var w=byId[String(id)];return w?(esc(w.english)+'（'+esc(w.japanese)+'）'):'';}).filter(Boolean);
+    var missHtml=missWords.length
+      ?('<div style="background:#fff;border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;">まちがえた単語（'+missWords.length+'）— 見直そう</div>'+missWords.map(function(x){return '<div style="font-size:14px;padding:4px 0;border-top:1px solid var(--line);">'+x+'</div>';}).join('')+'</div>')
+      :'<div style="margin-top:14px;color:var(--ok);font-weight:700;">全部正解！ かんぺき⚓</div>';
+    $('star-area').innerHTML='<div style="text-align:center;margin:6px 0 2px;">'+delta+'</div>'+missHtml;
+  });
+}
+function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit_();}$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';
   _starPre=call({action:'shooting_star'}).catch(function(){return {ok:false};}); // 流れ星を採点と並行取得（体感改善 2026-07-08）
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
