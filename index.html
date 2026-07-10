@@ -620,6 +620,7 @@ function showSub(name){
   $('sub-title').textContent=SUB_TITLES[name]||'';
   document.querySelectorAll('#home-sub .subview').forEach(function(v){v.classList.remove('active');});
   var sv=$('sv-'+name);if(sv)sv.classList.add('active');
+  if(name==='quiz'&&typeof renderQuiz==='function')renderQuiz(); // 更新復元・直接表示でも点数表を読み込む（読み込み中で固まる修正 2026-07-10）
   window.scrollTo(0,0);
 }
 function backToTiles(){
