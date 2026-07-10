@@ -553,7 +553,7 @@
             <tr>
               <th data-sk="name" onclick="sortBy('name')">生徒 <span class="sort-ar" data-ar="name"></span></th>
               <th data-sk="grade" onclick="sortBy('grade')">学年 <span class="sort-ar" data-ar="grade"></span></th>
-              <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。🎉完走=次を割当／😴サボり=声かけ／⚠️つまずき=復習・印刷／💨雑=ていねいに／✅順調=不要／👀様子見=データ待ち。当てはまるものは全部表示。</span></span></th>
+              <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。🎉完走=次を割当／😴サボり=声かけ／⚠️つまずき=復習・印刷／💨雑=ていねいに／✅順調=不要／👀未評価=まだ未着手。当てはまるものは全部表示。</span></span></th>
               <th>教材と進み<span class="tt"><span class="help-mark">?</span><span class="tt-body">割当教材ごとの状態（閲覧のみ）。色＝その教材の直近3回の平均正答率（緑80/黄60/赤=60%未満は要指導）。→いまここ。🔊＝英語の発音（○大半/△一部/–）。</span></span></th>
               <th class="gcol">今日</th>
               <th data-sk="last" onclick="sortBy('last')">最終学習 <span class="sort-ar" data-ar="last"></span></th>
@@ -950,7 +950,7 @@ function onNeedHelpRateChange(){var v=parseInt($('needHelpRate').value,10);if(!(
 function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate!==undefined;}
 function needsHelp(s){return hasTeach(s)&&s.teach_rate<_needHelpRate;}
 /* 次の一手（機能仕様書§先生ダッシュボード「次の一手」2026-07-10）。GAS next_actions を表示。 */
-var NA_META={done:{c:'na-done',t:'🎉完走'},idle:{c:'na-idle',t:'😴サボり'},stuck:{c:'na-stuck',t:'⚠️つまずき'},rush:{c:'na-rush',t:'💨雑'},ok:{c:'na-ok',t:'✅順調'},na:{c:'na-na',t:'👀様子見'}};
+var NA_META={done:{c:'na-done',t:'🎉完走'},idle:{c:'na-idle',t:'😴サボり'},stuck:{c:'na-stuck',t:'⚠️つまずき'},rush:{c:'na-rush',t:'💨雑'},ok:{c:'na-ok',t:'✅順調'},na:{c:'na-na',t:'👀未評価'}};
 var NA_ORDER=['done','idle','stuck','rush','ok','na'];
 var NA_SEV={stuck:5,idle:4,rush:3,done:2,ok:1,na:0};
 function naList(s){var a=s.next_actions||[];return NA_ORDER.filter(function(k){return a.indexOf(k)>=0;});}
@@ -1072,7 +1072,7 @@ function naWhy(s,k){
   if(k==='stuck'){var wp=weakPartName(s);return {t:'⚠️ つまずき',why:'正答率が基準未満'+(wp?'（弱点：'+esc(wp)+'）':'')+'。下のパート内訳の赤を確認。',btn:'<span class="sd-actnote">→ 右の「まちがいを印刷」で対策プリント</span>'};}
   if(k==='rush')return {t:'💨 雑（パッと押し）',why:'2秒未満の誤答が目立ちます。答えを見ずに押している可能性。',btn:'<span class="sd-actnote">ていねいにやるよう声かけ</span>'};
   if(k==='ok')return {t:'✅ 順調',why:'学習を続けていて基準クリア・弱点なし。',btn:'<span class="sd-actnote">手当て不要（そのまま）</span>'};
-  if(k==='na')return {t:'👀 様子見',why:'学習回数がまだ少なく、判定を保留しています。',btn:'<span class="sd-actnote">もう少し様子見</span>'};
+  if(k==='na')return {t:'👀 未評価',why:'まだ一度も学習していません（未着手・データなし）。',btn:'<span class="sd-actnote">学習を始めるよう声かけ</span>'};
   return {t:k,why:'',btn:''};
 }
 function naDetailBlock(s){var ks=naList(s);if(!ks.length)return '';
