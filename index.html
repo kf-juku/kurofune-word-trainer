@@ -791,11 +791,12 @@ function call(b,_try){b.token=token;_try=_try||1;return fetch(GAS_URL,{method:'P
    ログイン・ログアウト時にキャッシュを消す（別生徒のデータが一瞬見えるのを防ぐ）。 */
 var HOME_CACHE_KEY='kwt_home_cache_v1';
 function homeCacheGet_(){try{return JSON.parse(localStorage.getItem(HOME_CACHE_KEY)||'{}');}catch(e){return {};}}
-function homeCachePut_(k,d){try{var c=homeCacheGet_();c[k]=d;localStorage.setItem(HOME_CACHE_KEY,JSON.stringify(c));}catch(e){}}
+function homeCachePut_(k,d){try{var c=homeCacheGet_();c[k]=d;c._day=todayStr_();/* JST日付を焼き込む（日付ガード用）川上さん報告2026-07-11 */localStorage.setItem(HOME_CACHE_KEY,JSON.stringify(c));}catch(e){}}
 function homeCacheClear_(){try{localStorage.removeItem(HOME_CACHE_KEY);}catch(e){}}
 function callCached(body,render){
-  var c=homeCacheGet_()[body.action];
-  if(c&&c.ok){try{render(c,true);}catch(e){}}
+  var _cache=homeCacheGet_();var c=_cache[body.action];
+  var _fresh=(_cache._day===todayStr_()); /* 日付をまたいだら前日キャッシュは描画しない（赤●・デイリー・おさらいが前日の状態で一瞬出るのを防ぐ）川上さん報告 2026-07-11 */
+  if(_fresh&&c&&c.ok){try{render(c,true);}catch(e){}}
   call(body).then(function(d){if(d&&d.ok)homeCachePut_(body.action,d);render(d,false);});
 }
 /* ===== 先読みD（川上さん承認 2026-07-05）：ホーム表示中に今日の単語を裏で取得 ===== */
