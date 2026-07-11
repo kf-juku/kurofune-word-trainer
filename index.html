@@ -543,7 +543,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         </div>
       </div>
       <div class="card" id="step-e2j" style="display:none;">
-        <div class="word-en" id="e2j-en"></div><p class="center muted" id="e2j-label" style="margin-bottom:14px;">意味を選ぼう</p><div id="e2j-choices"></div>
+        <div class="word-en" id="e2j-en"></div><div class="reading" id="e2j-reading" style="display:none;"></div><p class="center muted" id="e2j-label" style="margin-bottom:14px;">意味を選ぼう</p><div id="e2j-choices"></div>
       </div>
       <div class="card" id="step-j2e" style="display:none;">
         <div class="word-en" id="j2e-ja" style="font-size:30px;"></div><p class="center muted" id="j2e-label" style="margin-bottom:14px;">英語を選ぼう</p><div id="j2e-choices"></div>
@@ -1292,8 +1292,8 @@ session={listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEngli
 function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';$('step-label').textContent=(s.idx+1)+' / '+totalSteps+'語目';
   if(w.qtype==='table_fill'){renderTF();return;} // 表穴埋め（問題タイプ拡張 2026-07-05）
   var _tl=(s.content_type==='test')?0:qSecFor(s.subject); // テスト配信は制限なし（川上さん確定2026-07-04）
-  if(s.step===1){hideQTimer();$('w-en').textContent=w.english;$('w-reading').textContent=w.reading_hint||'';$('step-listen').style.display='block';hideListen_();pronBegin_();} // 正解音声は先に流さない（川上さん確定 2026-07-06）
-  else if(s.step===2){$('e2j-label').textContent='意味を選ぼう';$('e2j-en').textContent=w.english;buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok,_el){measAns_(_el,ok);if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderStep();}});$('step-e2j').style.display='block';showListen_(w,s.isEnglish);}
+  if(s.step===1){hideQTimer();$('w-en').textContent=w.english;var _wr=$('w-reading');if(_wr){_wr.textContent='';_wr.style.display='none';} /* 発音ステップは読みを出さない（答えバレ防止）川上さん確定 2026-07-11 */$('step-listen').style.display='block';hideListen_();pronBegin_();} // 正解音声は先に流さない（川上さん確定 2026-07-06）
+  else if(s.step===2){$('e2j-label').textContent='意味を選ぼう';$('e2j-en').textContent=w.english;var _er=$('e2j-reading');if(_er){_er.textContent=w.reading_hint||'';_er.style.display=w.reading_hint?'':'none';}buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok,_el){measAns_(_el,ok);if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderStep();}});$('step-e2j').style.display='block';showListen_(w,s.isEnglish);}
   else if(s.step===3){$('j2e-label').textContent=(s.isEnglish===false)?'用語を選ぼう':'英語を選ぼう';$('j2e-ja').textContent=w.japanese;var _qd3=tfParse(w);var _fx3=(_qd3&&_qd3.choices&&_qd3.choices.length)?_qd3.choices:null;buildChoices('j2e-choices',w.english,s.words.filter(function(x){var _qx=tfParse(x);return !(_qx&&_qx.choices&&_qx.choices.length);}).map(function(x){return x.english;}),function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,reading:(s.isEnglish===false?w.reading_hint:''),promptText:w.japanese,fixedChoices:_fx3,next:function(){nextWord();}});$('step-j2e').style.display='block';showListen_(w,s.isEnglish);}}
 function pushMiss(id){if(session.miss.indexOf(id)<0)session.miss.push(id);}
 /* ===== 表穴埋め（table_fill）レンダラー：同一asset保持・連続出題の汎用フロー（設計仕様_問題タイプ拡張 2026-07-05） ===== */
@@ -1633,7 +1633,7 @@ var TIPS=[
  {t:'見ながら「できた」は本番では出せない。何も見ずにできるかで確かめよう。'},
  {t:'まちがえた単語ほど、あとでもう一回やると効く。まちがいは伸びしろ。'},
  {t:'短くても毎日つづけるほうが、たまに長くやるより覚えやすい。'},
- {e:'star',t:'<b>【流れ星】</b>は、今日きみと同じようにがんばった仲間。タップで応援を送ってみよう。'},
+ {e:'star',t:'<b>【クロフネのなかま】</b>は、きょう クロフネで きみと同じようにがんばった子。応援を送ってみよう。'},
  {e:'review',t:'<b>【おさらい】</b>は、忘れたころにもう一度出てくるしくみ。ここで思い出せると、しっかり定着する。'},
  {e:'note',t:'<b>【間違いノート】</b>は、きみがまちがえた単語だけを集めた自分専用の復習。ここをつぶすと点が伸びる。'},
  {e:'daily',t:'今日のぶんが終わっても、その先に進んでOK。<b>【毎日学習】</b>はやる気があるだけ先に行ける。'}
