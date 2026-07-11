@@ -1186,7 +1186,7 @@ function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$
   var _tl=(s.content_type==='test')?0:qSecFor(s.subject); // テスト配信は制限なし（川上さん確定2026-07-04）
   if(s.step===1){hideQTimer();$('w-en').textContent=w.english;$('w-reading').textContent=w.reading_hint||'';$('step-listen').style.display='block';hideListen_();pronBegin_();} // 正解音声は先に流さない（川上さん確定 2026-07-06）
   else if(s.step===2){$('e2j-label').textContent='意味を選ぼう';$('e2j-en').textContent=w.english;buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok,_el){measAns_(_el,ok);if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderStep();}});$('step-e2j').style.display='block';showListen_(w,s.isEnglish);}
-  else if(s.step===3){$('j2e-label').textContent=(s.isEnglish===false)?'用語を選ぼう':'英語を選ぼう';$('j2e-ja').textContent=w.japanese;buildChoices('j2e-choices',w.english,s.words.map(function(x){return x.english;}),function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,reading:(s.isEnglish===false?w.reading_hint:''),next:function(){nextWord();}});$('step-j2e').style.display='block';showListen_(w,s.isEnglish);}}
+  else if(s.step===3){$('j2e-label').textContent=(s.isEnglish===false)?'用語を選ぼう':'英語を選ぼう';$('j2e-ja').textContent=w.japanese;var _qd3=tfParse(w);var _fx3=(_qd3&&_qd3.choices&&_qd3.choices.length)?_qd3.choices:null;buildChoices('j2e-choices',w.english,s.words.map(function(x){return x.english;}),function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,reading:(s.isEnglish===false?w.reading_hint:''),promptText:w.japanese,fixedChoices:_fx3,next:function(){nextWord();}});$('step-j2e').style.display='block';showListen_(w,s.isEnglish);}}
 function pushMiss(id){if(session.miss.indexOf(id)<0)session.miss.push(id);}
 /* ===== 表穴埋め（table_fill）レンダラー：同一asset保持・連続出題の汎用フロー（設計仕様_問題タイプ拡張 2026-07-05） ===== */
 function tfParse(w){try{return JSON.parse(w.qdata||'{}');}catch(e){return{};}}
@@ -1441,7 +1441,12 @@ $('btn-skip').onclick=function(){countSelfReportIfNeeded();pronNext_();}; // ス
 function buildChoices(containerId,correct,pool,onResult,opts){
   opts=opts||{};var _t0=Date.now();
   var box=$(containerId);box.innerHTML='';
-  var others=opts.fixedChoices?shuffle(opts.fixedChoices.filter(function(x){return x!==correct;})).slice(0,3):shuffle(pool.filter(function(x){return x!==correct;})).slice(0,3); // fixedChoices=表穴埋め等の固定選択肢 2026-07-05
+  var _pt=String(opts.promptText||''); // 問題文（この語はダミー選択肢に出さない）川上さん指示 2026-07-10
+  function _notInPrompt(x){ return !_pt || _pt.indexOf(String(x))===-1; }
+  var _base;
+  if(opts.fixedChoices){ _base=opts.fixedChoices.filter(function(x){return x!==correct;}); } // 専用選択肢(qdata.choices/表穴埋め)は作成者が選んだものなので問題文除外は効かせない 2026-07-10
+  else { _base=pool.filter(function(x){return x!==correct;}).filter(_notInPrompt); } // ランダムpoolのときだけ問題文の語を除外
+  var others=shuffle(_base).slice(0,3);
   var choices=shuffle([correct].concat(others));
   var answered=false;
   function finish(ok,picked){
@@ -1706,7 +1711,7 @@ function renderNoteStep(){hideQTimer();
     $('j2e-ja').textContent=w.japanese;
     buildNoteChoices('j2e-choices',w.english,w.wrong_choices_en,function(ok){
       if(!ok)s.wordOK=false;
-    },{kaisetsu:w.kaisetsu,reading:(s.subject!=='english'?w.reading_hint:''),next:function(){submitNoteWord();}});
+    },{kaisetsu:w.kaisetsu,reading:(s.subject!=='english'?w.reading_hint:''),promptText:w.japanese,next:function(){submitNoteWord();}});
     $('step-j2e').style.display='block';
   }
 }
@@ -1714,7 +1719,8 @@ function renderNoteStep(){hideQTimer();
 function buildNoteChoices(containerId,correct,wrongs,onResult,opts){
   opts=opts||{};
   var box=$(containerId);box.innerHTML='';
-  var others=shuffle((wrongs||[]).slice()).slice(0,3);
+  var _pt=String(opts.promptText||''); // 問題文の語はダミーから除外（川上さん指示 2026-07-10）
+  var others=shuffle((wrongs||[]).filter(function(x){return !_pt||_pt.indexOf(String(x))===-1;})).slice(0,3);
   var choices=shuffle([correct].concat(others));
   var answered=false;
   function finish(ok,picked){
@@ -1855,7 +1861,7 @@ function renderSrsStep(){
     $('j2e-ja').textContent=w.japanese;
     buildChoices('j2e-choices',w.english,pool.map(function(x){return x.english;}),function(ok){
       if(!ok)s.wordOK=false;
-    },{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){submitSrsWord();}});
+    },{timeLimit:_tl,kaisetsu:w.kaisetsu,promptText:w.japanese,next:function(){submitSrsWord();}});
     $('step-j2e').style.display='block';
   }
 }
