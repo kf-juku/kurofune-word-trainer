@@ -411,6 +411,22 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   .kwtld{display:inline-block;vertical-align:middle;}
   .kwtld .o{animation:kwtldspin 2.4s linear infinite;transform-origin:50% 50%;}
   .kwtld .i{animation:kwtldrspin 1.7s linear infinite;transform-origin:50% 50%;}
+  /* ===== バグ報告（各画面から押せる）2026-07-11 ===== */
+  .bug-fab{position:fixed;right:16px;bottom:20px;z-index:70;display:flex;align-items:center;gap:7px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:26px;padding:10px 15px 10px 12px;box-shadow:0 6px 22px rgba(20,24,40,.18);cursor:pointer;font-family:inherit;}
+  .bug-fab i{font-size:19px;color:var(--accent);}
+  .bug-fab span{font-size:13px;font-weight:700;}
+  .bug-fab:active{transform:translateY(2px);}
+  .bug-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .bug-chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:9px 12px;font-size:13.5px;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;}
+  .bug-chip .tk{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line);display:inline-grid;place-items:center;font-size:11px;color:#fff;}
+  .bug-chip.sel{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700;}
+  .bug-chip.sel .tk{background:var(--accent);border-color:var(--accent);}
+  .bug-field{margin-bottom:16px;}
+  .bug-field>label{font-size:13px;font-weight:700;display:block;margin:0 0 8px;}
+  .bug-field select{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:14px;font-family:inherit;background:var(--surface);color:var(--ink);}
+  .bug-lbl{font-size:13px;font-weight:700;display:block;margin:0 0 8px;}
+  .bug-lbl .opt{font-size:11.5px;color:var(--sub);font-weight:500;margin-left:4px;}
+  .bug-ta{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--ink);resize:vertical;min-height:60px;margin-bottom:16px;}
 </style>
 </head>
 <body>
@@ -573,10 +589,52 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     </div>
   </div>
 </div>
+<button class="bug-fab" id="bug-fab" onclick="openBug()" style="display:none;" aria-label="不具合を報告"><i class="ti ti-message-report"></i><span>不具合を報告</span></button>
+<div class="modal-mask" id="bug-mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bug-title">
+    <div id="bug-form">
+      <h3 id="bug-title"><i class="ti ti-message-report" style="color:var(--accent);margin-right:6px;"></i>不具合・バグの報告</h3>
+      <p class="hint">うまく動かないところがあれば教えてください。勘違いでも大丈夫なので、気軽に送ってください。</p>
+      <label class="bug-lbl">どんな不具合ですか？<span class="opt">近いものを選ぶ（いくつでも）</span></label>
+      <div class="bug-chips" id="bug-chips">
+        <button type="button" class="bug-chip" data-cat="音が鳴らない" onclick="bugPick(this)"><span class="tk"></span>音が鳴らない</button>
+        <button type="button" class="bug-chip" data-cat="点数・結果が出ない／止まる" onclick="bugPick(this)"><span class="tk"></span>点数・結果が出ない／止まる</button>
+        <button type="button" class="bug-chip" data-cat="画面が固まる・真っ白" onclick="bugPick(this)"><span class="tk"></span>画面が固まる・真っ白</button>
+        <button type="button" class="bug-chip" data-cat="表示・文字がおかしい" onclick="bugPick(this)"><span class="tk"></span>表示・文字がおかしい</button>
+        <button type="button" class="bug-chip" data-cat="ボタンが反応しない" onclick="bugPick(this)"><span class="tk"></span>ボタンが反応しない</button>
+        <button type="button" class="bug-chip" data-cat="ログインできない" onclick="bugPick(this)"><span class="tk"></span>ログインできない</button>
+        <button type="button" class="bug-chip" data-cat="その他" onclick="bugPick(this)"><span class="tk"></span>その他</button>
+      </div>
+      <div class="bug-field">
+        <label>どの画面で起きましたか？</label>
+        <select id="bug-screen"></select>
+      </div>
+      <label class="bug-lbl">くわしく教えてください<span class="opt">任意・タップして入力できます</span></label>
+      <textarea class="bug-ta" id="bug-msg" placeholder="例：2問目のこたえを押したあと、画面が止まって進めなくなった"></textarea>
+      <div class="row">
+        <button class="btn ghost" type="button" onclick="closeBug()">やめる</button>
+        <button class="btn" type="button" id="bug-send" disabled onclick="submitBug()"><i class="ti ti-send"></i> 送る</button>
+      </div>
+    </div>
+    <div id="bug-send-pane" style="display:none;text-align:center;">
+      <div id="bug-spin" style="margin:12px 0 8px;"></div>
+      <div style="font-weight:700;font-size:15px;">送っています…</div>
+      <div style="font-size:12.5px;color:var(--sub);margin-top:4px;">少し待ってください</div>
+    </div>
+    <div id="bug-done-pane" style="display:none;text-align:center;">
+      <div style="width:60px;height:60px;border-radius:50%;background:rgba(31,170,107,.13);color:var(--ok);display:grid;place-items:center;font-size:30px;margin:8px auto 12px;"><i class="ti ti-check"></i></div>
+      <div style="font-weight:800;font-size:17px;">送れました。ありがとう！</div>
+      <div style="font-size:12.5px;color:var(--sub);margin:6px 0 16px;line-height:1.7;">先生が確認して直します。<br>教えてくれて助かりました。</div>
+      <button class="btn" type="button" onclick="closeBug()">とじる</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
+var APP_VERSION="kwt-2026-07-11"; /* バグ報告に自動添付するアプリ版（更新のたびに日付を上げる）2026-07-11 */
+var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 var token=localStorage.getItem('kwt_token')||'';
 var nickname=localStorage.getItem('kwt_nick')||'';
 /* ===== デイリー未完了●（本日の学習/おさらい/間違いノート）2026-07-04 ===== */
@@ -598,7 +656,7 @@ function kwtSpin(px){px=px||64;return '<svg class="kwtld" viewBox="0 0 120 120" 
   +'<g class="o" style="transform-origin:60px 60px"><rect x="36" y="36" width="48" height="48" rx="3" fill="none" stroke="#caa24a" stroke-width="2" opacity=".55" transform="rotate(45 60 60)"/></g>'
   +'<g class="i" style="transform-origin:60px 60px"><rect x="48" y="48" width="24" height="24" rx="2" fill="none" stroke="#0a6cff" stroke-width="2.6" opacity=".85"/></g>'
   +'<circle cx="60" cy="60" r="4" fill="#0a6cff"/></svg>';}
-function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');window.scrollTo(0,0);}
+function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}}
 /* 学習マップの1行（川上さん承認モック 2026-07-05）。inFold=クリアずみ枠内（「もう一回」バッジつき・状態文言なし） */
 function buildMapRow(l,isTest,inFold){
   var row=document.createElement('div');row.className='list-row';
@@ -1936,6 +1994,51 @@ function loadBadges(){
 }
 
 if(token){var _rv=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}openHome();try{if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}}catch(e){}} // 更新後に最後のサブ画面を復元（openHome内のbackToTiles()が復元キーを消すので、必ず先に読む・川上さん確定2026-07-06）
+
+/* ===== 生徒バグ報告（各画面から押せる・記録のみ＝メールは朝まとめ）2026-07-11 ===== */
+var _bugSending=false;
+/* 報告ボタンの表示：BUG_FAB_SCREENS で出す画面を絞れる（null=全画面） */
+function refreshBugFab(){var fab=$('bug-fab');if(!fab)return;var a=document.querySelector('.screen.active');var id=a?a.id:'';var showIt=(!BUG_FAB_SCREENS)||(BUG_FAB_SCREENS.indexOf(id)>=0);fab.style.display=showIt?'flex':'none';}
+/* いま開いている画面の名前（報告のデフォルト値。ちがえば生徒が選び直す） */
+function currentScreenName(){
+  var a=document.querySelector('.screen.active');var id=a?a.id:'';
+  if(id==='scr-login')return 'ログイン';
+  if(id==='scr-done')return '結果画面';
+  if(id==='scr-practice'){if(session&&session.quizMode)return '確認テスト';if(session&&session.fromReview)return 'おさらい';return 'メイン学習（英単語）';}
+  if(id==='scr-home'){var v='';try{v=sessionStorage.getItem('kwt_view')||'';}catch(e){}if(v&&SUB_TITLES[v])return SUB_TITLES[v];return 'ホーム';}
+  return 'その他';
+}
+function bugPick(el){el.classList.toggle('sel');var m=el.querySelector('.tk');if(m)m.innerHTML=el.classList.contains('sel')?'<i class="ti ti-check"></i>':'';var any=document.querySelectorAll('#bug-chips .bug-chip.sel').length>0;$('bug-send').disabled=!any||_bugSending;}
+function openBug(){
+  document.querySelectorAll('#bug-chips .bug-chip').forEach(function(c){c.classList.remove('sel');var m=c.querySelector('.tk');if(m)m.innerHTML='';});
+  $('bug-msg').value='';
+  var base=['ホーム','メイン学習（英単語）','おさらい','確認テスト','間違いノート','じぶんの記録・バッジ・なかま','ログイン','わからない'];
+  var cur=currentScreenName();var list=base.slice();if(list.indexOf(cur)<0)list.unshift(cur);
+  $('bug-screen').innerHTML=list.map(function(x){return '<option value="'+esc(x)+'"'+(x===cur?' selected':'')+'>'+esc(x)+'</option>';}).join('');
+  $('bug-form').style.display='block';$('bug-send-pane').style.display='none';$('bug-done-pane').style.display='none';
+  $('bug-send').disabled=true;_bugSending=false;
+  $('bug-mask').classList.add('show');
+}
+function closeBug(){$('bug-mask').classList.remove('show');}
+function submitBug(){
+  if(_bugSending)return;
+  var cats=[];document.querySelectorAll('#bug-chips .bug-chip.sel').forEach(function(c){cats.push(c.getAttribute('data-cat'));});
+  var msg=$('bug-msg').value.trim();
+  if(!cats.length&&!msg){toast('近いものを選ぶか、内容を書いてね');return;}
+  _bugSending=true;$('bug-send').disabled=true;
+  $('bug-form').style.display='none';$('bug-send-pane').style.display='block';$('bug-spin').innerHTML=kwtSpin(72);
+  var reportId='BR_'+Date.now()+'_'+Math.random().toString(36).slice(2,10); /* 冪等キー：二重送信を弾く */
+  call({action:'bug_report',student_name:nickname||'',screen:$('bug-screen').value,category:cats.join('、'),message:msg,user_agent:navigator.userAgent,app_version:APP_VERSION,report_id:reportId}).then(function(r){
+    _bugSending=false;
+    if(r&&r.ok){$('bug-send-pane').style.display='none';$('bug-done-pane').style.display='block';}
+    else{ /* 成功と偽らない：フォームに戻して知らせる */
+      $('bug-send-pane').style.display='none';$('bug-form').style.display='block';$('bug-send').disabled=false;
+      toast((r&&r.error)?r.error:'送信に失敗しました。もう一度おしてください。');
+    }
+  });
+}
+try{refreshBugFab();}catch(e){}
+
 </script>
 </body>
 </html>
