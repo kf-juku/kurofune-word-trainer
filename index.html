@@ -148,7 +148,19 @@
   .tmate .ava{width:42px;height:42px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
   .tmate .info{flex:1;min-width:0;}
   .tmate .nm{font-weight:700;font-size:15px;}
-  .tmate .meta{font-size:12px;color:var(--sub);margin-top:2px;}
+  .tmate .meta{font-size:12px;color:var(--sub);margin-top:3px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;}
+  .chip.streak{background:rgba(202,162,74,.14);color:var(--gold);}
+  .chip.week{background:var(--accent-soft);color:var(--accent);}
+  .chip.badge{background:rgba(31,170,107,.12);color:var(--ok);}
+  .today-did{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);}
+  .today-did .h{font-size:12px;font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+  .today-did .h i{color:var(--gold);}
+  .today-did .row{display:flex;flex-wrap:wrap;gap:8px;}
+  .cheered{background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(10,108,255,.08));border:1px solid rgba(202,162,74,.55);border-radius:18px;padding:16px;margin-bottom:14px;animation:cin .5s ease;}
+  @keyframes cin{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  .cheered .ch{font-size:16px;font-weight:700;display:flex;gap:9px;align-items:flex-start;line-height:1.45;}
+  .cheered .ch>i{color:var(--gold);font-size:23px;margin-top:1px;flex:none;}
   .tmate .meta .today{color:var(--ok);font-weight:700;}
   .likes{display:flex;gap:7px;flex-shrink:0;}
   .likebtn{position:relative;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .12s,background .2s,border-color .2s,opacity .2s;-webkit-tap-highlight-color:transparent;}
@@ -560,6 +572,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <div class="done-miss" id="done-miss"></div>
         </div>
       </div>
+      <div id="today-did-area"></div>
       <div id="star-area"></div>
       <div style="margin-top:14px;">
         <button class="btn gold" id="btn-next" style="display:none;"><i class="ti ti-arrow-right"></i> つぎのDAYへ進む</button>
@@ -670,7 +683,7 @@ function buildMapRow(l,isTest,inFold){
   return row;
 }
 /* ===== タイル型ホームのビュー切替（2026-06-24）===== */
-var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でも復習',team:'チームの仲間',overall:'クロフネ全体',records:'じぶんの記録',quiz:'確認テスト'};
+var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でも復習',team:'チームのなかま',overall:'クロフネ全体',records:'じぶんの記録',quiz:'確認テスト'};
 function showSub(name){
   try{sessionStorage.setItem('kwt_view',name);}catch(e){} // スマホ更新で最後の画面を復元（川上さん確定2026-07-06）
   $('home-tiles').style.display='none';
@@ -1008,10 +1021,12 @@ function loadTeamFeed(){
     if(!d.ok){area.innerHTML='<p class="muted">—</p>';$('cnt-team').textContent='–';return;}
     if(!d.data.in_team){area.innerHTML='<div class="tmate empty">まだチームに入っていないよ。先生がチームを作ってくれるのを待ってね。</div>';$('cnt-team').textContent='まだチームなし';return;}
     var ms=d.data.members||[];
-    $('cnt-team').innerHTML='なかま <b>'+ms.length+'</b>人';
-    if(!ms.length){area.innerHTML='<div class="tmate empty">いまはチームにあなただけ。仲間が増えるのを待ってね。</div>';$('cnt-team').textContent='あなただけ';return;}
+    if(!ms.length){area.innerHTML='<div class="tmate empty">いまはチームにあなただけ。仲間が増えるのを待ってね。</div>';$('cnt-team').textContent='あなただけ';renderChill(ms);return;}
+    var active=ms.filter(function(m){return m.did_today;}); // 今日やった子だけ表示・応援対象（やってない子は晒さない）川上さん確定 2026-07-11
+    $('cnt-team').innerHTML='今日がんばった仲間 <b>'+active.length+'</b>人';
     area.innerHTML='';
-    ms.forEach(function(m){area.appendChild(buildMate(m));});
+    if(!active.length){area.innerHTML='<div class="tmate empty">今日はまだ、がんばっている仲間はいないよ。だれかがやったら ここに出てくるよ。</div>';}
+    else{active.forEach(function(m){area.appendChild(buildMate(m));});}
     renderChill(ms);  // 仲間チル演出（ホーム。川上さん確定 2026-07-03）
   });
 }
@@ -1071,8 +1086,8 @@ function buildStarCard(star){
     cheer+='<button class="cheerbtn" data-to="'+star.student_id+'" data-type="'+t+'" aria-label="'+LIKE_LABEL[t]+'">'+LIKE_ICONS[t]+'<span class="cl">'+LIKE_LABEL[t]+'</span></button>';
   });
   cheer+='</div>';
-  wrap.innerHTML='<div class="star-head"><i class="ti ti-star"></i> 流れ星がとんできた！</div>'
-    +'<div class="star-copy">きみと同じように <b>今日がんばった なかま</b>だよ。タップで応援しよう！</div>'
+  wrap.innerHTML='<div class="star-head"><i class="ti ti-star"></i> クロフネのなかま</div>'
+    +'<div class="star-copy">きょう クロフネで <b>同じようにがんばった子</b>だよ。応援しよう！</div>'
     +'<div class="star-mate"><div class="star-ava">'+ini+'</div>'
     +'<div class="star-info"><div class="star-nick">'+star.nickname+'</div>'
     +'<div class="star-ach">'+(star.achievement||'')+' に合格したよ</div></div></div>'
@@ -1111,6 +1126,21 @@ function relDay(day){
   if(diff===1)return 'きのう';
   return diff+'日前';
 }
+// 新しく届いた応援のお祝い文（人数で言い方を変える・名前つき）2026-07-11
+function cheeredCopy_(names){
+  var e=names.map(function(x){return esc(x);});
+  if(e.length===1)return e[0]+'さんが 応援してくれたよ！';
+  if(e.length===2)return e[0]+'さんと '+e[1]+'さんが 応援してくれたよ！';
+  return e[0]+'さん ほか'+(e.length-1)+'人が 応援してくれたよ！';
+}
+function showCheeredBurst_(names){
+  var area=$('star-recv-area');if(!area)return;
+  var el=document.createElement('div');el.className='cheered';
+  el.innerHTML='<div class="ch"><i class="ti ti-confetti"></i><div>'+cheeredCopy_(names)+'</div></div>';
+  area.insertBefore(el,area.firstChild);
+  try{confetti(46);}catch(e){}
+  try{sndCheerRecv();recvSoundDone=true;}catch(e){}
+}
 var recvSoundDone=false; // 受信音はホームを開いた1回だけ（毎回鳴らすとうるさい）
 function loadStarReceived(){
   callCached({action:'star_received'},function(d){
@@ -1120,6 +1150,20 @@ function loadStarReceived(){
     var pop=$('home-star-pop');if(pop)pop.style.display='none';
     if(!d.ok||!d.data||!d.data.count)return;   // 0件は出さない
     var n=d.data.count;
+    // 新しく届いた応援だけをお祝い（端末に前回見た数を保存・GAS変更なし）2026-07-11
+    try{
+      var _seenKey='kwt_recv_seen_'+(nickname||'');
+      var _prev=localStorage.getItem(_seenKey);
+      if(_prev!==null){
+        var _prevN=parseInt(_prev,10)||0;
+        if(n>_prevN){
+          var _it=d.data.items||[],_seen={},_names=[],_need=n-_prevN;
+          _it.slice(0,Math.min(_need,_it.length)).forEach(function(r){var nk=r.nickname||'なかま';if(!_seen[nk]){_seen[nk]=true;_names.push(nk);}});
+          if(_names.length)showCheeredBurst_(_names);
+        }
+      }
+      localStorage.setItem(_seenKey,String(n));
+    }catch(e){}
     // なかまタイル右上に応援数の赤バッジ（合意2026-06-22：応援通知はなかまタイルに集約）
     if(dt){dt.textContent=n;dt.classList.add('on');}
     if(pop){$('star-pop-txt').textContent='きみに '+n+' 個の応援がとどいたよ！';pop.style.display='flex';}
@@ -1146,8 +1190,14 @@ function loadStarReceived(){
 function buildMate(m){
   var row=document.createElement('div');row.className='tmate';
   var ini=(m.nickname||'?').slice(0,1);
-  var meta=m.did_today?'<span class="today">今日やったよ！</span>　今週 '+(m.week_words||0)+'語'
-                       :(m.last_studied?('さいご '+m.last_studied+'　今週 '+(m.week_words||0)+'語'):'まだ学習がないよ');
+  var meta='';
+  if(m.did_today){
+    meta='<span class="today">今日やったよ！</span>';
+    if((m.streak||0)>=2)meta+='<span class="chip streak"><i class="ti ti-flame"></i> 連続'+m.streak+'日</span>';
+    meta+='<span class="chip week"><i class="ti ti-book"></i> 今週'+(m.week_words||0)+'語</span>';
+  }else{
+    meta=(m.last_studied?'さいご '+m.last_studied:'まだ学習がないよ');
+  }
   // 択一（川上さん確定 2026-07-03 grill）：今日この相手に送った1種を sent・残り2種を off で表示
   var sentType=null;
   ['like','great','congrats'].forEach(function(t){if(!sentType&&m.like_state&&m.like_state[t]==='sent')sentType=t;});
@@ -1157,12 +1207,11 @@ function buildMate(m){
     likesHtml+='<button class="likebtn'+(sent?' sent':'')+(sentType&&!sent?' off':'')+'" data-to="'+m.student_id+'" data-type="'+t+'" aria-label="'+LIKE_LABEL[t]+'"'+(sent?' disabled':'')+'>'+LIKE_ICONS[t]+'<span class="chk" aria-hidden="true"><i class="ti ti-check"></i></span></button>';
   });
   likesHtml+='</div>';
-  var badgeHtml='';
-  if(m.top_badge){
+  if(m.did_today&&m.top_badge){
     var bic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[m.top_badge.axis])||'ti-award';
-    badgeHtml='<div class="mate-badge"><i class="ti '+bic+'"></i>'+m.top_badge.label+' '+m.top_badge.goal+m.top_badge.unit+'</div>';
+    meta+='<span class="chip badge"><i class="ti '+bic+'"></i> '+m.top_badge.label+'</span>'; // バッジも今日のがんばりチップで 2026-07-11
   }
-  row.innerHTML='<div class="ava">'+ini+'</div><div class="info"><div class="nm">'+m.nickname+'</div><div class="meta">'+meta+'</div>'+badgeHtml+'</div>'+likesHtml;
+  row.innerHTML='<div class="ava">'+ini+'</div><div class="info"><div class="nm">'+m.nickname+'</div><div class="meta">'+meta+'</div></div>'+likesHtml;
   var mateNick=m.nickname||'なかま';
   row.querySelectorAll('.likebtn').forEach(function(b){
     if(b.disabled)return;
@@ -1644,6 +1693,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   else{$('done-rate').innerHTML='意味 <span id="done-mr">'+mr+'</span>％ ・ 日本語→英語 <span id="done-rr">'+rr+'</span>％';}
   animNum($('score-anim'),score,900); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
+  var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
   $('star-area').innerHTML='<div class="sw-load">'+kwtSpin(24)+'<span>保存中…</span></div>'+tipHtml_();
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
   $('btn-retry').style.display='flex';$('btn-next').style.display='none';lockBtns(true);
@@ -1651,6 +1701,12 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:(Date.now()-(s.startedMs||Date.now())),rush_wrong_count:Object.keys(s._rushWords||{}).length}).then(function(d){
     clearTimeout(_saveGuard);lockBtns(false);var _db2=$('done-badge');if(_db2)_db2.style.display='';
     if(!d.ok){$('star-area').innerHTML='';$('done-result').textContent='結果の保存に失敗しました。もう一回ためしてね';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
+    (function(){var ar=$('today-did-area');if(!ar)return;ar.innerHTML='';var chips='';
+      if((d.data.today_streak||0)>=2)chips+='<span class="chip streak"><i class="ti ti-flame"></i> 連続'+d.data.today_streak+'日</span>';
+      if((d.data.week_words||0)>0)chips+='<span class="chip week"><i class="ti ti-book"></i> 今週'+d.data.week_words+'語</span>';
+      if(d.data.today_top_badge){var tb=d.data.today_top_badge;var bic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[tb.axis])||'ti-award';chips+='<span class="chip badge"><i class="ti '+bic+'"></i> '+tb.label+'</span>';}
+      if(chips)ar.innerHTML='<div class="today-did"><div class="h"><i class="ti ti-flame"></i> きみの今日のがんばり</div><div class="row">'+chips+'</div></div>';
+    })();
     var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').textContent=d.data.lap+'周目';}else{dl.style.display='none';}}
     if(s.fromReview){
       /* テスト配信おさらい（卒業方式）の完了画面。機能仕様書_テスト配信 0章§5。2026-07-08 スライス3 */
