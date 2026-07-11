@@ -1698,7 +1698,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
   $('btn-retry').style.display='flex';$('btn-next').style.display='none';lockBtns(true);
   var _saveGuard=setTimeout(function(){lockBtns(false);},12000); // 保存が返らなくてもボタンは戻す（詰み防止）
-  call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:(Date.now()-(s.startedMs||Date.now())),rush_wrong_count:Object.keys(s._rushWords||{}).length}).then(function(d){
+  call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,word_ids:(s.words||[]).map(function(w){return w.id;}),mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:(Date.now()-(s.startedMs||Date.now())),rush_wrong_count:Object.keys(s._rushWords||{}).length}).then(function(d){
     clearTimeout(_saveGuard);lockBtns(false);var _db2=$('done-badge');if(_db2)_db2.style.display='';
     if(!d.ok){$('star-area').innerHTML='';$('done-result').textContent='結果の保存に失敗しました。もう一回ためしてね';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
     (function(){var ar=$('today-did-area');if(!ar)return;ar.innerHTML='';var chips='';
