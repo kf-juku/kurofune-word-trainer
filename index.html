@@ -417,6 +417,13 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 .tf-hole.cur{background:var(--accent-soft);border-bottom-color:var(--accent);color:var(--accent);animation:tfpulse 1.2s infinite}
 .tf-hole.ok{border-bottom-color:transparent;color:var(--ok)}
 @keyframes tfpulse{50%{opacity:.55}}
+/* ===== 図問題（image_fill・番号方式）2026-07-12：表穴埋めの素材保持フロー流用 ===== */
+.imgq-fig{background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px;text-align:center;margin-bottom:8px}
+.imgq-fig img{max-width:100%;max-height:320px;border-radius:8px;display:inline-block}
+.imgq-track{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:4px 0 2px}
+.imgq-track span{min-width:26px;height:26px;padding:0 4px;border-radius:50%;display:inline-grid;place-items:center;font-size:13px;font-weight:800;font-family:'Manrope','Noto Sans JP',sans-serif;background:var(--ring-track);color:var(--sub)}
+.imgq-track span.cur{background:var(--accent);color:#fff;animation:tfpulse 1.2s infinite}
+.imgq-track span.done{background:rgba(31,170,107,.18);color:var(--ok)}
   /* 幾何学スピナー（kurofune-testから流用・KWT色。川上さん指示2026-07-06：待ちのストレス軽減） */
   @keyframes kwtldspin{to{transform:rotate(360deg);}}
   @keyframes kwtldrspin{to{transform:rotate(-360deg);}}
@@ -1291,6 +1298,7 @@ function _startPracticeWith_(listId,d){if(!d.ok){toast(d.error||'読み込み失
 session={listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now()};session.fromReview=_fromReviewTest;_fromReviewTest=false;renderStep();}
 function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';$('step-label').textContent=(s.idx+1)+' / '+totalSteps+'語目';
   if(w.qtype==='table_fill'){renderTF();return;} // 表穴埋め（問題タイプ拡張 2026-07-05）
+  if(w.qtype==='image_fill'){renderIMG();return;} // 図問題（番号方式）2026-07-12
   var _tl=(s.content_type==='test')?0:qSecFor(s.subject); // テスト配信は制限なし（川上さん確定2026-07-04）
   if(s.step===1){hideQTimer();$('w-en').textContent=w.english;var _wr=$('w-reading');if(_wr){_wr.textContent='';_wr.style.display='none';} /* 発音ステップは読みを出さない（答えバレ防止）川上さん確定 2026-07-11 */$('step-listen').style.display='block';hideListen_();pronBegin_();} // 正解音声は先に流さない（川上さん確定 2026-07-06）
   else if(s.step===2){$('e2j-label').textContent='意味を選ぼう';$('e2j-en').textContent=w.english;var _er=$('e2j-reading');if(_er){_er.textContent=w.reading_hint||'';_er.style.display=w.reading_hint?'':'none';}buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok,_el){measAns_(_el,ok);if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderStep();}});$('step-e2j').style.display='block';showListen_(w,s.isEnglish);}
@@ -1322,6 +1330,28 @@ function renderTF(){
   var _tl=(s.content_type==='test')?0:qSecFor('table_fill'); // 表を読むため理社と同じ秒数（15秒）
   buildChoices('tf-choices',w.english,[],function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},
     {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,next:function(){nextWord();}});
+  $('step-tf').style.display='block';showListen_(w,s.isEnglish);
+}
+/* ===== 図問題（image_fill・番号方式）レンダラー 2026-07-12 =====
+   table_fillの「同一asset保持・連続出題」を流用。表の代わりに asset(kind=image) の画像を出し、
+   本に印刷済みの番号(qd.num=④など)を目印に「④が指す部分は？」を連続4択で出す。coord無し＝番号方式。
+   採点・間違いノート・正答率カウンタは他タイプと同じ「1行=1問」経路に乗る（設計仕様_問題タイプ拡張 §3c）。 */
+function imgHoles(words,assetId){var out=[];words.forEach(function(x,i){if(x.qtype==='image_fill'){var q=tfParse(x);if(String(q.asset)===String(assetId))out.push({i:i,q:q,w:x});}});return out;}
+function renderIMG(){
+  var s=session,w=s.words[s.idx],qd=tfParse(w);
+  var a=(s.assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}
+  var url=pl.url||pl.src||a.url||'';
+  var holes=imgHoles(s.words,qd.asset);var myN=0;holes.forEach(function(hh,n){hh.n=n+1;if(hh.i===s.idx)myN=n+1;});
+  var h='';
+  if(a.title){h+='<div class="tf-title">'+esc(a.title)+'</div>';}
+  h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';
+  if(holes.length>1){h+='<div class="imgq-track">';holes.forEach(function(hh){var st=hh.i<s.idx?'done':(hh.i===s.idx?'cur':'');var lb=hh.q.num||(TF_CIRC[hh.n]||hh.n);h+='<span class="'+st+'">'+esc(lb)+'</span>';});h+='</div>';}
+  $('tf-table').innerHTML=h;
+  if(qd.num){$('tf-ask').innerHTML='<b style="color:var(--accent)">'+esc(qd.num)+'</b> が指す部分の名前をえらぼう';}
+  else{$('tf-ask').innerHTML=esc(qd.ask||'この生物の名前をえらぼう');}
+  var _tl=(s.content_type==='test')?0:qSecFor('table_fill');
+  buildChoices('tf-choices',w.english,[],function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},
+    {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,promptText:w.japanese,next:function(){nextWord();}});
   $('step-tf').style.display='block';showListen_(w,s.isEnglish);
 }
 function nextWord(){var s=session;s.idx++;s.step=(s.isEnglish===false)?3:1;if(s.idx>=s.words.length){finishSession();}else renderStep();}
