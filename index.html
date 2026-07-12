@@ -418,9 +418,10 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 .tf-hole.ok{border-bottom-color:transparent;color:var(--ok)}
 @keyframes tfpulse{50%{opacity:.55}}
 /* ===== 図問題（image_fill・番号方式）2026-07-12：表穴埋めの素材保持フロー流用 ===== */
-.imgq-fig{background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px;text-align:center;margin-bottom:8px;position:relative;cursor:zoom-in}
-.imgq-fig img{max-width:100%;max-height:320px;border-radius:8px;display:inline-block}
-.imgq-fig::after{content:'🔍 タップで拡大';position:absolute;right:11px;bottom:11px;background:rgba(17,24,39,.72);color:#fff;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:20px;pointer-events:none}
+.imgq-fig{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;position:relative;overflow:hidden;height:min(46vh,360px);touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.imgq-fig img{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;max-width:none;border-radius:6px;user-select:none;-webkit-user-drag:none}
+.imgq-fig::before{content:'指でズーム・移動';position:absolute;top:8px;left:8px;z-index:2;background:var(--ring-track);color:var(--sub);font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;pointer-events:none}
+.imgq-fig::after{content:'タップで全画面';position:absolute;top:8px;right:8px;z-index:2;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;pointer-events:none}
 /* ===== 図の全画面ズーム 2026-07-13 ===== */
 .kzoom{position:fixed;inset:0;background:rgba(15,20,30,.94);z-index:9999;display:none;flex-direction:column}
 .kzoom.open{display:flex}
@@ -2236,12 +2237,46 @@ try{refreshBugFab();}catch(e){}
     stage.addEventListener('pointerup',up);stage.addEventListener('pointercancel',up);
     /* ホイール（PC） */
     stage.addEventListener('wheel',function(e){e.preventDefault();var p=rel(e);zoomAt(p.x,p.y,scale*(e.deltaY<0?1.15:1/1.15));},{passive:false});
-    /* 図タップで開く（委譲） */
-    document.addEventListener('click',function(e){
-      var fig=e.target.closest&&e.target.closest('.imgq-fig');
-      if(!fig)return;var im=fig.querySelector('img');if(!im||!im.src)return;
-      open(im.src);
-    });
+    /* 図：インラインで指ズーム/移動＋1回タップで全画面（2026-07-13 案Bボタン無し版・承認モックv2準拠） */
+    (function(){
+      var st=new WeakMap();
+      function im(fig){return fig.querySelector('img');}
+      function get(fig){var s=st.get(fig);if(!s){s={scale:1,tx:0,ty:0,fitS:1,minS:1,maxS:8,nW:0,nH:0,rdy:false};st.set(fig,s);}return s;}
+      function apl(fig){var s=get(fig),i=im(fig);if(i)i.style.transform='translate('+s.tx+'px,'+s.ty+'px) scale('+s.scale+')';}
+      function clamp(fig){var s=get(fig),vw=fig.clientWidth,vh=fig.clientHeight,w=s.nW*s.scale,h=s.nH*s.scale;if(w<=vw)s.tx=(vw-w)/2;else{if(s.tx>0)s.tx=0;if(s.tx<vw-w)s.tx=vw-w;}if(h<=vh)s.ty=(vh-h)/2;else{if(s.ty>0)s.ty=0;if(s.ty<vh-h)s.ty=vh-h;}}
+      function fitFig(fig){var s=get(fig),i=im(fig);if(!i)return;var nW=i.naturalWidth||i.width,nH=i.naturalHeight||i.height,vw=fig.clientWidth,vh=fig.clientHeight;if(!nW||!vw){return;}s.nW=nW;s.nH=nH;s.fitS=Math.min(vw/nW,vh/nH);s.minS=s.fitS*0.9;s.maxS=s.fitS*8;s.scale=s.fitS;s.tx=(vw-nW*s.scale)/2;s.ty=(vh-nH*s.scale)/2;s.rdy=true;clamp(fig);apl(fig);}
+      function ensure(fig){var s=get(fig);if(s.rdy)return;var i=im(fig);if(!i)return;if(i.complete&&i.naturalWidth){fitFig(fig);}else{i.addEventListener('load',function(){fitFig(fig);},{once:true});}}
+      function zoomAt(fig,px,py,ns){var s=get(fig);if(!s.rdy){fitFig(fig);}ns=Math.max(s.minS,Math.min(s.maxS,ns));var ix=(px-s.tx)/s.scale,iy=(py-s.ty)/s.scale;s.scale=ns;s.tx=px-ix*s.scale;s.ty=py-iy*s.scale;clamp(fig);apl(fig);}
+      function rel(fig,e){var r=fig.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+      var pts={},cur=null,lastDist=0,lastMid=null,dragId=null,dragX=0,dragY=0,dtx=0,dty=0,downT=0,downX=0,downY=0,moved=false,pinched=false;
+      function kn(){return Object.keys(pts).length;}
+      function midp(){var a=[];for(var k in pts)a.push(pts[k]);return{x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};}
+      function distp(){var a=[];for(var k in pts)a.push(pts[k]);return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);}
+      document.addEventListener('pointerdown',function(e){
+        var fig=e.target.closest&&e.target.closest('.imgq-fig');if(!fig)return;
+        cur=fig;ensure(fig);var p=rel(fig,e);pts[e.pointerId]=p;var n=kn();
+        try{fig.setPointerCapture(e.pointerId);}catch(_){}
+        if(n===1){dragId=e.pointerId;dragX=p.x;dragY=p.y;var s=get(fig);dtx=s.tx;dty=s.ty;downT=(window.performance?performance.now():+new Date());downX=p.x;downY=p.y;moved=false;pinched=false;}
+        else if(n===2){pinched=true;lastDist=distp();lastMid=midp();dragId=null;}
+      });
+      document.addEventListener('pointermove',function(e){
+        if(!cur||!(e.pointerId in pts))return;var p=rel(cur,e);pts[e.pointerId]=p;var n=kn();var s=get(cur);
+        if(n>=2){var d=distp(),m=midp();if(lastDist>0)zoomAt(cur,m.x,m.y,s.scale*(d/lastDist));s.tx+=m.x-lastMid.x;s.ty+=m.y-lastMid.y;clamp(cur);apl(cur);lastDist=d;lastMid=m;}
+        else if(dragId===e.pointerId){if(Math.hypot(p.x-downX,p.y-downY)>8)moved=true;s.tx=dtx+(p.x-dragX);s.ty=dty+(p.y-dragY);clamp(cur);apl(cur);}
+      });
+      function up(e){
+        if(!(e.pointerId in pts))return;delete pts[e.pointerId];var n=kn();
+        if(n<2){lastDist=0;lastMid=null;}
+        if(n===1){for(var k in pts){dragId=k*1;dragX=pts[k].x;dragY=pts[k].y;var s=get(cur);dtx=s.tx;dty=s.ty;}}
+        if(n===0){var dur=(window.performance?performance.now():+new Date())-downT;var fg=cur;cur=null;dragId=null;if(fg&&!moved&&!pinched&&dur<400){var i=im(fg);if(i&&i.src)open(i.src);}moved=false;pinched=false;}
+      }
+      document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);
+      document.addEventListener('wheel',function(e){var fig=e.target.closest&&e.target.closest('.imgq-fig');if(!fig)return;e.preventDefault();var p=rel(fig,e);var s=get(fig);if(!s.rdy){fitFig(fig);}zoomAt(fig,p.x,p.y,s.scale*(e.deltaY<0?1.15:1/1.15));},{passive:false});
+      /* 新しい図が描画されたらフィット（callCachedの二段描画・各設問の切替に対応） */
+      try{var mo=new MutationObserver(function(muts){for(var a=0;a<muts.length;a++){var ad=muts[a].addedNodes;for(var b=0;b<ad.length;b++){var nd=ad[b];if(!nd||nd.nodeType!==1)continue;if(nd.classList&&nd.classList.contains('imgq-fig'))ensure(nd);var q=nd.querySelectorAll&&nd.querySelectorAll('.imgq-fig');if(q)for(var c=0;c<q.length;c++)ensure(q[c]);}}});mo.observe(document.body,{childList:true,subtree:true});}catch(_){}
+      window.addEventListener('resize',function(){var q=document.querySelectorAll('.imgq-fig');for(var i=0;i<q.length;i++){var s=st.get(q[i]);if(s){s.rdy=false;fitFig(q[i]);}}});
+      var q0=document.querySelectorAll('.imgq-fig');for(var i=0;i<q0.length;i++)ensure(q0[i]);
+    })();
     window.addEventListener('resize',function(){if(ov.classList.contains('open'))fit();});
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',ready);}else{ready();}
