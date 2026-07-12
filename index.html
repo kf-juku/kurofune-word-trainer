@@ -418,8 +418,24 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 .tf-hole.ok{border-bottom-color:transparent;color:var(--ok)}
 @keyframes tfpulse{50%{opacity:.55}}
 /* ===== 図問題（image_fill・番号方式）2026-07-12：表穴埋めの素材保持フロー流用 ===== */
-.imgq-fig{background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px;text-align:center;margin-bottom:8px}
+.imgq-fig{background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px;text-align:center;margin-bottom:8px;position:relative;cursor:zoom-in}
 .imgq-fig img{max-width:100%;max-height:320px;border-radius:8px;display:inline-block}
+.imgq-fig::after{content:'🔍 タップで拡大';position:absolute;right:11px;bottom:11px;background:rgba(17,24,39,.72);color:#fff;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:20px;pointer-events:none}
+/* ===== 図の全画面ズーム 2026-07-13 ===== */
+.kzoom{position:fixed;inset:0;background:rgba(15,20,30,.94);z-index:9999;display:none;flex-direction:column}
+.kzoom.open{display:flex}
+.kzstage{flex:1;position:relative;overflow:hidden;touch-action:none}
+.kzstage img{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;user-select:none;-webkit-user-drag:none;max-width:none;border-radius:6px}
+.kz-move{position:absolute;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.35);color:#fff;padding:6px 14px;border-radius:20px;pointer-events:none;font-size:12.5px;font-weight:700;z-index:2}
+.kz-move i{font-size:18px}
+.kz-side{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:2}
+.kz-side button{width:58px;height:58px;border-radius:50%;border:none;background:rgba(255,255,255,.92);color:#111;font-size:32px;font-weight:800;line-height:1;box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:pointer;display:grid;place-items:center;font-family:inherit}
+.kz-side button:active{transform:scale(.94)}
+.kz-bar{display:flex;gap:12px;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(0,0,0,.25)}
+.kz-bar button{flex:1;max-width:200px;border:none;border-radius:14px;padding:14px 10px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.kz-bar .kz-reset{background:rgba(255,255,255,.16);color:#fff}
+.kz-bar .kz-close{background:#fff;color:#111}
+.kz-bar i{font-size:19px}
 .imgq-track{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:4px 0 2px}
 .imgq-track span{min-width:26px;height:26px;padding:0 4px;border-radius:50%;display:inline-grid;place-items:center;font-size:13px;font-weight:800;font-family:'Manrope','Noto Sans JP',sans-serif;background:var(--ring-track);color:var(--sub)}
 .imgq-track span.cur{background:var(--accent);color:#fff;animation:tfpulse 1.2s infinite}
@@ -727,6 +743,7 @@ function quizPill_(p){
   if(p.status==='ng')return '<span style="background:rgba(214,69,69,.13);color:#d64545;font-weight:800;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">もう一歩 '+(p.latest_rate!=null?p.latest_rate+'%':'')+'</span>';
   return '<span style="background:rgba(148,163,184,.18);color:#7a8699;font-weight:700;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">まだ</span>';
 }
+var quizOpen_={};
 function renderQuiz(){
   var el=$('quiz-area');if(!el)return;
   callCached({action:'quiz_list'},function(d){
@@ -746,8 +763,8 @@ function renderQuiz(){
         +'<div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:14px;line-height:1.35;">'+esc(g.title||'教材')+'</div>'
         +'<div style="font-size:12px;color:#7a8699;margin-top:3px;">合格 <b style="color:#1f9d57;">'+np+'</b> / '+ps.length+(ngc>0?('　もう一歩 <b style="color:#d64545;">'+ngc+'</b>'):'')+(yt>0?('　まだ '+yt):'')+'</div></div>'
         +(g.all_pass?'<span style="background:rgba(214,175,60,.15);color:#8a6d1a;font-weight:800;font-size:11px;padding:3px 9px;border-radius:12px;white-space:nowrap;">全合格🎉</span>':'')
-        +'<i id="'+gid+'-a" class="ti ti-chevron-down" style="color:#cbd5e1;font-size:20px;"></i></div>';
-      html+='<div id="'+gid+'" style="display:none;padding:0 14px 6px;">';
+        +'<i id="'+gid+'-a" class="ti '+(quizOpen_[gid]?'ti-chevron-up':'ti-chevron-down')+'" style="color:#cbd5e1;font-size:20px;"></i></div>';
+      html+='<div id="'+gid+'" style="display:'+(quizOpen_[gid]?'block':'none')+';padding:0 14px 6px;">';
       ps.forEach(function(p){
         html+='<div onclick="startQuiz(\''+esc(p.part_id)+'\')" style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-top:1px solid rgba(0,0,0,.06);cursor:pointer;">'
           +'<div style="flex:1;font-weight:700;font-size:14px;min-width:0;">'+esc(p.title||'パート')+(p.attempt_count>0?'<span style="font-size:11px;color:#94a3b8;font-weight:500;"> ・'+p.attempt_count+'回</span>':'')+'</div>'
@@ -1349,7 +1366,7 @@ function imgHoles(words,assetId){var out=[];words.forEach(function(x,i){if(x.qty
 /* 図の画像ボックスHTML（renderIMG・ノート・おさらいで共用）2026-07-12 */
 function imgFigHtml(w,assets){var qd=tfParse(w);var a=(assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';var h='';if(a.title)h+='<div class="tf-title">'+esc(a.title)+'</div>';h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';return h;}
 function missWordsHtml(missIds,words){var uniq=(missIds||[]).filter(function(v,i){return missIds.indexOf(v)===i;});if(!uniq.length)return '';var byId={};(words||[]).forEach(function(w){byId[String(w.id||w.word_id)]=w;});var list=uniq.map(function(id){var w=byId[String(id)];if(!w)return '';var jp=(w.qtype==='image_fill')?'':('（'+esc(w.japanese)+'）');return '<div style="font-size:14px;padding:5px 0;border-top:1px solid var(--line);">'+esc(w.english)+jp+'</div>';}).filter(Boolean).join('');if(!list)return '';return '<div style="background:var(--surface);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;">まちがえた語句（'+uniq.length+'）— 見直そう</div>'+list+'</div>';}
-function quizToggle_(id){var e=document.getElementById(id);var a=document.getElementById(id+'-a');if(!e)return;var o=e.style.display==='none';e.style.display=o?'block':'none';if(a)a.className='ti '+(o?'ti-chevron-up':'ti-chevron-down');}
+function quizToggle_(id){var e=document.getElementById(id);var a=document.getElementById(id+'-a');if(!e)return;var o=e.style.display==='none';e.style.display=o?'block':'none';quizOpen_[id]=o;if(a)a.className='ti '+(o?'ti-chevron-up':'ti-chevron-down');}
 function renderIMG(){
   var s=session,w=s.words[s.idx],qd=tfParse(w);
   var a=(s.assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}
@@ -2152,6 +2169,96 @@ function submitBug(){
 }
 try{refreshBugFab();}catch(e){}
 
+/* ===== 図の全画面ズーム 2026-07-13 ===== */
+(function(){
+  var ov,stage,img,btnPlus,btnMinus;
+  var nW=0,nH=0,scale=1,tx=0,ty=0,fitS=1,minS=1,maxS=1;
+  function el(id){return document.getElementById(id);}
+  function apply(){img.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+  function clampPan(){
+    var vw=stage.clientWidth,vh=stage.clientHeight;var w=nW*scale,h=nH*scale;
+    if(w<=vw){tx=(vw-w)/2;}else{if(tx>0)tx=0;if(tx<vw-w)tx=vw-w;}
+    if(h<=vh){ty=(vh-h)/2;}else{if(ty>0)ty=0;if(ty<vh-h)ty=vh-h;}
+  }
+  function zoomAt(px,py,ns){
+    ns=Math.max(minS,Math.min(maxS,ns));
+    var ix=(px-tx)/scale,iy=(py-ty)/scale;
+    scale=ns;tx=px-ix*scale;ty=py-iy*scale;clampPan();apply();
+  }
+  function fit(){
+    var vw=stage.clientWidth,vh=stage.clientHeight;
+    if(!nW||!nH){return;}
+    fitS=Math.min(vw/nW,vh/nH);
+    minS=fitS*0.7;maxS=fitS*8;
+    scale=Math.min(Math.max(vw/nW,vh/nH,fitS*1.6),maxS);
+    tx=(vw-nW*scale)/2;ty=(vh-nH*scale)/2;clampPan();apply();
+  }
+  function open(src){
+    if(!ov){return;}
+    img.src=src;ov.classList.add('open');document.body.style.overflow='hidden';
+    var run=function(){nW=img.naturalWidth||img.width;nH=img.naturalHeight||img.height;fit();};
+    if(img.complete&&img.naturalWidth){run();}else{img.onload=run;}
+  }
+  function close(){if(!ov)return;ov.classList.remove('open');document.body.style.overflow='';img.src='';}
+  function ready(){
+    ov=el('kzoom');if(!ov)return;
+    stage=el('kzstage');img=el('kzimg');btnPlus=el('kz-plus');btnMinus=el('kz-minus');
+    var cx=function(){return stage.clientWidth/2;},cy=function(){return stage.clientHeight/2;};
+    btnPlus.addEventListener('click',function(){zoomAt(cx(),cy(),scale*1.5);});
+    btnMinus.addEventListener('click',function(){zoomAt(cx(),cy(),scale/1.5);});
+    el('kz-reset').addEventListener('click',fit);
+    el('kz-close').addEventListener('click',close);
+    ov.addEventListener('click',function(e){if(e.target===ov)close();});
+    /* ドラッグで移動 */
+    var pts={},lastDist=0,lastMid=null,dragId=null,dragX=0,dragY=0,dtx=0,dty=0;
+    function mid(){var a=[];for(var k in pts)a.push(pts[k]);return{x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};}
+    function dist(){var a=[];for(var k in pts)a.push(pts[k]);var dx=a[0].x-a[1].x,dy=a[0].y-a[1].y;return Math.hypot(dx,dy);}
+    function rel(e){var r=stage.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+    stage.addEventListener('pointerdown',function(e){
+      stage.setPointerCapture(e.pointerId);var p=rel(e);pts[e.pointerId]=p;
+      var n=Object.keys(pts).length;
+      if(n===1){dragId=e.pointerId;dragX=p.x;dragY=p.y;dtx=tx;dty=ty;}
+      else if(n===2){lastDist=dist();lastMid=mid();dragId=null;}
+    });
+    stage.addEventListener('pointermove',function(e){
+      if(!(e.pointerId in pts))return;var p=rel(e);pts[e.pointerId]=p;
+      var n=Object.keys(pts).length;
+      if(n>=2){
+        var d=dist(),m=mid();
+        if(lastDist>0){zoomAt(m.x,m.y,scale*(d/lastDist));}
+        tx+=m.x-lastMid.x;ty+=m.y-lastMid.y;clampPan();apply();
+        lastDist=d;lastMid=m;
+      }else if(dragId===e.pointerId){
+        tx=dtx+(p.x-dragX);ty=dty+(p.y-dragY);clampPan();apply();
+      }
+    });
+    function up(e){if(e.pointerId in pts)delete pts[e.pointerId];var n=Object.keys(pts).length;if(n<2){lastDist=0;lastMid=null;}if(n===1){for(var k in pts){dragId=k*1;dragX=pts[k].x;dragY=pts[k].y;dtx=tx;dty=ty;}}if(n===0)dragId=null;}
+    stage.addEventListener('pointerup',up);stage.addEventListener('pointercancel',up);
+    /* ホイール（PC） */
+    stage.addEventListener('wheel',function(e){e.preventDefault();var p=rel(e);zoomAt(p.x,p.y,scale*(e.deltaY<0?1.15:1/1.15));},{passive:false});
+    /* 図タップで開く（委譲） */
+    document.addEventListener('click',function(e){
+      var fig=e.target.closest&&e.target.closest('.imgq-fig');
+      if(!fig)return;var im=fig.querySelector('img');if(!im||!im.src)return;
+      open(im.src);
+    });
+    window.addEventListener('resize',function(){if(ov.classList.contains('open'))fit();});
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',ready);}else{ready();}
+})();
+
 </script>
+<div class="kzoom" id="kzoom">
+  <div class="kzstage" id="kzstage"><img id="kzimg" alt="図"></div>
+  <div class="kz-move"><i class="ti ti-arrows-move"></i>指でうごかせます</div>
+  <div class="kz-side">
+    <button id="kz-plus" aria-label="大きく">＋</button>
+    <button id="kz-minus" aria-label="小さく">−</button>
+  </div>
+  <div class="kz-bar">
+    <button class="kz-reset" id="kz-reset"><i class="ti ti-arrows-minimize"></i>もとの大きさ</button>
+    <button class="kz-close" id="kz-close"><i class="ti ti-x"></i>とじる</button>
+  </div>
+</div>
 </body>
 </html>
