@@ -735,16 +735,25 @@ function renderQuiz(){
     var mats=(d.data&&d.data.materials)||[];
     if(!mats.length){el.innerHTML='<p class="muted">まだ確認テストは配信されていません。先生が配信すると ここに出るよ。</p>';return;}
     var html='';
-    mats.forEach(function(g){
-      html+='<div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);">';
-      html+='<div style="font-weight:800;font-size:15px;margin-bottom:2px;">'+esc(g.title||'教材')+'</div>';
-      if(g.all_pass)html+='<div style="margin:8px 0;padding:10px;border-radius:10px;background:rgba(214,175,60,.15);color:#8a6d1a;font-weight:800;text-align:center;">🎉 全部合格！ すごい！</div>';
-      (g.parts||[]).forEach(function(p){
+    mats.forEach(function(g,gi){
+      var ps=g.parts||[];
+      var np=ps.filter(function(p){return p.status==='ok';}).length;
+      var ngc=ps.filter(function(p){return p.status==='ng';}).length;
+      var yt=ps.length-np-ngc;
+      var gid='qzg'+gi;
+      html+='<div style="background:#fff;border-radius:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;">';
+      html+='<div onclick="quizToggle_(\''+gid+'\')" style="display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;">'
+        +'<div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:14px;line-height:1.35;">'+esc(g.title||'教材')+'</div>'
+        +'<div style="font-size:12px;color:#7a8699;margin-top:3px;">合格 <b style="color:#1f9d57;">'+np+'</b> / '+ps.length+(ngc>0?('　もう一歩 <b style="color:#d64545;">'+ngc+'</b>'):'')+(yt>0?('　まだ '+yt):'')+'</div></div>'
+        +(g.all_pass?'<span style="background:rgba(214,175,60,.15);color:#8a6d1a;font-weight:800;font-size:11px;padding:3px 9px;border-radius:12px;white-space:nowrap;">全合格🎉</span>':'')
+        +'<i id="'+gid+'-a" class="ti ti-chevron-down" style="color:#cbd5e1;font-size:20px;"></i></div>';
+      html+='<div id="'+gid+'" style="display:none;padding:0 14px 6px;">';
+      ps.forEach(function(p){
         html+='<div onclick="startQuiz(\''+esc(p.part_id)+'\')" style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-top:1px solid rgba(0,0,0,.06);cursor:pointer;">'
           +'<div style="flex:1;font-weight:700;font-size:14px;min-width:0;">'+esc(p.title||'パート')+(p.attempt_count>0?'<span style="font-size:11px;color:#94a3b8;font-weight:500;"> ・'+p.attempt_count+'回</span>':'')+'</div>'
           +quizPill_(p)+'<i class="ti ti-chevron-right" style="color:#cbd5e1"></i></div>';
       });
-      html+='</div>';
+      html+='</div></div>';
     });
     el.innerHTML=html;
   });
@@ -758,7 +767,7 @@ function startQuiz(partId){
     if(!d.ok||!d.data||!d.data.words||!d.data.words.length){toast((d&&d.error)||'単語がありません');openHome();showSub('quiz');renderQuiz();return;}
     var words=quizShuffle_(d.data.words.slice()); // 毎回シャッフル
     _fromReviewTest=false;
-    _startPracticeWith_(partId,{ok:true,data:{words:words,subject:(d.data.subject||'english'),assets:{},content_type:'test'}});
+    _startPracticeWith_(partId,{ok:true,data:{words:words,subject:(d.data.subject||'english'),assets:(d.data.assets||{}),content_type:'test'}});
     if(session){session.quizMode=true;session.quizPartId=partId;} // 別セッション変数で確認テストと判別
   });
 }
@@ -1337,6 +1346,10 @@ function renderTF(){
    本に印刷済みの番号(qd.num=④など)を目印に「④が指す部分は？」を連続4択で出す。coord無し＝番号方式。
    採点・間違いノート・正答率カウンタは他タイプと同じ「1行=1問」経路に乗る（設計仕様_問題タイプ拡張 §3c）。 */
 function imgHoles(words,assetId){var out=[];words.forEach(function(x,i){if(x.qtype==='image_fill'){var q=tfParse(x);if(String(q.asset)===String(assetId))out.push({i:i,q:q,w:x});}});return out;}
+/* 図の画像ボックスHTML（renderIMG・ノート・おさらいで共用）2026-07-12 */
+function imgFigHtml(w,assets){var qd=tfParse(w);var a=(assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';var h='';if(a.title)h+='<div class="tf-title">'+esc(a.title)+'</div>';h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';return h;}
+function missWordsHtml(missIds,words){var uniq=(missIds||[]).filter(function(v,i){return missIds.indexOf(v)===i;});if(!uniq.length)return '';var byId={};(words||[]).forEach(function(w){byId[String(w.id||w.word_id)]=w;});var list=uniq.map(function(id){var w=byId[String(id)];if(!w)return '';var jp=(w.qtype==='image_fill')?'':('（'+esc(w.japanese)+'）');return '<div style="font-size:14px;padding:5px 0;border-top:1px solid var(--line);">'+esc(w.english)+jp+'</div>';}).filter(Boolean).join('');if(!list)return '';return '<div style="background:var(--surface);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;">まちがえた語句（'+uniq.length+'）— 見直そう</div>'+list+'</div>';}
+function quizToggle_(id){var e=document.getElementById(id);var a=document.getElementById(id+'-a');if(!e)return;var o=e.style.display==='none';e.style.display=o?'block':'none';if(a)a.className='ti '+(o?'ti-chevron-up':'ti-chevron-down');}
 function renderIMG(){
   var s=session,w=s.words[s.idx],qd=tfParse(w);
   var a=(s.assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}
@@ -1722,7 +1735,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   if(termOnly){$('done-rate').innerHTML=(s.tfOnly?'正答':'用語')+' <b>'+rr+'</b>％';}
   else{$('done-rate').innerHTML='意味 <span id="done-mr">'+mr+'</span>％ ・ 日本語→英語 <span id="done-rr">'+rr+'</span>％';}
   animNum($('score-anim'),score,900); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）
-  $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
+  $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=missWordsHtml(s.miss,s.words);
   var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
   $('star-area').innerHTML='<div class="sw-load">'+kwtSpin(24)+'<span>保存中…</span></div>'+tipHtml_();
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
@@ -1824,15 +1837,15 @@ function loadNotes(){
 function openNote(subject){
   toast('よみこみ中…');
   call({action:'mistake_set',subject:subject}).then(function(d){
-    if(d&&d.ok&&d.data.words&&d.data.words.length){startNote(subject,d.data.words);}
+    if(d&&d.ok&&d.data.words&&d.data.words.length){startNote(subject,d.data.words,d.data.assets);}
     else{toast('復習する単語がありません');loadNotes();}
   });
 }
-function startNote(subject,words){
+function startNote(subject,words,assets){
   if(!words||!words.length){toast('復習する単語がありません');return;}
   show('scr-practice');combo=0;
   gradeReset_(); // 採点キュー初期化 2026-07-05
-  noteSes={subject:subject,words:words,idx:0,step:(subject==='english'?2:3),wordOK:true,cleared:0,total:words.length};
+  noteSes={subject:subject,words:words,idx:0,step:(subject==='english'?2:3),wordOK:true,cleared:0,total:words.length,assets:(assets||{}),miss:[]};
   renderNoteStep();
 }
 function renderNoteStep(){hideQTimer();
@@ -1840,6 +1853,11 @@ function renderNoteStep(){hideQTimer();
   $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
   $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
   $('step-label').textContent='復習 '+(s.idx+1)+' / '+tot+'語目';
+  if(w.qtype==='image_fill'){ // 図問題はノートでも図を出す（qdata.choices使用）2026-07-12
+    var qi=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').innerHTML=qi.num?('<b style="color:var(--accent)">'+esc(qi.num)+'</b> が指す部分をえらぼう'):esc(qi.ask||'この生物の名前をえらぼう');
+    buildNoteChoices('tf-choices',w.english,(qi.choices||[]).filter(function(x){return x!==w.english;}),function(ok){if(!ok)s.wordOK=false;},{kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitNoteWord();}});
+    $('step-tf').style.display='block';return;
+  }
   if(w.qtype==='table_fill'){ // 表穴埋め語はノートでは文字版1問＋qdata.choices（設計仕様_問題タイプ拡張 2026-07-05）
     var qtf=tfParse(w);$('j2e-label').textContent='正しい形をえらぼう';$('j2e-ja').textContent=w.japanese;
     buildNoteChoices('j2e-choices',w.english,(qtf.choices||[]).filter(function(x){return x!==w.english;}),function(ok){if(!ok)s.wordOK=false;},{kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitNoteWord();}});
@@ -1886,6 +1904,7 @@ function buildNoteChoices(containerId,correct,wrongs,onResult,opts){
 }
 function submitNoteWord(){
   var s=noteSes,w=s.words[s.idx],correct=s.wordOK;
+  if(!correct&&s.miss)s.miss.push(w.word_id||w.id);
   // テンポ改善C（2026-07-05）：採点は裏送信し、次の語を即出題（結果は完了画面がキュー完了を待って確定）
   enqueueGrade({action:'review_complete',review_id:w.review_id,correct:correct},function(d){
     if(d.data&&d.data.cleared){s.cleared++;toast('「'+w.english+'」を卒業！🎓');}
@@ -1920,7 +1939,7 @@ function noteRetry(subject){
   whenGradesFlushed(function(){ // 裏送信が残ったまま取り直すと卒業済みが混ざる 2026-07-05
   call({action:'mistake_set',subject:subject}).then(function(d){
     if(!d.ok||!d.data.words.length){toast('間違いはもうありません！');openHome();return;}
-    startNote(subject,d.data.words);
+    startNote(subject,d.data.words,d.data.assets);
   });
   });
 }
@@ -1969,18 +1988,18 @@ function loadReviewSrs(){
       var card=document.createElement('div');card.className='note-card';
       var more=(total>n)?('　ほか'+(total-n)+'語は明日'):'';
       card.innerHTML='<div class="note-ic"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おさらい</div><div class="sub">わすれない うちに もう一回'+more+'</div></div><div class="cnt">'+n+'<small> 語</small></div>';
-      card.onclick=function(){startReviewSrs(ws);};
+      card.onclick=function(){startReviewSrs(ws,d.data.assets);};
       area.appendChild(card);
     }
     trv.forEach(function(m){area.appendChild(buildReviewTestCard(m));}); // 本日の学習と同じ様式・自動反復の後に並べる
     if(!ws.length&&!trv.length){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub">合格した単語やテストが、ここに出てくるよ</div></div></div>';}
   });
 }
-function startReviewSrs(words){
+function startReviewSrs(words,assets){
   if(!words||!words.length){toast('おさらいはありません');return;}
   show('scr-practice');combo=0;
   gradeReset_(); // 採点キュー初期化 2026-07-05
-  srsSes={words:words,idx:0,step:2,wordOK:true,graduated:0,total:words.length,doneWords:[],nextDays:null};
+  srsSes={words:words,idx:0,step:2,wordOK:true,graduated:0,total:words.length,doneWords:[],nextDays:null,assets:(assets||{}),miss:[]};
   renderSrsStep();
 }
 function renderSrsStep(){
@@ -1988,6 +2007,11 @@ function renderSrsStep(){
   $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
   $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
   $('step-label').textContent='復習 '+(s.idx+1)+' / '+tot+'語目';
+  if(w.qtype==='image_fill'){ // 図問題はおさらいでも図を出す 2026-07-12
+    var qi2=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').innerHTML=qi2.num?('<b style="color:var(--accent)">'+esc(qi2.num)+'</b> が指す部分をえらぼう'):esc(qi2.ask||'この生物の名前をえらぼう');
+    buildChoices('tf-choices',w.english,[],function(ok){if(!ok)s.wordOK=false;},{fixedChoices:(qi2.choices||[]),timeLimit:qSecFor('table_fill'),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitSrsWord();}});
+    $('step-tf').style.display='block';return;
+  }
   if(w.qtype==='table_fill'){ // 表穴埋め語はおさらいでも文字版1問＋qdata.choices（2026-07-05）
     var qtf=tfParse(w);$('j2e-label').textContent='正しい形をえらぼう';$('j2e-ja').textContent=w.japanese;
     buildChoices('j2e-choices',w.english,[],function(ok){if(!ok)s.wordOK=false;},{fixedChoices:(qtf.choices||[]),timeLimit:qSecFor('table_fill'),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitSrsWord();}});
@@ -2012,6 +2036,7 @@ function renderSrsStep(){
 }
 function submitSrsWord(){
   var s=srsSes,w=s.words[s.idx],correct=s.wordOK;
+  if(!correct&&s.miss)s.miss.push(w.word_id||w.id);
   s.doneWords.push(w.english); // 完了画面の「何をおさらいしたか」用（ローカル確定）2026-07-05
   // テンポ改善C（2026-07-05）：採点は裏送信し、次の語を即出題（結果は完了画面がキュー完了を待って確定）
   enqueueGrade({action:'review_grade',progress_id:w.progress_id,correct:correct},function(d){
@@ -2023,6 +2048,7 @@ function submitSrsWord(){
 }
 function finishSrs(){
   var s=srsSes;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();
+  var _sa=$('star-area');if(_sa)_sa.innerHTML=missWordsHtml(s.miss,s.words);
   $('btn-next').style.display='none';
   $('done-badge').innerHTML='<i class="ti ti-clock-bolt" style="color:var(--gold)"></i>';
   $('done-result').textContent='おさらい お疲れさま！'; // 表記は漢字（川上さん指示 2026-07-05）
