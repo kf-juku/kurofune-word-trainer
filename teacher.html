@@ -436,7 +436,7 @@
   .rt-qbtn{border:1.5px solid var(--border);background:#fff;border-radius:16px;padding:4px 11px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text-muted);}
   .rt-qbtn:hover{border-color:var(--crimson);color:var(--crimson);}
   .rt-lwrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;max-height:52vh;overflow-y:auto;}
-  .rt-lhead,.rt-lrow{display:grid;grid-template-columns:92px 1fr 118px 104px;align-items:center;gap:6px;padding:9px 12px;}
+  .rt-lhead,.rt-lrow{display:grid;grid-template-columns:104px 1fr 112px 104px;align-items:center;gap:6px;padding:9px 12px;}
   .rt-lhead{background:var(--surface2);font-size:10.5px;font-weight:800;color:var(--text-muted);text-align:center;position:sticky;top:0;z-index:1;}
   .rt-lhead .nm{text-align:left;}
   .rt-lrow{border-top:1px solid var(--surface2);font-size:13px;}
@@ -723,7 +723,7 @@
       <div class="qcard"><div class="qch">注目リスト（未実施・未合格の子）<span class="c2cnt" id="qtAttCnt">–</span></div><div id="qtAtt"></div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">※配信は「教材ごと」タブの各教材の「確認テストを配信」ボタンから。</div></div>
       <div class="qcard"><div class="qch">点数表（教材ごと）</div><div class="qmatsel" id="qtMatSel"></div><div id="qtBoard"></div>
-        <div class="qlegend"><span><i class="qlg q-ok"></i>合格</span><span><i class="qlg q-ng"></i>未合格</span><span><i class="qlg q-miss"></i>未実施</span><span>セルをタップで詳細</span></div></div>
+        <div class="qlegend"><span><i class="qlg q-ok"></i>合格</span><span><i class="qlg q-ng"></i>未合格</span><span><i class="qlg q-miss"></i>未実施</span><span><b style="color:var(--text-muted);">前○%</b>＝前回の点数（この配信ではまだ）</span><span>セルをタップで詳細</span></div></div>
     </div>
 
     <!-- ===== チーム編成ビュー 2026-06-21 ===== -->
@@ -819,12 +819,12 @@
     <h3 id="rtTitle">名簿と確認テスト配信</h3>
     <div class="rt-safe">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9 12l2 2 4-4"></path></svg>
-      <span><b>「勉強させる」と「確認テストを配信」は別々の操作です。</b> チェックした分だけ保存時に反映し、ほかの子には触れません。既に配信済みの子の点数・配信日は変わりません。</span>
+      <span><b>「教材を割り当てる」と「確認テストを配信」は別々の操作です。</b> チェックした分だけ保存時に反映し、ほかの子には触れません。既に配信済みの子の点数・配信日は変わりません。</span>
     </div>
     <div class="err" id="rtErr"></div>
     <div class="rt-fbar" id="rtFbar"></div>
     <div class="rt-qrow">
-      <span class="rt-qtag a">勉強させる</span>
+      <span class="rt-qtag a">教材を割り当て</span>
       <button class="rt-qbtn" onclick="rtQuick('A','all')">表示中を全員</button>
       <button class="rt-qbtn" onclick="rtQuick('A','clear')">クリア</button>
       <span class="rt-qtag b" style="margin-left:8px;">確認テストを配信</span>
@@ -833,11 +833,11 @@
       <button class="rt-qbtn" onclick="rtQuick('B','clear')">クリア</button>
     </div>
     <div class="rt-lwrap">
-      <div class="rt-lhead"><div>勉強させる</div><div class="nm">生徒</div><div>最終配信日</div><div>確認テスト配信</div></div>
+      <div class="rt-lhead"><div>教材を割り当て</div><div class="nm">生徒</div><div>最終配信日</div><div>確認テスト配信</div></div>
       <div id="rtRows"></div>
     </div>
     <div class="modal-actions rt-foot" style="align-items:center;">
-      <span class="rt-cnt">勉強させる <b id="rtCntA">0</b>名 <span id="rtCntAd" style="color:var(--text-light);"></span></span>
+      <span class="rt-cnt">割り当て <b id="rtCntA">0</b>名 <span id="rtCntAd" style="color:var(--text-light);"></span></span>
       <span class="rt-cnt">確認テスト配信 <b id="rtCntB">0</b>名</span>
       <span style="margin-left:auto;"></span>
       <button class="btn-ghost" onclick="closeModal('rtModal')">やめる</button>
@@ -1541,7 +1541,7 @@ function renderQuizBoard(){
   stuOrder.forEach(function(sid){
     h+='<tr><td class="stu">'+esc(stuMap[sid])+'</td><td class="qdel">'+quizDelBadge_(lastOf[sid])+'</td>'+parts.map(function(p){
       var e=cellOf[sid+'|'+p.id];var cell;
-      if(!e||e.status==='miss')cell='<span class="qcell q-miss">—</span>';
+      if(!e||e.status==='miss'){cell=(e&&e.latest_rate!=null&&(e.attempt_count||0)>0)?'<span class="qcell q-miss" title="未実施（前回 '+e.latest_rate+'%）">前'+e.latest_rate+'%</span>':'<span class="qcell q-miss">—</span>';}
       else if(e.status==='ok')cell='<span class="qcell q-ok">'+e.latest_rate+'%</span>';
       else cell='<span class="qcell q-ng">'+e.latest_rate+'%</span>';
       return '<td onclick="openQuizCell(\''+esc(sid)+'\',\''+esc(p.id)+'\')">'+cell+'</td>';
@@ -1669,8 +1669,8 @@ function rtChip_(field,v){var on=_rtFilt[field][v];return '<button class="pk-chi
 function rtRenderFbar(){
   var g=_rtUniq('grade'),c=_rtUniq('class_name'),sc=_rtUniq('school');
   var h='<span class="rt-flabel">絞り込み</span>';
-  if(g.length)h+='<span class="rt-flabel">学年</span>'+g.map(function(v){return rtChip_('grade',v);}).join('');
   if(c.length)h+='<span class="rt-flabel">教室</span>'+c.map(function(v){return rtChip_('cls',v);}).join('');
+  if(g.length)h+='<span class="rt-flabel">学年</span>'+g.map(function(v){return rtChip_('grade',v);}).join('');
   if(sc.length)h+='<span class="rt-flabel">中学校</span>'+sc.map(function(v){return rtChip_('school',v);}).join('');
   h+='<input class="rt-search" id="rtSearch" placeholder="なまえで探す" oninput="_rtSearch=this.value;rtRender();" value="'+esc(_rtSearch)+'">';
   $('rtFbar').innerHTML=h;
@@ -2174,7 +2174,7 @@ function applyBulk(){
    生徒行の「教材」ボタンから開く。assignment_list で現在の割当を取得し、
    追加＝assignment_update／解除＝assignment_remove／1日パート数・開始パート＝assignment_update／
    もう一周＝assignment_restart_lap。materials_list の教材を追加候補に出す。 */
-var _asgSid='', _asgName='', _asgMaterials=[], _asgParts=[], _asgList=[]; var _asgQuizDates={};
+var _asgSid='', _asgName='', _asgMaterials=[], _asgParts=[], _asgList=[]; var _asgQuizDates={}; var _asgDatesLoaded=false;
 function openAssign(sid){
   _asgSid=sid;_asgPicked=[];
   var st=null;for(var i=0;i<_students.length;i++){if(String(_students[i].student_id)===String(sid)){st=_students[i];break;}}
@@ -2190,14 +2190,19 @@ function openAssign(sid){
   });
 }
 function loadAssignList(){
+  _asgDatesLoaded=false;_asgQuizDates={};
   call({action:'assignment_list',student_id:_asgSid}).then(function(d){
     if(!d.ok){$('asgList').innerHTML='<div class="err" style="display:block;">'+esc(d.error||'取得に失敗しました')+'</div>';return;}
     _asgList=(d.data.assignments||[]).filter(function(a){return a.status!=='inactive';});
-    call({action:'quiz_student_dates',student_id:_asgSid}).then(function(q){
-      _asgQuizDates=(q&&q.ok&&q.data&&q.data.dates)?q.data.dates:{};
-      renderAssignList();
-      renderAddOptions();
-    });
+    renderAssignList();
+    renderAddOptions();
+  });
+  // 最終配信日は並行取得（一覧の描画を待たせない）2026-07-13
+  call({action:'quiz_student_dates',student_id:_asgSid}).then(function(q){
+    _asgQuizDates=(q&&q.ok&&q.data&&q.data.dates)?q.data.dates:{};
+    _asgDatesLoaded=true;
+    if(_asgList&&_asgList.length)renderAssignList();
+    renderAsgAllq();
   });
 }
 function renderAssignList(){
@@ -2245,6 +2250,7 @@ function renderAssignList(){
 /* ===== 生徒ごと教材モーダルの確認テスト配信（2026-07-13） ===== */
 function _asgTodayJST_(){var d=new Date(Date.now()+9*3600*1000);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}
 function asgQuizBadge_(mid){
+  if(!_asgDatesLoaded)return '<span class="dbadge d-old">…</span>';
   var dt=_asgQuizDates[String(mid)];
   if(!dt)return '<span class="dbadge d-none">未配信</span>';
   var d=new Date(String(dt).replace(/-/g,'/'));var days=Math.round((Date.now()-d.getTime())/86400000);
@@ -2258,6 +2264,7 @@ function asgQuizRow_(a){
 }
 function renderAsgAllq(){
   var bar=$('asgAllq');if(!bar)return;
+  if(!_asgDatesLoaded){bar.innerHTML='';return;}
   var tests=_asgList.filter(function(a){return a.content_type==='test';});
   if(!tests.length){bar.innerHTML='';return;}
   var un=tests.filter(function(a){return !_asgQuizDates[String(a.material_id)];});
