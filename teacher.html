@@ -307,6 +307,15 @@
   .asg-add{border:1.5px dashed var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
   .asg-add select{flex:1 1 150px;min-width:0;max-width:100%;border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:13px;font-family:inherit;}
   .asg-note{margin-top:8px;font-size:11.5px;color:var(--green-dark);background:var(--green-light);border-radius:7px;padding:5px 9px;display:inline-block;cursor:pointer;}
+  /* 生徒ごと教材モーダルの確認テスト配信（2026-07-13） */
+  .asg-quiz{display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--border);flex-wrap:wrap;}
+  .asg-qlbl{font-size:11.5px;font-weight:800;color:var(--amber-dark);}
+  .asg-qbtn{margin-left:auto;background:#caa24a;color:#3a2e08;border:none;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .asg-qbtn.done{background:#eef1f5;color:#8a97a6;}
+  .asg-allq{display:flex;gap:9px;align-items:center;background:#fff8ea;border:1px solid #f2dca0;border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:var(--amber-dark);flex-wrap:wrap;}
+  .asg-allq b{font-weight:800;}
+  .asg-allq button{margin-left:auto;background:#caa24a;color:#3a2e08;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .asg-allq button:disabled{opacity:.5;cursor:default;}
   /* 一括割当モーダル（クロフネLINE方式）2026-07-04 */
   #bulkModal .modal{max-width:none;width:min(96vw,1040px);display:flex;flex-direction:column;overflow:hidden;}
   .bulk-cols{display:grid;grid-template-columns:1fr 230px;gap:12px;align-items:start;min-height:0;}
@@ -407,6 +416,40 @@
   .pk-x{margin-left:8px;color:var(--text-light);font-weight:800;cursor:pointer;}
   .pk-empty{padding:18px;text-align:center;color:var(--text-light);font-size:12px;}
   .pk-hint{font-size:10px;color:var(--text-light);margin-top:5px;}
+  /* 確認テスト：最終配信日バッジ（一覧・名簿編集 共通）2026-07-13 */
+  .dbadge{font-size:10.5px;font-weight:800;border-radius:11px;padding:2px 9px;white-space:nowrap;display:inline-block;}
+  .dbadge.d-recent{background:var(--blue-light);color:var(--blue-dark);}
+  .dbadge.d-old{background:#eef1f5;color:#8a97a6;}
+  .dbadge.d-none{background:#eef1f5;color:#8a97a6;}
+  table.qtable th.qdel,table.qtable td.qdel{text-align:center;white-space:nowrap;}
+  /* 名簿＋確認テスト配信（2列チェック）2026-07-13 */
+  #rtModal .modal{max-width:none;width:min(96vw,900px);}
+  .rt-safe{display:flex;gap:9px;align-items:flex-start;background:var(--green-light);border:1px solid #a7e3c7;border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:var(--green-dark);line-height:1.6;}
+  .rt-safe b{font-weight:800;}
+  .rt-fbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
+  .rt-flabel{font-size:11px;font-weight:800;color:var(--text-light);}
+  .rt-search{width:150px;padding:7px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;}
+  .rt-qrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 8px;}
+  .rt-qtag{font-size:11px;font-weight:800;border-radius:7px;padding:2px 8px;}
+  .rt-qtag.a{background:var(--crimson-light);color:var(--crimson-dark);}
+  .rt-qtag.b{background:#f8efd6;color:#7a5f16;}
+  .rt-qbtn{border:1.5px solid var(--border);background:#fff;border-radius:16px;padding:4px 11px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text-muted);}
+  .rt-qbtn:hover{border-color:var(--crimson);color:var(--crimson);}
+  .rt-lwrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;max-height:52vh;overflow-y:auto;}
+  .rt-lhead,.rt-lrow{display:grid;grid-template-columns:92px 1fr 118px 104px;align-items:center;gap:6px;padding:9px 12px;}
+  .rt-lhead{background:var(--surface2);font-size:10.5px;font-weight:800;color:var(--text-muted);text-align:center;position:sticky;top:0;z-index:1;}
+  .rt-lhead .nm{text-align:left;}
+  .rt-lrow{border-top:1px solid var(--surface2);font-size:13px;}
+  .rt-lrow:hover{background:#fafcff;}
+  .rt-cc{display:flex;justify-content:center;}
+  .rt-cb{width:22px;height:22px;border-radius:6px;border:1.8px solid #cbd5e1;display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:#fff;cursor:pointer;background:#fff;}
+  .rt-cb.onA{background:var(--crimson);border-color:var(--crimson);}
+  .rt-cb.onB{background:#caa24a;border-color:#caa24a;color:#3a2e08;}
+  .rt-nm{font-weight:700;}
+  .rt-nm .g{font-size:10.5px;color:var(--text-light);font-weight:500;margin-left:6px;}
+  .rt-dc{text-align:center;}
+  .rt-foot .rt-cnt{font-size:12px;color:var(--text-muted);font-weight:700;margin-right:12px;}
+  .rt-foot .rt-cnt b{color:var(--text);}
   /* 教材ごとタブ 2026-07-09 */
   .mgrow{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--surface2);cursor:pointer;}
   .mgrow:last-child{border-bottom:none;}
@@ -770,12 +813,46 @@
   </div>
 </div>
 
+<!-- 名簿＋確認テスト配信（2列チェック・単元別対策）2026-07-13 -->
+<div class="modal-back" id="rtModal">
+  <div class="modal">
+    <h3 id="rtTitle">名簿と確認テスト配信</h3>
+    <div class="rt-safe">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9 12l2 2 4-4"></path></svg>
+      <span><b>「勉強させる」と「確認テストを配信」は別々の操作です。</b> チェックした分だけ保存時に反映し、ほかの子には触れません。既に配信済みの子の点数・配信日は変わりません。</span>
+    </div>
+    <div class="err" id="rtErr"></div>
+    <div class="rt-fbar" id="rtFbar"></div>
+    <div class="rt-qrow">
+      <span class="rt-qtag a">勉強させる</span>
+      <button class="rt-qbtn" onclick="rtQuick('A','all')">表示中を全員</button>
+      <button class="rt-qbtn" onclick="rtQuick('A','clear')">クリア</button>
+      <span class="rt-qtag b" style="margin-left:8px;">確認テストを配信</span>
+      <button class="rt-qbtn" onclick="rtQuick('B','new')">未配信の子だけ</button>
+      <button class="rt-qbtn" onclick="rtQuick('B','all')">表示中を全員</button>
+      <button class="rt-qbtn" onclick="rtQuick('B','clear')">クリア</button>
+    </div>
+    <div class="rt-lwrap">
+      <div class="rt-lhead"><div>勉強させる</div><div class="nm">生徒</div><div>最終配信日</div><div>確認テスト配信</div></div>
+      <div id="rtRows"></div>
+    </div>
+    <div class="modal-actions rt-foot" style="align-items:center;">
+      <span class="rt-cnt">勉強させる <b id="rtCntA">0</b>名 <span id="rtCntAd" style="color:var(--text-light);"></span></span>
+      <span class="rt-cnt">確認テスト配信 <b id="rtCntB">0</b>名</span>
+      <span style="margin-left:auto;"></span>
+      <button class="btn-ghost" onclick="closeModal('rtModal')">やめる</button>
+      <button class="btn-primary" id="rtSave" style="width:auto;" onclick="saveRosterTest()">保存する</button>
+    </div>
+  </div>
+</div>
+
 <!-- 教材割当モーダル（案A・2026-07-04） -->
 <div class="modal-back" id="assignModal">
   <div class="modal">
     <h3 id="asgTitle">教材の割当</h3>
     <div class="mhint">この生徒の教材を編集します。「いまここ」を変えると生徒画面の次のパートが変わります。単元別対策は「1日に出す数」で1日の量を決めます（毎日学習は1日1つずつ進みます）。</div>
     <div class="err" id="asgErr"></div>
+    <div id="asgAllq"></div>
     <div id="asgList"></div>
     <div class="asg-addbox">
       <div class="asg-add-h">＋ 教材を追加（複数OK・クリックした順に追加）</div>
@@ -1414,7 +1491,6 @@ function renderMatTab(){
         +_lb
         +'<span class="mgcount">'+hs.length+'名</span>'
         +'<span class="mgmem">'+chips+'</span>'
-        +(isTest?'<button class="qsendbtn" onclick="event.stopPropagation();openQuizDeliver(\''+esc(String(m.id))+'\')">✔ 確認テストを配信</button>':'')
         +'<span class="mgarrow">›</span>';
       box.appendChild(row);
     });
@@ -1451,16 +1527,19 @@ function renderQuizMatSel(){
 }
 function renderQuizBoard(){
   var el=$('qtBoard');if(!el)return;
-  var ents=_qEntries().filter(function(e){return e.material_id===_quizCurMat;});
-  if(!ents.length){el.innerHTML='<div style="color:var(--text-light);font-size:13px;padding:10px;">まだ配信されていません（「教材ごと」タブの「確認テストを配信」から）</div>';return;}
+  var mid=_quizCurMat;
+  var ents=_qEntries().filter(function(e){return e.material_id===mid;});
   var partMap={};ents.forEach(function(e){partMap[e.part_id]={id:e.part_id,title:e.part_title,order:e.part_order};});
   var parts=Object.keys(partMap).map(function(k){return partMap[k];}).sort(function(a,b){return a.order-b.order;});
-  var stuMap={},stuOrder=[];ents.forEach(function(e){if(!stuMap[e.student_id]){stuMap[e.student_id]=e.student_name;stuOrder.push(e.student_id);}});
-  stuOrder.sort(function(a,b){return String(stuMap[a]).localeCompare(String(stuMap[b]),'ja');});
+  var stuMap={},lastOf={};
+  ents.forEach(function(e){stuMap[e.student_id]=e.student_name;var rs=e.round_started_at||'';if(rs&&(!lastOf[e.student_id]||rs>lastOf[e.student_id]))lastOf[e.student_id]=rs;});
+  (_students||[]).forEach(function(s){(s.materials_view||[]).forEach(function(mm){if(String(mm.material_id)===String(mid)){var sid=String(s.student_id);if(!stuMap[sid])stuMap[sid]=s.name||s.nickname||'(無名)';}});});
+  var stuOrder=Object.keys(stuMap).sort(function(a,b){return String(stuMap[a]).localeCompare(String(stuMap[b]),'ja');});
+  if(!stuOrder.length){el.innerHTML='<div style="color:var(--text-light);font-size:13px;padding:10px;">まだ配信されていません（「教材ごと」タブで単元別対策の教材を開いて配信できます）</div>';return;}
   var cellOf={};ents.forEach(function(e){cellOf[e.student_id+'|'+e.part_id]=e;});
-  var h='<table class="qtable"><thead><tr><th class="stu">生徒</th>'+parts.map(function(p){return '<th>'+esc(p.title)+'</th>';}).join('')+'</tr></thead><tbody>';
+  var h='<table class="qtable"><thead><tr><th class="stu">生徒</th><th class="qdel">最終配信日</th>'+parts.map(function(p){return '<th>'+esc(p.title)+'</th>';}).join('')+'</tr></thead><tbody>';
   stuOrder.forEach(function(sid){
-    h+='<tr><td class="stu">'+esc(stuMap[sid])+'</td>'+parts.map(function(p){
+    h+='<tr><td class="stu">'+esc(stuMap[sid])+'</td><td class="qdel">'+quizDelBadge_(lastOf[sid])+'</td>'+parts.map(function(p){
       var e=cellOf[sid+'|'+p.id];var cell;
       if(!e||e.status==='miss')cell='<span class="qcell q-miss">—</span>';
       else if(e.status==='ok')cell='<span class="qcell q-ok">'+e.latest_rate+'%</span>';
@@ -1469,6 +1548,12 @@ function renderQuizBoard(){
     }).join('')+'</tr>';
   });
   el.innerHTML=h+'</tbody></table>';
+}
+function quizDelBadge_(dt){
+  if(!dt)return '<span class="dbadge d-none">未配信</span>';
+  var d=new Date(String(dt).replace(/-/g,'/'));var days=Math.round((Date.now()-d.getTime())/86400000);
+  var md=(d.getMonth()+1)+'/'+d.getDate();
+  return '<span class="dbadge '+(days<=30?'d-recent':'d-old')+'">'+md+'</span>';
 }
 function openQuizCell(sid,pid){
   var e=null;_qEntries().forEach(function(x){if(x.student_id===sid&&x.part_id===pid)e=x;});
@@ -1512,6 +1597,8 @@ function doQuizAssign(){
 }
 var _rosterMid=null,_rosterInit=[],_rosterSel={};
 function openRosterMaterial(mid){
+  var _rm=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===String(mid))_rm=x;});
+  if(_rm&&_rm.content_type==='test'){openRosterTest(mid);return;} /* 単元別対策は2列（割当＋確認テスト配信）へ 2026-07-13 */
   _rosterMid=String(mid);
   var m=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===_rosterMid)m=x;});
   $('rmTitle').textContent=((m&&m.title)||'教材')+' の名簿';
@@ -1546,6 +1633,118 @@ function saveRoster(){
   });
 }
 function jumpToMaterial(mid){ if(!mid)return; switchTab('mat'); setTimeout(function(){openRosterMaterial(String(mid));},80); }
+
+/* ===== 名簿＋確認テスト配信（2列チェック・単元別対策）2026-07-13 ===== */
+var _rtMid=null,_rtSelA={},_rtSelB={},_rtA0={},_rtDates={},_rtFilt={grade:{},cls:{},school:{}},_rtSearch='';
+function _rtSid(s){return String(s.student_id!=null?s.student_id:(s.id!=null?s.id:''));}
+function _rtUniq(field){var m={};(_students||[]).forEach(function(s){var v=String(s[field]||'').trim();if(v)m[v]=1;});var a=Object.keys(m);return field==='grade'?a.sort(function(x,y){return gradeRank(x)-gradeRank(y);}):a.sort(function(x,y){return x.localeCompare(y,'ja');});}
+function _rtAnyOn(o){return Object.keys(o).some(function(k){return o[k];});}
+function _rtMatch(s){
+  if(_rtAnyOn(_rtFilt.grade)&&!_rtFilt.grade[String(s.grade||'')])return false;
+  if(_rtAnyOn(_rtFilt.cls)&&!_rtFilt.cls[String(s.class_name||'')])return false;
+  if(_rtAnyOn(_rtFilt.school)&&!_rtFilt.school[String(s.school||'')])return false;
+  if(_rtSearch){if(String(s.name||'').indexOf(_rtSearch)<0&&String(s.nickname||'').indexOf(_rtSearch)<0)return false;}
+  return true;
+}
+function _rtVisible(){return (_students||[]).filter(_rtMatch).sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);return d!==0?d:String(a.name||'').localeCompare(String(b.name||''),'ja');});}
+function openRosterTest(mid){
+  _rtMid=String(mid);
+  var m=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===_rtMid)m=x;});
+  $('rtTitle').textContent=((m&&m.title)||'教材')+' ｜ 名簿と確認テスト配信';
+  $('rtErr').textContent='';
+  _rtFilt={grade:{},cls:{},school:{}};_rtSearch='';
+  _rtSelA={};_rtA0={};
+  (_students||[]).forEach(function(s){(s.materials_view||[]).forEach(function(mm){if(String(mm.material_id)===_rtMid){var id=_rtSid(s);_rtSelA[id]=1;_rtA0[id]=1;}});});
+  _rtSelB={};_rtDates={};
+  $('rtRows').innerHTML='<div style="padding:18px;text-align:center;color:var(--text-light);font-size:12px;">読み込み中…</div>';
+  $('rtFbar').innerHTML='';
+  $('rtModal').classList.add('show');
+  call({action:'quiz_delivery_dates',material_id:_rtMid}).then(function(d){
+    _rtDates=(d&&d.ok&&d.data&&d.data.dates)?d.data.dates:{};
+    Object.keys(_rtSelA).forEach(function(id){if(!_rtDates[id])_rtSelB[id]=1;}); /* 割り当て済みの未配信を初期チェック */
+    rtRenderFbar();rtRender();
+  });
+}
+function rtChip_(field,v){var on=_rtFilt[field][v];return '<button class="pk-chip'+(on?' on':'')+'" onclick="rtTog(\''+field+'\',\''+esc(v)+'\')">'+(on?'✓ ':'')+esc(v)+'</button>';}
+function rtRenderFbar(){
+  var g=_rtUniq('grade'),c=_rtUniq('class_name'),sc=_rtUniq('school');
+  var h='<span class="rt-flabel">絞り込み</span>';
+  if(g.length)h+='<span class="rt-flabel">学年</span>'+g.map(function(v){return rtChip_('grade',v);}).join('');
+  if(c.length)h+='<span class="rt-flabel">教室</span>'+c.map(function(v){return rtChip_('cls',v);}).join('');
+  if(sc.length)h+='<span class="rt-flabel">中学校</span>'+sc.map(function(v){return rtChip_('school',v);}).join('');
+  h+='<input class="rt-search" id="rtSearch" placeholder="なまえで探す" oninput="_rtSearch=this.value;rtRender();" value="'+esc(_rtSearch)+'">';
+  $('rtFbar').innerHTML=h;
+}
+function rtTog(field,v){_rtFilt[field][v]=!_rtFilt[field][v];rtRenderFbar();rtRender();}
+function rtBadge_(id){
+  var dt=_rtDates[id];
+  if(!dt)return '<span class="dbadge d-none">未配信</span>';
+  var d=new Date(String(dt).replace(/-/g,'/'));var days=Math.round((Date.now()-d.getTime())/86400000);
+  var md=(d.getMonth()+1)+'/'+d.getDate();
+  return '<span class="dbadge '+(days<=30?'d-recent':'d-old')+'">'+md+' 配信</span>';
+}
+function rtRender(){
+  var rows=_rtVisible();
+  $('rtRows').innerHTML=rows.map(function(s){var id=_rtSid(s);
+    return '<div class="rt-lrow">'
+      +'<div class="rt-cc"><span class="rt-cb'+(_rtSelA[id]?' onA':'')+'" onclick="rtFlip(\'A\',\''+id+'\')">'+(_rtSelA[id]?'✓':'')+'</span></div>'
+      +'<div class="rt-nm">'+esc(s.name||'(無名)')+'<span class="g">'+esc([s.grade,s.class_name].filter(Boolean).join('・'))+'</span></div>'
+      +'<div class="rt-dc">'+rtBadge_(id)+'</div>'
+      +'<div class="rt-cc"><span class="rt-cb'+(_rtSelB[id]?' onB':'')+'" onclick="rtFlip(\'B\',\''+id+'\')">'+(_rtSelB[id]?'✓':'')+'</span></div>'
+      +'</div>';
+  }).join('')||'<div style="padding:18px;text-align:center;color:var(--text-light);font-size:12px;">該当なし</div>';
+  rtCounts();
+}
+function rtFlip(col,id){
+  if(col==='A'){ if(_rtSelA[id])delete _rtSelA[id]; else {_rtSelA[id]=1;if(!_rtDates[id])_rtSelB[id]=1;} }
+  else { if(_rtSelB[id])delete _rtSelB[id]; else _rtSelB[id]=1; }
+  rtRender();
+}
+function rtQuick(col,mode){
+  var vis=_rtVisible();
+  if(col==='A'){ if(mode==='all')vis.forEach(function(s){_rtSelA[_rtSid(s)]=1;}); else vis.forEach(function(s){delete _rtSelA[_rtSid(s)];}); }
+  else {
+    if(mode==='clear')vis.forEach(function(s){delete _rtSelB[_rtSid(s)];});
+    else if(mode==='all')vis.forEach(function(s){var id=_rtSid(s);if(_rtSelA[id])_rtSelB[id]=1;});
+    else vis.forEach(function(s){var id=_rtSid(s);if(_rtSelA[id]&&!_rtDates[id])_rtSelB[id]=1;}); /* 未配信の子だけ＝割り当て済み×未配信 */
+  }
+  rtRender();
+}
+function rtCounts(){
+  var a=Object.keys(_rtSelA).length,b=Object.keys(_rtSelB).length;
+  $('rtCntA').textContent=a;$('rtCntB').textContent=b;
+  var base=Object.keys(_rtA0);
+  var add=Object.keys(_rtSelA).filter(function(id){return base.indexOf(id)<0;}).length;
+  var rem=base.filter(function(id){return !_rtSelA[id];}).length;
+  $('rtCntAd').textContent='（＋'+add+'／−'+rem+'）';
+}
+function saveRosterTest(){
+  var aIds=Object.keys(_rtSelA), bIds=Object.keys(_rtSelB);
+  var before=Object.keys(_rtA0);
+  var rem=before.filter(function(id){return _rtSelA[id]!==1;});
+  if(rem.length){ if(!confirm('この教材から '+rem.length+'名 を外します。進捗・間違いノートは残ります（もう一度割り当てれば続きから）。よろしいですか？'))return; }
+  if(bIds.length){ if(!confirm(bIds.length+'名に確認テストを配信します（未実施スタート・過去の点数は保持）。よろしいですか？'))return; }
+  var btn=$('rtSave');btn.disabled=true;btn.textContent='⏳ 保存中…';
+  $('rtErr').textContent='';
+  call({action:'material_roster_set',material_id:_rtMid,student_ids:aIds}).then(function(d){
+    if(!d||!d.ok){btn.disabled=false;btn.textContent='保存する';$('rtErr').textContent=(d&&d.error)||'割り当ての保存に失敗しました';return;}
+    if(!bIds.length){rtSaveDone(d,null);return;}
+    call({action:'quiz_assign',material_id:_rtMid,student_ids:bIds}).then(function(d2){
+      if(!d2||!d2.ok){btn.disabled=false;btn.textContent='保存する';$('rtErr').textContent=(d2&&d2.error)||'確認テストの配信に失敗しました（割り当ては保存済み）';return;}
+      rtSaveDone(d,d2);
+    });
+  });
+}
+function rtSaveDone(d,d2){
+  var dd=d.data||{};
+  var msg='割り当て：追加'+((dd.added||0)+(dd.activated||0))+'／外す'+(dd.removed||0)+'名';
+  if(d2){var d2d=d2.data||{};msg+=' ／ 確認テスト配信 '+(d2d.students||0)+'名（未実施スタート）';}
+  $('rtSave').disabled=false;$('rtSave').textContent='保存する';
+  toast(msg);
+  closeModal('rtModal');
+  call({action:'dashboard'}).then(function(r){if(r&&r.ok&&r.data){_students=r.data.students||_students;renderTable();renderMatTab();if(typeof renderQuizTab==='function')renderQuizTab();}});
+}
+
 
 function loadTeams(){
   $('teamLoading').style.display='';$('teamGrid').innerHTML='';$('teamEmpty').style.display='none';
@@ -1975,7 +2174,7 @@ function applyBulk(){
    生徒行の「教材」ボタンから開く。assignment_list で現在の割当を取得し、
    追加＝assignment_update／解除＝assignment_remove／1日パート数・開始パート＝assignment_update／
    もう一周＝assignment_restart_lap。materials_list の教材を追加候補に出す。 */
-var _asgSid='', _asgName='', _asgMaterials=[], _asgParts=[], _asgList=[];
+var _asgSid='', _asgName='', _asgMaterials=[], _asgParts=[], _asgList=[]; var _asgQuizDates={};
 function openAssign(sid){
   _asgSid=sid;_asgPicked=[];
   var st=null;for(var i=0;i<_students.length;i++){if(String(_students[i].student_id)===String(sid)){st=_students[i];break;}}
@@ -1994,12 +2193,16 @@ function loadAssignList(){
   call({action:'assignment_list',student_id:_asgSid}).then(function(d){
     if(!d.ok){$('asgList').innerHTML='<div class="err" style="display:block;">'+esc(d.error||'取得に失敗しました')+'</div>';return;}
     _asgList=(d.data.assignments||[]).filter(function(a){return a.status!=='inactive';});
-    renderAssignList();
-    renderAddOptions();
+    call({action:'quiz_student_dates',student_id:_asgSid}).then(function(q){
+      _asgQuizDates=(q&&q.ok&&q.data&&q.data.dates)?q.data.dates:{};
+      renderAssignList();
+      renderAddOptions();
+    });
   });
 }
 function renderAssignList(){
   var box=$('asgList');
+  renderAsgAllq();
   if(!_asgList.length){box.innerHTML='<div style="color:#94a3b8;font-size:13px;padding:6px 0 10px;">まだ教材が割り当てられていません。下から追加してください。</div>';return;}
   box.innerHTML='';
   _asgList.forEach(function(a){
@@ -2027,7 +2230,8 @@ function renderAssignList(){
       +progLine
       +'<div class="asg-row">'+dailyCtrl+startSel
       +'<span class="asg-del" onclick="removeAssign('+"'"+esc(a.id)+"'"+')">🗑 解除</span></div>'
-      +dailyNote;
+      +dailyNote
+      +(isTest?asgQuizRow_(a):'');
     // テスト配信で全パート卒業なら「もう一周」
     if(isTest && (a.graduated_parts||0)>=a.total_parts && a.total_parts>0){
       var note=document.createElement('div');note.className='asg-note';
@@ -2037,6 +2241,56 @@ function renderAssignList(){
     }
     box.appendChild(card);
   });
+}
+/* ===== 生徒ごと教材モーダルの確認テスト配信（2026-07-13） ===== */
+function _asgTodayJST_(){var d=new Date(Date.now()+9*3600*1000);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}
+function asgQuizBadge_(mid){
+  var dt=_asgQuizDates[String(mid)];
+  if(!dt)return '<span class="dbadge d-none">未配信</span>';
+  var d=new Date(String(dt).replace(/-/g,'/'));var days=Math.round((Date.now()-d.getTime())/86400000);
+  var md=(d.getMonth()+1)+'/'+d.getDate();
+  return '<span class="dbadge '+(days<=30?'d-recent':'d-old')+'">'+md+' 配信</span>';
+}
+function asgQuizRow_(a){
+  var mid=String(a.material_id);var has=!!_asgQuizDates[mid];
+  return '<div class="asg-quiz"><span class="asg-qlbl">確認テスト</span>'+asgQuizBadge_(mid)
+    +'<button class="asg-qbtn'+(has?' done':'')+'" onclick="asgDeliverOne(\''+esc(mid)+'\')">'+(has?'もう一度配信':'✔ 確認テストを配信')+'</button></div>';
+}
+function renderAsgAllq(){
+  var bar=$('asgAllq');if(!bar)return;
+  var tests=_asgList.filter(function(a){return a.content_type==='test';});
+  if(!tests.length){bar.innerHTML='';return;}
+  var un=tests.filter(function(a){return !_asgQuizDates[String(a.material_id)];});
+  if(!un.length){bar.innerHTML='<div class="asg-allq" style="opacity:.7;"><span>単元別対策の確認テストはすべて配信ずみです。</span></div>';return;}
+  bar.innerHTML='<div class="asg-allq"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span>この子の単元別対策で <b>'+un.length+'</b> 件が未配信です。</span><button onclick="asgDeliverAll()">未配信をまとめて確認テスト配信</button></div>';
+}
+function asgDeliverOne(mid){
+  mid=String(mid);var has=!!_asgQuizDates[mid];
+  if(!confirm((has?'もう一度 ':'')+'この生徒に確認テストを配信します（未実施スタート・過去の点数は保持）。よろしいですか？'))return;
+  showLoading('配信中…');
+  call({action:'quiz_assign',material_id:mid,student_ids:[_asgSid]}).then(function(d){
+    hideLoading();
+    if(!d||!d.ok){$('asgErr').textContent=(d&&d.error)||'配信に失敗しました';return;}
+    _asgQuizDates[mid]=_asgTodayJST_();
+    toast('確認テストを配信しました（未実施スタート）');
+    renderAssignList();
+  });
+}
+function asgDeliverAll(){
+  var un=_asgList.filter(function(a){return a.content_type==='test' && !_asgQuizDates[String(a.material_id)];});
+  if(!un.length)return;
+  if(!confirm(un.length+'件の単元別対策で確認テストを配信します（未実施スタート・過去の点数は保持）。よろしいですか？'))return;
+  showLoading('配信中…');
+  var i=0;
+  function next(){
+    if(i>=un.length){hideLoading();toast(un.length+'件の確認テストを配信しました');renderAssignList();return;}
+    var mid=String(un[i].material_id);
+    call({action:'quiz_assign',material_id:mid,student_ids:[_asgSid]}).then(function(d){
+      if(d&&d.ok)_asgQuizDates[mid]=_asgTodayJST_();
+      i++;next();
+    });
+  }
+  next();
 }
 var _asgPicked=[];
 function renderAddOptions(){

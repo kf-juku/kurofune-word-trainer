@@ -312,6 +312,28 @@
   .combo{position:fixed;top:16%;left:50%;transform:translateX(-50%);font-family:"Manrope";font-size:34px;font-weight:800;color:var(--gold);opacity:0;pointer-events:none;z-index:60;}
   .combo.show{animation:comboPop .8s ease-out;}
   @keyframes comboPop{0%{opacity:0;transform:translateX(-50%) scale(.5);}30%{opacity:1;transform:translateX(-50%) scale(1.15);}100%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(1);}}
+  /* 間違いノート：卒業ポップ（解答中・中央）＋卒業単語カード（採点後）2026-07-13 */
+  .gradpop{position:fixed;top:34%;left:50%;transform:translateX(-50%) scale(.6);opacity:0;z-index:65;pointer-events:none;background:linear-gradient(135deg,var(--gold),#a9842f);color:#fff;border-radius:18px;padding:14px 22px;box-shadow:0 10px 30px rgba(202,162,74,.45);text-align:center;white-space:nowrap;}
+  .gradpop.show{animation:gradPop 1.25s cubic-bezier(.2,1.3,.4,1) forwards;}
+  .gradpop .gp-em{font-size:26px;line-height:1;}
+  .gradpop .gp-w{font-size:19px;font-weight:800;margin-top:3px;font-family:'Manrope';}
+  .gradpop .gp-ja{font-size:13px;font-weight:600;opacity:.92;margin-left:3px;font-family:'Noto Sans JP';}
+  .gradpop .gp-l{font-size:12px;font-weight:700;opacity:.95;margin-top:1px;}
+  @keyframes gradPop{0%{opacity:0;transform:translateX(-50%) scale(.6);}15%{opacity:1;transform:translateX(-50%) scale(1.1);}30%{transform:translateX(-50%) scale(1);}80%{opacity:1;transform:translateX(-50%) scale(1);}100%{opacity:0;transform:translateX(-50%) translateY(-24px) scale(.95);}}
+  .note-saving{margin-top:12px;}
+  .grad-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--shadow);margin-top:12px;animation:riseIn .5s ease-out;}
+  @keyframes riseIn{0%{opacity:0;transform:translateY(10px);}100%{opacity:1;transform:translateY(0);}}
+  .grad-h{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;margin-bottom:11px;}
+  .grad-h i{color:var(--gold);font-size:18px;}
+  .grad-cap{margin-left:auto;font-size:11px;color:var(--sub);font-weight:500;}
+  .gword{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--bg);border:1px solid var(--line);margin-bottom:8px;animation:gwIn .45s both;}
+  .gword:last-child{margin-bottom:0;}
+  .gword .gw-chk{width:26px;height:26px;border-radius:50%;background:rgba(31,170,107,.15);color:var(--ok);display:grid;place-items:center;font-size:15px;flex:none;}
+  .gword .gw-en{font-weight:700;font-size:15px;}
+  .gword .gw-ja{font-size:12px;color:var(--sub);margin-left:auto;text-align:right;}
+  @keyframes gwIn{0%{opacity:0;transform:translateX(-8px);}100%{opacity:1;transform:translateX(0);}}
+  .note-none{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-top:12px;text-align:center;color:var(--sub);font-size:12.5px;line-height:1.7;}
+  .note-none i{font-size:24px;color:var(--gold);display:block;margin-bottom:5px;}
   .err{color:var(--ng);font-size:14px;margin-bottom:8px;min-height:18px;}
   .loading{text-align:center;color:var(--sub);padding:30px;}
 
@@ -612,6 +634,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 <div id="confetti"></div>
 <div class="flash" id="flash"></div>
 <div class="combo" id="combo"></div>
+<div class="gradpop" id="gradpop"></div>
 <div class="modal-mask" id="nick-mask">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="nick-title">
     <h3 id="nick-title">ニックネームの変更</h3>
@@ -882,6 +905,7 @@ function sndStarFly(){tone_(523,1.2,'sine',0.10,0,1568);tone_(784,1.0,'sine',0.0
 function confetti(n){var box=$('confetti');var cs=['#caa24a','#0a6cff','#1faa6b','#e0533c','#9b6dd6'];for(var i=0;i<n;i++){var c=document.createElement('i');c.className='conf';c.style.left=Math.random()*100+'vw';c.style.background=cs[Math.floor(Math.random()*cs.length)];c.style.animationDuration=(1.6+Math.random()*1.4)+'s';c.style.transform='rotate('+Math.random()*360+'deg)';box.appendChild(c);(function(el){setTimeout(function(){el.remove();},3200);})(c);}}
 function flash(){var f=$('flash');f.classList.remove('show');void f.offsetWidth;f.classList.add('show');}
 function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
+function gradPop_(en,ja){var el=$('gradpop');if(!el)return;el.innerHTML='<div class="gp-em">🎓</div><div class="gp-w">'+String(en==null?'':en)+(ja?' <span class="gp-ja">'+String(ja)+'</span>':'')+'</div><div class="gp-l">卒業！</div>';el.classList.remove('show');void el.offsetWidth;el.classList.add('show');try{beep(784,0.12,'triangle');setTimeout(function(){beep(1175,0.16,'triangle');},110);}catch(e){}confetti(14);}
 
 $('themeBtn').onclick=function(){var d=document.documentElement.getAttribute('data-theme')==='dark';document.documentElement.setAttribute('data-theme',d?'light':'dark');localStorage.setItem('kwt_theme',d?'light':'dark');syncThemeIcon();};
 
@@ -1863,7 +1887,7 @@ function startNote(subject,words,assets){
   if(!words||!words.length){toast('復習する単語がありません');return;}
   show('scr-practice');combo=0;
   gradeReset_(); // 採点キュー初期化 2026-07-05
-  noteSes={subject:subject,words:words,idx:0,step:(subject==='english'?2:3),wordOK:true,cleared:0,total:words.length,assets:(assets||{}),miss:[]};
+  noteSes={subject:subject,words:words,idx:0,step:(subject==='english'?2:3),wordOK:true,cleared:0,clearedWords:[],total:words.length,assets:(assets||{}),miss:[]};
   renderNoteStep();
 }
 function renderNoteStep(){hideQTimer();
@@ -1925,7 +1949,7 @@ function submitNoteWord(){
   if(!correct&&s.miss)s.miss.push(w.word_id||w.id);
   // テンポ改善C（2026-07-05）：採点は裏送信し、次の語を即出題（結果は完了画面がキュー完了を待って確定）
   enqueueGrade({action:'review_complete',review_id:w.review_id,correct:correct},function(d){
-    if(d.data&&d.data.cleared){s.cleared++;toast('「'+w.english+'」を卒業！🎓');}
+    if(d.data&&d.data.cleared){s.cleared++;if(s.clearedWords)s.clearedWords.push({en:w.english,ja:w.japanese});gradPop_(w.english,w.japanese);}
   });
   s.idx++;s.step=(s.subject==='english'?2:3);s.wordOK=true;
   if(s.idx>=s.words.length){finishNote();}else renderNoteStep();
@@ -1934,22 +1958,43 @@ function finishNote(){
   try{localStorage.setItem('kwt_note_done',todayStr_());}catch(e){} dailyState.note=true;renderDaily(); // デイリー：間違いノート本日分 完了 2026-07-04
   var s=noteSes;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();
   $('btn-next').style.display='none';$('btn-retry').style.display='none';
+  var _db=$('done-badge');if(_db)_db.style.display='';
   $('done-badge').innerHTML='<i class="ti ti-notebook" style="color:var(--ng)"></i>';
-  $('done-result').textContent='復習 お疲れさま！'; // 表記は漢字（川上さん指示 2026-07-05）
+  $('done-result').textContent='復習 おつかれさま！';
   $('done-rate').textContent='';
   $('done-score-wrap').style.display='none';
-  // 記録の保存（裏送信キュー）が終わるまで結果を確定しない（gas-html-checklist：成功と偽らない）2026-07-05
+  // 採点（保存）中：スピナー＋Tips（成功と偽らない・待ちを価値に）2026-07-13
   $('done-miss').textContent='記録を保存中…';
+  $('star-area').innerHTML='<div class="note-saving"><div class="sw-load">'+kwtSpin(30)+'<span>記録を保存しています…</span></div>'+tipHtml_()+'</div>';
   whenGradesFlushed(function(){
-    if(gradeFailed>0){$('done-miss').textContent='⚠ 一部の記録を保存できませんでした。電波の良いところで もう一回やってね';}
-    else{
-      $('done-miss').textContent=s.cleared?('今回 '+s.cleared+'語 卒業した！🎓'):('卒業はあと一歩。2回れんぞく正解でクリア！');
-      if(s.cleared){sndWin();flash();confetti(100);}homeCacheClear_();/* ノート完了でホームキャッシュ無効化（案A 2026-07-08）*/
+    if(gradeFailed>0){
+      $('star-area').innerHTML='';
+      $('done-miss').textContent='⚠ 一部の記録を保存できませんでした。電波の良いところで もう一回やってね';
+    }else{
+      homeCacheClear_();/* ノート完了でホームキャッシュ無効化（案A 2026-07-08）*/
+      var n=s.cleared||0;
+      if(n>0){
+        $('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';
+        $('done-result').innerHTML='<span class="num" id="note-gnum">0</span>語 卒業！🎓';
+        $('done-miss').textContent='2回れんぞく正解でクリアした単語だよ。よくがんばった！';
+        $('star-area').innerHTML=noteGradCardHtml_(s.clearedWords||[]);
+        var gn=$('note-gnum');if(gn)animNum(gn,n,900);
+        sndWin();flash();confetti(120);
+      }else{
+        $('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';
+        $('done-result').textContent='復習 おつかれさま！';
+        $('done-miss').innerHTML='卒業はあと一歩。<b style="color:var(--ink)">2回れんぞく正解</b>でクリアだよ。もう一回いってみよう！';
+        $('star-area').innerHTML='<div class="note-none"><i class="ti ti-seedling"></i>今日つぶした分は、記憶に残りはじめてる。くり返すほど「思い出せる」に変わっていくよ。</div>';
+      }
     }
     $('btn-retry').style.display='flex';
     $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> もう一回やる';
     $('btn-retry').onclick=function(){noteRetry(s.subject);};
   });
+}
+function noteGradCardHtml_(words){
+  var lis=(words||[]).map(function(w,i){return '<div class="gword" style="animation-delay:'+(0.12+i*0.1)+'s"><span class="gw-chk"><i class="ti ti-check"></i></span><span class="gw-en">'+String(w.en||'')+'</span><span class="gw-ja">'+String(w.ja||'')+'</span></div>';}).join('');
+  return '<div class="grad-card"><div class="grad-h"><i class="ti ti-award"></i>卒業した単語<span class="grad-cap">もう間違いノートに出てこないよ</span></div>'+lis+'</div>';
 }
 /* 間違いノートの「もう一回」：最新のactiveを取り直して再開（卒業済みは除外される） */
 function noteRetry(subject){
