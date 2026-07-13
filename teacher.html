@@ -450,6 +450,35 @@
   .rt-dc{text-align:center;}
   .rt-foot .rt-cnt{font-size:12px;color:var(--text-muted);font-weight:700;margin-right:12px;}
   .rt-foot .rt-cnt b{color:var(--text);}
+  /* 名簿トランスファー（単元別対策・2026-07-13差し替え） */
+  .rtx-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1 1 auto;min-height:0;}
+  .rtx-col{border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#fff;}
+  .rtx-h{font-size:12px;font-weight:800;padding:8px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+  .rtx-h .c{margin-left:auto;color:var(--crimson);}
+  .rtx-list{overflow:auto;flex:1;padding:5px;min-height:120px;}
+  .rtx-row{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;}
+  .rtx-row:hover{background:#f6f8fc;}
+  .rtx-row .nm{font-weight:700;font-size:13px;flex:1;min-width:0;}
+  .rtx-row .g{font-size:10.5px;color:var(--text-light);font-weight:500;margin-left:5px;}
+  .rtx-add{margin-left:auto;font-size:12px;font-weight:800;color:var(--crimson);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+  .rtx-x{border:none;background:none;color:var(--text-light);cursor:pointer;font-size:14px;flex-shrink:0;}
+  .rtx-pill{border-radius:18px;padding:4px 11px;font-size:11px;font-weight:800;cursor:pointer;border:1.6px solid var(--border);white-space:nowrap;font-family:inherit;background:#fff;color:var(--text-muted);flex-shrink:0;}
+  .rtx-pill.on{background:var(--crimson);color:#fff;border-color:var(--crimson);}
+  .rtx-toolbar{display:flex;gap:6px;flex-wrap:wrap;padding:7px 9px;border-top:1px solid var(--border);align-items:center;}
+  .rtx-lab{font-size:10.5px;font-weight:800;color:var(--text-light);}
+  /* 一括：教材ごと×人単位の確認テスト配信 2026-07-13 */
+  .bd-gbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#f7f8fb;border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin:10px 0 8px;}
+  .bd-lab{font-size:12px;font-weight:800;color:#1f2933;}
+  .bd-card{border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+  .bd-h{display:flex;align-items:center;gap:8px;padding:8px 11px;background:#fafbfd;flex-wrap:wrap;}
+  .bd-h b{font-size:13px;}
+  .bd-sum{font-size:11.5px;color:var(--text-muted);}
+  .bd-toggle{margin-left:auto;border:1.4px solid var(--border);background:#fff;border-radius:16px;padding:4px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--crimson);}
+  .bd-body{padding:9px 11px;border-top:1px solid var(--border);}
+  .bd-quick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+  .bd-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;}
+  .bd-row{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:8px;padding:6px 9px;}
+  .bd-nm{font-size:12.5px;font-weight:700;flex:1;min-width:0;}
   /* 教材ごとタブ 2026-07-09 */
   .mgrow{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--surface2);cursor:pointer;}
   .mgrow:last-child{border-bottom:none;}
@@ -816,25 +845,24 @@
 <!-- 名簿＋確認テスト配信（2列チェック・単元別対策）2026-07-13 -->
 <div class="modal-back" id="rtModal">
   <div class="modal">
-    <h3 id="rtTitle">名簿と確認テスト配信</h3>
+    <h3 id="rtTitle">この教材を持っている子＋確認テスト配信</h3>
     <div class="rt-safe">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9 12l2 2 4-4"></path></svg>
-      <span><b>「教材を割り当て」と「確認テストを配信」は別の操作。</b>チェックした分だけ保存され、ほかの子の点数・配信日は変わりません。</span>
+      <span><b>右＝この教材を持っている子。</b>左の絞り込みを変えても右は消えません。配信は未配信=自動オン／配信済み=自動オフ（意図的な再配信も可）。</span>
     </div>
     <div class="err" id="rtErr"></div>
-    <div class="rt-fbar" id="rtFbar"></div>
-    <div class="rt-qrow">
-      <span class="rt-qtag a">教材を割り当て</span>
-      <button class="rt-qbtn" onclick="rtQuick('A','all')">表示中を全員</button>
-      <button class="rt-qbtn" onclick="rtQuick('A','clear')">クリア</button>
-      <span class="rt-qtag b" style="margin-left:8px;">確認テストを配信</span>
-      <button class="rt-qbtn" onclick="rtQuick('B','new')">未配信の子だけ</button>
-      <button class="rt-qbtn" onclick="rtQuick('B','all')">表示中を全員</button>
-      <button class="rt-qbtn" onclick="rtQuick('B','clear')">クリア</button>
-    </div>
-    <div class="rt-lwrap">
-      <div class="rt-lhead"><div>教材を割り当て</div><div class="nm">生徒</div><div>最終配信日</div><div>確認テスト配信</div></div>
-      <div id="rtRows"></div>
+    <div class="rtx-wrap">
+      <div class="rtx-col">
+        <div class="rtx-h">候補 <span class="c" id="rtCandCnt"></span></div>
+        <div class="rt-fbar" id="rtFbar" style="padding:7px 9px;border-bottom:1px solid var(--border);margin:0;"></div>
+        <div class="rtx-list" id="rtCand"></div>
+        <div class="rtx-toolbar"><button class="rt-qbtn" onclick="rtAddAllShown()">表示中をすべて追加</button></div>
+      </div>
+      <div class="rtx-col">
+        <div class="rtx-h">この教材を持っている子 <span class="c" id="rtRosterCnt"></span></div>
+        <div class="rtx-list" id="rtRoster"></div>
+        <div class="rtx-toolbar"><span class="rtx-lab">確認テスト</span><button class="rt-qbtn" onclick="rtDelvQuick('new')">未配信の子だけ</button><button class="rt-qbtn" onclick="rtDelvQuick('all')">全員に配信</button><button class="rt-qbtn" onclick="rtDelvQuick('clear')">配信オフ</button></div>
+      </div>
     </div>
     <div class="modal-actions rt-foot" style="align-items:center;">
       <span class="rt-cnt">割り当て <b id="rtCntA">0</b>名 <span id="rtCntAd" style="color:var(--text-light);"></span></span>
@@ -1635,7 +1663,7 @@ function saveRoster(){
 function jumpToMaterial(mid){ if(!mid)return; switchTab('mat'); setTimeout(function(){openRosterMaterial(String(mid));},80); }
 
 /* ===== 名簿＋確認テスト配信（2列チェック・単元別対策）2026-07-13 ===== */
-var _rtMid=null,_rtSelA={},_rtSelB={},_rtA0={},_rtDates={},_rtFilt={grade:{},cls:{},school:{}},_rtSearch='';
+var _rtMid=null,_rtSelA={},_rtSelB={},_rtA0={},_rtDeliver={},_rtDates={},_rtFilt={grade:{},cls:{},school:{}},_rtSearch='';
 function _rtSid(s){return String(s.student_id!=null?s.student_id:(s.id!=null?s.id:''));}
 function _rtUniq(field){var m={};(_students||[]).forEach(function(s){var v=String(s[field]||'').trim();if(v)m[v]=1;});var a=Object.keys(m);return field==='grade'?a.sort(function(x,y){return gradeRank(x)-gradeRank(y);}):a.sort(function(x,y){return x.localeCompare(y,'ja');});}
 function _rtAnyOn(o){return Object.keys(o).some(function(k){return o[k];});}
@@ -1655,13 +1683,13 @@ function openRosterTest(mid){
   _rtFilt={grade:{},cls:{},school:{}};_rtSearch='';
   _rtSelA={};_rtA0={};
   (_students||[]).forEach(function(s){(s.materials_view||[]).forEach(function(mm){if(String(mm.material_id)===_rtMid){var id=_rtSid(s);_rtSelA[id]=1;_rtA0[id]=1;}});});
-  _rtSelB={};_rtDates={};
-  $('rtRows').innerHTML='<div style="padding:18px;text-align:center;color:var(--text-light);font-size:12px;">読み込み中…</div>';
+  _rtSelB={};_rtDeliver={};_rtDates={};
+  $('rtRoster').innerHTML='<div style="padding:18px;text-align:center;color:var(--text-light);font-size:12px;">読み込み中…</div>';
   $('rtFbar').innerHTML='';
   $('rtModal').classList.add('show');
   call({action:'quiz_delivery_dates',material_id:_rtMid}).then(function(d){
     _rtDates=(d&&d.ok&&d.data&&d.data.dates)?d.data.dates:{};
-    Object.keys(_rtSelA).forEach(function(id){if(!_rtDates[id])_rtSelB[id]=1;}); /* 割り当て済みの未配信を初期チェック */
+    Object.keys(_rtSelA).forEach(function(id){_rtDeliver[id]=_rtDates[id]?false:true;}); /* 既定：未配信=配信ON・配信済み=OFF */
     rtRenderFbar();rtRender();
   });
 }
@@ -1683,47 +1711,48 @@ function rtBadge_(id){
   var md=(d.getMonth()+1)+'/'+d.getDate();
   return '<span class="dbadge '+(days<=30?'d-recent':'d-old')+'">'+md+' 配信</span>';
 }
-function rtRender(){
-  var rows=_rtVisible();
-  $('rtRows').innerHTML=rows.map(function(s){var id=_rtSid(s);
-    return '<div class="rt-lrow">'
-      +'<div class="rt-cc"><span class="rt-cb'+(_rtSelA[id]?' onA':'')+'" onclick="rtFlip(\'A\',\''+id+'\')">'+(_rtSelA[id]?'✓':'')+'</span></div>'
-      +'<div class="rt-nm">'+esc(s.name||'(無名)')+'<span class="g">'+esc([s.grade,s.class_name].filter(Boolean).join('・'))+'</span></div>'
-      +'<div class="rt-dc">'+rtBadge_(id)+'</div>'
-      +'<div class="rt-cc"><span class="rt-cb'+(_rtSelB[id]?' onB':'')+'" onclick="rtFlip(\'B\',\''+id+'\')">'+(_rtSelB[id]?'✓':'')+'</span></div>'
+function rtRender(){rtRenderCand();rtRenderRoster();rtCounts();}
+function rtRenderCand(){
+  var vis=_rtVisible().filter(function(s){return !_rtSelA[_rtSid(s)];});
+  $('rtCandCnt').textContent=vis.length+'名';
+  $('rtCand').innerHTML=vis.map(function(s){var id=_rtSid(s);
+    return '<div class="rtx-row" onclick="rtAdd(\''+id+'\')"><span class="nm">'+esc(s.name||'(無名)')+'<span class="g">'+esc([s.grade,s.class_name].filter(Boolean).join('・'))+'</span></span><span class="rtx-add">＋ 追加</span></div>';
+  }).join('')||'<div style="padding:16px;text-align:center;color:var(--text-light);font-size:12px;">該当なし</div>';
+}
+function rtRenderRoster(){
+  var ids=Object.keys(_rtSelA);
+  var byId={};(_students||[]).forEach(function(s){byId[_rtSid(s)]=s;});
+  ids.sort(function(a,b){var sa=byId[a]||{},sb=byId[b]||{};var d=gradeRank(sa.grade)-gradeRank(sb.grade);return d!==0?d:String(sa.name||'').localeCompare(String(sb.name||''),'ja');});
+  $('rtRosterCnt').textContent=ids.length+'名';
+  $('rtRoster').innerHTML=ids.map(function(id){var s=byId[id]||{};var on=_rtDeliver[id];
+    return '<div class="rtx-row"><span class="nm">'+esc(s.name||'(無名)')+'<span class="g">'+esc([s.grade,s.class_name].filter(Boolean).join('・'))+'</span></span>'
+      +'<span style="margin-left:6px;">'+rtBadge_(id)+'</span>'
+      +'<span class="rtx-pill'+(on?' on':'')+'" onclick="rtFlipDeliver(\''+id+'\')">'+(on?'✓ 配信する':'配信しない')+'</span>'
+      +'<button class="rtx-x" title="外す" onclick="rtRemove(\''+id+'\')">✕</button>'
       +'</div>';
-  }).join('')||'<div style="padding:18px;text-align:center;color:var(--text-light);font-size:12px;">該当なし</div>';
-  rtCounts();
+  }).join('')||'<div style="padding:16px;text-align:center;color:var(--text-light);font-size:12px;">まだ誰も持っていません</div>';
 }
-function rtFlip(col,id){
-  if(col==='A'){ if(_rtSelA[id])delete _rtSelA[id]; else {_rtSelA[id]=1;if(!_rtDates[id])_rtSelB[id]=1;} }
-  else { if(_rtSelB[id])delete _rtSelB[id]; else _rtSelB[id]=1; }
-  rtRender();
-}
-function rtQuick(col,mode){
-  var vis=_rtVisible();
-  if(col==='A'){ if(mode==='all')vis.forEach(function(s){_rtSelA[_rtSid(s)]=1;}); else vis.forEach(function(s){delete _rtSelA[_rtSid(s)];}); }
-  else {
-    if(mode==='clear')vis.forEach(function(s){delete _rtSelB[_rtSid(s)];});
-    else if(mode==='all')vis.forEach(function(s){var id=_rtSid(s);if(_rtSelA[id])_rtSelB[id]=1;});
-    else vis.forEach(function(s){var id=_rtSid(s);if(_rtSelA[id]&&!_rtDates[id])_rtSelB[id]=1;}); /* 未配信の子だけ＝割り当て済み×未配信 */
-  }
-  rtRender();
-}
+function rtAdd(id){_rtSelA[id]=1;if(_rtDeliver[id]===undefined)_rtDeliver[id]=_rtDates[id]?false:true;rtRender();}
+function rtRemove(id){delete _rtSelA[id];rtRender();}
+function rtFlipDeliver(id){_rtDeliver[id]=!_rtDeliver[id];rtRender();}
+function rtAddAllShown(){_rtVisible().forEach(function(s){var id=_rtSid(s);if(!_rtSelA[id]){_rtSelA[id]=1;if(_rtDeliver[id]===undefined)_rtDeliver[id]=_rtDates[id]?false:true;}});rtRender();}
+function rtDelvQuick(mode){Object.keys(_rtSelA).forEach(function(id){_rtDeliver[id]=(mode==='all')?true:((mode==='clear')?false:(_rtDates[id]?false:true));});rtRender();}
 function rtCounts(){
-  var a=Object.keys(_rtSelA).length,b=Object.keys(_rtSelB).length;
-  $('rtCntA').textContent=a;$('rtCntB').textContent=b;
+  var ids=Object.keys(_rtSelA);
   var base=Object.keys(_rtA0);
-  var add=Object.keys(_rtSelA).filter(function(id){return base.indexOf(id)<0;}).length;
+  var add=ids.filter(function(id){return base.indexOf(id)<0;}).length;
   var rem=base.filter(function(id){return !_rtSelA[id];}).length;
-  $('rtCntAd').textContent='（＋'+add+'／−'+rem+'）';
+  var b=ids.filter(function(id){return _rtDeliver[id];}).length;
+  $('rtCntA').textContent=ids.length;$('rtCntAd').textContent='（＋'+add+'／−'+rem+'）';$('rtCntB').textContent=b;
 }
 function saveRosterTest(){
-  var aIds=Object.keys(_rtSelA), bIds=Object.keys(_rtSelB);
+  var aIds=Object.keys(_rtSelA);
+  var bIds=aIds.filter(function(id){return _rtDeliver[id];});
   var before=Object.keys(_rtA0);
   var rem=before.filter(function(id){return _rtSelA[id]!==1;});
   if(rem.length){ if(!confirm('この教材から '+rem.length+'名 を外します。進捗・間違いノートは残ります（もう一度割り当てれば続きから）。よろしいですか？'))return; }
-  if(bIds.length){ if(!confirm(bIds.length+'名に確認テストを配信します（未実施スタート・過去の点数は保持）。よろしいですか？'))return; }
+  if(bIds.length){ var again=bIds.filter(function(id){return _rtDates[id];}).length;
+    if(!confirm(bIds.length+'名に確認テストを配信します（未実施スタート・過去の点数は保持）。うち再配信 '+again+'件。よろしいですか？'))return; }
   var btn=$('rtSave');btn.disabled=true;btn.textContent='⏳ 保存中…';
   $('rtErr').textContent='';
   call({action:'material_roster_set',material_id:_rtMid,student_ids:aIds}).then(function(d){
@@ -2027,10 +2056,10 @@ var Picker=(function(){
    入口＝「まとめて割り当てる」「まとめて印刷」ボタン。流れは だれに→なにを→実行。
    クイックチップ＝学年・教室・中学校（07-04n実装→07-05gで消失→復活）。
    やってない子・指導必要チップは印刷のときだけ（川上さん指示 2026-07-05：割当に不要）。 */
-var bulkMat={}, bulkMaterials=[];
+var bulkMat={}, bulkMaterials=[]; var bulkDeliver={}, bulkDelivDates={}, bulkDelivOpen={};
 var tmMode='assign', tmStep=1, tmSel={}, tmSearch='';
 function openTargetModal(mode,presetIds){
-  tmMode=mode;tmStep=1;tmSel={};tmSearch='';bulkMat={};
+  tmMode=mode;tmStep=1;tmSel={};tmSearch='';bulkMat={};bulkDeliver={};bulkDelivDates={};bulkDelivOpen={};
   (presetIds||[]).forEach(function(id){tmSel[String(id)]=1;});
   $('bulkTitle').textContent=(mode==='assign')?'まとめて割り当てる':'まとめて印刷';
   $('bulkModal').classList.toggle('printmode',mode==='print');
@@ -2058,7 +2087,7 @@ function tmUpdateFoot(){
   $('tmBack').textContent=(tmStep===2)?'← 対象にもどる':'やめる';
   var go=$('tmGo');
   if(tmStep===1){go.textContent='次へ';go.disabled=!Object.keys(tmSel).length;}
-  else if(tmMode==='assign'){go.textContent=Object.keys(tmSel).length+'名に割り当てる';go.disabled=!Object.keys(bulkMat).length;}
+  else if(tmMode==='assign'){var _dc=0;bulkTestMids().forEach(function(mid){var dv=bulkDeliver[mid]||{};Object.keys(tmSel).forEach(function(sid){if(dv[sid])_dc++;});});go.textContent=Object.keys(tmSel).length+'名に割り当て'+(_dc?'＋テスト'+_dc+'件':'');go.disabled=!Object.keys(bulkMat).length;}
   else{go.textContent='🖨 印刷する';go.disabled=false;}
 }
 function tmRender(){
@@ -2096,7 +2125,8 @@ function tmList_(){
 function tmStepAssign_(body){
   var h=document.createElement('div');h.className='tm-qh';h.textContent='割り当てる教材（複数えらべます）';body.appendChild(h);
   var box=document.createElement('div');box.id='bulkMatList';body.appendChild(box);
-  var note=document.createElement('div');note.className='tm-note';note.textContent='開始＝先頭パート・1日1パート。すでに割り当て済みの生徒はスキップ。細かい調整は各生徒の「教材」から。';body.appendChild(note);
+  var note=document.createElement('div');note.className='tm-note';note.textContent='開始＝先頭パート・1日1パート。すでに割り当て済みの生徒はスキップ。単元別対策は下で人ごとに確認テスト配信を設定できます。';body.appendChild(note);
+  var dw=document.createElement('div');dw.id='bulkDelivWrap';dw.style.marginTop='10px';body.appendChild(dw);
   if(!bulkMaterials.length){
     box.innerHTML='<div style="color:#94a3b8;font-size:13px;">読み込み中…</div>';
     call({action:'materials_list'}).then(function(d){
@@ -2149,24 +2179,84 @@ function renderBulkMaterials(){
     var mid=String(m.id),on=!!bulkMat[mid];
     var row=document.createElement('div');row.className='bm-row';
     row.innerHTML='<span class="bulk-cb'+(on?' on':'')+'">'+(on?'✓':'')+'</span><span class="bulk-pill '+(isTest?'test':'daily')+'">'+(isTest?'単元別対策':'毎日学習')+'</span><span style="font-weight:700;">'+esc(m.title||'(無題)')+'</span>';
-    row.onclick=function(){if(bulkMat[mid])delete bulkMat[mid];else bulkMat[mid]=1;renderBulkMaterials();if(typeof tmUpdateFoot==='function')tmUpdateFoot();};
+    row.onclick=function(){if(bulkMat[mid])delete bulkMat[mid];else{bulkMat[mid]=1;if(isTest)bulkEnsureDates(mid);}renderBulkMaterials();if(typeof tmUpdateFoot==='function')tmUpdateFoot();};
     box.appendChild(row);
   });
+  if(typeof renderBulkDeliver==='function')renderBulkDeliver();
+}
+function bmById(mid){var r=null;(bulkMaterials||[]).forEach(function(m){if(String(m.id)===String(mid))r=m;});return r;}
+function bulkTestMids(){return Object.keys(bulkMat).filter(function(mid){var m=bmById(mid);return m&&m.content_type==='test';});}
+function bdMd(d){var x=new Date(String(d).replace(/-/g,'/'));return (x.getMonth()+1)+'/'+x.getDate();}
+function bulkEnsureDates(mid){
+  function setDefaults(){ if(!bulkDeliver[mid])bulkDeliver[mid]={}; Object.keys(tmSel).forEach(function(sid){ if(bulkDeliver[mid][sid]===undefined)bulkDeliver[mid][sid]=bulkDelivDates[mid][sid]?false:true; }); }
+  if(bulkDelivDates[mid]){setDefaults();renderBulkDeliver();return;}
+  call({action:'quiz_delivery_dates',material_id:mid}).then(function(d){
+    bulkDelivDates[mid]=(d&&d.ok&&d.data&&d.data.dates)?d.data.dates:{};
+    setDefaults();renderBulkDeliver();if(typeof tmUpdateFoot==='function')tmUpdateFoot();
+  });
+}
+function bulkDelivToggleOpen(mid){bulkDelivOpen[mid]=!bulkDelivOpen[mid];renderBulkDeliver();}
+function bulkDelivFlip(mid,sid){if(!bulkDeliver[mid])bulkDeliver[mid]={};bulkDeliver[mid][sid]=!bulkDeliver[mid][sid];renderBulkDeliver();if(typeof tmUpdateFoot==='function')tmUpdateFoot();}
+function bulkDelivQuick(mid,mode){var dates=bulkDelivDates[mid]||{};if(!bulkDeliver[mid])bulkDeliver[mid]={};Object.keys(tmSel).forEach(function(sid){bulkDeliver[mid][sid]=(mode==='all')?true:((mode==='clear')?false:(dates[sid]?false:true));});renderBulkDeliver();if(typeof tmUpdateFoot==='function')tmUpdateFoot();}
+function bulkDelivAll(mode){bulkTestMids().forEach(function(mid){bulkDelivQuick(mid,mode);});}
+function renderBulkDeliver(){
+  var wrap=$('bulkDelivWrap');if(!wrap)return;
+  var mids=bulkTestMids();
+  if(!mids.length){wrap.innerHTML='';return;}
+  var sids=Object.keys(tmSel);
+  var byId={};(_students||[]).forEach(function(s){byId[String(s.student_id)]=s;});
+  var gbar='<div class="bd-gbar"><span class="bd-lab">確認テスト（全教材まとめて）</span><button class="rt-qbtn" onclick="bulkDelivAll(\'new\')">未配信の子だけ配信</button><button class="rt-qbtn" onclick="bulkDelivAll(\'clear\')">配信オフ</button></div>';
+  var cards=mids.map(function(mid){
+    var m=bmById(mid)||{};
+    if(!bulkDelivDates[mid])return '<div class="bd-card"><div class="bd-h"><span class="bulk-pill test">単元別対策</span><b>'+esc(m.title||'')+'</b><span class="bd-sum">配信日を読み込み中…</span></div></div>';
+    var dates=bulkDelivDates[mid],dv=bulkDeliver[mid]||{};
+    var onN=0,againN=0,skipN=0;
+    sids.forEach(function(sid){ if(dv[sid]){onN++;if(dates[sid])againN++;} else if(dates[sid])skipN++; });
+    var open=!!bulkDelivOpen[mid];
+    var sum='<span class="bd-sum">配信 '+onN+'名'+(againN?'（再配信'+againN+'）':'')+' ／ 配信済みでスキップ '+skipN+'名</span>';
+    var head='<div class="bd-h"><span class="bulk-pill test">単元別対策</span><b>'+esc(m.title||'')+'</b>'+sum+'<button class="bd-toggle" onclick="bulkDelivToggleOpen(\''+mid+'\')">'+(open?'閉じる ▲':'ひらいて個別調整 ▼')+'</button></div>';
+    var bodyHtml='';
+    if(open){
+      var quick='<div class="bd-quick"><button class="rt-qbtn" onclick="bulkDelivQuick(\''+mid+'\',\'new\')">未配信の子だけ</button><button class="rt-qbtn" onclick="bulkDelivQuick(\''+mid+'\',\'all\')">全員に配信</button><button class="rt-qbtn" onclick="bulkDelivQuick(\''+mid+'\',\'clear\')">配信オフ</button></div>';
+      var rows=sids.map(function(sid){var s=byId[sid]||{};var d=dates[sid];var on=dv[sid];
+        var st=d?'<span class="dbadge d-recent">'+bdMd(d)+' 配信</span>':'<span class="dbadge d-none">未配信</span>';
+        return '<div class="bd-row"><span class="bd-nm">'+esc(s.name||'(無名)')+'</span>'+st+'<span class="rtx-pill'+(on?' on':'')+'" onclick="bulkDelivFlip(\''+mid+'\',\''+sid+'\')">'+(on?'✓ 配信する':'配信しない')+'</span></div>';
+      }).join('');
+      bodyHtml='<div class="bd-body">'+quick+'<div class="bd-list">'+rows+'</div></div>';
+    }
+    return '<div class="bd-card">'+head+bodyHtml+'</div>';
+  }).join('');
+  wrap.innerHTML=gbar+cards;
 }
 function applyBulk(){
   var sids=Object.keys(tmSel),mids=Object.keys(bulkMat);
   if(!sids.length){$('bulkErr').textContent='生徒を選んでください';return;}
   if(!mids.length){$('bulkErr').textContent='教材を選んでください';return;}
+  var plan=[],totalDel=0,totalAgain=0;
+  bulkTestMids().forEach(function(mid){var dv=bulkDeliver[mid]||{},dates=bulkDelivDates[mid]||{};
+    var on=sids.filter(function(sid){return dv[sid];});
+    if(on.length){var again=on.filter(function(sid){return dates[sid];}).length;plan.push({mid:mid,sids:on,again:again});totalDel+=on.length;totalAgain+=again;}
+  });
+  var lines=['割り当て：'+sids.length+'名 × '+mids.length+'教材'];
+  if(totalDel)lines.push('確認テスト配信：合計'+totalDel+'件（うち再配信'+totalAgain+'件）');
+  lines.push('よろしいですか？');
+  if(!confirm(lines.join('\n')))return;
   $('bulkErr').textContent='';
   showLoading('割り当て中…');
   call({action:'assignment_bulk',student_ids:sids,material_ids:mids}).then(function(d){
-    hideLoading();
-    if(!d.ok){$('bulkErr').textContent=d.error||'割り当てに失敗しました';return;}
-    var msg='割り当て '+d.data.created+'件';
-    if(d.data.skipped)msg+='／既存スキップ '+d.data.skipped+'件';
-    toast(msg);
-    closeModal('bulkModal');
-    loadDash_silent();
+    if(!d||!d.ok){hideLoading();$('bulkErr').textContent=(d&&d.error)||'割り当てに失敗しました';return;}
+    var amsg='割り当て '+d.data.created+'件'+(d.data.skipped?'／既存スキップ '+d.data.skipped+'件':'');
+    if(!plan.length){hideLoading();toast(amsg);closeModal('bulkModal');loadDash_silent();return;}
+    showLoading('確認テストを配信中…');
+    var i=0,delivered=0;
+    (function next(){
+      if(i>=plan.length){hideLoading();toast(amsg+' ／ 確認テスト配信 '+delivered+'件');closeModal('bulkModal');loadDash_silent();return;}
+      var p=plan[i++];
+      call({action:'quiz_assign',material_id:p.mid,student_ids:p.sids}).then(function(r){
+        if(r&&r.ok)delivered+=(r.data&&r.data.students!=null?r.data.students:p.sids.length);
+        next();
+      });
+    })();
   });
 }
 
