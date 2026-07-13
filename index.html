@@ -42,6 +42,17 @@
   .head .right{display:flex;align-items:center;gap:14px;}
   .streak{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--sub);}
   .streak b{color:var(--ink);font-weight:700;}
+  /* クロトレ ロゴ（案F 下線アクセント・正式名英字）2026-07-13 */
+  .kt-logo{display:inline-flex;flex-direction:column;line-height:1;}
+  .kt-logo.kt-c{align-items:center;}
+  .kt-logo .kt-jp{font-family:"Noto Sans JP",sans-serif;font-weight:900;letter-spacing:.02em;color:var(--ink);position:relative;display:inline-block;}
+  .kt-logo .kt-jp::after{content:"";position:absolute;left:52%;right:0;bottom:-.16em;height:.085em;border-radius:3px;background:var(--gold);}
+  .kt-logo .kt-en{font-family:"Manrope",sans-serif;font-weight:600;color:var(--sub);text-transform:uppercase;}
+  .kt-logo.kt-lg .kt-jp{font-size:34px;}
+  .kt-logo.kt-lg .kt-en{font-size:9px;margin-top:11px;padding-left:.24em;letter-spacing:.24em;}
+  .kt-logo.kt-sm .kt-jp{font-size:20px;}
+  .kt-logo.kt-sm .kt-en{font-size:6.5px;margin-top:5px;padding-left:.2em;letter-spacing:.18em;}
+  .greet{display:flex;align-items:center;padding:12px 20px 2px;}
   .iconbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;display:grid;place-items:center;cursor:pointer;transition:transform .15s;}
   .iconbtn:active{transform:scale(.9);}
 
@@ -493,12 +504,12 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   <section id="scr-login" class="screen active">
     <div class="body" style="padding-top:60px;">
       <div class="center" style="font-size:40px;color:var(--gold);"><i class="ti ti-anchor"></i></div>
-      <h1 class="center" style="font-size:24px;font-weight:700;margin:8px 0 4px;">クロトレ</h1>
-      <p class="muted center" style="margin-bottom:26px;">先生からもらったIDとパスコードでログイン</p>
+      <div class="center" style="margin:8px 0 4px;"><span class="kt-logo kt-c kt-lg"><span class="kt-jp">クロトレ</span><span class="kt-en">Kurofune Word Trainer</span></span></div>
+      <p class="muted center" style="margin-bottom:26px;">先生からもらったIDとパスワードでログイン</p>
       <div class="card">
         <div class="err" id="login-err"></div>
         <input id="in-id" placeholder="ID（例：student1）" autocomplete="username">
-        <input id="in-pass" type="password" placeholder="パスコード" autocomplete="current-password">
+        <input id="in-pass" type="password" placeholder="パスワード" autocomplete="current-password">
         <button class="btn" id="btn-login">はじめる <i class="ti ti-arrow-right"></i></button>
       </div>
     </div>
@@ -506,11 +517,14 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 
   <section id="scr-home" class="screen">
     <div class="head">
-      <div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div><button class="nick-edit" id="btn-nick-edit" aria-label="ニックネームを変更" title="ニックネームを変更"><i class="ti ti-pencil"></i></button>
+      <span class="kt-logo kt-sm"><span class="kt-jp">クロトレ</span><span class="kt-en">Kurofune Word Trainer</span></span>
       <div class="right">
         <div class="streak"><i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b>日</div>
         <button class="iconbtn" id="themeBtn" aria-label="テーマ切替"><i class="ti ti-moon"></i></button>
       </div>
+    </div>
+    <div class="greet">
+      <div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div><button class="nick-edit" id="btn-nick-edit" aria-label="ニックネームを変更" title="ニックネームを変更"><i class="ti ti-pencil"></i></button>
     </div>
     <div class="body">
       <!-- ===== タイル一覧ビュー（ホーム既定）===== -->
@@ -913,7 +927,7 @@ $('nick-cancel').onclick=closeNickModal;
 $('nick-save').onclick=saveNick;
 $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
-$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスコードを入れてね';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> 確認中…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
+$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスワードを入れてね';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> 確認中…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
 $('btn-logout').onclick=function(){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');};
 
 /* 新構造ヘルパー（2026-06-23）：教科ラベル＋HTMLエスケープ */
