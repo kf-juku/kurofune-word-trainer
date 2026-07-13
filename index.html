@@ -45,14 +45,27 @@
   /* クロトレ ロゴ（案F 下線アクセント・正式名英字）2026-07-13 */
   .kt-logo{display:inline-flex;flex-direction:column;line-height:1;}
   .kt-logo.kt-c{align-items:center;}
-  .kt-logo .kt-jp{font-family:"Noto Sans JP",sans-serif;font-weight:900;letter-spacing:.02em;color:var(--ink);position:relative;display:inline-block;}
-  .kt-logo .kt-jp::after{content:"";position:absolute;left:52%;right:0;bottom:-.16em;height:.085em;border-radius:3px;background:var(--gold);}
+  .kt-logo .kt-jp{font-family:"Noto Sans JP",sans-serif;font-weight:900;letter-spacing:.02em;color:var(--ink);display:inline-block;}
+  .kt-logo .kt-jp .kt-u{position:relative;}
+  .kt-logo .kt-jp .kt-u::after{content:"";position:absolute;left:0;right:.02em;bottom:-.16em;height:.085em;border-radius:3px;background:var(--gold);}
   .kt-logo .kt-en{font-family:"Manrope",sans-serif;font-weight:600;color:var(--sub);text-transform:uppercase;}
   .kt-logo.kt-lg .kt-jp{font-size:34px;}
   .kt-logo.kt-lg .kt-en{font-size:9px;margin-top:11px;padding-left:.24em;letter-spacing:.24em;}
   .kt-logo.kt-sm .kt-jp{font-size:20px;}
   .kt-logo.kt-sm .kt-en{font-size:6.5px;margin-top:5px;padding-left:.2em;letter-spacing:.18em;}
-  .greet{display:flex;align-items:center;padding:12px 20px 2px;}
+  .greet{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 20px 4px;}
+  .greet .who{display:flex;align-items:center;min-width:0;}
+  .undername{padding:2px 20px 6px;}
+  /* 応援＝名前の横のアバターチップ（案A・2026-07-13。richは装飾でなく「応援した人の顔」で） */
+  .oa{display:inline-flex;align-items:center;gap:9px;padding:5px 11px 5px 7px;border-radius:14px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow);cursor:pointer;transition:transform .12s;}
+  .oa:active{transform:scale(.98);}
+  .oa .avs{display:flex;flex-shrink:0;}
+  .oa .av{width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:10px;font-weight:700;border:2px solid var(--surface);}
+  .oa .av+.av{margin-left:-8px;}
+  .oa .av.more{background:transparent;color:var(--sub);font-family:"Manrope";font-weight:700;font-size:10px;}
+  .oa .oa-txt{font-size:12px;color:var(--sub);font-weight:600;white-space:nowrap;}
+  .oa .oa-txt b{color:var(--ink);margin-left:1px;font-size:13px;}
+  .oa .oa-arw{color:var(--sub);font-size:15px;margin-left:-2px;}
   .iconbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;display:grid;place-items:center;cursor:pointer;transition:transform .15s;}
   .iconbtn:active{transform:scale(.9);}
 
@@ -248,14 +261,14 @@
   /* ===== ホーム再構成（2026-07-02）応援ポップ／学習行／全体カード ===== */
   .star-pop{display:flex;align-items:center;gap:8px;background:rgba(202,162,74,.14);border:1px solid var(--gold);border-radius:13px;padding:8px 12px;margin-bottom:10px;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;transition:transform .12s;}
   /* 仲間チル演出（川上さん確定 2026-07-03：今日の仲間ニックネーム／朝は前日実績・きらめき粒ON・音なし） */
-  .chill{display:flex;align-items:center;gap:9px;background:linear-gradient(135deg,rgba(10,108,255,.06),rgba(202,162,74,.06));border:1px solid var(--line);border-radius:13px;padding:8px 12px;margin-bottom:10px;overflow:hidden;position:relative;opacity:0;}
+  .chill{display:flex;align-items:center;gap:8px;padding:4px 0 2px;overflow:hidden;position:relative;opacity:0;}
   .chill.show{animation:chillIn 1.4s ease forwards;}
   @keyframes chillIn{0%{opacity:0;transform:translateY(6px);}100%{opacity:1;transform:none;}}
   .chill .avs{display:flex;flex-shrink:0;}
-  .chill .av{width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;border:2px solid var(--surface);margin-left:-8px;}
+  .chill .av{width:20px;height:20px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;border:2px solid var(--surface);margin-left:-7px;}
   .chill .av:first-child{margin-left:0;}
-  .chill .ctext{font-size:12px;font-weight:500;line-height:1.5;}
-  .chill .ctext b{font-weight:700;}
+  .chill .ctext{font-size:12px;font-weight:500;line-height:1.5;color:var(--sub);}
+  .chill .ctext b{font-weight:700;color:var(--ink);}
   .chill .spark{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:0;animation:sparkFloat 4s ease-in-out infinite;}
   @keyframes sparkFloat{0%{opacity:0;transform:translateY(8px);}30%{opacity:.7;}70%{opacity:.4;}100%{opacity:0;transform:translateY(-14px);}}
   .star-pop:active{transform:scale(.99);}
@@ -504,7 +517,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   <section id="scr-login" class="screen active">
     <div class="body" style="padding-top:60px;">
       <div class="center" style="font-size:40px;color:var(--gold);"><i class="ti ti-anchor"></i></div>
-      <div class="center" style="margin:8px 0 4px;"><span class="kt-logo kt-c kt-lg"><span class="kt-jp">クロトレ</span><span class="kt-en">Kurofune Word Trainer</span></span></div>
+      <div class="center" style="margin:8px 0 4px;"><span class="kt-logo kt-c kt-lg"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="kt-en">Kurofune Word Trainer</span></span></div>
       <p class="muted center" style="margin-bottom:26px;">先生からもらったIDとパスワードでログイン</p>
       <div class="card">
         <div class="err" id="login-err"></div>
@@ -517,22 +530,21 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 
   <section id="scr-home" class="screen">
     <div class="head">
-      <span class="kt-logo kt-sm"><span class="kt-jp">クロトレ</span><span class="kt-en">Kurofune Word Trainer</span></span>
+      <span class="kt-logo kt-sm"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="kt-en">Kurofune Word Trainer</span></span>
       <div class="right">
         <div class="streak"><i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b>日</div>
         <button class="iconbtn" id="themeBtn" aria-label="テーマ切替"><i class="ti ti-moon"></i></button>
       </div>
     </div>
     <div class="greet">
-      <div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div><button class="nick-edit" id="btn-nick-edit" aria-label="ニックネームを変更" title="ニックネームを変更"><i class="ti ti-pencil"></i></button>
+      <div class="who"><div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div><button class="nick-edit" id="btn-nick-edit" aria-label="ニックネームを変更" title="ニックネームを変更"><i class="ti ti-pencil"></i></button></div>
+      <span class="oa" id="home-star-pop" style="display:none;" role="button" tabindex="0" aria-label="とどいた応援を見る"><span class="avs" id="star-avs"></span><span class="oa-txt">応援 <b class="num" id="star-pop-n">0</b></span><i class="ti ti-chevron-right oa-arw"></i></span>
     </div>
+    <div class="undername"><div id="chill-area"></div></div>
     <div class="body">
       <!-- ===== タイル一覧ビュー（ホーム既定）===== -->
       <div id="home-tiles">
-        <!-- 応援ポップ（件数あるとき表示・押すとなかまへ）2026-07-02 -->
-        <div class="star-pop" id="home-star-pop" style="display:none;"><i class="ti ti-sparkles"></i><span class="sp-txt" id="star-pop-txt"></span><i class="ti ti-chevron-right sp-arw"></i></div>
-        <!-- 仲間チル演出（今日がんばってる仲間の気配・きらめき粒ON・音なし。川上さん確定 2026-07-03 grill＋モック選定） -->
-        <div id="chill-area"></div>
+        <!-- 応援＝名前の横のアバターチップ(.oa)／なかまチル＝名前の下(.undername)へ移動（2026-07-13 案A・きらめき演出は維持） -->
         <div class="daily-bar done" id="daily-bar" style="display:none;"><span class="db-t" style="color:var(--gold)">🎉 今日ぜんぶ完了！</span><span class="db-n"><i class="ti ti-check"></i></span></div>
         <div class="label"><i class="ti ti-anchor"></i> 今日のメイン学習</div>
         <div id="main-list"><div class="loading">読み込み中…</div></div>
@@ -1238,7 +1250,7 @@ function loadStarReceived(){
     }catch(e){}
     // なかまタイル右上に応援数の赤バッジ（合意2026-06-22：応援通知はなかまタイルに集約）
     if(dt){dt.textContent=n;dt.classList.add('on');}
-    if(pop){$('star-pop-txt').textContent='きみに '+n+' 個の応援がとどいたよ！';pop.style.display='flex';}
+    if(pop){var _it=d.data.items||[],_sn={},_av=[];_it.forEach(function(r){var nk=r.nickname||'なかま';if(!_sn[nk]){_sn[nk]=true;_av.push(nk);}});var _avh=_av.slice(0,3).map(function(nk){return '<span class="av">'+esc(nk.slice(0,1))+'</span>';}).join('')+(_av.length>3?'<span class="av more">+'+(_av.length-3)+'</span>':'');var _ae=$('star-avs');if(_ae)_ae.innerHTML=_avh;var _ne=$('star-pop-n');if(_ne)_ne.textContent=n;pop.style.display='inline-flex';}
     var el=document.createElement('div');el.className='star-recv';
     el.innerHTML='<i class="ti ti-sparkles"></i> ぜんぶで '+n+' この応援がとどいてるよ！';
     area.appendChild(el);
