@@ -607,7 +607,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   </section>
 
   <section id="scr-done" class="screen">
-    <div class="body" style="padding-top:24px;">
+    <div class="body" style="padding-top:24px;padding-bottom:96px;">
       <!-- 完了カード：縦圧縮の横組み（川上さん承認モック 2026-07-05） -->
       <div class="done-card">
         <div class="done-ic" id="done-badge"><i class="ti ti-trophy"></i></div>
@@ -1582,12 +1582,12 @@ function pronListen_(){
       else{pronOk_(true,heard);} // やり直し後は結果を問わず前へ（丸バツは出さない・川上さん確定 2026-07-06）
     };
     rec.onnomatch=function(){ if(pronRec!==rec)return; pronGotResult=true; orbReactStop_();
-      if(pronTries===0){pronMiss_();}else{pronOk_(true);} };
+      if(pronTries===0){pronMiss_();}else if(pronHeard){pronOk_(true);}else{pronSilentNext_();} }; // 声なしはOKにしない 2026-07-13
     rec.onerror=function(){ if(pronRec!==rec)return; pronErr=true;pronBusy=false; orbReactStop_();
-      if(pronTries===0){pronMiss_();}else{pronOk_(true);} }; // きき取れなくても固まらせない
+      if(pronTries===0){pronMiss_();}else if(pronHeard){pronOk_(true);}else{pronSilentNext_();} }; // きき取れなくても固まらせない・声なしはOKにしない 2026-07-13
     rec.onend=function(){ if(pronRec!==rec)return; pronBusy=false;
       // 結果もエラーも来ずに静かに終わった＝固まり防止（Android対策 2026-07-08）
-      if(!pronGotResult&&!pronErr){ orbReactStop_(); if(pronTries===0){pronMiss_();}else{pronOk_(true);} } };
+      if(!pronGotResult&&!pronErr){ orbReactStop_(); if(pronTries===0){pronMiss_();}else if(pronHeard){pronOk_(true);}else{pronSilentNext_();} } }; // 声なしはOKにしない 2026-07-13
     rec.start();
     // 保険：一定時間 何も返らなければ止めて「もう一回」へ（固まり防止）
     pronWatch=setTimeout(function(){ if(pronRec===rec&&!pronGotResult){try{rec.stop();}catch(e){}} },8000);
@@ -1607,6 +1607,13 @@ function pronMiss_(heard){
   speak(s.words[s.idx]);
   clearTimeout(pronTimer);
   pronTimer=setTimeout(pronListen_,PRON_MISS_WAIT);
+}
+function pronSilentNext_(){ // 声が検知できなかった：オッケーにせず、お手本を聞いて次へ（iOS等で無音でも誤OKになる対策 2026-07-13）
+  var s=session;if(!s)return;
+  pronUI_('ready','ti-volume','ready','お手本を きいてね','こえが きこえなかったよ。つぎは マイクに むかって いってみよう','');
+  speak(s.words[s.idx]);
+  clearTimeout(pronTimer);
+  pronTimer=setTimeout(pronNext_,PRON_AFTER_AUDIO);
 }
 function pronNext_(){ // 発音→意味クイズへ（二重進行ガードつき）
   if(pronAdvanced)return;pronAdvanced=true;
