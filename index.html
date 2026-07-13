@@ -11,12 +11,12 @@
   :root{
     --bg:#f4f5f8;--surface:#fff;--ink:#15161a;--sub:#8a8f99;--line:rgba(0,0,0,.06);
     --accent:#0a6cff;--accent-soft:#e8f0ff;--gold:#caa24a;--ring-track:#e9ecf2;
-    --ok:#1faa6b;--ng:#e0533c;--shadow:0 2px 20px rgba(20,24,40,.06);--glass:rgba(255,255,255,.65);
+    --ok:#1faa6b;--ng:#e0533c;--shadow:0 2px 20px rgba(20,24,40,.06);--glass:rgba(255,255,255,.65);--neutral-bg:rgba(0,0,0,.05);--neutral-ic:rgba(0,0,0,.045);
   }
   [data-theme="dark"]{
     --bg:#0d1017;--surface:#161a23;--ink:#eef1f6;--sub:#8b93a3;--line:rgba(255,255,255,.08);
     --accent:#4f8cff;--accent-soft:#15233f;--gold:#e3c477;--ring-track:#252b37;
-    --ok:#3ad08a;--ng:#ff6b54;--shadow:0 2px 24px rgba(0,0,0,.4);--glass:rgba(22,26,35,.6);
+    --ok:#3ad08a;--ng:#ff6b54;--shadow:0 2px 24px rgba(0,0,0,.4);--glass:rgba(22,26,35,.6);--neutral-bg:rgba(255,255,255,.08);--neutral-ic:rgba(255,255,255,.06);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   body{font-family:"Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink);transition:background .4s,color .4s;overflow-x:hidden;}
@@ -43,29 +43,34 @@
   .streak{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--sub);}
   .streak b{color:var(--ink);font-weight:700;}
   /* クロトレ ロゴ（案F 下線アクセント・正式名英字）2026-07-13 */
-  .kt-logo{display:inline-flex;flex-direction:column;line-height:1;}
-  .kt-logo.kt-c{align-items:center;}
-  .kt-logo .kt-jp{font-family:"Noto Sans JP",sans-serif;font-weight:900;letter-spacing:.02em;color:var(--ink);display:inline-block;}
+  .kt-logo{display:inline-flex;align-items:center;gap:9px;line-height:1;}
+  .kt-logo .kt-jp{font-family:"Noto Sans JP",sans-serif;font-weight:900;letter-spacing:.02em;color:var(--ink);display:inline-block;position:relative;}
   .kt-logo .kt-jp .kt-u{position:relative;}
   .kt-logo .kt-jp .kt-u::after{content:"";position:absolute;left:0;right:.02em;bottom:-.16em;height:.085em;border-radius:3px;background:var(--gold);}
-  .kt-logo .kt-en{font-family:"Manrope",sans-serif;font-weight:600;color:var(--sub);text-transform:uppercase;}
-  .kt-logo.kt-lg .kt-jp{font-size:34px;}
-  .kt-logo.kt-lg .kt-en{font-size:9px;margin-top:11px;padding-left:.24em;letter-spacing:.24em;}
+  .kt-logo .en3{display:flex;flex-direction:column;font-family:"Manrope",sans-serif;font-weight:700;color:var(--sub);text-transform:uppercase;}
+  .kt-logo.kt-lg .kt-jp{font-size:30px;}
+  .kt-logo.kt-lg .en3{font-size:9px;line-height:1.5;letter-spacing:.18em;}
   .kt-logo.kt-sm .kt-jp{font-size:20px;}
-  .kt-logo.kt-sm .kt-en{font-size:6.5px;margin-top:5px;padding-left:.2em;letter-spacing:.18em;}
+  .kt-logo.kt-sm .en3{font-size:7px;line-height:1.55;letter-spacing:.16em;}
   .greet{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 20px 4px;}
   .greet .who{display:flex;align-items:center;min-width:0;}
   .undername{padding:2px 20px 6px;}
   /* 応援＝名前の横のアバターチップ（案A・2026-07-13。richは装飾でなく「応援した人の顔」で） */
-  .oa{display:inline-flex;align-items:center;gap:9px;padding:5px 11px 5px 7px;border-radius:14px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow);cursor:pointer;transition:transform .12s;}
+  .oa{display:inline-flex;align-items:center;gap:8px;padding:6px 11px 6px 8px;border-radius:14px;border:1px solid var(--gold);background:rgba(202,162,74,.15);cursor:pointer;position:relative;transition:transform .12s;animation:oaPulse 2.4s ease-out 3;}
+  [data-theme="dark"] .oa{background:rgba(227,196,119,.16);}
   .oa:active{transform:scale(.98);}
   .oa .avs{display:flex;flex-shrink:0;}
-  .oa .av{width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:10px;font-weight:700;border:2px solid var(--surface);}
+  .oa .av{width:22px;height:22px;border-radius:50%;background:var(--surface);color:var(--accent);display:grid;place-items:center;font-size:10px;font-weight:700;border:2px solid rgba(202,162,74,.35);}
   .oa .av+.av{margin-left:-8px;}
-  .oa .av.more{background:transparent;color:var(--sub);font-family:"Manrope";font-weight:700;font-size:10px;}
-  .oa .oa-txt{font-size:12px;color:var(--sub);font-weight:600;white-space:nowrap;}
-  .oa .oa-txt b{color:var(--ink);margin-left:1px;font-size:13px;}
-  .oa .oa-arw{color:var(--sub);font-size:15px;margin-left:-2px;}
+  .oa .av.more{background:transparent;color:#8a6d27;border-color:transparent;font-family:"Manrope";font-weight:700;font-size:10px;}
+  [data-theme="dark"] .oa .av.more{color:var(--gold);}
+  .oa .oa-spk{color:var(--gold);font-size:15px;}
+  .oa .oa-txt{font-size:12px;color:#8a6d27;font-weight:600;white-space:nowrap;}
+  [data-theme="dark"] .oa .oa-txt{color:var(--gold);}
+  .oa .oa-txt b{color:var(--gold);margin-left:1px;font-size:13px;}
+  .oa .oa-arw{color:var(--gold);font-size:15px;margin-left:-1px;}
+  .oa .newdot{position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:var(--ng);border:2px solid var(--surface);}
+  @keyframes oaPulse{0%{box-shadow:0 0 0 0 rgba(202,162,74,.34);}70%{box-shadow:0 0 0 9px rgba(202,162,74,0);}100%{box-shadow:0 0 0 0 rgba(202,162,74,0);}}
   .iconbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;display:grid;place-items:center;cursor:pointer;transition:transform .15s;}
   .iconbtn:active{transform:scale(.9);}
 
@@ -90,8 +95,8 @@
   /* 本日の学習カードの新情報（形式・教科・パート）新構造2026-06-23 */
   .hero .htop{display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-wrap:wrap;}
   .hpill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:7px;letter-spacing:.02em;}
-  .hpill.daily{background:rgba(31,170,107,.12);color:var(--ok);}
-  .hpill.test{background:rgba(202,162,74,.16);color:var(--gold);}
+  .hpill.daily{background:var(--neutral-bg);color:var(--sub);}
+  .hpill.test{background:var(--neutral-bg);color:var(--sub);}
   .hpill.lap{background:rgba(202,162,74,.12);color:var(--gold);border:1px solid rgba(202,162,74,.35);} /* 周バッジ 2026-07-03 */
   .mat-head{font-size:12px;font-weight:700;color:var(--sub);margin:12px 2px 6px;} /* DAY一覧の教材見出し 2026-07-03 */
   .hero .hsubj{font-size:11px;color:var(--sub);font-weight:500;}
@@ -150,7 +155,7 @@
   .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;}
   .tile{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:12px;box-shadow:var(--shadow);cursor:pointer;transition:transform .16s,box-shadow .16s;display:flex;flex-direction:column;gap:6px;}
   .tile:active{transform:translateY(2px) scale(.99);}
-  .tile .tic{width:34px;height:34px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:22px;}
+  .tile .tic{width:34px;height:34px;border-radius:11px;background:var(--neutral-ic);color:var(--sub);display:flex;align-items:center;justify-content:center;font-size:22px;}
   .tile .tnm{font-size:14px;font-weight:700;letter-spacing:-.01em;line-height:1.3;}
   .tile .tcnt{font-size:11.5px;color:var(--sub);margin-top:auto;}
   .tile .tcnt b{color:var(--gold);font-variant-numeric:tabular-nums;}
@@ -277,7 +282,7 @@
   .star-pop .sp-arw{color:var(--sub);font-size:18px;}
   .learn-row{position:relative;display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:9px 13px;box-shadow:var(--shadow);margin-top:10px;cursor:pointer;transition:transform .15s;}
   .learn-row:active{transform:scale(.99);}
-  .learn-row .lr-ic{width:30px;height:30px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;}
+  .learn-row .lr-ic{width:30px;height:30px;border-radius:11px;background:var(--neutral-ic);color:var(--sub);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;}
   .learn-row .lr-nm{flex:1;font-size:14px;font-weight:700;}
   .learn-row .lr-cnt{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--sub);}
   .learn-row .lr-cnt .tdot{min-width:20px;height:20px;padding:0 5px;border-radius:11px;background:var(--ng);color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;}
@@ -517,7 +522,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   <section id="scr-login" class="screen active">
     <div class="body" style="padding-top:60px;">
       <div class="center" style="font-size:40px;color:var(--gold);"><i class="ti ti-anchor"></i></div>
-      <div class="center" style="margin:8px 0 4px;"><span class="kt-logo kt-c kt-lg"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="kt-en">Kurofune Word Trainer</span></span></div>
+      <div class="center" style="margin:8px 0 4px;"><span class="kt-logo kt-lg"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="en3"><span>Kurofune</span><span>Word</span><span>Trainer</span></span></span></div>
       <p class="muted center" style="margin-bottom:26px;">先生からもらったIDとパスワードでログイン</p>
       <div class="card">
         <div class="err" id="login-err"></div>
@@ -530,7 +535,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 
   <section id="scr-home" class="screen">
     <div class="head">
-      <span class="kt-logo kt-sm"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="kt-en">Kurofune Word Trainer</span></span>
+      <span class="kt-logo kt-sm"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="en3"><span>Kurofune</span><span>Word</span><span>Trainer</span></span></span>
       <div class="right">
         <div class="streak"><i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b>日</div>
         <button class="iconbtn" id="themeBtn" aria-label="テーマ切替"><i class="ti ti-moon"></i></button>
@@ -538,7 +543,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     </div>
     <div class="greet">
       <div class="who"><div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div><button class="nick-edit" id="btn-nick-edit" aria-label="ニックネームを変更" title="ニックネームを変更"><i class="ti ti-pencil"></i></button></div>
-      <span class="oa" id="home-star-pop" style="display:none;" role="button" tabindex="0" aria-label="とどいた応援を見る"><span class="avs" id="star-avs"></span><span class="oa-txt">応援 <b class="num" id="star-pop-n">0</b></span><i class="ti ti-chevron-right oa-arw"></i></span>
+      <span class="oa" id="home-star-pop" style="display:none;" role="button" tabindex="0" aria-label="とどいた応援を見る"><span class="newdot"></span><span class="avs" id="star-avs"></span><i class="ti ti-sparkles oa-spk"></i><span class="oa-txt">応援 <b class="num" id="star-pop-n">0</b></span><i class="ti ti-chevron-right oa-arw"></i></span>
     </div>
     <div class="undername"><div id="chill-area"></div></div>
     <div class="body">
@@ -551,7 +556,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <!-- 今日の復習（自動反復＝学習側・横長行）2026-07-02 -->
         <div class="learn-row" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="lr-ic"><i class="ti ti-clock-bolt"></i></div><div class="lr-nm">おさらい</div><div class="lr-cnt"><span id="cnt-review">–</span></div></div>
         <!-- 確認テスト（教室でその場・自動採点）2026-07-10 -->
-        <div class="learn-row" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="lr-ic" style="background:rgba(214,175,60,.15);color:var(--gold)"><i class="ti ti-checkup-list"></i></div><div class="lr-nm">確認テスト</div><div class="lr-cnt"><span id="cnt-quiz">–</span></div></div>
+        <div class="learn-row" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="lr-ic"><i class="ti ti-checkup-list"></i></div><div class="lr-nm">確認テスト</div><div class="lr-cnt"><span id="cnt-quiz">–</span></div></div>
         <div class="tiles" style="margin-top:16px;">
           <div class="tile" id="tile-note"><span class="reddot" id="dot-note" style="display:none;"></span><div class="tic"><i class="ti ti-notebook"></i></div><div class="tnm">間違いノート</div><div class="tcnt" id="cnt-note">–</div></div>
           <div class="tile" id="tile-records"><div class="tic"><i class="ti ti-folder"></i></div><div class="tnm">じぶんの記録</div><div class="tcnt">DAY・バッジ・なかま</div></div>
@@ -989,8 +994,8 @@ function openHome(){
       // ○回目：2回目以降だけ金色で出す（川上さん確定 2026-07-03）
       if((m.times||1)>=2){ partLine=(partLine?partLine+' <span class="rnd">・'+m.times+'回目</span>':'<span class="rnd">'+m.times+'回目</span>'); }
       // リングのアイコン（形式で色分け・進捗連動は次スライス）
-      var ringStroke=isTest?'var(--gold)':'var(--accent)';
-      var ic=isTest?'<i class="ti ti-flag" style="font-size:18px;color:var(--gold)"></i>':'<i class="ti ti-anchor" style="font-size:18px;color:var(--accent)"></i>';
+      var ringStroke='var(--accent)';
+      var ic=isTest?'<i class="ti ti-flag" style="font-size:18px;color:var(--sub)"></i>':'<i class="ti ti-anchor" style="font-size:18px;color:var(--sub)"></i>';
       h.innerHTML='<div class="ring"><svg width="60" height="60"><circle cx="30" cy="30" r="25" fill="none" stroke="var(--ring-track)" stroke-width="6"></circle><circle cx="30" cy="30" r="25" fill="none" stroke="'+ringStroke+'" stroke-width="6" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157" class="ringfg"></circle></svg><div class="pct">'+ic+'</div></div>'
         +'<div style="flex:1;min-width:0;"><div class="htop">'+fmtPill+subj+lapPill+'</div>'
         +'<div class="course">'+esc(m.material_title)+'</div>'
@@ -1009,7 +1014,7 @@ function openHome(){
         if(m.next_part_id){ // テスト配信：先に進む未クリアパートがある→先取り
           h.classList.add('cleared');
           var _nb=document.createElement('span');_nb.className='clr-badge';_nb.innerHTML='<i class="ti ti-check"></i> 今日のぶん完了';h.appendChild(_nb);
-          var ctaEl=h.querySelector('.cta');if(ctaEl)ctaEl.innerHTML='先に進む（自主） <i class="ti ti-arrow-right"></i>';
+          var ctaEl=h.querySelector('.cta');if(ctaEl)ctaEl.innerHTML='じぶんで先に進む <i class="ti ti-arrow-right"></i>';
           h.onclick=function(){startPractice(m.next_part_id);};
         }else{ // 全パートクリア済み
           h.classList.add('done');
@@ -1020,7 +1025,7 @@ function openHome(){
         // 毎日学習：今日クリア済み。current は合格で次DAYに進んでいるので、そのままタップで先取りできる
         h.classList.add('cleared');
         var _nb2=document.createElement('span');_nb2.className='clr-badge';_nb2.innerHTML='<i class="ti ti-check"></i> 今日のぶん完了';h.appendChild(_nb2);
-        var ctaEl2=h.querySelector('.cta');if(ctaEl2)ctaEl2.innerHTML='先に進む（自主） <i class="ti ti-arrow-right"></i>';
+        var ctaEl2=h.querySelector('.cta');if(ctaEl2)ctaEl2.innerHTML='じぶんで先に進む <i class="ti ti-arrow-right"></i>';
         h.onclick=function(){startPractice(m.part_id);};
       }else{
         h.onclick=function(){startPractice(m.part_id);};
