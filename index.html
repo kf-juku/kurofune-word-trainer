@@ -574,7 +574,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <div class="tiles">
             <div class="tile" id="tile-lists"><div class="tic"><i class="ti ti-list-check"></i></div><div class="tnm">学習マップ</div><div class="tcnt">何回でも復習</div></div>
             <div class="tile" id="tile-badge"><div class="tic"><i class="ti ti-award"></i></div><div class="tnm">バッジ</div><div class="tcnt" id="cnt-badge">–</div></div>
-            <div class="tile" id="tile-team"><div class="tdot" id="dot-team">0</div><div class="tic"><i class="ti ti-users"></i></div><div class="tnm">なかま</div><div class="tcnt" id="cnt-team">–</div></div>
+            <div class="tile" id="tile-team"><span class="reddot" id="dot-team" style="display:none;"></span><div class="tic"><i class="ti ti-users"></i></div><div class="tnm">なかま</div><div class="tcnt" id="cnt-team">–</div></div>
           </div>
         </div>
         <div class="subview" id="sv-note">
@@ -769,6 +769,7 @@ function showSub(name){
   $('sub-title').textContent=SUB_TITLES[name]||'';
   document.querySelectorAll('#home-sub .subview').forEach(function(v){v.classList.remove('active');});
   var sv=$('sv-'+name);if(sv)sv.classList.add('active');
+  if(name==='team'){try{localStorage.setItem(recvAckKey_(),String(_recvCount));}catch(e){}_recvUnseen=false;teamDotUpdate_();} // なかまを開いたら受信を既読化 2026-07-14
   if(name==='quiz'&&typeof renderQuiz==='function')renderQuiz(); // 更新復元・直接表示でも点数表を読み込む（読み込み中で固まる修正 2026-07-10）
   window.scrollTo(0,0);
 }
@@ -933,6 +934,7 @@ function tone_(f,d,type,vol,when,to){try{if(!audioCtx)audioCtx=new (window.Audio
 function sndLikeSend(){tone_(1200,0.12,'sine',0.10,0,1800);}   // スタンプ送信＝ぴこん（水滴）
 function sndCheerRecv(){[523,659,784].forEach(function(f){tone_(f,0.7,'triangle',0.07);});}  // 応援受信＝ふわっと和音
 function sndStarFly(){tone_(523,1.2,'sine',0.10,0,1568);tone_(784,1.0,'sine',0.05,0.15,2093);}  // 流れ星＝上昇して消える
+function sndPronDone(){tone_(660,0.15,'sine',0.10,0,880);tone_(990,0.16,'sine',0.06,0.12,1200);} // 発音＝言い終わったら毎回やさしい成功音（丸バツに関わらず）2026-07-14
 function confetti(n){var box=$('confetti');var cs=['#caa24a','#0a6cff','#1faa6b','#e0533c','#9b6dd6'];for(var i=0;i<n;i++){var c=document.createElement('i');c.className='conf';c.style.left=Math.random()*100+'vw';c.style.background=cs[Math.floor(Math.random()*cs.length)];c.style.animationDuration=(1.6+Math.random()*1.4)+'s';c.style.transform='rotate('+Math.random()*360+'deg)';box.appendChild(c);(function(el){setTimeout(function(){el.remove();},3200);})(c);}}
 function flash(){var f=$('flash');f.classList.remove('show');void f.offsetWidth;f.classList.add('show');}
 function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
@@ -1108,10 +1110,12 @@ function loadTeamFeed(){
   area.innerHTML='<div class="loading">読み込み中…</div>';
   callCached({action:'team_feed'},function(d){
     if(!d.ok){area.innerHTML='<p class="muted">—</p>';$('cnt-team').textContent='–';return;}
-    if(!d.data.in_team){area.innerHTML='<div class="tmate empty">まだチームに入っていないよ。先生がチームを作ってくれるのを待ってね。</div>';$('cnt-team').textContent='まだチームなし';return;}
+    if(!d.data.in_team){area.innerHTML='<div class="tmate empty">まだチームに入っていないよ。先生がチームを作ってくれるのを待ってね。</div>';$('cnt-team').textContent='まだチームなし';_cheerLeft=0;teamDotUpdate_();return;}
     var ms=d.data.members||[];
-    if(!ms.length){area.innerHTML='<div class="tmate empty">いまはチームにあなただけ。仲間が増えるのを待ってね。</div>';$('cnt-team').textContent='あなただけ';renderChill(ms);return;}
+    if(!ms.length){area.innerHTML='<div class="tmate empty">いまはチームにあなただけ。仲間が増えるのを待ってね。</div>';$('cnt-team').textContent='あなただけ';_cheerLeft=0;teamDotUpdate_();renderChill(ms);return;}
     var active=ms.filter(function(m){return m.did_today;}); // 今日やった子だけ表示・応援対象（やってない子は晒さない）川上さん確定 2026-07-11
+    _cheerLeft=active.filter(function(m){var st=false;['like','great','congrats'].forEach(function(t){if(m.like_state&&m.like_state[t]==='sent')st=true;});return !st;}).length; // 今日まだ応援していない仲間の数（赤丸用）2026-07-14
+    teamDotUpdate_();
     $('cnt-team').innerHTML='今日がんばった仲間 <b>'+active.length+'</b>人';
     area.innerHTML='';
     if(!active.length){area.innerHTML='<div class="tmate empty">今日はまだ、がんばっている仲間はいないよ。だれかがやったら ここに出てくるよ。</div>';}
@@ -1231,14 +1235,20 @@ function showCheeredBurst_(names){
   try{sndCheerRecv();recvSoundDone=true;}catch(e){}
 }
 var recvSoundDone=false; // 受信音はホームを開いた1回だけ（毎回鳴らすとうるさい）
+/* なかま赤丸（数字なし）2026-07-14：未読の応援がある or 今日まだ応援していない仲間がいれば点灯、どちらもなければ消灯 */
+var _recvCount=0,_recvUnseen=false,_cheerLeft=0;
+function recvAckKey_(){return 'kwt_recv_ack_'+(nickname||'');}
+function teamDotUpdate_(){var d=$('dot-team');if(d)d.style.display=(_recvUnseen||_cheerLeft>0)?'':'none';}
 function loadStarReceived(){
   callCached({action:'star_received'},function(d){
     // 描画のたびに初期化する（キャッシュ描画→フレッシュ描画で追記が二重になるバグ修正 2026-07-05・川上さん報告）
     var area=$('star-recv-area');area.innerHTML='';
-    var dt=$('dot-team');if(dt){dt.textContent='0';dt.classList.remove('on');}
     var pop=$('home-star-pop');if(pop)pop.style.display='none';
-    if(!d.ok||!d.data||!d.data.count)return;   // 0件は出さない
+    if(!d.ok||!d.data||!d.data.count){_recvCount=0;_recvUnseen=false;teamDotUpdate_();return;}   // 0件は出さない
     var n=d.data.count;
+    _recvCount=n;
+    try{var _ackn=parseInt(localStorage.getItem(recvAckKey_())||'0',10)||0;_recvUnseen=(n>_ackn);}catch(e){_recvUnseen=(n>0);}
+    teamDotUpdate_();
     // 新しく届いた応援だけをお祝い（端末に前回見た数を保存・GAS変更なし）2026-07-11
     try{
       var _seenKey='kwt_recv_seen_'+(nickname||'');
@@ -1253,8 +1263,7 @@ function loadStarReceived(){
       }
       localStorage.setItem(_seenKey,String(n));
     }catch(e){}
-    // なかまタイル右上に応援数の赤バッジ（合意2026-06-22：応援通知はなかまタイルに集約）
-    if(dt){dt.textContent=n;dt.classList.add('on');}
+    // なかま赤丸は teamDotUpdate_ に集約（数字なし・未読/応援できる仲間で点灯）2026-07-14
     if(pop){var _it=d.data.items||[],_sn={},_av=[];_it.forEach(function(r){var nk=r.nickname||'なかま';if(!_sn[nk]){_sn[nk]=true;_av.push(nk);}});var _avh=_av.slice(0,3).map(function(nk){return '<span class="av">'+esc(nk.slice(0,1))+'</span>';}).join('')+(_av.length>3?'<span class="av more">+'+(_av.length-3)+'</span>':'');var _ae=$('star-avs');if(_ae)_ae.innerHTML=_avh;var _ne=$('star-pop-n');if(_ne)_ne.textContent=n;pop.style.display='inline-flex';}
     var el=document.createElement('div');el.className='star-recv';
     el.innerHTML='<i class="ti ti-sparkles"></i> ぜんぶで '+n+' この応援がとどいてるよ！';
@@ -1308,6 +1317,7 @@ function buildMate(m){
       if(b.classList.contains('sent')||b.classList.contains('off'))return;
       var to=b.getAttribute('data-to'),type=b.getAttribute('data-type');
       markSentExclusive(b);
+      if(_cheerLeft>0){_cheerLeft--;teamDotUpdate_();} // 応援したら赤丸の対象を1人減らす 2026-07-14
       playLikeFx(b,row,type);
       sndLikeSend();
       toast(mateNick+'に「'+LIKE_LABEL[type]+'」を送ったよ！');
@@ -1315,6 +1325,7 @@ function buildMate(m){
         if(r.ok){return;}
         if(r.data&&r.data.already){return;}
         unmarkSentExclusive(b);
+        _cheerLeft++;teamDotUpdate_(); // 送信失敗は戻す 2026-07-14
         toast(r.error||'送れなかったよ。もう一度ためしてね');
       });
     };
@@ -1608,7 +1619,7 @@ function pronListen_(){
       var ok=false,heard='';
       for(var j=0;j<finalRes.length;j++){var alt=finalRes[j].transcript;if(j===0)heard=alt;if(judgePron_(alt,w)){ok=true;heard=alt;break;}}
       s.pronAttempts++;s.pronDoneIdx[String(s.idx)]=true;
-      if(ok){s.pronSuccesses++;sndCorrect&&sndCorrect();pronOk_(false,heard);}
+      if(ok){s.pronSuccesses++;pronOk_(false,heard);}
       else if(pronTries===0){pronMiss_(heard);}
       else{pronOk_(true,heard);} // やり直し後は結果を問わず前へ（丸バツは出さない・川上さん確定 2026-07-06）
     };
@@ -1626,6 +1637,7 @@ function pronListen_(){
 }
 function pronOk_(second,heard){
   var s=session;if(!s)return;
+  sndPronDone();
   pronUI_('ok','ti-check','ok',(second?'オッケー！':'いいね！読めてるね'),(heard?'「'+esc(heard)+'」ってきこえたよ　':'')+'<i class="ti ti-volume"></i> お手本の音を流すよ','');
   speak(s.words[s.idx]);
   clearTimeout(pronTimer);
@@ -1633,6 +1645,7 @@ function pronOk_(second,heard){
 }
 function pronMiss_(heard){
   var s=session;if(!s)return;
+  sndPronDone();
   pronTries=1;
   pronUI_('miss','ti-volume','miss','この音だよ、よく聞いてね',(heard?'「'+esc(heard)+'」かな？　':'')+'お手本のあと、もう一回だけ言ってみよう','');
   speak(s.words[s.idx]);
@@ -1641,6 +1654,7 @@ function pronMiss_(heard){
 }
 function pronSilentNext_(){ // 声が検知できなかった：オッケーにせず、お手本を聞いて次へ（iOS等で無音でも誤OKになる対策 2026-07-13）
   var s=session;if(!s)return;
+  sndPronDone();
   pronUI_('ready','ti-volume','ready','お手本を きいてね','こえが きこえなかったよ。つぎは マイクに むかって いってみよう','');
   speak(s.words[s.idx]);
   clearTimeout(pronTimer);
