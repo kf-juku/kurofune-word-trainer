@@ -1627,7 +1627,7 @@ function pronListen_(){
       var ok=false,heard='';
       for(var j=0;j<finalRes.length;j++){var alt=finalRes[j].transcript;if(j===0)heard=alt;if(judgePron_(alt,w)){ok=true;heard=alt;break;}}
       s.pronAttempts++;s.pronDoneIdx[String(s.idx)]=true;
-      if(ok){s.pronSuccesses++;pronOk_(false,heard);}
+      if(ok){s.pronSuccesses++;var _r=pronRec;pronRec=null;pronBusy=false;try{if(_r)_r.abort();}catch(e){}pronOk_(false,heard);} // 受理した瞬間にマイクを止めてOFF音を先に済ませる→達成音→お手本の順で重ならないように 2026-07-14
       else if(pronTries===0){pronMiss_(heard);}
       else{pronOk_(true,heard);} // やり直し後は結果を問わず前へ（丸バツは出さない・川上さん確定 2026-07-06）
     };
