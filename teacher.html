@@ -736,7 +736,7 @@
         <div style="padding:0 14px 12px;line-height:1.75;">
           <b>並び順</b>：教科 → 学年 → 番号（この順で自動で並ぶ。追加した順は関係なし）<br>
           <b>スプレッドシートの列と意味</b><br>
-          ・subject（教科）：english=英語／science=理科／social=社会<br>
+          ・subject（教科）：english=英語／science=理科／social=社会／japanese=国語<br>
           ・grade（学年）：中1／中2／中3／全学年（空欄=学年未設定）<br>
           ・display_order（番号）：教科×学年の中の並び順。1,2,3…＝単元順<br>
           ・target（レベル）：beginner=基礎／junior_high=中学／entrance_exam=受験／eiken=英検／school_test=学校テスト<br>
@@ -1487,8 +1487,8 @@ function _holdersMap(){
   });
   return h;
 }
-function _subjOrder(s){var o={english:1,science:2,social:3};return o[s]||9;}
-function _subjLabel(s){var o={english:'英語',science:'理科',social:'社会'};return o[s]||(s||'その他');}
+function _subjOrder(s){var o={english:1,science:2,social:3,japanese:4,math:5};return o[s]||9;}
+function _subjLabel(s){var o={english:'英語',science:'理科',social:'社会',japanese:'国語',math:'数学'};return o[s]||(s||'その他');}
 function _gradeOrder(g){var o={'中1':1,'中2':2,'中3':3,'全学年':8};return o[g]||9;}
 function _gradeLabel(g){return g||'学年未設定';}
 function _levelLabel(t){var o={beginner:'基礎',junior_high:'中学',entrance_exam:'受験',eiken:'英検',school_test:'学校テスト'};return o[t]||'';}
