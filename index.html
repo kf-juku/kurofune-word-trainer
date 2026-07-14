@@ -925,22 +925,22 @@ function animNum(el,to,dur){var st=performance.now();function f(t){var p=Math.mi
 })();
 function syncThemeIcon(){var d=document.documentElement.getAttribute('data-theme')==='dark';var b=$('themeBtn');if(b)b.innerHTML='<i class="ti ti-'+(d?'sun':'moon')+'"></i>';}
 
-function beep(f,d,t){try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();var o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t||'sine';o.frequency.value=f;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(0.18,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.start();o.stop(audioCtx.currentTime+d);}catch(e){}}
-function sndCorrect(){beep(660,0.12,'triangle');setTimeout(function(){beep(990,0.14,'triangle');},90);}
+function beep(f,d,t,v){try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();var o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t||'sine';o.frequency.value=f;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(v||0.18,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.start();o.stop(audioCtx.currentTime+d);}catch(e){}}
+function sndCorrect(){beep(660,0.12,'triangle',0.34);setTimeout(function(){beep(990,0.14,'triangle',0.34);},90);}
 function sndWrong(){beep(180,0.2,'sawtooth');}
-function sndWin(){[523,659,784,1046].forEach(function(f,i){setTimeout(function(){beep(f,0.16,'triangle');},i*120);});}
+function sndWin(){[523,659,784,1046].forEach(function(f,i){setTimeout(function(){beep(f,0.16,'triangle',0.34);},i*120);});}
 /* 応援まわりの音（川上さんがモックで選定 2026-07-03・すべて案2）。tone_=周波数スイープ対応の合成音 */
 function tone_(f,d,type,vol,when,to){try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();var t0=audioCtx.currentTime+(when||0);var o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t0);if(to)o.frequency.exponentialRampToValueAtTime(to,t0+d);o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(vol||0.15,t0+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t0+d);o.start(t0);o.stop(t0+d+0.05);}catch(e){}}
 function sndLikeSend(){tone_(1200,0.12,'sine',0.10,0,1800);}   // スタンプ送信＝ぴこん（水滴）
 function sndCheerRecv(){[523,659,784].forEach(function(f){tone_(f,0.7,'triangle',0.07);});}  // 応援受信＝ふわっと和音
 function sndStarFly(){tone_(523,1.2,'sine',0.10,0,1568);tone_(784,1.0,'sine',0.05,0.15,2093);}  // 流れ星＝上昇して消える
-function sndPronOk(){ // 発音OK＝しっかり達成感の上がる3音（端末の認識ビープの後に鳴るよう少し遅らせる）2026-07-14
-  var d=300;
-  setTimeout(function(){beep(659,0.15,'triangle');},d);
-  setTimeout(function(){beep(988,0.15,'triangle');},d+95);
-  setTimeout(function(){beep(1319,0.22,'triangle');},d+200);
+function sndPronOk(){ // 発音OK＝しっかり達成感の上がる3音（大きめ音量で。端末の認識ビープに負けないように）2026-07-14
+  var d=260;
+  setTimeout(function(){beep(659,0.15,'triangle',0.5);},d);
+  setTimeout(function(){beep(988,0.15,'triangle',0.5);},d+95);
+  setTimeout(function(){beep(1319,0.24,'triangle',0.5);},d+200);
 }
-function sndPronSoft(){setTimeout(function(){tone_(523,0.20,'sine',0.09,0,784);},280);} // 発音（受理以外）＝やわらかい中立音（端末ビープの後）2026-07-14
+function sndPronSoft(){setTimeout(function(){tone_(523,0.22,'sine',0.18,0,784);},240);} // 発音（受理以外）＝やわらかい中立音（少し大きめ）2026-07-14
 function confetti(n){var box=$('confetti');var cs=['#caa24a','#0a6cff','#1faa6b','#e0533c','#9b6dd6'];for(var i=0;i<n;i++){var c=document.createElement('i');c.className='conf';c.style.left=Math.random()*100+'vw';c.style.background=cs[Math.floor(Math.random()*cs.length)];c.style.animationDuration=(1.6+Math.random()*1.4)+'s';c.style.transform='rotate('+Math.random()*360+'deg)';box.appendChild(c);(function(el){setTimeout(function(){el.remove();},3200);})(c);}}
 function flash(){var f=$('flash');f.classList.remove('show');void f.offsetWidth;f.classList.add('show');}
 function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
@@ -1619,6 +1619,7 @@ function pronListen_(){
     rec.onspeechstart=function(){ if(pronRec!==rec)return; pronHeard=true; };
     rec.onresult=function(ev){
       if(pronRec!==rec)return;
+      if(pronGotResult)return; // 受理/確定後にお手本をマイクが拾っても二重処理しない（強制OFFの代わり）2026-07-14
       var interim='',finalRes=null;
       for(var i=ev.resultIndex;i<ev.results.length;i++){ if(ev.results[i].isFinal){finalRes=ev.results[i];} else {interim+=ev.results[i][0].transcript;} }
       if(interim&&!finalRes){ pronHeard=true; pronShowHeard_(interim); return; } // 途中経過：きこえている言葉を出す＝拾えているサイン
@@ -1627,7 +1628,7 @@ function pronListen_(){
       var ok=false,heard='';
       for(var j=0;j<finalRes.length;j++){var alt=finalRes[j].transcript;if(j===0)heard=alt;if(judgePron_(alt,w)){ok=true;heard=alt;break;}}
       s.pronAttempts++;s.pronDoneIdx[String(s.idx)]=true;
-      if(ok){s.pronSuccesses++;var _r=pronRec;pronRec=null;pronBusy=false;try{if(_r)_r.abort();}catch(e){}pronOk_(false,heard);} // 受理した瞬間にマイクを止めてOFF音を先に済ませる→達成音→お手本の順で重ならないように 2026-07-14
+      if(ok){s.pronSuccesses++;pronOk_(false,heard);} // 受理＝マイクは自然終了に任せる（強制OFFの機械音を足さない・川上さん 2026-07-14）。二重処理は onresult 冒頭の pronGotResult ガードで防ぐ
       else if(pronTries===0){pronMiss_(heard);}
       else{pronOk_(true,heard);} // やり直し後は結果を問わず前へ（丸バツは出さない・川上さん確定 2026-07-06）
     };
