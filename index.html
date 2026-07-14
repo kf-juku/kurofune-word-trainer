@@ -934,7 +934,13 @@ function tone_(f,d,type,vol,when,to){try{if(!audioCtx)audioCtx=new (window.Audio
 function sndLikeSend(){tone_(1200,0.12,'sine',0.10,0,1800);}   // スタンプ送信＝ぴこん（水滴）
 function sndCheerRecv(){[523,659,784].forEach(function(f){tone_(f,0.7,'triangle',0.07);});}  // 応援受信＝ふわっと和音
 function sndStarFly(){tone_(523,1.2,'sine',0.10,0,1568);tone_(784,1.0,'sine',0.05,0.15,2093);}  // 流れ星＝上昇して消える
-function sndPronDone(){tone_(660,0.15,'sine',0.10,0,880);tone_(990,0.16,'sine',0.06,0.12,1200);} // 発音＝言い終わったら毎回やさしい成功音（丸バツに関わらず）2026-07-14
+function sndPronOk(){ // 発音OK＝しっかり達成感の上がる3音（端末の認識ビープの後に鳴るよう少し遅らせる）2026-07-14
+  var d=300;
+  setTimeout(function(){beep(659,0.15,'triangle');},d);
+  setTimeout(function(){beep(988,0.15,'triangle');},d+95);
+  setTimeout(function(){beep(1319,0.22,'triangle');},d+200);
+}
+function sndPronSoft(){setTimeout(function(){tone_(523,0.20,'sine',0.09,0,784);},280);} // 発音（受理以外）＝やわらかい中立音（端末ビープの後）2026-07-14
 function confetti(n){var box=$('confetti');var cs=['#caa24a','#0a6cff','#1faa6b','#e0533c','#9b6dd6'];for(var i=0;i<n;i++){var c=document.createElement('i');c.className='conf';c.style.left=Math.random()*100+'vw';c.style.background=cs[Math.floor(Math.random()*cs.length)];c.style.animationDuration=(1.6+Math.random()*1.4)+'s';c.style.transform='rotate('+Math.random()*360+'deg)';box.appendChild(c);(function(el){setTimeout(function(){el.remove();},3200);})(c);}}
 function flash(){var f=$('flash');f.classList.remove('show');void f.offsetWidth;f.classList.add('show');}
 function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
@@ -1238,7 +1244,9 @@ var recvSoundDone=false; // 受信音はホームを開いた1回だけ（毎回
 /* なかま赤丸（数字なし）2026-07-14：未読の応援がある or 今日まだ応援していない仲間がいれば点灯、どちらもなければ消灯 */
 var _recvCount=0,_recvUnseen=false,_cheerLeft=0;
 function recvAckKey_(){return 'kwt_recv_ack_'+(nickname||'');}
-function teamDotUpdate_(){var d=$('dot-team');if(d)d.style.display=(_recvUnseen||_cheerLeft>0)?'':'none';}
+function teamDotUpdate_(){var on=(_recvUnseen||_cheerLeft>0);
+  var d=$('dot-team');if(d)d.style.display=on?'':'none';
+  var nd=document.querySelector('#home-star-pop .newdot');if(nd)nd.style.display=on?'':'none';} // 上部「応援」チップの赤●＝未読の応援 or 応援できる仲間 があるときだけ点灯 2026-07-14
 function loadStarReceived(){
   callCached({action:'star_received'},function(d){
     // 描画のたびに初期化する（キャッシュ描画→フレッシュ描画で追記が二重になるバグ修正 2026-07-05・川上さん報告）
@@ -1637,15 +1645,15 @@ function pronListen_(){
 }
 function pronOk_(second,heard){
   var s=session;if(!s)return;
-  sndPronDone();
+  sndPronOk();
   pronUI_('ok','ti-check','ok',(second?'オッケー！':'いいね！読めてるね'),(heard?'「'+esc(heard)+'」ってきこえたよ　':'')+'<i class="ti ti-volume"></i> お手本の音を流すよ','');
-  speak(s.words[s.idx]);
   clearTimeout(pronTimer);
-  pronTimer=setTimeout(pronNext_,PRON_AFTER_AUDIO);
+  setTimeout(function(){try{if(session===s)speak(s.words[s.idx]);}catch(e){}},650); // 達成音のあとにお手本 2026-07-14
+  pronTimer=setTimeout(pronNext_,PRON_AFTER_AUDIO+650);
 }
 function pronMiss_(heard){
   var s=session;if(!s)return;
-  sndPronDone();
+  sndPronSoft();
   pronTries=1;
   pronUI_('miss','ti-volume','miss','この音だよ、よく聞いてね',(heard?'「'+esc(heard)+'」かな？　':'')+'お手本のあと、もう一回だけ言ってみよう','');
   speak(s.words[s.idx]);
@@ -1654,7 +1662,7 @@ function pronMiss_(heard){
 }
 function pronSilentNext_(){ // 声が検知できなかった：オッケーにせず、お手本を聞いて次へ（iOS等で無音でも誤OKになる対策 2026-07-13）
   var s=session;if(!s)return;
-  sndPronDone();
+  sndPronSoft();
   pronUI_('ready','ti-volume','ready','お手本を きいてね','こえが きこえなかったよ。つぎは マイクに むかって いってみよう','');
   speak(s.words[s.idx]);
   clearTimeout(pronTimer);
