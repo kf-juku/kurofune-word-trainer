@@ -551,6 +551,18 @@
   .qdelta{font-weight:800;font-size:13px;padding:3px 11px;border-radius:14px;}.qdelta.d-up{background:#e6f6ee;color:#1f9d57;}.qdelta.d-dn{background:#fdeaea;color:#d64545;}
   .qmw{font-size:13px;padding:4px 0;border-top:1px dashed var(--border);}
   .mgarrow{color:var(--text-light);font-size:16px;}
+  .mgpeek{font-size:11px;font-weight:800;color:var(--crimson);background:var(--crimson-light);border:1px solid var(--crimson-mid);border-radius:8px;padding:3px 9px;cursor:pointer;flex-shrink:0;}
+  .mgpeek:hover{background:#fff;}
+  .mp-body{max-height:64vh;overflow:auto;}
+  .mp-part{margin:14px 0 6px;font-weight:800;color:var(--text);font-size:14px;display:flex;align-items:center;gap:8px;}
+  .mp-part .c{font-size:11px;color:var(--text-muted);font-weight:700;}
+  .mp-q{display:flex;gap:10px;align-items:flex-start;padding:6px 8px;border-bottom:1px solid var(--surface2);font-size:13px;}
+  .mp-q .no{color:var(--text-light);font-weight:700;min-width:22px;}
+  .mp-q .en{font-weight:700;color:var(--text);flex:0 0 auto;max-width:46%;word-break:break-word;}
+  .mp-q .ja{color:var(--text-muted);flex:1;word-break:break-word;}
+  .mp-q .qb{font-size:10px;font-weight:800;border-radius:6px;padding:1px 6px;flex-shrink:0;}
+  .mp-q .qb.fig{background:#eef6ff;color:#1f6feb;}
+  .mp-q .qb.tbl{background:#fff3e6;color:#b5710a;}
   .mggroup{display:flex;align-items:center;gap:8px;padding:9px 13px 5px;background:var(--surface2);border-bottom:1px solid var(--surface2);}
   .mgg-subj{font-size:12px;font-weight:800;color:var(--text);}
   .mgg-grade{font-size:11px;font-weight:700;color:var(--text-muted);background:#fff;border-radius:8px;padding:1px 8px;}
@@ -804,6 +816,18 @@
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal('memModal')">やめる</button>
       <button class="btn-primary" style="width:auto;" id="mmSave" onclick="saveMembers()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 教材プレビュー（中身を見る・読み取り専用）2026-07-15 -->
+<div class="modal-back" id="matPreviewModal">
+  <div class="modal">
+    <h3 id="mpTitle">教材の中身</h3>
+    <div class="mhint">この教材の問題を一覧で表示します（読み取り専用）。名称だけで分からないときの確認用です。</div>
+    <div class="mp-body" id="mpBody"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" style="margin-left:auto;" onclick="closeModal('matPreviewModal')">閉じる</button>
     </div>
   </div>
 </div>
@@ -1521,12 +1545,40 @@ function renderMatTab(){
         +_lb
         +'<span class="mgcount">'+hs.length+'名</span>'
         +'<span class="mgmem">'+chips+'</span>'
+        +'<button class="mgpeek" onclick="event.stopPropagation();openMatPreview(\''+esc(String(m.id))+'\')">中身</button>'
         +'<span class="mgarrow">›</span>';
       box.appendChild(row);
     });
   };
   if(bulkMaterials&&bulkMaterials.length){draw(bulkMaterials);}
   else{ call({action:'materials_list'}).then(function(d){ var mats=(d&&d.ok)?(d.data.materials||[]):[]; bulkMaterials=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}); draw(bulkMaterials); }); }
+}
+/* ===== 教材プレビュー（中身を見る・読み取り専用）2026-07-15 ===== */
+function openMatPreview(mid){
+  $('mpTitle').textContent='教材の中身';
+  $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
+  $('matPreviewModal').classList.add('show');
+  call({action:'material_preview',material_id:mid}).then(function(d){
+    if(!d||!d.ok){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
+    var dt=d.data;
+    $('mpTitle').textContent=esc(dt.title||'教材の中身');
+    var parts=dt.parts||[];
+    if(!parts.length){$('mpBody').innerHTML='<div style="padding:10px;color:var(--text-muted);font-size:13px;">この教材にはまだ問題がありません。</div>';return;}
+    var totalQ=parts.reduce(function(a,b){return a+(b.count||0);},0);
+    var h='<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">'+parts.length+'パート・全'+totalQ+'問</div>';
+    parts.forEach(function(pt){
+      h+='<div class="mp-part">'+esc(pt.title||'(無題パート)')+'<span class="c">'+(pt.count||0)+'問</span></div>';
+      (pt.words||[]).forEach(function(w,i){
+        var badge='';
+        if(w.qtype==='image_fill')badge='<span class="qb fig">図</span>';
+        else if(w.qtype==='table_fill')badge='<span class="qb tbl">表</span>';
+        var left=esc(w.english||(w.is_fig?(w.ask||'（図の問題）'):''));
+        var right=esc(w.japanese||'');
+        h+='<div class="mp-q"><span class="no">'+(i+1)+'</span><span class="en">'+left+'</span><span class="ja">'+right+'</span>'+badge+'</div>';
+      });
+    });
+    $('mpBody').innerHTML=h;
+  });
 }
 /* ===== 確認テストタブ（閲覧：注目リスト＋点数表＋詳細）2026-07-10 ===== */
 var _quizBoard=null,_quizCurMat=null;
