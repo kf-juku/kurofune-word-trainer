@@ -766,7 +766,7 @@
       <div class="empty-state" id="teamEmpty" style="display:none;">
         <div class="empty-state-icon"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
         <div class="empty-state-title">チームがまだありません</div>
-        <div>「＋ チームを作る」で3〜5人の応援チームを作れます</div>
+        <div>「＋ チームを作る」で応援チームを作れます（人数の制限なし）</div>
       </div>
     </div>
   </section>
@@ -796,7 +796,7 @@
     <input class="form-input" id="mmName" placeholder="例：中1Aチーム">
     <label class="form-label">学年の目安（任意）</label>
     <input class="form-input" id="mmGrade" placeholder="例：中1">
-    <label class="form-label" style="margin-top:6px;">メンバー（3〜5人が目安）</label>
+    <label class="form-label" style="margin-top:6px;">メンバー（3人以上が目安・上限なし）</label>
     <div class="err" id="mmErr"></div>
     <div id="memPicker"></div>
     <div class="modal-actions">
@@ -1801,7 +1801,7 @@ function renderTeams(){
     var memHtml=t.members.length
       ? t.members.map(function(m){return '<span class="member-chip">'+esc(m.name||'(無名)')+(m.nickname?'<span class="mc-nick">'+esc(m.nickname)+'</span>':'')+'</span>';}).join('')
       : '<span class="team-empty-mem">メンバー未設定</span>';
-    var warn=(t.member_count>0&&t.member_count<3)?'<div class="warn-line"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>3人未満です（目安は3〜5人）</div>':'';
+    var warn=(t.member_count>0&&t.member_count<3)?'<div class="warn-line"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>3人未満です（目安は3人以上）</div>':'';
     var actBadge=t.is_active?'':'<span class="badge badge-gray">休止中</span>';
     card.innerHTML=
       '<div class="team-card-head">'
@@ -1823,7 +1823,7 @@ function renderTeams(){
 function openTeamCreate(){
   _modalMode='create';
   $('tmTitle').textContent='チームを作る';
-  $('tmName').value='';$('tmGrade').value='';$('tmErr').textContent='';
+  $('tmName').value=(function(){var d=new Date();return (d.getMonth()+1)+'/'+d.getDate()+' チーム';})();$('tmGrade').value='';$('tmErr').textContent='';
   $('teamModal').classList.add('show');
 }
 function openTeamEdit(id){
@@ -1890,20 +1890,17 @@ function renderMemEditor(){
     sel:_memSel,
     cand:function(){return Object.keys(_memMeta).map(function(k){var m=_memMeta[k];return {student_id:k,name:m.name,nickname:m.nickname,grade:m.grade||'',class_name:m.class_name||'',school:m.school||''};});},
     showStatus:false,
-    rightTitle:'このチーム（3〜5人）',
-    max:5,
+    rightTitle:'このチーム',
     badgeOf:function(id){return _memOther[id]?('「'+_memOther[id]+'」に所属'):'';},
     onAddGuard:function(id){var o=_memOther[id];if(o){return confirm(((_memMeta[id]&&_memMeta[id].name)||'この生徒')+' さんを「'+o+'」から このチームに移動します。よろしいですか？');}return true;},
     onChange:function(ids){
       var n=ids.length;
-      if(n>5){$('mmErr').textContent='1チームは最大5人までです';}
-      else if(n>0&&n<3){$('mmErr').textContent='3人未満です（目安は3〜5人。保存はできます）';}
+      if(n>0&&n<3){$('mmErr').textContent='3人未満です（目安は3人以上。保存はできます）';}
       else{$('mmErr').textContent='';}
     }
   });
 }
 function memAdd_(sid){
-  if(Object.keys(_memSel).length>=5){toast('1チームは最大5人までです');return;}
   var other=_memOther[sid];
   if(other){var nm=(_memMeta[sid]&&_memMeta[sid].name)||'この生徒';
     if(!confirm(nm+' さんを「'+other+'」から このチームに移動します。よろしいですか？'))return;}
@@ -1916,7 +1913,6 @@ function saveMembers(){
   var gb=($('mmGrade').value||'').trim();
   if(!name){$('mmErr').textContent='チーム名を入れてください';return;}
   var ids=Object.keys(_memSel);
-  if(ids.length>5){$('mmErr').textContent='1チームは最大5人までです';return;}
   var btn=$('mmSave');btn.disabled=true;btn.textContent='保存中…';
   showLoading('保存中…');
   call({action:'team_update',id:_editTeamId,name:name,grade_band:gb}).then(function(d1){
