@@ -1869,11 +1869,16 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,word_ids:(s.words||[]).map(function(w){return w.id;}),mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:(Date.now()-(s.startedMs||Date.now())),rush_wrong_count:Object.keys(s._rushWords||{}).length}).then(function(d){
     clearTimeout(_saveGuard);lockBtns(false);var _db2=$('done-badge');if(_db2)_db2.style.display='';
     if(!d.ok){$('star-area').innerHTML='';$('done-result').textContent='結果の保存に失敗しました。もう一回ためしてね';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
-    (function(){var ar=$('today-did-area');if(!ar)return;ar.innerHTML='';var chips='';
-      if((d.data.today_streak||0)>=2)chips+='<span class="chip streak"><i class="ti ti-flame"></i> 連続'+d.data.today_streak+'日</span>';
-      if((d.data.week_words||0)>0)chips+='<span class="chip week"><i class="ti ti-book"></i> 今週'+d.data.week_words+'語</span>';
-      if(d.data.today_top_badge){var tb=d.data.today_top_badge;var bic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[tb.axis])||'ti-award';chips+='<span class="chip badge"><i class="ti '+bic+'"></i> '+tb.label+'</span>';}
-      if(chips)ar.innerHTML='<div class="today-did"><div class="h"><i class="ti ti-flame"></i> きみの今日のがんばり</div><div class="row">'+chips+'</div></div>';
+    /* 高速化 2026-07-15：今日のがんばり集計＋word_statsは保存(session_complete)の待ちから外し、
+       完了後に complete_extras を裏で取得してチップを出す。保存本体はこの前に確定済み＝失敗しても学習データは無事。 */
+    (function(){var ar=$('today-did-area');if(!ar)return;ar.innerHTML='';
+      call({action:'complete_extras',part_id:s.listId,word_ids:(s.words||[]).map(function(w){return w.id;}),miss_word_ids:s.miss}).then(function(ex){
+        if(!ex||!ex.ok||!ex.data)return;var d2=ex.data;var chips='';
+        if((d2.today_streak||0)>=2)chips+='<span class="chip streak"><i class="ti ti-flame"></i> 連続'+d2.today_streak+'日</span>';
+        if((d2.week_words||0)>0)chips+='<span class="chip week"><i class="ti ti-book"></i> 今週'+d2.week_words+'語</span>';
+        if(d2.today_top_badge){var tb=d2.today_top_badge;var bic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[tb.axis])||'ti-award';chips+='<span class="chip badge"><i class="ti '+bic+'"></i> '+tb.label+'</span>';}
+        if(chips)ar.innerHTML='<div class="today-did"><div class="h"><i class="ti ti-flame"></i> きみの今日のがんばり</div><div class="row">'+chips+'</div></div>';
+      });
     })();
     var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').textContent=d.data.lap+'周目';}else{dl.style.display='none';}}
     if(s.fromReview){
