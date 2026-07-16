@@ -320,22 +320,28 @@
   .qbar i{display:block;height:100%;width:100%;border-radius:8px;background:var(--accent);}
   .qsec{font-size:15px;font-weight:700;min-width:44px;text-align:right;color:var(--accent);}
   /* 不正解時の 解答＋解説＋タップでつぎへ（2026-07-04）*/
-  .explain{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--ng);border-radius:14px;padding:14px 16px;margin-top:4px;box-shadow:var(--shadow);animation:exIn .18s ease;}
+  .explain{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--ng);border-radius:14px;padding:11px 13px;margin-top:4px;box-shadow:var(--shadow);animation:exIn .18s ease;}
   @keyframes exIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
   .ex-ans{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;}
   .ex-ans b{color:var(--ok);}
-  .ex-kai{font-size:14px;line-height:1.7;color:var(--sub);margin-bottom:10px;}
-  .ex-tap{font-size:13px;font-weight:700;color:var(--accent);text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;}
+  .ex-kai{font-size:13.5px;line-height:1.6;color:var(--sub);margin-bottom:7px;}
+  .ex-tap{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:80;background:var(--accent);color:#fff;border-radius:13px;padding:14px;font-size:15px;font-weight:800;box-shadow:0 8px 24px rgba(10,108,255,.35);display:flex;align-items:center;justify-content:center;gap:7px;}
+  .ex-tap i{font-size:19px;}
+  #scr-practice.exopen .body{padding-bottom:88px;}
   .prog>i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s;}
   .word-en{font-size:42px;font-weight:700;text-align:center;letter-spacing:-.01em;margin:14px 0 4px;}
   .reading{text-align:center;color:var(--sub);margin-bottom:14px;}
   /* 読み仮名（国語）＋四角空欄 2026-07-14 */
   #j2e-ja ruby rt,.choice ruby rt{font-size:.5em;color:var(--sub);font-weight:500;line-height:1;}
   .qblank{display:inline-block;min-width:2.6em;height:1.15em;border:2px solid var(--accent,#3b6ef0);border-radius:5px;background:rgba(59,110,240,.10);margin:0 4px;vertical-align:-3px;}
-  .furi-bar{display:none;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:2px 0 12px;}
-  .furi-bar .fb-lbl{font-size:12px;color:var(--sub);font-weight:700;display:inline-flex;align-items:center;gap:3px;}
-  .furi-bar .fb-tg{border:1px solid var(--line,#e6e9f0);background:#fff;color:var(--sub);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer;}
-  .furi-bar .fb-tg.on{background:var(--accent,#3b6ef0);color:#fff;border-color:var(--accent,#3b6ef0);}
+  .furi-bar{display:none;align-items:center;justify-content:space-between;gap:10px;background:var(--accent-soft);border:1px solid rgba(10,108,255,.28);border-radius:14px;padding:8px 12px;margin:2px 0 12px;position:relative;}
+  .furi-bar .fb-lbl{font-size:13px;color:var(--accent);font-weight:800;display:inline-flex;align-items:center;gap:6px;}
+  .furi-bar .fb-lbl .fb-ic{width:22px;height:22px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:12.5px;color:var(--accent);font-weight:800;}
+  .furi-bar .fb-seg{display:flex;background:#fff;border:1px solid rgba(10,108,255,.28);border-radius:999px;overflow:hidden;}
+  .furi-bar .fb-tg{border:0;background:transparent;color:var(--sub);padding:7px 13px;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;}
+  .furi-bar .fb-tg.on{background:var(--accent);color:#fff;}
+  .furi-coach{position:absolute;right:10px;top:-11px;background:#111827;color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:8px;white-space:nowrap;z-index:4;}
+  .furi-coach::after{content:'';position:absolute;right:20px;bottom:-5px;border:5px solid transparent;border-top-color:#111827;border-bottom:0;}
   .choice{display:flex;align-items:center;justify-content:center;width:100%;padding:17px;font-family:inherit;font-size:18px;margin-bottom:12px;border:1px solid var(--line);border-radius:15px;background:var(--surface);color:var(--ink);cursor:pointer;transition:transform .1s;}
   .choice:active{transform:scale(.98);}
   .choice.correct{border-color:var(--ok);background:rgba(31,170,107,.12);color:var(--ok);font-weight:700;animation:pop .35s;}
@@ -468,6 +474,9 @@
   #btn-mic.rec{background:var(--ng);}
 /* ===== 表穴埋め（table_fill・問題タイプ拡張）2026-07-05 ===== */
 .tf-title{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px;text-align:center}
+.imgq-ask{font-size:18px;font-weight:800;color:var(--ink);text-align:center;line-height:1.5;margin:2px 4px 5px}
+.imgq-ask b{color:var(--accent)}
+.imgq-askhint{font-size:11.5px;color:var(--sub);text-align:center;margin:0 0 11px}
 table.tf-table{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;margin-bottom:4px}
 table.tf-table th,table.tf-table td{border-bottom:1px solid var(--line);padding:9px 4px;text-align:center}
 table.tf-table th{font-size:11px;color:var(--sub);font-weight:500}
@@ -483,9 +492,9 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 .imgq-fig::before{content:'指でズーム・移動';position:absolute;top:8px;left:8px;z-index:2;background:var(--ring-track);color:var(--sub);font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;pointer-events:none}
 .imgq-fig::after{content:'タップで全画面';position:absolute;top:8px;right:8px;z-index:2;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;pointer-events:none}
 /* 解説画像（参考資料画像）2026-07-16 */
-.ex-fig{margin-top:12px;text-align:center}
-.ex-fig .tf-title{margin-bottom:6px}
-.ex-fig img{max-width:100%;max-height:40vh;border:1px solid var(--line);border-radius:10px;background:#fff;display:inline-block}
+.ex-fig{margin-top:9px;display:flex;align-items:center;gap:11px;text-align:left}
+.ex-fig .tf-title{font-size:11px;color:var(--sub);margin:0;line-height:1.5}
+.ex-fig img{width:92px;height:92px;object-fit:contain;flex:none;border:1px solid var(--line);border-radius:10px;background:#fff}
 /* ===== 図の全画面ズーム 2026-07-13 ===== */
 .kzoom{position:fixed;inset:0;background:rgba(15,20,30,.94);z-index:9999;display:none;flex-direction:column}
 .kzoom.open{display:flex}
@@ -516,6 +525,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   .bug-fab i{font-size:19px;color:var(--accent);}
   .bug-fab span{font-size:13px;font-weight:700;}
   .bug-fab:active{transform:translateY(2px);}
+  .bug-fab.dim{opacity:.2;transition:opacity .15s;}
   .bug-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
   .bug-chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:9px 12px;font-size:13.5px;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;}
   .bug-chip .tk{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line);display:inline-grid;place-items:center;font-size:11px;color:#fff;}
@@ -1431,9 +1441,12 @@ function _isKokugo(){return !!(session&&session.subject==='japanese');}
 function renderQ(w,showFuri){var q=tfParse(w);if(q&&q.q_ruby&&q.q_ruby.length){var h='';q.q_ruby.forEach(function(seg){var t=String((seg&&seg[0])||'');var y=(seg&&seg[1])?seg[1]:'';h+=(showFuri&&y)?_rubyTag(t,y):esc(t);});return _boxBlank(h);}return _boxBlank(esc(String(w.japanese||'')));}
 function _choiceHtml(v){v=String(v);if(furiC&&_isKokugo()&&_kanjiRe(v)&&_readingMap[v])return _rubyTag(v,_readingMap[v]);return esc(v);}
 function _hasQRuby(w){var q=tfParse(w);return !!(q&&q.q_ruby&&q.q_ruby.length);}
-function renderFuriBar(w){var bar=$('furi-bar');if(!bar)return;if(!_isKokugo()){bar.style.display='none';bar.innerHTML='';return;}var h='<span class="fb-lbl"><i class="ti ti-eye"></i> 読み仮名</span>';if(_hasQRuby(w))h+='<button type="button" class="fb-tg'+(furiQ?' on':'')+'" data-fb="q">問題文</button>';h+='<button type="button" class="fb-tg'+(furiC?' on':'')+'" data-fb="c">選択肢</button>';bar.innerHTML=h;bar.style.display='flex';}
+function _furiCoachSeen(){try{return localStorage.getItem('kwt_furicoach')==='1';}catch(e){return true;}}
+function _furiCoachDone(){try{localStorage.setItem('kwt_furicoach','1');}catch(e){}var c=document.querySelector('.furi-coach');if(c)c.remove();}
+var _furiCoachT=false;
+function renderFuriBar(w){var bar=$('furi-bar');if(!bar)return;if(!_isKokugo()){bar.style.display='none';bar.innerHTML='';return;}var seg='<span class="fb-seg">';if(_hasQRuby(w))seg+='<button type="button" class="fb-tg'+(furiQ?' on':'')+'" data-fb="q">問題文</button>';seg+='<button type="button" class="fb-tg'+(furiC?' on':'')+'" data-fb="c">選択肢</button></span>';var coach=(!_furiCoachSeen())?'<span class="furi-coach">タップでふりがな</span>':'';bar.innerHTML='<span class="fb-lbl"><span class="fb-ic">あ</span>ふりがな</span>'+seg+coach;bar.style.display='flex';if(coach&&!_furiCoachT){_furiCoachT=true;setTimeout(_furiCoachDone,6000);}}
 function applyFuri_(){var s=session;if(!s)return;var w=s.words[s.idx];var jb=$('j2e-ja'),sj=$('step-j2e');if(jb&&sj&&sj.style.display!=='none')jb.innerHTML=renderQ(w,furiQ);['j2e-choices','tf-choices'].forEach(function(cid){var box=$(cid);if(!box)return;Array.prototype.forEach.call(box.children,function(b){var v=b.getAttribute('data-val');if(v==null)return;b.innerHTML=_choiceHtml(v);});});renderFuriBar(w);}
-document.addEventListener('click',function(e){var t=(e.target&&e.target.closest)?e.target.closest('[data-fb]'):null;if(!t)return;e.stopPropagation();e.preventDefault();var k=t.getAttribute('data-fb');if(k==='q')furiQ=!furiQ;else if(k==='c')furiC=!furiC;applyFuri_();},true);
+document.addEventListener('click',function(e){var t=(e.target&&e.target.closest)?e.target.closest('[data-fb]'):null;if(!t)return;e.stopPropagation();e.preventDefault();var k=t.getAttribute('data-fb');if(k==='q')furiQ=!furiQ;else if(k==='c')furiC=!furiC;_furiCoachDone();applyFuri_();},true);
 var TF_CIRC=['⓪','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫'];
 function tfHoles(words,assetId){var out=[];words.forEach(function(x,i){if(x.qtype==='table_fill'){var q=tfParse(x);if(String(q.asset)===String(assetId))out.push({i:i,q:q,w:x});}});return out;}
 function renderTF(){
@@ -1454,7 +1467,7 @@ function renderTF(){
     h+='</tr>';});
   h+='</table>';
   $('tf-table').innerHTML=h;
-  $('tf-ask').innerHTML='<b style="color:var(--accent)">'+(TF_CIRC[myN]||myN)+'</b> に入る形をえらぼう';
+  $('tf-ask').style.display='';$('tf-ask').innerHTML='<b style="color:var(--accent)">'+(TF_CIRC[myN]||myN)+'</b> に入る形をえらぼう';
   var _tl=(s.content_type==='test')?0:qSecFor('table_fill'); // 表を読むため理社と同じ秒数（15秒）
   buildChoices('tf-choices',w.english,[],function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},
     {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,next:function(){nextWord();}});
@@ -1466,10 +1479,10 @@ function renderTF(){
    採点・間違いノート・正答率カウンタは他タイプと同じ「1行=1問」経路に乗る（設計仕様_問題タイプ拡張 §3c）。 */
 function imgHoles(words,assetId){var out=[];words.forEach(function(x,i){if(x.qtype==='image_fill'){var q=tfParse(x);if(String(q.asset)===String(assetId))out.push({i:i,q:q,w:x});}});return out;}
 /* 図の画像ボックスHTML（renderIMG・ノート・おさらいで共用）2026-07-12 */
-function imgFigHtml(w,assets){var qd=tfParse(w);var a=(assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';var h='';if(a.title)h+='<div class="tf-title">'+esc(a.title)+'</div>';h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';return h;}
+function imgFigHtml(w,assets){var qd=tfParse(w);var a=(assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';var h='';/* 出題図はタイトル非表示＝答えバレ防止 2026-07-16 */h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';return h;}
 /* 解説画像（参考資料画像）2026-07-16：解説文の下に参考画像を1枚出す。qdata.kaisetsu_asset のアセットを使う（image_fillでない4択にも付く） */
 var _kaiImgCur='';
-function kaiImgHtml(w,assets){var qd=tfParse(w);var aid=qd&&qd.kaisetsu_asset;if(!aid)return '';var a=(assets||{})[aid]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';if(!url)return '';var h='';if(a.title)h+='<div class="tf-title">'+esc(a.title)+'</div>';h+='<img src="'+esc(url)+'" alt="参考資料" onerror="this.style.opacity=.2;">';return h;}
+function kaiImgHtml(w,assets){var qd=tfParse(w);var aid=qd&&qd.kaisetsu_asset;if(!aid)return '';var a=(assets||{})[aid]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';if(!url)return '';var h='<img src="'+esc(url)+'" alt="参考資料" onerror="this.style.opacity=.2;">';if(a.title)h+='<div class="tf-title">'+esc(a.title)+'</div>';return h;}
 function missWordsHtml(missIds,words){var uniq=(missIds||[]).filter(function(v,i){return missIds.indexOf(v)===i;});if(!uniq.length)return '';var byId={};(words||[]).forEach(function(w){byId[String(w.id||w.word_id)]=w;});var list=uniq.map(function(id){var w=byId[String(id)];if(!w)return '';var jp=(w.qtype==='image_fill')?'':('（'+esc(w.japanese)+'）');return '<div style="font-size:14px;padding:5px 0;border-top:1px solid var(--line);">'+esc(w.english)+jp+'</div>';}).filter(Boolean).join('');if(!list)return '';return '<div style="background:var(--surface);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;">まちがえた語句（'+uniq.length+'）— 見直そう</div>'+list+'</div>';}
 function quizToggle_(id){var e=document.getElementById(id);var a=document.getElementById(id+'-a');if(!e)return;var o=e.style.display==='none';e.style.display=o?'block':'none';quizOpen_[id]=o;if(a)a.className='ti '+(o?'ti-chevron-up':'ti-chevron-down');}
 function renderIMG(){
@@ -1478,12 +1491,14 @@ function renderIMG(){
   var url=pl.url||pl.src||a.url||'';
   var holes=imgHoles(s.words,qd.asset);var myN=0;holes.forEach(function(hh,n){hh.n=n+1;if(hh.i===s.idx)myN=n+1;});
   var h='';
-  if(a.title){h+='<div class="tf-title">'+esc(a.title)+'</div>';}
+  /* 出題図はタイトル非表示＝答えバレ防止 2026-07-16（答えは解説で出す）。設問は図の上に大きく表示 */
+  var _askH=qd.num?('<b style="color:var(--accent)">'+esc(qd.num)+'</b> が指す部分の名前をえらぼう'):esc(qd.ask||'この名前をえらぼう');
+  h+='<div class="imgq-ask">'+_askH+'</div>';
+  if(!qd.num){h+='<div class="imgq-askhint">画像は覚える手がかり。まず問題文を読んで答えよう</div>';}
   h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';
   if(holes.length>1){h+='<div class="imgq-track">';holes.forEach(function(hh){var st=hh.i<s.idx?'done':(hh.i===s.idx?'cur':'');var lb=hh.q.num||(TF_CIRC[hh.n]||hh.n);h+='<span class="'+st+'">'+esc(lb)+'</span>';});h+='</div>';}
   $('tf-table').innerHTML=h;
-  if(qd.num){$('tf-ask').innerHTML='<b style="color:var(--accent)">'+esc(qd.num)+'</b> が指す部分の名前をえらぼう';}
-  else{$('tf-ask').innerHTML=esc(qd.ask||'この生物の名前をえらぼう');}
+  $('tf-ask').innerHTML='';$('tf-ask').style.display='none'; /* 設問は図の上に表示済み 2026-07-16 */
   var _tl=(s.content_type==='test')?0:qSecFor('table_fill');
   buildChoices('tf-choices',w.english,[],function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},
     {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,promptText:w.japanese,next:function(){nextWord();}});
@@ -1770,9 +1785,10 @@ function showExplain(correct,kaisetsu,reading,ok){
   var kai=$('ex-kai');
   if(kaisetsu){kai.textContent=kaisetsu;kai.style.display='';}else{kai.style.display='none';}
   var _kimg=$('ex-img');if(_kimg){if(_kaiImgCur){_kimg.innerHTML=_kaiImgCur;_kimg.style.display='';}else{_kimg.innerHTML='';_kimg.style.display='none';}}
+  var _sp=$('scr-practice');if(_sp)_sp.classList.add('exopen');var _bf=$('bug-fab');if(_bf)_bf.classList.add('dim');
   $('explain').style.display='block';
 }
-function hideExplain(){var e=$('explain');if(e)e.style.display='none';}
+function hideExplain(){var e=$('explain');if(e)e.style.display='none';var _sp=$('scr-practice');if(_sp)_sp.classList.remove('exopen');var _bf=$('bug-fab');if(_bf)_bf.classList.remove('dim');}
 /* 画面のどこかをタップで次へ（同じクリックで即進まないよう少し遅らせて登録）2026-07-04 */
 function waitTap(next){
   var scr=$('scr-practice');if(!scr){next();return;}
@@ -1993,7 +2009,7 @@ function renderNoteStep(){hideQTimer();
   $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
   $('step-label').textContent='復習 '+(s.idx+1)+' / '+tot+'語目';
   if(w.qtype==='image_fill'){ // 図問題はノートでも図を出す（qdata.choices使用）2026-07-12
-    var qi=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').innerHTML=qi.num?('<b style="color:var(--accent)">'+esc(qi.num)+'</b> が指す部分をえらぼう'):esc(qi.ask||'この生物の名前をえらぼう');
+    var qi=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').style.display='';$('tf-ask').innerHTML=qi.num?('<b style="color:var(--accent)">'+esc(qi.num)+'</b> が指す部分をえらぼう'):esc(qi.ask||'この生物の名前をえらぼう');
     buildNoteChoices('tf-choices',w.english,(qi.choices||[]).filter(function(x){return x!==w.english;}),function(ok){if(!ok)s.wordOK=false;},{kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitNoteWord();}});
     $('step-tf').style.display='block';return;
   }
@@ -2168,7 +2184,7 @@ function renderSrsStep(){
   $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
   $('step-label').textContent='復習 '+(s.idx+1)+' / '+tot+'語目';
   if(w.qtype==='image_fill'){ // 図問題はおさらいでも図を出す 2026-07-12
-    var qi2=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').innerHTML=qi2.num?('<b style="color:var(--accent)">'+esc(qi2.num)+'</b> が指す部分をえらぼう'):esc(qi2.ask||'この生物の名前をえらぼう');
+    var qi2=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').style.display='';$('tf-ask').innerHTML=qi2.num?('<b style="color:var(--accent)">'+esc(qi2.num)+'</b> が指す部分をえらぼう'):esc(qi2.ask||'この生物の名前をえらぼう');
     buildChoices('tf-choices',w.english,[],function(ok){if(!ok)s.wordOK=false;},{fixedChoices:(qi2.choices||[]),timeLimit:qSecFor('table_fill'),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitSrsWord();}});
     $('step-tf').style.display='block';return;
   }
