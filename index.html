@@ -325,9 +325,14 @@
   .ex-ans{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;}
   .ex-ans b{color:var(--ok);}
   .ex-kai{font-size:13.5px;line-height:1.6;color:var(--sub);margin-bottom:7px;}
-  .ex-tap{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:80;background:var(--accent);color:#fff;border-radius:13px;padding:14px;font-size:15px;font-weight:800;box-shadow:0 8px 24px rgba(10,108,255,.35);display:flex;align-items:center;justify-content:center;gap:7px;}
-  .ex-tap i{font-size:19px;}
-  #scr-practice.exopen .body{padding-bottom:88px;}
+  .ex-actions{display:flex;gap:9px;margin-top:12px;}
+  .ex-next{flex:1;background:var(--accent);color:#fff;border:0;border-radius:13px;padding:14px;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;cursor:pointer;position:relative;overflow:hidden;}
+  .ex-next i{font-size:19px;}
+  .ex-next.waiting{background:var(--ring-track);color:var(--sub);cursor:default;}
+  .ex-next .ex-fill{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--accent);border-radius:2px;}
+  .ex-next.waiting .ex-fill{animation:exfill 1s linear forwards;}
+  @keyframes exfill{from{width:0}to{width:100%}}
+  .ex-report{flex:none;background:#fff;color:var(--ng);border:1.5px solid var(--ng);border-radius:13px;padding:0 13px;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;cursor:pointer;line-height:1.2;}
   .prog>i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s;}
   .word-en{font-size:42px;font-weight:700;text-align:center;letter-spacing:-.01em;margin:14px 0 4px;}
   .reading{text-align:center;color:var(--sub);margin-bottom:14px;}
@@ -657,7 +662,10 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="ex-ans" id="ex-ans"></div>
         <div class="ex-kai" id="ex-kai"></div>
         <div class="ex-fig" id="ex-img" style="display:none;"></div>
-        <div class="ex-tap"><i class="ti ti-hand-finger"></i> タップしてつぎへ</div>
+        <div class="ex-actions">
+          <button type="button" class="ex-next" id="ex-next"><i class="ti ti-hand-finger"></i> つぎへ<span class="ex-fill"></span></button>
+          <button type="button" class="ex-report" id="ex-report" onclick="openBugFromExplain()"><i class="ti ti-message-report"></i> まちがい報告</button>
+        </div>
       </div>
     </div>
   </section>
@@ -1422,7 +1430,7 @@ function startPractice(listId){show('scr-practice');$('step-label').innerHTML=kw
 function _startPracticeWith_(listId,d){if(!d.ok){toast(d.error||'読み込み失敗');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
 session={listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now()};session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});renderStep();}
-function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';var _fb=$('furi-bar');if(_fb)_fb.style.display='none';$('step-label').textContent=(s.idx+1)+' / '+totalSteps+'語目';_kaiImgCur=kaiImgHtml(w,s.assets);
+function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';var _fb=$('furi-bar');if(_fb)_fb.style.display='none';$('step-label').textContent=(s.idx+1)+' / '+totalSteps+'語目';_kaiImgCur=kaiImgHtml(w,s.assets);_curExW=w;
   if(w.qtype==='table_fill'){renderTF();return;} // 表穴埋め（問題タイプ拡張 2026-07-05）
   if(w.qtype==='image_fill'){renderIMG();return;} // 図問題（番号方式）2026-07-12
   var _tl=(s.content_type==='test')?0:qSecFor(s.subject); // テスト配信は制限なし（川上さん確定2026-07-04）
@@ -1481,7 +1489,7 @@ function imgHoles(words,assetId){var out=[];words.forEach(function(x,i){if(x.qty
 /* 図の画像ボックスHTML（renderIMG・ノート・おさらいで共用）2026-07-12 */
 function imgFigHtml(w,assets){var qd=tfParse(w);var a=(assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';var h='';/* 出題図はタイトル非表示＝答えバレ防止 2026-07-16 */h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';return h;}
 /* 解説画像（参考資料画像）2026-07-16：解説文の下に参考画像を1枚出す。qdata.kaisetsu_asset のアセットを使う（image_fillでない4択にも付く） */
-var _kaiImgCur='';
+var _kaiImgCur='';var _curExW=null;
 function kaiImgHtml(w,assets){var qd=tfParse(w);var aid=qd&&qd.kaisetsu_asset;if(!aid)return '';var a=(assets||{})[aid]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';if(!url)return '';var h='<img src="'+esc(url)+'" alt="参考資料" onerror="this.style.opacity=.2;">';if(a.title)h+='<div class="tf-title">'+esc(a.title)+'</div>';return h;}
 function missWordsHtml(missIds,words){var uniq=(missIds||[]).filter(function(v,i){return missIds.indexOf(v)===i;});if(!uniq.length)return '';var byId={};(words||[]).forEach(function(w){byId[String(w.id||w.word_id)]=w;});var list=uniq.map(function(id){var w=byId[String(id)];if(!w)return '';var jp=(w.qtype==='image_fill')?'':('（'+esc(w.japanese)+'）');return '<div style="font-size:14px;padding:5px 0;border-top:1px solid var(--line);">'+esc(w.english)+jp+'</div>';}).filter(Boolean).join('');if(!list)return '';return '<div style="background:var(--surface);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;">まちがえた語句（'+uniq.length+'）— 見直そう</div>'+list+'</div>';}
 function quizToggle_(id){var e=document.getElementById(id);var a=document.getElementById(id+'-a');if(!e)return;var o=e.style.display==='none';e.style.display=o?'block':'none';quizOpen_[id]=o;if(a)a.className='ti '+(o?'ti-chevron-up':'ti-chevron-down');}
@@ -1777,7 +1785,7 @@ function applyChoiceCols(box,choices){
 function afterAnswer(ok,correct,kaisetsu,reading,next){
   if(typeof reading==='function'){next=reading;reading='';} // 旧シグネチャ互換
   if(!next)next=function(){};
-  showExplain(correct,kaisetsu,reading,ok);waitTap(next);
+  showExplain(correct,kaisetsu,reading,ok);waitTap(next,ok);
 }
 function showExplain(correct,kaisetsu,reading,ok){
   var _mk=(ok===true)?'<span style="color:#1fa971;font-weight:800;">⭕ </span>':((ok===false)?'<span style="color:#e0574b;font-weight:800;">❌ </span>':'');
@@ -1785,17 +1793,21 @@ function showExplain(correct,kaisetsu,reading,ok){
   var kai=$('ex-kai');
   if(kaisetsu){kai.textContent=kaisetsu;kai.style.display='';}else{kai.style.display='none';}
   var _kimg=$('ex-img');if(_kimg){if(_kaiImgCur){_kimg.innerHTML=_kaiImgCur;_kimg.style.display='';}else{_kimg.innerHTML='';_kimg.style.display='none';}}
-  var _sp=$('scr-practice');if(_sp)_sp.classList.add('exopen');var _bf=$('bug-fab');if(_bf)_bf.classList.add('dim');
+  var _bf=$('bug-fab');if(_bf)_bf.style.display='none'; /* 解説中はフローティング報告を隠す＝機能は解説内「まちがい報告」へ 2026-07-16 */
   $('explain').style.display='block';
+  try{$('explain').scrollIntoView({behavior:'smooth',block:'end'});}catch(e){try{$('explain').scrollIntoView(false);}catch(e2){}}
 }
-function hideExplain(){var e=$('explain');if(e)e.style.display='none';var _sp=$('scr-practice');if(_sp)_sp.classList.remove('exopen');var _bf=$('bug-fab');if(_bf)_bf.classList.remove('dim');}
+function hideExplain(){var e=$('explain');if(e)e.style.display='none';try{refreshBugFab();}catch(_e){var _bf=$('bug-fab');if(_bf)_bf.style.display='';}}
 /* 画面のどこかをタップで次へ（同じクリックで即進まないよう少し遅らせて登録）2026-07-04 */
-function waitTap(next){
-  var scr=$('scr-practice');if(!scr){next();return;}
-  var done=false;
-  function go(){if(done)return;done=true;scr.removeEventListener('click',go,true);var ex=$('explain');if(ex)ex.onclick=null;hideExplain();next();}
-  // 画面どこでもタップ（capture）＋解説ボックス自体のタップの二重で確実に進む（2026-07-04）
-  setTimeout(function(){scr.addEventListener('click',go,true);var ex=$('explain');if(ex)ex.onclick=go;},80);
+function waitTap(next,ok){
+  var btn=$('ex-next');var done=false;
+  function go(){if(done)return;done=true;hideExplain();next();}
+  if(!btn){setTimeout(function(){var s=$('scr-practice');if(s)s.addEventListener('click',go,{once:true,capture:true});},80);return;}
+  btn.onclick=function(){if(btn.disabled)return;go();};
+  if(ok===false){ // 不正解＝1秒の"読む間"（解説を読ませてから次へ）2026-07-16
+    btn.disabled=true;btn.classList.add('waiting');
+    setTimeout(function(){btn.disabled=false;btn.classList.remove('waiting');},1000);
+  }else{ btn.disabled=false;btn.classList.remove('waiting'); } // 正解＝すぐ押せる
 }
 
 /* 制限時間バー（案C・2026-07-04）：残り割合で 青→黄→赤・残り秒数を表示。0で onEnd。 */
@@ -2004,7 +2016,7 @@ function startNote(subject,words,assets){
   renderNoteStep();
 }
 function renderNoteStep(){hideQTimer();
-  var s=noteSes,w=s.words[s.idx],tot=s.words.length;showListen_(w,s.subject==='english');_kaiImgCur=kaiImgHtml(w,s.assets);
+  var s=noteSes,w=s.words[s.idx],tot=s.words.length;showListen_(w,s.subject==='english');_kaiImgCur=kaiImgHtml(w,s.assets);_curExW=w;
   $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
   $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
   $('step-label').textContent='復習 '+(s.idx+1)+' / '+tot+'語目';
@@ -2179,7 +2191,7 @@ function startReviewSrs(words,assets){
   renderSrsStep();
 }
 function renderSrsStep(){
-  var s=srsSes,w=s.words[s.idx],tot=s.words.length;showListen_(w,s.subject==='english');_kaiImgCur=kaiImgHtml(w,s.assets);
+  var s=srsSes,w=s.words[s.idx],tot=s.words.length;showListen_(w,s.subject==='english');_kaiImgCur=kaiImgHtml(w,s.assets);_curExW=w;
   $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
   $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
   $('step-label').textContent='復習 '+(s.idx+1)+' / '+tot+'語目';
@@ -2298,6 +2310,7 @@ function currentScreenName(){
   return 'その他';
 }
 function bugPick(el){el.classList.toggle('sel');var m=el.querySelector('.tk');if(m)m.innerHTML=el.classList.contains('sel')?'<i class="ti ti-check"></i>':'';var any=document.querySelectorAll('#bug-chips .bug-chip.sel').length>0;$('bug-send').disabled=!any||_bugSending;}
+function openBugFromExplain(){openBug();try{var w=_curExW;if(w){var t=(w.english||'')+(w.japanese?('／'+w.japanese):'');$('bug-msg').value='【この問題】'+t+'\nの 答え か 解説 がまちがっている：';}}catch(e){}}
 function openBug(){
   document.querySelectorAll('#bug-chips .bug-chip').forEach(function(c){c.classList.remove('sel');var m=c.querySelector('.tk');if(m)m.innerHTML='';});
   $('bug-msg').value='';
