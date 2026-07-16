@@ -1599,6 +1599,7 @@ function openMatPreview(mid){
           if(url){h+='<div class="mp-fig"><img src="'+esc(url)+'" alt="図" loading="lazy" onclick="mpZoom_(this.src)" onerror="this.style.opacity=.25;this.style.cursor=\'default\';this.alt=\'画像が見つかりません（未pushの可能性）\';">'+(w.num?'<div class="cap">番号 '+esc(w.num)+' の部分を答える問題</div>':'')+'<div class="zoomhint">クリックで拡大</div></div>';}
         }
         if(w.kaisetsu){h+='<div class="mp-kai"><b>解説：</b>'+esc(w.kaisetsu)+'</div>';}
+        if(w.kaisetsu_asset){var ku=mpAssetUrl_(w.kaisetsu_asset);if(ku){h+='<div class="mp-fig"><img src="'+esc(ku)+'" alt="参考資料" loading="lazy" onclick="mpZoom_(this.src)" onerror="this.style.opacity=.25;this.style.cursor=\'default\';this.alt=\'画像が見つかりません（未pushの可能性）\';"><div class="cap">解説の参考資料</div><div class="zoomhint">クリックで拡大</div></div>';}}
       });
     });
     $('mpBody').innerHTML=h;
