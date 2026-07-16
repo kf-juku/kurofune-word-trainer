@@ -554,6 +554,11 @@
   .mgpeek{font-size:11px;font-weight:800;color:var(--crimson);background:var(--crimson-light);border:1px solid var(--crimson-mid);border-radius:8px;padding:3px 9px;cursor:pointer;flex-shrink:0;}
   .mgpeek:hover{background:#fff;}
   .mp-body{flex:1 1 auto;min-height:0;overflow:auto;}
+  .mp-toolbar{display:flex;align-items:center;gap:10px;flex:none;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:2px;}
+  .mp-toolbar .mp-count{font-size:12px;color:var(--text-muted);font-weight:700;white-space:nowrap;flex:none;}
+  .mp-toolbar .mp-jumps{display:flex;gap:6px;flex:1 1 auto;overflow-x:auto;padding-bottom:2px;}
+  .mp-toolbar .mp-jump{flex:none;font-size:12px;font-weight:800;color:#1f6feb;background:#eef6ff;border:1px solid #cfe0ff;border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap;font-family:inherit;}
+  .mp-toolbar .mp-jump:hover{background:#1f6feb;color:#fff;}
   .mp-part{margin:14px 0 6px;font-weight:800;color:var(--text);font-size:14px;display:flex;align-items:center;gap:8px;}
   .mp-part .c{font-size:11px;color:var(--text-muted);font-weight:700;}
   .mp-q{display:flex;gap:10px;align-items:flex-start;padding:6px 8px;border-bottom:1px solid var(--surface2);font-size:13px;}
@@ -837,6 +842,7 @@
     <button class="mp-close" onclick="closeModal('matPreviewModal')" aria-label="閉じる">✕</button>
     <h3 id="mpTitle">教材の中身</h3>
     <div class="mhint">この教材の問題を一覧で表示します（読み取り専用）。名称だけで分からないときの確認用です。</div>
+    <div class="mp-toolbar" id="mpToolbar"></div>
     <div class="mp-body" id="mpBody"></div>
     <div class="modal-actions">
       <button class="btn-ghost" style="margin-left:auto;" onclick="closeModal('matPreviewModal')">閉じる</button>
@@ -1574,9 +1580,10 @@ function mpAssetUrl_(id){
   var pl={}; try{ pl=JSON.parse(a.payload||'{}'); }catch(e){ pl={}; }
   return pl.url||pl.src||a.url||'';
 }
+function mpJump(i){var el=document.getElementById('mp-part-'+i);var body=$('mpBody');if(el&&body){body.scrollTop += el.getBoundingClientRect().top - body.getBoundingClientRect().top;}}
 function openMatPreview(mid){
   $('mpTitle').textContent='教材の中身';
-  $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
+  $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';var _tbld=$('mpToolbar');if(_tbld)_tbld.innerHTML='';
   $('matPreviewModal').classList.add('show');
   call({action:'material_preview',material_id:mid}).then(function(d){
     if(!d||!d.ok){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
@@ -1586,9 +1593,11 @@ function openMatPreview(mid){
     var parts=dt.parts||[];
     if(!parts.length){$('mpBody').innerHTML='<div style="padding:10px;color:var(--text-muted);font-size:13px;">この教材にはまだ問題がありません。</div>';return;}
     var totalQ=parts.reduce(function(a,b){return a+(b.count||0);},0);
-    var h='<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">'+parts.length+'パート・全'+totalQ+'問</div>';
-    parts.forEach(function(pt){
-      h+='<div class="mp-part">'+esc(pt.title||'(無題パート)')+'<span class="c">'+(pt.count||0)+'問</span></div>';
+    var _jb=parts.map(function(pt,pi){return '<button class="mp-jump" title="'+esc(pt.title||'')+'" onclick="mpJump('+pi+')">'+(pi+1)+'</button>';}).join('');
+    $('mpToolbar').innerHTML='<span class="mp-count">'+parts.length+'パート・全'+totalQ+'問</span><div class="mp-jumps">'+_jb+'</div>';
+    var h='';
+    parts.forEach(function(pt,pi){
+      h+='<div class="mp-part" id="mp-part-'+pi+'">'+esc(pt.title||'(無題パート)')+'<span class="c">'+(pt.count||0)+'問</span></div>';
       (pt.words||[]).forEach(function(w,i){
         var badge='';
         if(w.qtype==='image_fill')badge='<span class="qb fig">図</span>';
