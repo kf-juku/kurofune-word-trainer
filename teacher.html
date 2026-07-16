@@ -559,9 +559,13 @@
   .mp-toolbar .mp-jumps{display:flex;gap:6px;flex:1 1 auto;overflow-x:auto;padding-bottom:2px;}
   .mp-toolbar .mp-jump{flex:none;font-size:12px;font-weight:800;color:#1f6feb;background:#eef6ff;border:1px solid #cfe0ff;border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap;font-family:inherit;}
   .mp-toolbar .mp-jump:hover{background:#1f6feb;color:#fff;}
-  .mp-part{margin:14px 0 6px;font-weight:800;color:var(--text);font-size:14px;display:flex;align-items:center;gap:8px;}
+  .mp-toolbar .mp-jump.active{background:#1f6feb;color:#fff;border-color:#1f6feb;box-shadow:0 0 0 2px rgba(31,111,235,.25);}
+  .mp-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-right:44px;margin:0 0 2px;}
+  .mp-head h3{margin:0;}
+  .mp-ro{font-size:12px;font-weight:700;color:var(--text-muted);white-space:nowrap;}
+  .mp-part{margin:10px 0 4px;font-weight:800;color:var(--text);font-size:14px;display:flex;align-items:center;gap:8px;}
   .mp-part .c{font-size:11px;color:var(--text-muted);font-weight:700;}
-  .mp-q{display:flex;gap:10px;align-items:flex-start;padding:6px 8px;border-bottom:1px solid var(--surface2);font-size:13px;}
+  .mp-q{display:flex;gap:10px;align-items:flex-start;padding:4px 8px;border-bottom:1px solid var(--surface2);font-size:13px;}
   .mp-q .no{color:var(--text-light);font-weight:700;min-width:22px;}
   .mp-q .en{font-weight:700;color:var(--text);flex:0 0 auto;max-width:46%;word-break:break-word;}
   .mp-q .ja{color:var(--text-muted);flex:1;word-break:break-word;}
@@ -570,7 +574,7 @@
   .mp-q .qb.tbl{background:#fff3e6;color:#b5710a;}
   .mp-prompt{font-size:12px;color:var(--text);margin:1px 0 5px 32px;line-height:1.55;}
   .mp-prompt .lbl{display:inline-block;font-size:10px;font-weight:800;color:#1f6feb;background:#eef6ff;border-radius:5px;padding:1px 6px;margin-right:6px;}
-  #matPreviewModal .modal{max-width:960px;width:96vw;max-height:90vh;display:flex;flex-direction:column;position:relative;}
+  #matPreviewModal .modal{max-width:960px;width:96vw;height:95vh;max-height:95vh;display:flex;flex-direction:column;position:relative;}
   .mp-close{position:absolute;top:10px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--text);font-size:16px;line-height:1;cursor:pointer;z-index:6;display:grid;place-items:center;box-shadow:var(--shadow-sm);}
   .mp-close:hover{background:var(--surface2);}
   .mp-fig{margin:4px 0 8px 32px;}
@@ -840,8 +844,7 @@
 <div class="modal-back" id="matPreviewModal">
   <div class="modal">
     <button class="mp-close" onclick="closeModal('matPreviewModal')" aria-label="閉じる">✕</button>
-    <h3 id="mpTitle">教材の中身</h3>
-    <div class="mhint">この教材の問題を一覧で表示します（読み取り専用）。名称だけで分からないときの確認用です。</div>
+    <div class="mp-head"><h3 id="mpTitle">教材の中身</h3><span class="mp-ro">（読み取り専用）</span></div>
     <div class="mp-toolbar" id="mpToolbar"></div>
     <div class="mp-body" id="mpBody"></div>
     <div class="modal-actions">
@@ -1580,7 +1583,9 @@ function mpAssetUrl_(id){
   var pl={}; try{ pl=JSON.parse(a.payload||'{}'); }catch(e){ pl={}; }
   return pl.url||pl.src||a.url||'';
 }
-function mpJump(i){var el=document.getElementById('mp-part-'+i);var body=$('mpBody');if(el&&body){body.scrollTop += el.getBoundingClientRect().top - body.getBoundingClientRect().top;}}
+function mpJump(i){var el=document.getElementById('mp-part-'+i);var body=$('mpBody');if(el&&body){body.scrollTop += el.getBoundingClientRect().top - body.getBoundingClientRect().top;mpSpy_();}}
+/* スクロール位置にあるパートのジャンプボタンを強調（今どこを見ているか分かるように）2026-07-16 */
+function mpSpy_(){var tb=$('mpToolbar'),body=$('mpBody');if(!tb||!body)return;var jumps=tb.querySelectorAll('.mp-jump');if(!jumps.length)return;var bt=body.getBoundingClientRect().top,cur=0;for(var i=0;i<jumps.length;i++){var el=document.getElementById('mp-part-'+i);if(el&&(el.getBoundingClientRect().top-bt)<=14)cur=i;}for(var j=0;j<jumps.length;j++)jumps[j].classList.toggle('active',j===cur);}
 function openMatPreview(mid){
   $('mpTitle').textContent='教材の中身';
   $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';var _tbld=$('mpToolbar');if(_tbld)_tbld.innerHTML='';
@@ -1617,6 +1622,7 @@ function openMatPreview(mid){
       });
     });
     $('mpBody').innerHTML=h;
+    var _mb=$('mpBody');if(_mb){_mb.onscroll=mpSpy_;mpSpy_();}
   });
 }
 /* ===== 確認テストタブ（閲覧：注目リスト＋点数表＋詳細）2026-07-10 ===== */
