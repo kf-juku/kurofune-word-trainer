@@ -499,7 +499,8 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 /* 解説画像（参考資料画像）2026-07-16 */
 .ex-fig{margin-top:9px;display:flex;align-items:center;gap:11px;text-align:left}
 .ex-fig .tf-title{font-size:11px;color:var(--sub);margin:0;line-height:1.5}
-.ex-fig img{width:92px;height:92px;object-fit:contain;flex:none;border:1px solid var(--line);border-radius:10px;background:#fff}
+.ex-fig img{width:92px;height:92px;object-fit:contain;flex:none;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:zoom-in}
+.ex-fig .ex-zoom{display:inline-block;margin-top:3px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px}
 /* ===== 図の全画面ズーム 2026-07-13 ===== */
 .kzoom{position:fixed;inset:0;background:rgba(15,20,30,.94);z-index:9999;display:none;flex-direction:column}
 .kzoom.open{display:flex}
@@ -1490,7 +1491,7 @@ function imgHoles(words,assetId){var out=[];words.forEach(function(x,i){if(x.qty
 function imgFigHtml(w,assets){var qd=tfParse(w);var a=(assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';var h='';/* 出題図はタイトル非表示＝答えバレ防止 2026-07-16 */h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';return h;}
 /* 解説画像（参考資料画像）2026-07-16：解説文の下に参考画像を1枚出す。qdata.kaisetsu_asset のアセットを使う（image_fillでない4択にも付く） */
 var _kaiImgCur='';var _curExW=null;
-function kaiImgHtml(w,assets){var qd=tfParse(w);var aid=qd&&qd.kaisetsu_asset;if(!aid)return '';var a=(assets||{})[aid]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';if(!url)return '';var h='<img src="'+esc(url)+'" alt="参考資料" onerror="this.style.opacity=.2;">';if(a.title)h+='<div class="tf-title">'+esc(a.title)+'</div>';return h;}
+function kaiImgHtml(w,assets){var qd=tfParse(w);var aid=qd&&qd.kaisetsu_asset;if(!aid)return '';var a=(assets||{})[aid]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';if(!url)return '';var h='<img src="'+esc(url)+'" alt="参考資料" onerror="this.style.opacity=.2;">';h+='<div class="tf-title">'+(a.title?esc(a.title)+'<br>':'')+'<span class="ex-zoom">タップで拡大</span></div>';return h;}
 function missWordsHtml(missIds,words){var uniq=(missIds||[]).filter(function(v,i){return missIds.indexOf(v)===i;});if(!uniq.length)return '';var byId={};(words||[]).forEach(function(w){byId[String(w.id||w.word_id)]=w;});var list=uniq.map(function(id){var w=byId[String(id)];if(!w)return '';var jp=(w.qtype==='image_fill')?'':('（'+esc(w.japanese)+'）');return '<div style="font-size:14px;padding:5px 0;border-top:1px solid var(--line);">'+esc(w.english)+jp+'</div>';}).filter(Boolean).join('');if(!list)return '';return '<div style="background:var(--surface);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;">まちがえた語句（'+uniq.length+'）— 見直そう</div>'+list+'</div>';}
 function quizToggle_(id){var e=document.getElementById(id);var a=document.getElementById(id+'-a');if(!e)return;var o=e.style.display==='none';e.style.display=o?'block':'none';quizOpen_[id]=o;if(a)a.className='ti '+(o?'ti-chevron-up':'ti-chevron-down');}
 function renderIMG(){
@@ -2448,6 +2449,8 @@ try{refreshBugFab();}catch(e){}
       window.addEventListener('resize',function(){var q=document.querySelectorAll('.imgq-fig');for(var i=0;i<q.length;i++){var s=st.get(q[i]);if(s){s.rdy=false;fitFig(q[i]);}}});
       var q0=document.querySelectorAll('.imgq-fig');for(var i=0;i<q0.length;i++)ensure(q0[i]);
     })();
+    /* 解説の参考画像もタップで全画面（設問の図と同じビューアで拡大）2026-07-17 */
+    document.addEventListener('click',function(e){var t=e.target;if(t&&t.tagName==='IMG'&&t.closest&&t.closest('.ex-fig')&&t.src){open(t.src);}});
     window.addEventListener('resize',function(){if(ov.classList.contains('open'))fit();});
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',ready);}else{ready();}

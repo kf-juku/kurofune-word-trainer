@@ -589,6 +589,17 @@
   .mgnum{font-size:11px;font-weight:800;color:var(--text-muted);min-width:20px;text-align:center;flex-shrink:0;}
   .mglevel{font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;background:#eef2f7;color:#64748b;flex-shrink:0;}
 </style>
+<style>
+/* 先生ダッシュボード 見やすさ改善（2026-07-17）：元の構成のまま最小のレイアウト調整 */
+.table-wrap th:first-child,.table-wrap td:first-child{min-width:92px;}
+.t-name{white-space:nowrap;}
+.table-wrap td{padding-top:5px;padding-bottom:5px;line-height:1.4;}
+.mchip.na-fold{cursor:pointer;}
+.qa-h{font-size:11px;font-weight:800;color:var(--text-muted);margin:2px 0 6px;}
+.qa-missrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0;}
+.qa-names{font-size:11.5px;color:var(--text-muted);}
+.chip-none{color:var(--text-light);font-size:12px;}
+</style>
 </head>
 <body>
 
@@ -1206,15 +1217,27 @@ function matPills(s){
   if(a.length>2)h+='<span class="mat-pill more" title="「教材」ボタンで全件見られます">+'+(a.length-2)+'</span>';
   return h;
 }
+/* 未評価の畳み（2026-07-17）：評価済みmchipは全部出し、未評価(m-na)だけ1個のまとめチップに畳む（クリックで展開＝内容は消さない） */
 function matViewCell(s){
   var mv=s.materials_view||[];
   if(!mv.length) return '<span class="dash">未割当</span>';
-  return mv.map(function(m){
-    var acc=m.acc; var cls=(acc===''||acc==null)?'m-na':(acc<_needHelpRate?'m-low':(acc<80?'m-mid':'m-hi'));
+  var evalHtml='', naHtml='', naCount=0;
+  mv.forEach(function(m){
+    var acc=m.acc; var isNa=(acc===''||acc==null);
+    var cls=isNa?'m-na':(acc<_needHelpRate?'m-low':(acc<80?'m-mid':'m-hi'));
     var pron=(m.subject==='english')?(' <span style="opacity:.75;font-size:10px;">🔊'+(m.pron==='o'?'○':(m.pron==='t'?'△':'–'))+'</span>'):'';
-    return '<span class="mchip '+cls+'" title="クリックで教材ごとの名簿へ" style="cursor:pointer;" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="mtop"><span class="mdot"></span>'+esc(m.title)+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+((acc===''||acc==null)?'未評価':acc+'%')+pron+'</span></span>';
-  }).join('');
+    var chip='<span class="mchip '+cls+'" title="クリックで教材ごとの名簿へ" style="cursor:pointer;" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="mtop"><span class="mdot"></span>'+esc(m.title)+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+(isNa?'未評価':acc+'%')+pron+'</span></span>';
+    if(isNa){naCount++;naHtml+=chip;}else{evalHtml+=chip;}
+  });
+  var out=evalHtml;
+  if(naCount>0){
+    var id='na_'+esc(String(s.student_id));
+    out+='<span class="mchip m-na na-fold" title="クリックで未評価の教材をすべて表示" onclick="event.stopPropagation();toggleNa(\''+id+'\',this)"><span class="mtop"><span class="mdot"></span>未評価 '+naCount+'</span><span class="mbot">▾ クリックで展開</span></span>';
+    out+='<span id="'+id+'" class="na-more" style="display:none;">'+naHtml+'</span>';
+  }
+  return out;
 }
+function toggleNa(id,btn){var el=document.getElementById(id);if(!el)return;var open=el.style.display==='none';el.style.display=open?'inline':'none';var b=btn.querySelector('.mbot');if(b)b.textContent=open?'▴ 閉じる':'▾ クリックで展開';}
 function gearBtn(s){return '<button class="asg-btn" onclick="openAssign('+"'"+esc(String(s.student_id))+"'"+')">⚙ 教材</button>';}
 function retentionCell2(s){
   var r=s.retention||{green:0,yellow:0,blue:0,red:0};
@@ -1639,14 +1662,25 @@ function renderQuizTab(){
   });
 }
 function _qEntries(){return (_quizBoard&&_quizBoard.entries)||[];}
+function _matTitleOf(mid){var ms=(_quizBoard&&_quizBoard.materials)||[];for(var i=0;i<ms.length;i++){if(String(ms[i].material_id)===String(mid))return ms[i].title;}return '';}
+/* 注目リストを「未合格（個別）」と「未実施（テストごとにまとめ）」に分ける（2026-07-17） */
 function renderQuizAtt(){
   var el=$('qtAtt');if(!el)return;
   var need=_qEntries().filter(function(e){return e.status==='miss'||e.status==='ng';});
-  need.sort(function(a,b){return (a.status==='ng'?0:1)-(b.status==='ng'?0:1);});
+  var ng=need.filter(function(e){return e.status==='ng';});
+  var miss=need.filter(function(e){return e.status==='miss';});
   $('qtAttCnt').textContent=need.length+'件';
-  el.innerHTML=need.map(function(e){var cls=(e.status==='ng')?'qa-ng':'qa-miss';var lbl=(e.status==='ng')?(e.latest_rate+'%'):'未実施';
-    return '<span class="qachip '+cls+'" onclick="openQuizCell(\''+esc(e.student_id)+'\',\''+esc(e.part_id)+'\')">'+esc(e.student_name)+' <small>'+esc(e.part_title)+'・'+lbl+'</small></span>';}).join('')
-    ||'<span style="color:var(--text-light);font-size:12px;">未実施・未合格はありません 🎉</span>';
+  var ngHtml=ng.map(function(e){
+    return '<span class="qachip qa-ng" onclick="openQuizCell(\''+esc(e.student_id)+'\',\''+esc(e.part_id)+'\')">'+esc(e.student_name)+' <small>'+esc(e.part_title)+'・'+e.latest_rate+'%</small></span>';
+  }).join('')||'<span class="chip-none">未合格の子はいません 🎉</span>';
+  var groups={},order=[];
+  miss.forEach(function(e){var k=e.part_id;if(!groups[k]){groups[k]={title:e.part_title,mat:_matTitleOf(e.material_id)||e.material_title||'',names:[]};order.push(k);}groups[k].names.push(e.student_name);});
+  var missHtml=order.length? order.map(function(k){var g=groups[k];
+      return '<div class="qa-missrow"><span class="qachip qa-miss" style="cursor:default;">〔'+esc(g.mat)+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名</small></span> <span class="qa-names">'+g.names.map(esc).join('、')+'</span></div>';
+    }).join('') : '<span class="chip-none">未実施はありません 🎉</span>';
+  el.innerHTML=''
+    +'<div class="qa-h">未合格（点数あり・個別対応）</div>'+ngHtml
+    +'<div class="qa-h" style="margin-top:12px;">未実施（テストごとにまとめ）・未実施 合計 '+miss.length+'名分</div>'+missHtml;
 }
 function renderQuizMatSel(){
   var el=$('qtMatSel');if(!el)return;var mats=(_quizBoard&&_quizBoard.materials)||[];
