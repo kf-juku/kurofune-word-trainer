@@ -595,6 +595,13 @@
 .t-name{white-space:nowrap;}
 .table-wrap td{padding-top:5px;padding-bottom:5px;line-height:1.4;}
 .mchip.na-fold{cursor:pointer;}
+/* 2026-07-18 生徒一覧：右側6列（今日・最終学習・練習・間違い・定着度・教材）を縦割れさせない（既存 th{white-space:normal;word-break:break-word} を上書き）＋同シリーズのまとめ折りたたみ見出し */
+.table-wrap th:nth-child(n+5), .table-wrap td:nth-child(n+5){white-space:nowrap;word-break:keep-all;}
+.table-wrap th:nth-child(n+5){min-width:56px;}
+.table-wrap th:nth-child(6),.table-wrap td:nth-child(6){min-width:66px;}
+.table-wrap th:nth-child(9),.table-wrap td:nth-child(9){min-width:60px;}
+.mchip.mgroup{cursor:pointer;}
+.mchip.mgroup .mtop{font-weight:800;}
 .qa-h{font-size:11px;font-weight:800;color:var(--text-muted);margin:2px 0 6px;}
 .qa-missrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0;}
 .qa-names{font-size:11.5px;color:var(--text-muted);}
@@ -1218,26 +1225,53 @@ function matPills(s){
   return h;
 }
 /* 未評価の畳み（2026-07-17）：評価済みmchipは全部出し、未評価(m-na)だけ1個のまとめチップに畳む（クリックで展開＝内容は消さない） */
+function _mChipHtml(m){
+  var acc=m.acc; var isNa=(acc===''||acc==null);
+  var cls=isNa?'m-na':(acc<_needHelpRate?'m-low':(acc<80?'m-mid':'m-hi'));
+  var pron=(m.subject==='english')?(' <span style="opacity:.75;font-size:10px;">🔊'+(m.pron==='o'?'○':(m.pron==='t'?'△':'–'))+'</span>'):'';
+  return '<span class="mchip '+cls+'" title="クリックで教材ごとの名簿へ" style="cursor:pointer;" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="mtop"><span class="mdot"></span>'+esc(m.title)+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+(isNa?'未評価':acc+'%')+pron+'</span></span>';
+}
+/* 同じシリーズの教材はまとめて折りたたむ（2026-07-18 川上さん承認）。判定＝タイトルで分類。 */
+function _mSeries(t){t=String(t||'');
+  if(/中学理科【生命・地球】/.test(t)||(/理科/.test(t)&&/【生命・地球】/.test(t)))return {k:'sci',label:'メキメキ理科'};
+  if(/中学歴史/.test(t))return {k:'hist',label:'メキメキ歴史'};
+  if(/語彙力アップ/.test(t))return {k:'goi',label:'語彙力アップ'};
+  return null;
+}
+function _mWorst(list){var lo=false,mi=false,hi=false,allNa=true;list.forEach(function(m){var a=m.acc;if(a===''||a==null)return;allNa=false;if(a<_needHelpRate)lo=true;else if(a<80)mi=true;else hi=true;});return allNa?'m-na':(lo?'m-low':(mi?'m-mid':'m-hi'));}
+/* 未評価の畳み＋同シリーズのまとめ折りたたみ（2026-07-18）：評価済み単独教材は全部出し、同シリーズ（2件以上）と未評価は見出しに畳む（クリックで展開＝内容は消えない） */
 function matViewCell(s){
   var mv=s.materials_view||[];
   if(!mv.length) return '<span class="dash">未割当</span>';
-  var evalHtml='', naHtml='', naCount=0;
+  var groups={},order=[],standalone=[],na=[];
   mv.forEach(function(m){
-    var acc=m.acc; var isNa=(acc===''||acc==null);
-    var cls=isNa?'m-na':(acc<_needHelpRate?'m-low':(acc<80?'m-mid':'m-hi'));
-    var pron=(m.subject==='english')?(' <span style="opacity:.75;font-size:10px;">🔊'+(m.pron==='o'?'○':(m.pron==='t'?'△':'–'))+'</span>'):'';
-    var chip='<span class="mchip '+cls+'" title="クリックで教材ごとの名簿へ" style="cursor:pointer;" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="mtop"><span class="mdot"></span>'+esc(m.title)+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+(isNa?'未評価':acc+'%')+pron+'</span></span>';
-    if(isNa){naCount++;naHtml+=chip;}else{evalHtml+=chip;}
+    var acc=m.acc, isNa=(acc===''||acc==null);
+    var sk=_mSeries(m.title);
+    if(sk){ if(!groups[sk.k]){groups[sk.k]={label:sk.label,items:[]};order.push(sk.k);} groups[sk.k].items.push(m); }
+    else if(isNa){ na.push(m); }
+    else standalone.push(m);
   });
-  var out=evalHtml;
-  if(naCount>0){
-    var id='na_'+esc(String(s.student_id));
-    out+='<span class="mchip m-na na-fold" title="クリックで未評価の教材をすべて表示" onclick="event.stopPropagation();toggleNa(\''+id+'\',this)"><span class="mtop"><span class="mdot"></span>未評価 '+naCount+'</span><span class="mbot">▾ クリックで展開</span></span>';
-    out+='<span id="'+id+'" class="na-more" style="display:none;">'+naHtml+'</span>';
+  var out=''; var sid=esc(String(s.student_id));
+  standalone.forEach(function(m){out+=_mChipHtml(m);});
+  order.forEach(function(k){
+    var g=groups[k];
+    if(g.items.length===1){ out+=_mChipHtml(g.items[0]); return; }
+    var wc=_mWorst(g.items); var gid='mg_'+sid+'_'+k;
+    out+='<span class="mchip mgroup '+wc+'" title="クリックで各章を開閉" onclick="event.stopPropagation();mGroupToggle(\''+gid+'\',this)"><span class="mtop"><span class="mdot"></span>'+esc(g.label)+'</span><span class="mbot">'+g.items.length+'教材 ▾ 展開</span></span>';
+    out+='<span id="'+gid+'" class="mg-more" style="display:none;">';
+    g.items.forEach(function(m){out+=_mChipHtml(m);});
+    out+='</span>';
+  });
+  if(na.length){
+    var nid='na_'+sid;
+    out+='<span class="mchip m-na na-fold" title="クリックで未評価の教材をすべて表示" onclick="event.stopPropagation();mGroupToggle(\''+nid+'\',this)"><span class="mtop"><span class="mdot"></span>未評価 '+na.length+'</span><span class="mbot">▾ 展開</span></span>';
+    out+='<span id="'+nid+'" class="na-more" style="display:none;">';
+    na.forEach(function(m){out+=_mChipHtml(m);});
+    out+='</span>';
   }
   return out;
 }
-function toggleNa(id,btn){var el=document.getElementById(id);if(!el)return;var open=el.style.display==='none';el.style.display=open?'inline':'none';var b=btn.querySelector('.mbot');if(b)b.textContent=open?'▴ 閉じる':'▾ クリックで展開';}
+function mGroupToggle(id,btn){var el=document.getElementById(id);if(!el)return;var open=el.style.display==='none';el.style.display=open?'inline':'none';var b=btn.querySelector('.mbot');if(b)b.textContent=b.textContent.replace(/(▾ 展開|▴ 閉じる)/, open?'▴ 閉じる':'▾ 展開');}
 function gearBtn(s){return '<button class="asg-btn" onclick="openAssign('+"'"+esc(String(s.student_id))+"'"+')">⚙ 教材</button>';}
 function retentionCell2(s){
   var r=s.retention||{green:0,yellow:0,blue:0,red:0};
