@@ -584,6 +584,11 @@
   .mp-ed:focus{outline:none;background:#eff6ff;border:1px solid #2563eb;}
   .mp-ed.en{font-weight:700;color:var(--text);}
   .mp-ed.saving{background:#fef9c3;border-color:#eab308;}
+  .mp-st{display:inline-flex;align-items:center;justify-content:center;}
+  .mp-spin{display:inline-block;width:15px;height:15px;border:2.5px solid #fde68a;border-top-color:#d97706;border-radius:50%;animation:mpspin .6s linear infinite;box-sizing:border-box;}
+  @keyframes mpspin{to{transform:rotate(360deg);}}
+  .mp-st .ok{color:#16a34a;font-weight:800;font-size:15px;}
+  .mp-st .ng{color:#dc2626;font-weight:800;font-size:15px;}
   .mp-ed.saved{background:#dcfce7;border-color:#22c55e;}
   .mp-ed.err{background:#fee2e2;border-color:#ef4444;}
   .mp-ed.srv-ok{background:#dcfce7;border-color:#22c55e;}
@@ -1784,7 +1789,7 @@ function mpFieldSave_(el){
 }
 function mpDoSave_(el,wid,field,orig,val){
   var st=el.parentNode.querySelector('.mp-st');
-  el.classList.remove('saved','err','srv-ok','srv-diff');el.classList.add('saving');if(st){st.textContent='…';st.style.color='#a16207';}
+  el.classList.remove('saved','err','srv-ok','srv-diff');el.classList.add('saving');if(st){st.innerHTML='<span class="mp-spin"></span>';st.style.color='';}
   var payload={action:'word_edit',word_id:wid};payload[field]=val;
   call(payload).then(function(d){
     el.classList.remove('saving');
