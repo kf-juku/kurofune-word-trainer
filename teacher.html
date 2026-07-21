@@ -1709,13 +1709,19 @@ function renderQuizAtt(){
   }).join('')||'<span class="chip-none">未合格の子はいません 🎉</span>';
   var groups={},order=[];
   miss.forEach(function(e){var k=e.part_id;if(!groups[k]){groups[k]={title:e.part_title,mat:_matTitleOf(e.material_id)||e.material_title||'',names:[]};order.push(k);}groups[k].names.push(e.student_name);});
-  var missHtml=order.length? order.map(function(k,i){var g=groups[k];var nid='qamiss'+i;
-      return '<div class="qa-missrow"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(g.mat)+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';
+  var _sg={},_so=[];
+  order.forEach(function(k){var g=groups[k];var sk=_mSeries(g.mat);var key=sk?('S:'+sk.k):('M:'+g.mat);var lab=sk?sk.label:g.mat;if(!_sg[key]){_sg[key]={label:lab,parts:[]};_so.push(key);}_sg[key].parts.push(g);});
+  var missHtml=_so.length? _so.map(function(key,si){var sg=_sg[key];var gid='qamg'+si;
+      var inner=sg.parts.map(function(g,pi){var nid=gid+'n'+pi;
+        return '<div class="qa-missrow" style="margin-left:16px;"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(g.mat)+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';
+      }).join('');
+      return '<div class="qa-srow" style="margin:6px 0;"><span class="qachip qa-miss" style="cursor:pointer;font-weight:800;" onclick="qGroupToggle(\''+gid+'\',this)">'+esc(sg.label)+' <small>'+sg.parts.length+'テスト ▾ 展開</small></span><div id="'+gid+'" style="display:none;margin-top:2px;">'+inner+'</div></div>';
     }).join('') : '<span class="chip-none">未実施はありません 🎉</span>';
   el.innerHTML=''
     +'<div class="qa-h">未合格（点数あり・個別対応）</div>'+ngHtml
     +'<div class="qa-h" style="margin-top:12px;">未実施（テストごとにまとめ）・未実施 合計 '+miss.length+'名分</div>'+missHtml;
 }
+function qGroupToggle(id,btn){var el=document.getElementById(id);if(!el)return;var o=el.style.display==='none';el.style.display=o?'block':'none';var sm=btn.querySelector('small');if(sm)sm.textContent=sm.textContent.replace(/(▾ 展開|▴ 閉じる)/,o?'▴ 閉じる':'▾ 展開');}
 function renderQuizMatSel(){
   var el=$('qtMatSel');if(!el)return;var mats=(_quizBoard&&_quizBoard.materials)||[];
   el.innerHTML=mats.map(function(m){return '<div class="qmtab'+(m.material_id===_quizCurMat?' on':'')+'" onclick="_quizCurMat=\''+esc(m.material_id)+'\';renderQuizMatSel();renderQuizBoard();">'+esc(m.title)+'</div>';}).join('');
