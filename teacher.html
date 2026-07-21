@@ -1764,8 +1764,27 @@ function mpFieldSave_(el){
   if(field==='choices'){val=val.replace(/\r/g,'').replace(/\n{2,}/g,'\n').replace(/^\n+|\n+$/g,'');}
   else{val=val.replace(/\s*\n\s*/g,' ').replace(/^\s+|\s+$/g,'');}
   if(val===orig)return; // 変更なしは送らない
+  // ① 空ガード（答え・問題文は空にできない＝事故防止・ハードで止める）
+  if((field==='english'||field==='japanese'||field==='ask')&&val===''){
+    el.innerText=orig;var st0=el.parentNode.querySelector('.mp-st');
+    el.classList.remove('saved','saving');el.classList.add('err');if(st0){st0.textContent='⚠';st0.style.color='#dc2626';}
+    setTimeout(function(){el.classList.remove('err');if(st0)st0.textContent='';},1600);
+    toast(field==='english'?'答えは空にできません':'問題文は空にできません');
+    return;
+  }
+  // ②③ 選択肢の整合・答えバレは警告して確認（意図的な編集もありうるので止めず選ばせる）
+  var warns=mpValidate_(el,field,val);
+  if(warns.length){
+    mpConfirm_(warns.join('\n')+'\n\nこのまま保存しますか？').then(function(go){
+      if(go)mpDoSave_(el,wid,field,orig,val); else {el.innerText=orig;} // やめる＝元に戻す
+    });
+    return;
+  }
+  mpDoSave_(el,wid,field,orig,val);
+}
+function mpDoSave_(el,wid,field,orig,val){
   var st=el.parentNode.querySelector('.mp-st');
-  el.classList.remove('saved','err');el.classList.add('saving');if(st){st.textContent='…';st.style.color='#a16207';}
+  el.classList.remove('saved','err','srv-ok','srv-diff');el.classList.add('saving');if(st){st.textContent='…';st.style.color='#a16207';}
   var payload={action:'word_edit',word_id:wid};payload[field]=val;
   call(payload).then(function(d){
     el.classList.remove('saving');
@@ -1781,6 +1800,52 @@ function mpFieldSave_(el){
       el.innerText=orig; // 失敗は元の値に戻す
       toast((d&&d.error)||'保存に失敗しました');
     }
+  });
+}
+/* 同じ問題（.mp-word）内の各項目の現在値を集める（編集中elはval・他はdata-orig）2026-07-21 */
+function mpWordCtx_(el,field,val){
+  var word=el.closest('.mp-word');
+  function fv(f){var e=word?word.querySelector('.mp-ed[data-wf="'+f+'"]'):null;if(!e)return null;return (e===el)?val:(e.getAttribute('data-orig')||'');}
+  return {word:word,english:fv('english'),japanese:fv('japanese'),ask:fv('ask'),choices:fv('choices')};
+}
+/* 保存前チェック＝警告文の配列（空なら警告なし）。②選択肢の整合（図・表）③答えバレ 2026-07-21 */
+function mpValidate_(el,field,val){
+  var c=mpWordCtx_(el,field,val),w=[];
+  var ans=c.english||'';
+  var qtext=(c.ask!=null&&c.ask!==''?c.ask:'')||(c.japanese!=null?c.japanese:''); // 生徒に出る問題文（図ask方式=ask／文4択=japanese）
+  // ③ 答えバレ：問題文に答えの語がそのまま含まれる（2文字以上・両方あるとき）
+  if(ans&&ans.length>=2&&qtext&&String(qtext).indexOf(ans)>=0){w.push('・問題文に答えの語「'+ans+'」が含まれています（答えバレ）');}
+  // ② 選択肢の整合（choices欄がある＝図・表問題のみ）
+  var chEl=c.word?c.word.querySelector('.mp-ed[data-wf="choices"]'):null;
+  if(chEl){
+    var raw=(field==='choices')?val:(c.choices||'');
+    var arr=String(raw).split('\n').map(function(x){return x.trim();}).filter(Boolean);
+    var uniq={};arr.forEach(function(x){uniq[x]=1;});
+    var eff={};if(ans)eff[ans]=1;arr.forEach(function(x){eff[x]=1;});
+    var effN=Object.keys(eff).length;
+    if(effN<4)w.push('・選択肢が4つになりません（答えを含めて'+effN+'つ）。生徒画面の選択肢が減ります');
+    if(ans&&arr.indexOf(ans)<0)w.push('・答え「'+ans+'」が選択肢に入っていません');
+    if(Object.keys(uniq).length<arr.length)w.push('・選択肢に同じものが重複しています');
+  }
+  return w;
+}
+/* アプリと同じ見た目のカスタム確認（ネイティブconfirmは使わない）→Promise<boolean> 2026-07-21 */
+function mpConfirm_(msg){
+  return new Promise(function(resolve){
+    var ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
+    var box=document.createElement('div');
+    box.style.cssText='background:#fff;border-radius:14px;max-width:400px;width:100%;padding:18px;box-shadow:0 14px 44px rgba(0,0,0,.28);';
+    box.innerHTML='<div style="font-weight:800;color:#b45309;font-size:14px;margin-bottom:8px;">⚠ 保存前の確認</div>'
+      +'<div style="font-size:13px;color:#334155;white-space:pre-wrap;line-height:1.65;margin-bottom:14px;">'+esc(msg)+'</div>'
+      +'<div style="display:flex;gap:8px;justify-content:flex-end;">'
+      +'<button id="_mpcNo" style="border:1px solid #cbd5e1;background:#fff;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-family:inherit;">やめる（元に戻す）</button>'
+      +'<button id="_mpcYes" style="border:none;background:#dc2626;color:#fff;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">このまま保存</button></div>';
+    ov.appendChild(box);document.body.appendChild(ov);
+    function done(v){if(ov.parentNode)ov.parentNode.removeChild(ov);resolve(v);}
+    box.querySelector('#_mpcYes').onclick=function(){done(true);};
+    box.querySelector('#_mpcNo').onclick=function(){done(false);};
+    ov.addEventListener('click',function(e){if(e.target===ov)done(false);});
   });
 }
 /* ===== 確認テストタブ（閲覧：注目リスト＋点数表＋詳細）2026-07-10 ===== */
