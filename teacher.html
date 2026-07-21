@@ -1709,8 +1709,8 @@ function renderQuizAtt(){
   }).join('')||'<span class="chip-none">未合格の子はいません 🎉</span>';
   var groups={},order=[];
   miss.forEach(function(e){var k=e.part_id;if(!groups[k]){groups[k]={title:e.part_title,mat:_matTitleOf(e.material_id)||e.material_title||'',names:[]};order.push(k);}groups[k].names.push(e.student_name);});
-  var missHtml=order.length? order.map(function(k){var g=groups[k];
-      return '<div class="qa-missrow"><span class="qachip qa-miss" style="cursor:default;">〔'+esc(g.mat)+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名</small></span> <span class="qa-names">'+g.names.map(esc).join('、')+'</span></div>';
+  var missHtml=order.length? order.map(function(k,i){var g=groups[k];var nid='qamiss'+i;
+      return '<div class="qa-missrow"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(g.mat)+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';
     }).join('') : '<span class="chip-none">未実施はありません 🎉</span>';
   el.innerHTML=''
     +'<div class="qa-h">未合格（点数あり・個別対応）</div>'+ngHtml
