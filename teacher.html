@@ -574,6 +574,26 @@
   .mp-q .qb.tbl{background:#fff3e6;color:#b5710a;}
   .mp-prompt{font-size:12px;color:var(--text);margin:1px 0 5px 32px;line-height:1.55;}
   .mp-prompt .lbl{display:inline-block;font-size:10px;font-weight:800;color:#1f6feb;background:#eef6ff;border-radius:5px;padding:1px 6px;margin-right:6px;}
+  /* プレビューのインライン編集（フォーカスアウトで自動保存）2026-07-21 */
+  .mp-edit-hint{font-size:11px;color:#94a3b8;margin:2px 0 6px 2px;}
+  .mp-word{padding:6px 8px;border-bottom:1px solid var(--surface2);}
+  .mp-row{font-size:13px;margin:3px 0;line-height:1.6;display:flex;align-items:flex-start;gap:6px;}
+  .mp-row .mpl{flex:none;min-width:52px;color:#64748b;font-weight:800;font-size:10px;background:#f1f5f9;border-radius:5px;padding:2px 6px;margin-top:2px;text-align:center;}
+  .mp-ed{flex:1;min-width:40px;border:1px solid transparent;border-bottom:1px dashed #cbd5e1;cursor:text;padding:2px 5px;border-radius:5px;word-break:break-word;white-space:pre-wrap;transition:background .15s,border-color .15s;}
+  .mp-ed:hover{background:#f8fafc;}
+  .mp-ed:focus{outline:none;background:#eff6ff;border:1px solid #2563eb;}
+  .mp-ed.en{font-weight:700;color:var(--text);}
+  .mp-ed.saving{background:#fef9c3;border-color:#eab308;}
+  .mp-ed.saved{background:#dcfce7;border-color:#22c55e;}
+  .mp-ed.err{background:#fee2e2;border-color:#ef4444;}
+  .mp-ed.srv-ok{background:#dcfce7;border-color:#22c55e;}
+  .mp-ed.srv-diff{background:#fee2e2;border-color:#ef4444;}
+  .mp-srvbtn{font-size:12px;font-weight:700;color:#0f172a;background:#fff;border:1px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap;font-family:inherit;}
+  .mp-srvbtn:hover{background:var(--surface2);}
+  .mp-srvbtn:disabled{opacity:.55;cursor:default;}
+  .mp-st{flex:none;font-size:11px;font-weight:700;min-width:16px;margin-top:3px;color:#64748b;}
+  .mp-ro-note{font-size:11px;color:#94a3b8;font-style:normal;}
+  .mp-q .qb{font-size:10px;font-weight:800;border-radius:6px;padding:1px 6px;flex-shrink:0;margin-top:3px;}
   #matPreviewModal .modal{max-width:960px;width:96vw;height:95vh;max-height:95vh;display:flex;flex-direction:column;position:relative;}
   .mp-close{position:absolute;top:10px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--text);font-size:16px;line-height:1;cursor:pointer;z-index:6;display:grid;place-items:center;box-shadow:var(--shadow-sm);}
   .mp-close:hover{background:var(--surface2);}
@@ -862,7 +882,7 @@
 <div class="modal-back" id="matPreviewModal">
   <div class="modal">
     <button class="mp-close" onclick="closeModal('matPreviewModal')" aria-label="閉じる">✕</button>
-    <div class="mp-head"><h3 id="mpTitle">教材の中身</h3><span class="mp-ro">（読み取り専用）</span></div>
+    <div class="mp-head"><h3 id="mpTitle">教材の中身</h3><span class="mp-ro">（クリックで編集・自動保存）</span><button class="mp-srvbtn" id="mpSrvBtn" style="margin-left:auto;" onclick="mpServerCheck()" title="サーバー（スプレッドシート）の最新と、この画面の内容が一致しているか確認します">☁︎ サーバー確認</button></div>
     <div class="mp-toolbar" id="mpToolbar"></div>
     <div class="mp-body" id="mpBody"></div>
     <div class="modal-actions">
@@ -1643,7 +1663,9 @@ function mpAssetUrl_(id){
 function mpJump(i){var el=document.getElementById('mp-part-'+i);var body=$('mpBody');if(el&&body){body.scrollTop += el.getBoundingClientRect().top - body.getBoundingClientRect().top;mpSpy_();}}
 /* スクロール位置にあるパートのジャンプボタンを強調（今どこを見ているか分かるように）2026-07-16 */
 function mpSpy_(){var tb=$('mpToolbar'),body=$('mpBody');if(!tb||!body)return;var jumps=tb.querySelectorAll('.mp-jump');if(!jumps.length)return;var bt=body.getBoundingClientRect().top,cur=0;for(var i=0;i<jumps.length;i++){var el=document.getElementById('mp-part-'+i);if(el&&(el.getBoundingClientRect().top-bt)<=14)cur=i;}for(var j=0;j<jumps.length;j++)jumps[j].classList.toggle('active',j===cur);}
+var _mpMid='';
 function openMatPreview(mid){
+  _mpMid=String(mid||''); // サーバー確認で再取得する教材ID
   $('mpTitle').textContent='教材の中身';
   $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';var _tbld=$('mpToolbar');if(_tbld)_tbld.innerHTML='';
   $('matPreviewModal').classList.add('show');
@@ -1657,29 +1679,108 @@ function openMatPreview(mid){
     var totalQ=parts.reduce(function(a,b){return a+(b.count||0);},0);
     var _jb=parts.map(function(pt,pi){return '<button class="mp-jump" title="'+esc(pt.title||'')+'" onclick="mpJump('+pi+')">'+(pi+1)+'</button>';}).join('');
     $('mpToolbar').innerHTML='<span class="mp-count">'+parts.length+'パート・全'+totalQ+'問</span><div class="mp-jumps">'+_jb+'</div>';
-    var h='';
+    var h='<div class="mp-edit-hint">✏️ テキストをクリックすると直せます。入力後にほかの場所をクリックすると自動で保存します（✓＝保存済み）。図・番号方式の設問は編集対象外です。</div>';
     parts.forEach(function(pt,pi){
       h+='<div class="mp-part" id="mp-part-'+pi+'">'+esc(pt.title||'(無題パート)')+'<span class="c">'+(pt.count||0)+'問</span></div>';
       (pt.words||[]).forEach(function(w,i){
         var badge='';
         if(w.qtype==='image_fill')badge='<span class="qb fig">図</span>';
         else if(w.qtype==='table_fill')badge='<span class="qb tbl">表</span>';
-        var _sq;
-        if(w.qtype==='image_fill'){_sq=w.num?('「'+esc(w.num)+'」が指す部分の名前をえらぼう'):(w.ask?esc(w.ask):'（図を見て名前をえらぶ）');}
-        else if(w.qtype==='table_fill'){_sq='表の空欄に入る形をえらぼう';}
-        else{_sq=esc(w.japanese||'');}
-        h+='<div class="mp-q"><span class="no">'+(i+1)+'</span><span class="en">'+esc(w.english||'')+'</span>'+badge+'</div>';
-        h+='<div class="mp-prompt"><span class="lbl">生徒の設問</span>'+_sq+'</div>';
+        h+='<div class="mp-word">';
+        h+='<div class="mp-q"><span class="no">'+(i+1)+'</span><span style="flex:1"></span>'+badge+'</div>';
+        // 答え（english）
+        h+=mpEdRow_(w.id,'english','答え',w.english,'en');
+        // 問題文（文4択=japanese／図ask方式=ask／番号方式・表=編集対象外の注記）
+        if(w.qtype==='image_fill'){
+          if(w.ask){h+=mpEdRow_(w.id,'ask','問題文',w.ask);}
+          else{h+='<div class="mp-row"><span class="mpl">問題文</span><span class="mp-ro-note">番号方式：生徒には「'+(w.num?('『'+esc(w.num)+'』が指す部分の名前をえらぼう'):'図を見て名前をえらぶ')+'」と出ます（番号・図は編集対象外）</span></div>';}
+        }else if(w.qtype==='table_fill'){
+          h+='<div class="mp-row"><span class="mpl">問題文</span><span class="mp-ro-note">表穴埋め：生徒には「表の空欄に入る形をえらぼう」と出ます</span></div>';
+        }else{
+          h+=mpEdRow_(w.id,'japanese','問題文',w.japanese);
+        }
+        // 答えの読み
+        h+=mpEdRow_(w.id,'reading_hint','読み',w.reading_hint);
+        // 図（設問の画像・編集対象外）
         if(w.is_fig&&w.asset){
           var url=mpAssetUrl_(w.asset);
           if(url){h+='<div class="mp-fig"><img src="'+esc(url)+'" alt="図" loading="lazy" onclick="mpZoom_(this.src)" onerror="this.style.opacity=.25;this.style.cursor=\'default\';this.alt=\'画像が見つかりません（未pushの可能性）\';">'+'<div class="zoomhint">クリックで拡大</div></div>';}
         }
-        if(w.kaisetsu){h+='<div class="mp-kai"><b>解説：</b>'+esc(w.kaisetsu)+'</div>';}
+        // 選択肢（図・表のみ・1行1つ）
+        if((w.qtype==='image_fill'||w.qtype==='table_fill')&&w.choices&&w.choices.length){
+          h+=mpEdRow_(w.id,'choices','選択肢',w.choices,'multiline');
+        }
+        // 解説
+        h+=mpEdRow_(w.id,'kaisetsu','解説',w.kaisetsu);
         if(w.kaisetsu_asset){var ku=mpAssetUrl_(w.kaisetsu_asset);if(ku){h+='<div class="mp-fig"><img src="'+esc(ku)+'" alt="参考資料" loading="lazy" onclick="mpZoom_(this.src)" onerror="this.style.opacity=.25;this.style.cursor=\'default\';this.alt=\'画像が見つかりません（未pushの可能性）\';"><div class="cap">解説の参考資料</div><div class="zoomhint">クリックで拡大</div></div>';}}
+        h+='</div>';
       });
     });
     $('mpBody').innerHTML=h;
-    var _mb=$('mpBody');if(_mb){_mb.onscroll=mpSpy_;mpSpy_();}
+    var _mb=$('mpBody');if(_mb){_mb.onscroll=mpSpy_;mpSpy_();
+      if(!_mb._mpBound){_mb._mpBound=true;
+        _mb.addEventListener('focusout',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('mp-ed'))mpFieldSave_(t);});
+        _mb.addEventListener('keydown',function(e){var t=e.target;if(e.key==='Enter'&&t&&t.classList&&t.classList.contains('mp-ed')&&!t.classList.contains('multiline')){e.preventDefault();t.blur();}});
+      }
+    }
+  });
+}
+/* サーバー確認（会員管理 検知策C）：サーバー（スプレッドシート）の最新を取り直し、画面の各項目と一致するか照合。ズレは赤枠＋件数、一致は緑で知らせる 2026-07-21 */
+function mpServerCheck(){
+  if(!_mpMid){toast('先に教材を開いてください');return;}
+  var btn=$('mpSrvBtn');if(btn){btn.disabled=true;btn.textContent='☁︎ 確認中…';}
+  call({action:'material_preview',material_id:_mpMid}).then(function(d){
+    if(btn){btn.disabled=false;btn.textContent='☁︎ サーバー確認';}
+    if(!d||!d.ok){toast('サーバー確認に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':''));return;}
+    var byId={};(d.data.parts||[]).forEach(function(pt){(pt.words||[]).forEach(function(w){byId[String(w.id)]=w;});});
+    var eds=[].slice.call(document.querySelectorAll('#mpBody .mp-ed'));
+    var diffs=0,checked=0;
+    eds.forEach(function(el){
+      var wid=el.getAttribute('data-id'),field=el.getAttribute('data-wf');
+      var w=byId[wid];el.classList.remove('srv-ok','srv-diff');el.removeAttribute('title');
+      if(!w)return;
+      var sv=(field==='choices')?((w.choices||[]).join('\n')):String(w[field]!=null?w[field]:'');
+      var cur=el.getAttribute('data-orig')||'';
+      checked++;
+      if(sv!==cur){diffs++;el.classList.add('srv-diff');el.setAttribute('title','サーバーの値: '+sv);}
+      else{el.classList.add('srv-ok');}
+    });
+    if(diffs){toast('⚠ '+diffs+'件がサーバーと違います（赤枠にマウスを乗せるとサーバーの値が出ます）。もう一度直して保存してください');}
+    else{toast('✅ サーバーと一致しています（'+checked+'項目）');setTimeout(function(){document.querySelectorAll('#mpBody .mp-ed.srv-ok').forEach(function(el){el.classList.remove('srv-ok');});},2000);}
+  });
+}
+/* プレビューのインライン編集（フォーカスアウトで自動保存）2026-07-21 */
+function mpEdRow_(wid,field,label,val,extraCls){
+  var v=(field==='choices')?(Array.isArray(val)?val.join('\n'):String(val||'')):String(val==null?'':val);
+  return '<div class="mp-row"><span class="mpl">'+label+'</span>'
+    +'<span class="mp-ed'+(extraCls?(' '+extraCls):'')+'" contenteditable="true" data-id="'+esc(String(wid||''))+'" data-wf="'+field+'" data-orig="'+esc(v)+'">'+esc(v)+'</span>'
+    +'<span class="mp-st"></span></div>';
+}
+function mpFieldSave_(el){
+  var wid=el.getAttribute('data-id'),field=el.getAttribute('data-wf');
+  if(!wid||!field)return;
+  var orig=el.getAttribute('data-orig')||'';
+  var val=(el.innerText||'').replace(/ /g,' ');
+  if(field==='choices'){val=val.replace(/\r/g,'').replace(/\n{2,}/g,'\n').replace(/^\n+|\n+$/g,'');}
+  else{val=val.replace(/\s*\n\s*/g,' ').replace(/^\s+|\s+$/g,'');}
+  if(val===orig)return; // 変更なしは送らない
+  var st=el.parentNode.querySelector('.mp-st');
+  el.classList.remove('saved','err');el.classList.add('saving');if(st){st.textContent='…';st.style.color='#a16207';}
+  var payload={action:'word_edit',word_id:wid};payload[field]=val;
+  call(payload).then(function(d){
+    el.classList.remove('saving');
+    if(d&&d.ok){
+      var saved=(d.data&&d.data.saved)||{};
+      var sv=(field==='choices')?((saved.choices||[]).join('\n')):(saved[field]!=null?String(saved[field]):val);
+      el.setAttribute('data-orig',sv);
+      if(sv!==val){el.innerText=sv;} // サーバー保存値で照合・不一致なら合わせる
+      el.classList.add('saved');if(st){st.textContent='✓';st.style.color='#16a34a';}
+      setTimeout(function(){el.classList.remove('saved');if(st)st.textContent='';},1500);
+    }else{
+      el.classList.add('err');if(st){st.textContent='⚠';st.style.color='#dc2626';}
+      el.innerText=orig; // 失敗は元の値に戻す
+      toast((d&&d.error)||'保存に失敗しました');
+    }
   });
 }
 /* ===== 確認テストタブ（閲覧：注目リスト＋点数表＋詳細）2026-07-10 ===== */
