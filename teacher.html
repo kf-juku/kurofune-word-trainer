@@ -1890,6 +1890,7 @@ function mpConfirm_(msg){
 var _rtWin=null,_rtTimer=null;
 function openRealtime(){
   if(_rtWin && !_rtWin.closed){ try{ _rtWin.focus(); }catch(e){} return; } // 既に開いていれば前面に
+  try{ localStorage.setItem('kwt_rt_reset_at', String(Date.now())); }catch(e){}  // 新しく開く＝新しい授業として、この時刻以降のぶんだけ表示
   _rtWin=window.open('realtime.html','kwtRealtime','width=1180,height=920,menubar=no,toolbar=no');
   if(!_rtWin){ toast('ポップアップがブロックされました。ブロックを許可してもう一度押してください'); return; }
   try{ _rtWin.focus(); }catch(e){}

@@ -216,7 +216,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
   <div class="rt-head">
     <div class="rt-head-top">
       <div class="rt-title"><span class="live-dot"></span>いま確認テスト中の生徒 <span class="live-badge">● LIVE</span></div>
-      <div class="rt-refresh">5秒ごとに自動更新　次の更新まで <b id="cd">5</b> 秒　<span class="idle-note" id="idleNote"></span><span id="connLost" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;padding:1px 8px;font-weight:700;">⚠ 接続が切れています（再試行中）</span></div>
+      <div class="rt-refresh">5秒ごとに自動更新　次の更新まで <b id="cd">5</b> 秒　<span id="sessLabel" style="color:var(--text-light);"></span>　<span class="idle-note" id="idleNote"></span><span id="connLost" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;padding:1px 8px;font-weight:700;">⚠ 接続が切れています（再試行中）</span></div>
     </div>
     <div class="rt-stats">
       <div class="rt-stat doing"><b id="stDoing">0</b><span>いま解き中</span></div>
@@ -249,6 +249,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
       <button class="chip active" data-sort="follow" onclick="setSort('follow',this)">要フォローを上に（他は名簿順で固定）</button>
       <button class="chip" data-sort="recent" onclick="setSort('recent',this)">最新順（更新が上）</button>
       <span style="flex:1;"></span>
+      <button class="btn-print" onclick="resetSession()" title="今の表示を消して、この授業のぶんだけを新しく記録します">🔄 新しい授業（リセット）</button>
       <button class="btn-print" style="border-color:#cbd5e1;color:var(--text-muted);" onclick="openSpec()">ⓘ 仕様・使い方</button>
       <button class="btn-print" onclick="openPrint()">🖨 生徒ごとに印刷</button>
     </div>
@@ -316,6 +317,7 @@ var _idx={};   // カードid → {lane, student}
 var GAS_URL=(window.opener&&window.opener.GAS_URL)||((new URLSearchParams(location.search)).get('gas')||'');
 var TOKEN=(window.opener&&window.opener.token)||((new URLSearchParams(location.search)).get('token')||'');
 function call(b){ b.token=TOKEN; return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json();}); }
+var resetAt=+(localStorage.getItem('kwt_rt_reset_at')||0);  // この時刻(クライアントms)以降のぶんだけ表示（授業の区切り）
 
 var roomFilter='all';
 var state={};        // sid -> {info:{id,name,room}, lanes:[...], lastAt, active}
@@ -342,7 +344,7 @@ function mapLive(d){
   (d.students||[]).forEach(function(s){
     var st=state[s.student_id]||(state[s.student_id]={info:{},lanes:[]});
     st.info={id:s.student_id,name:s.student_name||'',room:s.room||''};
-    st.lanes=(s.entries||[]).map(function(e){
+    st.lanes=(s.entries||[]).filter(function(e){ return !resetAt || (e.start_ts+serverSkew) >= resetAt; }).map(function(e){
       var eid=s.student_id+'|'+e.part_id+'|'+e.start_ts;
       var fresh=false;
       if(!(eid in _entrySeen)) fresh=(e.status==='doing');
@@ -562,6 +564,20 @@ document.addEventListener('visibilitychange',function(){
   else{ if(paused && pauseReason==='hidden') resume(); }
 });
 function rtToast(msg){ var el=document.getElementById('rtToast'); if(!el)return; el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(function(){el.classList.remove('show');},3400); }
+function resetSession(){
+  resetAt=Date.now();
+  try{ localStorage.setItem('kwt_rt_reset_at', String(resetAt)); }catch(e){}
+  _entrySeen={};
+  updateSessLabel_();
+  fetchLive();
+  rtToast('新しい授業として表示をリセットしました（これ以降のぶんだけ表示します）');
+}
+function updateSessLabel_(){
+  var el=document.getElementById('sessLabel'); if(!el) return;
+  if(!resetAt){ el.textContent='直近の記録を表示中'; return; }
+  var d=new Date(resetAt);
+  el.textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+'〜 の記録を表示中';
+}
 function setRoom(r,el){
   roomFilter=r;
   document.querySelectorAll('.chip[data-room]').forEach(function(c){c.classList.remove('active');});
@@ -618,6 +634,7 @@ function closeSpec(){ document.getElementById('specOv').classList.remove('show')
 document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeMiss(); closeSpec(); if(typeof closePrint==='function')closePrint(); } });
 
 // 初期化：先生画面(window.opener)からGAS URL・トークンを受け取り、すぐ取得を開始
+updateSessLabel_();
 render();          // まず空表示
 fetchLive();       // 初回取得
 setInterval(loop,1000);
