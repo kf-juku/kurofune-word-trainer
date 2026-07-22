@@ -1066,7 +1066,10 @@ function openHome(){
     });dailyState.main=(cards.length===0)?true:(undone.length===0);renderDaily();})();
     prefetchParts_(cards); // 先読みD：キャッシュ描画の時点で開始（重複は_prefetch側で防止）。開いた直後のタップに間に合わせる 2026-07-05
     if(!cards.length){$('main-list').innerHTML='<p class="muted">今日のメイン学習はありません。先生にきいてね。</p>';}
-    else{$('main-list').innerHTML='';var _rc=function(m,grouped){
+    else{$('main-list').innerHTML='';
+    var _gkey=function(m){var s=_mSeries(m.material_title);return s?('S:'+s.k):('M:'+String(m.material_title||''));};
+    var _glabel=function(m){var s=_mSeries(m.material_title);var bp=_bookPrefix(m.material_title);return s?(bp||s.label):(bp||String(m.material_title||''));};
+    var _rc=function(m){
       var h=document.createElement('div');h.className='hero';
       var isTest=(m.content_type==='test');
       // 形式ピル（毎日学習/テスト配信）＋教科
@@ -1083,10 +1086,13 @@ function openHome(){
       // リングのアイコン（形式で色分け・進捗連動は次スライス）
       var ringStroke='var(--accent)';
       var ic=isTest?'<i class="ti ti-flag" style="font-size:18px;color:var(--sub)"></i>':'<i class="ti ti-anchor" style="font-size:18px;color:var(--sub)"></i>';
+      var _hasChap=/[0-9０-９]\s*章/.test(m.material_title);
+      var _course=_hasChap?esc(_chapShort(m.material_title)):(partLine?partLine:esc(m.material_title));
+      var _list=(_hasChap&&partLine)?('<div class="list"><span class="here">いまここ</span>'+partLine+'</div>'):'';
       h.innerHTML='<div class="ring"><svg width="60" height="60"><circle cx="30" cy="30" r="25" fill="none" stroke="var(--ring-track)" stroke-width="6"></circle><circle cx="30" cy="30" r="25" fill="none" stroke="'+ringStroke+'" stroke-width="6" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157" class="ringfg"></circle></svg><div class="pct">'+ic+'</div></div>'
         +'<div style="flex:1;min-width:0;"><div class="htop">'+fmtPill+subj+lapPill+'</div>'
-        +'<div class="course">'+(grouped?esc(_chapShort(m.material_title)):esc(m.material_title))+'</div>'
-        +(partLine?'<div class="list">'+(grouped?'<span class="here">いまここ</span>':'')+partLine+'</div>':'')
+        +'<div class="course">'+_course+'</div>'
+        +_list
         +'<div class="cta">はじめる <i class="ti ti-arrow-right"></i></div></div>';
       // テスト配信：リング＝直近の正規セッションの正解数/全問（機能仕様書_テスト配信 §3-4・2026-07-04）
       if(isTest&&m.last_total>0){var off=157*(1-Math.min(1,m.last_correct/m.last_total));h.querySelector('.ringfg').style.strokeDashoffset=off;} // リング縮小 207→157 2026-07-05
@@ -1119,11 +1125,10 @@ function openHome(){
       }
       $('main-list').appendChild(h);
     };
-    // 教材(シリーズ)でグループ化：本名は見出しに1回だけ・カードは章が主役（川上さん承認 2026-07-22）
-    var _grps=[],_gm={},_ng=[];
-    cards.forEach(function(m){var sk=_mSeries(m.material_title);if(sk){if(!_gm[sk.k]){_gm[sk.k]={fb:sk.label,items:[]};_grps.push(_gm[sk.k]);}_gm[sk.k].items.push(m);}else{_ng.push(m);}});
-    _grps.forEach(function(g){var un=g.items.filter(function(m){return !m.cleared_today;}).length;var lab=_bookPrefix(g.items[0].material_title)||g.fb;var sh=document.createElement('div');sh.className='shead';sh.innerHTML='<div class="snm">'+esc(lab)+'</div><div class="smeta">'+(un?('のこり'+un+'章'):'きょうは完了')+'</div>';$('main-list').appendChild(sh);g.items.forEach(function(m){_rc(m,true);});});
-    _ng.forEach(function(m){_rc(m,false);});
+    // 教材(本)ごとにグループ化：本名は見出しに1回・カードは章/回が主役。既知シリーズ以外も本ごとに見出しを付け、英単語・一問一答が他シリーズに紛れて見えるのを防ぐ（川上さん指摘 2026-07-22）
+    var _grps=[],_gm={};
+    cards.forEach(function(m){var k=_gkey(m);if(!_gm[k]){_gm[k]={lab:_glabel(m),items:[]};_grps.push(_gm[k]);}_gm[k].items.push(m);});
+    _grps.forEach(function(g){var un=g.items.filter(function(m){return !m.cleared_today;}).length;var meta=(g.items.length>1)?(un?('のこり'+un+'章'):'きょうは完了'):'';var sh=document.createElement('div');sh.className='shead';sh.innerHTML='<div class="snm">'+esc(g.lab)+'</div>'+(meta?('<div class="smeta">'+meta+'</div>'):'');$('main-list').appendChild(sh);g.items.forEach(function(m){_rc(m);});});
     }
     /* 連続日数のヘッダー表示は loadBadges 内で更新する（studentHome は streak を返していない。
        ヘッダーが常に0日のままだった潜在バグの修正・2026-07-05発見） */
