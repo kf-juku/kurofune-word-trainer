@@ -497,6 +497,9 @@
   .nact{display:inline-flex;align-items:center;gap:2px;padding:2px 8px;border-radius:12px;font-size:10.5px;font-weight:700;margin:1px 3px 1px 0;border:1px solid transparent;white-space:nowrap;}
   .na-done{background:#e7f0fd;color:#1b4f9c;border-color:#c3ddfb;}
   .na-idle{background:#fdeede;color:#9c561a;border-color:#f5d6b3;}
+  .na-half{background:#fdf6e3;color:#7a5b12;border-color:#f0e2b0;}
+  .na-tidle{background:#e9f2fd;color:#1a5a9c;border-color:#c7ddf3;}
+  .na-thalf{background:#e4f5f2;color:#0f7b73;border-color:#bfe6df;}
   .na-stuck{background:#fdeaea;color:#9c2a2a;border-color:#f3c7c7;}
   .na-rush{background:#efeafb;color:#4d3596;border-color:#dcd0f5;}
   .na-ok{background:#e6f6ee;color:#14663a;border-color:#bfe6cf;}
@@ -684,9 +687,12 @@
 
     <!-- 要注意（メール通知と同じ基準・共通しきい値）teacher-dashboard-design 2026-07-05 -->
     <div class="alertsK">
-      <div class="alert-cardK"><div class="ac-h">😴 やってない子 <b id="alIdleN">–</b>名<span class="ac-sub">最終学習のあきが <span id="alIdleDaysLbl">1</span>日超</span></div><div class="chipsK" id="alIdleChips"></div></div>
-      <div class="alert-cardK bad"><div class="ac-h">📣 指導必要 <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span></div><div class="chipsK" id="alTeachChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTeachPrintBtn" onclick="printTeachAll()" style="display:none;">🖨 この<span id="alTeachPrintN">0</span>名のまちがいを印刷</button></div></div>
-      <div class="alert-setK">⚙ この基準は毎朝のメール通知と共通：やってない＝あき<input id="cfgIdle" type="number" min="1" max="99" value="1" onchange="saveAlertConfig()">日超／指導必要＝正答率<input id="cfgAcc" type="number" min="1" max="100" value="60" onchange="saveAlertConfig()">%未満<span class="cfg-tag">ここを変えると画面もメールも両方変わります</span></div>
+      <div class="alert-cardK"><div class="ac-h">😴 未着手 <b id="alIdleN">–</b>名<span class="ac-sub">毎日学習・昨日やってない</span></div><div class="chipsK" id="alIdleChips"></div></div>
+      <div class="alert-cardK"><div class="ac-h">⏳ やりかけ <b id="alHalfN">–</b>名<span class="ac-sub">毎日学習・やったが未合格</span></div><div class="chipsK" id="alHalfChips"></div></div>
+      <div class="alert-cardK"><div class="ac-h">📘 単元別 未着手 <b id="alTIdleN">–</b>名<span class="ac-sub">割当あり・昨日ゼロ</span></div><div class="chipsK" id="alTIdleChips"></div></div>
+      <div class="alert-cardK"><div class="ac-h">📙 単元別 やりかけ <b id="alTHalfN">–</b>名<span class="ac-sub">さわったが未合格</span></div><div class="chipsK" id="alTHalfChips"></div></div>
+      <div class="alert-cardK bad"><div class="ac-h">📣 つまずき <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span></div><div class="chipsK" id="alTeachChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTeachPrintBtn" onclick="printTeachAll()" style="display:none;">🖨 この<span id="alTeachPrintN">0</span>名のまちがいを印刷</button></div></div>
+      <div class="alert-setK" style="grid-column:1/-1;">⚙ この基準は毎朝のメール通知と共通：未着手＝昨日やってなければ即（あき<input id="cfgIdle" type="number" min="1" max="99" value="1" onchange="saveAlertConfig()">日超・<span id="alIdleDaysLbl">1</span>）／つまずき＝正答率<input id="cfgAcc" type="number" min="1" max="100" value="60" onchange="saveAlertConfig()">%未満<span class="cfg-tag">毎日学習・単元別 共通。ここを変えると画面もメールも両方変わります</span></div>
     </div>
     <div style="margin-bottom:12px;display:flex;gap:10px;">
       <button class="btn-primary" style="width:auto;" onclick="openTargetModal('assign')">📚 まとめて割り当てる</button>
@@ -727,7 +733,7 @@
             <tr>
               <th data-sk="name" onclick="sortBy('name')">生徒 <span class="sort-ar" data-ar="name"></span></th>
               <th data-sk="grade" onclick="sortBy('grade')">学年 <span class="sort-ar" data-ar="grade"></span></th>
-              <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。🎉完走=次を割当／😴サボり=声かけ／⚠️つまずき=復習・印刷／💨雑=ていねいに／✅順調=不要／👀未評価=まだ未着手。当てはまるものは全部表示。</span></span></th>
+              <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。毎日学習は 😴未着手=昨日ゼロ／⏳やりかけ=やったが未合格。単元別は 📘未着手／📙やりかけ（毎日学習と別で判定）。🎉完走=次を割当／⚠️つまずき=復習・印刷／💨雑=ていねいに／✅順調=不要／👀未評価=一度も未着手。当てはまるものは全部表示。</span></span></th>
               <th>教材と進み<span class="tt"><span class="help-mark">?</span><span class="tt-body">割当教材ごとの状態（閲覧のみ）。色＝その教材の直近3回の平均正答率（緑80/黄60/赤=60%未満は要指導）。→いまここ。🔊＝英語の発音（○大半/△一部/–）。</span></span></th>
               <th class="gcol">今日</th>
               <th data-sk="last" onclick="sortBy('last')">最終学習 <span class="sort-ar" data-ar="last"></span></th>
@@ -1200,11 +1206,12 @@ function onNeedHelpRateChange(){var v=parseInt($('needHelpRate').value,10);if(!(
 function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate!==undefined;}
 function needsHelp(s){return hasTeach(s)&&s.teach_rate<_needHelpRate;}
 /* 次の一手（機能仕様書§先生ダッシュボード「次の一手」2026-07-10）。GAS next_actions を表示。 */
-var NA_META={done:{c:'na-done',t:'🎉完走'},idle:{c:'na-idle',t:'😴サボり'},stuck:{c:'na-stuck',t:'⚠️つまずき'},rush:{c:'na-rush',t:'💨雑'},ok:{c:'na-ok',t:'✅順調'},na:{c:'na-na',t:'👀未評価'}};
-var NA_ORDER=['done','idle','stuck','rush','ok','na'];
-var NA_SEV={stuck:5,idle:4,rush:3,done:2,ok:1,na:0};
+/* 2026-07-22 2トラック化：idle=毎日未着手／half=毎日やりかけ／test_idle=単元別未着手／test_half=単元別やりかけ */
+var NA_META={done:{c:'na-done',t:'🎉完走'},idle:{c:'na-idle',t:'😴未着手'},half:{c:'na-half',t:'⏳やりかけ'},test_idle:{c:'na-tidle',t:'📘単元別まだ'},test_half:{c:'na-thalf',t:'📙単元別やりかけ'},stuck:{c:'na-stuck',t:'⚠️つまずき'},rush:{c:'na-rush',t:'💨雑'},ok:{c:'na-ok',t:'✅順調'},na:{c:'na-na',t:'👀未評価'}};
+var NA_ORDER=['done','idle','half','test_idle','test_half','stuck','rush','ok','na'];
+var NA_SEV={stuck:5,idle:4,half:4,test_idle:3,test_half:3,rush:3,done:2,ok:1,na:0};
 function naList(s){var a=s.next_actions||[];return NA_ORDER.filter(function(k){return a.indexOf(k)>=0;});}
-function hasAction(s){return (s.next_actions||[]).some(function(k){return ['done','idle','stuck','rush'].indexOf(k)>=0;});}
+function hasAction(s){return (s.next_actions||[]).some(function(k){return ['done','idle','half','test_idle','test_half','stuck','rush'].indexOf(k)>=0;});}
 function nextWeight(s){var a=s.next_actions||[];if(!a.length)return 0;var mx=Math.max.apply(null,a.map(function(k){return NA_SEV[k]||0;}));return (hasAction(s)?100:0)+mx;}
 function nextActionCell(s){var ks=naList(s);if(!ks.length)return '<span class="dash">–</span>';return ks.map(function(k){var m=NA_META[k];return '<span class="nact '+m.c+'">'+m.t+'</span>';}).join('');}
 function teachCell(s){if(!hasTeach(s))return '<span class="dash">–</span>';var v=s.teach_rate;var cls=(v<_needHelpRate)?'acc-low':((v<80)?'acc-mid':'acc-hi');return '<span class="acc-rate '+cls+' num">'+v+'%</span>';}
@@ -1357,7 +1364,10 @@ function lastStudiedText(s){return s.last_studied_at?String(s.last_studied_at).s
 function weakPartName(s){var mv=s.materials_view||[];var w=null;mv.forEach(function(m){(m.parts||[]).forEach(function(p){if(p.status==='try'&&p.acc!=null&&p.acc<_needHelpRate&&(!w||p.acc<w.acc))w={n:p.name,acc:p.acc};});});return w?w.n:'';}
 function naWhy(s,k){
   if(k==='done')return {t:'🎉 完走',why:'教材を最後まで合格。次の教材が未割当です。',btn:'<button class="btn-primary sd-act" onclick="sdAssign('+"'"+esc(String(s.student_id))+"'"+')">＋ 次の教材を割り当てる</button>'};
-  if(k==='idle')return {t:'😴 サボり',why:'最終学習 '+esc(lastStudiedText(s))+'。しばらく学習していません。',btn:'<span class="sd-actnote">声かけ・催促</span>'};
+  if(k==='idle')return {t:'😴 未着手',why:'昨日、毎日学習をやっていません（最終学習 '+esc(lastStudiedText(s))+'）。',btn:'<span class="sd-actnote">「今日のをやろう」と声かけ</span>'};
+  if(k==='half')return {t:'⏳ やりかけ',why:'昨日、毎日学習をやりましたが、まだ合格していません（前進なし）。',btn:'<span class="sd-actnote">あと少し・どこで詰まってるか確認</span>'};
+  if(k==='test_idle')return {t:'📘 単元別まだ',why:'単元別対策を割当済みですが、昨日1つもさわっていません。',btn:'<span class="sd-actnote">テスト対策を進めるよう声かけ</span>'};
+  if(k==='test_half')return {t:'📙 単元別やりかけ',why:'昨日、単元別をさわりましたが、1つも合格していません（1つ通せばOK）。',btn:'<span class="sd-actnote">あと少し・詰まりを確認</span>'};
   if(k==='stuck'){var wp=weakPartName(s);return {t:'⚠️ つまずき',why:'正答率が基準未満'+(wp?'（弱点：'+esc(wp)+'）':'')+'。下のパート内訳の赤を確認。',btn:'<span class="sd-actnote">→ 右の「まちがいを印刷」で対策プリント</span>'};}
   if(k==='rush')return {t:'💨 雑（パッと押し）',why:'2秒未満の誤答が目立ちます。答えを見ずに押している可能性。',btn:'<span class="sd-actnote">ていねいにやるよう声かけ</span>'};
   if(k==='ok')return {t:'✅ 順調',why:'学習を続けていて基準クリア・弱点なし。',btn:'<span class="sd-actnote">手当て不要（そのまま）</span>'};
@@ -1558,23 +1568,30 @@ function tmPool(){
 }
 function renderAlertsK(){
   if(!$('alIdleChips'))return;
-  $('alIdleDaysLbl').textContent=_alertCfg.idle_days;$('alAccLbl').textContent=_alertCfg.accuracy;
-  var idle=[],teach=[];
+  var _il=$('alIdleDaysLbl');if(_il)_il.textContent=_alertCfg.idle_days;var _al=$('alAccLbl');if(_al)_al.textContent=_alertCfg.accuracy;
+  // 2トラック（2026-07-22）：サーバの next_actions をそのままバケット分け＝画面とメールを完全一致させる
+  var idle=[],half=[],tidle=[],thalf=[],teach=[];
   (_students||[]).forEach(function(st){
     if(_cheerCfg&&_cheerCfg.exclude_alert&&st.is_teacher_account)return; // 先生応援：要注意から除外 2026-07-07
-    if(!st.material)return; // 割当なしは対象外（メール通知と同じ）
-    var da=daysAgo(st.last_studied_at);
-    if(da===null||da>_alertCfg.idle_days)idle.push({n:st.name||st.nickname||'',d:(da===null?'未学習':'あき'+da+'日')});
-    if(hasTeach(st)&&st.teach_rate<_alertCfg.accuracy)teach.push({id:String(st.student_id),n:st.name||st.nickname||'',r:st.teach_rate});
+    if(!(st.assignments&&st.assignments.length))return; // 割当なしは対象外（メール通知と同じ）
+    var a=st.next_actions||[],nm=st.name||st.nickname||'';
+    if(a.indexOf('idle')>=0){var da=daysAgo(st.last_studied_at);idle.push({n:nm,d:(da===null?'未学習':'あき'+da+'日')});}
+    if(a.indexOf('half')>=0)half.push({n:nm});
+    if(a.indexOf('test_idle')>=0)tidle.push({n:nm});
+    if(a.indexOf('test_half')>=0)thalf.push({n:nm});
+    if(a.indexOf('stuck')>=0)teach.push({id:String(st.student_id),n:nm,r:st.teach_rate});
   });
   idle.sort(function(a,b){return (b.d==='未学習'?1e9:parseInt(b.d.replace(/\D/g,''),10))-(a.d==='未学習'?1e9:parseInt(a.d.replace(/\D/g,''),10));});
   teach.sort(function(a,b){return a.r-b.r;});
-  $('alIdleN').textContent=idle.length;$('alTeachN').textContent=teach.length;
+  $('alIdleN').textContent=idle.length;$('alHalfN').textContent=half.length;$('alTIdleN').textContent=tidle.length;$('alTHalfN').textContent=thalf.length;$('alTeachN').textContent=teach.length;
   var mk=function(host,arr,fmt){
-    var el=$(host);el.innerHTML=arr.length?'':'<span class="chip-none">なし 🎉</span>';
+    var el=$(host);if(!el)return;el.innerHTML=arr.length?'':'<span class="chip-none">なし 🎉</span>';
     arr.forEach(function(x){var b=document.createElement('span');b.className='chipK';b.textContent=fmt(x);b.title='クリックで検索';b.onclick=function(){$('searchInput').value=x.n;renderTable();};el.appendChild(b);});
   };
   mk('alIdleChips',idle,function(x){return x.n+'（'+x.d+'）';});
+  mk('alHalfChips',half,function(x){return x.n;});
+  mk('alTIdleChips',tidle,function(x){return x.n;});
+  mk('alTHalfChips',thalf,function(x){return x.n;});
   mk('alTeachChips',teach,function(x){return x.n+'（'+x.r+'%）';});
   // 印刷ショートカット（川上さん承認モック 2026-07-05）：対象プリセットで印刷モーダルへ
   window._teachIds=teach.map(function(x){return x.id;});
