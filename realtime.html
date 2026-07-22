@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>確認テスト リアルタイムモード</title>
+<style>
+:root{
+  --crimson:#C6000B; --crimson-dark:#A00008; --crimson-light:#FFF0F0; --crimson-mid:#f4a0a5;
+  --surface:#f4f6f9; --surface2:#edf0f5; --border:#dde3ec;
+  --text:#1a2535; --text-muted:#5a6a7e; --text-light:#94a3b8;
+  --blue:#3b82f6; --blue-light:#dbeafe; --blue-dark:#1d4ed8;
+  --green:#10b981; --green-light:#d1fae5; --green-dark:#065f46;
+  --amber:#f59e0b; --amber-light:#fef3c7; --amber-dark:#92400e;
+  --red:#ef4444; --red-light:#fee2e2; --red-dark:#991b1b;
+  --gray:#6b7280; --gray-light:#f3f4f6;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.08); --shadow:0 4px 12px rgba(0,0,0,0.08);
+  --radius:10px;
+  --kita-bg:#e8f4fd; --kita-border:#aed6f1; --kita-head:#2a8bbf;
+  --kuri-bg:#fff4e8; --kuri-border:#f5cba7; --kuri-head:#d4813a;
+}
+*{box-sizing:border-box;}
+body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;background:var(--surface);
+  margin:0;font-size:14px;color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
+
+/* 別ウィンドウ感を出す枠 */
+.win{max-width:1180px;margin:14px auto;background:white;border-radius:12px;overflow:hidden;
+  box-shadow:0 10px 40px rgba(0,0,0,0.14);border:1px solid var(--border);}
+.win-chrome{background:#1e293b;color:#cbd5e1;display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12px;}
+.win-dots{display:flex;gap:6px;}
+.win-dots span{width:11px;height:11px;border-radius:50%;display:inline-block;}
+.win-dots .r{background:#ff5f57;} .win-dots .y{background:#febc2e;} .win-dots .g{background:#28c840;}
+.win-title{font-weight:600;color:#e2e8f0;}
+.win-url{margin-left:auto;background:#0f172a;border-radius:6px;padding:3px 10px;color:#64748b;font-size:11px;}
+
+.mock-banner{background:#fffbeb;border-bottom:1px solid #fde68a;color:#92400e;font-size:11.5px;
+  padding:5px 14px;text-align:center;}
+
+/* ヘッダー（LIVEバー） */
+.rt-head{background:linear-gradient(180deg,#fff,#fafbfc);border-bottom:1px solid var(--border);padding:12px 16px;}
+.rt-head-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.rt-title{font-size:15px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}
+.live-dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(239,68,68,.6);
+  animation:livePulse 1.6s infinite;display:inline-block;}
+@keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.55);}70%{box-shadow:0 0 0 7px rgba(239,68,68,0);}100%{box-shadow:0 0 0 0 rgba(239,68,68,0);}}
+.live-badge{font-size:10px;font-weight:800;color:var(--red-dark);background:var(--red-light);border:1px solid #fca5a5;
+  border-radius:20px;padding:1px 9px;letter-spacing:.04em;}
+.rt-refresh{margin-left:auto;font-size:11.5px;color:var(--text-muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.rt-refresh b{color:var(--crimson);}
+.rt-switch{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-muted);}
+.tog{width:38px;height:21px;border-radius:20px;background:var(--green);position:relative;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);}
+.tog::after{content:'';position:absolute;top:2px;left:19px;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s;}
+
+.rt-stats{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.rt-stat{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:5px 12px;display:flex;align-items:baseline;gap:5px;}
+.rt-stat b{font-size:18px;font-weight:800;line-height:1;}
+.rt-stat span{font-size:11px;color:var(--text-muted);}
+.rt-stat.doing b{color:var(--blue);}
+.rt-stat.done b{color:var(--green-dark);}
+
+/* 教室フィルタ＋凡例 */
+.rt-controls{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.flt-label{font-size:10px;font-weight:800;color:var(--text-muted);}
+.chip{font-size:12px;padding:3px 12px;border-radius:20px;border:1.5px solid var(--border);background:white;color:var(--text-muted);cursor:pointer;font-family:inherit;transition:all .1s;white-space:nowrap;}
+.chip:hover{border-color:var(--crimson-mid);color:var(--crimson-dark);}
+.chip.active{background:var(--crimson-light);color:var(--crimson-dark);border-color:var(--crimson);font-weight:700;}
+.legend{margin-left:auto;display:flex;gap:12px;font-size:11px;color:var(--text-muted);flex-wrap:wrap;}
+.legend i{font-style:normal;display:inline-flex;align-items:center;gap:4px;}
+.dotk{width:9px;height:9px;border-radius:2px;display:inline-block;}
+
+/* 本体 */
+.rt-body{padding:12px 14px 18px;background:var(--surface);min-height:320px;}
+.hint-arrow{font-size:11px;color:var(--text-light);margin:0 4px 8px;display:flex;align-items:center;gap:6px;}
+
+/* 生徒レーン */
+.lane{display:flex;align-items:stretch;gap:10px;background:white;border-radius:11px;padding:9px 10px;margin-bottom:8px;
+  box-shadow:var(--shadow-sm);border:1px solid var(--border);transition:box-shadow .2s;}
+.lane.bump{animation:bump .7s ease;}
+@keyframes bump{0%{background:#fff7d6;}100%{background:#fff;}}
+.lane-name{flex-shrink:0;width:132px;border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;justify-content:center;}
+.lane-name.kita{background:var(--kita-bg);border:1px solid var(--kita-border);}
+.lane-name.kuri{background:var(--kuri-bg);border:1px solid var(--kuri-border);}
+.ln-name{font-size:14px;font-weight:800;color:var(--text);line-height:1.2;}
+.ln-room{font-size:10px;font-weight:700;}
+.ln-room.kita{color:var(--kita-head);} .ln-room.kuri{color:var(--kuri-head);}
+.ln-since{font-size:10px;color:var(--text-light);margin-top:1px;}
+
+/* テストカード（横に蓄積） */
+.lane-track{flex:1;min-width:0;display:flex;align-items:center;gap:7px;overflow-x:auto;padding:2px 2px;scroll-behavior:smooth;}
+.lane-track::-webkit-scrollbar{height:6px;} .lane-track::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
+.tarrow{color:var(--text-light);font-size:14px;flex-shrink:0;}
+.tcard{flex-shrink:0;min-width:118px;border-radius:9px;border:1.5px solid var(--border);background:#fff;padding:7px 9px;position:relative;}
+.tcard.doing{border-color:var(--blue);background:var(--blue-light);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+.tcard.pop{animation:pop .35s ease;}
+@keyframes pop{0%{transform:scale(.8);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.tc-mat{font-size:11px;color:var(--text-muted);font-weight:700;line-height:1.25;white-space:nowrap;}
+.tc-part{display:inline-block;font-size:11px;font-weight:800;color:var(--crimson-dark);background:var(--crimson-light);border:1px solid var(--crimson-mid);border-radius:6px;padding:0 6px;margin-top:3px;}
+.tc-foot{margin-top:5px;display:flex;align-items:center;gap:5px;}
+.timer{font-size:15px;font-weight:800;color:var(--blue-dark);font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:4px;}
+.timer .tk{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:blink 1s infinite;}
+@keyframes blink{50%{opacity:.25;}}
+.tc-doing-label{font-size:10px;color:var(--blue-dark);font-weight:700;}
+.rate{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;}
+.rate.g{color:var(--green-dark);} .rate.a{color:var(--amber-dark);} .rate.r{color:var(--red-dark);}
+.rate-pill{font-size:9.5px;font-weight:800;border-radius:10px;padding:0 6px;}
+.rate-pill.g{background:var(--green-light);color:var(--green-dark);}
+.rate-pill.a{background:var(--amber-light);color:var(--amber-dark);}
+.rate-pill.r{background:var(--red-light);color:var(--red-dark);}
+.tc-now{position:absolute;top:-8px;right:6px;font-size:9px;font-weight:800;color:#fff;background:var(--blue);border-radius:8px;padding:0 6px;}
+
+.tcard.clk{cursor:pointer;} .tcard.clk:hover{box-shadow:0 0 0 3px rgba(198,0,11,.18);}
+.tc-hint{position:absolute;bottom:3px;right:6px;font-size:8px;color:var(--text-light);}
+
+/* ホバー詳細ポップ */
+#pop{position:fixed;z-index:9000;display:none;background:#1e293b;color:#fff;border-radius:9px;padding:9px 11px;
+  font-size:11.5px;line-height:1.7;max-width:250px;box-shadow:0 6px 20px rgba(0,0,0,.3);pointer-events:none;}
+#pop b{color:#fbbf24;} #pop .pp-k{color:#94a3b8;}
+
+/* ミス問モーダル */
+.ov{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:3000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px);}
+.ov.show{display:flex;}
+.md{background:#fff;border-radius:12px;width:min(460px,100%);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.md-h{padding:14px 18px 12px;border-bottom:1px solid var(--border);}
+.md-t{font-size:14px;font-weight:800;}
+.md-sub{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+.md-x{position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:var(--text-light);cursor:pointer;}
+.md-b{padding:14px 18px;overflow-y:auto;}
+.miss{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:#fff7f7;}
+.miss .en{font-size:13px;font-weight:800;color:var(--crimson-dark);flex-shrink:0;min-width:96px;}
+.miss .ja{font-size:12px;color:var(--text);}
+.miss-none{color:var(--green-dark);background:var(--green-light);border:none;font-weight:700;text-align:center;padding:14px;border-radius:8px;}
+
+/* 仕様・使い方パネル */
+.md-wide{width:min(720px,100%);}
+.spec-sec{margin-bottom:14px;}
+.spec-h{font-size:12.5px;font-weight:800;color:var(--crimson-dark);border-left:3px solid var(--crimson);padding-left:8px;margin-bottom:5px;}
+.spec-b{font-size:12.5px;color:var(--text);line-height:1.75;}
+.spec-b b{color:var(--text);}
+.spec-k{display:inline-block;font-size:10.5px;font-weight:800;border-radius:6px;padding:0 6px;margin-right:2px;}
+.empty{text-align:center;color:var(--text-light);padding:40px;font-size:13px;}
+
+/* 種別バッジ */
+.tc-type{display:inline-block;font-size:9px;font-weight:800;border-radius:6px;padding:0 5px;margin-bottom:3px;}
+.ty-quiz{background:var(--crimson-light);color:var(--crimson-dark);border:1px solid var(--crimson-mid);}
+.ty-daily{background:var(--blue-light);color:var(--blue-dark);border:1px solid #93c5fd;}
+.ty-unit{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd;}
+.ty-review{background:var(--amber-light);color:var(--amber-dark);border:1px solid #fde68a;}
+.ty-note{background:var(--green-light);color:var(--green-dark);border:1px solid #6ee7b7;}
+
+/* 反応なし（灰色化） */
+.tcard.stale{background:#f1f5f9!important;border-color:#cbd5e1!important;box-shadow:none!important;opacity:.75;}
+.tcard.stale .tc-mat,.tcard.stale .tc-part{color:var(--text-light)!important;background:#e5e7eb;border-color:#d1d5db;}
+.noresp{font-size:11px;font-weight:800;color:var(--gray);display:flex;align-items:center;gap:4px;}
+.noresp .zz{width:7px;height:7px;border-radius:50%;background:#cbd5e1;display:inline-block;}
+
+/* 要フォロー（赤）の強調 */
+.tcard.low{border-color:var(--red)!important;background:#fff1f2!important;box-shadow:0 0 0 3px rgba(239,68,68,.14)!important;}
+.lane.haslow{border-color:#fca5a5;box-shadow:0 0 0 2px rgba(239,68,68,.10);}
+.ln-flag{font-size:9.5px;font-weight:800;color:#fff;background:var(--red);border-radius:8px;padding:0 6px;margin-top:3px;display:inline-block;}
+/* 新提出フラッシュ */
+.tcard.flashd{animation:flashd 1s ease;}
+@keyframes flashd{0%{box-shadow:0 0 0 6px rgba(16,185,129,.5);}100%{box-shadow:0 0 0 3px rgba(16,185,129,0);}}
+
+/* 自動停止オーバーレイ */
+.idle-note{font-size:10.5px;color:var(--amber-dark);background:var(--amber-light);border:1px solid #fde68a;border-radius:8px;padding:1px 8px;display:none;}
+.pause-ov{display:none;position:absolute;inset:0;background:rgba(248,250,252,.92);z-index:50;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;}
+.pause-ov.show{display:flex;}
+.pause-ov .pi{font-size:32px;} .pause-ov .pt{font-size:15px;font-weight:800;color:var(--text);}
+.pause-ov .ps{font-size:12px;color:var(--text-muted);max-width:320px;}
+.btn-resume{background:var(--crimson);color:#fff;border:none;border-radius:9px;padding:9px 22px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;}
+.btn-resume:hover{background:var(--crimson-dark);}
+
+/* ヘッダーの印刷ボタン */
+.btn-print{background:#fff;color:var(--crimson-dark);border:1.5px solid var(--crimson-mid);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.btn-print:hover{background:var(--crimson-light);}
+#rtToast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 18px;border-radius:20px;font-size:12.5px;font-weight:700;z-index:6000;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);max-width:90vw;text-align:center;}
+#rtToast.show{opacity:1;}
+
+/* 印刷プレビュー */
+.print-ov{display:none;position:fixed;inset:0;background:#e5e9f0;z-index:4000;overflow:auto;}
+.print-ov.show{display:block;}
+.print-bar{position:sticky;top:0;background:#1e293b;color:#fff;display:flex;align-items:center;gap:10px;padding:10px 16px;z-index:5;}
+.print-bar .pb-t{font-weight:800;font-size:13px;} .print-bar .pb-n{color:#cbd5e1;font-size:11.5px;}
+.print-bar .sp{flex:1;}
+.print-sheets{padding:18px;display:flex;flex-direction:column;align-items:center;gap:18px;}
+.p-sheet{background:#fff;width:720px;max-width:100%;box-shadow:0 3px 14px rgba(0,0,0,.12);border-radius:6px;padding:20px 24px;}
+.p-head{display:flex;align-items:baseline;gap:10px;border-bottom:2px solid var(--crimson);padding-bottom:8px;margin-bottom:10px;flex-wrap:wrap;}
+.p-name{font-size:20px;font-weight:800;} .p-room{font-size:12px;font-weight:700;color:var(--text-muted);}
+.p-doc{font-size:11px;color:var(--text-light);margin-left:auto;}
+.p-sum{display:flex;gap:14px;font-size:12px;color:var(--text-muted);margin-bottom:12px;flex-wrap:wrap;}
+.p-sum b{color:var(--text);font-size:14px;}
+.p-sec{font-size:12px;font-weight:800;color:var(--crimson-dark);margin:12px 0 6px;border-left:3px solid var(--crimson);padding-left:7px;}
+.p-tbl{width:100%;border-collapse:collapse;font-size:11.5px;}
+.p-tbl th{background:var(--surface2);text-align:left;padding:4px 7px;font-size:10.5px;color:var(--text-muted);border:1px solid var(--border);}
+.p-tbl td{padding:4px 7px;border:1px solid var(--border);}
+.p-tbl .rg{color:var(--green-dark);font-weight:800;} .p-tbl .ra{color:var(--amber-dark);font-weight:800;} .p-tbl .rr{color:var(--red-dark);font-weight:800;}
+.p-miss{columns:2;column-gap:18px;font-size:11px;}
+.p-miss .mi{break-inside:avoid;display:flex;gap:6px;padding:2px 0;border-bottom:1px dotted var(--border);}
+.p-miss .mi .e{font-weight:800;color:var(--crimson-dark);min-width:78px;}
+.p-none{color:var(--green-dark);font-weight:700;font-size:12px;}
+@media print{
+  body{background:#fff;}
+  .win,#pop,.ov,.print-bar{display:none!important;}
+  .print-ov{position:static;background:#fff;overflow:visible;}
+  .print-sheets{padding:0;gap:0;}
+  .p-sheet{box-shadow:none;border-radius:0;width:100%;padding:10mm 12mm;page-break-after:always;}
+}
+@media(max-width:640px){
+  .lane-name{width:104px;}
+  .rt-refresh{margin-left:0;width:100%;}
+}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="win-chrome">
+    <span class="win-title">確認テスト｜リアルタイムモード</span>
+    <span class="win-url">この画面は開いたまま、元の管理画面を操作できます</span>
+  </div>
+
+  <div class="rt-head">
+    <div class="rt-head-top">
+      <div class="rt-title"><span class="live-dot"></span>いま確認テスト中の生徒 <span class="live-badge">● LIVE</span></div>
+      <div class="rt-switch"><span>リアルタイムモード</span><span class="tog"></span><span style="color:var(--green-dark);font-weight:700;">ON</span></div>
+      <div class="rt-refresh">5秒ごとに自動更新　次の更新まで <b id="cd">5</b> 秒　<span class="idle-note" id="idleNote"></span><span id="connLost" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;padding:1px 8px;font-weight:700;">⚠ 接続が切れています（再試行中）</span></div>
+    </div>
+    <div class="rt-stats">
+      <div class="rt-stat doing"><b id="stDoing">0</b><span>いま解き中</span></div>
+      <div class="rt-stat done"><b id="stDone">0</b><span>提出（このセッション）</span></div>
+      <div class="rt-stat"><b id="stStu">0</b><span>参加している生徒</span></div>
+    </div>
+    <div class="rt-controls">
+      <span class="flt-label">教室</span>
+      <button class="chip active" data-room="all" onclick="setRoom('all',this)">すべて</button>
+      <button class="chip" data-room="北久里浜" onclick="setRoom('北久里浜',this)">北久里浜</button>
+      <button class="chip" data-room="久里浜" onclick="setRoom('久里浜',this)">久里浜</button>
+      <div class="legend">
+        <i><span class="dotk" style="background:var(--blue);"></span>解き中（タイマー）</i>
+        <i><span class="dotk" style="background:var(--green);"></span>80%以上</i>
+        <i><span class="dotk" style="background:var(--amber);"></span>60〜79%</i>
+        <i><span class="dotk" style="background:var(--red);"></span>60%未満</i>
+      </div>
+    </div>
+    <div class="rt-controls">
+      <span class="flt-label">種別</span>
+      <button class="chip active" data-type="quiz" onclick="toggleType('quiz',this)">確認テスト</button>
+      <button class="chip" data-type="daily" onclick="toggleType('daily',this)">毎日学習</button>
+      <button class="chip" data-type="unit" onclick="toggleType('unit',this)">単元別</button>
+      <button class="chip" data-type="review" onclick="toggleType('review',this)">おさらい</button>
+      <button class="chip" data-type="note" onclick="toggleType('note',this)">間違いノート</button>
+      <span style="font-size:10.5px;color:var(--text-light);margin-left:4px;">確認テスト以外は必要なときだけON</span>
+    </div>
+    <div class="rt-controls">
+      <span class="flt-label">並び順</span>
+      <button class="chip active" data-sort="follow" onclick="setSort('follow',this)">要フォローを上に（他は名簿順で固定）</button>
+      <button class="chip" data-sort="recent" onclick="setSort('recent',this)">最新順（更新が上）</button>
+      <span style="flex:1;"></span>
+      <button class="btn-print" style="border-color:#cbd5e1;color:var(--text-muted);" onclick="openSpec()">ⓘ 仕様・使い方</button>
+      <button class="btn-print" onclick="openPrint()">🖨 生徒ごとに印刷</button>
+    </div>
+  </div>
+
+  <div class="rt-body" style="position:relative;">
+    <div class="hint-arrow">← 古い　　新しい（いま解いている）→　　　既定＝要フォロー（点数が低い・止まってる子）だけ上、他は名簿順で固定</div>
+    <div id="lanes"></div>
+    <div class="pause-ov" id="pauseOv">
+      <div class="pi">⏸️</div>
+      <div class="pt">操作がないため、自動で更新を止めました</div>
+      <div class="ps">開きっぱなしで無駄に通信し続けないための停止です。再開すると、また5秒ごとに更新します。</div>
+      <button class="btn-resume" onclick="resume()">🔄 再開する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 印刷プレビュー -->
+<div class="print-ov" id="printOv">
+  <div class="print-bar">
+    <span class="pb-t">🖨 生徒ごとの記録（この画面で貯まったぶん）</span>
+    <span class="pb-n" id="printN"></span>
+    <span class="sp"></span>
+    <button class="btn-resume" style="padding:6px 16px;font-size:12.5px;" onclick="doPrint()">この内容で印刷</button>
+    <button class="chip" style="background:#fff;" onclick="closePrint()">閉じる</button>
+  </div>
+  <div class="print-sheets" id="printSheets"></div>
+</div>
+<!-- 仕様・使い方 -->
+<div class="ov" id="specOv" onclick="closeSpec()">
+  <div class="md md-wide" onclick="event.stopPropagation()" style="position:relative;">
+    <button class="md-x" onclick="closeSpec()">×</button>
+    <div class="md-h"><div class="md-t">ⓘ この画面の仕様・使い方</div><div class="md-sub">確認テスト リアルタイムモード</div></div>
+    <div class="md-b">
+      <div class="spec-sec"><div class="spec-h">この画面は何か</div><div class="spec-b">確認テスト（設定すれば他の学習も）を<b>いまやっている子をリアルタイムに一覧</b>する画面です。<b>別ウィンドウ／別タブ</b>で開くので、元の管理画面はそのまま操作できます。ここに出るのは、この画面を開いてから始まった学習です（＝ボタンを押してからの蓄積）。</div></div>
+      <div class="spec-sec"><div class="spec-h">更新・自動停止（管理画面と同時に使えます）</div><div class="spec-b"><b>5秒ごとに自動更新</b>します。この画面は<b>別ウィンドウ</b>なので、<b>画面の横に出したまま、元の管理画面をふつうに操作できます</b>。見えているあいだは、管理画面を触っていても更新が続きます（止まりません）。<br>止まるのは次の2つだけ：<b>①この画面を最小化・完全に隠したとき</b>（見ていないので停止／前に戻すと<b>自動で再開</b>。ボタン操作は不要）。<b>②生徒の動きが30分ないとき</b>（授業終わりとみなして停止／「再開」ボタンで戻す）。この30分は設定で変えられます。</div></div>
+      <div class="spec-sec"><div class="spec-h">止まっている間もデータは失われません（重要）</div><div class="spec-b">止まるのは<b>画面の更新（見に行くこと）だけ</b>です。生徒の解答は、<b>提出した瞬間にサーバーに記録</b>されるので、この画面が止まっていても・閉じていても<b>ずっと記録され続けます</b>。だから、LINE・メール・Slackを開いてこの画面が裏に回っても大丈夫。<b>前に戻した瞬間に、離れているあいだのぶんもまとめて反映</b>されます（取りこぼしゼロ）。記録＝サーバー／この画面＝それを見る窓、という分担です。<br><span style="color:var(--text-muted);font-size:11px;">※このモックはデモ用に短くしています（生徒の動きが40秒ないと停止）。別のタブに切り替えて戻ると、離れていた時間ぶんの動きが反映されるのを確認できます。</span></div></div>
+      <div class="spec-sec"><div class="spec-h">カードの見方</div><div class="spec-b">生徒1人が<b>1レーン（横1行）</b>。テストは<b>左が古い→右が新しい（いま解いている）</b>で横に増えます。<span class="spec-k" style="background:var(--blue-light);color:var(--blue-dark);">解き中</span>はタイマー（<b>開始からの経過</b>。集中時間ではありません）、提出後は正答率（<span class="spec-k" style="background:var(--green-light);color:var(--green-dark);">緑=80%以上</span><span class="spec-k" style="background:var(--amber-light);color:var(--amber-dark);">黄=60〜79%</span><span class="spec-k" style="background:var(--red-light);color:var(--red-dark);">赤=60%未満</span>）。新しく提出されるとカードが光ります。</div></div>
+      <div class="spec-sec"><div class="spec-h">種別（何を表示するか選ぶ）</div><div class="spec-b"><b>確認テストは既定でON</b>。毎日学習・単元別・おさらい・間違いノートは、必要なときだけONにできます。間違いノートは問題ごとに進むので「◯問目」で表示します。</div></div>
+      <div class="spec-sec"><div class="spec-h">並び順（2つから選ぶ）</div><div class="spec-b"><b>要フォローを上に（既定）</b>：<b>気になる子＝提出して60%未満（赤）／反応なし（止まってる）</b>の子だけを上にまとめ、<b>それ以外（解き中も、点数がOKで提出した子も全部）は名簿順で固定</b>して動かしません。提出→すぐ次を解き中…と切り替わっても<b>行は動かず、カードだけがその場で変わります</b>。上に出てくるのは「いま手を貸したほうがいい子」だけ。<br><b>最新順</b>：直前に動いた子が一番上。数秒ごとにトップが入れ替わるので、10人いると特定の子を追いにくい。<br><span style="color:var(--text-muted);font-size:11px;">例：あおい45%(赤)・はると解き中・ゆな88%・そうた解き中・みお70% → 要フォローを上に では「あおい」だけが上、他は名簿順で固定。ゆなが提出し直しても、はるとが提出→次を解き中になっても、行は動かない。</span></div></div>
+      <div class="spec-sec"><div class="spec-h">反応なし（灰色）</div><div class="spec-b">解き中のまま<b>15分</b>更新がない子は<b>灰色にして「◯分 反応なし」</b>と表示します（離席・アプリを閉じた可能性）。この15分は設定で変えられます。<br><span style="color:var(--text-muted);font-size:11px;">※このモックでは確認しやすいよう「30秒以上 解き中」で灰色にしています。</span></div></div>
+      <div class="spec-sec"><div class="spec-h">くわしく見る</div><div class="spec-b">カードに<b>マウスを乗せると詳細</b>（教材・パート・状態・問題数）。<b>クリックすると</b>、提出済みは<b>その回のまちがえた問題</b>、解き中は「解答中」を表示します。</div></div>
+      <div class="spec-sec"><div class="spec-h">要フォロー（赤い子）</div><div class="spec-b">正答率60%未満の子は<b>カードとレーンを赤で強調</b>し、レーンに「要フォロー」の印を付けます。すぐ声かけに行けるようにするためです。</div></div>
+      <div class="spec-sec"><div class="spec-h">生徒ごとに印刷</div><div class="spec-b">右上の「🖨 生徒ごとに印刷」で、<b>この画面に貯まったぶん</b>を生徒1人＝<b>表裏1枚を目安</b>にまとめて印刷します（名前・教室・日付／提出件数・平均正答率・要フォロー件数／やった学習の表／まちがえた問題）。対象は<b>いま見えているぶん（教室・種別のしぼり込みを反映）</b>。まちがいが多い子は縮小または2枚になることがあります。</div></div>
+      <div class="spec-sec"><div class="spec-h">蓄積の範囲</div><div class="spec-b">蓄積は<b>この画面を開いてからのぶん</b>で、<b>先生（端末）ごと</b>です。別の端末で別の時間に開くと、見えている履歴の長さは変わります。</div></div>
+    </div>
+  </div>
+</div>
+<!-- 追いつき通知 -->
+<div id="rtToast"></div>
+<!-- ホバー詳細 -->
+<div id="pop"></div>
+<!-- ミス問モーダル -->
+<div class="ov" id="missOv" onclick="closeMiss()">
+  <div class="md" onclick="event.stopPropagation()" style="position:relative;">
+    <button class="md-x" onclick="closeMiss()">×</button>
+    <div class="md-h"><div class="md-t" id="missT"></div><div class="md-sub" id="missSub"></div></div>
+    <div class="md-b" id="missB"></div>
+  </div>
+</div>
+
+<script>
+var _idx={};   // カードid → {lane, student}
+// ====== 本番データ（GAS quiz_live をポーリング） ======
+var GAS_URL=(window.opener&&window.opener.GAS_URL)||((new URLSearchParams(location.search)).get('gas')||'');
+var TOKEN=(window.opener&&window.opener.token)||((new URLSearchParams(location.search)).get('token')||'');
+function call(b){ b.token=TOKEN; return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json();}); }
+
+var roomFilter='all';
+var state={};        // sid -> {info:{id,name,room}, lanes:[...], lastAt, active}
+var SIDX={};         // 名簿順（教室→名前）で固定するためのインデックス
+var serverSkew=0;    // クライアント時刻 - サーバー時刻(ms)
+var _entrySeen={};   // entryId -> status（新規開始・新規提出を光らせる判定用）
+
+function now(){ return Math.floor(Date.now()/1000); }   // 実時間（秒）
+function pad(n){ return (n<10?'0':'')+n; }
+function fmt(sec){ if(sec<0)sec=0; var m=Math.floor(sec/60); return m+':'+pad(sec%60); }
+function rateClass(r){ return r>=80?'g':(r>=60?'a':'r'); }
+function roomOrd_(r){ return r==='北久里浜'?0:(r==='久里浜'?1:2); }  // 教室の並び：北久里浜→久里浜→その他
+var STALE_SEC=15*60;  // 解き中がこの秒数続いたら「反応なし」（15分）
+
+// 種別（v1では quiz_live は確認テストのみを返す。将来ここにマッピングを増やす）
+var TYPES={ quiz:{label:'確認テスト',cls:'ty-quiz'}, daily:{label:'毎日学習',cls:'ty-daily'}, unit:{label:'単元別',cls:'ty-unit'}, review:{label:'おさらい',cls:'ty-review'}, note:{label:'間違いノート',cls:'ty-note'} };
+var activeTypes={quiz:true,daily:true,unit:true,review:true,note:true};
+function subjType_(subj){ return 'quiz'; }
+
+// サーバー応答(quiz_live)を state に反映
+function mapLive(d){
+  serverSkew = Date.now() - (d.server_now||Date.now());
+  var seen={};
+  (d.students||[]).forEach(function(s){
+    var st=state[s.student_id]||(state[s.student_id]={info:{},lanes:[]});
+    st.info={id:s.student_id,name:s.student_name||'',room:s.room||''};
+    st.lanes=(s.entries||[]).map(function(e){
+      var eid=s.student_id+'|'+e.part_id+'|'+e.start_ts;
+      var fresh=false;
+      if(!(eid in _entrySeen)) fresh=(e.status==='doing');
+      else if(_entrySeen[eid]!=='done' && e.status==='done') fresh=true;
+      _entrySeen[eid]=e.status;
+      return { id:eid, type:subjType_(e.subject), mat:e.material_title||'', part:e.part_title||'', subject:e.subject||'',
+        status:e.status, startAt:Math.floor((e.start_ts+serverSkew)/1000),
+        rate:(e.rate==null?null:e.rate), correct:(e.correct==null?0:e.correct), total:(e.total==null?0:e.total),
+        missed:(e.missed_words||[]), fresh:fresh };
+    });
+    st.lastAt=Math.floor(((s.last_ts||0)+serverSkew)/1000);
+    st.active=st.lanes.length>0;
+    seen[s.student_id]=1;
+  });
+  Object.keys(state).forEach(function(k){ if(!seen[k]) delete state[k]; });
+  var ids=Object.keys(state);
+  ids.sort(function(a,b){ var ra=roomOrd_(state[a].info.room), rb=roomOrd_(state[b].info.room); if(ra!==rb) return ra-rb; var na=state[a].info.name||'', nb=state[b].info.name||''; return na<nb?-1:(na>nb?1:0); });
+  SIDX={}; ids.forEach(function(id,i){ SIDX[id]=i; });
+}
+
+// ====== 描画 ======
+var sortMode='follow';
+function visLanes(st){ return st.lanes.filter(function(l){return activeTypes[l.type];}); }
+function attn(st){ // 気になる子＝提出60%未満(赤) または 反応なし(止まってる) → 上にまとめる
+  var v=visLanes(st), a=false;
+  v.forEach(function(l){
+    if(l.status==='done'&&l.rate<60) a=true;
+    if(l.status==='doing'&&(now()-l.startAt)>=STALE_SEC) a=true;
+  });
+  return a;
+}
+function sortLanes(list){
+  if(sortMode==='recent'){ list.sort(function(a,b){return b.lastAt-a.lastAt;}); }
+  else{ // 要フォローを上に、それ以外は名簿順で固定
+    list.sort(function(a,b){ var pa=attn(a)?0:1, pb=attn(b)?0:1; if(pa!==pb)return pa-pb; return SIDX[a.info.id]-SIDX[b.info.id]; });
+  }
+  return list;
+}
+function render(){
+  var lanesEl=document.getElementById('lanes');
+  var list=sortLanes(Object.keys(state).map(function(id){return state[id];})
+    .filter(function(st){return st.active;})
+    .filter(function(st){return roomFilter==='all'||st.info.room===roomFilter;})
+    .filter(function(st){return visLanes(st).length>0;}));
+
+  var doing=0,done=0;
+  list.forEach(function(st){ visLanes(st).forEach(function(l){ if(l.status==='doing')doing++; else done++; }); });
+  document.getElementById('stDoing').textContent=doing;
+  document.getElementById('stDone').textContent=done;
+  document.getElementById('stStu').textContent=list.length;
+
+  if(list.length===0){ lanesEl.innerHTML='<div class="empty">いま確認テストをやっている子はいません。<br>生徒が確認テストを始めると、ここに自動で出てきます。</div>'; return; }
+
+  var html='';
+  _idx={};
+  list.forEach(function(st){
+    var rm=st.info.room==='北久里浜'?'kita':'kuri';
+    var vis=visLanes(st);
+    var since=now()-vis[0].startAt;
+    var hasLow=vis.some(function(l){return l.status==='done'&&l.rate<60;});
+    html+='<div class="lane'+(hasLow?' haslow':'')+'" id="lane-'+st.info.id+'">';
+    html+='<div class="lane-name '+rm+'"><div class="ln-name">'+st.info.name+'</div>'
+        +'<div class="ln-room '+rm+'">'+st.info.room+'</div>'
+        +'<div class="ln-since">開始から '+fmt(since)+'</div>'
+        +(hasLow?'<div class="ln-flag">要フォロー</div>':'')+'</div>';
+    html+='<div class="lane-track" id="track-'+st.info.id+'">';
+    vis.forEach(function(l,i){
+      _idx[l.id]={l:l,st:st};
+      if(i>0) html+='<span class="tarrow">›</span>';
+      var fresh=l.fresh; l.fresh=false;
+      var pop=fresh?' pop':'';
+      var ty='<span class="tc-type '+TYPES[l.type].cls+'">'+TYPES[l.type].label+'</span>';
+      if(l.status==='doing'){
+        var el=now()-l.startAt;
+        if(el>=STALE_SEC){ // 反応なし＝灰色
+          html+='<div class="tcard doing stale clk" data-lid="'+l.id+'">'+ty
+              +'<div class="tc-mat">'+l.mat+'</div><span class="tc-part">'+l.part+'</span>'
+              +'<div class="tc-foot"><span class="noresp"><span class="zz"></span>'+Math.max(1,Math.floor(el/60))+'分 反応なし</span></div></div>';
+        }else{
+          var prog=(l.type==='note')?'<span class="qprog" data-start="'+l.startAt+'" data-total="'+l.total+'" style="font-size:11px;font-weight:800;color:var(--blue-dark);margin-left:6px;">'+Math.min(l.total,1+Math.floor(el/3))+'問目</span>':'';
+          html+='<div class="tcard doing clk'+pop+'" data-lid="'+l.id+'"><div class="tc-now">いま解き中</div>'+ty
+              +'<div class="tc-mat">'+l.mat+'</div><span class="tc-part">'+l.part+'</span>'
+              +'<div class="tc-foot"><span class="timer" data-start="'+l.startAt+'"><span class="tk"></span>'+fmt(el)+'</span>'+prog+'</div></div>';
+        }
+      }else{
+        var c=rateClass(l.rate);
+        var nm=l.missed.length;
+        var flash=(fresh?' flashd':'');
+        html+='<div class="tcard clk'+pop+flash+(c==='r'?' low':'')+'" data-lid="'+l.id+'">'+ty
+            +'<div class="tc-mat">'+l.mat+'</div><span class="tc-part">'+l.part+'</span>'
+            +'<div class="tc-foot"><span class="rate '+c+'">'+l.rate+'%</span>'
+            +'<span class="rate-pill '+c+'">'+(c==='g'?'合格':(c==='a'?'あと少し':'要フォロー'))+'</span></div>'
+            +'<div class="tc-hint">'+(nm?'ミス'+nm+'問 ▸':'全問正解')+'</div></div>';
+      }
+    });
+    html+='</div></div>';
+  });
+  lanesEl.innerHTML=html;
+  list.forEach(function(st){var t=document.getElementById('track-'+st.info.id); if(t) t.scrollLeft=t.scrollWidth;});
+}
+
+// タイマー・◯問目だけ毎秒なめらかに更新（実物もクライアント計算）
+function tickTimers(){
+  document.querySelectorAll('.timer').forEach(function(el){
+    var s=parseInt(el.getAttribute('data-start'),10);
+    el.innerHTML='<span class="tk"></span>'+fmt(now()-s);
+  });
+  document.querySelectorAll('.qprog').forEach(function(el){
+    var s=parseInt(el.getAttribute('data-start'),10),tt=parseInt(el.getAttribute('data-total'),10);
+    el.textContent=Math.min(tt,1+Math.floor((now()-s)/3))+'問目';
+  });
+}
+function toggleType(k,el){
+  activeTypes[k]=!activeTypes[k];
+  el.classList.toggle('active',activeTypes[k]);
+  keepAlive(); render();
+}
+function setSort(m,el){
+  sortMode=m;
+  document.querySelectorAll('.chip[data-sort]').forEach(function(c){c.classList.remove('active');});
+  el.classList.add('active');
+  keepAlive(); render();
+}
+
+// ====== 生徒ごとに印刷（この画面で貯まったぶんを集計） ======
+function openPrint(){
+  keepAlive();
+  var list=STUDENTS.map(function(s){return state[s.id];})
+    .filter(function(st){return st.active && (roomFilter==='all'||st.info.room===roomFilter) && visLanes(st).length>0;});
+  list=sortLanes(list);
+  var html='';
+  list.forEach(function(st){
+    var vis=visLanes(st);
+    var done=vis.filter(function(l){return l.status==='done';});
+    var avg=done.length?Math.round(done.reduce(function(a,l){return a+l.rate;},0)/done.length):null;
+    var low=done.filter(function(l){return l.rate<60;}).length;
+    var rm=st.info.room;
+    html+='<div class="p-sheet"><div class="p-head"><span class="p-name">'+st.info.name+'</span><span class="p-room">'+rm+'</span>'
+        +'<span class="p-doc">確認テスト リアルタイム記録　2026-07-22</span></div>';
+    html+='<div class="p-sum"><span>提出 <b>'+done.length+'</b> 件</span>'
+        +'<span>平均正答率 <b>'+(avg==null?'—':avg+'%')+'</b></span>'
+        +'<span>要フォロー <b>'+low+'</b> 件</span>'
+        +'<span>解き中 <b>'+vis.filter(function(l){return l.status==='doing';}).length+'</b> 件</span></div>';
+    // やったテスト一覧
+    html+='<div class="p-sec">やった学習</div><table class="p-tbl"><tr><th>種別</th><th>教材・パート</th><th>正答率</th><th>判定</th></tr>';
+    vis.forEach(function(l){
+      var st2=(l.status==='doing')?'（解き中）':'';
+      var c=(l.status==='doing')?'':rateClass(l.rate);
+      var rr=(l.status==='doing')?'—':l.rate+'%';
+      var jd=(l.status==='doing')?'解答中':(c==='g'?'合格':(c==='a'?'あと少し':'要フォロー'));
+      html+='<tr><td>'+TYPES[l.type].label+'</td><td>'+l.mat+' '+l.part+'</td><td class="'+(c?'r'+c:'')+'">'+rr+'</td><td>'+jd+'</td></tr>';
+    });
+    html+='</table>';
+    // まちがえた問題（提出ぶん合算）
+    var miss=[]; done.forEach(function(l){ l.missed.forEach(function(m){ miss.push(m); }); });
+    html+='<div class="p-sec">まちがえた問題（'+miss.length+'問）</div>';
+    if(miss.length===0){ html+='<div class="p-none">✓ まちがいはありませんでした</div>'; }
+    else{ html+='<div class="p-miss">'+miss.map(function(m){return '<div class="mi"><span class="e">'+m.en+'</span><span class="j">'+m.ja+'</span></div>';}).join('')+'</div>'; }
+    html+='</div>';
+  });
+  document.getElementById('printSheets').innerHTML=html||'<div style="padding:40px;color:#64748b;">印刷できる記録がありません。</div>';
+  document.getElementById('printN').textContent=list.length+'名分（1人＝表裏1枚を目安）';
+  document.getElementById('printOv').classList.add('show');
+}
+function closePrint(){ document.getElementById('printOv').classList.remove('show'); }
+function doPrint(){ window.print(); }
+
+// ====== 更新ループと自動停止（本番） ======
+// 停止するのは①最小化・完全に隠したとき（戻すと自動再開）②生徒の動きが30分ないとき（授業終わり）だけ。
+// 別ウィンドウを画面に出したまま管理画面を操作している間は止まらない。
+var cd=5, paused=false, pauseReason='', lastChangeMs=Date.now(), NOACT_MS=30*60*1000, lastSig='';
+function loop(){
+  if(paused) return;
+  tickTimers();
+  var idleLeft=Math.round((NOACT_MS-(Date.now()-lastChangeMs))/1000);
+  var noteEl=document.getElementById('idleNote');
+  if(idleLeft<=60 && idleLeft>0){ noteEl.style.display='inline-block'; noteEl.textContent='⚠ 生徒の動きなし　あと'+idleLeft+'秒で自動停止'; }
+  else{ noteEl.style.display='none'; }
+  if(Date.now()-lastChangeMs>=NOACT_MS){ pauseNow('idle'); return; }
+  cd--; var cdEl=document.getElementById('cd'); if(cdEl) cdEl.textContent=Math.max(cd,0);
+  if(cd<=0){ cd=5; fetchLive(); }
+}
+function fetchLive(){
+  if(!GAS_URL||!TOKEN){ showConn_(); return; }
+  return call({action:'quiz_live'}).then(function(r){
+    if(!r||!r.ok){ setStatus_(false); return; }
+    setStatus_(true);
+    var d=r.data||{server_now:Date.now(),students:[]};
+    var sig=JSON.stringify((d.students||[]).map(function(s){return s.student_id+':'+(s.entries||[]).map(function(e){return e.part_id+e.status+(e.rate==null?'':e.rate);}).join(',');}));
+    if(sig!==lastSig){ lastChangeMs=Date.now(); lastSig=sig; }
+    mapLive(d);
+    render();
+    if(sortMode==='recent'){ var top=document.querySelector('#lanes .lane'); if(top){ top.classList.remove('bump'); void top.offsetWidth; top.classList.add('bump'); } }
+  }).catch(function(){ setStatus_(false); });
+}
+function setStatus_(ok){ var el=document.getElementById('connLost'); if(el) el.style.display=ok?'none':'inline-block'; }
+function showConn_(){ var el=document.getElementById('lanes'); if(el) el.innerHTML='<div class="empty">先生画面から開いてください。<br>teacher.html の「確認テスト」タブ →「リアルタイムモードを開く」から開くと表示されます。</div>'; }
+function keepAlive(){ lastChangeMs=Date.now(); } // 先生の操作があれば止めない
+function pauseNow(reason){
+  paused=true; pauseReason=reason;
+  var pt=document.querySelector('#pauseOv .pt'), ps=document.querySelector('#pauseOv .ps'), btn=document.querySelector('#pauseOv .btn-resume');
+  if(reason==='hidden'){
+    pt.textContent='最小化・別タブ表示のあいだは更新を止めています';
+    ps.textContent='この画面を前に戻す（表示する）と自動で再開します。ボタンを押す必要はありません。';
+    btn.style.display='none';
+  }else{
+    pt.textContent='生徒の動きが30分ないため、更新を止めました';
+    ps.textContent='授業が終わったとみなして止めました。再開すると、また5秒ごとに更新します。';
+    btn.style.display='';
+  }
+  document.getElementById('pauseOv').classList.add('show');
+  document.getElementById('idleNote').style.display='none';
+}
+function resume(){ paused=false; pauseReason=''; lastChangeMs=Date.now(); cd=5; document.getElementById('pauseOv').classList.remove('show'); fetchLive(); } // 再開時は即取得（離れていた間のぶんもサーバーから反映＝取りこぼしなし）
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden){ if(!paused) pauseNow('hidden'); }
+  else{ if(paused && pauseReason==='hidden') resume(); }
+});
+function rtToast(msg){ var el=document.getElementById('rtToast'); if(!el)return; el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(function(){el.classList.remove('show');},3400); }
+function setRoom(r,el){
+  roomFilter=r;
+  document.querySelectorAll('.chip[data-room]').forEach(function(c){c.classList.remove('active');});
+  el.classList.add('active');
+  render();
+}
+
+// ====== ホバー詳細＆クリックでミス問 ======
+var _pop=document.getElementById('pop');
+document.addEventListener('mouseover',function(e){
+  var card=e.target.closest('.tcard'); if(!card){ _pop.style.display='none'; return; }
+  var d=_idx[card.getAttribute('data-lid')]; if(!d){ return; }
+  var l=d.l, s=d.st.info;
+  var h='<b>'+s.name+'</b>（'+s.room+'）<br><span class="pp-k">種別</span> '+TYPES[l.type].label+'　'+l.mat+' '+l.part+'<br>';
+  var el0=now()-l.startAt;
+  if(l.status==='doing'){
+    if(el0>=STALE_SEC){ h+='<span class="pp-k">状態</span> '+Math.max(1,Math.floor(el0/60))+'分 反応なし（アプリを閉じた／離席の可能性）'; }
+    else{ h+='<span class="pp-k">状態</span> いま解き中（開始から '+fmt(el0)+'）<br><span class="pp-k">問題数</span> 全'+l.total+'問'; }
+  }
+  else{ h+='<span class="pp-k">状態</span> 提出ずみ　正答率 '+l.rate+'%<br><span class="pp-k">正解</span> '+l.correct+' / '+l.total+' 問　<span class="pp-k">ミス</span> '+l.missed.length+'問<br>クリックでまちがえた問題を見る'; }
+  _pop.innerHTML=h; _pop.style.display='block';
+  var r=card.getBoundingClientRect(), pw=_pop.offsetWidth, ph=_pop.offsetHeight;
+  var left=r.left+r.width/2-pw/2; if(left<8)left=8; if(left+pw>window.innerWidth-8)left=window.innerWidth-pw-8;
+  var top=r.top-ph-8; if(top<8)top=r.bottom+8;
+  _pop.style.left=left+'px'; _pop.style.top=top+'px';
+});
+document.addEventListener('mouseout',function(e){ if(e.target.closest('.tcard'))_pop.style.display='none'; });
+document.addEventListener('click',function(e){
+  var card=e.target.closest('.tcard.clk'); if(!card) return;
+  var d=_idx[card.getAttribute('data-lid')]; if(!d) return;
+  var l=d.l, s=d.st.info;
+  if(l.status==='doing'){ openMiss(s,l,true); } else { openMiss(s,l,false); }
+});
+function openMiss(s,l,doing){
+  _pop.style.display='none';
+  document.getElementById('missT').textContent=s.name+'　'+l.mat+' '+l.part;
+  var sub=document.getElementById('missSub'), body=document.getElementById('missB');
+  if(doing){
+    sub.textContent='いま解き中（経過 '+fmt(now()-l.startAt)+'）';
+    body.innerHTML='<div class="miss-none">まだ解答中です。<br>提出されると、ここにまちがえた問題が出ます。</div>';
+  }else{
+    sub.textContent='正答率 '+l.rate+'%　正解 '+l.correct+'/'+l.total+'問';
+    if(l.missed.length===0){ body.innerHTML='<div class="miss-none">✓ 全問正解でした</div>'; }
+    else{
+      body.innerHTML='<div style="font-size:11.5px;color:var(--text-muted);margin-bottom:8px;">まちがえた問題（'+l.missed.length+'問）</div>'
+        +l.missed.map(function(m){return '<div class="miss"><span class="en">'+m.en+'</span><span class="ja">'+m.ja+'</span></div>';}).join('');
+    }
+  }
+  document.getElementById('missOv').classList.add('show');
+}
+function closeMiss(){ document.getElementById('missOv').classList.remove('show'); }
+function openSpec(){ keepAlive(); document.getElementById('specOv').classList.add('show'); }
+function closeSpec(){ document.getElementById('specOv').classList.remove('show'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeMiss(); closeSpec(); if(typeof closePrint==='function')closePrint(); } });
+
+// 初期化：先生画面(window.opener)からGAS URL・トークンを受け取り、すぐ取得を開始
+render();          // まず空表示
+fetchLive();       // 初回取得
+setInterval(loop,1000);
+</script>
+</body>
+</html>
