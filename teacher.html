@@ -817,7 +817,7 @@
       <details style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:10px;font-size:12px;color:var(--text-muted);">
         <summary style="cursor:pointer;padding:8px 12px;font-weight:800;color:var(--text);">教材の並び・ラベルの仕組み（メモ）</summary>
         <div style="padding:0 14px 12px;line-height:1.75;">
-          <b>並び順</b>：教科 → 学年 → 番号（この順で自動で並ぶ。追加した順は関係なし）<br>
+          <b>並び順</b>：形式（毎日学習→単元別）→ 教科 → 本（教材シリーズ）→ 章番号（この順で自動で並ぶ。理科も章番号順に表示。追加した順やdisplay_orderの数字より章番号を優先）<br>
           <b>スプレッドシートの列と意味</b><br>
           ・subject（教科）：english=英語／science=理科／social=社会／japanese=国語<br>
           ・grade（学年）：中1／中2／中3／全学年（空欄=学年未設定）<br>
@@ -1634,6 +1634,11 @@ function _holdersMap(){
   });
   return h;
 }
+function _bookPrefix(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>0)return t.slice(0,i).replace(/\s+$/,'');}return '';}
+function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;return t;}
+function _chapNum(t){t=String(t||'');var m=t.match(/([0-9０-９]+)\s*章/);if(!m)return 99999;var n=m[1].replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});return parseInt(n,10);}
+function _bookKey(m){var s=_mSeries(m.title);return s?('S:'+s.k):('M:'+String(m.title||''));}
+function _bookLabel(m){var s=_mSeries(m.title);var bp=_bookPrefix(m.title);return s?(bp||s.label):(bp||String(m.title||''));}
 function _subjOrder(s){var o={english:1,science:2,social:3,japanese:4,math:5};return o[s]||9;}
 function _subjLabel(s){var o={english:'英語',science:'理科',social:'社会',japanese:'国語',math:'数学'};return o[s]||(s||'その他');}
 function _gradeOrder(g){var o={'中1':1,'中2':2,'中3':3,'全学年':8};return o[g]||9;}
@@ -1646,13 +1651,13 @@ function renderMatTab(){
   var draw=function(mats){
     var holders=_holdersMap();
     var arr=(mats||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');})
-      .sort(function(a,b){var sa=_subjOrder(a.subject),sb=_subjOrder(b.subject);if(sa!==sb)return sa-sb;var ga=_gradeOrder(a.grade),gb=_gradeOrder(b.grade);if(ga!==gb)return ga-gb;var na=_ordNum(a.display_order),nb=_ordNum(b.display_order);if(na!==nb)return na-nb;return String(a.title||'').localeCompare(String(b.title||''),'ja');});
+      .sort(function(a,b){var fa=(a.content_type==='test')?1:0,fb=(b.content_type==='test')?1:0;if(fa!==fb)return fa-fb;var sa=_subjOrder(a.subject),sb=_subjOrder(b.subject);if(sa!==sb)return sa-sb;var ka=_bookKey(a),kb=_bookKey(b);if(ka!==kb)return ka<kb?-1:1;var na=_ordNum(a.display_order),nb=_ordNum(b.display_order);if(na!==nb)return na-nb;return String(a.title||'').localeCompare(String(b.title||''),'ja');});
     box.innerHTML='';
     if(!arr.length){box.innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">教材がありません</div>';return;}
     var _curg=null;
     arr.forEach(function(m){
-      var _gk=(m.subject||'')+'|'+(m.grade||'');
-      if(_gk!==_curg){_curg=_gk;var _gh=document.createElement('div');_gh.className='mggroup';_gh.innerHTML='<span class="mgg-subj">'+esc(_subjLabel(m.subject))+'</span><span class="mgg-grade">'+esc(_gradeLabel(m.grade))+'</span>';box.appendChild(_gh);}
+      var _gk=_bookKey(m);
+      if(_gk!==_curg){_curg=_gk;var _gh=document.createElement('div');_gh.className='mggroup';_gh.innerHTML='<span class="mgg-subj">'+esc(_bookLabel(m))+'</span>';box.appendChild(_gh);}
       var isTest=(m.content_type==='test');
       var hs=holders[String(m.id)]||[];
       var chips=hs.slice(0,8).map(function(s){return '<span class="mchipname">'+esc(s.name||s.nickname||'(無名)')+'</span>';}).join('')+(hs.length>8?'<span class="mchipname more">＋'+(hs.length-8)+'</span>':'');
@@ -1662,7 +1667,7 @@ function renderMatTab(){
       var _lv=_levelLabel(m.target);var _lb=_lv?('<span class="mglevel">'+_lv+'</span>'):'';
       row.innerHTML='<span class="mgpill '+(isTest?'test':'daily')+'">'+(isTest?'単元別対策':'毎日学習')+'</span>'
         +_nb
-        +'<span class="mgtitle">'+esc(m.title||'(無題)')+'</span>'
+        +'<span class="mgtitle">'+esc(_chapShort(m.title)||m.title||'(無題)')+'</span>'
         +_lb
         +'<span class="mgcount">'+hs.length+'名</span>'
         +'<span class="mgmem">'+chips+'</span>'
@@ -1898,10 +1903,10 @@ function renderQuizAtt(){
   var groups={},order=[];
   miss.forEach(function(e){var k=e.part_id;if(!groups[k]){groups[k]={title:e.part_title,mat:_matTitleOf(e.material_id)||e.material_title||'',names:[]};order.push(k);}groups[k].names.push(e.student_name);});
   var _sg={},_so=[];
-  order.forEach(function(k){var g=groups[k];var sk=_mSeries(g.mat);var key=sk?('S:'+sk.k):('M:'+g.mat);var lab=sk?sk.label:g.mat;if(!_sg[key]){_sg[key]={label:lab,parts:[]};_so.push(key);}_sg[key].parts.push(g);});
+  order.forEach(function(k){var g=groups[k];var sk=_mSeries(g.mat);var key=sk?('S:'+sk.k):('M:'+g.mat);var lab=sk?(_bookPrefix(g.mat)||sk.label):(_bookPrefix(g.mat)||g.mat);var rank=sk?({sci:2,hist:3,goi:4}[sk.k]||8):8;if(!_sg[key]){_sg[key]={label:lab,rank:rank,parts:[]};_so.push(key);}_sg[key].parts.push(g);});
   var missHtml=_so.length? _so.map(function(key,si){var sg=_sg[key];var gid='qamg'+si;
       var inner=sg.parts.map(function(g,pi){var nid=gid+'n'+pi;
-        return '<div class="qa-missrow" style="margin-left:16px;"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(g.mat)+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';
+        return '<div class="qa-missrow" style="margin-left:16px;"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(_chapShort(g.mat))+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';
       }).join('');
       return '<div class="qa-srow" style="margin:6px 0;"><span class="qachip qa-miss" style="cursor:pointer;font-weight:800;" onclick="qGroupToggle(\''+gid+'\',this)">'+esc(sg.label)+' <small>'+sg.parts.length+'テスト ▾ 展開</small></span><div id="'+gid+'" style="display:none;margin-top:2px;">'+inner+'</div></div>';
     }).join('') : '<span class="chip-none">未実施はありません 🎉</span>';

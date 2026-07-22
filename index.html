@@ -879,8 +879,16 @@ function renderQuiz(){
     if(!d.ok){el.innerHTML='<p class="muted">読み込みに失敗しました。もう一度ひらいてね。</p>';return;}
     var mats=(d.data&&d.data.materials)||[];
     if(!mats.length){el.innerHTML='<p class="muted">まだ確認テストは配信されていません。先生が配信すると ここに出るよ。</p>';return;}
-    var html='';
-    mats.forEach(function(g,gi){
+    // 本ごとにまとめる＋シリーズ内は章番号順（ホームと同じ考え方）2026-07-22
+    var _bk=function(g){var sk=_mSeries(g.title);return sk?('S:'+sk.k):('M:'+String(g.title||''));};
+    var _bl=function(g){var sk=_mSeries(g.title);var bp=_bookPrefix(g.title);return sk?(bp||sk.label):(bp||String(g.title||''));};
+    mats=mats.slice().sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // シートの番号順・川上さん 2026-07-22
+    var _grps=[],_gm={};
+    mats.forEach(function(g){var k=_bk(g);if(!_gm[k]){_gm[k]={lab:_bl(g),items:[]};_grps.push(_gm[k]);}_gm[k].items.push(g);});
+    var html='';var _qgi=0;
+    _grps.forEach(function(gp){
+      html+='<div class="shead" style="margin:16px 2px 8px;"><div class="snm">'+esc(gp.lab)+'</div></div>';
+      gp.items.forEach(function(g){var gi=_qgi++;
       var ps=g.parts||[];
       var np=ps.filter(function(p){return p.status==='ok';}).length;
       var ngc=ps.filter(function(p){return p.status==='ng';}).length;
@@ -888,7 +896,7 @@ function renderQuiz(){
       var gid='qzg'+gi;
       html+='<div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;box-shadow:var(--shadow);overflow:hidden;">';
       html+='<div onclick="quizToggle_(\''+gid+'\')" style="display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;">'
-        +'<div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:14px;line-height:1.35;">'+esc(g.title||'教材')+'</div>'
+        +'<div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:14px;line-height:1.35;">'+esc(_chapShort(g.title)||'教材')+'</div>'
         +'<div style="font-size:12px;color:var(--sub);margin-top:3px;">合格 <b style="color:var(--ok);">'+np+'</b> / '+ps.length+(ngc>0?('　もう一歩 <b style="color:var(--ng);">'+ngc+'</b>'):'')+(yt>0?('　まだ '+yt):'')+'</div></div>'
         +(g.all_pass?'<span style="background:rgba(202,162,74,.15);color:var(--gold);font-weight:800;font-size:11px;padding:3px 9px;border-radius:12px;white-space:nowrap;">全合格🎉</span>':'')
         +'<i id="'+gid+'-a" class="ti '+(quizOpen_[gid]?'ti-chevron-up':'ti-chevron-down')+'" style="color:var(--sub);font-size:20px;"></i></div>';
@@ -899,6 +907,7 @@ function renderQuiz(){
           +quizPill_(p)+'<i class="ti ti-chevron-right" style="color:var(--sub)"></i></div>';
       });
       html+='</div></div>';
+      });
     });
     el.innerHTML=html;
   });
@@ -1038,6 +1047,7 @@ function _mSeries(t){t=String(t||'');
 }
 function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;return t;}
 function _bookPrefix(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>0)return t.slice(0,i).replace(/\s+$/,'');}return '';}
+function _chapNum(t){t=String(t||'');var m=t.match(/([0-9０-９]+)\s*章/);if(!m)return 99999;var n=m[1].replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});return parseInt(n,10);}
 function openHome(){
   $('nick').textContent=nickname;syncThemeIcon();show('scr-home');
   // 初回ログイン：ニックネーム未設定なら設定モーダルを自動表示（スキップ可・1ログイン1回だけ・川上さん確定 2026-07-04 機能仕様書_テスト配信 §5-2）
@@ -1059,6 +1069,7 @@ function openHome(){
     if(!d.ok){if(d.error&&d.error.indexOf('ログイン')>=0){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');show('scr-login');}return;}
     var main=d.data.main||[];
     var tests=d.data.tests||[]; // テスト配信カード（GAS studentHome tests・2026-07-04）
+    main.sort(function(a,b){return (a.display_order||0)-(b.display_order||0);});tests.sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // シートの番号順・川上さん 2026-07-22
     var cards=main.concat(tests);
     // デイリー：本日の学習の完了判定（今日やってないカードが無ければ完了）2026-07-04
     (function(){var td=todayStr_();var undone=cards.filter(function(m){
