@@ -837,10 +837,10 @@
     <div id="view-quiz" style="display:none;">
       <div class="qcard" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;">
-          <div style="font-weight:800;font-size:14px;display:flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;border-radius:50%;background:#ef4444;display:inline-block;"></span>リアルタイムモード</div>
+          <div style="font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px;">リアルタイムモード<span id="rtOnBadge" style="display:none;align-items:center;gap:4px;background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;border-radius:20px;padding:1px 9px;font-size:11px;font-weight:800;"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span>起動中</span></div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">押すと別ウィンドウが開き、いま確認テスト中の子をリアルタイムに一覧します。この画面はそのまま操作できます。</div>
         </div>
-        <button onclick="openRealtime()" style="background:#C6000B;color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;">● リアルタイムモードを開く</button>
+        <button id="rtOpenBtn" onclick="openRealtime()" style="background:#C6000B;color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;">● リアルタイムモードを開く</button>
       </div>
       <div class="qcard"><div class="qch">注目リスト（未実施・未合格の子）<span class="c2cnt" id="qtAttCnt">–</span></div><div id="qtAtt"></div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">※配信は「教材ごと」タブの各教材の「確認テストを配信」ボタンから。</div></div>
@@ -1887,10 +1887,20 @@ function mpConfirm_(msg){
 }
 /* ===== 確認テスト リアルタイムモード（別ウィンドウを開く）2026-07-22 ===== */
 // realtime.html は同一オリジン。window.opener 経由で GAS_URL と token を受け取る（URLに載せない）。
+var _rtWin=null,_rtTimer=null;
 function openRealtime(){
-  var w=window.open('realtime.html','kwtRealtime','width=1180,height=920,menubar=no,toolbar=no');
-  if(!w){ toast('ポップアップがブロックされました。ブロックを許可してもう一度押してください'); return; }
-  try{ w.focus(); }catch(e){}
+  if(_rtWin && !_rtWin.closed){ try{ _rtWin.focus(); }catch(e){} return; } // 既に開いていれば前面に
+  _rtWin=window.open('realtime.html','kwtRealtime','width=1180,height=920,menubar=no,toolbar=no');
+  if(!_rtWin){ toast('ポップアップがブロックされました。ブロックを許可してもう一度押してください'); return; }
+  try{ _rtWin.focus(); }catch(e){}
+  rtBtnState_(true);
+  if(_rtTimer) clearInterval(_rtTimer);
+  _rtTimer=setInterval(function(){ if(!_rtWin||_rtWin.closed){ rtBtnState_(false); clearInterval(_rtTimer); _rtTimer=null; _rtWin=null; } },1500);
+}
+function rtBtnState_(on){
+  var b=document.getElementById('rtOpenBtn'), badge=document.getElementById('rtOnBadge');
+  if(b){ b.textContent=on?'● 起動中（前面に出す）':'● リアルタイムモードを開く'; b.style.background=on?'#065f46':'#C6000B'; }
+  if(badge){ badge.style.display=on?'inline-flex':'none'; }
 }
 /* ===== 確認テストタブ（閲覧：注目リスト＋点数表＋詳細）2026-07-10 ===== */
 var _quizBoard=null,_quizCurMat=null;

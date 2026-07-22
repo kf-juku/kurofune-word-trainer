@@ -24,8 +24,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
   margin:0;font-size:14px;color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
 
 /* 別ウィンドウ感を出す枠 */
-.win{max-width:1180px;margin:14px auto;background:white;border-radius:12px;overflow:hidden;
-  box-shadow:0 10px 40px rgba(0,0,0,0.14);border:1px solid var(--border);}
+.win{max-width:none;margin:0;background:white;min-height:100vh;}
 .win-chrome{background:#1e293b;color:#cbd5e1;display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12px;}
 .win-dots{display:flex;gap:6px;}
 .win-dots span{width:11px;height:11px;border-radius:50%;display:inline-block;}
@@ -40,10 +39,10 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .rt-head{background:linear-gradient(180deg,#fff,#fafbfc);border-bottom:1px solid var(--border);padding:12px 16px;}
 .rt-head-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .rt-title{font-size:15px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}
-.live-dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(239,68,68,.6);
+.live-dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(16,185,129,.6);
   animation:livePulse 1.6s infinite;display:inline-block;}
-@keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.55);}70%{box-shadow:0 0 0 7px rgba(239,68,68,0);}100%{box-shadow:0 0 0 0 rgba(239,68,68,0);}}
-.live-badge{font-size:10px;font-weight:800;color:var(--red-dark);background:var(--red-light);border:1px solid #fca5a5;
+@keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.55);}70%{box-shadow:0 0 0 7px rgba(16,185,129,0);}100%{box-shadow:0 0 0 0 rgba(16,185,129,0);}}
+.live-badge{font-size:10px;font-weight:800;color:var(--green-dark);background:var(--green-light);border:1px solid #6ee7b7;
   border-radius:20px;padding:1px 9px;letter-spacing:.04em;}
 .rt-refresh{margin-left:auto;font-size:11.5px;color:var(--text-muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
 .rt-refresh b{color:var(--crimson);}
@@ -62,8 +61,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .rt-controls{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;}
 .flt-label{font-size:10px;font-weight:800;color:var(--text-muted);}
 .chip{font-size:12px;padding:3px 12px;border-radius:20px;border:1.5px solid var(--border);background:white;color:var(--text-muted);cursor:pointer;font-family:inherit;transition:all .1s;white-space:nowrap;}
-.chip:hover{border-color:var(--crimson-mid);color:var(--crimson-dark);}
-.chip.active{background:var(--crimson-light);color:var(--crimson-dark);border-color:var(--crimson);font-weight:700;}
+.chip:hover{border-color:#94a3b8;color:var(--text);}
+.chip.active{background:#1e293b;color:#fff;border-color:#1e293b;font-weight:700;}
 .legend{margin-left:auto;display:flex;gap:12px;font-size:11px;color:var(--text-muted);flex-wrap:wrap;}
 .legend i{font-style:normal;display:inline-flex;align-items:center;gap:4px;}
 .dotk{width:9px;height:9px;border-radius:2px;display:inline-block;}
@@ -94,7 +93,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .tcard.pop{animation:pop .35s ease;}
 @keyframes pop{0%{transform:scale(.8);opacity:0;}100%{transform:scale(1);opacity:1;}}
 .tc-mat{font-size:11px;color:var(--text-muted);font-weight:700;line-height:1.25;white-space:nowrap;}
-.tc-part{display:inline-block;font-size:11px;font-weight:800;color:var(--crimson-dark);background:var(--crimson-light);border:1px solid var(--crimson-mid);border-radius:6px;padding:0 6px;margin-top:3px;}
+.tc-part{display:inline-block;font-size:11px;font-weight:800;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:0 6px;margin-top:3px;}
 .tc-foot{margin-top:5px;display:flex;align-items:center;gap:5px;}
 .timer{font-size:15px;font-weight:800;color:var(--blue-dark);font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:4px;}
 .timer .tk{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:blink 1s infinite;}
@@ -171,8 +170,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .btn-resume:hover{background:var(--crimson-dark);}
 
 /* ヘッダーの印刷ボタン */
-.btn-print{background:#fff;color:var(--crimson-dark);border:1.5px solid var(--crimson-mid);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
-.btn-print:hover{background:var(--crimson-light);}
+.btn-print{background:#fff;color:var(--text);border:1.5px solid #cbd5e1;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.btn-print:hover{background:var(--surface2);}
 #rtToast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 18px;border-radius:20px;font-size:12.5px;font-weight:700;z-index:6000;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);max-width:90vw;text-align:center;}
 #rtToast.show{opacity:1;}
 
@@ -213,15 +212,10 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 </head>
 <body>
 <div class="win">
-  <div class="win-chrome">
-    <span class="win-title">確認テスト｜リアルタイムモード</span>
-    <span class="win-url">この画面は開いたまま、元の管理画面を操作できます</span>
-  </div>
 
   <div class="rt-head">
     <div class="rt-head-top">
       <div class="rt-title"><span class="live-dot"></span>いま確認テスト中の生徒 <span class="live-badge">● LIVE</span></div>
-      <div class="rt-switch"><span>リアルタイムモード</span><span class="tog"></span><span style="color:var(--green-dark);font-weight:700;">ON</span></div>
       <div class="rt-refresh">5秒ごとに自動更新　次の更新まで <b id="cd">5</b> 秒　<span class="idle-note" id="idleNote"></span><span id="connLost" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;padding:1px 8px;font-weight:700;">⚠ 接続が切れています（再試行中）</span></div>
     </div>
     <div class="rt-stats">
