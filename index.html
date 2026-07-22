@@ -105,6 +105,13 @@
   .hpill.test{background:var(--neutral-bg);color:var(--sub);}
   .hpill.lap{background:rgba(202,162,74,.12);color:var(--gold);border:1px solid rgba(202,162,74,.35);} /* 周バッジ 2026-07-03 */
   .mat-head{font-size:12px;font-weight:700;color:var(--sub);margin:12px 2px 6px;} /* DAY一覧の教材見出し 2026-07-03 */
+  /* 教材(シリーズ)グループ見出し＝ホームのメイン学習カードを本ごとにまとめる（川上さん承認 2026-07-22） */
+  #main-list{display:flex;flex-direction:column;gap:12px;}
+  .shead{margin:2px 2px 0;}
+  .shead:not(:first-child){margin-top:14px;}
+  .shead .snm{font-weight:700;font-size:15px;letter-spacing:-.01em;color:var(--ink);line-height:1.35;}
+  .shead .smeta{font-size:11px;color:var(--sub);margin-top:2px;}
+  .hero .here{display:inline-flex;align-items:center;color:var(--accent);font-weight:700;font-size:10px;background:var(--accent-soft);padding:1px 7px;border-radius:999px;margin-right:6px;}
   .hero .hsubj{font-size:11px;color:var(--sub);font-weight:500;}
   .hero .hdue{font-size:10.5px;color:var(--gold);font-weight:700;}
   .hero .list .rnd{color:var(--gold);font-weight:700;}
@@ -1023,6 +1030,14 @@ $('btn-logout').onclick=function(){homeCacheClear_();localStorage.removeItem('kw
 /* 新構造ヘルパー（2026-06-23）：教科ラベル＋HTMLエスケープ */
 function subjLabel(s){var m={english:'英語',math:'数学',science:'理科',social:'社会',japanese:'国語'};return m[s]||s;}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function _mSeries(t){t=String(t||'');
+  if(/中学理科【生命・地球】/.test(t)||(/理科/.test(t)&&/【生命・地球】/.test(t)))return {k:'sci',label:'中学理科【生命・地球】'};
+  if(/中学歴史/.test(t))return {k:'hist',label:'中学歴史'};
+  if(/語彙力アップ/.test(t))return {k:'goi',label:'語彙力アップ'};
+  return null;
+}
+function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;return t;}
+function _bookPrefix(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>0)return t.slice(0,i).replace(/\s+$/,'');}return '';}
 function openHome(){
   $('nick').textContent=nickname;syncThemeIcon();show('scr-home');
   // 初回ログイン：ニックネーム未設定なら設定モーダルを自動表示（スキップ可・1ログイン1回だけ・川上さん確定 2026-07-04 機能仕様書_テスト配信 §5-2）
@@ -1051,7 +1066,7 @@ function openHome(){
     });dailyState.main=(cards.length===0)?true:(undone.length===0);renderDaily();})();
     prefetchParts_(cards); // 先読みD：キャッシュ描画の時点で開始（重複は_prefetch側で防止）。開いた直後のタップに間に合わせる 2026-07-05
     if(!cards.length){$('main-list').innerHTML='<p class="muted">今日のメイン学習はありません。先生にきいてね。</p>';}
-    else{$('main-list').innerHTML='';cards.forEach(function(m){
+    else{$('main-list').innerHTML='';var _rc=function(m,grouped){
       var h=document.createElement('div');h.className='hero';
       var isTest=(m.content_type==='test');
       // 形式ピル（毎日学習/テスト配信）＋教科
@@ -1070,8 +1085,8 @@ function openHome(){
       var ic=isTest?'<i class="ti ti-flag" style="font-size:18px;color:var(--sub)"></i>':'<i class="ti ti-anchor" style="font-size:18px;color:var(--sub)"></i>';
       h.innerHTML='<div class="ring"><svg width="60" height="60"><circle cx="30" cy="30" r="25" fill="none" stroke="var(--ring-track)" stroke-width="6"></circle><circle cx="30" cy="30" r="25" fill="none" stroke="'+ringStroke+'" stroke-width="6" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157" class="ringfg"></circle></svg><div class="pct">'+ic+'</div></div>'
         +'<div style="flex:1;min-width:0;"><div class="htop">'+fmtPill+subj+lapPill+'</div>'
-        +'<div class="course">'+esc(m.material_title)+'</div>'
-        +(partLine?'<div class="list">'+partLine+'</div>':'')
+        +'<div class="course">'+(grouped?esc(_chapShort(m.material_title)):esc(m.material_title))+'</div>'
+        +(partLine?'<div class="list">'+(grouped?'<span class="here">いまここ</span>':'')+partLine+'</div>':'')
         +'<div class="cta">はじめる <i class="ti ti-arrow-right"></i></div></div>';
       // テスト配信：リング＝直近の正規セッションの正解数/全問（機能仕様書_テスト配信 §3-4・2026-07-04）
       if(isTest&&m.last_total>0){var off=157*(1-Math.min(1,m.last_correct/m.last_total));h.querySelector('.ringfg').style.strokeDashoffset=off;} // リング縮小 207→157 2026-07-05
@@ -1103,7 +1118,13 @@ function openHome(){
         h.onclick=function(){startPractice(m.part_id);};
       }
       $('main-list').appendChild(h);
-    });}
+    };
+    // 教材(シリーズ)でグループ化：本名は見出しに1回だけ・カードは章が主役（川上さん承認 2026-07-22）
+    var _grps=[],_gm={},_ng=[];
+    cards.forEach(function(m){var sk=_mSeries(m.material_title);if(sk){if(!_gm[sk.k]){_gm[sk.k]={fb:sk.label,items:[]};_grps.push(_gm[sk.k]);}_gm[sk.k].items.push(m);}else{_ng.push(m);}});
+    _grps.forEach(function(g){var un=g.items.filter(function(m){return !m.cleared_today;}).length;var lab=_bookPrefix(g.items[0].material_title)||g.fb;var sh=document.createElement('div');sh.className='shead';sh.innerHTML='<div class="snm">'+esc(lab)+'</div><div class="smeta">'+(un?('のこり'+un+'章'):'きょうは完了')+'</div>';$('main-list').appendChild(sh);g.items.forEach(function(m){_rc(m,true);});});
+    _ng.forEach(function(m){_rc(m,false);});
+    }
     /* 連続日数のヘッダー表示は loadBadges 内で更新する（studentHome は streak を返していない。
        ヘッダーが常に0日のままだった潜在バグの修正・2026-07-05発見） */
   });
