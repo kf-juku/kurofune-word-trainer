@@ -333,9 +333,6 @@
   .ex-next{flex:1;background:var(--accent);color:#fff;border:0;border-radius:13px;padding:14px;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;cursor:pointer;position:relative;overflow:hidden;}
   .ex-next i{font-size:19px;}
   .ex-next.waiting{background:var(--ring-track);color:var(--sub);cursor:default;}
-  .ex-next .ex-fill{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--accent);border-radius:2px;}
-  .ex-next.waiting .ex-fill{animation:exfill 1s linear forwards;}
-  @keyframes exfill{from{width:0}to{width:100%}}
   .ex-report{flex:none;background:#fff;color:var(--ng);border:1.5px solid var(--ng);border-radius:13px;padding:0 13px;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;cursor:pointer;line-height:1.2;}
   .prog>i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s;}
   .word-en{font-size:42px;font-weight:700;text-align:center;letter-spacing:-.01em;margin:14px 0 4px;}
@@ -670,7 +667,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="ex-kai" id="ex-kai"></div>
         <div class="ex-fig" id="ex-img" style="display:none;"></div>
         <div class="ex-actions">
-          <button type="button" class="ex-next" id="ex-next"><i class="ti ti-hand-finger"></i> つぎへ<span class="ex-fill"></span></button>
+          <button type="button" class="ex-next" id="ex-next"><i class="ti ti-hand-finger"></i> つぎへ</button>
           <button type="button" class="ex-report" id="ex-report" onclick="openBugFromExplain()"><i class="ti ti-message-report"></i> まちがい報告</button>
         </div>
       </div>
@@ -1838,10 +1835,9 @@ function waitTap(next,ok){
   function go(){if(done)return;done=true;hideExplain();next();}
   if(!btn){setTimeout(function(){var s=$('scr-practice');if(s)s.addEventListener('click',go,{once:true,capture:true});},80);return;}
   btn.onclick=function(){if(btn.disabled)return;go();};
-  if(ok===false){ // 不正解＝1秒の"読む間"（解説を読ませてから次へ）2026-07-16
-    btn.disabled=true;btn.classList.add('waiting');
-    setTimeout(function(){btn.disabled=false;btn.classList.remove('waiting');},1000);
-  }else{ btn.disabled=false;btn.classList.remove('waiting'); } // 正解＝すぐ押せる
+  var _wms=(ok===false)?2500:1000; // 不正解＝2.5秒／正解＝1秒の"読む間"（解説を読ませてから次へ）2026-07-22。カウントメーターは廃止しグレーアウトのみ
+  btn.disabled=true;btn.classList.add('waiting');
+  setTimeout(function(){btn.disabled=false;btn.classList.remove('waiting');},_wms);
 }
 
 /* 制限時間バー（案C・2026-07-04）：残り割合で 青→黄→赤・残り秒数を表示。0で onEnd。 */
