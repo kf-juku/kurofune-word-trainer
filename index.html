@@ -375,10 +375,10 @@
   .combo.show{animation:comboPop .8s ease-out;}
   @keyframes comboPop{0%{opacity:0;transform:translateX(-50%) scale(.5);}30%{opacity:1;transform:translateX(-50%) scale(1.15);}100%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(1);}}
   /* 間違いノート：卒業ポップ（解答中・中央）＋卒業単語カード（採点後）2026-07-13 */
-  .gradpop{position:fixed;top:34%;left:50%;transform:translateX(-50%) scale(.6);opacity:0;z-index:65;pointer-events:none;background:linear-gradient(135deg,var(--gold),#a9842f);color:#fff;border-radius:18px;padding:14px 22px;box-shadow:0 10px 30px rgba(202,162,74,.45);text-align:center;white-space:nowrap;}
+  .gradpop{position:fixed;top:34%;left:50%;transform:translateX(-50%) scale(.6);opacity:0;z-index:65;pointer-events:none;background:linear-gradient(135deg,var(--gold),#a9842f);color:#fff;border-radius:18px;padding:14px 22px;box-shadow:0 10px 30px rgba(202,162,74,.45);text-align:center;white-space:normal;max-width:min(340px,calc(100vw - 44px));box-sizing:border-box;} /* 長い用語でも画面からはみ出さない：折り返し可＋最大幅（拡大アニメのピークscale1.1でもはみ出さない幅）2026-07-23 */
   .gradpop.show{animation:gradPop 1.25s cubic-bezier(.2,1.3,.4,1) forwards;}
   .gradpop .gp-em{font-size:26px;line-height:1;}
-  .gradpop .gp-w{font-size:19px;font-weight:800;margin-top:3px;font-family:'Manrope';}
+  .gradpop .gp-w{font-size:19px;font-weight:800;margin-top:3px;font-family:'Manrope';line-height:1.35;word-break:break-word;overflow-wrap:anywhere;}
   .gradpop .gp-ja{font-size:13px;font-weight:600;opacity:.92;margin-left:3px;font-family:'Noto Sans JP';}
   .gradpop .gp-l{font-size:12px;font-weight:700;opacity:.95;margin-top:1px;}
   @keyframes gradPop{0%{opacity:0;transform:translateX(-50%) scale(.6);}15%{opacity:1;transform:translateX(-50%) scale(1.1);}30%{transform:translateX(-50%) scale(1);}80%{opacity:1;transform:translateX(-50%) scale(1);}100%{opacity:0;transform:translateX(-50%) translateY(-24px) scale(.95);}}
@@ -2133,7 +2133,8 @@ function renderNoteStep(){hideQTimer();
   }else if(s.step===3){
     $('j2e-label').textContent=(s.subject!=='english')?'用語を選ぼう':'英語を選ぼう';
     $('j2e-ja').textContent=w.japanese;
-    buildNoteChoices('j2e-choices',w.english,w.wrong_choices_en,function(ok){
+    var _qn3=tfParse(w),_nwEn=(_qn3&&_qn3.choices&&_qn3.choices.length)?_qn3.choices.filter(function(x){return x!==w.english;}):w.wrong_choices_en; // 選択肢は教材のqdata.choices優先（同カテゴリ）、無ければ同パート誤答（サーバー）2026-07-23
+    buildNoteChoices('j2e-choices',w.english,_nwEn,function(ok){
       if(!ok)s.wordOK=false;
     },{kaisetsu:w.kaisetsu,reading:(s.subject!=='english'?w.reading_hint:''),promptText:w.japanese,next:function(){submitNoteWord();}});
     $('step-j2e').style.display='block';
@@ -2303,16 +2304,17 @@ function renderSrsStep(){
   var _tl=qSecFor(s.subject||'english'); // 自動反復にも制限時間（2026-07-04）
   if(s.step===2){
     $('e2j-en').textContent=w.english;
-    buildChoices('e2j-choices',w.japanese,pool.map(function(x){return x.japanese;}),function(ok){
+    buildChoices('e2j-choices',w.japanese,((w.wrong_choices_ja&&w.wrong_choices_ja.length)?w.wrong_choices_ja:pool.map(function(x){return x.japanese;})),function(ok){ // 誤答は同パート（サーバー）優先。無ければ寄せ集めpool 2026-07-23
       if(!ok)s.wordOK=false;
     },{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderSrsStep();}});
     $('step-e2j').style.display='block';
   }else if(s.step===3){
     $('j2e-label').textContent='英語を選ぼう'; // ラベル残留防止（自動反復は英語のみ）2026-07-04
     $('j2e-ja').textContent=w.japanese;
-    buildChoices('j2e-choices',w.english,pool.map(function(x){return x.english;}),function(ok){
+    var _qs3=tfParse(w),_sfx=(_qs3&&_qs3.choices&&_qs3.choices.length)?_qs3.choices:null; // 教材のqdata.choices優先（同カテゴリ）2026-07-23
+    buildChoices('j2e-choices',w.english,(_sfx?[]:((w.wrong_choices_en&&w.wrong_choices_en.length)?w.wrong_choices_en:pool.map(function(x){return x.english;}))),function(ok){
       if(!ok)s.wordOK=false;
-    },{timeLimit:_tl,kaisetsu:w.kaisetsu,promptText:w.japanese,next:function(){submitSrsWord();}});
+    },{timeLimit:_tl,kaisetsu:w.kaisetsu,promptText:w.japanese,fixedChoices:_sfx,next:function(){submitSrsWord();}});
     $('step-j2e').style.display='block';
   }
 }
