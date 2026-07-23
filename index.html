@@ -1499,14 +1499,15 @@ function flyToAvatar(btn,row,type){
 $('btn-home').onclick=openHome;
 
 function startPractice(listId){showPracticeLoading_();combo=0;$('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromReview;startPractice(session.listId);}};$('btn-retry').style.display='flex';$('btn-next').style.display='none';
+  try{ call({action:'activity_start',part_id:listId}); }catch(e){} /* リアルタイムモード：開始シグナルを先読みに依存せず確実に飛ばす（毎日学習/単元別の解き始め捕捉）2026-07-22 */
   var _pf=_prefetch[listId]; /* 先読みD：取得済みなら即開始・取得中なら続きを待つだけ（使ったら破棄）2026-07-05 */
   if(_pf){delete _prefetch[listId];
     Promise.resolve(_pf).then(function(d){
       if(d&&d.ok){_startPracticeWith_(listId,d);}
-      else{call({action:'student_today',part_id:listId}).then(function(d2){_startPracticeWith_(listId,d2);});}
+      else{call({action:'student_today',part_id:listId,start:1}).then(function(d2){_startPracticeWith_(listId,d2);});}
     });
     return;}
-  call({action:'student_today',part_id:listId}).then(function(d){_startPracticeWith_(listId,d);});}
+  call({action:'student_today',part_id:listId,start:1}).then(function(d){_startPracticeWith_(listId,d);});}
 function _startPracticeWith_(listId,d){if(!d.ok){toast(d.error||'読み込み失敗');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
 session={listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now()};session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});renderStep();}
