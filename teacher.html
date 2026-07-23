@@ -169,6 +169,19 @@
   th.gcol,td.gcol{border-left:2px solid var(--border);}
   .mchip .mtop{display:inline-flex;align-items:center;gap:5px;}
   .mchip .mbot{font-size:10px;font-weight:600;color:var(--text-muted);}
+  /* 教材と進み：フォルダ型（本のまとめ＝見出しバー／中の章＝インデント行）2026-07-23 */
+  .mfold{display:inline-block;vertical-align:top;border:1px solid #dbe2ec;border-radius:12px;margin:2px 6px 2px 0;background:#fff;overflow:hidden;min-width:200px;max-width:330px;box-shadow:0 1px 2px rgba(0,0,0,.05);}
+  .mfold-h{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#f2f5f9;cursor:pointer;font-weight:800;font-size:11.5px;border-left:4px solid #1f9d57;}
+  .mfold-h .fcount{font-weight:700;color:#5a6a7e;font-size:10.5px;}
+  .mfold-h .fcaret{margin-left:auto;color:#8a97a6;font-weight:700;font-size:10.5px;white-space:nowrap;}
+  .mfold-b{padding:3px 10px 6px 12px;margin:3px 0 5px 12px;border-left:2px solid #e5ebf3;}
+  .chrow{display:flex;align-items:center;gap:7px;padding:3px 2px;font-size:11px;border-bottom:1px dotted #eef1f5;cursor:pointer;}
+  .chrow:last-child{border-bottom:none;}
+  .chrow:hover{background:#f7fafc;}
+  .chrow .cdot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .chrow .cnm{font-weight:700;color:#1f2a37;}
+  .chrow .chere{color:#8a97a6;font-size:10px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .chrow .cacc{font-weight:800;width:50px;text-align:right;}
   .sdm-list{display:flex;flex-direction:column;gap:6px;margin:6px 0;}
   .sdm-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;}
   .sdm-t{flex:1;font-weight:700;font-size:12.5px;min-width:0;}
@@ -543,6 +556,7 @@
   .ptrow.ptnone{color:var(--text-light);font-size:11px;}
   .ptn{flex:1;}
   .pta{font-weight:700;width:44px;text-align:right;}
+  .ptdate{font-size:11px;color:#8a97a6;white-space:nowrap;} /* やった日 2026-07-23 */
   .pst{font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;width:52px;text-align:center;flex:none;}
   .pst-pass{background:#e6f6ee;color:#14663a;}
   .pst-try{background:#fdf3dd;color:#8a5e08;}
@@ -1053,7 +1067,7 @@
 
 <!-- 生徒 個人詳細モーダル（item5・2026-07-07） -->
 <div class="modal-back" id="studentModal">
-  <div class="modal" style="max-width:920px;max-height:86vh;overflow-y:auto;">
+  <div class="modal" style="max-width:min(1200px,96vw);width:min(1200px,96vw);max-height:92vh;overflow-y:auto;">
     <div id="sdBody"></div>
   </div>
 </div>
@@ -1335,11 +1349,14 @@ function matViewCell(s){
   order.forEach(function(k){
     var g=groups[k];
     if(g.items.length===1){ out+=_mChipHtml(g.items[0]); return; }
-    var wc=_mWorst(g.items); var gid='mg_'+sid+'_'+k;
-    out+='<span class="mchip mgroup '+wc+'" title="クリックで各章を開閉" onclick="event.stopPropagation();mGroupToggle(\''+gid+'\',this)"><span class="mtop"><span class="mdot"></span>'+esc(g.label)+'</span><span class="mbot">'+g.items.length+'教材 ▾ 展開</span></span>';
-    out+='<span id="'+gid+'" class="mg-more" style="display:none;">';
-    g.items.forEach(function(m){out+=_mChipHtml(m, true);}); /* シリーズ内の子は章だけ表示（本名は見出しに1回・原則13）2026-07-23 */
-    out+='</span>';
+    var col=_worstColorOf(g.items); var gid='mf_'+sid+'_'+k;
+    out+='<span class="mfold">'
+      +'<span class="mfold-h" style="border-left-color:'+col+'" title="クリックで章を開閉" onclick="event.stopPropagation();mFoldToggle(\''+gid+'\',this)"><span class="fic">📚</span><span class="fbk">'+esc(g.label)+'</span><span class="fcount">・'+g.items.length+'教材</span><span class="fcaret">▾ ひらく</span></span>'
+      +'<span id="'+gid+'" class="mfold-b" style="display:none;">'
+      +g.items.map(function(m){ var isNa=(m.acc===''||m.acc==null), c=_accColor(m.acc);
+          return '<span class="chrow" title="クリックで教材ごとの名簿へ" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="cdot" style="background:'+c+'"></span><span class="cnm">'+esc(mtShort(m))+'</span><span class="chere">→'+esc(m.here||'-')+'</span><span class="cacc" style="color:'+c+'">'+(isNa?'未評価':m.acc+'%')+'</span></span>'; }).join('')
+      +'</span>'
+    +'</span>'; /* フォルダ型：本のまとめ＝見出しバー／中の章＝インデント行 2026-07-23（川上さん承認） */
   });
   if(na.length){
     var nid='na_'+sid;
@@ -1351,6 +1368,10 @@ function matViewCell(s){
   return out;
 }
 function mGroupToggle(id,btn){var el=document.getElementById(id);if(!el)return;var open=el.style.display==='none';el.style.display=open?'inline':'none';var b=btn.querySelector('.mbot');if(b)b.textContent=b.textContent.replace(/(▾ 展開|▴ 閉じる)/, open?'▴ 閉じる':'▾ 展開');}
+/* フォルダ型（案A・2026-07-23）：色ヘルパ＋開閉 */
+function _accColor(acc){var isNa=(acc===''||acc==null);return isNa?'#c3cbd6':(acc<_needHelpRate?'#d64545':(acc<80?'#c98a12':'#1f9d57'));}
+function _worstColorOf(items){var lo=false,mi=false,hi=false;items.forEach(function(m){var a=m.acc;if(a===''||a==null)return;if(a<_needHelpRate)lo=true;else if(a<80)mi=true;else hi=true;});return lo?'#d64545':(mi?'#c98a12':(hi?'#1f9d57':'#c3cbd6'));}
+function mFoldToggle(id,btn){var el=document.getElementById(id);if(!el)return;var open=el.style.display==='none';el.style.display=open?'block':'none';var c=btn.querySelector('.fcaret');if(c)c.textContent=open?'▴ とじる':'▾ ひらく';}
 function gearBtn(s){return '<button class="asg-btn" onclick="openAssign('+"'"+esc(String(s.student_id))+"'"+')">⚙ 教材</button>';}
 function retentionCell2(s){
   var r=s.retention||{green:0,yellow:0,blue:0,red:0};
@@ -1437,7 +1458,8 @@ function partsBlock(mv){if(!mv.length)return '<div style="font-size:12px;color:v
     var rows=shown.map(function(p){
       var wk=(p.status==='try'&&p.acc!=null&&p.acc<_needHelpRate);
       var st=p.status==='pass'?'<span class="pst pst-pass">合格</span>':'<span class="pst '+(wk?'pst-tryw':'pst-try')+'">挑戦中</span>';
-      return '<div class="ptrow'+(wk?' ptw':'')+'"><span class="ptn">'+esc(p.name||'')+'</span><span class="pta" style="color:'+col(p.acc)+'">'+(p.acc==null?'–':p.acc+'%')+'</span>'+st+'</div>';
+      var dt=p.last?('<span class="ptdate" title="最後にやった日">'+esc(String(p.last).replace(/^\d{4}-0?(\d+)-0?(\d+).*$/,'$1/$2'))+'</span>'):'';
+      return '<div class="ptrow'+(wk?' ptw':'')+'"><span class="ptn">'+esc(p.name||'')+'</span>'+dt+'<span class="pta" style="color:'+col(p.acc)+'">'+(p.acc==null?'–':p.acc+'%')+'</span>'+st+'</div>';
     }).join('');
     if(!shown.length)rows='<div class="t-sub" style="padding:4px 6px;">まだ挑戦したパートはありません</div>';
     var noneRow=noneN>0?'<div class="ptrow ptnone"><span class="ptn">ほか '+noneN+' パート未挑戦</span></div>':'';
