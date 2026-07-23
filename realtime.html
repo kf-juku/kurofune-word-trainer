@@ -205,13 +205,15 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .p-miss{columns:2;column-gap:18px;font-size:11px;}
 .p-miss .mi{break-inside:avoid;display:flex;gap:6px;padding:2px 0;border-bottom:1px dotted var(--border);}
 .p-miss .mi .e{font-weight:800;color:var(--crimson-dark);min-width:78px;}
+.p-miss .mi-fig{display:block;max-width:100%;max-height:36mm;margin-top:3px;border:1px solid #bbb;border-radius:3px;} /* 図問題の設問画像（印刷）2026-07-23 */
 .p-none{color:var(--green-dark);font-weight:700;font-size:12px;}
 @media print{
   body{background:#fff;}
   .win,#pop,.ov,.print-bar{display:none!important;}
   .print-ov{position:static;background:#fff;overflow:visible;}
   .print-sheets{padding:0;gap:0;}
-  .p-sheet{box-shadow:none;border-radius:0;width:100%;padding:10mm 12mm;page-break-after:always;}
+  .p-sheet{box-shadow:none;border-radius:0;width:100%;padding:10mm 12mm;page-break-before:right;}
+  .p-sheet:first-child{page-break-before:auto;}  /* 両面印刷：生徒ごとに新しい紙のオモテ＝奇数ページから（要指導の印刷と同じ）2026-07-23 */
 }
 @media(max-width:640px){
   .lane-name{width:104px;}
@@ -422,18 +424,21 @@ function render(){
     var vis=visLanes(st);
     var since=now()-vis[0].startAt;
     var hasLow=vis.some(function(l){return l.status==='done'&&l.kind!=='prog'&&l.rate!=null&&l.rate<60;});
-    // ② 本名（メキメキ合格ノート…）と、同じ章が続くなら章も、レーン左に1回だけまとめる。カードはパートを主役に。
-    //    章が混ざるレーンだけカードに章を出す／本が混ざるレーンだけカードに本名を出す。
+    // ② レーンで同じ本・章が続くうちはコンパクト（パートだけ）。本や章が変わった「その1枚目」だけ本名/章名をフルで出す。
+    //    ＝混ざっても全カードが長くならない（川上さん 2026-07-23）。全カード同一なら本名・章名はレーン左に1回だけ。
     var books=vis.map(function(l){return l.book||'';});
     var chaps=vis.map(function(l){return l.mat||'';});
     var uniB=books.every(function(b){return b===books[0];});
     var uniC=chaps.every(function(c){return c===chaps[0];});
     var laneBook=(uniB&&books[0])?books[0]:'';
     var laneChap=(uniC&&chaps[0])?chaps[0]:'';
-    var cardBody=function(l){
-      var bk=(!uniB&&l.book)?('<span class="tc-bk">'+l.book+'</span> '):'';
-      if(!uniC){ return '<div class="tc-mat">'+bk+l.mat+'</div>'+(l.part?'<span class="tc-part">'+l.part+'</span>':''); }
-      return '<div class="tc-mat">'+bk+(l.part||l.mat)+'</div>';  // 章はレーンにまとめ済み＝カードはパートを主役に
+    var cardBody=function(l,i){
+      var prevB=i>0?books[i-1]:null, prevC=i>0?chaps[i-1]:null;
+      var showBook=(!uniB)&&((i===0)||(books[i]!==prevB));            // 本が変わった1枚目だけ本名
+      var showChap=(!uniC)&&((i===0)||(chaps[i]!==prevC)||showBook);   // 章が変わった1枚目だけ章名（本が変われば章も）
+      var bk=(showBook&&l.book)?('<span class="tc-bk">'+l.book+'</span> '):'';
+      if(showChap){ return '<div class="tc-mat">'+bk+l.mat+'</div>'+(l.part?'<span class="tc-part">'+l.part+'</span>':''); }
+      return '<div class="tc-mat">'+bk+(l.part||l.mat)+'</div>';       // 続き＝パート主役
     };
     html+='<div class="lane'+(hasLow?' haslow':'')+'" id="lane-'+st.info.id+'">';
     html+='<div class="lane-name '+rm+'"><div class="ln-name">'+(st.info.name||st.info.nick)+'</div>'
@@ -453,22 +458,22 @@ function render(){
       var ty='<span class="tc-type '+TYPES[l.type].cls+'">'+TYPES[l.type].label+'</span>';
       if(l.kind==='prog' && l.status!=='doing'){ // おさらい・間違いノート＝別学習に進んで終了（◯問で確定）
         html+='<div class="tcard prog-end clk'+pop+'" data-lid="'+l.id+'"><div class="tc-now end">終了</div>'+ty
-            +cardBody(l)
+            +cardBody(l,i)
             +'<div class="tc-foot"><span class="qcount">'+l.answered+'問</span><span class="qcor">正解'+l.correct+'</span></div></div>';
       }else if(l.status==='doing'){
         var stEl=now()-(l.updatedAt||l.startAt);   // 反応なし判定（おさらい/ノートは最終解答からの経過）
         var el=now()-l.startAt;                      // 解き中タイマー（開始からの経過）
         if(stEl>=STALE_SEC){ // 反応なし＝灰色
           html+='<div class="tcard doing stale clk" data-lid="'+l.id+'">'+ty
-              +cardBody(l)
+              +cardBody(l,i)
               +'<div class="tc-foot"><span class="noresp"><span class="zz"></span>'+Math.max(1,Math.floor(stEl/60))+'分 反応なし</span></div></div>';
         }else if(l.kind==='prog'){ // おさらい・間違いノート＝◯問カウント（点数なし）
           html+='<div class="tcard doing clk'+pop+'" data-lid="'+l.id+'"><div class="tc-now">解答中</div>'+ty
-              +cardBody(l)
+              +cardBody(l,i)
               +'<div class="tc-foot"><span class="qcount">'+l.answered+'問</span><span class="qcor">正解'+l.correct+'</span></div></div>';
         }else{ // 確認テスト・毎日学習・単元別＝タイマー
           html+='<div class="tcard doing clk'+pop+'" data-lid="'+l.id+'"><div class="tc-now">いま解き中</div>'+ty
-              +cardBody(l)
+              +cardBody(l,i)
               +'<div class="tc-foot"><span class="timer" data-start="'+l.startAt+'"><span class="tk"></span>'+fmt(el)+'</span></div></div>';
         }
       }else{
@@ -476,7 +481,7 @@ function render(){
         var nm=l.missed.length;
         var flash=(fresh?' flashd':'');
         html+='<div class="tcard clk'+pop+flash+(c==='r'?' low':'')+'" data-lid="'+l.id+'">'+ty
-            +cardBody(l)
+            +cardBody(l,i)
             +'<div class="tc-foot"><span class="rate '+c+'">'+l.rate+'%</span>'
             +'<span class="rate-pill '+c+'">'+(c==='g'?'合格':(c==='a'?'あと少し':'要フォロー'))+'</span></div>'
             +'<div class="tc-hint">'+(nm?'ミス'+nm+'問 ▸':'全問正解')+'</div></div>';
@@ -556,7 +561,7 @@ function openPrint(){
     var miss=[]; done.forEach(function(l){ l.missed.forEach(function(m){ miss.push(m); }); });
     html+='<div class="p-sec">まちがえた問題（'+miss.length+'問）</div>';
     if(miss.length===0){ html+='<div class="p-none">✓ まちがいはありませんでした</div>'; }
-    else{ html+='<div class="p-miss">'+miss.map(function(m){return '<div class="mi"><span class="e">'+m.en+'</span><span class="j">'+m.ja+'</span></div>';}).join('')+'</div>'; }
+    else{ html+='<div class="p-miss">'+miss.map(function(m){var fg=m.fig?'<img class="mi-fig" src="'+m.fig+'" onerror="this.style.display=\'none\'">':'';return '<div class="mi"><span class="e">'+m.en+'</span><span class="j">'+m.ja+fg+'</span></div>';}).join('')+'</div>'; }
     html+='</div>';
   });
   document.getElementById('printSheets').innerHTML=html||'<div style="padding:40px;color:#64748b;">印刷できる記録がありません。</div>';

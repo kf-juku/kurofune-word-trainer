@@ -193,6 +193,7 @@
   .print-sub{font-size:12px;color:#333;margin-bottom:12px;}
   .print-item{display:flex;border:1px solid #999;border-radius:6px;margin-bottom:6px;overflow:hidden;page-break-inside:avoid;}
   .pi-q{width:45%;padding:7px 10px;font-size:15px;font-weight:700;border-right:1px dashed #999;}
+  .pi-fig img{display:block;max-width:100%;max-height:42mm;margin-top:5px;border:1px solid #bbb;border-radius:4px;} /* 図問題の設問画像（印刷）2026-07-23 */
   .pi-a{width:55%;padding:7px 10px;}
   .pi-ans{font-size:14px;font-weight:700;}
   .pi-r{font-size:12px;color:#555;margin-top:2px;}
@@ -1276,7 +1277,8 @@ function runPrint_(ids,scope,days,limit){
           var isEn=(String(it.subject||'')==='english');
           var q=isEn?(it.english||''):(it.japanese||'');
           var a=isEn?(it.japanese||''):(it.english||'');
-          html+='<div class="print-item"><div class="pi-q">'+(idx+1)+'. '+esc(q)+'</div>';
+          var figH=it.fig?('<div class="pi-fig"><img src="'+esc(it.fig)+'" onerror="this.style.display=\'none\'"></div>'):''; /* 図問題は設問の図も印刷 2026-07-23 */
+          html+='<div class="print-item"><div class="pi-q">'+(idx+1)+'. '+esc(q)+figH+'</div>';
           html+='<div class="pi-a"><div class="pi-ans">'+esc(a)+'</div>';
           if(it.reading_hint)html+='<div class="pi-r">読み方：'+esc(it.reading_hint)+'</div>';
           if(it.kaisetsu)html+='<div class="pi-k">覚え方：'+esc(it.kaisetsu)+'</div>';
