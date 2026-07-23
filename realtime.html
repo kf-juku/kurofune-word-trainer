@@ -316,6 +316,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 </div>
 
 <script>
+/* 教材名アクセサ（唯一の使い口）2026-07-23：サーバー(quiz_live→enrichTitles_)の整形フィールドを表示。生タイトルを直接描画しない。 */
+function mtLabelMt(o){ if(!o) return ''; return (o.series_key&&o.series_label)?(o.series_label+' '+(o.material_short||'')):(o.material_title||''); }
 var _idx={};   // カードid → {lane, student}
 // ====== 本番データ（GAS quiz_live をポーリング） ======
 var GAS_URL=(window.opener&&window.opener.GAS_URL)||((new URLSearchParams(location.search)).get('gas')||'');
@@ -354,7 +356,7 @@ function mapLive(d){
       if(!(eid in _entrySeen)) fresh=(e.status==='doing' && e.kind!=='prog');
       else if(_entrySeen[eid]!=='done' && e.status==='done') fresh=true;
       _entrySeen[eid]=e.status;
-      return { id:eid, type:(e.type||'quiz'), kind:(e.kind||''), mat:e.material_title||'', part:e.part_title||'', subject:e.subject||'',
+      return { id:eid, type:(e.type||'quiz'), kind:(e.kind||''), mat:mtLabelMt(e), part:e.part_title||'', subject:e.subject||'',
         status:e.status, startAt:Math.floor((e.start_ts+serverSkew)/1000), updatedAt:Math.floor(((e.updated_ts||e.start_ts)+serverSkew)/1000),
         rate:(e.rate==null?null:e.rate), correct:(e.correct==null?0:e.correct), total:(e.total==null?0:e.total), answered:(e.answered==null?0:e.answered),
         missed:(e.missed_words||[]), fresh:fresh };

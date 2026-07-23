@@ -1262,16 +1262,17 @@ function matPills(s){
   var a=s.assignments;
   if(!a){return s.material?esc(s.material):'<span class="dash">未割当</span>';}
   if(!a.length)return '<span class="dash">未割当</span>';
-  var h=a.slice(0,2).map(function(m){return '<span class="mat-pill '+(m.type==='test'?'test':'daily')+'">'+esc(m.title||'(無題)')+'</span>';}).join('');
+  var h=a.slice(0,2).map(function(m){return '<span class="mat-pill '+(m.type==='test'?'test':'daily')+'">'+esc(mtLabel(m)||'(無題)')+'</span>';}).join('');
   if(a.length>2)h+='<span class="mat-pill more" title="「教材」ボタンで全件見られます">+'+(a.length-2)+'</span>';
   return h;
 }
 /* 未評価の畳み（2026-07-17）：評価済みmchipは全部出し、未評価(m-na)だけ1個のまとめチップに畳む（クリックで展開＝内容は消さない） */
-function _mChipHtml(m){
+function _mChipHtml(m, short){
   var acc=m.acc; var isNa=(acc===''||acc==null);
   var cls=isNa?'m-na':(acc<_needHelpRate?'m-low':(acc<80?'m-mid':'m-hi'));
   var pron=(m.subject==='english')?(' <span style="opacity:.75;font-size:10px;">🔊'+(m.pron==='o'?'○':(m.pron==='t'?'△':'–'))+'</span>'):'';
-  return '<span class="mchip '+cls+'" title="クリックで教材ごとの名簿へ" style="cursor:pointer;" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="mtop"><span class="mdot"></span>'+esc(m.title)+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+(isNa?'未評価':acc+'%')+pron+'</span></span>';
+  var disp=short?mtShort(m):mtLabel(m); /* シリーズ内の子は章だけ／単独チップはシリーズ名+章に圧縮（生タイトルを描画しない）2026-07-23 */
+  return '<span class="mchip '+cls+'" title="クリックで教材ごとの名簿へ" style="cursor:pointer;" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="mtop"><span class="mdot"></span>'+esc(disp)+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+(isNa?'未評価':acc+'%')+pron+'</span></span>';
 }
 /* 同じシリーズの教材はまとめて折りたたむ（2026-07-18 川上さん承認）。判定＝タイトルで分類。 */
 function _mSeries(t){t=String(t||'');
@@ -1301,7 +1302,7 @@ function matViewCell(s){
     var wc=_mWorst(g.items); var gid='mg_'+sid+'_'+k;
     out+='<span class="mchip mgroup '+wc+'" title="クリックで各章を開閉" onclick="event.stopPropagation();mGroupToggle(\''+gid+'\',this)"><span class="mtop"><span class="mdot"></span>'+esc(g.label)+'</span><span class="mbot">'+g.items.length+'教材 ▾ 展開</span></span>';
     out+='<span id="'+gid+'" class="mg-more" style="display:none;">';
-    g.items.forEach(function(m){out+=_mChipHtml(m);});
+    g.items.forEach(function(m){out+=_mChipHtml(m, true);}); /* シリーズ内の子は章だけ表示（本名は見出しに1回・原則13）2026-07-23 */
     out+='</span>';
   });
   if(na.length){
@@ -1404,7 +1405,7 @@ function partsBlock(mv){if(!mv.length)return '<div style="font-size:12px;color:v
     }).join('');
     if(!shown.length)rows='<div class="t-sub" style="padding:4px 6px;">まだ挑戦したパートはありません</div>';
     var noneRow=noneN>0?'<div class="ptrow ptnone"><span class="ptn">ほか '+noneN+' パート未挑戦</span></div>':'';
-    return '<div class="ptblk"><div class="ptmat"><span class="ptdot" style="background:'+col(m.acc)+'"></span>'+esc(m.title)+'</div>'+rows+noneRow+'</div>';
+    return '<div class="ptblk"><div class="ptmat"><span class="ptdot" style="background:'+col(m.acc)+'"></span>'+esc(mtLabel(m))+'</div>'+rows+noneRow+'</div>';
   }).join('');
 }
 function openStudentDetail(sid){
@@ -1414,7 +1415,7 @@ function openStudentDetail(sid){
   var needBadge=needsHelp(s)?'<span class="badge b-red" style="margin-left:8px;">要指導</span>':'';
   var mv=s.materials_view||[];
   var pm=s.past_materials||[];
-  var pastHtml=pm.length?('<details class="sd-fold"><summary>過去にやった教材（'+pm.length+'）</summary><div style="margin-top:6px;">'+pm.map(function(x){return '<div class="pastrow">'+esc(x.title)+' <span class="t-sub">最終 '+esc(x.last||'')+'</span></div>';}).join('')+'</div></details>'):'';
+  var pastHtml=pm.length?('<details class="sd-fold"><summary>過去にやった教材（'+pm.length+'）</summary><div style="margin-top:6px;">'+pm.map(function(x){return '<div class="pastrow">'+esc(mtLabel(x))+' <span class="t-sub">最終 '+esc(x.last||'')+'</span></div>';}).join('')+'</div></details>'):'';
   $('sdBody').innerHTML=''
     +'<div class="sd-head"><div><div class="sd-name">'+esc(s.name||'(無名)')+(s.nickname?' <span style="font-size:12px;font-weight:600;color:var(--text-light);">'+esc(s.nickname)+'</span>':'')+needBadge+'</div><div class="sd-chips">'+chips+'</div></div><span style="flex:1;"></span><button id="sdClose1" class="btn-ghost" style="border:none;font-size:18px;padding:2px 9px;">×</button></div>'
     +naDetailBlock(s)
@@ -1647,8 +1648,22 @@ function _holdersMap(){
 function _bookPrefix(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>0)return t.slice(0,i).replace(/\s+$/,'');}return '';}
 function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;return t;}
 function _chapNum(t){t=String(t||'');var m=t.match(/([0-9０-９]+)\s*章/);if(!m)return 99999;var n=m[1].replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});return parseInt(n,10);}
-function _bookKey(m){var s=_mSeries(m.title);return s?('S:'+s.k):('M:'+String(m.title||''));}
-function _bookLabel(m){var s=_mSeries(m.title);var bp=_bookPrefix(m.title);return s?(bp||s.label):(bp||String(m.title||''));}
+function _bookKey(m){var k=mtSeriesKey(m);return k?('S:'+k):('M:'+String(m.title||''));}
+function _bookLabel(m){return mtSeriesLabel(m);}
+/* ===== 教材名アクセサ（唯一の使い口）2026-07-23 =====
+   サーバー(res→enrichTitles_)が付けた整形フィールドを優先。無ければ従来ヘルパにフォールバック。
+   画面は生タイトル(.title/.material_title)を直接描画せず、必ず mt*() を通す。新画面もこれだけ。 */
+function mtShort(m){return !m?'':(m.short||_chapShort(m.title||'')||m.title||'');}
+function mtBook(m){return !m?'':(m.book||_bookPrefix(m.title||'')||m.title||'');}
+function mtSeriesKey(m){if(!m)return '';if(m.series_key!=null&&m.series_key!=='')return m.series_key;var s=_mSeries(m.title||'');return s?s.k:'';}
+function mtSeriesLabel(m){if(!m)return '';if(m.series_label)return m.series_label;var s=_mSeries(m.title||'');return s?s.label:mtBook(m);}
+function mtChapNo(m){return !m?99999:(m.chap_no!=null?m.chap_no:_chapNum(m.title||''));}
+function mtLabel(m){if(!m)return '';return mtSeriesKey(m)?(mtSeriesLabel(m)+' '+mtShort(m)):mtBook(m);}
+function mtShortMt(o){return !o?'':(o.material_short||_chapShort(o.material_title||'')||o.material_title||'');}
+function mtBookMt(o){return !o?'':(o.material_book||_bookPrefix(o.material_title||'')||o.material_title||'');}
+function mtSeriesKeyMt(o){if(!o)return '';if(o.series_key!=null&&o.series_key!=='')return o.series_key;var s=_mSeries(o.material_title||'');return s?s.k:'';}
+function mtSeriesLabelMt(o){if(!o)return '';if(o.series_label)return o.series_label;var s=_mSeries(o.material_title||'');return s?s.label:mtBookMt(o);}
+function mtLabelMt(o){if(!o)return '';return mtSeriesKeyMt(o)?(mtSeriesLabelMt(o)+' '+mtShortMt(o)):mtBookMt(o);}
 function _subjOrder(s){var o={english:1,science:2,social:3,japanese:4,math:5};return o[s]||9;}
 function _subjLabel(s){var o={english:'英語',science:'理科',social:'社会',japanese:'国語',math:'数学'};return o[s]||(s||'その他');}
 function _gradeOrder(g){var o={'中1':1,'中2':2,'中3':3,'全学年':8};return o[g]||9;}
@@ -1677,7 +1692,7 @@ function renderMatTab(){
       var _lv=_levelLabel(m.target);var _lb=_lv?('<span class="mglevel">'+_lv+'</span>'):'';
       row.innerHTML='<span class="mgpill '+(isTest?'test':'daily')+'">'+(isTest?'単元別対策':'毎日学習')+'</span>'
         +_nb
-        +'<span class="mgtitle">'+esc(_chapShort(m.title)||m.title||'(無題)')+'</span>'
+        +'<span class="mgtitle">'+esc(mtShort(m)||'(無題)')+'</span>'
         +_lb
         +'<span class="mgcount">'+hs.length+'名</span>'
         +'<span class="mgmem">'+chips+'</span>'
@@ -1710,7 +1725,7 @@ function openMatPreview(mid){
     if(!d||!d.ok){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
     var dt=d.data;
     _mpAssets=dt.assets||{};
-    $('mpTitle').textContent=esc(dt.title||'教材の中身');
+    $('mpTitle').textContent=esc(mtLabel(dt)||'教材の中身');
     var parts=dt.parts||[];
     if(!parts.length){$('mpBody').innerHTML='<div style="padding:10px;color:var(--text-muted);font-size:13px;">この教材にはまだ問題がありません。</div>';return;}
     var totalQ=parts.reduce(function(a,b){return a+(b.count||0);},0);
@@ -1932,7 +1947,7 @@ function renderQuizAtt(){
   var groups={},order=[];
   miss.forEach(function(e){var k=e.part_id;if(!groups[k]){groups[k]={title:e.part_title,mat:_matTitleOf(e.material_id)||e.material_title||'',names:[]};order.push(k);}groups[k].names.push(e.student_name);});
   var _sg={},_so=[];
-  order.forEach(function(k){var g=groups[k];var sk=_mSeries(g.mat);var key=sk?('S:'+sk.k):('M:'+g.mat);var lab=sk?(_bookPrefix(g.mat)||sk.label):(_bookPrefix(g.mat)||g.mat);var rank=sk?({sci:2,hist:3,goi:4}[sk.k]||8):8;if(!_sg[key]){_sg[key]={label:lab,rank:rank,parts:[]};_so.push(key);}_sg[key].parts.push(g);});
+  order.forEach(function(k){var g=groups[k];var sk=_mSeries(g.mat);var key=sk?('S:'+sk.k):('M:'+g.mat);var lab=sk?sk.label:g.mat;var rank=sk?({sci:2,hist:3,goi:4}[sk.k]||8):8;if(!_sg[key]){_sg[key]={label:lab,rank:rank,parts:[]};_so.push(key);}_sg[key].parts.push(g);});
   var missHtml=_so.length? _so.map(function(key,si){var sg=_sg[key];var gid='qamg'+si;
       var inner=sg.parts.map(function(g,pi){var nid=gid+'n'+pi;
         return '<div class="qa-missrow" style="margin-left:16px;"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(_chapShort(g.mat))+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';
@@ -1951,8 +1966,8 @@ function renderQuizMatSel(){
   mats.forEach(function(m){var k=_bookKey(m);if(!gm[k]){gm[k]={lab:_bookLabel(m),items:[]};grps.push(gm[k]);}gm[k].items.push(m);});
   var chip=function(m,label){return '<div class="qmtab'+(m.material_id===_quizCurMat?' on':'')+'" onclick="_quizCurMat=\''+esc(m.material_id)+'\';renderQuizMatSel();renderQuizBoard();">'+esc(label)+'</div>';};
   el.innerHTML=grps.map(function(g){
-    if(g.items.length===1){ return '<div class="qmt-group"><div class="qmt-tabs">'+chip(g.items[0],g.items[0].title)+'</div></div>'; }
-    return '<div class="qmt-group"><div class="qmt-glab">'+esc(g.lab)+'</div><div class="qmt-tabs">'+g.items.map(function(m){return chip(m,_chapShort(m.title));}).join('')+'</div></div>';
+    if(g.items.length===1){ return '<div class="qmt-group"><div class="qmt-tabs">'+chip(g.items[0],mtLabel(g.items[0]))+'</div></div>'; }
+    return '<div class="qmt-group"><div class="qmt-glab">'+esc(g.lab)+'</div><div class="qmt-tabs">'+g.items.map(function(m){return chip(m,mtShort(m));}).join('')+'</div></div>';
   }).join('');
 }
 function renderQuizBoard(){
@@ -2006,7 +2021,7 @@ var _qdMid=null,_qdSel={};
 function openQuizDeliver(mid){
   _qdMid=String(mid);
   var m=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===_qdMid)m=x;});
-  $('qdTitle').textContent='確認テストを配信：'+((m&&m.title)||'教材');
+  $('qdTitle').textContent='確認テストを配信：'+(mtLabel(m)||'教材');
   $('qdErr').textContent='';
   var init={};(_students||[]).forEach(function(s){(s.materials_view||[]).forEach(function(mm){if(String(mm.material_id)===_qdMid)init[String(s.student_id)]=1;});});
   _qdSel={};Object.keys(init).forEach(function(id){_qdSel[id]=1;});
@@ -2031,7 +2046,7 @@ function openRosterMaterial(mid){
   if(_rm&&_rm.content_type==='test'){openRosterTest(mid);return;} /* 単元別対策は2列（割当＋確認テスト配信）へ 2026-07-13 */
   _rosterMid=String(mid);
   var m=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===_rosterMid)m=x;});
-  $('rmTitle').textContent=((m&&m.title)||'教材')+' の名簿';
+  $('rmTitle').textContent=(mtLabel(m)||'教材')+' の名簿';
   $('rmErr').textContent='';
   var init={};
   (_students||[]).forEach(function(s){ (s.materials_view||[]).forEach(function(mm){ if(String(mm.material_id)===_rosterMid) init[String(s.student_id)]=1; }); });
@@ -2080,7 +2095,7 @@ function _rtVisible(){return (_students||[]).filter(_rtMatch).sort(function(a,b)
 function openRosterTest(mid){
   _rtMid=String(mid);
   var m=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===_rtMid)m=x;});
-  $('rtTitle').textContent=((m&&m.title)||'教材')+' ｜ 名簿と確認テスト配信';
+  $('rtTitle').textContent=(mtLabel(m)||'教材')+' ｜ 名簿と確認テスト配信';
   $('rtErr').textContent='';
   _rtFilt={grade:{},cls:{},school:{}};_rtSearch='';
   _rtSelA={};_rtA0={};
@@ -2576,7 +2591,7 @@ function renderBulkMaterials(){
     var isTest=(m.content_type==='test');
     var mid=String(m.id),on=!!bulkMat[mid];
     var row=document.createElement('div');row.className='bm-row';
-    row.innerHTML='<span class="bulk-cb'+(on?' on':'')+'">'+(on?'✓':'')+'</span><span class="bulk-pill '+(isTest?'test':'daily')+'">'+(isTest?'単元別対策':'毎日学習')+'</span><span style="font-weight:700;">'+esc(m.title||'(無題)')+'</span>';
+    row.innerHTML='<span class="bulk-cb'+(on?' on':'')+'">'+(on?'✓':'')+'</span><span class="bulk-pill '+(isTest?'test':'daily')+'">'+(isTest?'単元別対策':'毎日学習')+'</span><span style="font-weight:700;">'+esc(mtLabel(m)||'(無題)')+'</span>';
     row.onclick=function(){if(bulkMat[mid])delete bulkMat[mid];else{bulkMat[mid]=1;if(isTest)bulkEnsureDates(mid);}renderBulkMaterials();if(typeof tmUpdateFoot==='function')tmUpdateFoot();};
     box.appendChild(row);
   });
@@ -2606,13 +2621,13 @@ function renderBulkDeliver(){
   var gbar='<div class="bd-gbar"><span class="bd-lab">確認テスト（全教材まとめて）</span><button class="rt-qbtn" onclick="bulkDelivAll(\'new\')">未配信の子だけ配信</button><button class="rt-qbtn" onclick="bulkDelivAll(\'clear\')">配信オフ</button></div>';
   var cards=mids.map(function(mid){
     var m=bmById(mid)||{};
-    if(!bulkDelivDates[mid])return '<div class="bd-card"><div class="bd-h"><span class="bulk-pill test">単元別対策</span><b>'+esc(m.title||'')+'</b><span class="bd-sum">配信日を読み込み中…</span></div></div>';
+    if(!bulkDelivDates[mid])return '<div class="bd-card"><div class="bd-h"><span class="bulk-pill test">単元別対策</span><b>'+esc(mtLabel(m))+'</b><span class="bd-sum">配信日を読み込み中…</span></div></div>';
     var dates=bulkDelivDates[mid],dv=bulkDeliver[mid]||{};
     var onN=0,againN=0,skipN=0;
     sids.forEach(function(sid){ if(dv[sid]){onN++;if(dates[sid])againN++;} else if(dates[sid])skipN++; });
     var open=!!bulkDelivOpen[mid];
     var sum='<span class="bd-sum">配信 '+onN+'名'+(againN?'（再配信'+againN+'）':'')+' ／ 配信済みでスキップ '+skipN+'名</span>';
-    var head='<div class="bd-h"><span class="bulk-pill test">単元別対策</span><b>'+esc(m.title||'')+'</b>'+sum+'<button class="bd-toggle" onclick="bulkDelivToggleOpen(\''+mid+'\')">'+(open?'閉じる ▲':'ひらいて個別調整 ▼')+'</button></div>';
+    var head='<div class="bd-h"><span class="bulk-pill test">単元別対策</span><b>'+esc(mtLabel(m))+'</b>'+sum+'<button class="bd-toggle" onclick="bulkDelivToggleOpen(\''+mid+'\')">'+(open?'閉じる ▲':'ひらいて個別調整 ▼')+'</button></div>';
     var bodyHtml='';
     if(open){
       var quick='<div class="bd-quick"><button class="rt-qbtn" onclick="bulkDelivQuick(\''+mid+'\',\'new\')">未配信の子だけ</button><button class="rt-qbtn" onclick="bulkDelivQuick(\''+mid+'\',\'all\')">全員に配信</button><button class="rt-qbtn" onclick="bulkDelivQuick(\''+mid+'\',\'clear\')">配信オフ</button></div>';
@@ -2719,7 +2734,7 @@ function renderAssignList(){
     var dailyNote=isTest?'':'<div class="asg-note2">毎日学習は1日1DAYずつ自動で進みます。</div>';
     var card=document.createElement('div');card.className='asg-card';
     card.innerHTML=
-      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;flex-wrap:wrap;">'+pill+lapTxt+'<span style="font-weight:700;font-size:13px;">'+esc(a.material_title)+'</span></div>'
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;flex-wrap:wrap;">'+pill+lapTxt+'<span style="font-weight:700;font-size:13px;">'+esc(mtLabelMt(a))+'</span></div>'
       +progLine
       +'<div class="asg-row">'+dailyCtrl+startSel
       +'<span class="asg-del" onclick="removeAssign('+"'"+esc(a.id)+"'"+')">🗑 解除</span></div>'
@@ -2797,7 +2812,7 @@ function renderAddOptions(){
     if(assigned[String(m.id)])return;
     var _t=(m.content_type==='test')?'単元別対策':'毎日学習';
     if(!_grp||_grp.getAttribute('data-l')!==_t){_grp=document.createElement('div');_grp.className='asg-grp-h';_grp.setAttribute('data-l',_t);_grp.textContent=_t;box.appendChild(_grp);}
-    var op=document.createElement('span');op.className='asg-opt'+(pickedSet[String(m.id)]?' picked':'');op.textContent='＋ '+(m.title||'(無題)');
+    var op=document.createElement('span');op.className='asg-opt'+(pickedSet[String(m.id)]?' picked':'');op.textContent='＋ '+(mtLabel(m)||'(無題)');
     op.onclick=(function(mid){return function(){_asgPicked.push(String(mid));renderAddOptions();};})(m.id);
     box.appendChild(op);
   });

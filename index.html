@@ -1051,14 +1051,28 @@ $('btn-logout').onclick=function(){homeCacheClear_();localStorage.removeItem('kw
 function subjLabel(s){var m={english:'英語',math:'数学',science:'理科',social:'社会',japanese:'国語'};return m[s]||s;}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function _mSeries(t){t=String(t||'');
-  if(/中学理科【生命・地球】/.test(t)||(/理科/.test(t)&&/【生命・地球】/.test(t)))return {k:'sci',label:'中学理科【生命・地球】'};
-  if(/中学歴史/.test(t))return {k:'hist',label:'中学歴史'};
+  if(/中学理科【生命・地球】/.test(t)||(/理科/.test(t)&&/【生命・地球】/.test(t)))return {k:'sci',label:'メキメキ理科'};
+  if(/中学歴史/.test(t))return {k:'hist',label:'メキメキ歴史'};
   if(/語彙力アップ/.test(t))return {k:'goi',label:'語彙力アップ'};
   return null;
-}
+} /* シリーズ見出しは先生画面・サーバー整形と統一（フォールバック時も一致）2026-07-23 */
 function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;return t;}
 function _bookPrefix(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>0)return t.slice(0,i).replace(/\s+$/,'');}return '';}
 function _chapNum(t){t=String(t||'');var m=t.match(/([0-9０-９]+)\s*章/);if(!m)return 99999;var n=m[1].replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});return parseInt(n,10);}
+/* ===== 教材名アクセサ（唯一の使い口）2026-07-23 =====
+   サーバー(res→enrichTitles_)が付けた整形フィールドを優先。無ければ従来ヘルパにフォールバック。
+   画面は生タイトル(.title/.material_title)を直接描画せず、必ずこの mt*() を通す。新画面もこれだけ。 */
+function mtShort(m){return !m?'':(m.short||_chapShort(m.title||'')||m.title||'');}
+function mtBook(m){return !m?'':(m.book||_bookPrefix(m.title||'')||m.title||'');}
+function mtSeriesKey(m){if(!m)return '';if(m.series_key!=null&&m.series_key!=='')return m.series_key;var s=_mSeries(m.title||'');return s?s.k:'';}
+function mtSeriesLabel(m){if(!m)return '';if(m.series_label)return m.series_label;var s=_mSeries(m.title||'');return s?s.label:mtBook(m);}
+function mtChapNo(m){return !m?99999:(m.chap_no!=null?m.chap_no:_chapNum(m.title||''));}
+function mtLabel(m){if(!m)return '';return mtSeriesKey(m)?(mtSeriesLabel(m)+' '+mtShort(m)):mtBook(m);}
+function mtShortMt(o){return !o?'':(o.material_short||_chapShort(o.material_title||'')||o.material_title||'');}
+function mtBookMt(o){return !o?'':(o.material_book||_bookPrefix(o.material_title||'')||o.material_title||'');}
+function mtSeriesKeyMt(o){if(!o)return '';if(o.series_key!=null&&o.series_key!=='')return o.series_key;var s=_mSeries(o.material_title||'');return s?s.k:'';}
+function mtSeriesLabelMt(o){if(!o)return '';if(o.series_label)return o.series_label;var s=_mSeries(o.material_title||'');return s?s.label:mtBookMt(o);}
+function mtLabelMt(o){if(!o)return '';return mtSeriesKeyMt(o)?(mtSeriesLabelMt(o)+' '+mtShortMt(o)):mtBookMt(o);}
 function openHome(){
   $('nick').textContent=nickname;syncThemeIcon();show('scr-home');
   // 初回ログイン：ニックネーム未設定なら設定モーダルを自動表示（スキップ可・1ログイン1回だけ・川上さん確定 2026-07-04 機能仕様書_テスト配信 §5-2）
@@ -1089,8 +1103,8 @@ function openHome(){
     prefetchParts_(cards); // 先読みD：キャッシュ描画の時点で開始（重複は_prefetch側で防止）。開いた直後のタップに間に合わせる 2026-07-05
     if(!cards.length){$('main-list').innerHTML='<p class="muted">今日のメイン学習はありません。先生に<ruby>聞<rt class="uf">き</rt></ruby>いてね。</p>';}
     else{$('main-list').innerHTML='';
-    var _gkey=function(m){var s=_mSeries(m.material_title);return s?('S:'+s.k):('M:'+String(m.material_title||''));};
-    var _glabel=function(m){var s=_mSeries(m.material_title);var bp=_bookPrefix(m.material_title);return s?(bp||s.label):(bp||String(m.material_title||''));};
+    var _gkey=function(m){var k=mtSeriesKeyMt(m);return k?('S:'+k):('M:'+String(m.material_title||''));};
+    var _glabel=function(m){return mtSeriesLabelMt(m);};
     var _rc=function(m){
       var h=document.createElement('div');h.className='hero';
       var isTest=(m.content_type==='test');
@@ -1108,8 +1122,8 @@ function openHome(){
       // リングのアイコン（形式で色分け・進捗連動は次スライス）
       var ringStroke='var(--accent)';
       var ic=isTest?'<i class="ti ti-flag" style="font-size:18px;color:var(--sub)"></i>':'<i class="ti ti-anchor" style="font-size:18px;color:var(--sub)"></i>';
-      var _hasChap=/[0-9０-９]\s*章/.test(m.material_title);
-      var _course=_hasChap?esc(_chapShort(m.material_title)):(partLine?partLine:esc(m.material_title));
+      var _hasChap=(m.material_chap!=null&&m.material_chap!=='')||/[0-9０-９]\s*章/.test(m.material_title);
+      var _course=_hasChap?esc(mtShortMt(m)):(partLine?partLine:esc(mtShortMt(m)));
       var _list=(_hasChap&&partLine)?('<div class="list"><span class="here">いまここ</span>'+partLine+'</div>'):'';
       h.innerHTML='<div class="ring"><svg width="60" height="60"><circle cx="30" cy="30" r="25" fill="none" stroke="var(--ring-track)" stroke-width="6"></circle><circle cx="30" cy="30" r="25" fill="none" stroke="'+ringStroke+'" stroke-width="6" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157" class="ringfg"></circle></svg><div class="pct">'+ic+'</div></div>'
         +'<div style="flex:1;min-width:0;"><div class="htop">'+fmtPill+subj+lapPill+'</div>'
@@ -1179,7 +1193,7 @@ function openHome(){
       var map='<div class="dotmap">';
       parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
       map+='</div>';
-      ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(c.material_title)+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
+      ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtLabelMt(c))+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
         +'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>'+map
         +'<div class="ov-sub"><span class="dm-s done"></span>クリアずみ <b>'+passedN+'</b>　'+(curPart?'<span class="dm-s cur"></span>いまここ <b>'+curLbl+'</b>　':'')+'のこり <b>'+(total-passedN)+'</b></div>';
       // 詳細（DAY行）＝既定は畳む。カードをタップで開閉。
@@ -2243,7 +2257,7 @@ function buildReviewTestCard(m){
   if((m.times||1)>=2){partLine=(partLine?partLine+' <span class="rnd">・'+m.times+'回目</span>':'<span class="rnd">'+m.times+'回目</span>');}
   h.innerHTML='<div class="ring"><svg width="60" height="60"><circle cx="30" cy="30" r="25" fill="none" stroke="var(--ring-track)" stroke-width="6"></circle><circle cx="30" cy="30" r="25" fill="none" stroke="var(--gold)" stroke-width="6" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157" class="ringfg"></circle></svg><div class="pct"><i class="ti ti-flag" style="font-size:18px;color:var(--gold)"></i></div></div>'
     +'<div style="flex:1;min-width:0;"><div class="htop"><span class="hpill test">単元別対策</span><span class="hpill" style="background:rgba(212,160,23,.14);color:var(--gold)">おさらい</span>'+subj+lapPill+'</div>'
-    +'<div class="course">'+esc(m.material_title)+'</div>'
+    +'<div class="course">'+esc(mtLabelMt(m))+'</div>'
     +(partLine?'<div class="list">'+partLine+'</div>':'')
     +'<div class="cta">はじめる <i class="ti ti-arrow-right"></i></div></div>';
   if(m.last_total>0){h.querySelector('.ringfg').style.strokeDashoffset=157*(1-Math.min(1,m.last_correct/m.last_total));}
