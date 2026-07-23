@@ -107,6 +107,8 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .rate-pill.a{background:var(--amber-light);color:var(--amber-dark);}
 .rate-pill.r{background:var(--red-light);color:var(--red-dark);}
 .tc-now{position:absolute;top:-8px;right:6px;font-size:9px;font-weight:800;color:#fff;background:var(--blue);border-radius:8px;padding:0 6px;}
+.tc-now.end{background:var(--text-light);}
+.tcard.prog-end{opacity:.9;}
 
 .tcard.clk{cursor:pointer;} .tcard.clk:hover{box-shadow:0 0 0 3px rgba(198,0,11,.18);}
 .tc-hint{position:absolute;bottom:3px;right:6px;font-size:8px;color:var(--text-light);}
@@ -290,7 +292,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
       <div class="spec-sec"><div class="spec-h">更新・自動停止（管理画面と同時に使えます）</div><div class="spec-b"><b>5秒ごとに自動更新</b>します。この画面は<b>別ウィンドウ</b>なので、<b>画面の横に出したまま、元の管理画面をふつうに操作できます</b>。見えているあいだは、管理画面を触っていても更新が続きます（止まりません）。<br>止まるのは次の2つだけ：<b>①この画面を最小化・完全に隠したとき</b>（見ていないので停止／前に戻すと<b>自動で再開</b>。ボタン操作は不要）。<b>②生徒の動きが30分ないとき</b>（授業終わりとみなして停止／「再開」ボタンで戻す）。</div></div>
       <div class="spec-sec"><div class="spec-h">止まっている間もデータは失われません（重要）</div><div class="spec-b">止まるのは<b>画面の更新（見に行くこと）だけ</b>です。生徒の解答は、<b>提出した瞬間にサーバーに記録</b>されるので、この画面が止まっていても・閉じていても<b>ずっと記録され続けます</b>。だから、LINE・メール・Slackを開いてこの画面が裏に回っても大丈夫。<b>前に戻した瞬間に、離れているあいだのぶんもまとめて反映</b>されます（取りこぼしゼロ）。記録＝サーバー／この画面＝それを見る窓、という分担です。</div></div>
       <div class="spec-sec"><div class="spec-h">カードの見方</div><div class="spec-b">生徒1人が<b>1レーン（横1行）</b>。テストは<b>左が古い→右が新しい（いま解いている）</b>で横に増えます。<span class="spec-k" style="background:var(--blue-light);color:var(--blue-dark);">解き中</span>はタイマー（<b>開始からの経過</b>。集中時間ではありません）、提出後は正答率（<span class="spec-k" style="background:var(--green-light);color:var(--green-dark);">緑=80%以上</span><span class="spec-k" style="background:var(--amber-light);color:var(--amber-dark);">黄=60〜79%</span><span class="spec-k" style="background:var(--red-light);color:var(--red-dark);">赤=60%未満</span>）。新しく提出されるとカードが光ります。</div></div>
-      <div class="spec-sec"><div class="spec-h">種別（何を表示するか選ぶ）</div><div class="spec-b"><b>確認テストは既定でON</b>。毎日学習・単元別・おさらい・間違いノートは、必要なときだけONにできます。<br><b>確認テスト・毎日学習・単元別</b>は「解き中→正答率」で表示。<b>おさらい・間違いノート</b>は1問ずつ進む学習なので、点数のかわりに<b>「◯問（正解△）」</b>で表示します。</div></div>
+      <div class="spec-sec"><div class="spec-h">種別（何を表示するか選ぶ）</div><div class="spec-b"><b>確認テストは既定でON</b>。毎日学習・単元別・おさらい・間違いノートは、必要なときだけONにできます。<br><b>確認テスト・毎日学習・単元別</b>は「解き中→正答率」で表示。<b>おさらい・間違いノート</b>は1問ずつ進む学習なので、点数のかわりに<b>「◯問（正解△）」</b>で表示します。おさらい・間違いノートには正答率の区切りがないので、<b>その子が別の学習を始めたら「◯問で終了」に切り替え</b>ます（解答中のまま残りません）。</div></div>
       <div class="spec-sec"><div class="spec-h">並び順（2つから選ぶ）</div><div class="spec-b"><b>要フォローを上に（既定）</b>：<b>気になる子＝提出して60%未満（赤）／反応なし（止まってる）</b>の子だけを上にまとめ、<b>それ以外（解き中も、点数がOKで提出した子も全部）は名簿順で固定</b>して動かしません。提出→すぐ次を解き中…と切り替わっても<b>行は動かず、カードだけがその場で変わります</b>。上に出てくるのは「いま手を貸したほうがいい子」だけ。<br><b>最新順</b>：直前に動いた子が一番上。数秒ごとにトップが入れ替わるので、10人いると特定の子を追いにくい。<br><span style="color:var(--text-muted);font-size:11px;">例：あおい45%(赤)・はると解き中・ゆな88%・そうた解き中・みお70% → 要フォローを上に では「あおい」だけが上、他は名簿順で固定。ゆなが提出し直しても、はるとが提出→次を解き中になっても、行は動かない。</span></div></div>
       <div class="spec-sec"><div class="spec-h">反応なし（灰色）</div><div class="spec-b">解き中のまま<b>10分</b>更新がない子は<b>灰色にして「◯分 反応なし」</b>と表示します（離席・アプリを閉じた可能性）。</div></div>
       <div class="spec-sec"><div class="spec-h">くわしく見る</div><div class="spec-b">カードに<b>マウスを乗せると詳細</b>（教材・パート・状態・問題数）。<b>クリックすると</b>、提出済みは<b>その回のまちがえた問題</b>、解き中は「解答中」を表示します。</div></div>
@@ -373,7 +375,7 @@ function visLanes(st){ return st.lanes.filter(function(l){return activeTypes[l.t
 function attn(st){ // 気になる子＝提出60%未満(赤) または 反応なし(止まってる) → 上にまとめる
   var v=visLanes(st), a=false;
   v.forEach(function(l){
-    if(l.status==='done'&&l.rate<60) a=true;
+    if(l.status==='done'&&l.kind!=='prog'&&l.rate!=null&&l.rate<60) a=true;
     if(l.status==='doing'&&(now()-(l.updatedAt||l.startAt))>=STALE_SEC) a=true;
   });
   return a;
@@ -406,7 +408,7 @@ function render(){
     var rm=st.info.room==='北久里浜'?'kita':'kuri';
     var vis=visLanes(st);
     var since=now()-vis[0].startAt;
-    var hasLow=vis.some(function(l){return l.status==='done'&&l.rate<60;});
+    var hasLow=vis.some(function(l){return l.status==='done'&&l.kind!=='prog'&&l.rate!=null&&l.rate<60;});
     html+='<div class="lane'+(hasLow?' haslow':'')+'" id="lane-'+st.info.id+'">';
     html+='<div class="lane-name '+rm+'"><div class="ln-name">'+(st.info.name||st.info.nick)+'</div>'
         +(st.info.nick?'<div class="ln-nick">'+st.info.nick+'</div>':'')
@@ -420,7 +422,11 @@ function render(){
       var fresh=l.fresh; l.fresh=false;
       var pop=fresh?' pop':'';
       var ty='<span class="tc-type '+TYPES[l.type].cls+'">'+TYPES[l.type].label+'</span>';
-      if(l.status==='doing'){
+      if(l.kind==='prog' && l.status!=='doing'){ // おさらい・間違いノート＝別学習に進んで終了（◯問で確定）
+        html+='<div class="tcard prog-end clk'+pop+'" data-lid="'+l.id+'"><div class="tc-now end">終了</div>'+ty
+            +'<div class="tc-mat">'+l.mat+'</div>'
+            +'<div class="tc-foot"><span class="qcount">'+l.answered+'問</span><span class="qcor">正解'+l.correct+'</span></div></div>';
+      }else if(l.status==='doing'){
         var stEl=now()-(l.updatedAt||l.startAt);   // 反応なし判定（おさらい/ノートは最終解答からの経過）
         var el=now()-l.startAt;                      // 解き中タイマー（開始からの経過）
         if(stEl>=STALE_SEC){ // 反応なし＝灰色
@@ -487,7 +493,7 @@ function openPrint(){
     var vis=visLanes(st);
     var done=vis.filter(function(l){return l.status==='done';});
     var avg=done.length?Math.round(done.reduce(function(a,l){return a+l.rate;},0)/done.length):null;
-    var low=done.filter(function(l){return l.rate<60;}).length;
+    var low=done.filter(function(l){return l.kind!=='prog'&&l.rate!=null&&l.rate<60;}).length;
     var rm=st.info.room;
     html+='<div class="p-sheet"><div class="p-head"><span class="p-name">'+st.info.name+'</span><span class="p-room">'+rm+'</span>'
         +'<span class="p-doc">確認テスト リアルタイム記録　2026-07-22</span></div>';
