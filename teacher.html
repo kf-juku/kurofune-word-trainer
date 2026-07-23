@@ -183,9 +183,9 @@
   /* 印刷（指導が必要な子のまちがえた問題）2026-07-02 */
   #printArea{display:none;}
   @media print{
-    body *{visibility:hidden;}
-    #printArea,#printArea *{visibility:visible;}
-    #printArea{position:absolute;left:0;top:0;width:100%;display:block !important;}
+    /* 本体をレイアウトごと非表示にする（visibility:hiddenだと本体の高さが残り、印刷内容の後ろに謎の空白ページが出る）2026-07-23 */
+    body > *:not(#printArea){display:none !important;}
+    #printArea{display:block !important;position:static;left:auto;top:auto;width:100%;}
   }
   .print-student{page-break-before:right;padding:8mm 6mm;color:#000;} /* 生徒が変わったら新しい紙の表＝奇数ページから（川上さん指示 2026-07-05） */
   .print-student:first-child{page-break-before:auto;}
@@ -370,6 +370,10 @@
 .chip-none{font-size:12px;color:#94a3b8}
 .alert-setK{grid-column:1/-1;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:7px 14px;font-size:12px;color:#5a6a7e}
 .alert-setK input{width:46px;padding:2px 4px;border:1px solid #dde3ec;border-radius:6px;text-align:right;margin:0 2px}
+/* ほめたい子カード（緑）2026-07-23 */
+.alert-cardK.good{border-left-color:#1faa6b}
+.pchipK{display:inline-block;background:rgba(31,170,107,.12);color:#12805a;border:1px solid rgba(31,170,107,.35);border-radius:999px;padding:3px 9px;font-size:11.5px;margin:2px 3px 0 0;cursor:pointer}
+.pchipK:hover{background:rgba(31,170,107,.2)}
 /* 通知について（毎朝メールの一覧）2026-07-23 */
 .notif-panel{background:#f7f9fc;border:1px solid #dde3ec;border-radius:10px;padding:0 14px;margin-bottom:12px;font-size:12.5px;color:#33404f}
 .notif-panel>summary{cursor:pointer;padding:10px 2px;font-weight:700;color:#5a6a7e;list-style:none;display:flex;align-items:center;gap:6px}
@@ -708,6 +712,7 @@
       <div class="alert-cardK"><div class="ac-h">📘 単元別 未着手 <b id="alTIdleN">–</b>名<span class="ac-sub">割当あり・昨日ゼロ</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">単元別対策を割り当て済みなのに、昨日1つもさわっていない子。単元別の割当が無い子は出ません。→テスト対策を進めるよう声かけ。</span></span></div><div class="chipsK" id="alTIdleChips"></div></div>
       <div class="alert-cardK"><div class="ac-h">📙 単元別 やりかけ <b id="alTHalfN">–</b>名<span class="ac-sub">さわったが未合格</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">昨日、単元別をさわったけれど1つも合格しなかった子。1つ通せばOK＝全部やる必要はありません。→あと少し・詰まりを確認。</span></span></div><div class="chipsK" id="alTHalfChips"></div></div>
       <div class="alert-cardK bad"><div class="ac-h">📣 つまずき <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">いちばん弱い教材の直近3回平均が、正答率の基準（既定60%）未満の子。→「まちがいを印刷」で対策プリント。</span></span></div><div class="chipsK" id="alTeachChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTeachPrintBtn" onclick="printTeachAll()" style="display:none;">🖨 この<span id="alTeachPrintN">0</span>名のまちがいを印刷</button></div></div>
+      <div class="alert-cardK good" style="grid-column:1/-1;"><div class="ac-h">👏 今日ほめたい子 <b id="alPraiseN">–</b>名<span class="ac-sub">昨日、毎日学習を全部やって さらに合格・前進</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">割り当てられた毎日学習（赤丸）を昨日ぜんぶ終えたうえで、さらに 先取りパート合格／単元別対策合格／確認テスト合格／おさらいで前進／間違いノート卒業 のどれかをした子。合格・前進したものだけを拾います。→ ひとことほめてあげてください。</span></span></div><div class="chipsK" id="alPraiseChips"></div></div>
       <div class="alert-setK" style="grid-column:1/-1;">⚙ この基準は毎朝のメール通知と共通：未着手＝昨日やってなければ即（あき<input id="cfgIdle" type="number" min="1" max="99" value="1" onchange="saveAlertConfig()">日超・<span id="alIdleDaysLbl">1</span>）／つまずき＝正答率<input id="cfgAcc" type="number" min="1" max="100" value="60" onchange="saveAlertConfig()">%未満<span class="cfg-tag">毎日学習・単元別 共通。ここを変えると画面もメールも両方変わります</span></div>
     </div>
     <!-- 通知について（毎朝メールの一覧）2026-07-23 -->
@@ -715,7 +720,7 @@
       <summary>ⓘ 通知について（毎朝の自動メール）</summary>
       <div class="np-body">
         <div class="np-intro">塾のメール（kurofune.school@gmail.com ／ kurihama@kurofune-school.com）に、<b>該当がある日だけ</b>自動で届きます。順調な日は届きません。</div>
-        <div class="np-item">① <b>学習アラート</b><span class="np-when">毎朝</span><br>昨日ぶんの気になる子。毎日学習の「未着手・やりかけ」、単元別対策の「未着手・やりかけ」、つまずき（正答率が基準未満）、完走、雑（2秒未満の誤答が多いパッと押し）、確認テストの「未実施・未合格」。基準（あき日数・正答率）は上の⚙で変更でき、メールにも反映されます。</div>
+        <div class="np-item">① <b>学習アラート</b><span class="np-when">毎朝</span><br>昨日ぶんの気になる子。毎日学習の「未着手・やりかけ」、単元別対策の「未着手・やりかけ」、つまずき（正答率が基準未満）、完走、雑（2秒未満の誤答が多いパッと押し）、確認テストの「未実施・未合格」。基準（あき日数・正答率）は上の⚙で変更でき、メールにも反映されます。<b>また、昨日がんばった「👏 今日ほめたい子」も同じメールに一緒に届きます</b>（毎日学習を全部やったうえで、先取り・単元別・確認テスト・おさらい・間違いノートで合格/前進した子）。</div>
         <div class="np-item">② <b>生徒からのバグ報告まとめ</b><span class="np-when">毎朝・①と同送</span><br>生徒アプリの「不具合報告」に新着があった日だけ。誰が・どの画面・内容・端末・アプリ版を一覧します。</div>
         <div class="np-item">③ <b>学習データの減少検知</b><span class="np-when">毎朝</span><br>前日比でデータ（有効な生徒数・自動反復・間違いノート・学習履歴）が減った日だけ。誰が有効から外れたか、学習データが0件になった生徒を名前で知らせます。</div>
         <div class="np-item">④ <b>エラー通知</b><span class="np-when">失敗時のみ</span><br>①〜③の集計自体が失敗したとき「⚠️実行できませんでした」を送ります。</div>
@@ -1267,8 +1272,12 @@ function runPrint_(ids,scope,days,limit){
       else{
         html+='<div class="print-cols-head"><span>問題</span><span>答え・覚え方（折って隠せます）</span></div>';
         s.items.forEach(function(it,idx){
-          html+='<div class="print-item"><div class="pi-q">'+(idx+1)+'. '+esc(it.english||'')+'</div>';
-          html+='<div class="pi-a"><div class="pi-ans">'+esc(it.japanese||'')+'</div>';
+          /* 教科で問題／答えの向きを出し分ける：英語=英単語が問題／理社・国語=問題文(japanese)が問題・用語(english)が答え 2026-07-23 */
+          var isEn=(String(it.subject||'')==='english');
+          var q=isEn?(it.english||''):(it.japanese||'');
+          var a=isEn?(it.japanese||''):(it.english||'');
+          html+='<div class="print-item"><div class="pi-q">'+(idx+1)+'. '+esc(q)+'</div>';
+          html+='<div class="pi-a"><div class="pi-ans">'+esc(a)+'</div>';
           if(it.reading_hint)html+='<div class="pi-r">読み方：'+esc(it.reading_hint)+'</div>';
           if(it.kaisetsu)html+='<div class="pi-k">覚え方：'+esc(it.kaisetsu)+'</div>';
           html+='</div></div>';
@@ -1602,6 +1611,7 @@ function tmPool(){
   if(typeof tmMode!=='undefined'&&tmMode==='print'&&_cheerCfg&&_cheerCfg.exclude_print){arr=arr.filter(function(s){return !s.is_teacher_account;});}
   return arr;
 }
+function _praiseLabel(t){return ({senshu:'先取り',unit:'単元別合格',quiz:'確認テスト合格',review:'おさらい前進',note:'間違いノート卒業'})[t]||t;}
 function renderAlertsK(){
   if(!$('alIdleChips'))return;
   var _il=$('alIdleDaysLbl');if(_il)_il.textContent=_alertCfg.idle_days;var _al=$('alAccLbl');if(_al)_al.textContent=_alertCfg.accuracy;
@@ -1633,6 +1643,17 @@ function renderAlertsK(){
   window._teachIds=teach.map(function(x){return x.id;});
   var tb=$('alTeachPrintBtn');
   if(tb){$('alTeachPrintN').textContent=teach.length;tb.style.display=teach.length?'inline-flex':'none';}
+  // 👏 今日ほめたい子（昨日ぶん・GASの praise と同基準）2026-07-23
+  var praise=[];
+  (_students||[]).forEach(function(st){
+    if(_cheerCfg&&_cheerCfg.exclude_alert&&st.is_teacher_account)return;
+    var pr=st.praise||[]; if(!pr.length)return;
+    praise.push({n:(st.name||st.nickname||''),r:pr.map(_praiseLabel).join('・')});
+  });
+  var _pN=$('alPraiseN'); if(_pN)_pN.textContent=praise.length;
+  var _pc=$('alPraiseChips');
+  if(_pc){ _pc.innerHTML=praise.length?'':'<span class="chip-none">きのうは まだ いません</span>';
+    praise.forEach(function(x){var b=document.createElement('span');b.className='pchipK';b.textContent=x.n+'（'+x.r+'）';b.title='クリックで検索';b.onclick=function(){$('searchInput').value=x.n;renderTable();};_pc.appendChild(b);}); }
 }
 if(token){setTimeout(loadAlertConfig,400);setTimeout(loadCheerConfig,500);setTimeout(function(){ensureMatParts(function(){if(_students&&_students.length)renderTable();});},600);}
 
