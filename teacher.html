@@ -183,9 +183,9 @@
   /* 印刷（指導が必要な子のまちがえた問題）2026-07-02 */
   #printArea{display:none;}
   @media print{
-    body *{visibility:hidden;}
-    #printArea,#printArea *{visibility:visible;}
-    #printArea{position:absolute;left:0;top:0;width:100%;display:block !important;}
+    /* 本体をレイアウトごと非表示にする（visibility:hiddenだと本体の高さが残り、印刷内容の後ろに謎の空白ページが出る）2026-07-23 */
+    body > *:not(#printArea){display:none !important;}
+    #printArea{display:block !important;position:static;left:auto;top:auto;width:100%;}
   }
   .print-student{page-break-before:right;padding:8mm 6mm;color:#000;} /* 生徒が変わったら新しい紙の表＝奇数ページから（川上さん指示 2026-07-05） */
   .print-student:first-child{page-break-before:auto;}
@@ -1242,8 +1242,12 @@ function runPrint_(ids,scope,days,limit){
       else{
         html+='<div class="print-cols-head"><span>問題</span><span>答え・覚え方（折って隠せます）</span></div>';
         s.items.forEach(function(it,idx){
-          html+='<div class="print-item"><div class="pi-q">'+(idx+1)+'. '+esc(it.english||'')+'</div>';
-          html+='<div class="pi-a"><div class="pi-ans">'+esc(it.japanese||'')+'</div>';
+          /* 教科で問題／答えの向きを出し分ける：英語=英単語が問題／理社・国語=問題文(japanese)が問題・用語(english)が答え 2026-07-23 */
+          var isEn=(String(it.subject||'')==='english');
+          var q=isEn?(it.english||''):(it.japanese||'');
+          var a=isEn?(it.japanese||''):(it.english||'');
+          html+='<div class="print-item"><div class="pi-q">'+(idx+1)+'. '+esc(q)+'</div>';
+          html+='<div class="pi-a"><div class="pi-ans">'+esc(a)+'</div>';
           if(it.reading_hint)html+='<div class="pi-r">読み方：'+esc(it.reading_hint)+'</div>';
           if(it.kaisetsu)html+='<div class="pi-k">覚え方：'+esc(it.kaisetsu)+'</div>';
           html+='</div></div>';
