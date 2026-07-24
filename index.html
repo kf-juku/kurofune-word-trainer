@@ -588,6 +588,44 @@
   .done-nums{display:flex;align-items:baseline;gap:8px;margin-top:3px;flex-wrap:wrap;}
   .done-score{font-family:"Manrope";font-size:29px;font-weight:800;}
   .done-score small{font-size:12px;color:var(--sub);font-weight:500;font-family:"Noto Sans JP";}
+  /* 完了3タイル（正答率/タイム/最大コンボ）2026-07-24 */
+  .dtiles{display:flex;gap:9px;margin:12px 0 2px;}
+  .dtile{flex:1;border-radius:15px;padding:0 0 9px;text-align:center;border:1.5px solid transparent;overflow:hidden;opacity:0;transform:scale(.82) translateY(8px);}
+  .dtiles.play .dtile{animation:dtilePop .5s cubic-bezier(.2,1.3,.5,1) forwards;}
+  .dtiles.play .dtile:nth-child(1){animation-delay:.05s;}
+  .dtiles.play .dtile:nth-child(2){animation-delay:.19s;}
+  .dtiles.play .dtile:nth-child(3){animation-delay:.33s;}
+  @keyframes dtilePop{to{opacity:1;transform:none;}}
+  .dtile .dtl{font-size:10px;font-weight:700;padding:4px 0;margin-bottom:7px;color:#fff;}
+  .dtile .dtv{font-family:"Manrope";font-weight:800;font-size:19px;line-height:1;}
+  .dtile .dtv small{font-size:10.5px;font-weight:600;}
+  .dtile .dtag{display:inline-block;font-family:"Noto Sans JP";font-size:9.5px;font-weight:800;margin-left:3px;padding:1px 5px;border-radius:999px;background:var(--gold);color:#3a2c07;vertical-align:1px;}
+  .dtile.gold{background:rgba(202,162,74,.12);border-color:rgba(202,162,74,.4);} .dtile.gold .dtl{background:var(--gold);} .dtile.gold .dtv{color:var(--gold);}
+  .dtile.ok{background:rgba(31,170,107,.12);border-color:rgba(31,170,107,.4);} .dtile.ok .dtl{background:var(--ok);} .dtile.ok .dtv{color:var(--ok);}
+  .dtile.blue{background:rgba(10,108,255,.10);border-color:rgba(10,108,255,.34);} .dtile.blue .dtl{background:var(--accent);} .dtile.blue .dtv{color:var(--accent);}
+  /* 連続記録カード（記録タブ常設＆お祝い共通）2026-07-24 */
+  .stk-rec{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:14px 12px 12px;margin-bottom:14px;}
+  .stk-card{text-align:center;padding:4px 4px 2px;}
+  .stk-flame{width:90px;height:90px;margin:2px auto 2px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;background:radial-gradient(circle at 50% 42%,rgba(202,162,74,.24),rgba(202,162,74,.04));}
+  .stk-flame i{font-size:46px;color:var(--gold);position:relative;z-index:2;}
+  .stk-flame .stk-glow{position:absolute;inset:0;border-radius:50%;z-index:1;}
+  .stk-num{font-family:"Manrope";font-weight:800;font-size:42px;line-height:1;color:var(--gold);}
+  .stk-lbl{font-size:11.5px;color:var(--sub);letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-top:3px;}
+  .stk-msg{font-size:12.5px;color:var(--sub);margin:11px 6px 2px;line-height:1.6;}
+  .stk-msg b{color:var(--ink);}
+  .stk-plus{display:inline-flex;align-items:center;gap:2px;background:var(--gold);color:#3a2c07;font-family:"Manrope";font-weight:800;font-size:13px;padding:2px 9px;border-radius:999px;margin-top:7px;}
+  .stk-plus i{color:#3a2c07;font-size:13px;}
+  /* ホーム復帰のお祝い（オーバーレイ）*/
+  .stk-cele-mask{position:fixed;inset:0;z-index:70;background:rgba(15,17,26,.55);display:none;align-items:center;justify-content:center;padding:26px;}
+  .stk-cele-mask.show{display:flex;}
+  .stk-cele{width:100%;max-width:340px;background:var(--surface);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:22px 18px 18px;position:relative;transform:translateY(-16px) scale(.94);opacity:0;}
+  .stk-cele-mask.show .stk-cele{animation:stkIn .5s cubic-bezier(.2,1.2,.4,1) forwards;}
+  @keyframes stkIn{to{opacity:1;transform:none;}}
+  .stk-cele .stk-close{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--sub);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;z-index:5;}
+  .stk-cele-mask.show .stk-flame i{animation:stkFlame 1.4s ease-out .25s 2;}
+  @keyframes stkFlame{0%{transform:scale(1);}30%{transform:scale(1.26) rotate(-3deg);}55%{transform:scale(.96);}75%{transform:scale(1.12);}100%{transform:scale(1);}}
+  .stk-cele-mask.show .stk-glow{animation:stkGlow 1.3s ease-out .25s 2;}
+  @keyframes stkGlow{0%{box-shadow:0 0 0 0 rgba(202,162,74,.5);}100%{box-shadow:0 0 0 30px rgba(202,162,74,0);}}
   .done-rate{font-size:11.5px;color:var(--sub);}
   .done-miss{font-size:11.5px;color:var(--sub);margin-top:3px;}
   .btnrow{display:flex;gap:10px;margin-top:8px;}
@@ -805,6 +843,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="subhead"><button class="btn-back" id="btn-back"><i class="ti ti-arrow-left"></i> ホーム</button><div class="subttl" id="sub-title">—</div></div>
 
         <div class="subview" id="sv-records">
+          <div id="rec-streak-card"></div>
           <div class="tiles">
             <div class="tile" id="tile-lists"><div class="tic"><i class="ti ti-list-check"></i></div><div class="tnm">学習マップ</div><div class="tcnt">何回でも復習</div></div>
             <div class="tile" id="tile-badge"><div class="tic"><i class="ti ti-award"></i></div><div class="tnm">バッジ</div><div class="tcnt" id="cnt-badge">–</div></div>
@@ -907,6 +946,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <div class="done-miss" id="done-miss"></div>
         </div>
       </div>
+      <div id="done-tiles"></div>
       <div id="today-did-area"></div>
       <div id="star-area"></div>
       <div id="done-guide-area"></div>
@@ -925,6 +965,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 <div class="flash" id="flash"></div>
 <div class="combo" id="combo"></div>
 <div class="gradpop" id="gradpop"></div>
+<div class="stk-cele-mask" id="stk-cele-mask"><div class="stk-cele" id="stk-cele-box"></div></div>
 <div class="modal-mask" id="nick-mask">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="nick-title">
     <h3 id="nick-title">ニックネームの変更</h3>
@@ -1016,7 +1057,7 @@ function renderDaily(){
   bar.style.display=(allKnown&&remain===0)?'flex':'none';
 }
 var mode=localStorage.getItem('kwt_mode')||'normal';
-var session=null, combo=0, audioCtx=null;
+var session=null, combo=0, audioCtx=null, maxCombo=0, ansCount=0, _streakDays=0, _celeTimer=null;
 function $(id){return document.getElementById(id);}
 /* 幾何学スピナーSVGを返す（px=一辺）。二重の四角形が逆回転。川上さん指示2026-07-06：待ちのストレス軽減 */
 function kwtSpin(px){px=px||64;return '<svg class="kwtld" viewBox="0 0 120 120" width="'+px+'" height="'+px+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="よみこみ中">'
@@ -1149,7 +1190,7 @@ function renderQuiz(){
 function quizShuffle_(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function startQuiz(partId){
   showPracticeLoading_();
-  $('btn-next').style.display='none';$('btn-retry').style.display='flex';combo=0;
+  $('btn-next').style.display='none';$('btn-retry').style.display='flex';combo=0;maxCombo=0;ansCount=0;
   call({action:'quiz_words',part_id:partId}).then(function(d){
     if(!d.ok||!d.data||!d.data.words||!d.data.words.length){toast((d&&d.error)||'単語がありません');openHome();showSub('quiz');renderQuiz();return;}
     var words=quizShuffle_(d.data.words.slice()); // 毎回シャッフル
@@ -1268,6 +1309,52 @@ function sndPronSoft(){setTimeout(function(){tone_(523,0.22,'sine',0.18,0,784);}
 function confetti(n){var box=$('confetti');var cs=['#caa24a','#0a6cff','#1faa6b','#e0533c','#9b6dd6'];for(var i=0;i<n;i++){var c=document.createElement('i');c.className='conf';c.style.left=Math.random()*100+'vw';c.style.background=cs[Math.floor(Math.random()*cs.length)];c.style.animationDuration=(1.6+Math.random()*1.4)+'s';c.style.transform='rotate('+Math.random()*360+'deg)';box.appendChild(c);(function(el){setTimeout(function(){el.remove();},3200);})(c);}}
 function flash(){var f=$('flash');f.classList.remove('show');void f.offsetWidth;f.classList.add('show');}
 function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
+/* ===== モチベ演出（完了3タイル・連続記録カード・ホーム復帰お祝い）2026-07-24 ===== */
+function _fmtDur_(ms){var s=Math.max(0,Math.round((ms||0)/1000));var m=Math.floor(s/60);var ss=s%60;return m+':'+('0'+ss).slice(-2);}
+function renderDoneTiles_(score,mc,ac,ms){
+  var host=$('done-tiles');if(!host)return;
+  var perfect=(ac>0&&mc>=ac); /* ノーミス＝最大コンボが総回答数に到達 */
+  var comboCell='<span id="dt-combo">0</span>'+(perfect?'<span class="dtag">最大！</span>':'');
+  host.innerHTML='<div class="dtiles" id="dtiles">'
+   +'<div class="dtile ok"><div class="dtl">正答率</div><div class="dtv"><span id="dt-rate">0</span><small>%</small></div></div>'
+   +'<div class="dtile blue"><div class="dtl">タイム</div><div class="dtv">'+_fmtDur_(ms)+'</div></div>'
+   +'<div class="dtile gold"><div class="dtl">コンボ</div><div class="dtv">'+comboCell+'</div></div>'
+   +'</div>';
+  var box=$('dtiles');if(box){void box.offsetWidth;box.classList.add('play');}
+  setTimeout(function(){var r=$('dt-rate');if(r)animNum(r,score||0,700);var c=$('dt-combo');if(c)animNum(c,mc||0,700);},260);
+}
+function renderStreakCard_(){
+  var host=$('rec-streak-card');if(!host)return;var n=_streakDays||0;var body;
+  if(n<=0){body='<div class="stk-num">0</div><div class="stk-lbl">日 連続記録</div><div class="stk-msg">今日から スタート！<br>1つ 学習すると 記録が はじまるよ。</div>';}
+  else{body='<div class="stk-num">'+n+'</div><div class="stk-lbl">日 連続記録</div><div class="stk-msg">今日も クリアで <b>'+n+'日</b> つながってるよ。<br>あした やると <b>'+(n+1)+'日</b> になる！</div>';}
+  host.innerHTML='<div class="stk-rec"><div class="stk-card"><div class="stk-flame"><i class="ti ti-flame"></i></div>'+body+'</div></div>';
+}
+function showStreakCele_(n){
+  var mask=$('stk-cele-mask'),box=$('stk-cele-box');if(!mask||!box)return;n=n||1;
+  var msg=(n<=1)?'今日から 記録が はじまったよ。<br>あした やると <b>2日</b>！':('<b>'+n+'日 連続！</b> のびたよ。<br>あした やると <b>'+(n+1)+'日</b> になる！');
+  box.innerHTML='<button class="stk-close" id="stk-cele-close" type="button" aria-label="とじる"><i class="ti ti-x"></i></button>'
+   +'<div class="stk-card"><div class="stk-flame"><span class="stk-glow"></span><i class="ti ti-flame"></i></div>'
+   +'<div class="stk-num"><span id="stk-cele-num">'+Math.max(0,n-1)+'</span></div><div class="stk-lbl">日 連続記録</div>'
+   +'<div style="text-align:center;"><span class="stk-plus"><i class="ti ti-flame"></i> ＋1</span></div>'
+   +'<div class="stk-msg">'+msg+'</div></div>';
+  mask.classList.add('show');try{sndWin();flash();}catch(e){}
+  setTimeout(function(){var el=$('stk-cele-num');if(el)animNum(el,n,700);},520);
+  var close=function(){mask.classList.remove('show');if(_celeTimer){clearTimeout(_celeTimer);_celeTimer=null;}};
+  var cb=$('stk-cele-close');if(cb)cb.onclick=close;
+  mask.onclick=function(e){if(e.target===mask)close();};
+  if(_celeTimer)clearTimeout(_celeTimer);_celeTimer=setTimeout(close,4000); /* 4秒で自動閉じ＋閉じるボタン（川上さん確定 2026-07-24）*/
+}
+function checkStreakCele_(){
+  try{
+    var today=todayStr_();
+    if(localStorage.getItem('kwt_cele_shown')===today)return; /* 1日1回 */
+    var raw=localStorage.getItem('kwt_streak_pending');if(!raw)return;
+    localStorage.removeItem('kwt_streak_pending');
+    var pp=JSON.parse(raw);if(!pp||pp.date!==today)return;
+    localStorage.setItem('kwt_cele_shown',today);
+    setTimeout(function(){showStreakCele_(pp.streak||1);},450);
+  }catch(e){}
+}
 function gradPop_(en,ja){var el=$('gradpop');if(!el)return;el.innerHTML='<div class="gp-em">🎓</div><div class="gp-w">'+String(en==null?'':en)+(ja?' <span class="gp-ja">'+String(ja)+'</span>':'')+'</div><div class="gp-l">卒業！</div>';el.classList.remove('show');void el.offsetWidth;el.classList.add('show');try{beep(784,0.12,'triangle');setTimeout(function(){beep(1175,0.16,'triangle');},110);}catch(e){}confetti(14);}
 
 $('themeBtn').onclick=toggleTheme_;
@@ -1277,7 +1364,7 @@ $('nick-save').onclick=saveNick;
 $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
 $('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスワードを入れてね';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> 確認中…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
-function doLogout_(){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');stuGrade='';applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');}
+function doLogout_(){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');stuGrade='';applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');}
 $('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
 $('logout-cancel').onclick=function(){$('logout-mask').classList.remove('show');};
 $('logout-mask').onclick=function(e){if(e.target===this)$('logout-mask').classList.remove('show');};
@@ -1521,6 +1608,7 @@ function openHome(){
   _bind('ntab5-unit',function(){showHomeTab('unit');});
   _bind('ntab5-record',function(){setTab5_('record');showSub('records');});
   loadHomeData_(true);
+  try{checkStreakCele_();}catch(e){} // ホーム復帰のお祝い（その日はじめて学習後）2026-07-24
 }
 /* ホームの全データ取得（openHome初回・引っ張って更新の両方から呼ぶ）2026-07-24 */
 function loadHomeData_(showSkel){
@@ -1959,7 +2047,7 @@ function flyToAvatar(btn,row,type){
 }
 $('btn-home').onclick=openHome;
 
-function startPractice(listId){showPracticeLoading_();combo=0;$('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromReview;startPractice(session.listId);}};$('btn-retry').style.display='flex';$('btn-next').style.display='none';
+function startPractice(listId){showPracticeLoading_();combo=0;maxCombo=0;ansCount=0;$('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromReview;startPractice(session.listId);}};$('btn-retry').style.display='flex';$('btn-next').style.display='none';
   try{ call({action:'activity_start',part_id:listId}); }catch(e){} /* リアルタイムモード：開始シグナルを先読みに依存せず確実に飛ばす（毎日学習/単元別の解き始め捕捉）2026-07-22 */
   var _pf=_prefetch[listId]; /* 先読みD：取得済みなら即開始・取得中なら続きを待つだけ（使ったら破棄）2026-07-05 */
   if(_pf){delete _prefetch[listId];
@@ -2302,9 +2390,9 @@ function buildChoices(containerId,correct,pool,onResult,opts){
     if(answered)return;answered=true;stopQTimer();
     Array.prototype.forEach.call(box.children,function(c){c.disabled=true;});
     if(picked)picked.classList.add(ok?'correct':'wrong');
-    if(ok){combo++;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
+    if(ok){combo++;if(combo>maxCombo)maxCombo=combo;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
     else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(c.getAttribute('data-val')===correct)c.classList.add('correct');});}
-    onResult(ok,(Date.now()-_t0));
+    ansCount++;onResult(ok,(Date.now()-_t0));
     afterAnswer(ok,correct,opts.kaisetsu,opts.reading,opts.next);
   }
   applyChoiceCols(box,choices); // 2列/1列 自動分岐 2026-07-05
@@ -2405,7 +2493,7 @@ function doneGuideHtml_(){return '<div style="background:var(--surface);border:1
  +'<button onclick="openHome();showSub(\'review\');" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;"><i class="ti ti-clock-bolt"></i> おさらい</button>'
  +'</div></div>';}
 function finishQuizSubmit_(){
-  var s=session;show('scr-done');var _dgq=document.getElementById('done-guide-area');if(_dgq)_dgq.innerHTML='';hideQTimer();hideExplain();$('done-score-wrap').style.display='';
+  var s=session;show('scr-done');var _dgq=document.getElementById('done-guide-area');if(_dgq)_dgq.innerHTML='';hideQTimer();hideExplain();$('done-score-wrap').style.display='';var _dtq=$('done-tiles');if(_dtq)_dtq.innerHTML='';
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
   var score=termOnly?rr:Math.round((mr+rr)/2);
@@ -2448,6 +2536,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   if(termOnly){$('done-rate').innerHTML=(s.tfOnly?'正答':'用語')+' <b>'+rr+'</b>％';}
   else{$('done-rate').innerHTML='意味 <span id="done-mr">'+mr+'</span>％ ・ 日本語→英語 <span id="done-rr">'+rr+'</span>％';}
   animNum($('score-anim'),score,900); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）
+  try{renderDoneTiles_(score,maxCombo,ansCount,(s.startedMs?(Date.now()-s.startedMs):0));}catch(e){} // 完了3タイル 2026-07-24
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=missWordsHtml(s.miss,s.words);
   var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
   $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(38)+'<span>記録を保存中…</span></div>'+tipHtml_();
@@ -2463,6 +2552,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     (function(){var ar=$('today-did-area');if(!ar)return;ar.innerHTML='';
       call({action:'complete_extras',part_id:s.listId,word_ids:(s.words||[]).map(function(w){return w.id;}),miss_word_ids:s.miss}).then(function(ex){
         if(!ex||!ex.ok||!ex.data)return;var d2=ex.data;var chips='';
+        try{var _tk=(d2.today_streak||0),_td=todayStr_();if(_tk>=1&&localStorage.getItem('kwt_cele_shown')!==_td){localStorage.setItem('kwt_streak_pending',JSON.stringify({date:_td,streak:_tk}));}}catch(e){} // ホーム復帰お祝いの予約（その日はじめて）2026-07-24
         if((d2.today_streak||0)>=2)chips+='<span class="chip streak"><i class="ti ti-flame"></i> 連続'+d2.today_streak+'日</span>';
         if((d2.week_words||0)>0)chips+='<span class="chip week"><i class="ti ti-book"></i> 今週'+d2.week_words+'語</span>';
         if(d2.today_top_badge){var tb=d2.today_top_badge;var bic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[tb.axis])||'ti-award';chips+='<span class="chip badge"><i class="ti '+bic+'"></i> '+tb.label+'</span>';}
@@ -2659,7 +2749,7 @@ function finishNote(){
   $('done-badge').innerHTML='<i class="ti ti-notebook" style="color:var(--ng)"></i>';
   $('done-result').textContent='復習 おつかれさま！';
   $('done-rate').textContent='';
-  $('done-score-wrap').style.display='none';
+  $('done-score-wrap').style.display='none';var _dtn=$('done-tiles');if(_dtn)_dtn.innerHTML='';
   // 採点（保存）中：スピナー＋Tips（成功と偽らない・待ちを価値に）2026-07-13
   $('done-miss').textContent='記録を保存中…';
   $('star-area').innerHTML='<div class="note-saving"><div class="sw-load">'+kwtSpin(30)+'<span>記録を保存しています…</span></div>'+tipHtml_()+'</div>';
@@ -2815,7 +2905,7 @@ function finishSrs(){
   $('btn-next').style.display='none';
   $('done-badge').innerHTML='<i class="ti ti-clock-bolt" style="color:var(--gold)"></i>';
   $('done-result').textContent='おさらい お疲れさま！'; // 表記は漢字（川上さん指示 2026-07-05）
-  $('done-score-wrap').style.display='none';
+  $('done-score-wrap').style.display='none';var _dtn=$('done-tiles');if(_dtn)_dtn.innerHTML='';
   // 何をおさらいしたか（川上さん指示 2026-07-05）：3語まで列挙＋ほか◯語
   var _dw=s.doneWords||[];
   $('done-rate').textContent=_dw.length?('英語 '+_dw.length+'語（'+_dw.slice(0,3).join('・')+(_dw.length>3?' ほか'+(_dw.length-3)+'語':'')+'）をおさらいしたよ'):'';
@@ -2843,6 +2933,7 @@ function loadBadges(){
     var list=(d.data.badges||[]).filter(function(b){return b.axis!=='plusalpha';}); // ＋α（自主学習）は is_plus_alpha が記録されておらず永久に取れない＝出さない＝9バッジ（2026-07-24 川上さん確定）
     /* ヘッダーの連続日数はここで更新（badgesのstats.streak＝computeStreak_の実データ）2026-07-05 */
     var _stk=(d.data.stats&&d.data.stats.streak)||0;
+    _streakDays=_stk;try{renderStreakCard_();}catch(e){} // 連続記録カード（記録タブ）2026-07-24
     var _sw=document.querySelector('.head .streak');
     if(_sw){
       if(_stk>0){_sw.innerHTML='<i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b>日';animNum($('streak'),_stk,800);}
