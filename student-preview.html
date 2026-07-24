@@ -101,7 +101,7 @@
   .nchap:last-child{border:none;}
   .ncf-nm{flex:1;font-size:13.5px;font-weight:600;line-height:1.3;}
   .ncf-nm small{display:block;font-weight:500;font-size:10.5px;color:var(--sub);margin-top:1px;}
-  .ncf-go{color:var(--sub);font-size:16px;}
+  .ncf-go{width:30px;height:30px;border-radius:9px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto;}
   .ncf-done{color:var(--ok);font-size:17px;}
   /* 確認テスト ひとまとめ */
   .nquiz{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:11px 12px;display:flex;align-items:center;gap:11px;cursor:pointer;margin-top:4px;position:relative;}
@@ -140,7 +140,7 @@
   .q-node .qd{font-size:7px;opacity:.8;font-weight:700;}
   .q-body{flex:1;min-width:0;}.q-top{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
   .q-nm{font-size:14px;font-weight:700;}.q-sub{font-size:11px;color:var(--sub);margin-top:1px;}
-  .q-go{font-size:16px;color:var(--sub);}
+  .q-go{width:32px;height:32px;border-radius:10px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto;}
   .rcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px 13px;margin-bottom:11px;display:flex;align-items:center;gap:13px;cursor:pointer;position:relative;}
   .rc-ic{width:48px;height:48px;border-radius:15px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto;}
   .rc-b{flex:1;min-width:0;}.rc-t{font-weight:700;font-size:16px;}.rc-s{font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.5;}
@@ -661,6 +661,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   .kwtld .i{animation:kwtldrspin 1.7s linear infinite;transform-origin:50% 50%;}
   /* ===== バグ報告（各画面から押せる）2026-07-11 ===== */
   .bug-fab{position:fixed;right:16px;bottom:20px;z-index:70;display:flex;align-items:center;gap:7px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:26px;padding:10px 15px 10px 12px;box-shadow:0 6px 22px rgba(20,24,40,.18);cursor:pointer;font-family:inherit;}
+  body.on-home .bug-fab{bottom:82px;}/* 下メニューと重ならないよう ホームでは上げる 2026-07-24 */
   .bug-fab i{font-size:19px;color:var(--accent);}
   .bug-fab span{font-size:13px;font-weight:700;}
   .bug-fab:active{transform:translateY(2px);}
@@ -724,8 +725,8 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="tabpanel" id="tp-review">
           <div class="ph"><i class="ti ti-clock-bolt" style="color:var(--accent)"></i> ふくしゅう</div>
           <div class="psub">おぼえた<ruby>所<rt class="uf">ところ</rt></ruby>の <ruby>定着<rt class="uf">ていちゃく</rt></ruby>（おさらい）と、<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>所<rt class="uf">ところ</rt></ruby>の<ruby>直<rt class="uf">なお</rt></ruby>し（<ruby>間違<rt class="uf">まちが</rt></ruby>いノート）。ここが <ruby>力<rt class="uf">ちから</rt></ruby>の つきどころ</div>
-          <div class="rcard" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> ・ <span id="cnt-review">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
-          <div class="rcard" id="tile-note"><span class="reddot" id="dot-note" style="display:none;"></span><div class="rc-ic"><i class="ti ti-notebook"></i></div><div class="rc-b"><div class="rc-t"><ruby>間違<rt class="uf">まちが</rt></ruby>いノート</div><div class="rc-s"><ruby>間違<rt class="uf">まちが</rt></ruby>えた <ruby>所<rt class="uf">ところ</rt></ruby>だけ ・ <span id="cnt-note">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
+          <div class="rcard" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> ・ <span id="cnt-review">–</span></div></div><div class="rc-go"><i class="ti ti-player-play-filled"></i></div></div>
+          <div class="rcard" id="tile-note"><span class="reddot" id="dot-note" style="display:none;"></span><div class="rc-ic"><i class="ti ti-notebook"></i></div><div class="rc-b"><div class="rc-t"><ruby>間違<rt class="uf">まちが</rt></ruby>いノート</div><div class="rc-s"><ruby>間違<rt class="uf">まちが</rt></ruby>えた <ruby>所<rt class="uf">ところ</rt></ruby>だけ ・ <span id="cnt-note">–</span></div></div><div class="rc-go"><i class="ti ti-player-play-filled"></i></div></div>
           <div id="note-nudge-wrap" style="display:none;"></div>
         </div>
         <!-- 単元別（やる所から） -->
@@ -733,7 +734,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <div class="ph"><i class="ti ti-flag" style="color:var(--accent)"></i> <ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></div>
           <div class="psub">テストまでに やりきろう。<ruby>習<rt class="uf">なら</rt></ruby>う<ruby>順<rt class="uf">じゅん</rt></ruby>は <ruby>学校<rt class="uf">がっこう</rt></ruby>で ちがうので、やる<ruby>所<rt class="uf">ところ</rt></ruby>から でOK</div>
           <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;">先生が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに出るよ</p></div>
-          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>力<rt class="uf">ちから</rt></ruby>だめし（<ruby>確認<rt class="uf">かくにん</rt></ruby>テスト）</div><div class="nqc-s">おぼえたら ここで テスト。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div></div>
+          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>力<rt class="uf">ちから</rt></ruby>だめし（<ruby>確認<rt class="uf">かくにん</rt></ruby>テスト）</div><div class="nqc-s">おぼえたら ここで テスト。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div><div class="rc-go" style="margin-left:9px"><i class="ti ti-player-play-filled"></i></div></div>
         </div>
       </div>
 
@@ -747,7 +748,6 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
             <div class="tile" id="tile-badge"><div class="tic"><i class="ti ti-award"></i></div><div class="tnm">バッジ</div><div class="tcnt" id="cnt-badge">–</div></div>
             <div class="tile" id="tile-team"><span class="reddot" id="dot-team" style="display:none;"></span><div class="tic"><i class="ti ti-users"></i></div><div class="tnm">なかま</div><div class="tcnt" id="cnt-team">–</div></div>
           </div>
-          <button class="logout-link" id="btn-logout"><i class="ti ti-logout"></i> ログアウト</button>
         </div>
         <div class="subview" id="sv-note">
           <div id="note-area"><div class="loading">読み込み中…</div></div>
@@ -778,8 +778,8 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       <button class="ntab on" id="ntab5-daily" type="button"><span class="ic"><i class="ti ti-anchor"></i><span class="bdg" id="bdg-daily"></span></span><ruby>毎日<rt class="uf">まいにち</rt></ruby></button>
       <button class="ntab" id="ntab5-review" type="button"><span class="ic"><i class="ti ti-clock-bolt"></i><span class="bdg" id="bdg-review"></span></span>ふくしゅう</button>
       <button class="ntab" id="ntab5-unit" type="button"><span class="ic"><i class="ti ti-flag"></i><span class="bdg" id="bdg-unit"></span></span><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></button>
-      <button class="ntab" id="ntab5-team" type="button"><span class="ic"><i class="ti ti-heart"></i><span class="bdg" id="bdg-team"></span></span>なかま</button>
-      <button class="ntab" id="ntab5-record" type="button"><span class="ic"><i class="ti ti-award"></i></span><ruby>記録<rt class="uf">きろく</rt></ruby></button>
+      <button class="ntab" id="ntab5-record" type="button"><span class="ic"><i class="ti ti-award"></i><span class="bdg" id="bdg-team"></span></span><ruby>記録<rt class="uf">きろく</rt></ruby></button>
+      <button class="ntab" id="btn-logout" type="button"><span class="ic"><i class="ti ti-logout"></i></span>ログアウト</button>
     </nav>
   </section>
 
@@ -943,7 +943,7 @@ function kwtSpin(px){px=px||64;return '<svg class="kwtld" viewBox="0 0 120 120" 
   +'<g class="o" style="transform-origin:60px 60px"><rect x="36" y="36" width="48" height="48" rx="3" fill="none" stroke="#caa24a" stroke-width="2" opacity=".55" transform="rotate(45 60 60)"/></g>'
   +'<g class="i" style="transform-origin:60px 60px"><rect x="48" y="48" width="24" height="24" rx="2" fill="none" stroke="#0a6cff" stroke-width="2.6" opacity=".85"/></g>'
   +'<circle cx="60" cy="60" r="4" fill="#0a6cff"/></svg>';}
-function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}}
+function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}}
 /* 学習マップの1行（川上さん承認モック 2026-07-05）。inFold=クリアずみ枠内（「もう一回」バッジつき・状態文言なし） */
 function buildMapRow(l,isTest,inFold){
   var row=document.createElement('div');row.className='list-row';
@@ -1245,7 +1245,7 @@ function _dailyFocus_(m){
   var road='';if(!cleared&&pc>po){var arr=[];for(var d=po+1;d<=pc&&arr.length<3;d++)arr.push('DAY'+d);road=' ・ この<ruby>先<rt class="uf">さき</rt></ruby> '+arr.join('・')+(pc>po+3?(' … DAY'+pc+'まで'):'');}
   var subj=m.subject?esc(subjLabel(m.subject)):'';
   var label=cleared?'<i class="ti ti-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> <ruby>完了<rt class="uf">かんりょう</rt></ruby>！':'<i class="ti ti-player-play-filled"></i> つぎは これ';
-  el.innerHTML='<div class="f-label">'+label+'</div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+esc(mtLabelMt(m))+'</div><div class="f-sub">'+subj+road+'</div></div></div><button class="f-btn">'+(cleared?'つづける':'はじめる')+' <i class="ti ti-arrow-right"></i></button>';
+  el.innerHTML='<div class="f-label">'+label+'</div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+esc(mtLabelMt(m))+'</div><div class="f-sub">'+subj+road+'</div></div></div><button class="f-btn"><i class="ti ti-player-play-filled"></i> '+(cleared?'つづける':'はじめる')+'</button>';
   el.onclick=function(){startPractice(m.part_id);};
   return el;
 }
@@ -1254,7 +1254,7 @@ function _dailyQueueRow_(m){
   var po=(m.part_order||1)|0,done=!!m.cleared_today;
   var lapPill=(m.lap>=2)?'<span class="npill lap">'+m.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'';
   var subj=m.subject?esc(subjLabel(m.subject)):'';
-  el.innerHTML='<div class="q-node">'+(done?'<i class="ti ti-check" style="font-size:16px;color:var(--ok)"></i>':'<span class="qd">DAY</span>'+po)+'</div><div class="q-body"><div class="q-top"><span class="q-nm">'+esc(mtLabelMt(m))+'</span>'+lapPill+'</div><div class="q-sub">'+subj+'</div></div><div class="q-go"><i class="ti ti-chevron-right"></i></div>';
+  el.innerHTML='<div class="q-node">'+(done?'<i class="ti ti-check" style="font-size:16px;color:var(--ok)"></i>':'<span class="qd">DAY</span>'+po)+'</div><div class="q-body"><div class="q-top"><span class="q-nm">'+esc(mtLabelMt(m))+'</span>'+lapPill+'</div><div class="q-sub">'+subj+'</div></div><div class="q-go"><i class="ti ti-player-play-filled"></i></div>';
   el.onclick=function(){startPractice(m.part_id);};
   return el;
 }
@@ -1282,7 +1282,7 @@ function renderUnitZone_(materials){
         var target=cur?cur.part_id:(ps[0]?ps[0].part_id:'');
         var allPass=(t2>0&&p2===t2);
         detail+='<div class="nchap" data-pid="'+esc(String(target))+'"><div class="ncf-nm">'+esc(mtShortMt(c))+'<small>消化 '+(t2?Math.round(p2/t2*100):0)+'%（'+p2+'/'+t2+'）</small></div>'
-          +(allPass?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-chevron-right"></i></span>')+'</div>';
+          +(allPass?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-player-play-filled"></i></span>')+'</div>';
       });
       detail+='</div>';
       book.innerHTML=head+detail;
@@ -1322,7 +1322,6 @@ function openHome(){
   _bind('ntab5-daily',function(){showHomeTab('daily');});
   _bind('ntab5-review',function(){showHomeTab('review');});
   _bind('ntab5-unit',function(){showHomeTab('unit');});
-  _bind('ntab5-team',function(){setTab5_('team');showSub('team');});
   _bind('ntab5-record',function(){setTab5_('record');showSub('records');});
   var _dl0=$('daily-list');if(_dl0)_dl0.innerHTML='<div class="loading">読み込み中…</div>';
   var _ra0=$('review-area');if(_ra0)_ra0.innerHTML='<div class="loading">読み込み中…</div>';
