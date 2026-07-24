@@ -149,6 +149,17 @@
   .setrow .sr-go{font-size:12.5px;font-weight:700;color:var(--accent);flex:none;display:flex;align-items:center;gap:3px;}
   .setrow.static{cursor:default;}
   .setrow.static .sr-go{color:var(--sub);font-weight:600;}
+  .skel{position:relative;overflow:hidden;background:rgba(140,140,150,.14);border-radius:12px;}
+  .skel::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.20),transparent);transform:translateX(-100%);animation:skelsw 1.25s infinite;}
+  [data-theme="dark"] .skel{background:rgba(150,155,170,.12);}
+  [data-theme="dark"] .skel::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);}
+  @keyframes skelsw{100%{transform:translateX(100%);}}
+  .skel-focus{height:148px;border-radius:20px;margin-bottom:12px;}
+  .skel-row{height:52px;margin-bottom:8px;}
+  .skel-book{height:66px;border-radius:15px;margin-bottom:10px;}
+  .ptr-ind{display:flex;align-items:center;justify-content:center;gap:6px;overflow:hidden;height:0;font-size:12.5px;color:var(--sub);font-weight:700;transition:height .12s ease;}
+  .ptr-ind.show{border-bottom:1px solid transparent;}
+  .ptr-ind.spin{color:var(--accent);}
   .q-head{font-size:11px;color:var(--sub);font-weight:700;margin:2px 4px 6px;}
   .queue{position:relative;margin-bottom:8px;}
   .queue::before{content:'';position:absolute;left:20px;top:14px;bottom:14px;width:2px;background:repeating-linear-gradient(var(--n-track) 0 5px,transparent 5px 11px);}
@@ -714,6 +725,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   </section>
 
   <section id="scr-home" class="screen">
+    <div id="ptr-ind" class="ptr-ind" style="height:0px;"></div>
     <div class="head">
       <span class="kt-logo kt-sm"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="en3"><span>Kurofune</span><span>Word</span><span>Trainer</span></span></span>
       <div class="right">
@@ -732,7 +744,6 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       <div id="home-tiles">
         <!-- 毎日学習（1本道） -->
         <div class="tabpanel on" id="tp-daily">
-          <div class="daily-bar done" id="daily-bar" style="display:none;"><span class="db-t" style="color:var(--gold)">🎉 今日ぜんぶ完了！</span><span class="db-n"><i class="ti ti-check"></i></span></div>
           <div class="ph"><i class="ti ti-anchor" style="color:var(--gold)"></i> <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></div>
           <div class="psub" id="daily-sub2"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>学習<rt class="uf">がくしゅう</rt></ruby></div>
           <div id="daily-list"><div class="loading">読み込み中…</div></div>
@@ -1275,8 +1286,44 @@ function _subjGuess_(o){var s=o&&o.subject;if(s)return s;var t=String((o&&o.mate
 function setTab5_(name){['daily','review','unit','team','record'].forEach(function(k){var e=$('ntab5-'+k);if(e)e.classList.toggle('on',k===name);});}
 function setBadge_(tab,n){var e=$('bdg-'+tab);if(!e)return;if(n>0){e.textContent=(n>9?'9+':String(n));e.classList.add('on');}else{e.classList.remove('on');}} // 10以上は9+＝数の圧迫感を減らす（2026-07-24）
 var _homeTab='daily',_quizMiss=0;
-function showHomeTab(name){_homeTab=name;$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);}catch(e){}window.scrollTo(0,0);}
+function showHomeTab(name){_homeTab=name;$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);sessionStorage.removeItem('kwt_view');}catch(e){}window.scrollTo(0,0);} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
 function syncTestZone_(){setBadge_('unit',_quizMiss||0);}
+/* スケルトン（読み込み中の形だけ先に見せる）2026-07-24 */
+function skelDaily_(){return '<div class="skel skel-focus"></div><div class="skel skel-row"></div><div class="skel skel-row"></div>';}
+function skelUnit_(){return '<div class="skel skel-book"></div><div class="skel skel-book"></div>';}
+/* 引っ張って更新（pull-to-refresh）：ホーム最上部で下へ引くとキャッシュを消して再取得 2026-07-24 */
+function isHomeScreen_(){var h=$('scr-home');return !!(h&&h.classList.contains('active'));}
+var _refreshing=false;
+function refreshHome_(){
+  if(_refreshing)return;_refreshing=true;
+  var ind=$('ptr-ind');if(ind){ind.classList.add('spin');ind.innerHTML=kwtSpin(26);}
+  try{homeCacheClear_();}catch(e){}
+  loadHomeData_(false);
+  setTimeout(function(){_refreshing=false;var i=$('ptr-ind');if(i){i.classList.remove('spin','show');i.style.height='0px';}},1100); // 取得は裏で継続。表示は約1.1秒で戻す
+}
+(function(){
+  var startY=0,pulling=false,dist=0;var TH=68,MAX=110;
+  function ind(){return $('ptr-ind');}
+  function atTop(){var se=document.scrollingElement||document.documentElement;return (se.scrollTop||0)<=0 && (window.scrollY||0)<=0;}
+  document.addEventListener('touchstart',function(e){
+    if(_refreshing||!isHomeScreen_()||!atTop()||!e.touches||e.touches.length!==1){pulling=false;return;}
+    startY=e.touches[0].clientY;pulling=true;dist=0;
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!pulling)return;dist=e.touches[0].clientY-startY;
+    if(dist<=0){var i0=ind();if(i0){i0.classList.remove('show');i0.style.height='0px';}return;}
+    var h=Math.min(dist*0.5,MAX);var i=ind();if(i){i.classList.add('show');i.style.height=h+'px';i.innerHTML=(dist>=TH?'<i class="ti ti-arrow-up"></i> はなして こうしん':'<i class="ti ti-arrow-down"></i> ひっぱって こうしん');}
+  },{passive:true});
+  document.addEventListener('touchend',function(){
+    if(!pulling)return;pulling=false;
+    if(dist>=TH){refreshHome_();}
+    else{var i=ind();if(i){i.classList.remove('show');i.style.height='0px';}}
+    dist=0;
+  });
+})();
+/* 単元別：開いた本をリロード後も保持（sessionStorage）2026-07-24 */
+function _unitOpenGet_(){try{return JSON.parse(sessionStorage.getItem('kwt_unit_open')||'[]')||[];}catch(e){return [];}}
+function _unitOpenToggle_(key,isOpen){var a=_unitOpenGet_();var i=a.indexOf(key);if(isOpen&&i<0)a.push(key);else if(!isOpen&&i>=0)a.splice(i,1);try{sessionStorage.setItem('kwt_unit_open',JSON.stringify(a));}catch(e){}}
 /* 毎日学習＝1本道：先頭の未完了を大きく（つぎは これ）＋このあとを queue */
 function renderDailyList_(main){
   var host=$('daily-list');if(!host)return;host.innerHTML='';
@@ -1325,7 +1372,8 @@ function renderUnitZone_(materials){
   host.innerHTML='';_unitCount=tests.length;
   if(tests.length){
     var groups=[],gm={};
-    tests.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!gm[k]){gm[k]={lab:mtSeriesLabelMt(c),items:[]};groups.push(gm[k]);}gm[k].items.push(c);});
+    tests.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!gm[k]){gm[k]={lab:mtSeriesLabelMt(c),items:[],key:k};groups.push(gm[k]);}gm[k].items.push(c);});
+    var _open=_unitOpenGet_();
     groups.forEach(function(g){
       var tot=0,pas=0;g.items.forEach(function(c){var ps=(c.parts||[]);tot+=ps.length;pas+=ps.filter(function(l){return l.passed;}).length;});
       var pct=tot?Math.round(pas/tot*100):0;var subj=_subjGuess_(g.items[0]);
@@ -1347,7 +1395,8 @@ function renderUnitZone_(materials){
       });
       detail+='</div>';
       book.innerHTML=head+detail;
-      book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');};
+      if(_open.indexOf(g.key)>=0)book.classList.add('open'); // リロード後も開いた本を保持
+      book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_unitOpenToggle_(g.key,book.classList.contains('open'));};
       book.querySelectorAll('.nchap').forEach(function(row){var pid=row.getAttribute('data-pid');if(pid)row.onclick=function(){startPractice(pid);};});
       host.appendChild(book);
     });
@@ -1390,8 +1439,11 @@ function openHome(){
   _bind('ntab5-review',function(){showHomeTab('review');});
   _bind('ntab5-unit',function(){showHomeTab('unit');});
   _bind('ntab5-record',function(){setTab5_('record');showSub('records');});
-  var _dl0=$('daily-list');if(_dl0)_dl0.innerHTML='<div class="loading">読み込み中…</div>';
-  var _ra0=$('review-area');if(_ra0)_ra0.innerHTML='<div class="loading">読み込み中…</div>';
+  loadHomeData_(true);
+}
+/* ホームの全データ取得（openHome初回・引っ張って更新の両方から呼ぶ）2026-07-24 */
+function loadHomeData_(showSkel){
+  if(showSkel){var _dl0=$('daily-list');if(_dl0)_dl0.innerHTML=skelDaily_();var _ul0=$('unit-list');if(_ul0)_ul0.innerHTML=skelUnit_();}
   callCached({action:'student_home'},function(d,_cached){
     if(!d.ok){if(d.error&&d.error.indexOf('ログイン')>=0){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');show('scr-login');}return;}
     var main=d.data.main||[];
@@ -2714,7 +2766,7 @@ function loadBadges(){
   });
 }
 
-if(token){var _rv=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}openHome();try{if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}}catch(e){}} // 更新後に最後のサブ画面を復元（openHome内のbackToTiles()が復元キーを消すので、必ず先に読む・川上さん確定2026-07-06）
+if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}try{_ht=sessionStorage.getItem('kwt_htab');}catch(e){}openHome();try{if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}else if(_ht&&['daily','review','unit'].indexOf(_ht)>=0){showHomeTab(_ht);}}catch(e){}} // 更新後は今の画面を復元：サブ画面(kwt_view)優先、なければホームのタブ(kwt_htab)。openHome内のbackToTiles()が復元キーを消すので必ず先に読む（川上さん 2026-07-06/24）
 
 /* ===== 生徒バグ報告（各画面から押せる・記録のみ＝メールは朝まとめ）2026-07-11 ===== */
 var _bugSending=false;
