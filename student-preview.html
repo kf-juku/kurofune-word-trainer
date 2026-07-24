@@ -725,8 +725,8 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="tabpanel" id="tp-review">
           <div class="ph"><i class="ti ti-clock-bolt" style="color:var(--accent)"></i> ふくしゅう</div>
           <div class="psub">おぼえた<ruby>所<rt class="uf">ところ</rt></ruby>の <ruby>定着<rt class="uf">ていちゃく</rt></ruby>（おさらい）と、<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>所<rt class="uf">ところ</rt></ruby>の<ruby>直<rt class="uf">なお</rt></ruby>し（<ruby>間違<rt class="uf">まちが</rt></ruby>いノート）。ここが <ruby>力<rt class="uf">ちから</rt></ruby>の つきどころ</div>
-          <div class="rcard" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> ・ <span id="cnt-review">–</span></div></div><div class="rc-go"><i class="ti ti-player-play-filled"></i></div></div>
-          <div class="rcard" id="tile-note"><span class="reddot" id="dot-note" style="display:none;"></span><div class="rc-ic"><i class="ti ti-notebook"></i></div><div class="rc-b"><div class="rc-t"><ruby>間違<rt class="uf">まちが</rt></ruby>いノート</div><div class="rc-s"><ruby>間違<rt class="uf">まちが</rt></ruby>えた <ruby>所<rt class="uf">ところ</rt></ruby>だけ ・ <span id="cnt-note">–</span></div></div><div class="rc-go"><i class="ti ti-player-play-filled"></i></div></div>
+          <div class="rcard" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> ・ <span id="cnt-review">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
+          <div class="rcard" id="tile-note"><span class="reddot" id="dot-note" style="display:none;"></span><div class="rc-ic"><i class="ti ti-notebook"></i></div><div class="rc-b"><div class="rc-t"><ruby>間違<rt class="uf">まちが</rt></ruby>いノート</div><div class="rc-s"><ruby>間違<rt class="uf">まちが</rt></ruby>えた <ruby>所<rt class="uf">ところ</rt></ruby>だけ ・ <span id="cnt-note">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
           <div id="note-nudge-wrap" style="display:none;"></div>
         </div>
         <!-- 単元別（やる所から） -->
@@ -734,7 +734,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <div class="ph"><i class="ti ti-flag" style="color:var(--accent)"></i> <ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></div>
           <div class="psub">テストまでに やりきろう。<ruby>習<rt class="uf">なら</rt></ruby>う<ruby>順<rt class="uf">じゅん</rt></ruby>は <ruby>学校<rt class="uf">がっこう</rt></ruby>で ちがうので、やる<ruby>所<rt class="uf">ところ</rt></ruby>から でOK</div>
           <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;">先生が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに出るよ</p></div>
-          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>力<rt class="uf">ちから</rt></ruby>だめし（<ruby>確認<rt class="uf">かくにん</rt></ruby>テスト）</div><div class="nqc-s">おぼえたら ここで テスト。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div><div class="rc-go" style="margin-left:9px"><i class="ti ti-player-play-filled"></i></div></div>
+          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>力<rt class="uf">ちから</rt></ruby>だめし（<ruby>確認<rt class="uf">かくにん</rt></ruby>テスト）</div><div class="nqc-s">おぼえたら ここで テスト。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div><div class="rc-go" style="margin-left:9px"><i class="ti ti-arrow-right"></i></div></div>
         </div>
       </div>
 
@@ -1221,6 +1221,8 @@ var _unitCount=0;
 /* UI文言のルビ（小学生アカウント＝html.furi-on のときだけ rt.uf が出る。中学生は漢字のみ）2026-07-24 */
 function rb(k,y){return '<ruby>'+k+'<rt class="uf">'+y+'</rt></ruby>';}
 function subjIcon_(s){return s==='science'?'ti-flask':(s==='social'?'ti-books':(s==='japanese'?'ti-book-2':(s==='math'?'ti-calculator':(s==='english'?'ti-language':'ti-flag'))));}
+/* 教科：材料に subject が無いとき（material_parts）はタイトルから推定。undefined表示を防ぐ 2026-07-24 */
+function _subjGuess_(o){var s=o&&o.subject;if(s)return s;var t=String((o&&o.material_title)||'');if(/理科|生物|物質|エネルギー|生命|地球|化学|物理/.test(t))return 'science';if(/歴史|地理|公民|社会/.test(t))return 'social';if(/語彙|国語|漢字|文章/.test(t))return 'japanese';if(/数学|算数/.test(t))return 'math';if(/英/.test(t))return 'english';return '';}
 function setTab5_(name){['daily','review','unit','team','record'].forEach(function(k){var e=$('ntab5-'+k);if(e)e.classList.toggle('on',k===name);});}
 function setBadge_(tab,n){var e=$('bdg-'+tab);if(!e)return;if(n>0){e.textContent=(n>99?'99':String(n));e.classList.add('on');}else{e.classList.remove('on');}}
 var _homeTab='daily',_quizMiss=0;
@@ -1244,8 +1246,8 @@ function _dailyFocus_(m){
   var po=(m.part_order||1)|0,pc=(m.part_count!==undefined?m.part_count:0)|0,cleared=!!m.cleared_today;
   var road='';if(!cleared&&pc>po){var arr=[];for(var d=po+1;d<=pc&&arr.length<3;d++)arr.push('DAY'+d);road=' ・ この<ruby>先<rt class="uf">さき</rt></ruby> '+arr.join('・')+(pc>po+3?(' … DAY'+pc+'まで'):'');}
   var subj=m.subject?esc(subjLabel(m.subject)):'';
-  var label=cleared?'<i class="ti ti-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> <ruby>完了<rt class="uf">かんりょう</rt></ruby>！':'<i class="ti ti-player-play-filled"></i> つぎは これ';
-  el.innerHTML='<div class="f-label">'+label+'</div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+esc(mtLabelMt(m))+'</div><div class="f-sub">'+subj+road+'</div></div></div><button class="f-btn"><i class="ti ti-player-play-filled"></i> '+(cleared?'つづける':'はじめる')+'</button>';
+  var label=cleared?'<i class="ti ti-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> <ruby>完了<rt class="uf">かんりょう</rt></ruby>！':'つぎは これ';
+  el.innerHTML='<div class="f-label">'+label+'</div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+esc(mtLabelMt(m))+'</div><div class="f-sub">'+subj+road+'</div></div></div><button class="f-btn">'+(cleared?'つづける':'はじめる')+' <i class="ti ti-arrow-right"></i></button>';
   el.onclick=function(){startPractice(m.part_id);};
   return el;
 }
@@ -1254,7 +1256,7 @@ function _dailyQueueRow_(m){
   var po=(m.part_order||1)|0,done=!!m.cleared_today;
   var lapPill=(m.lap>=2)?'<span class="npill lap">'+m.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'';
   var subj=m.subject?esc(subjLabel(m.subject)):'';
-  el.innerHTML='<div class="q-node">'+(done?'<i class="ti ti-check" style="font-size:16px;color:var(--ok)"></i>':'<span class="qd">DAY</span>'+po)+'</div><div class="q-body"><div class="q-top"><span class="q-nm">'+esc(mtLabelMt(m))+'</span>'+lapPill+'</div><div class="q-sub">'+subj+'</div></div><div class="q-go"><i class="ti ti-player-play-filled"></i></div>';
+  el.innerHTML='<div class="q-node">'+(done?'<i class="ti ti-check" style="font-size:16px;color:var(--ok)"></i>':'<span class="qd">DAY</span>'+po)+'</div><div class="q-body"><div class="q-top"><span class="q-nm">'+esc(mtLabelMt(m))+'</span>'+lapPill+'</div><div class="q-sub">'+subj+'</div></div><div class="q-go"><i class="ti ti-arrow-right"></i></div>';
   el.onclick=function(){startPractice(m.part_id);};
   return el;
 }
@@ -1268,11 +1270,12 @@ function renderUnitZone_(materials){
     tests.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!gm[k]){gm[k]={lab:mtSeriesLabelMt(c),items:[]};groups.push(gm[k]);}gm[k].items.push(c);});
     groups.forEach(function(g){
       var tot=0,pas=0;g.items.forEach(function(c){var ps=(c.parts||[]);tot+=ps.length;pas+=ps.filter(function(l){return l.passed;}).length;});
-      var pct=tot?Math.round(pas/tot*100):0;var subj=g.items[0].subject;
+      var pct=tot?Math.round(pas/tot*100):0;var subj=_subjGuess_(g.items[0]);
+      var subjTag=subj?('<span class="nbk-subj">'+esc(subjLabel(subj))+'</span> '):'';
       var book=document.createElement('div');book.className='nbook';
       var head='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subj)+'"></i></div>'
         +'<div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+'</div>'
-        +'<div class="nbk-meta"><span class="nbk-subj">'+subjLabel(subj)+'</span> のこり '+(tot-pas)+' ・ <span class="nbk-rate">消化 '+pct+'%</span></div>'
+        +'<div class="nbk-meta">'+subjTag+'のこり '+(tot-pas)+' ・ <span class="nbk-rate">できた '+pct+'%</span></div>'
         +'<div class="nbk-bar"><i style="width:'+pct+'%"></i></div></div>'
         +'<i class="ti ti-chevron-down nbk-arw"></i></div>';
       var detail='<div class="nbk-detail">';
@@ -1281,8 +1284,8 @@ function renderUnitZone_(materials){
         var cur=null;ps.forEach(function(l){if(l.is_current&&!cur)cur=l;});
         var target=cur?cur.part_id:(ps[0]?ps[0].part_id:'');
         var allPass=(t2>0&&p2===t2);
-        detail+='<div class="nchap" data-pid="'+esc(String(target))+'"><div class="ncf-nm">'+esc(mtShortMt(c))+'<small>消化 '+(t2?Math.round(p2/t2*100):0)+'%（'+p2+'/'+t2+'）</small></div>'
-          +(allPass?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-player-play-filled"></i></span>')+'</div>';
+        detail+='<div class="nchap" data-pid="'+esc(String(target))+'"><div class="ncf-nm">'+esc(mtShortMt(c))+'<small>できた '+p2+'/'+t2+'</small></div>'
+          +(allPass?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
       });
       detail+='</div>';
       book.innerHTML=head+detail;
@@ -1410,43 +1413,53 @@ function openHome(){
     if(!cs.length){$('review-area').innerHTML='<p class="muted">まだ教材がありません。</p>';return;}
     $('review-area').innerHTML='';
     // 学習マップ アコーディオン（A案・既定全畳み・川上さん確定 2026-07-08：2教材以上でも各教材カードが上に並び、2つ目が埋もれない）
-    var hint=document.createElement('p');hint.className='map-hint';hint.innerHTML='<i class="ti ti-refresh"></i> 教材をタップすると その中のDAYがひらくよ';$('review-area').appendChild(hint);
+    var hint=document.createElement('p');hint.className='map-hint';hint.innerHTML='<i class="ti ti-refresh"></i> 本をタップすると 中の教材がひらくよ';$('review-area').appendChild(hint);
     var macc=document.createElement('div');macc.className='macc';$('review-area').appendChild(macc);
-    cs.forEach(function(c){
-      var isTest=(c.content_type==='test');
-      var parts=c.parts||[];
-      var total=parts.length;
-      var passedN=parts.filter(function(l){return l.passed;}).length;
-      var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
-      var curLbl=curPart?(isTest?esc(curPart.l.title):('DAY '+(curPart.l.part_order||curPart.idx+1))):''; // 表記はDAY（川上さん確定 2026-07-03）
-      // 全体像カード＝アコーディオンのヘッダー（タップで開閉）。右端に開閉シェブロン。
-      var ov=document.createElement('div');ov.className='ov-card';
-      var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'周目</span>':'');
-      var right=curPart?(curLbl+' <small>/ 全'+total+'</small>'):('クリア '+passedN+' <small>/ 全'+total+'</small>');
-      var pct=total?Math.round(passedN/total*100):0;
-      var map='<div class="dotmap">';
-      parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
-      map+='</div>';
-      ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtLabelMt(c))+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
-        +'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>'+map
-        +'<div class="ov-sub"><span class="dm-s done"></span>クリアずみ <b>'+passedN+'</b>　'+(curPart?'<span class="dm-s cur"></span>いまここ <b>'+curLbl+'</b>　':'')+'のこり <b>'+(total-passedN)+'</b></div>';
-      // 詳細（DAY行）＝既定は畳む。カードをタップで開閉。
-      var detail=document.createElement('div');detail.className='macc-detail';
-      var cleared=parts.filter(function(l){return l.passed&&!l.is_current;});
-      var rest=parts.filter(function(l){return !(l.passed&&!l.is_current);});
-      if(cleared.length){
-        var contig=!isTest&&cleared.every(function(l,i){return (l.part_order||0)===i+1;});
-        var lbl='クリアずみ '+(contig?('DAY 1〜'+cleared[cleared.length-1].part_order+'　'):'')+'（'+cleared.length+'）';
-        var fold=document.createElement('div');fold.className='done-fold';
-        fold.innerHTML='<div class="df-ic"><i class="ti ti-check"></i></div><div class="df-t">'+lbl+'</div><i class="ti ti-chevron-down df-arw"></i>';
-        var farea=document.createElement('div');farea.className='fold-area';
-        cleared.forEach(function(l){farea.appendChild(buildMapRow(l,isTest,true));});
-        fold.onclick=function(e){e.stopPropagation();fold.classList.toggle('open');farea.classList.toggle('open');};
-        detail.appendChild(fold);detail.appendChild(farea);
-      }
-      rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false));});
-      ov.onclick=function(){ov.classList.toggle('open');detail.classList.toggle('open');};
-      macc.appendChild(ov);macc.appendChild(detail);
+    // 本(シリーズ)ごとにまとめる（同じ本の教材を1つに畳む）2026-07-24
+    var _mg=[],_mgm={};
+    cs.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!_mgm[k]){_mgm[k]={lab:mtSeriesLabelMt(c),items:[]};_mg.push(_mgm[k]);}_mgm[k].items.push(c);});
+    _mg.forEach(function(g){
+      var btot=0,bpas=0;g.items.forEach(function(c){var _ps=c.parts||[];btot+=_ps.length;bpas+=_ps.filter(function(l){return l.passed;}).length;});
+      var bpct=btot?Math.round(bpas/btot*100):0;var subjB=_subjGuess_(g.items[0]);
+      var book=document.createElement('div');book.className='nbook';
+      book.innerHTML='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subjB)+'"></i></div><div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+'</div><div class="nbk-meta">'+(subjB?'<span class="nbk-subj">'+esc(subjLabel(subjB))+'</span> ':'')+'できた '+bpct+'%</div><div class="nbk-bar"><i style="width:'+bpct+'%"></i></div></div><i class="ti ti-chevron-down nbk-arw"></i></div>';
+      var bdetail=document.createElement('div');bdetail.className='nbk-detail';book.appendChild(bdetail);
+      book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');};
+      g.items.forEach(function(c){
+        var isTest=(c.content_type==='test');
+        var parts=c.parts||[];
+        var total=parts.length;
+        var passedN=parts.filter(function(l){return l.passed;}).length;
+        var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
+        var curLbl=curPart?(isTest?esc(curPart.l.title):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
+        var ov=document.createElement('div');ov.className='ov-card';
+        var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'周目</span>':'');
+        var right=curPart?(curLbl+' <small>/ 全'+total+'</small>'):('クリア '+passedN+' <small>/ 全'+total+'</small>');
+        var pct=total?Math.round(passedN/total*100):0;
+        var map='<div class="dotmap">';
+        parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
+        map+='</div>';
+        ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtShortMt(c))+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
+          +'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>'+map
+          +'<div class="ov-sub"><span class="dm-s done"></span>クリアずみ <b>'+passedN+'</b>　'+(curPart?'<span class="dm-s cur"></span>いまここ <b>'+curLbl+'</b>　':'')+'のこり <b>'+(total-passedN)+'</b></div>';
+        var detail=document.createElement('div');detail.className='macc-detail';
+        var cleared=parts.filter(function(l){return l.passed&&!l.is_current;});
+        var rest=parts.filter(function(l){return !(l.passed&&!l.is_current);});
+        if(cleared.length){
+          var contig=!isTest&&cleared.every(function(l,i){return (l.part_order||0)===i+1;});
+          var lbl='クリアずみ '+(contig?('DAY 1〜'+cleared[cleared.length-1].part_order+'　'):'')+'（'+cleared.length+'）';
+          var fold=document.createElement('div');fold.className='done-fold';
+          fold.innerHTML='<div class="df-ic"><i class="ti ti-check"></i></div><div class="df-t">'+lbl+'</div><i class="ti ti-chevron-down df-arw"></i>';
+          var farea=document.createElement('div');farea.className='fold-area';
+          cleared.forEach(function(l){farea.appendChild(buildMapRow(l,isTest,true));});
+          fold.onclick=function(e){e.stopPropagation();fold.classList.toggle('open');farea.classList.toggle('open');};
+          detail.appendChild(fold);detail.appendChild(farea);
+        }
+        rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false));});
+        ov.onclick=function(){ov.classList.toggle('open');detail.classList.toggle('open');};
+        bdetail.appendChild(ov);bdetail.appendChild(detail);
+      });
+      macc.appendChild(book);
     });
   });
   // 間違いノート：教科ごとにカードを出す（理社対応・機能仕様書_テスト配信 §3-5・2026-07-04）。0件の教科はカードを出さない。
