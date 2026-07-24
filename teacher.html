@@ -211,6 +211,30 @@
   .pi-ans{font-size:14px;font-weight:700;}
   .pi-r{font-size:12px;color:#555;margin-top:2px;}
   .pi-k{font-size:12px;color:#222;margin-top:4px;border-top:1px dashed #ccc;padding-top:3px;}
+  /* ===== 統一印刷レイアウト（リアルタイム印刷と共通）2026-07-24 ===== */
+  .up-head{display:flex;align-items:flex-end;gap:9px;border-bottom:2px solid #000;padding-bottom:7px;flex-wrap:wrap;}
+  .up-name{font-size:20px;font-weight:800;color:#000;}
+  .up-grade,.up-room{font-size:12px;color:#333;}
+  .up-doc{margin-left:auto;font-size:11px;color:#444;}
+  .up-sum{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:#333;margin:7px 0 4px;padding:5px 9px;background:#f4f6f9;border-radius:6px;}
+  .up-sum b{font-size:13.5px;color:#000;}
+  .up-sum .low b{color:#c0121e;}
+  .up-colh{display:flex;font-size:10.5px;color:#777;margin:8px 2px 4px;}
+  .up-colh span:first-child{width:52%;}
+  .up-ghead{display:flex;align-items:center;gap:8px;margin:11px 0 6px;padding:3px 9px;background:#efe4e5;border-left:4px solid #C6000B;border-radius:0 6px 6px 0;}
+  .up-gdate{font-size:11.5px;font-weight:800;color:#C6000B;white-space:nowrap;}
+  .up-gmat{font-size:12.5px;font-weight:800;color:#222;}
+  .up-item{display:flex;border:1px solid #9aa2ad;border-radius:8px;margin-bottom:6px;overflow:hidden;page-break-inside:avoid;}
+  .up-q{width:52%;padding:8px 11px;border-right:1px dashed #9aa2ad;}
+  .up-qtxt{font-size:14.5px;font-weight:700;line-height:1.65;color:#000;}
+  .up-tag{display:inline-block;margin-top:6px;font-size:10px;color:#555;background:#eef0f3;border:1px solid #dfe3e9;border-radius:20px;padding:1px 8px;}
+  .up-fig{margin-top:7px;}
+  .up-fig img{display:block;max-width:100%;max-height:60mm;border:1px solid #b7bec8;border-radius:5px;}
+  .up-a{width:48%;padding:8px 11px;}
+  .up-ans{font-size:15px;font-weight:800;color:#000;}
+  .up-read{font-size:12px;color:#0a7a45;font-weight:700;margin-top:2px;}
+  .up-kai{font-size:11.5px;color:#333;margin-top:5px;border-top:1px dashed #ccc;padding-top:4px;line-height:1.5;}
+  .up-none{color:#0a7a45;font-weight:700;font-size:12px;margin-top:8px;}
   .print-cols-head{display:flex;font-size:11px;color:#666;margin-bottom:4px;}
   .print-cols-head span:first-child{width:45%;}
   .print-none{color:#666;font-size:13px;}
@@ -1270,37 +1294,68 @@ function hasAction(s){return (s.next_actions||[]).some(function(k){return ['done
 function nextWeight(s){var a=s.next_actions||[];if(!a.length)return 0;var mx=Math.max.apply(null,a.map(function(k){return NA_SEV[k]||0;}));return (hasAction(s)?100:0)+mx;}
 function nextActionCell(s){var ks=naList(s);if(!ks.length)return '<span class="dash">–</span>';return ks.map(function(k){var m=NA_META[k];return '<span class="nact '+m.c+'">'+m.t+'</span>';}).join('');}
 function teachCell(s){if(!hasTeach(s))return '<span class="dash">–</span>';var v=s.teach_rate;var cls=(v<_needHelpRate)?'acc-low':((v<80)?'acc-mid':'acc-hi');return '<span class="acc-rate '+cls+' num">'+v+'%</span>';}
-/* 一括印刷の実行部（対象・内容はモーダルから渡す）2026-07-05 */
+/* 統一印刷レイアウト（リアルタイム印刷と共通の描画）。1枚＝1生徒。学習日→教材でグループ、パートは小タグ、図は大きく、答え側に読み方・覚え方 2026-07-24 */
+function unifiedStudentHtml_(st, opts){
+  opts=opts||{};
+  var items=(st.items||[]).slice();
+  items.sort(function(a,b){
+    var da=String(a.date||''), db=String(b.date||''); if(da!==db) return da<db?1:-1;       // 学習日 新しい順
+    var ma=String(a.material_title||''), mb=String(b.material_title||''); if(ma!==mb) return ma<mb?-1:1;
+    var pa=String(a.part_title||''), pb=String(b.part_title||''); return pa<pb?-1:(pa>pb?1:0);
+  });
+  var h='<div class="'+(opts.wrapClass||'print-student')+'"><div class="up-head">'
+    +'<span class="up-name">'+esc(st.name||'(無名)')+'</span>'
+    +(st.grade?'<span class="up-grade">'+esc(st.grade)+'</span>':'')
+    +(st.room?'<span class="up-room">'+esc(st.room)+'</span>':'')
+    +(st.nickname?'<span class="up-room">'+esc(st.nickname)+'</span>':'')
+    +'<span class="up-doc">'+esc(opts.docTitle||'')+'　'+esc(opts.date||'')+'</span></div>';
+  h+='<div class="up-sum">';
+  if(opts.showSubmit){
+    h+='<span>提出 <b>'+(st.submitted||0)+'</b> 件</span>'
+      +'<span>平均正答率 <b>'+(st.avg_rate==null?'—':st.avg_rate+'%')+'</b></span>'
+      +'<span class="low">要フォロー <b>'+(st.follow||0)+'</b> 件</span>';
+  }
+  h+='<span>'+esc(opts.missLabel||'まちがえた問題')+' <b>'+items.length+'</b> 問</span></div>';
+  if(!items.length){ h+='<div class="up-none">'+esc(opts.emptyLabel||'✓ まちがいはありませんでした')+'</div></div>'; return h; }
+  h+='<div class="up-colh"><span>問題</span><span>答え・覚え方（折って隠せます）</span></div>';
+  var curKey='', n=0;
+  items.forEach(function(it){
+    var key=(it.date||'')+'|'+(it.material_title||'');
+    if(key!==curKey){
+      curKey=key;
+      var md=String(it.date||'').replace(/^\d{4}-0?/,'').replace(/-0?/,'/');   // 2026-07-24 → 7/24
+      var lbl=(md?('<span class="up-gdate">'+esc(md)+'</span>'):'')+'<span class="up-gmat">'+esc(mtLabelMt(it)||'(教材)')+'</span>';
+      h+='<div class="up-ghead">'+lbl+'</div>';
+    }
+    n++;
+    /* 教科で問題／答えの向きを出し分ける：英語=英単語が問題／理社・国語=問題文が問題・用語が答え 2026-07-23 */
+    var isEn=(String(it.subject||'')==='english');
+    var q=isEn?(it.english||''):(it.japanese||'');
+    var a=isEn?(it.japanese||''):(it.english||'');
+    var figH=it.fig?('<div class="up-fig"><img src="'+esc(it.fig)+'" onerror="this.style.display=\'none\'"></div>'):'';
+    h+='<div class="up-item"><div class="up-q"><div class="up-qtxt">'+n+'. '+esc(q)+'</div>'+figH
+      +(it.part_title?'<span class="up-tag">'+esc(it.part_title)+'</span>':'')+'</div>'
+      +'<div class="up-a"><div class="up-ans">'+esc(a)+'</div>'
+      +(it.reading_hint?'<div class="up-read">読み方：'+esc(it.reading_hint)+'</div>':'')
+      +(it.kaisetsu?'<div class="up-kai">覚え方：'+esc(it.kaisetsu)+'</div>':'')
+      +'</div></div>';
+  });
+  h+='</div>';
+  return h;
+}
+/* 一括印刷の実行部（対象・内容はモーダルから渡す）2026-07-05 ／ 統一レイアウトに変更 2026-07-24 */
 function runPrint_(ids,scope,days,limit){
   if(!ids.length){toast('印刷する生徒がいません');return;}
   var subLbl=(scope==='recent')?('直近'+days+'日にまちがえた問題'):(scope==='graduated')?'復習チェック（前にやって克服した語）':'まちがえた問題（間違いノート）';
+  var emptyLbl=(scope==='graduated')?'まだ克服した語がありません。':'いまはまちがえている問題はありません。';
+  var missLbl=(scope==='graduated')?'復習チェック':'まちがえた問題';
   showLoading('印刷データを準備中…');
   call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit}).then(function(d){
     if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
     var sts=d.data.students||[];
-    var html='';
-    sts.forEach(function(s){
-      html+='<div class="print-student">';
-      html+='<div class="print-h">'+esc(s.name||'(無名)')+(s.grade?' <span style="font-size:13px;font-weight:500;">'+esc(s.grade)+'</span>':'')+'</div>';
-      html+='<div class="print-sub">'+subLbl+(s.nickname?' ／ '+esc(s.nickname):'')+'</div>';
-      if(!s.items||!s.items.length){html+='<div class="print-none">'+((scope==='graduated')?'まだ克服した語がありません。':'いまはまちがえている問題はありません。')+'</div>';}
-      else{
-        html+='<div class="print-cols-head"><span>問題</span><span>答え・覚え方（折って隠せます）</span></div>';
-        s.items.forEach(function(it,idx){
-          /* 教科で問題／答えの向きを出し分ける：英語=英単語が問題／理社・国語=問題文(japanese)が問題・用語(english)が答え 2026-07-23 */
-          var isEn=(String(it.subject||'')==='english');
-          var q=isEn?(it.english||''):(it.japanese||'');
-          var a=isEn?(it.japanese||''):(it.english||'');
-          var figH=it.fig?('<div class="pi-fig"><img src="'+esc(it.fig)+'" onerror="this.style.display=\'none\'"></div>'):''; /* 図問題は設問の図も印刷 2026-07-23 */
-          html+='<div class="print-item"><div class="pi-q">'+(idx+1)+'. '+esc(q)+figH+'</div>';
-          html+='<div class="pi-a"><div class="pi-ans">'+esc(a)+'</div>';
-          if(it.reading_hint)html+='<div class="pi-r">読み方：'+esc(it.reading_hint)+'</div>';
-          if(it.kaisetsu)html+='<div class="pi-k">覚え方：'+esc(it.kaisetsu)+'</div>';
-          html+='</div></div>';
-        });
-      }
-      html+='</div>';
-    });
+    var html=sts.map(function(s){
+      return unifiedStudentHtml_(s,{wrapClass:'print-student',docTitle:subLbl,showSubmit:false,missLabel:missLbl,emptyLabel:emptyLbl});
+    }).join('');
     $('printArea').innerHTML=html;
     setTimeout(function(){window.print();},80);
   }).finally(function(){hideLoading();});

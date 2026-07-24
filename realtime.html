@@ -207,6 +207,30 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .p-miss .mi .e{font-weight:800;color:var(--crimson-dark);min-width:78px;}
 .p-miss .mi-fig{display:block;max-width:100%;max-height:36mm;margin-top:3px;border:1px solid #bbb;border-radius:3px;} /* 図問題の設問画像（印刷）2026-07-23 */
 .p-none{color:var(--green-dark);font-weight:700;font-size:12px;}
+/* ===== 統一印刷レイアウト（要指導の印刷と共通）2026-07-24 ===== */
+.up-head{display:flex;align-items:flex-end;gap:9px;border-bottom:2px solid #000;padding-bottom:7px;flex-wrap:wrap;}
+.up-name{font-size:20px;font-weight:800;color:#000;}
+.up-grade,.up-room{font-size:12px;color:#333;}
+.up-doc{margin-left:auto;font-size:11px;color:#444;}
+.up-sum{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:#333;margin:7px 0 4px;padding:5px 9px;background:#f4f6f9;border-radius:6px;}
+.up-sum b{font-size:13.5px;color:#000;}
+.up-sum .low b{color:#c0121e;}
+.up-colh{display:flex;font-size:10.5px;color:#777;margin:8px 2px 4px;}
+.up-colh span:first-child{width:52%;}
+.up-ghead{display:flex;align-items:center;gap:8px;margin:11px 0 6px;padding:3px 9px;background:#efe4e5;border-left:4px solid #C6000B;border-radius:0 6px 6px 0;}
+.up-gdate{font-size:11.5px;font-weight:800;color:#C6000B;white-space:nowrap;}
+.up-gmat{font-size:12.5px;font-weight:800;color:#222;}
+.up-item{display:flex;border:1px solid #9aa2ad;border-radius:8px;margin-bottom:6px;overflow:hidden;page-break-inside:avoid;}
+.up-q{width:52%;padding:8px 11px;border-right:1px dashed #9aa2ad;}
+.up-qtxt{font-size:14.5px;font-weight:700;line-height:1.65;color:#000;}
+.up-tag{display:inline-block;margin-top:6px;font-size:10px;color:#555;background:#eef0f3;border:1px solid #dfe3e9;border-radius:20px;padding:1px 8px;}
+.up-fig{margin-top:7px;}
+.up-fig img{display:block;max-width:100%;max-height:60mm;border:1px solid #b7bec8;border-radius:5px;}
+.up-a{width:48%;padding:8px 11px;}
+.up-ans{font-size:15px;font-weight:800;color:#000;}
+.up-read{font-size:12px;color:#0a7a45;font-weight:700;margin-top:2px;}
+.up-kai{font-size:11.5px;color:#333;margin-top:5px;border-top:1px dashed #ccc;padding-top:4px;line-height:1.5;}
+.up-none{color:#0a7a45;font-weight:700;font-size:12px;margin-top:8px;}
 @media print{
   body{background:#fff;}
   .win,#pop,.ov,.print-bar{display:none!important;}
@@ -304,7 +328,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
       <div class="spec-sec"><div class="spec-h">反応なし（灰色）</div><div class="spec-b">解き中のまま<b>10分</b>更新がない子は<b>灰色にして「◯分 反応なし」</b>と表示します（離席・アプリを閉じた可能性）。</div></div>
       <div class="spec-sec"><div class="spec-h">くわしく見る</div><div class="spec-b">カードに<b>マウスを乗せると詳細</b>（教材・パート・状態・問題数）。<b>クリックすると</b>、提出済みは<b>その回のまちがえた問題</b>、解き中は「解答中」を表示します。</div></div>
       <div class="spec-sec"><div class="spec-h">要フォロー（赤い子）</div><div class="spec-b">正答率60%未満の子は<b>カードとレーンを赤で強調</b>し、レーンに「要フォロー」の印を付けます。すぐ声かけに行けるようにするためです。</div></div>
-      <div class="spec-sec"><div class="spec-h">生徒ごとに印刷</div><div class="spec-b">右上の「🖨 生徒ごとに印刷」で、<b>この画面に貯まったぶん</b>を生徒1人＝<b>表裏1枚を目安</b>にまとめて印刷します（名前・教室・日付／提出件数・平均正答率・要フォロー件数／やった学習の表／まちがえた問題）。対象は<b>いま見えているぶん（教室・種別のしぼり込みを反映）</b>。まちがいが多い子は縮小または2枚になることがあります。</div></div>
+      <div class="spec-sec"><div class="spec-h">生徒ごとに印刷（学習記録・統一レイアウト 2026-07-24）</div><div class="spec-b">右上の「🖨 生徒ごとに印刷」で、生徒1人＝<b>表裏1枚を目安</b>に印刷します。<b>要指導の印刷（学習履歴タブ）と同じレイアウト</b>に統一しました。中身は「1行サマリー（提出・平均正答率・要フォロー）」＋「<b>まちがえた問題</b>を学習日→教材でまとめたもの」。各問は「問題｜答え・読み方・覚え方」の2カラムで、<b>右を折れば答えを隠して口頭クイズ</b>に使えます。図は大きく表示。対象は<b>今日ぶんの確認テスト＋毎日学習＋単元別</b>（教室のしぼり込みを反映）。<b>データは一時保存ではなく学習記録（quiz_results／review_words）から取り直す</b>ので、リアルタイムを長く開いていても古いぶんが欠けません（以前は1人14件を超えると古いものが消えていました）。</div></div>
       <div class="spec-sec"><div class="spec-h">授業の区切り（リセット）</div><div class="spec-b">「リアルタイムモードを開く」を<b>押した時刻＝その授業の開始</b>として、<b>それ以降のぶんだけ</b>表示します。だから1コマ目の記録が2コマ目に混ざりません。<b>リロード（F5）は同じ授業の続き</b>として残ります（誤って更新しても消えません）。授業を続けて切り替えるときは、上の<b>「🔄 新しい授業（リセット）」</b>を押すとその場で表示が空になり、そこからのぶんだけ貯めます。上部に「◯:◯◯〜 の記録を表示中」と開始時刻が出ます。<br>なお、記録そのもの（点数・ミス問）は<b>サーバーに全部残る</b>ので、点数表や集計には影響しません。ここで区切っているのは<b>表示だけ</b>です。蓄積は<b>先生（端末）ごと</b>です。</div></div>
     </div>
   </div>
@@ -525,48 +549,71 @@ function setSort(m,el){
   keepAlive(); render();
 }
 
-// ====== 生徒ごとに印刷（この画面で貯まったぶんを集計） ======
+// ====== 生徒ごとに印刷（恒久データ quiz_results＋review_words から取り直す＝14件リングの欠損回避）2026-07-24 ======
+function esc_(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+// 統一印刷レイアウト（要指導の印刷と共通の描画）。1枚＝1生徒。学習日→教材でグループ、パートは小タグ、図は大きく、答え側に読み方・覚え方。
+function unifiedStudentHtml_(st, opts){
+  opts=opts||{};
+  var items=(st.items||[]).slice();
+  items.sort(function(a,b){
+    var da=String(a.date||''), db=String(b.date||''); if(da!==db) return da<db?1:-1;       // 学習日 新しい順
+    var ma=String(a.material_title||''), mb=String(b.material_title||''); if(ma!==mb) return ma<mb?-1:1;
+    var pa=String(a.part_title||''), pb=String(b.part_title||''); return pa<pb?-1:(pa>pb?1:0);
+  });
+  var h='<div class="'+(opts.wrapClass||'p-sheet')+'"><div class="up-head">'
+    +'<span class="up-name">'+esc_(st.name||'(無名)')+'</span>'
+    +(st.grade?'<span class="up-grade">'+esc_(st.grade)+'</span>':'')
+    +(st.room?'<span class="up-room">'+esc_(st.room)+'</span>':'')
+    +'<span class="up-doc">'+esc_(opts.docTitle||'')+'　'+esc_(opts.date||'')+'</span></div>';
+  h+='<div class="up-sum">';
+  if(opts.showSubmit){
+    h+='<span>提出 <b>'+(st.submitted||0)+'</b> 件</span>'
+      +'<span>平均正答率 <b>'+(st.avg_rate==null?'—':st.avg_rate+'%')+'</b></span>'
+      +'<span class="low">要フォロー <b>'+(st.follow||0)+'</b> 件</span>';
+  }
+  h+='<span>まちがえた問題 <b>'+items.length+'</b> 問</span></div>';
+  if(!items.length){ h+='<div class="up-none">✓ まちがいはありませんでした</div></div>'; return h; }
+  h+='<div class="up-colh"><span>問題</span><span>答え・覚え方（折って隠せます）</span></div>';
+  var curKey='', n=0;
+  items.forEach(function(it){
+    var key=(it.date||'')+'|'+(it.material_title||'');
+    if(key!==curKey){
+      curKey=key;
+      var md=String(it.date||'').replace(/^\d{4}-0?/,'').replace(/-0?/,'/');   // 2026-07-24 → 7/24
+      h+='<div class="up-ghead"><span class="up-gdate">'+esc_(md)+'</span><span class="up-gmat">'+esc_(mtLabelMt(it)||'(教材)')+'</span></div>';
+    }
+    n++;
+    var isEn=String(it.subject||'')==='english';
+    var q=isEn?(it.english||''):(it.japanese||'');
+    var a=isEn?(it.japanese||''):(it.english||'');
+    var figH=it.fig?'<div class="up-fig"><img src="'+esc_(it.fig)+'" onerror="this.style.display=\'none\'"></div>':'';
+    h+='<div class="up-item"><div class="up-q"><div class="up-qtxt">'+n+'. '+esc_(q)+'</div>'+figH
+      +(it.part_title?'<span class="up-tag">'+esc_(it.part_title)+'</span>':'')+'</div>'
+      +'<div class="up-a"><div class="up-ans">'+esc_(a)+'</div>'
+      +(it.reading_hint?'<div class="up-read">読み方：'+esc_(it.reading_hint)+'</div>':'')
+      +(it.kaisetsu?'<div class="up-kai">覚え方：'+esc_(it.kaisetsu)+'</div>':'')
+      +'</div></div>';
+  });
+  h+='</div>';
+  return h;
+}
 function openPrint(){
   keepAlive();
   var pdate=(function(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());})();
-  // ④ いま state にいる生徒（名簿順）から集計。旧コードは未定義の STUDENTS を参照してJSエラー→ボタン無反応だった
-  var list=Object.keys(state).sort(function(a,b){return (SIDX[a]==null?999:SIDX[a])-(SIDX[b]==null?999:SIDX[b]);})
-    .map(function(id){return state[id];})
-    .filter(function(st){return st.active && (roomFilter==='all'||st.info.room===roomFilter) && visLanes(st).length>0;});
-  list=sortLanes(list);
-  var html='';
-  list.forEach(function(st){
-    var vis=visLanes(st);
-    var done=vis.filter(function(l){return l.status==='done';});
-    var avg=done.length?Math.round(done.reduce(function(a,l){return a+l.rate;},0)/done.length):null;
-    var low=done.filter(function(l){return l.kind!=='prog'&&l.rate!=null&&l.rate<60;}).length;
-    var rm=st.info.room;
-    html+='<div class="p-sheet"><div class="p-head"><span class="p-name">'+st.info.name+'</span><span class="p-room">'+rm+'</span>'
-        +'<span class="p-doc">確認テスト リアルタイム記録　'+pdate+'</span></div>';
-    html+='<div class="p-sum"><span>提出 <b>'+done.length+'</b> 件</span>'
-        +'<span>平均正答率 <b>'+(avg==null?'—':avg+'%')+'</b></span>'
-        +'<span>要フォロー <b>'+low+'</b> 件</span>'
-        +'<span>解き中 <b>'+vis.filter(function(l){return l.status==='doing';}).length+'</b> 件</span></div>';
-    // やったテスト一覧
-    html+='<div class="p-sec">やった学習</div><table class="p-tbl"><tr><th>種別</th><th>教材・パート</th><th>正答率</th><th>判定</th></tr>';
-    vis.forEach(function(l){
-      var st2=(l.status==='doing')?'（解き中）':'';
-      var c=(l.status==='doing')?'':rateClass(l.rate);
-      var rr=(l.status==='doing')?'—':l.rate+'%';
-      var jd=(l.status==='doing')?'解答中':(c==='g'?'合格':(c==='a'?'あと少し':'要フォロー'));
-      html+='<tr><td>'+TYPES[l.type].label+'</td><td>'+(l.book?l.book+' ':'')+l.mat+' '+l.part+'</td><td class="'+(c?'r'+c:'')+'">'+rr+'</td><td>'+jd+'</td></tr>';
-    });
-    html+='</table>';
-    // まちがえた問題（提出ぶん合算）
-    var miss=[]; done.forEach(function(l){ l.missed.forEach(function(m){ miss.push(m); }); });
-    html+='<div class="p-sec">まちがえた問題（'+miss.length+'問）</div>';
-    if(miss.length===0){ html+='<div class="p-none">✓ まちがいはありませんでした</div>'; }
-    else{ html+='<div class="p-miss">'+miss.map(function(m){var fg=m.fig?'<img class="mi-fig" src="'+m.fig+'" onerror="this.style.display=\'none\'">':'';return '<div class="mi"><span class="e">'+m.en+'</span><span class="j">'+m.ja+fg+'</span></div>';}).join('')+'</div>'; }
-    html+='</div>';
-  });
-  document.getElementById('printSheets').innerHTML=html||'<div style="padding:40px;color:#64748b;">印刷できる記録がありません。</div>';
-  document.getElementById('printN').textContent=list.length+'名分（1人＝表裏1枚を目安）';
+  // いま画面にいる生徒（教室しぼり込みを反映・名簿順）。種別スイッチに関係なく、確認テスト＋毎日学習＋単元別を印刷する。
+  var ids=Object.keys(state).sort(function(a,b){return (SIDX[a]==null?999:SIDX[a])-(SIDX[b]==null?999:SIDX[b]);})
+    .filter(function(id){var st=state[id];return st.active && (roomFilter==='all'||st.info.room===roomFilter) && (st.lanes&&st.lanes.length>0);});
+  var $sheets=document.getElementById('printSheets'), $n=document.getElementById('printN');
   document.getElementById('printOv').classList.add('show');
+  if(!ids.length){ $sheets.innerHTML='<div style="padding:40px;color:#64748b;">印刷できる記録がありません。</div>'; $n.textContent='0名分'; return; }
+  $sheets.innerHTML='<div style="padding:40px;color:#64748b;">恒久データ（学習記録）から読み込み中…</div>'; $n.textContent='読み込み中…';
+  call({action:'rt_print', student_ids:ids.join(','), date:pdate}).then(function(r){
+    if(!r||!r.ok){ $sheets.innerHTML='<div style="padding:40px;color:#c0121e;">取得に失敗しました：'+esc_((r&&r.error)||'')+'</div>'; $n.textContent=''; return; }
+    var byId={}; (r.data.students||[]).forEach(function(s){ byId[s.student_id]=s; });
+    var html=ids.map(function(id){ var s=byId[id]; return s?unifiedStudentHtml_(s,{docTitle:'確認テスト リアルタイム記録',date:(r.data.date||pdate),showSubmit:true}):''; }).join('');
+    $sheets.innerHTML=html||'<div style="padding:40px;color:#64748b;">印刷できる記録がありません。</div>';
+    $n.textContent=ids.length+'名分（1人＝表裏1枚を目安）';
+  }).catch(function(){ $sheets.innerHTML='<div style="padding:40px;color:#c0121e;">通信エラーで取得できませんでした。</div>'; $n.textContent=''; });
 }
 function closePrint(){ document.getElementById('printOv').classList.remove('show'); }
 function doPrint(){ window.print(); }
