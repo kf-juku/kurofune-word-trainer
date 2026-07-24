@@ -173,6 +173,15 @@
   .f-prog-t{display:flex;justify-content:space-between;font-size:11px;font-weight:700;opacity:.92;margin-bottom:5px;}
   .f-prog-bar{height:6px;border-radius:4px;background:rgba(255,255,255,.25);overflow:hidden;}
   .f-prog-bar i{display:block;height:100%;background:#fff;border-radius:4px;}
+  .dcard{display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:9px;cursor:pointer;}
+  .dcard-l{width:46px;height:46px;border-radius:50%;background:rgba(31,170,107,.13);color:var(--ok);display:flex;align-items:center;justify-content:center;font-size:27px;flex:none;box-shadow:0 0 0 5px rgba(31,170,107,.07);}
+  .dcard-r{flex:1;min-width:0;}
+  .dcard-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;}
+  .dpill{font-size:10px;font-weight:700;background:var(--neutral-ic);color:var(--sub);padding:2px 7px;border-radius:6px;}
+  .dsubj{font-size:11px;color:var(--sub);font-weight:600;}
+  .dbadge{font-size:11px;font-weight:800;color:var(--ok);background:rgba(31,170,107,.12);padding:2px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:3px;margin-left:auto;}
+  .dcard-nm{font-size:15px;font-weight:800;line-height:1.25;}
+  .dcard-cta{font-size:12.5px;font-weight:800;color:var(--accent);margin-top:5px;display:flex;align-items:center;gap:4px;}
   .queue{position:relative;margin-bottom:8px;}
   .queue::before{content:'';position:absolute;left:20px;top:14px;bottom:14px;width:2px;background:repeating-linear-gradient(var(--n-track) 0 5px,transparent 5px 11px);}
   .qrow{display:flex;align-items:center;gap:12px;padding:7px 0;position:relative;z-index:1;cursor:pointer;}
@@ -1365,8 +1374,8 @@ function renderDailyList_(main){
     var dc=document.createElement('div');dc.className='done-card';
     dc.innerHTML='<div class="dc-ic"><i class="ti ti-check"></i></div><div class="dc-t"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>、ぜんぶ できたよ！</div><div class="dc-s"><ruby>頭<rt class="uf">あたま</rt></ruby>の <ruby>赤<rt class="uf">あか</rt></ruby>まるも きえたね。'+main.length+'つ クリア。</div>';
     host.appendChild(dc);
-    var qh0=document.createElement('div');qh0.className='q-head';qh0.innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby> やったこと';host.appendChild(qh0);
-    var q0=document.createElement('div');q0.className='queue';main.forEach(function(m){q0.appendChild(_dailyQueueRow_(m));});host.appendChild(q0);
+    var qh0=document.createElement('div');qh0.className='q-head done';qh0.innerHTML='<i class="ti ti-circle-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby> やったこと ・ もっと やりたい子は <ruby>先<rt class="uf">さき</rt></ruby>へ';host.appendChild(qh0);
+    main.forEach(function(m){host.appendChild(_dailyDoneCard_(m));});
     return;
   }
   // 全体像：今日の毎日学習の進み（1教材=1セグメント・終わったら緑）2026-07-24
@@ -1381,7 +1390,7 @@ function renderDailyList_(main){
   if(upNext.length){var qh=document.createElement('div');qh.className='q-head';qh.textContent='このあと';host.appendChild(qh);var q=document.createElement('div');q.className='queue';upNext.forEach(function(m){q.appendChild(_dailyQueueRow_(m));});host.appendChild(q);}
   // きょう できた＝終わった分を「がんばったね」の枠でまとめる 2026-07-24
   var doneItems=main.filter(function(m){return m.cleared_today;});
-  if(doneItems.length){var dh=document.createElement('div');dh.className='q-head done';dh.innerHTML='<i class="ti ti-circle-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby> できたよ（'+doneItems.length+'）・ よく がんばったね';host.appendChild(dh);var dq=document.createElement('div');dq.className='queue';doneItems.forEach(function(m){dq.appendChild(_dailyQueueRow_(m));});host.appendChild(dq);}
+  if(doneItems.length){var dh=document.createElement('div');dh.className='q-head done';dh.innerHTML='<i class="ti ti-circle-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby> できたよ（'+doneItems.length+'）・ よく がんばったね';host.appendChild(dh);doneItems.forEach(function(m){host.appendChild(_dailyDoneCard_(m));});}
 }
 function _dailyFocus_(m){
   var el=document.createElement('div');el.className='focus';
@@ -1392,6 +1401,18 @@ function _dailyFocus_(m){
   // 教材のどこまで進んだか（DAY po / 全pc）＝全体像。複数DAYの教材だけ出す 2026-07-24
   var prog='';if(pc>1){var pct=Math.max(0,Math.min(100,Math.round(po/pc*100)));prog='<div class="f-prog"><div class="f-prog-t"><span>DAY '+po+' / '+pc+'</span><span>'+pct+'%</span></div><div class="f-prog-bar"><i style="width:'+pct+'%"></i></div></div>';}
   el.innerHTML='<div class="f-label">'+label+'</div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+esc(mtLabelMt(m))+'</div><div class="f-sub">'+subj+road+'</div></div></div>'+prog+'<button class="f-btn">'+(cleared?'つづける':'はじめる')+' <i class="ti ti-arrow-right"></i></button>';
+  el.onclick=function(){startPractice(m.part_id);};
+  return el;
+}
+/* 完了カード：現行版の完了感を再現＝チェック＋「今日のぶん完了」バッジ＋「じぶんで先に進む」（毎日クリア済みは現在地が次DAYに進んでいるので part_id タップで先取り）2026-07-24 */
+function _dailyDoneCard_(m){
+  var el=document.createElement('div');el.className='dcard';
+  var subj=m.subject?('<span class="dsubj">'+esc(subjLabel(m.subject))+'</span>'):'';
+  var lapPill=(m.lap>=2)?'<span class="dpill">'+m.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'';
+  el.innerHTML='<div class="dcard-l"><i class="ti ti-circle-check"></i></div>'
+    +'<div class="dcard-r"><div class="dcard-top"><span class="dpill"><ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></span>'+subj+lapPill+'<span class="dbadge"><i class="ti ti-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>のぶん <ruby>完了<rt class="uf">かんりょう</rt></ruby></span></div>'
+    +'<div class="dcard-nm">'+esc(mtLabelMt(m))+'</div>'
+    +'<div class="dcard-cta">じぶんで <ruby>先<rt class="uf">さき</rt></ruby>に すすむ <i class="ti ti-arrow-right"></i></div></div>';
   el.onclick=function(){startPractice(m.part_id);};
   return el;
 }
