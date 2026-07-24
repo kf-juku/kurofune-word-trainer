@@ -118,6 +118,37 @@
   .ntab i{font-size:23px;}
   .ntab .nbadge{position:relative;}
   .ntab .nbadge.dot::after{content:'';position:absolute;top:-1px;right:-4px;width:7px;height:7px;border-radius:50%;background:var(--ng);}
+  /* v11 タブ構成 2026-07-24 */
+  .tabpanel{display:none;}.tabpanel.on{display:block;}
+  .ph{font-size:19px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;margin:2px 2px 3px;}
+  .ph i{font-size:20px;}
+  .psub{font-size:12px;color:var(--sub);margin:0 2px 14px;line-height:1.6;}
+  .focus{border-radius:20px;padding:15px 15px 14px;color:#fff;background:linear-gradient(135deg,#1c74ff,#0a4fd0);box-shadow:0 10px 26px rgba(10,79,208,.3);margin-bottom:12px;cursor:pointer;}
+  .f-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.92;display:flex;align-items:center;gap:6px;}
+  .f-main{display:flex;align-items:center;gap:14px;margin:11px 0 13px;}
+  .f-day{width:54px;height:54px;border-radius:17px;background:rgba(255,255,255,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:0 0 0 6px rgba(255,255,255,.08);}
+  .f-day .fdd{font-size:9px;font-weight:700;opacity:.9;line-height:1;}.f-day .fdn{font-size:22px;font-weight:800;font-family:'Manrope',sans-serif;line-height:1;}
+  .f-ic{width:54px;height:54px;border-radius:17px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:26px;flex:0 0 auto;box-shadow:0 0 0 6px rgba(255,255,255,.08);}
+  .f-title{font-size:20px;font-weight:800;letter-spacing:-.01em;line-height:1.15;}
+  .f-sub{font-size:12px;opacity:.9;margin-top:4px;line-height:1.5;}
+  .f-btn{width:100%;border:none;border-radius:14px;background:#fff;color:#0a4fd0;font-weight:800;font-size:16px;padding:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;}
+  .q-head{font-size:11px;color:var(--sub);font-weight:700;margin:2px 4px 6px;}
+  .queue{position:relative;margin-bottom:8px;}
+  .queue::before{content:'';position:absolute;left:20px;top:14px;bottom:14px;width:2px;background:repeating-linear-gradient(var(--n-track) 0 5px,transparent 5px 11px);}
+  .qrow{display:flex;align-items:center;gap:12px;padding:7px 0;position:relative;z-index:1;cursor:pointer;}
+  .q-node{width:40px;height:40px;border-radius:50%;background:var(--surface);border:2px solid var(--n-track);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--sub);font-size:12px;flex:0 0 auto;margin-left:1px;font-family:'Manrope';font-weight:800;}
+  .q-node .qd{font-size:7px;opacity:.8;font-weight:700;}
+  .q-body{flex:1;min-width:0;}.q-top{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+  .q-nm{font-size:14px;font-weight:700;}.q-sub{font-size:11px;color:var(--sub);margin-top:1px;}
+  .q-go{font-size:16px;color:var(--sub);}
+  .rcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px 13px;margin-bottom:11px;display:flex;align-items:center;gap:13px;cursor:pointer;position:relative;}
+  .rc-ic{width:48px;height:48px;border-radius:15px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto;}
+  .rc-b{flex:1;min-width:0;}.rc-t{font-weight:700;font-size:16px;}.rc-s{font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.5;}
+  .rc-go{width:34px;height:34px;border-radius:11px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;}
+  .rcard .reddot{top:11px;right:11px;}
+  .ntab .ic{position:relative;}
+  .ntab .ic .bdg{position:absolute;top:-3px;right:-9px;min-width:15px;height:15px;padding:0 4px;border-radius:8px;background:var(--ng);color:#fff;font-size:9px;font-weight:800;font-family:'Manrope';display:none;align-items:center;justify-content:center;line-height:1;}
+  .ntab .ic .bdg.on{display:flex;}
   #home-tiles,#home-sub{padding-bottom:84px;}
   .daily-bar.done .db-n{color:var(--gold);}
   .ldot{width:9px;height:9px;border-radius:50%;background:var(--ng);display:none;}
@@ -681,27 +712,29 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <div class="body">
       <!-- ===== タイル一覧ビュー（ホーム既定）===== -->
       <div id="home-tiles">
-        <!-- 応援＝名前の横のアバターチップ(.oa)／なかまチル＝名前の下(.undername)へ移動（2026-07-13 案A・きらめき演出は維持） -->
-        <div class="daily-bar done" id="daily-bar" style="display:none;"><span class="db-t" style="color:var(--gold)">🎉 今日ぜんぶ完了！</span><span class="db-n"><i class="ti ti-check"></i></span></div>
-        <!-- ===== まいにちゾーン ===== -->
-        <div class="nz">
-          <div class="nz-head"><div class="nzh-l"><i class="ti ti-anchor"></i> まいにち</div><div class="nzh-sub" id="nz-daily-sub"></div></div>
+        <!-- 毎日学習（1本道） -->
+        <div class="tabpanel on" id="tp-daily">
+          <div class="daily-bar done" id="daily-bar" style="display:none;"><span class="db-t" style="color:var(--gold)">🎉 今日ぜんぶ完了！</span><span class="db-n"><i class="ti ti-check"></i></span></div>
+          <div class="ph"><i class="ti ti-anchor" style="color:var(--gold)"></i> <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></div>
+          <div class="psub" id="daily-sub2"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>学習<rt class="uf">がくしゅう</rt></ruby></div>
           <div id="daily-list"><div class="loading">読み込み中…</div></div>
-          <!-- おさらい（自動反復・テスト配信おさらい）2026-07-02 -->
-          <div class="nrow" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="nr-ic"><i class="ti ti-clock-bolt"></i></div><div class="nr-nm">おさらい<small>きょうの ふくしゅうを かたづけよう</small></div><div class="nr-cnt"><span id="cnt-review">–</span></div></div>
-          <!-- 間違いノート＝たまったときだけ nudge を出す -->
-          <div id="note-nudge-wrap"></div>
-          <span id="cnt-note" style="display:none;"></span><span id="dot-note" style="display:none;"></span>
+          <span id="nz-daily-sub" style="display:none;"></span>
         </div>
-        <!-- ===== テストにむけてゾーン ===== -->
-        <div class="nz test" id="nz-test" style="display:none;">
-          <div class="nz-head"><div class="nzh-l"><i class="ti ti-flag"></i> テストにむけて</div><div class="nzh-sub">先生が わりあてた 範囲</div></div>
-          <div class="nz-note">テスト範囲を おぼえよう。さいごに 力だめし（確認テスト）。</div>
-          <div id="unit-list"></div>
-          <!-- 確認テスト ひとまとめ（教室でその場・自動採点）2026-07-10 -->
-          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t">力だめし（確認テスト）</div><div class="nqc-s">おぼえたら ここで テスト。授業でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div></div>
+        <!-- ふくしゅう（おさらい＋間違いノート・並列） -->
+        <div class="tabpanel" id="tp-review">
+          <div class="ph"><i class="ti ti-clock-bolt" style="color:var(--accent)"></i> ふくしゅう</div>
+          <div class="psub">おぼえた<ruby>所<rt class="uf">ところ</rt></ruby>の <ruby>定着<rt class="uf">ていちゃく</rt></ruby>（おさらい）と、<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>所<rt class="uf">ところ</rt></ruby>の<ruby>直<rt class="uf">なお</rt></ruby>し（<ruby>間違<rt class="uf">まちが</rt></ruby>いノート）。ここが <ruby>力<rt class="uf">ちから</rt></ruby>の つきどころ</div>
+          <div class="rcard" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> ・ <span id="cnt-review">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
+          <div class="rcard" id="tile-note"><span class="reddot" id="dot-note" style="display:none;"></span><div class="rc-ic"><i class="ti ti-notebook"></i></div><div class="rc-b"><div class="rc-t"><ruby>間違<rt class="uf">まちが</rt></ruby>いノート</div><div class="rc-s"><ruby>間違<rt class="uf">まちが</rt></ruby>えた <ruby>所<rt class="uf">ところ</rt></ruby>だけ ・ <span id="cnt-note">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
+          <div id="note-nudge-wrap" style="display:none;"></div>
         </div>
-        <button class="logout-link" id="btn-logout"><i class="ti ti-logout"></i> ログアウト</button>
+        <!-- 単元別（やる所から） -->
+        <div class="tabpanel" id="tp-unit">
+          <div class="ph"><i class="ti ti-flag" style="color:var(--accent)"></i> <ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></div>
+          <div class="psub">テストまでに やりきろう。<ruby>習<rt class="uf">なら</rt></ruby>う<ruby>順<rt class="uf">じゅん</rt></ruby>は <ruby>学校<rt class="uf">がっこう</rt></ruby>で ちがうので、やる<ruby>所<rt class="uf">ところ</rt></ruby>から でOK</div>
+          <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;">先生が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに出るよ</p></div>
+          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>力<rt class="uf">ちから</rt></ruby>だめし（<ruby>確認<rt class="uf">かくにん</rt></ruby>テスト）</div><div class="nqc-s">おぼえたら ここで テスト。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div></div>
+        </div>
       </div>
 
       <!-- ===== サブビュー（タイルから遷移）===== -->
@@ -714,6 +747,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
             <div class="tile" id="tile-badge"><div class="tic"><i class="ti ti-award"></i></div><div class="tnm">バッジ</div><div class="tcnt" id="cnt-badge">–</div></div>
             <div class="tile" id="tile-team"><span class="reddot" id="dot-team" style="display:none;"></span><div class="tic"><i class="ti ti-users"></i></div><div class="tnm">なかま</div><div class="tcnt" id="cnt-team">–</div></div>
           </div>
+          <button class="logout-link" id="btn-logout"><i class="ti ti-logout"></i> ログアウト</button>
         </div>
         <div class="subview" id="sv-note">
           <div id="note-area"><div class="loading">読み込み中…</div></div>
@@ -741,10 +775,11 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     </div>
     <!-- ===== 下部メニュー 2026-07-24 ===== -->
     <nav class="ntabbar" id="ntabbar">
-      <button class="ntab on" id="ntab-home" type="button"><i class="ti ti-home-2"></i>ホーム</button>
-      <button class="ntab" id="ntab-team" type="button"><span class="nbadge" id="ntab-team-b"><i class="ti ti-heart"></i></span>なかま</button>
-      <button class="ntab" id="ntab-records" type="button"><i class="ti ti-award"></i>きろく</button>
-      <button class="ntab" id="ntab-overall" type="button"><i class="ti ti-world"></i>ぜんたい</button>
+      <button class="ntab on" id="ntab5-daily" type="button"><span class="ic"><i class="ti ti-anchor"></i><span class="bdg" id="bdg-daily"></span></span><ruby>毎日<rt class="uf">まいにち</rt></ruby></button>
+      <button class="ntab" id="ntab5-review" type="button"><span class="ic"><i class="ti ti-clock-bolt"></i><span class="bdg" id="bdg-review"></span></span>ふくしゅう</button>
+      <button class="ntab" id="ntab5-unit" type="button"><span class="ic"><i class="ti ti-flag"></i><span class="bdg" id="bdg-unit"></span></span><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></button>
+      <button class="ntab" id="ntab5-team" type="button"><span class="ic"><i class="ti ti-heart"></i><span class="bdg" id="bdg-team"></span></span>なかま</button>
+      <button class="ntab" id="ntab5-record" type="button"><span class="ic"><i class="ti ti-award"></i></span><ruby>記録<rt class="uf">きろく</rt></ruby></button>
     </nav>
   </section>
 
@@ -925,7 +960,7 @@ function buildMapRow(l,isTest,inFold){
 var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でも復習',team:'チームのなかま',overall:'クロフネ全体',records:'じぶんの記録',quiz:'確認テスト'};
 function showSub(name){
   try{sessionStorage.setItem('kwt_view',name);}catch(e){} // スマホ更新で最後の画面を復元（川上さん確定2026-07-06）
-  try{if(name==='team')setTab_('team');else if(name==='records')setTab_('records');else if(name==='overall')setTab_('overall');}catch(e){}
+  try{if(name==='team')setTab5_('team');else if(name==='records')setTab5_('record');}catch(e){}
   $('home-tiles').style.display='none';
   $('home-sub').style.display='block';
   $('sub-title').textContent=SUB_TITLES[name]||'';
@@ -937,7 +972,7 @@ function showSub(name){
 }
 function backToTiles(){
   try{sessionStorage.removeItem('kwt_view');}catch(e){} // ホームに戻ったら復元対象を解除
-  try{setTab_('home');}catch(e){}
+  try{setTab5_(_homeTab||'daily');}catch(e){}
   $('home-sub').style.display='none';
   $('home-tiles').style.display='block';
   document.querySelectorAll('#home-sub .subview').forEach(function(v){v.classList.remove('active');});
@@ -982,7 +1017,7 @@ function quizRenderHome_(d){
   tile.style.display='';
   $('cnt-quiz').textContent=miss>0?(miss+'こ のこり'):'ぜんぶOK';
   var dq=$('dot-quiz');if(dq)dq.style.display=miss>0?'':'none';
-  syncTestZone_();
+  _quizMiss=miss;syncTestZone_();
 }
 function quizPill_(p){
   if(p.status==='ok')return '<span style="background:rgba(31,157,87,.15);color:var(--ok);font-weight:800;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">合格 '+(p.latest_rate!=null?p.latest_rate+'%':'')+'</span>';
@@ -1183,44 +1218,43 @@ function mtLabelMt(o){if(!o)return '';return mtSeriesKeyMt(o)?(mtSeriesLabelMt(o
 /* ===== 新ホーム（二層化・道・単元別フラット・下メニュー）2026-07-24 ===== */
 var NOTE_THRESHOLD=20; // 間違いノートが これ以上たまったら nudge を出す（後で調整可）
 var _unitCount=0;
+/* UI文言のルビ（小学生アカウント＝html.furi-on のときだけ rt.uf が出る。中学生は漢字のみ）2026-07-24 */
+function rb(k,y){return '<ruby>'+k+'<rt class="uf">'+y+'</rt></ruby>';}
 function subjIcon_(s){return s==='science'?'ti-flask':(s==='social'?'ti-books':(s==='japanese'?'ti-book-2':(s==='math'?'ti-calculator':(s==='english'?'ti-language':'ti-flag'))));}
-function setTab_(name){['home','team','records','overall'].forEach(function(k){var e=$('ntab-'+k);if(e)e.classList.toggle('on',k===name);});}
-function syncTestZone_(){var nz=$('nz-test');if(!nz)return;var q=$('tile-quiz');var quizShown=!!q&&q.style.display!=='none';nz.style.display=((_unitCount>0)||quizShown)?'block':'none';}
-/* 毎日学習＝教材ごとに 今のDAY大＋この先2〜3プレビュー。先頭の未完了カードを primary（つぎやる）に */
+function setTab5_(name){['daily','review','unit','team','record'].forEach(function(k){var e=$('ntab5-'+k);if(e)e.classList.toggle('on',k===name);});}
+function setBadge_(tab,n){var e=$('bdg-'+tab);if(!e)return;if(n>0){e.textContent=(n>99?'99':String(n));e.classList.add('on');}else{e.classList.remove('on');}}
+var _homeTab='daily',_quizMiss=0;
+function showHomeTab(name){_homeTab=name;$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);}catch(e){}window.scrollTo(0,0);}
+function syncTestZone_(){setBadge_('unit',_quizMiss||0);}
+/* 毎日学習＝1本道：先頭の未完了を大きく（つぎは これ）＋このあとを queue */
 function renderDailyList_(main){
-  var host=$('daily-list');if(!host)return;
-  host.innerHTML='';
-  var sub=$('nz-daily-sub');
-  if(!main||!main.length){host.innerHTML='<p class="muted">今日の まいにち学習は ありません。先生に<ruby>聞<rt class="uf">き</rt></ruby>いてね。</p>';if(sub)sub.textContent='';return;}
-  var undoneN=main.filter(function(m){return !m.cleared_today;}).length;
-  if(sub)sub.textContent=undoneN?('のこり '+undoneN):'きょうは完了';
-  var primaryId=null;for(var i=0;i<main.length;i++){if(!main[i].cleared_today){primaryId=main[i].material_id;break;}}
-  main.forEach(function(m){host.appendChild(_dailyCard(m,m.material_id===primaryId));});
+  var host=$('daily-list');if(!host)return;host.innerHTML='';
+  var sub=$('daily-sub2');
+  if(!main||!main.length){host.innerHTML='<p class="muted" style="text-align:center;padding:18px 8px;"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>は ありません。先生に<ruby>聞<rt class="uf">き</rt></ruby>いてね。</p>';if(sub)sub.innerHTML='';setBadge_('daily',0);return;}
+  var undone=main.filter(function(m){return !m.cleared_today;});
+  if(sub)sub.innerHTML=undone.length?('<ruby>今日<rt class="uf">きょう</rt></ruby>の のこり '+undone.length+' ・ まえから じゅんに'):'<ruby>今日<rt class="uf">きょう</rt></ruby>は ぜんぶ できたよ！';
+  setBadge_('daily',undone.length);
+  var fi=0;for(var i=0;i<main.length;i++){if(!main[i].cleared_today){fi=i;break;}}
+  host.appendChild(_dailyFocus_(main[fi]));
+  var rest=main.filter(function(m,i){return i!==fi;});
+  if(rest.length){var qh=document.createElement('div');qh.className='q-head';qh.textContent='このあと';host.appendChild(qh);var q=document.createElement('div');q.className='queue';rest.forEach(function(m){q.appendChild(_dailyQueueRow_(m));});host.appendChild(q);}
 }
-function _dailyCard(m,isPrimary){
-  var el=document.createElement('div');el.className='dcard'+(isPrimary?' primary':'');el.style.position='relative';
-  var subj=m.subject?subjLabel(m.subject):'';
-  var lapPill=(m.lap>=2)?'<span class="npill lap">'+m.lap+'周目</span>':'';
-  var po=(m.part_order||1)|0;var pc=(m.part_count!==undefined?m.part_count:0)|0;
-  var cleared=!!m.cleared_today;
-  var name=esc(mtLabelMt(m));
-  var nodeInner='<span class="dd">DAY</span><span class="dn">'+po+'</span>';
-  var go='<i class="ti ti-chevron-right"></i>';var sub='';
-  if(cleared){el.classList.add('done');nodeInner='<span class="dni"><i class="ti ti-check"></i></span>';go='<i class="ti ti-arrow-right"></i>';sub='<div class="dsub">今日のぶん完了 ・ じぶんで先に進む</div>';}
-  else if(isPrimary){go='<i class="ti ti-player-play-filled"></i>';sub='<div class="dsub">つぎは これ ・ はじめよう</div>';}
-  var top='<div class="dtop"><div class="dnode">'+nodeInner+'</div>'
-    +'<div class="dinfo"><div class="dtoprow"><span class="npill daily">毎日学習</span>'+(subj?'<span class="npill sub">'+subj+'</span>':'')+lapPill+'</div>'
-    +'<div class="dname">'+name+'</div>'+sub+'</div>'
-    +'<div class="dgo">'+go+'</div></div>';
-  var road='';
-  if(!cleared&&pc>po){
-    road='<div class="droad"><span class="droad-lb">この先</span>';var shown=0;
-    for(var d=po+1;d<=pc&&shown<3;d++,shown++){road+=(shown>0?'<span class="rline"></span>':'')+'<span class="rdot">'+d+'</span>';}
-    if(pc>po+3)road+='<span class="rmore">… DAY'+pc+'まで</span>';
-    road+='</div>';
-  }
-  el.innerHTML=top+road;
-  if(!cleared){var rd=document.createElement('span');rd.style.cssText='position:absolute;top:10px;right:11px;width:9px;height:9px;border-radius:50%;background:var(--ng);';el.appendChild(rd);}
+function _dailyFocus_(m){
+  var el=document.createElement('div');el.className='focus';
+  var po=(m.part_order||1)|0,pc=(m.part_count!==undefined?m.part_count:0)|0,cleared=!!m.cleared_today;
+  var road='';if(!cleared&&pc>po){var arr=[];for(var d=po+1;d<=pc&&arr.length<3;d++)arr.push('DAY'+d);road=' ・ この<ruby>先<rt class="uf">さき</rt></ruby> '+arr.join('・')+(pc>po+3?(' … DAY'+pc+'まで'):'');}
+  var subj=m.subject?esc(subjLabel(m.subject)):'';
+  var label=cleared?'<i class="ti ti-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> <ruby>完了<rt class="uf">かんりょう</rt></ruby>！':'<i class="ti ti-player-play-filled"></i> つぎは これ';
+  el.innerHTML='<div class="f-label">'+label+'</div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+esc(mtLabelMt(m))+'</div><div class="f-sub">'+subj+road+'</div></div></div><button class="f-btn">'+(cleared?'つづける':'はじめる')+' <i class="ti ti-arrow-right"></i></button>';
+  el.onclick=function(){startPractice(m.part_id);};
+  return el;
+}
+function _dailyQueueRow_(m){
+  var el=document.createElement('div');el.className='qrow';
+  var po=(m.part_order||1)|0,done=!!m.cleared_today;
+  var lapPill=(m.lap>=2)?'<span class="npill lap">'+m.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'';
+  var subj=m.subject?esc(subjLabel(m.subject)):'';
+  el.innerHTML='<div class="q-node">'+(done?'<i class="ti ti-check" style="font-size:16px;color:var(--ok)"></i>':'<span class="qd">DAY</span>'+po)+'</div><div class="q-body"><div class="q-top"><span class="q-nm">'+esc(mtLabelMt(m))+'</span>'+lapPill+'</div><div class="q-sub">'+subj+'</div></div><div class="q-go"><i class="ti ti-chevron-right"></i></div>';
   el.onclick=function(){startPractice(m.part_id);};
   return el;
 }
@@ -1284,11 +1318,12 @@ function openHome(){
   _bind('tile-lists',function(){showSub('lists');});
   _bind('tile-team',function(){showSub('team');});
   _bind('tile-quiz',function(){showSub('quiz');renderQuiz();});
-  // 下部メニュー（ホーム／なかま／きろく／ぜんたい）2026-07-24
-  _bind('ntab-home',function(){setTab_('home');backToTiles();});
-  _bind('ntab-team',function(){setTab_('team');showSub('team');});
-  _bind('ntab-records',function(){setTab_('records');showSub('records');});
-  _bind('ntab-overall',function(){setTab_('overall');showSub('overall');});
+  // 下部メニュー（毎日／ふくしゅう／単元別／なかま／記録）2026-07-24
+  _bind('ntab5-daily',function(){showHomeTab('daily');});
+  _bind('ntab5-review',function(){showHomeTab('review');});
+  _bind('ntab5-unit',function(){showHomeTab('unit');});
+  _bind('ntab5-team',function(){setTab5_('team');showSub('team');});
+  _bind('ntab5-record',function(){setTab5_('record');showSub('records');});
   var _dl0=$('daily-list');if(_dl0)_dl0.innerHTML='<div class="loading">読み込み中…</div>';
   var _ra0=$('review-area');if(_ra0)_ra0.innerHTML='<div class="loading">読み込み中…</div>';
   callCached({action:'student_home'},function(d,_cached){
@@ -2294,8 +2329,8 @@ function loadNotes(){
     subs.sort(function(a,b){return order.indexOf(a.subject)-order.indexOf(b.subject);});
     var totalN=subs.reduce(function(a,b){return a+(b.count||0);},0);
     $('cnt-note').innerHTML=totalN?('<b>'+totalN+'</b> 語のこり'):'ぜんぶ卒業！';
-    dailyState.note=true;renderDaily(); // 間違いノートはデイリー完了に含めない（たまったら促す・2026-07-24）
-    renderNoteNudge_(totalN); // しきい値以上でnudgeを出す
+    dailyState.note=true;renderDaily(); // 間違いノートはデイリー完了に含めない（2026-07-24）
+    var dn=$('dot-note');if(dn)dn.style.display=totalN>0?'block':'none'; // 間違いがあればカードに赤丸
     area.innerHTML='';
     if(!totalN){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">間違いゼロ！</div><div class="sub">いまは復習する単語がありません</div></div></div>';return;}
     subs.forEach(function(c){
@@ -2474,6 +2509,7 @@ function loadReviewSrs(){
     var lbl=[];if(rtot>0)lbl.push('<b>'+rtot+'</b> 語');if(trvUndone>0)lbl.push('<b>'+trvUndone+'</b> パート');
     $('cnt-review').innerHTML=lbl.length?lbl.join(' + '):'なし';
     var anyReview=(rtot>0)||(trvUndone>0);
+    setBadge_('review',(rtot||0)+(trvUndone||0));
     var dr=$('dot-review');if(dr)dr.style.display=anyReview?'block':'none';
     var trow=$('tile-review');if(trow)trow.classList.toggle('dim',!anyReview);
     dailyState.review=!anyReview;renderDaily(); // おさらい完了＝自動反復due0 かつ テスト配信おさらい今日ぶん完了（0章§6）
