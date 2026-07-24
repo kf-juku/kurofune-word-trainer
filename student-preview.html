@@ -132,6 +132,23 @@
   .f-title{font-size:20px;font-weight:800;letter-spacing:-.01em;line-height:1.15;}
   .f-sub{font-size:12px;opacity:.9;margin-top:4px;line-height:1.5;}
   .f-btn{width:100%;border:none;border-radius:14px;background:#fff;color:#0a4fd0;font-weight:800;font-size:16px;padding:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;}
+  .done-card{border-radius:20px;padding:20px 16px 18px;color:#fff;background:linear-gradient(135deg,#22b07a,#159463);box-shadow:0 10px 26px rgba(21,148,99,.28);margin-bottom:12px;text-align:center;}
+  .done-card .dc-ic{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:30px;box-shadow:0 0 0 7px rgba(255,255,255,.08);}
+  .done-card .dc-t{font-size:19px;font-weight:800;letter-spacing:-.01em;}
+  .done-card .dc-s{font-size:12.5px;opacity:.92;margin-top:5px;line-height:1.5;}
+  .empty-note{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px dashed var(--line);border-radius:15px;padding:16px 15px;color:var(--sub);font-size:13px;line-height:1.6;}
+  .empty-note i{font-size:26px;color:var(--sub);flex:none;opacity:.7;}
+  .set-h{font-size:12px;color:var(--sub);font-weight:700;margin:18px 4px 8px;letter-spacing:.02em;}
+  .setgrp{background:var(--surface);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow);overflow:hidden;}
+  .setrow{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;}
+  .setrow+.setrow{border-top:1px solid var(--line);}
+  .setrow .sr-ic{width:34px;height:34px;border-radius:11px;background:var(--neutral-ic);color:var(--sub);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;}
+  .setrow .sr-b{flex:1;min-width:0;}
+  .setrow .sr-t{font-size:14px;font-weight:700;line-height:1.3;}
+  .setrow .sr-s{font-size:11.5px;color:var(--sub);margin-top:2px;line-height:1.4;}
+  .setrow .sr-go{font-size:12.5px;font-weight:700;color:var(--accent);flex:none;display:flex;align-items:center;gap:3px;}
+  .setrow.static{cursor:default;}
+  .setrow.static .sr-go{color:var(--sub);font-weight:600;}
   .q-head{font-size:11px;color:var(--sub);font-weight:700;margin:2px 4px 6px;}
   .queue{position:relative;margin-bottom:8px;}
   .queue::before{content:'';position:absolute;left:20px;top:14px;bottom:14px;width:2px;background:repeating-linear-gradient(var(--n-track) 0 5px,transparent 5px 11px);}
@@ -747,7 +764,15 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
             <div class="tile" id="tile-lists"><div class="tic"><i class="ti ti-list-check"></i></div><div class="tnm">学習マップ</div><div class="tcnt">何回でも復習</div></div>
             <div class="tile" id="tile-badge"><div class="tic"><i class="ti ti-award"></i></div><div class="tnm">バッジ</div><div class="tcnt" id="cnt-badge">–</div></div>
             <div class="tile" id="tile-team"><span class="reddot" id="dot-team" style="display:none;"></span><div class="tic"><i class="ti ti-users"></i></div><div class="tnm">なかま</div><div class="tcnt" id="cnt-team">–</div></div>
+            <div class="tile" id="tile-overall"><div class="tic"><i class="ti ti-world"></i></div><div class="tnm">クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby></div><div class="tcnt">みんなの がんばり</div></div>
           </div>
+          <div class="set-h"><ruby>設定<rt class="uf">せってい</rt></ruby></div>
+          <div class="setgrp">
+            <div class="setrow" id="set-nick"><div class="sr-ic"><i class="ti ti-user"></i></div><div class="sr-b"><div class="sr-t">ニックネーム</div><div class="sr-s" id="set-nick-val">—</div></div><div class="sr-go"><ruby>変更<rt class="uf">へんこう</rt></ruby> <i class="ti ti-pencil"></i></div></div>
+            <div class="setrow" id="set-theme"><div class="sr-ic" id="set-theme-ic"><i class="ti ti-moon"></i></div><div class="sr-b"><div class="sr-t"><ruby>見<rt class="uf">み</rt></ruby>た<ruby>目<rt class="uf">め</rt></ruby>（テーマ）</div><div class="sr-s" id="set-theme-val">ライト</div></div><div class="sr-go"><ruby>切替<rt class="uf">きりかえ</rt></ruby> <i class="ti ti-repeat"></i></div></div>
+            <div class="setrow static" id="set-furi"><div class="sr-ic"><i class="ti ti-a-b-2"></i></div><div class="sr-b"><div class="sr-t">ふりがな</div><div class="sr-s" id="set-furi-val"><ruby>学年<rt class="uf">がくねん</rt></ruby>に <ruby>合<rt class="uf">あ</rt></ruby>わせて <ruby>自動<rt class="uf">じどう</rt></ruby></div></div><div class="sr-go" id="set-furi-badge">—</div></div>
+          </div>
+          <div class="setrow-note" style="font-size:11px;color:var(--sub);text-align:center;margin:12px 4px 4px;line-height:1.5;"><ruby>小学生<rt class="uf">しょうがくせい</rt></ruby>は <ruby>漢字<rt class="uf">かんじ</rt></ruby>に ふりがなが つくよ。ログアウトは <ruby>下<rt class="uf">した</rt></ruby>の メニューから。</div>
         </div>
         <div class="subview" id="sv-note">
           <div id="note-area"><div class="loading">読み込み中…</div></div>
@@ -869,6 +894,16 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     </div>
   </div>
 </div>
+<div class="modal-mask" id="logout-mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+    <h3 id="logout-title">ログアウトしますか？</h3>
+    <p class="hint">またログインすれば、つづきから べんきょうできます。</p>
+    <div class="row">
+      <button class="btn ghost" id="logout-cancel" type="button">やめる</button>
+      <button class="btn" id="logout-yes" type="button">ログアウト</button>
+    </div>
+  </div>
+</div>
 <button class="bug-fab" id="bug-fab" onclick="openBug()" style="display:none;" aria-label="不具合を報告"><i class="ti ti-message-report"></i><span>不具合を報告</span></button>
 <div class="modal-mask" id="bug-mask">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bug-title">
@@ -960,7 +995,7 @@ function buildMapRow(l,isTest,inFold){
 var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でも復習',team:'チームのなかま',overall:'クロフネ全体',records:'じぶんの記録',quiz:'確認テスト'};
 function showSub(name){
   try{sessionStorage.setItem('kwt_view',name);}catch(e){} // スマホ更新で最後の画面を復元（川上さん確定2026-07-06）
-  try{if(name==='team')setTab5_('team');else if(name==='records')setTab5_('record');}catch(e){}
+  try{if(name==='team')setTab5_('team');else if(name==='records'||name==='overall'||name==='badge'||name==='lists')setTab5_('record');}catch(e){}
   $('home-tiles').style.display='none';
   $('home-sub').style.display='block';
   $('sub-title').textContent=SUB_TITLES[name]||'';
@@ -1114,6 +1149,7 @@ function saveNick(){
     nickname=d.data.nickname;
     localStorage.setItem('kwt_nick',nickname);try{localStorage.removeItem('kwt_nick_auto');}catch(e){} // 自分で決めたら案内終了 2026-07-05
     $('nick').textContent=nickname;
+    try{var _sv=$('set-nick-val');if(_sv)_sv.textContent=nickname;}catch(e){} // 設定行のニックネーム表示も更新（2026-07-24）
     closeNickModal();
     if(d.data.unchanged){toast('ニックネームはそのままだよ');}
     else{toast('ニックネームを変更したよ！');}
@@ -1157,7 +1193,16 @@ function animNum(el,to,dur){var st=performance.now();function f(t){var p=Math.mi
   if(saved){document.documentElement.setAttribute('data-theme',saved);}
   else if(window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.setAttribute('data-theme','dark');}
 })();
-function syncThemeIcon(){var d=document.documentElement.getAttribute('data-theme')==='dark';var b=$('themeBtn');if(b)b.innerHTML='<i class="ti ti-'+(d?'sun':'moon')+'"></i>';}
+function syncThemeIcon(){var d=document.documentElement.getAttribute('data-theme')==='dark';var b=$('themeBtn');if(b)b.innerHTML='<i class="ti ti-'+(d?'sun':'moon')+'"></i>';
+  var sv=$('set-theme-val');if(sv)sv.textContent=(d?'ダーク':'ライト');var si=$('set-theme-ic');if(si)si.innerHTML='<i class="ti ti-'+(d?'moon':'sun')+'"></i>';} // 設定行のテーマ表示も同期（2026-07-24）
+function toggleTheme_(){var d=document.documentElement.getAttribute('data-theme')==='dark';document.documentElement.setAttribute('data-theme',d?'light':'dark');try{localStorage.setItem('kwt_theme',d?'light':'dark');}catch(e){}syncThemeIcon();}
+/* 記録タブの設定行の表示を同期（ニックネーム／ふりがな状態／テーマ）2026-07-24 */
+function syncSettings_(){
+  var nv=$('set-nick-val');if(nv)nv.textContent=nickname||'きみ';
+  var el=false;try{el=_isElementary(stuGrade);}catch(e){}
+  var fb=$('set-furi-badge');if(fb)fb.textContent=el?'オン':'オフ';
+  try{syncThemeIcon();}catch(e){}
+}
 
 function beep(f,d,t,v){try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();var o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t||'sine';o.frequency.value=f;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(v||0.18,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.start();o.stop(audioCtx.currentTime+d);}catch(e){}}
 function sndCorrect(){beep(660,0.12,'triangle',0.34);setTimeout(function(){beep(990,0.14,'triangle',0.34);},90);}
@@ -1180,14 +1225,18 @@ function flash(){var f=$('flash');f.classList.remove('show');void f.offsetWidth;
 function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
 function gradPop_(en,ja){var el=$('gradpop');if(!el)return;el.innerHTML='<div class="gp-em">🎓</div><div class="gp-w">'+String(en==null?'':en)+(ja?' <span class="gp-ja">'+String(ja)+'</span>':'')+'</div><div class="gp-l">卒業！</div>';el.classList.remove('show');void el.offsetWidth;el.classList.add('show');try{beep(784,0.12,'triangle');setTimeout(function(){beep(1175,0.16,'triangle');},110);}catch(e){}confetti(14);}
 
-$('themeBtn').onclick=function(){var d=document.documentElement.getAttribute('data-theme')==='dark';document.documentElement.setAttribute('data-theme',d?'light':'dark');localStorage.setItem('kwt_theme',d?'light':'dark');syncThemeIcon();};
+$('themeBtn').onclick=toggleTheme_;
 
 $('nick-cancel').onclick=closeNickModal;
 $('nick-save').onclick=saveNick;
 $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
 $('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスワードを入れてね';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> 確認中…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
-$('btn-logout').onclick=function(){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');stuGrade='';applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');};
+function doLogout_(){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');stuGrade='';applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');}
+$('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
+$('logout-cancel').onclick=function(){$('logout-mask').classList.remove('show');};
+$('logout-mask').onclick=function(e){if(e.target===this)$('logout-mask').classList.remove('show');};
+$('logout-yes').onclick=function(){$('logout-mask').classList.remove('show');doLogout_();};
 
 /* 新構造ヘルパー（2026-06-23）：教科ラベル＋HTMLエスケープ */
 function subjLabel(s){var m={english:'英語',math:'数学',science:'理科',social:'社会',japanese:'国語'};return m[s]||s;}
@@ -1224,7 +1273,7 @@ function subjIcon_(s){return s==='science'?'ti-flask':(s==='social'?'ti-books':(
 /* 教科：材料に subject が無いとき（material_parts）はタイトルから推定。undefined表示を防ぐ 2026-07-24 */
 function _subjGuess_(o){var s=o&&o.subject;if(s)return s;var t=String((o&&o.material_title)||'');if(/理科|生物|物質|エネルギー|生命|地球|化学|物理/.test(t))return 'science';if(/歴史|地理|公民|社会/.test(t))return 'social';if(/語彙|国語|漢字|文章/.test(t))return 'japanese';if(/数学|算数/.test(t))return 'math';if(/英/.test(t))return 'english';return '';}
 function setTab5_(name){['daily','review','unit','team','record'].forEach(function(k){var e=$('ntab5-'+k);if(e)e.classList.toggle('on',k===name);});}
-function setBadge_(tab,n){var e=$('bdg-'+tab);if(!e)return;if(n>0){e.textContent=(n>99?'99':String(n));e.classList.add('on');}else{e.classList.remove('on');}}
+function setBadge_(tab,n){var e=$('bdg-'+tab);if(!e)return;if(n>0){e.textContent=(n>9?'9+':String(n));e.classList.add('on');}else{e.classList.remove('on');}} // 10以上は9+＝数の圧迫感を減らす（2026-07-24）
 var _homeTab='daily',_quizMiss=0;
 function showHomeTab(name){_homeTab=name;$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);}catch(e){}window.scrollTo(0,0);}
 function syncTestZone_(){setBadge_('unit',_quizMiss||0);}
@@ -1236,6 +1285,15 @@ function renderDailyList_(main){
   var undone=main.filter(function(m){return !m.cleared_today;});
   if(sub)sub.innerHTML=undone.length?('<ruby>今日<rt class="uf">きょう</rt></ruby>の のこり '+undone.length+' ・ まえから じゅんに'):'<ruby>今日<rt class="uf">きょう</rt></ruby>は ぜんぶ できたよ！';
   setBadge_('daily',undone.length);
+  // 今日ぜんぶ完了：達成カード＋「きょう やったこと」を出す（未完了があるときだけ1本道の focus/queue）2026-07-24
+  if(!undone.length){
+    var dc=document.createElement('div');dc.className='done-card';
+    dc.innerHTML='<div class="dc-ic"><i class="ti ti-check"></i></div><div class="dc-t"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>、ぜんぶ できたよ！</div><div class="dc-s"><ruby>頭<rt class="uf">あたま</rt></ruby>の <ruby>赤<rt class="uf">あか</rt></ruby>まるも きえたね。'+main.length+'つ クリア。</div>';
+    host.appendChild(dc);
+    var qh0=document.createElement('div');qh0.className='q-head';qh0.innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby> やったこと';host.appendChild(qh0);
+    var q0=document.createElement('div');q0.className='queue';main.forEach(function(m){q0.appendChild(_dailyQueueRow_(m));});host.appendChild(q0);
+    return;
+  }
   var fi=0;for(var i=0;i<main.length;i++){if(!main[i].cleared_today){fi=i;break;}}
   host.appendChild(_dailyFocus_(main[fi]));
   var rest=main.filter(function(m,i){return i!==fi;});
@@ -1293,6 +1351,8 @@ function renderUnitZone_(materials){
       book.querySelectorAll('.nchap').forEach(function(row){var pid=row.getAttribute('data-pid');if(pid)row.onclick=function(){startPractice(pid);};});
       host.appendChild(book);
     });
+  }else{
+    host.innerHTML='<div class="empty-note"><i class="ti ti-flag"></i><div><ruby>先生<rt class="uf">せんせい</rt></ruby>が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに <ruby>出<rt class="uf">で</rt></ruby>るよ。<br>いまは <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>を すすめよう。</div></div>';
   }
   syncTestZone_();
 }
@@ -1320,6 +1380,10 @@ function openHome(){
   _bind('tile-badge',function(){showSub('badge');});
   _bind('tile-lists',function(){showSub('lists');});
   _bind('tile-team',function(){showSub('team');});
+  _bind('tile-overall',function(){showSub('overall');});
+  _bind('set-nick',openNickModal);
+  _bind('set-theme',toggleTheme_);
+  syncSettings_();
   _bind('tile-quiz',function(){showSub('quiz');renderQuiz();});
   // 下部メニュー（毎日／ふくしゅう／単元別／なかま／記録）2026-07-24
   _bind('ntab5-daily',function(){showHomeTab('daily');});
