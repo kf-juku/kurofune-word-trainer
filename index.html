@@ -209,6 +209,7 @@
   .ntab .ic{position:relative;}
   .ntab .ic .bdg{position:absolute;top:-3px;right:-9px;min-width:15px;height:15px;padding:0 4px;border-radius:8px;background:var(--ng);color:#fff;font-size:9px;font-weight:800;font-family:'Manrope';display:none;align-items:center;justify-content:center;line-height:1;}
   .ntab .ic .bdg.on{display:flex;}
+  .ntab .ic .bdg.dot{min-width:9px;width:9px;height:9px;padding:0;border-radius:50%;font-size:0;top:-2px;right:-6px;}
   #home-tiles,#home-sub{padding-bottom:84px;}
   .daily-bar.done .db-n{color:var(--gold);}
   .ldot{width:9px;height:9px;border-radius:50%;background:var(--ng);display:none;}
@@ -793,7 +794,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <!-- 単元別（やる所から） -->
         <div class="tabpanel" id="tp-unit">
           <div class="ph"><i class="ti ti-flag" style="color:var(--accent)"></i> <ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></div>
-          <div class="psub">テストまでに やりきろう。<ruby>習<rt class="uf">なら</rt></ruby>う<ruby>順<rt class="uf">じゅん</rt></ruby>は <ruby>学校<rt class="uf">がっこう</rt></ruby>で ちがうので、やる<ruby>所<rt class="uf">ところ</rt></ruby>から でOK</div>
+          <div class="psub">テストまでに やりきろう。やりたい <ruby>所<rt class="uf">ところ</rt></ruby>から で OK。</div>
           <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;">先生が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに出るよ</p></div>
           <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>力<rt class="uf">ちから</rt></ruby>だめし（<ruby>確認<rt class="uf">かくにん</rt></ruby>テスト）</div><div class="nqc-s">おぼえたら ここで テスト。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div><div class="rc-go" style="margin-left:9px"><i class="ti ti-arrow-right"></i></div></div>
         </div>
@@ -1814,7 +1815,8 @@ var _recvCount=0,_recvUnseen=false,_cheerLeft=0;
 function recvAckKey_(){return 'kwt_recv_ack_'+(nickname||'');}
 function teamDotUpdate_(){var on=(_recvUnseen||_cheerLeft>0);
   var d=$('dot-team');if(d)d.style.display=on?'':'none';
-  var nd=document.querySelector('#home-star-pop .newdot');if(nd)nd.style.display=on?'':'none';} // 上部「応援」チップの赤●＝未読の応援 or 応援できる仲間 があるときだけ点灯 2026-07-14
+  var nd=document.querySelector('#home-star-pop .newdot');if(nd)nd.style.display=on?'':'none';
+  var nb=$('bdg-team');if(nb){nb.classList.add('dot');nb.textContent='';nb.classList.toggle('on',on);}} // 記録タブのナビにも赤●＝なかま未読/応援できる仲間があるとき（bdg-teamをドット化）2026-07-24
 function loadStarReceived(){
   callCached({action:'star_received'},function(d){
     // 描画のたびに初期化する（キャッシュ描画→フレッシュ描画で追記が二重になるバグ修正 2026-07-05・川上さん報告）
@@ -2828,12 +2830,12 @@ function finishSrs(){
 }
 
 /* ===== バッジ（実績の節目）2026-06-22 ===== */
-var BADGE_ICONS={streak:'ti-flame',words:'ti-book-2',lists:'ti-trophy',plusalpha:'ti-bolt'};
+var BADGE_ICONS={streak:'ti-flame',words:'ti-book-2',lists:'ti-trophy'};/* ＋α(plusalpha)は前面で非表示＝9バッジ（2026-07-24）。他軸のアイコンは従来どおり（parts=合格DAYは既定 ti-award） */
 function loadBadges(){
   var area=$('badge-area');
   callCached({action:'badges'},function(d){
     if(!d.ok||!d.data){area.innerHTML='<p class="muted">—</p>';return;}
-    var list=d.data.badges||[];
+    var list=(d.data.badges||[]).filter(function(b){return b.axis!=='plusalpha';}); // ＋α（自主学習）は is_plus_alpha が記録されておらず永久に取れない＝出さない＝9バッジ（2026-07-24 川上さん確定）
     /* ヘッダーの連続日数はここで更新（badgesのstats.streak＝computeStreak_の実データ）2026-07-05 */
     var _stk=(d.data.stats&&d.data.stats.streak)||0;
     var _sw=document.querySelector('.head .streak');
@@ -2841,7 +2843,7 @@ function loadBadges(){
       if(_stk>0){_sw.innerHTML='<i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b>日';animNum($('streak'),_stk,800);}
       else{_sw.innerHTML='<span style="font-size:12px;color:var(--sub)">今日からスタート！</span>';} /* ストリーク0日表示（川上さん承認 2026-07-05） */
     }
-    var got=d.data.achieved_count||0, tot=d.data.total||list.length;
+    var got=list.filter(function(b){return b.achieved;}).length, tot=list.length; // ＋α除外後で数え直す（9バッジ基準）2026-07-24
     $('cnt-badge').innerHTML='<b>'+got+'</b> / '+tot;
     area.innerHTML='';
     var head=document.createElement('div');head.className='muted';head.style.marginBottom='10px';
@@ -2873,8 +2875,15 @@ function currentScreenName(){
   var a=document.querySelector('.screen.active');var id=a?a.id:'';
   if(id==='scr-login')return 'ログイン';
   if(id==='scr-done')return '結果画面';
-  if(id==='scr-practice'){if(session&&session.quizMode)return '確認テスト';if(session&&session.fromReview)return 'おさらい';return 'メイン学習（英単語）';}
-  if(id==='scr-home'){var v='';try{v=sessionStorage.getItem('kwt_view')||'';}catch(e){}if(v&&SUB_TITLES[v])return SUB_TITLES[v];return 'ホーム';}
+  if(id==='scr-practice'){if(session&&session.quizMode)return '確認テスト';if(session&&session.fromReview)return 'おさらい';return '毎日学習';}
+  if(id==='scr-home'){
+    var v='';try{v=sessionStorage.getItem('kwt_view')||'';}catch(e){}
+    if(v&&SUB_TITLES[v])return SUB_TITLES[v]; // サブ画面（間違いノート・おさらい・学習マップ・バッジ・なかま・クロフネ全体・確認テスト）
+    var t='';try{t=sessionStorage.getItem('kwt_htab')||'';}catch(e){}
+    var TAB={daily:'毎日学習',review:'ふくしゅう',unit:'単元別',record:'記録'};
+    if(t&&TAB[t])return TAB[t];
+    return 'ホーム';
+  }
   return 'その他';
 }
 function bugPick(el){el.classList.toggle('sel');var m=el.querySelector('.tk');if(m)m.innerHTML=el.classList.contains('sel')?'<i class="ti ti-check"></i>':'';var any=document.querySelectorAll('#bug-chips .bug-chip.sel').length>0;$('bug-send').disabled=!any||_bugSending;}
@@ -2882,7 +2891,7 @@ function openBugFromExplain(){openBug();try{var w=_curExW;if(w){var t=(w.english
 function openBug(){
   document.querySelectorAll('#bug-chips .bug-chip').forEach(function(c){c.classList.remove('sel');var m=c.querySelector('.tk');if(m)m.innerHTML='';});
   $('bug-msg').value='';
-  var base=['ホーム','メイン学習（英単語）','おさらい','確認テスト','間違いノート','じぶんの記録・バッジ・なかま','ログイン','わからない'];
+  var base=['毎日学習','ふくしゅう（おさらい・間違いノート）','単元別','確認テスト','記録（学習マップ・バッジ・なかま・クロフネ全体）','ログイン','わからない'];
   var cur=currentScreenName();var list=base.slice();if(list.indexOf(cur)<0)list.unshift(cur);
   $('bug-screen').innerHTML=list.map(function(x){return '<option value="'+esc(x)+'"'+(x===cur?' selected':'')+'>'+esc(x)+'</option>';}).join('');
   $('bug-form').style.display='block';$('bug-send-pane').style.display='none';$('bug-done-pane').style.display='none';
