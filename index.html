@@ -31,6 +31,185 @@
   .daily-bar .db-t{font-size:13px;font-weight:800;letter-spacing:.02em;}
   .daily-bar .db-n{font-size:13px;font-weight:700;font-family:'Manrope',sans-serif;}
   .daily-bar .db-n.rem{color:var(--ng);}
+  /* ===== 新ホーム（二層化・道・単元別フラット・下メニュー）2026-07-24 ===== */
+  :root{--n-track:#dfe4ee;--n-goldsoft:rgba(202,162,74,.14);--n-testtint:#fbf7ef;}
+  [data-theme="dark"]{--n-track:#2a313f;--n-goldsoft:rgba(227,196,119,.14);--n-testtint:#1b1a15;}
+  .nz{margin-bottom:16px;}
+  .nz-head{display:flex;align-items:baseline;justify-content:space-between;margin:6px 2px 9px;}
+  .nzh-l{display:flex;align-items:center;gap:7px;font-size:16px;font-weight:700;letter-spacing:-.01em;}
+  .nzh-l i{font-size:18px;color:var(--gold);}
+  .nz.test .nzh-l i{color:var(--accent);}
+  .nzh-sub{font-size:11px;color:var(--sub);font-weight:600;}
+  .nz.test{background:var(--n-testtint);border:1px solid var(--line);border-radius:18px;padding:8px 12px 12px;}
+  .nz-note{font-size:11px;color:var(--sub);margin:2px 2px 9px;line-height:1.5;}
+  /* 毎日学習：今のDAY大＋先プレビュー */
+  .dcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:12px 13px;margin-bottom:10px;cursor:pointer;}
+  .dcard.primary{border:1.5px solid var(--accent);box-shadow:0 8px 22px rgba(10,79,208,.15);}
+  .dcard.done{opacity:.62;}
+  .dtop{display:flex;align-items:center;gap:13px;}
+  .dnode{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1c74ff,#0a4fd0);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 5px var(--accent-soft);flex:0 0 auto;}
+  .dcard:not(.primary) .dnode{width:46px;height:46px;box-shadow:0 0 0 4px var(--accent-soft);}
+  .dnode .dd{font-size:8px;font-weight:700;opacity:.9;line-height:1;letter-spacing:.05em;}
+  .dnode .dn{font-size:18px;font-weight:800;font-family:'Manrope',sans-serif;line-height:1.05;}
+  .dnode .dni{font-size:22px;}
+  .dinfo{flex:1;min-width:0;}
+  .dtoprow{display:flex;gap:5px;align-items:center;margin-bottom:2px;flex-wrap:wrap;}
+  .npill{font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:8px;white-space:nowrap;}
+  .npill.daily{background:var(--accent-soft);color:var(--accent);}
+  .npill.lap{background:var(--n-goldsoft);color:var(--gold);}
+  .npill.sub{background:transparent;color:var(--sub);padding:1px 2px;}
+  .dname{font-weight:700;font-size:15px;letter-spacing:-.01em;line-height:1.25;}
+  .dsub{font-size:11px;color:var(--sub);margin-top:2px;}
+  .dgo{width:34px;height:34px;border-radius:11px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;}
+  .dcard:not(.primary) .dgo{background:var(--accent-soft);color:var(--accent);}
+  .dcard.done .dgo{background:var(--n-goldsoft);color:var(--ok);}
+  .droad{display:flex;align-items:center;gap:8px;margin:11px 0 1px;padding-left:6px;}
+  .droad-lb{font-size:10px;color:var(--sub);font-weight:600;}
+  .rdot{width:28px;height:28px;border-radius:50%;border:2px dashed var(--n-track);color:var(--sub);font-size:10px;font-weight:800;font-family:'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+  .rline{flex:0 0 12px;border-top:2px dotted var(--n-track);}
+  .rmore{font-size:11px;color:var(--sub);font-weight:600;}
+  /* おさらい行 */
+  .nrow{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:11px 13px;margin-bottom:9px;display:flex;align-items:center;gap:11px;cursor:pointer;}
+  .nr-ic{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;}
+  .nr-nm{flex:1;font-weight:700;font-size:14px;}
+  .nr-nm small{display:block;font-weight:500;font-size:10.5px;color:var(--sub);margin-top:1px;}
+  .nr-cnt{font-size:12px;color:var(--sub);font-weight:700;white-space:nowrap;}
+  .nrow .reddot{position:absolute;top:10px;right:10px;width:9px;height:9px;border-radius:50%;background:var(--ng);}
+  /* 間違いノート nudge */
+  .nnudge{display:flex;align-items:center;gap:11px;background:linear-gradient(135deg,var(--n-goldsoft),transparent);border:1px solid var(--n-goldsoft);border-radius:14px;padding:10px 12px;margin-bottom:9px;cursor:pointer;}
+  .nn-ic{width:34px;height:34px;border-radius:10px;background:var(--n-goldsoft);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto;}
+  .nn-b{flex:1;min-width:0;}
+  .nn-t{font-weight:700;font-size:13px;}
+  .nn-s{font-size:10.5px;color:var(--sub);margin-top:1px;}
+  .nn-go{font-size:11.5px;font-weight:800;color:var(--gold);white-space:nowrap;}
+  /* 単元別：フラットな章リスト */
+  .nbook{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-bottom:8px;overflow:hidden;}
+  .nbook-head{padding:11px 13px;display:flex;align-items:center;gap:11px;cursor:pointer;}
+  .nbk-ic{width:34px;height:34px;border-radius:10px;background:var(--n-goldsoft);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;}
+  .nbk-body{flex:1;min-width:0;}
+  .nbk-nm{font-weight:700;font-size:14px;letter-spacing:-.01em;}
+  .nbk-meta{font-size:11px;color:var(--sub);margin-top:2px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+  .nbk-subj{font-size:9.5px;color:var(--sub);border:1px solid var(--line);padding:0 6px;border-radius:6px;}
+  .nbk-rate{font-weight:700;}
+  .nbk-bar{height:4px;border-radius:2px;background:var(--n-track);margin-top:7px;overflow:hidden;}
+  .nbk-bar i{display:block;height:100%;background:var(--gold);border-radius:2px;}
+  .nbk-arw{color:var(--sub);font-size:19px;transition:transform .2s;}
+  .nbook.open .nbk-arw{transform:rotate(180deg);}
+  .nbk-detail{display:none;border-top:1px solid var(--line);padding:2px 13px 6px;}
+  .nbook.open .nbk-detail{display:block;}
+  .nchap{display:flex;align-items:center;gap:9px;padding:10px 0;cursor:pointer;border-bottom:1px solid var(--line);}
+  .nchap:last-child{border:none;}
+  .ncf-nm{flex:1;font-size:13.5px;font-weight:600;line-height:1.3;}
+  .ncf-nm small{display:block;font-weight:500;font-size:10.5px;color:var(--sub);margin-top:1px;}
+  .ncf-go{width:30px;height:30px;border-radius:9px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto;}
+  .ncf-done{color:var(--ok);font-size:17px;}
+  /* 確認テスト ひとまとめ */
+  .nquiz{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:11px 12px;display:flex;align-items:center;gap:11px;cursor:pointer;margin-top:4px;position:relative;}
+  .nqc-ic{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;}
+  .nqc-b{flex:1;min-width:0;}
+  .nqc-t{font-weight:700;font-size:14px;}
+  .nqc-s{font-size:10.5px;color:var(--sub);margin-top:1px;}
+  .nqc-cnt{font-size:13px;font-weight:800;color:var(--accent);white-space:nowrap;font-family:'Manrope',sans-serif;text-align:right;}
+  .nqc-cnt small{display:block;font-size:9.5px;color:var(--sub);font-weight:500;font-family:'Noto Sans JP';}
+  /* 下部メニュー */
+  .ntabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:430px;display:flex;background:var(--glass);backdrop-filter:saturate(160%) blur(16px);-webkit-backdrop-filter:saturate(160%) blur(16px);border-top:1px solid var(--line);padding:7px 6px calc(9px + env(safe-area-inset-bottom));z-index:30;}
+  .ntab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--sub);cursor:pointer;padding:3px 0;background:none;border:none;font-family:inherit;}
+  .ntab.on{color:var(--accent);}
+  .ntab i{font-size:23px;}
+  .ntab .nbadge{position:relative;}
+  .ntab .nbadge.dot::after{content:'';position:absolute;top:-1px;right:-4px;width:7px;height:7px;border-radius:50%;background:var(--ng);}
+  /* v11 タブ構成 2026-07-24 */
+  .tabpanel{display:none;}.tabpanel.on{display:block;}
+  .ph{font-size:19px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;margin:2px 2px 3px;}
+  .ph i{font-size:20px;}
+  .psub{font-size:12px;color:var(--sub);margin:0 2px 14px;line-height:1.6;}
+  .focus{border-radius:20px;padding:15px 15px 14px;color:#fff;background:linear-gradient(135deg,#1c74ff,#0a4fd0);box-shadow:0 10px 26px rgba(10,79,208,.3);margin-bottom:12px;cursor:pointer;}
+  .f-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.92;display:flex;align-items:center;gap:6px;}
+  .f-main{display:flex;align-items:center;gap:14px;margin:11px 0 13px;}
+  .f-day{width:54px;height:54px;border-radius:17px;background:rgba(255,255,255,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:0 0 0 6px rgba(255,255,255,.08);}
+  .f-day .fdd{font-size:9px;font-weight:700;opacity:.9;line-height:1;}.f-day .fdn{font-size:22px;font-weight:800;font-family:'Manrope',sans-serif;line-height:1;}
+  .f-ic{width:54px;height:54px;border-radius:17px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:26px;flex:0 0 auto;box-shadow:0 0 0 6px rgba(255,255,255,.08);}
+  .f-title{font-size:20px;font-weight:800;letter-spacing:-.01em;line-height:1.15;}
+  .f-sub{font-size:12px;opacity:.9;margin-top:4px;line-height:1.5;}
+  .f-btn{width:100%;border:none;border-radius:14px;background:#fff;color:#0a4fd0;font-weight:800;font-size:16px;padding:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;}
+  .fin-card{border-radius:20px;padding:20px 16px 18px;color:#fff;background:linear-gradient(135deg,#22b07a,#159463);box-shadow:0 10px 26px rgba(21,148,99,.28);margin-bottom:12px;text-align:center;}
+  .fin-card .dc-ic{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:30px;box-shadow:0 0 0 7px rgba(255,255,255,.08);}
+  .fin-card .dc-t{font-size:19px;font-weight:800;letter-spacing:-.01em;}
+  .fin-card .dc-s{font-size:12.5px;opacity:.92;margin-top:5px;line-height:1.5;}
+  .empty-note{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px dashed var(--line);border-radius:15px;padding:16px 15px;color:var(--sub);font-size:13px;line-height:1.6;}
+  .empty-note i{font-size:26px;color:var(--sub);flex:none;opacity:.7;}
+  .set-h{font-size:12px;color:var(--sub);font-weight:700;margin:18px 4px 8px;letter-spacing:.02em;}
+  .setgrp{background:var(--surface);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow);overflow:hidden;}
+  .setrow{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;}
+  .setrow+.setrow{border-top:1px solid var(--line);}
+  .setrow .sr-ic{width:34px;height:34px;border-radius:11px;background:var(--neutral-ic);color:var(--sub);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;}
+  .setrow .sr-b{flex:1;min-width:0;}
+  .setrow .sr-t{font-size:14px;font-weight:700;line-height:1.3;}
+  .setrow .sr-s{font-size:11.5px;color:var(--sub);margin-top:2px;line-height:1.4;}
+  .setrow .sr-go{font-size:12.5px;font-weight:700;color:var(--accent);flex:none;display:flex;align-items:center;gap:3px;}
+  .setrow.static{cursor:default;}
+  .setrow.static .sr-go{color:var(--sub);font-weight:600;}
+  .skel{position:relative;overflow:hidden;background:rgba(140,140,150,.14);border-radius:12px;}
+  .skel::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.20),transparent);transform:translateX(-100%);animation:skelsw 1.25s infinite;}
+  [data-theme="dark"] .skel{background:rgba(150,155,170,.12);}
+  [data-theme="dark"] .skel::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);}
+  @keyframes skelsw{100%{transform:translateX(100%);}}
+  .skel-focus{height:148px;border-radius:20px;margin-bottom:12px;}
+  .skel-row{height:52px;margin-bottom:8px;}
+  .skel-book{height:66px;border-radius:15px;margin-bottom:10px;}
+  .ptr-ind{display:flex;align-items:center;justify-content:center;gap:6px;overflow:hidden;height:0;font-size:12.5px;color:var(--sub);font-weight:700;transition:height .12s ease;}
+  .ptr-ind.show{border-bottom:1px solid transparent;}
+  .ptr-ind.spin{color:var(--accent);}
+  .q-head{font-size:11px;color:var(--sub);font-weight:700;margin:2px 4px 6px;}
+  .q-head.done{color:var(--ok);display:flex;align-items:center;gap:5px;margin-top:14px;}
+  .dprog{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 14px 12px;box-shadow:var(--shadow);margin-bottom:12px;}
+  .dprog-t{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:8px;}
+  .dprog-t b{font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;color:var(--ink);}
+  .dprog-t b .tot{color:var(--sub);font-size:12px;font-weight:700;}
+  .dprog-dots{display:flex;gap:4px;}
+  .dprog-dots i{height:7px;flex:1;border-radius:4px;background:var(--n-track);transition:background .3s;}
+  .dprog-dots i.on{background:var(--ok);}
+  .f-prog{margin:0 0 13px;}
+  .f-prog-t{display:flex;justify-content:space-between;font-size:11px;font-weight:700;opacity:.92;margin-bottom:5px;}
+  .f-prog-bar{height:6px;border-radius:4px;background:rgba(255,255,255,.25);overflow:hidden;}
+  .f-prog-bar i{display:block;height:100%;background:#fff;border-radius:4px;}
+  .dcard{display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:9px;cursor:pointer;}
+  .dcard-l{width:46px;height:46px;border-radius:50%;background:rgba(31,170,107,.13);color:var(--ok);display:flex;align-items:center;justify-content:center;font-size:27px;flex:none;box-shadow:0 0 0 5px rgba(31,170,107,.07);}
+  .dcard-r{flex:1;min-width:0;}
+  .dcard-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;}
+  .dpill{font-size:10px;font-weight:700;background:var(--neutral-ic);color:var(--sub);padding:2px 7px;border-radius:6px;}
+  .dsubj{font-size:11px;color:var(--sub);font-weight:600;}
+  .dbadge{font-size:11px;font-weight:800;color:var(--ok);background:rgba(31,170,107,.12);padding:2px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:3px;margin-left:auto;}
+  .dcard-nm{font-size:15px;font-weight:800;line-height:1.25;}
+  .dcard-cta{font-size:12.5px;font-weight:800;color:var(--accent);margin-top:5px;display:flex;align-items:center;gap:4px;}
+  /* 完了の見せ方（緑＝完了）ふくしゅう・単元別 共通 2026-07-24 */
+  .rc-go.ok{background:rgba(31,170,107,.15);color:var(--ok);}
+  .rcard.done{border-color:rgba(31,170,107,.4);}
+  .rcard.done .rc-ic{background:rgba(31,170,107,.13);color:var(--ok);}
+  .rc-tag{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:800;color:var(--ok);background:rgba(31,170,107,.12);padding:1px 8px;border-radius:6px;margin-left:6px;vertical-align:1px;}
+  .nbook.done .nbk-ic{background:rgba(31,170,107,.16);color:var(--ok);}
+  .nbook.done .nbk-bar i{background:var(--ok);}
+  .nbk-tag{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:800;color:var(--ok);background:rgba(31,170,107,.12);padding:1px 8px;border-radius:6px;}
+  .fin-card.mini{padding:15px 14px 13px;}
+  .fin-card.mini .dc-ic{width:44px;height:44px;font-size:24px;margin-bottom:8px;}
+  .fin-card.mini .dc-t{font-size:16px;}
+  .queue{position:relative;margin-bottom:8px;}
+  .queue::before{content:'';position:absolute;left:20px;top:14px;bottom:14px;width:2px;background:repeating-linear-gradient(var(--n-track) 0 5px,transparent 5px 11px);}
+  .qrow{display:flex;align-items:center;gap:12px;padding:7px 0;position:relative;z-index:1;cursor:pointer;}
+  .q-node{width:40px;height:40px;border-radius:50%;background:var(--surface);border:2px solid var(--n-track);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--sub);font-size:12px;flex:0 0 auto;margin-left:1px;font-family:'Manrope';font-weight:800;}
+  .q-node .qd{font-size:7px;opacity:.8;font-weight:700;}
+  .q-body{flex:1;min-width:0;}.q-top{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+  .q-nm{font-size:14px;font-weight:700;}.q-sub{font-size:11px;color:var(--sub);margin-top:1px;}
+  .q-go{width:32px;height:32px;border-radius:10px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto;}
+  .rcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px 13px;margin-bottom:11px;display:flex;align-items:center;gap:13px;cursor:pointer;position:relative;}
+  .rc-ic{width:48px;height:48px;border-radius:15px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto;}
+  .rc-b{flex:1;min-width:0;}.rc-t{font-weight:700;font-size:16px;}.rc-s{font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.5;}
+  .rc-go{width:34px;height:34px;border-radius:11px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;}
+  .rcard .reddot{top:11px;right:11px;}
+  .ntab .ic{position:relative;}
+  .ntab .ic .bdg{position:absolute;top:-3px;right:-9px;min-width:15px;height:15px;padding:0 4px;border-radius:8px;background:var(--ng);color:#fff;font-size:9px;font-weight:800;font-family:'Manrope';display:none;align-items:center;justify-content:center;line-height:1;}
+  .ntab .ic .bdg.on{display:flex;}
+  #home-tiles,#home-sub{padding-bottom:84px;}
   .daily-bar.done .db-n{color:var(--gold);}
   .ldot{width:9px;height:9px;border-radius:50%;background:var(--ng);display:none;}
   .ldot.on{display:inline-block;}
@@ -542,6 +721,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   .kwtld .i{animation:kwtldrspin 1.7s linear infinite;transform-origin:50% 50%;}
   /* ===== バグ報告（各画面から押せる）2026-07-11 ===== */
   .bug-fab{position:fixed;right:16px;bottom:20px;z-index:70;display:flex;align-items:center;gap:7px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:26px;padding:10px 15px 10px 12px;box-shadow:0 6px 22px rgba(20,24,40,.18);cursor:pointer;font-family:inherit;}
+  body.on-home .bug-fab{bottom:82px;}/* 下メニューと重ならないよう ホームでは上げる 2026-07-24 */
   .bug-fab i{font-size:19px;color:var(--accent);}
   .bug-fab span{font-size:13px;font-weight:700;}
   .bug-fab:active{transform:translateY(2px);}
@@ -577,6 +757,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   </section>
 
   <section id="scr-home" class="screen">
+    <div id="ptr-ind" class="ptr-ind" style="height:0px;"></div>
     <div class="head">
       <span class="kt-logo kt-sm"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="en3"><span>Kurofune</span><span>Word</span><span>Trainer</span></span></span>
       <div class="right">
@@ -593,21 +774,29 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <div class="body">
       <!-- ===== タイル一覧ビュー（ホーム既定）===== -->
       <div id="home-tiles">
-        <!-- 応援＝名前の横のアバターチップ(.oa)／なかまチル＝名前の下(.undername)へ移動（2026-07-13 案A・きらめき演出は維持） -->
-        <div class="daily-bar done" id="daily-bar" style="display:none;"><span class="db-t" style="color:var(--gold)">🎉 今日ぜんぶ完了！</span><span class="db-n"><i class="ti ti-check"></i></span></div>
-        <div class="label"><i class="ti ti-anchor"></i> 今日のメイン学習</div>
-        <div id="main-list"><div class="loading">読み込み中…</div></div>
-        <!-- 今日の復習（自動反復＝学習側・横長行）2026-07-02 -->
-        <div class="learn-row" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="lr-ic"><i class="ti ti-clock-bolt"></i></div><div class="lr-nm">おさらい</div><div class="lr-cnt"><span id="cnt-review">–</span></div></div>
-        <!-- 確認テスト（教室でその場・自動採点）2026-07-10 -->
-        <div class="learn-row" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="lr-ic"><i class="ti ti-checkup-list"></i></div><div class="lr-nm">確認テスト</div><div class="lr-cnt"><span id="cnt-quiz">–</span></div></div>
-        <div class="tiles" style="margin-top:16px;">
-          <div class="tile" id="tile-note"><span class="reddot" id="dot-note" style="display:none;"></span><div class="tic"><i class="ti ti-notebook"></i></div><div class="tnm">間違いノート</div><div class="tcnt" id="cnt-note">–</div></div>
-          <div class="tile" id="tile-records"><div class="tic"><i class="ti ti-folder"></i></div><div class="tnm">じぶんの記録</div><div class="tcnt">DAY・バッジ・なかま</div></div>
+        <!-- 毎日学習（1本道） -->
+        <div class="tabpanel on" id="tp-daily">
+          <div class="ph"><i class="ti ti-anchor" style="color:var(--gold)"></i> <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></div>
+          <div class="psub" id="daily-sub2"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>学習<rt class="uf">がくしゅう</rt></ruby></div>
+          <div id="daily-list"><div class="loading">読み込み中…</div></div>
+          <span id="nz-daily-sub" style="display:none;"></span>
         </div>
-        <!-- クロフネ全体（じぶんの記録の外・数値直接表示）2026-07-02 -->
-        <div class="overall-card" id="overall-card"><div class="oc-ic"><i class="ti ti-world"></i></div><div class="oc-nm">クロフネ全体</div><div class="oc-stats"><div class="oc-st"><div class="v"><span class="num" id="cnt-people">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> 人</small></div><div class="k">今日</div></div><div class="oc-st"><div class="v"><span class="num" id="cnt-words">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> 語</small></div><div class="k">今週</div></div></div></div>
-        <button class="logout-link" id="btn-logout"><i class="ti ti-logout"></i> ログアウト</button>
+        <!-- ふくしゅう（おさらい＋間違いノート・並列） -->
+        <div class="tabpanel" id="tp-review">
+          <div class="ph"><i class="ti ti-clock-bolt" style="color:var(--accent)"></i> ふくしゅう</div>
+          <div class="psub">おぼえた<ruby>所<rt class="uf">ところ</rt></ruby>の <ruby>定着<rt class="uf">ていちゃく</rt></ruby>（おさらい）と、<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>所<rt class="uf">ところ</rt></ruby>の<ruby>直<rt class="uf">なお</rt></ruby>し（<ruby>間違<rt class="uf">まちが</rt></ruby>いノート）。ここが <ruby>力<rt class="uf">ちから</rt></ruby>の つきどころ</div>
+          <div id="review-fin"></div>
+          <div class="rcard" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> ・ <span id="cnt-review">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
+          <div class="rcard" id="tile-note"><span class="reddot" id="dot-note" style="display:none;"></span><div class="rc-ic"><i class="ti ti-notebook"></i></div><div class="rc-b"><div class="rc-t"><ruby>間違<rt class="uf">まちが</rt></ruby>いノート<span class="rc-tag" id="note-tag" style="display:none;"><i class="ti ti-award"></i> ぜんぶ<ruby>卒業<rt class="uf">そつぎょう</rt></ruby></span></div><div class="rc-s"><ruby>間違<rt class="uf">まちが</rt></ruby>えた <ruby>所<rt class="uf">ところ</rt></ruby>だけ ・ <span id="cnt-note">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
+          <div id="note-nudge-wrap" style="display:none;"></div>
+        </div>
+        <!-- 単元別（やる所から） -->
+        <div class="tabpanel" id="tp-unit">
+          <div class="ph"><i class="ti ti-flag" style="color:var(--accent)"></i> <ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></div>
+          <div class="psub">テストまでに やりきろう。<ruby>習<rt class="uf">なら</rt></ruby>う<ruby>順<rt class="uf">じゅん</rt></ruby>は <ruby>学校<rt class="uf">がっこう</rt></ruby>で ちがうので、やる<ruby>所<rt class="uf">ところ</rt></ruby>から でOK</div>
+          <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;">先生が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに出るよ</p></div>
+          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>力<rt class="uf">ちから</rt></ruby>だめし（<ruby>確認<rt class="uf">かくにん</rt></ruby>テスト）</div><div class="nqc-s">おぼえたら ここで テスト。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div><div class="rc-go" style="margin-left:9px"><i class="ti ti-arrow-right"></i></div></div>
+        </div>
       </div>
 
       <!-- ===== サブビュー（タイルから遷移）===== -->
@@ -619,7 +808,15 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
             <div class="tile" id="tile-lists"><div class="tic"><i class="ti ti-list-check"></i></div><div class="tnm">学習マップ</div><div class="tcnt">何回でも復習</div></div>
             <div class="tile" id="tile-badge"><div class="tic"><i class="ti ti-award"></i></div><div class="tnm">バッジ</div><div class="tcnt" id="cnt-badge">–</div></div>
             <div class="tile" id="tile-team"><span class="reddot" id="dot-team" style="display:none;"></span><div class="tic"><i class="ti ti-users"></i></div><div class="tnm">なかま</div><div class="tcnt" id="cnt-team">–</div></div>
+            <div class="tile" id="tile-overall"><div class="tic"><i class="ti ti-world"></i></div><div class="tnm">クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby></div><div class="tcnt">みんなの がんばり</div></div>
           </div>
+          <div class="set-h"><ruby>設定<rt class="uf">せってい</rt></ruby></div>
+          <div class="setgrp">
+            <div class="setrow" id="set-nick"><div class="sr-ic"><i class="ti ti-user"></i></div><div class="sr-b"><div class="sr-t">ニックネーム</div><div class="sr-s" id="set-nick-val">—</div></div><div class="sr-go"><ruby>変更<rt class="uf">へんこう</rt></ruby> <i class="ti ti-pencil"></i></div></div>
+            <div class="setrow" id="set-theme"><div class="sr-ic" id="set-theme-ic"><i class="ti ti-moon"></i></div><div class="sr-b"><div class="sr-t"><ruby>見<rt class="uf">み</rt></ruby>た<ruby>目<rt class="uf">め</rt></ruby>（テーマ）</div><div class="sr-s" id="set-theme-val">ライト</div></div><div class="sr-go"><ruby>切替<rt class="uf">きりかえ</rt></ruby> <i class="ti ti-repeat"></i></div></div>
+            <div class="setrow static" id="set-furi"><div class="sr-ic"><i class="ti ti-a-b-2"></i></div><div class="sr-b"><div class="sr-t">ふりがな</div><div class="sr-s" id="set-furi-val"><ruby>学年<rt class="uf">がくねん</rt></ruby>に <ruby>合<rt class="uf">あ</rt></ruby>わせて <ruby>自動<rt class="uf">じどう</rt></ruby></div></div><div class="sr-go" id="set-furi-badge">—</div></div>
+          </div>
+          <div class="setrow-note" style="font-size:11px;color:var(--sub);text-align:center;margin:12px 4px 4px;line-height:1.5;"><ruby>小学生<rt class="uf">しょうがくせい</rt></ruby>は <ruby>漢字<rt class="uf">かんじ</rt></ruby>に ふりがなが つくよ。ログアウトは <ruby>下<rt class="uf">した</rt></ruby>の メニューから。</div>
         </div>
         <div class="subview" id="sv-note">
           <div id="note-area"><div class="loading">読み込み中…</div></div>
@@ -640,8 +837,19 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="subview" id="sv-quiz">
           <div id="quiz-area"><div class="loading">読み込み中…</div></div>
         </div>
+        <div class="subview" id="sv-overall">
+          <div class="overall-card" id="overall-card"><div class="oc-ic"><i class="ti ti-world"></i></div><div class="oc-nm">クロフネ全体</div><div class="oc-stats"><div class="oc-st"><div class="v"><span class="num" id="cnt-people">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> 人</small></div><div class="k">今日</div></div><div class="oc-st"><div class="v"><span class="num" id="cnt-words">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> 語</small></div><div class="k">今週</div></div></div></div>
+        </div>
       </div>
     </div>
+    <!-- ===== 下部メニュー 2026-07-24 ===== -->
+    <nav class="ntabbar" id="ntabbar">
+      <button class="ntab on" id="ntab5-daily" type="button"><span class="ic"><i class="ti ti-anchor"></i><span class="bdg" id="bdg-daily"></span></span><ruby>毎日<rt class="uf">まいにち</rt></ruby></button>
+      <button class="ntab" id="ntab5-review" type="button"><span class="ic"><i class="ti ti-clock-bolt"></i><span class="bdg" id="bdg-review"></span></span>ふくしゅう</button>
+      <button class="ntab" id="ntab5-unit" type="button"><span class="ic"><i class="ti ti-flag"></i><span class="bdg" id="bdg-unit"></span></span><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></button>
+      <button class="ntab" id="ntab5-record" type="button"><span class="ic"><i class="ti ti-award"></i><span class="bdg" id="bdg-team"></span></span><ruby>記録<rt class="uf">きろく</rt></ruby></button>
+      <button class="ntab" id="btn-logout" type="button"><span class="ic"><i class="ti ti-logout"></i></span>ログアウト</button>
+    </nav>
   </section>
 
   <section id="scr-practice" class="screen">
@@ -730,6 +938,16 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     </div>
   </div>
 </div>
+<div class="modal-mask" id="logout-mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+    <h3 id="logout-title">ログアウトしますか？</h3>
+    <p class="hint">またログインすれば、つづきから べんきょうできます。</p>
+    <div class="row">
+      <button class="btn ghost" id="logout-cancel" type="button">やめる</button>
+      <button class="btn" id="logout-yes" type="button">ログアウト</button>
+    </div>
+  </div>
+</div>
 <button class="bug-fab" id="bug-fab" onclick="openBug()" style="display:none;" aria-label="不具合を報告"><i class="ti ti-message-report"></i><span>不具合を報告</span></button>
 <div class="modal-mask" id="bug-mask">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bug-title">
@@ -804,7 +1022,7 @@ function kwtSpin(px){px=px||64;return '<svg class="kwtld" viewBox="0 0 120 120" 
   +'<g class="o" style="transform-origin:60px 60px"><rect x="36" y="36" width="48" height="48" rx="3" fill="none" stroke="#caa24a" stroke-width="2" opacity=".55" transform="rotate(45 60 60)"/></g>'
   +'<g class="i" style="transform-origin:60px 60px"><rect x="48" y="48" width="24" height="24" rx="2" fill="none" stroke="#0a6cff" stroke-width="2.6" opacity=".85"/></g>'
   +'<circle cx="60" cy="60" r="4" fill="#0a6cff"/></svg>';}
-function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}}
+function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}}
 /* 学習マップの1行（川上さん承認モック 2026-07-05）。inFold=クリアずみ枠内（「もう一回」バッジつき・状態文言なし） */
 function buildMapRow(l,isTest,inFold){
   var row=document.createElement('div');row.className='list-row';
@@ -821,6 +1039,7 @@ function buildMapRow(l,isTest,inFold){
 var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でも復習',team:'チームのなかま',overall:'クロフネ全体',records:'じぶんの記録',quiz:'確認テスト'};
 function showSub(name){
   try{sessionStorage.setItem('kwt_view',name);}catch(e){} // スマホ更新で最後の画面を復元（川上さん確定2026-07-06）
+  try{if(name==='team')setTab5_('team');else if(name==='records'||name==='overall'||name==='badge'||name==='lists')setTab5_('record');}catch(e){}
   $('home-tiles').style.display='none';
   $('home-sub').style.display='block';
   $('sub-title').textContent=SUB_TITLES[name]||'';
@@ -832,6 +1051,7 @@ function showSub(name){
 }
 function backToTiles(){
   try{sessionStorage.removeItem('kwt_view');}catch(e){} // ホームに戻ったら復元対象を解除
+  try{setTab5_(_homeTab||'daily');}catch(e){}
   $('home-sub').style.display='none';
   $('home-tiles').style.display='block';
   document.querySelectorAll('#home-sub .subview').forEach(function(v){v.classList.remove('active');});
@@ -871,11 +1091,12 @@ function quizRenderHome_(d){
   if(!d||!d.ok)return;
   var mats=(d.data&&d.data.materials)||[];_quizData=d.data;
   var tile=$('tile-quiz');if(!tile)return;
-  if(!mats.length){tile.style.display='none';return;}
+  if(!mats.length){tile.style.display='none';syncTestZone_();return;}
   var miss=0;mats.forEach(function(g){(g.parts||[]).forEach(function(p){if(p.status==='miss'||p.status==='ng')miss++;});});
   tile.style.display='';
   $('cnt-quiz').textContent=miss>0?(miss+'こ のこり'):'ぜんぶOK';
   var dq=$('dot-quiz');if(dq)dq.style.display=miss>0?'':'none';
+  _quizMiss=miss;syncTestZone_();
 }
 function quizPill_(p){
   if(p.status==='ok')return '<span style="background:rgba(31,157,87,.15);color:var(--ok);font-weight:800;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">合格 '+(p.latest_rate!=null?p.latest_rate+'%':'')+'</span>';
@@ -972,6 +1193,7 @@ function saveNick(){
     nickname=d.data.nickname;
     localStorage.setItem('kwt_nick',nickname);try{localStorage.removeItem('kwt_nick_auto');}catch(e){} // 自分で決めたら案内終了 2026-07-05
     $('nick').textContent=nickname;
+    try{var _sv=$('set-nick-val');if(_sv)_sv.textContent=nickname;}catch(e){} // 設定行のニックネーム表示も更新（2026-07-24）
     closeNickModal();
     if(d.data.unchanged){toast('ニックネームはそのままだよ');}
     else{toast('ニックネームを変更したよ！');}
@@ -1015,7 +1237,16 @@ function animNum(el,to,dur){var st=performance.now();function f(t){var p=Math.mi
   if(saved){document.documentElement.setAttribute('data-theme',saved);}
   else if(window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.setAttribute('data-theme','dark');}
 })();
-function syncThemeIcon(){var d=document.documentElement.getAttribute('data-theme')==='dark';var b=$('themeBtn');if(b)b.innerHTML='<i class="ti ti-'+(d?'sun':'moon')+'"></i>';}
+function syncThemeIcon(){var d=document.documentElement.getAttribute('data-theme')==='dark';var b=$('themeBtn');if(b)b.innerHTML='<i class="ti ti-'+(d?'sun':'moon')+'"></i>';
+  var sv=$('set-theme-val');if(sv)sv.textContent=(d?'ダーク':'ライト');var si=$('set-theme-ic');if(si)si.innerHTML='<i class="ti ti-'+(d?'moon':'sun')+'"></i>';} // 設定行のテーマ表示も同期（2026-07-24）
+function toggleTheme_(){var d=document.documentElement.getAttribute('data-theme')==='dark';document.documentElement.setAttribute('data-theme',d?'light':'dark');try{localStorage.setItem('kwt_theme',d?'light':'dark');}catch(e){}syncThemeIcon();}
+/* 記録タブの設定行の表示を同期（ニックネーム／ふりがな状態／テーマ）2026-07-24 */
+function syncSettings_(){
+  var nv=$('set-nick-val');if(nv)nv.textContent=nickname||'きみ';
+  var el=false;try{el=_isElementary(stuGrade);}catch(e){}
+  var fb=$('set-furi-badge');if(fb)fb.textContent=el?'オン':'オフ';
+  try{syncThemeIcon();}catch(e){}
+}
 
 function beep(f,d,t,v){try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();var o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t||'sine';o.frequency.value=f;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(v||0.18,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.start();o.stop(audioCtx.currentTime+d);}catch(e){}}
 function sndCorrect(){beep(660,0.12,'triangle',0.34);setTimeout(function(){beep(990,0.14,'triangle',0.34);},90);}
@@ -1038,14 +1269,18 @@ function flash(){var f=$('flash');f.classList.remove('show');void f.offsetWidth;
 function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
 function gradPop_(en,ja){var el=$('gradpop');if(!el)return;el.innerHTML='<div class="gp-em">🎓</div><div class="gp-w">'+String(en==null?'':en)+(ja?' <span class="gp-ja">'+String(ja)+'</span>':'')+'</div><div class="gp-l">卒業！</div>';el.classList.remove('show');void el.offsetWidth;el.classList.add('show');try{beep(784,0.12,'triangle');setTimeout(function(){beep(1175,0.16,'triangle');},110);}catch(e){}confetti(14);}
 
-$('themeBtn').onclick=function(){var d=document.documentElement.getAttribute('data-theme')==='dark';document.documentElement.setAttribute('data-theme',d?'light':'dark');localStorage.setItem('kwt_theme',d?'light':'dark');syncThemeIcon();};
+$('themeBtn').onclick=toggleTheme_;
 
 $('nick-cancel').onclick=closeNickModal;
 $('nick-save').onclick=saveNick;
 $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
 $('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスワードを入れてね';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> 確認中…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
-$('btn-logout').onclick=function(){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');stuGrade='';applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');};
+function doLogout_(){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');stuGrade='';applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');}
+$('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
+$('logout-cancel').onclick=function(){$('logout-mask').classList.remove('show');};
+$('logout-mask').onclick=function(e){if(e.target===this)$('logout-mask').classList.remove('show');};
+$('logout-yes').onclick=function(){$('logout-mask').classList.remove('show');doLogout_();};
 
 /* 新構造ヘルパー（2026-06-23）：教科ラベル＋HTMLエスケープ */
 function subjLabel(s){var m={english:'英語',math:'数学',science:'理科',social:'社会',japanese:'国語'};return m[s]||s;}
@@ -1073,6 +1308,188 @@ function mtBookMt(o){return !o?'':(o.material_book||_bookPrefix(o.material_title
 function mtSeriesKeyMt(o){if(!o)return '';if(o.series_key!=null&&o.series_key!=='')return o.series_key;var s=_mSeries(o.material_title||'');return s?s.k:'';}
 function mtSeriesLabelMt(o){if(!o)return '';if(o.series_label)return o.series_label;var s=_mSeries(o.material_title||'');return s?s.label:mtBookMt(o);}
 function mtLabelMt(o){if(!o)return '';return mtSeriesKeyMt(o)?(mtSeriesLabelMt(o)+' '+mtShortMt(o)):mtBookMt(o);}
+/* ===== 新ホーム（二層化・道・単元別フラット・下メニュー）2026-07-24 ===== */
+var NOTE_THRESHOLD=20; // 間違いノートが これ以上たまったら nudge を出す（後で調整可）
+var _unitCount=0;
+/* UI文言のルビ（小学生アカウント＝html.furi-on のときだけ rt.uf が出る。中学生は漢字のみ）2026-07-24 */
+function rb(k,y){return '<ruby>'+k+'<rt class="uf">'+y+'</rt></ruby>';}
+function subjIcon_(s){return s==='science'?'ti-flask':(s==='social'?'ti-books':(s==='japanese'?'ti-book-2':(s==='math'?'ti-calculator':(s==='english'?'ti-language':'ti-flag'))));}
+/* 教科：材料に subject が無いとき（material_parts）はタイトルから推定。undefined表示を防ぐ 2026-07-24 */
+function _subjGuess_(o){var s=o&&o.subject;if(s)return s;var t=String((o&&o.material_title)||'');if(/理科|生物|物質|エネルギー|生命|地球|化学|物理/.test(t))return 'science';if(/歴史|地理|公民|社会/.test(t))return 'social';if(/語彙|国語|漢字|文章/.test(t))return 'japanese';if(/数学|算数/.test(t))return 'math';if(/英/.test(t))return 'english';return '';}
+function setTab5_(name){['daily','review','unit','team','record'].forEach(function(k){var e=$('ntab5-'+k);if(e)e.classList.toggle('on',k===name);});}
+function setBadge_(tab,n){var e=$('bdg-'+tab);if(!e)return;if(n>0){e.textContent=(n>9?'9+':String(n));e.classList.add('on');}else{e.classList.remove('on');}} // 10以上は9+＝数の圧迫感を減らす（2026-07-24）
+var _homeTab='daily',_quizMiss=0;
+function showHomeTab(name){_homeTab=name;$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);sessionStorage.removeItem('kwt_view');}catch(e){}window.scrollTo(0,0);} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
+function syncTestZone_(){setBadge_('unit',_quizMiss||0);}
+/* スケルトン（読み込み中の形だけ先に見せる）2026-07-24 */
+function skelDaily_(){return '<div class="skel skel-focus"></div><div class="skel skel-row"></div><div class="skel skel-row"></div>';}
+function skelUnit_(){return '<div class="skel skel-book"></div><div class="skel skel-book"></div>';}
+/* 通信エラー時：毎日タブにキャッシュ表示が無ければ再試行カードを出す（あればトーストだけ＝既存表示を壊さない）2026-07-24 */
+function renderHomeError_(){
+  var host=$('daily-list');
+  var hasContent=host&&host.querySelector&&host.querySelector('.focus,.fin-card,.dprog,.qrow');
+  if(host&&!hasContent){
+    host.innerHTML='<div class="empty-note" style="flex-direction:column;text-align:center;align-items:center;gap:11px;"><i class="ti ti-wifi-off"></i><div>いま つながらないみたい。<br>でんぱの よい ところで もう一回 ためしてね。</div><button class="btn" id="home-retry" type="button" style="max-width:220px;">もう<ruby>一回<rt class="uf">いっかい</rt></ruby></button></div>';
+    var rb=$('home-retry');if(rb)rb.onclick=function(){host.innerHTML=skelDaily_();try{homeCacheClear_();}catch(e){}loadHomeData_(true);};
+  }else{try{toast('つながらないみたい。もう一回 ためしてね');}catch(e){}}
+}
+/* 引っ張って更新（pull-to-refresh）：ホーム最上部で下へ引くとキャッシュを消して再取得 2026-07-24 */
+function isHomeScreen_(){var h=$('scr-home');return !!(h&&h.classList.contains('active'));}
+var _refreshing=false;
+function refreshHome_(){
+  if(_refreshing)return;_refreshing=true;
+  var ind=$('ptr-ind');if(ind){ind.classList.add('spin');ind.innerHTML=kwtSpin(26);}
+  try{homeCacheClear_();}catch(e){}
+  loadHomeData_(false);
+  setTimeout(function(){_refreshing=false;var i=$('ptr-ind');if(i){i.classList.remove('spin','show');i.style.height='0px';}try{toast('さいしんに こうしんしたよ');}catch(e){}},1100); // 取得は裏で継続。表示は約1.1秒で戻す＋完了トースト
+}
+(function(){
+  var startY=0,pulling=false,dist=0;var TH=68,MAX=110;
+  function ind(){return $('ptr-ind');}
+  function atTop(){var se=document.scrollingElement||document.documentElement;return (se.scrollTop||0)<=0 && (window.scrollY||0)<=0;}
+  document.addEventListener('touchstart',function(e){
+    if(_refreshing||!isHomeScreen_()||!atTop()||!e.touches||e.touches.length!==1){pulling=false;return;}
+    startY=e.touches[0].clientY;pulling=true;dist=0;
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!pulling)return;dist=e.touches[0].clientY-startY;
+    if(dist<=0){var i0=ind();if(i0){i0.classList.remove('show');i0.style.height='0px';}return;}
+    var h=Math.min(dist*0.5,MAX);var i=ind();if(i){i.classList.add('show');i.style.height=h+'px';i.innerHTML=(dist>=TH?'<i class="ti ti-arrow-up"></i> はなして こうしん':'<i class="ti ti-arrow-down"></i> ひっぱって こうしん');}
+  },{passive:true});
+  document.addEventListener('touchend',function(){
+    if(!pulling)return;pulling=false;
+    if(dist>=TH){refreshHome_();}
+    else{var i=ind();if(i){i.classList.remove('show');i.style.height='0px';}}
+    dist=0;
+  });
+})();
+/* 単元別：開いた本をリロード後も保持（sessionStorage）2026-07-24 */
+function _openGet_(sk){try{return JSON.parse(sessionStorage.getItem(sk)||'[]')||[];}catch(e){return [];}}
+function _openToggle_(sk,key,isOpen){var a=_openGet_(sk);var i=a.indexOf(key);if(isOpen&&i<0)a.push(key);else if(!isOpen&&i>=0)a.splice(i,1);try{sessionStorage.setItem(sk,JSON.stringify(a));}catch(e){}}
+function _unitOpenGet_(){return _openGet_('kwt_unit_open');}
+function _unitOpenToggle_(key,isOpen){_openToggle_('kwt_unit_open',key,isOpen);}
+/* 毎日学習＝1本道：先頭の未完了を大きく（つぎは これ）＋このあとを queue */
+function renderDailyList_(main){
+  var host=$('daily-list');if(!host)return;host.innerHTML='';
+  var sub=$('daily-sub2');
+  if(!main||!main.length){host.innerHTML='<p class="muted" style="text-align:center;padding:18px 8px;"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>は ありません。先生に<ruby>聞<rt class="uf">き</rt></ruby>いてね。</p>';if(sub)sub.innerHTML='';setBadge_('daily',0);return;}
+  var undone=main.filter(function(m){return !m.cleared_today;});
+  var doneN=main.length-undone.length;
+  if(sub){
+    if(!undone.length)sub.innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>は ぜんぶ できたよ！';
+    else if(doneN>0)sub.innerHTML='ここまで '+doneN+'つ！ のこり '+undone.length+'、この ちょうしで いこう';
+    else sub.innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>の のこり '+undone.length+' ・ まえから じゅんに';
+  }
+  setBadge_('daily',undone.length);
+  // 今日ぜんぶ完了：達成カード＋「きょう やったこと」を出す（未完了があるときだけ1本道の focus/queue）2026-07-24
+  if(!undone.length){
+    var dc=document.createElement('div');dc.className='fin-card';
+    dc.innerHTML='<div class="dc-ic"><i class="ti ti-check"></i></div><div class="dc-t"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>、ぜんぶ できたよ！</div><div class="dc-s"><ruby>頭<rt class="uf">あたま</rt></ruby>の <ruby>赤<rt class="uf">あか</rt></ruby>まるも きえたね。'+main.length+'つ クリア。</div>';
+    host.appendChild(dc);
+    var qh0=document.createElement('div');qh0.className='q-head done';qh0.innerHTML='<i class="ti ti-circle-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby> やったこと ・ もっと やりたい子は <ruby>先<rt class="uf">さき</rt></ruby>へ';host.appendChild(qh0);
+    main.forEach(function(m){host.appendChild(_dailyDoneCard_(m));});
+    return;
+  }
+  // 全体像：今日の毎日学習の進み（1教材=1セグメント・終わったら緑）2026-07-24
+  var pg=document.createElement('div');pg.className='dprog';
+  var segs='';main.forEach(function(m){segs+='<i class="'+(m.cleared_today?'on':'')+'"></i>';});
+  pg.innerHTML='<div class="dprog-t"><span><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></span><b>'+doneN+'<span class="tot"> / '+main.length+' できた</span></b></div><div class="dprog-dots">'+segs+'</div>';
+  host.appendChild(pg);
+  var fi=0;for(var i=0;i<main.length;i++){if(!main[i].cleared_today){fi=i;break;}}
+  host.appendChild(_dailyFocus_(main[fi]));
+  // このあと＝まだ終わってない分だけ（完了済みは混ぜない）2026-07-24
+  var upNext=main.filter(function(m,i){return i!==fi&&!m.cleared_today;});
+  if(upNext.length){var qh=document.createElement('div');qh.className='q-head';qh.textContent='このあと';host.appendChild(qh);var q=document.createElement('div');q.className='queue';upNext.forEach(function(m){q.appendChild(_dailyQueueRow_(m));});host.appendChild(q);}
+  // きょう できた＝終わった分を「がんばったね」の枠でまとめる 2026-07-24
+  var doneItems=main.filter(function(m){return m.cleared_today;});
+  if(doneItems.length){var dh=document.createElement('div');dh.className='q-head done';dh.innerHTML='<i class="ti ti-circle-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby> できたよ（'+doneItems.length+'）・ よく がんばったね';host.appendChild(dh);doneItems.forEach(function(m){host.appendChild(_dailyDoneCard_(m));});}
+}
+function _dailyFocus_(m){
+  var el=document.createElement('div');el.className='focus';
+  var po=(m.part_order||1)|0,pc=(m.part_count!==undefined?m.part_count:0)|0,cleared=!!m.cleared_today;
+  var road='';if(!cleared&&pc>po){var arr=[];for(var d=po+1;d<=pc&&arr.length<3;d++)arr.push('DAY'+d);road=' ・ この<ruby>先<rt class="uf">さき</rt></ruby> '+arr.join('・')+(pc>po+3?(' … DAY'+pc+'まで'):'');}
+  var subj=m.subject?esc(subjLabel(m.subject)):'';
+  var label=cleared?'<i class="ti ti-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> <ruby>完了<rt class="uf">かんりょう</rt></ruby>！':'つぎは これ';
+  // 教材のどこまで進んだか（DAY po / 全pc）＝全体像。複数DAYの教材だけ出す 2026-07-24
+  var prog='';if(pc>1){var pct=Math.max(0,Math.min(100,Math.round(po/pc*100)));prog='<div class="f-prog"><div class="f-prog-t"><span>DAY '+po+' / '+pc+'</span><span>'+pct+'%</span></div><div class="f-prog-bar"><i style="width:'+pct+'%"></i></div></div>';}
+  el.innerHTML='<div class="f-label">'+label+'</div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+esc(mtLabelMt(m))+'</div><div class="f-sub">'+subj+road+'</div></div></div>'+prog+'<button class="f-btn">'+(cleared?'つづける':'はじめる')+' <i class="ti ti-arrow-right"></i></button>';
+  el.onclick=function(){startPractice(m.part_id);};
+  return el;
+}
+/* 完了カード：現行版の完了感を再現＝チェック＋「今日のぶん完了」バッジ＋「じぶんで先に進む」（毎日クリア済みは現在地が次DAYに進んでいるので part_id タップで先取り）2026-07-24 */
+function _dailyDoneCard_(m){
+  var el=document.createElement('div');el.className='dcard';
+  var subj=m.subject?('<span class="dsubj">'+esc(subjLabel(m.subject))+'</span>'):'';
+  var lapPill=(m.lap>=2)?'<span class="dpill">'+m.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'';
+  el.innerHTML='<div class="dcard-l"><i class="ti ti-circle-check"></i></div>'
+    +'<div class="dcard-r"><div class="dcard-top"><span class="dpill"><ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></span>'+subj+lapPill+'<span class="dbadge"><i class="ti ti-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>のぶん <ruby>完了<rt class="uf">かんりょう</rt></ruby></span></div>'
+    +'<div class="dcard-nm">'+esc(mtLabelMt(m))+'</div>'
+    +'<div class="dcard-cta">じぶんで <ruby>先<rt class="uf">さき</rt></ruby>に すすむ <i class="ti ti-arrow-right"></i></div></div>';
+  el.onclick=function(){startPractice(m.part_id);};
+  return el;
+}
+function _dailyQueueRow_(m){
+  var el=document.createElement('div');el.className='qrow';
+  var po=(m.part_order||1)|0,done=!!m.cleared_today;
+  var lapPill=(m.lap>=2)?'<span class="npill lap">'+m.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'';
+  var subj=m.subject?esc(subjLabel(m.subject)):'';
+  el.innerHTML='<div class="q-node">'+(done?'<i class="ti ti-check" style="font-size:16px;color:var(--ok)"></i>':'<span class="qd">DAY</span>'+po)+'</div><div class="q-body"><div class="q-top"><span class="q-nm">'+esc(mtLabelMt(m))+'</span>'+lapPill+'</div><div class="q-sub">'+subj+'</div></div><div class="q-go"><i class="ti ti-arrow-right"></i></div>';
+  el.onclick=function(){startPractice(m.part_id);};
+  return el;
+}
+/* 単元別＝本(シリーズ)ごとにフラットな章リスト＋消化率。material_parts の content_type=test を使う */
+function renderUnitZone_(materials){
+  var host=$('unit-list');if(!host)return;
+  var tests=(materials||[]).filter(function(c){return c.content_type==='test';});
+  host.innerHTML='';_unitCount=tests.length;
+  if(tests.length){
+    var groups=[],gm={};
+    tests.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!gm[k]){gm[k]={lab:mtSeriesLabelMt(c),items:[],key:k};groups.push(gm[k]);}gm[k].items.push(c);});
+    var _open=_unitOpenGet_();
+    var _allClear=true;
+    groups.forEach(function(g){
+      var tot=0,pas=0;g.items.forEach(function(c){var ps=(c.parts||[]);tot+=ps.length;pas+=ps.filter(function(l){return l.passed;}).length;});
+      var pct=tot?Math.round(pas/tot*100):0;var subj=_subjGuess_(g.items[0]);
+      var bookDone=(tot>0&&pas===tot);if(!bookDone)_allClear=false; // 100%の本＝緑・ぜんぶできた 2026-07-24
+      var subjTag=subj?('<span class="nbk-subj">'+esc(subjLabel(subj))+'</span> '):'';
+      var metaMid=bookDone?('<span class="nbk-tag"><i class="ti ti-check"></i> ぜんぶ できた</span> ・ できた 100%'):('のこり '+(tot-pas)+' ・ <span class="nbk-rate">できた '+pct+'%</span>');
+      var book=document.createElement('div');book.className=bookDone?'nbook done':'nbook';
+      var head='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subj)+'"></i></div>'
+        +'<div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+'</div>'
+        +'<div class="nbk-meta">'+subjTag+metaMid+'</div>'
+        +'<div class="nbk-bar"><i style="width:'+pct+'%"></i></div></div>'
+        +'<i class="ti ti-chevron-down nbk-arw"></i></div>';
+      var detail='<div class="nbk-detail">';
+      g.items.forEach(function(c){
+        var ps=(c.parts||[]);var t2=ps.length,p2=ps.filter(function(l){return l.passed;}).length;
+        var cur=null;ps.forEach(function(l){if(l.is_current&&!cur)cur=l;});
+        var target=cur?cur.part_id:(ps[0]?ps[0].part_id:'');
+        var allPass=(t2>0&&p2===t2);
+        detail+='<div class="nchap" data-pid="'+esc(String(target))+'"><div class="ncf-nm">'+esc(mtShortMt(c))+'<small>できた '+p2+'/'+t2+'</small></div>'
+          +(allPass?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
+      });
+      detail+='</div>';
+      book.innerHTML=head+detail;
+      if(_open.indexOf(g.key)>=0)book.classList.add('open'); // リロード後も開いた本を保持
+      book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_unitOpenToggle_(g.key,book.classList.contains('open'));};
+      book.querySelectorAll('.nchap').forEach(function(row){var pid=row.getAttribute('data-pid');if(pid)row.onclick=function(){startPractice(pid);};});
+      host.appendChild(book);
+    });
+    if(_allClear&&groups.length){var fc=document.createElement('div');fc.className='fin-card mini';fc.innerHTML='<div class="dc-ic"><i class="ti ti-trophy"></i></div><div class="dc-t"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>、ぜんぶ クリア！</div><div class="dc-s">わりあての テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を <ruby>全部<rt class="uf">ぜんぶ</rt></ruby> 100%に したよ。すごい！</div>';host.insertBefore(fc,host.firstChild);} // 全クリアの祝い 2026-07-24
+  }else{
+    host.innerHTML='<div class="empty-note"><i class="ti ti-flag"></i><div><ruby>先生<rt class="uf">せんせい</rt></ruby>が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに <ruby>出<rt class="uf">で</rt></ruby>るよ。<br>いまは <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>を すすめよう。</div></div>';
+  }
+  syncTestZone_();
+}
+/* 間違いノート＝しきい値以上たまったときだけ nudge を出す */
+function renderNoteNudge_(totalN){
+  var wrap=$('note-nudge-wrap');if(!wrap)return;
+  if(!totalN||totalN<NOTE_THRESHOLD){wrap.innerHTML='';return;}
+  wrap.innerHTML='<div class="nnudge"><div class="nn-ic"><i class="ti ti-notebook"></i></div>'
+    +'<div class="nn-b"><div class="nn-t">間違いノートが たまってきたよ</div><div class="nn-s">まちがえた '+totalN+'語。ときどき 空に しよう</div></div>'
+    +'<div class="nn-go">空にする →</div></div>';
+  var el=wrap.querySelector('.nnudge');if(el)el.onclick=function(){showSub('note');};
+}
 function openHome(){
   $('nick').textContent=nickname;syncThemeIcon();show('scr-home');
   // 初回ログイン：ニックネーム未設定なら設定モーダルを自動表示（スキップ可・1ログイン1回だけ・川上さん確定 2026-07-04 機能仕様書_テスト配信 §5-2）
@@ -1080,29 +1497,40 @@ function openHome(){
   $('btn-nick-edit').onclick=openNickModal;
   backToTiles();
   $('btn-back').onclick=backToTiles;
-  $('home-star-pop').onclick=function(){showSub('team');};
-  $('tile-records').onclick=function(){showSub('records');};
-  $('tile-note').onclick=function(){showSub('note');};
-  $('tile-review').onclick=function(){showSub('review');};
-  $('tile-badge').onclick=function(){showSub('badge');};
-  $('tile-lists').onclick=function(){showSub('lists');};
-  $('tile-team').onclick=function(){showSub('team');};
-  $('tile-quiz').onclick=function(){showSub('quiz');renderQuiz();};
-  $('main-list').innerHTML='<div class="loading">読み込み中…</div>';
-  $('review-area').innerHTML='<div class="loading">読み込み中…</div>';
+  var _bind=function(id,fn){var e=$(id);if(e)e.onclick=fn;};
+  _bind('home-star-pop',function(){showSub('team');});
+  _bind('tile-records',function(){showSub('records');});
+  _bind('tile-note',function(){showSub('note');});
+  _bind('tile-review',function(){showSub('review');});
+  _bind('tile-badge',function(){showSub('badge');});
+  _bind('tile-lists',function(){showSub('lists');});
+  _bind('tile-team',function(){showSub('team');});
+  _bind('tile-overall',function(){showSub('overall');});
+  _bind('set-nick',openNickModal);
+  _bind('set-theme',toggleTheme_);
+  syncSettings_();
+  _bind('tile-quiz',function(){showSub('quiz');renderQuiz();});
+  // 下部メニュー（毎日／ふくしゅう／単元別／なかま／記録）2026-07-24
+  _bind('ntab5-daily',function(){showHomeTab('daily');});
+  _bind('ntab5-review',function(){showHomeTab('review');});
+  _bind('ntab5-unit',function(){showHomeTab('unit');});
+  _bind('ntab5-record',function(){setTab5_('record');showSub('records');});
+  loadHomeData_(true);
+}
+/* ホームの全データ取得（openHome初回・引っ張って更新の両方から呼ぶ）2026-07-24 */
+function loadHomeData_(showSkel){
+  if(showSkel){var _dl0=$('daily-list');if(_dl0)_dl0.innerHTML=skelDaily_();var _ul0=$('unit-list');if(_ul0)_ul0.innerHTML=skelUnit_();}
   callCached({action:'student_home'},function(d,_cached){
-    if(!d.ok){if(d.error&&d.error.indexOf('ログイン')>=0){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');show('scr-login');}return;}
+    if(!d.ok){if(d.error&&d.error.indexOf('ログイン')>=0){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');show('scr-login');return;}renderHomeError_();return;} // 通信エラーは再試行カードを出す（ログイン切れ以外）2026-07-24
     var main=d.data.main||[];
     var tests=d.data.tests||[]; // テスト配信カード（GAS studentHome tests・2026-07-04）
     main.sort(function(a,b){return (a.display_order||0)-(b.display_order||0);});tests.sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // シートの番号順・川上さん 2026-07-22
     var cards=main.concat(tests);
-    // デイリー：本日の学習の完了判定（今日やってないカードが無ければ完了）2026-07-04
-    (function(){var td=todayStr_();var undone=cards.filter(function(m){
-      return !m.cleared_today;/* 今日その教材で合格1件以上＝今日のぶん完了（合否連動・2026-07-22。不合格/未着手は未完了＝赤●） */
-    });dailyState.main=(cards.length===0)?true:(undone.length===0);renderDaily();})();
-    prefetchParts_(cards); // 先読みD：キャッシュ描画の時点で開始（重複は_prefetch側で防止）。開いた直後のタップに間に合わせる 2026-07-05
-    if(!cards.length){$('main-list').innerHTML='<p class="muted">今日のメイン学習はありません。先生に<ruby>聞<rt class="uf">き</rt></ruby>いてね。</p>';}
-    else{$('main-list').innerHTML='';
+    // デイリー完了＝毎日学習(main)を今日ぜんぶクリア（単元別・間違いノートは含めない・2026-07-24）
+    dailyState.main=(main.length===0)?true:(main.filter(function(m){return !m.cleared_today;}).length===0);renderDaily();
+    prefetchParts_(cards); // 先読み：毎日学習＋単元別の現在パート
+    renderDailyList_(main); // 毎日学習＝今のDAY大＋先プレビュー（新ホーム 2026-07-24）
+    if(false){$('main-list').innerHTML='';
     var _gkey=function(m){var k=mtSeriesKeyMt(m);return k?('S:'+k):('M:'+String(m.material_title||''));};
     var _glabel=function(m){return mtSeriesLabelMt(m);};
     var _rc=function(m){
@@ -1171,48 +1599,61 @@ function openHome(){
   });
   callCached({action:'quiz_list'},quizRenderHome_); // 確認テストの入口表示（配信があれば出す）2026-07-10
   callCached({action:'material_parts'},function(d){
+    try{renderUnitZone_((d&&d.ok&&d.data&&d.data.materials)||[]);}catch(e){} // 単元別ゾーン（新ホーム 2026-07-24）
     if(!d.ok){$('review-area').innerHTML='<p class="muted">—</p>';return;}
     var cs=d.data.materials||[];
     if(!cs.length){$('review-area').innerHTML='<p class="muted">まだ教材がありません。</p>';return;}
     $('review-area').innerHTML='';
     // 学習マップ アコーディオン（A案・既定全畳み・川上さん確定 2026-07-08：2教材以上でも各教材カードが上に並び、2つ目が埋もれない）
-    var hint=document.createElement('p');hint.className='map-hint';hint.innerHTML='<i class="ti ti-refresh"></i> 教材をタップすると その中のDAYがひらくよ';$('review-area').appendChild(hint);
+    var hint=document.createElement('p');hint.className='map-hint';hint.innerHTML='<i class="ti ti-refresh"></i> 本をタップすると 中の教材がひらくよ';$('review-area').appendChild(hint);
     var macc=document.createElement('div');macc.className='macc';$('review-area').appendChild(macc);
-    cs.forEach(function(c){
-      var isTest=(c.content_type==='test');
-      var parts=c.parts||[];
-      var total=parts.length;
-      var passedN=parts.filter(function(l){return l.passed;}).length;
-      var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
-      var curLbl=curPart?(isTest?esc(curPart.l.title):('DAY '+(curPart.l.part_order||curPart.idx+1))):''; // 表記はDAY（川上さん確定 2026-07-03）
-      // 全体像カード＝アコーディオンのヘッダー（タップで開閉）。右端に開閉シェブロン。
-      var ov=document.createElement('div');ov.className='ov-card';
-      var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'周目</span>':'');
-      var right=curPart?(curLbl+' <small>/ 全'+total+'</small>'):('クリア '+passedN+' <small>/ 全'+total+'</small>');
-      var pct=total?Math.round(passedN/total*100):0;
-      var map='<div class="dotmap">';
-      parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
-      map+='</div>';
-      ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtLabelMt(c))+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
-        +'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>'+map
-        +'<div class="ov-sub"><span class="dm-s done"></span>クリアずみ <b>'+passedN+'</b>　'+(curPart?'<span class="dm-s cur"></span>いまここ <b>'+curLbl+'</b>　':'')+'のこり <b>'+(total-passedN)+'</b></div>';
-      // 詳細（DAY行）＝既定は畳む。カードをタップで開閉。
-      var detail=document.createElement('div');detail.className='macc-detail';
-      var cleared=parts.filter(function(l){return l.passed&&!l.is_current;});
-      var rest=parts.filter(function(l){return !(l.passed&&!l.is_current);});
-      if(cleared.length){
-        var contig=!isTest&&cleared.every(function(l,i){return (l.part_order||0)===i+1;});
-        var lbl='クリアずみ '+(contig?('DAY 1〜'+cleared[cleared.length-1].part_order+'　'):'')+'（'+cleared.length+'）';
-        var fold=document.createElement('div');fold.className='done-fold';
-        fold.innerHTML='<div class="df-ic"><i class="ti ti-check"></i></div><div class="df-t">'+lbl+'</div><i class="ti ti-chevron-down df-arw"></i>';
-        var farea=document.createElement('div');farea.className='fold-area';
-        cleared.forEach(function(l){farea.appendChild(buildMapRow(l,isTest,true));});
-        fold.onclick=function(e){e.stopPropagation();fold.classList.toggle('open');farea.classList.toggle('open');};
-        detail.appendChild(fold);detail.appendChild(farea);
-      }
-      rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false));});
-      ov.onclick=function(){ov.classList.toggle('open');detail.classList.toggle('open');};
-      macc.appendChild(ov);macc.appendChild(detail);
+    // 本(シリーズ)ごとにまとめる（同じ本の教材を1つに畳む）2026-07-24
+    var _mg=[],_mgm={};
+    cs.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!_mgm[k]){_mgm[k]={lab:mtSeriesLabelMt(c),items:[],key:k};_mg.push(_mgm[k]);}_mgm[k].items.push(c);});
+    var _mapOpen=_openGet_('kwt_map_open');
+    _mg.forEach(function(g){
+      var btot=0,bpas=0;g.items.forEach(function(c){var _ps=c.parts||[];btot+=_ps.length;bpas+=_ps.filter(function(l){return l.passed;}).length;});
+      var bpct=btot?Math.round(bpas/btot*100):0;var subjB=_subjGuess_(g.items[0]);
+      var book=document.createElement('div');book.className='nbook';
+      book.innerHTML='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subjB)+'"></i></div><div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+'</div><div class="nbk-meta">'+(subjB?'<span class="nbk-subj">'+esc(subjLabel(subjB))+'</span> ':'')+'できた '+bpct+'%</div><div class="nbk-bar"><i style="width:'+bpct+'%"></i></div></div><i class="ti ti-chevron-down nbk-arw"></i></div>';
+      var bdetail=document.createElement('div');bdetail.className='nbk-detail';book.appendChild(bdetail);
+      if(_mapOpen.indexOf(g.key)>=0)book.classList.add('open'); // 学習マップも開いた本を保持（単元別と統一）2026-07-24
+      book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_openToggle_('kwt_map_open',g.key,book.classList.contains('open'));};
+      g.items.forEach(function(c){
+        var isTest=(c.content_type==='test');
+        var parts=c.parts||[];
+        var total=parts.length;
+        var passedN=parts.filter(function(l){return l.passed;}).length;
+        var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
+        var curLbl=curPart?(isTest?esc(curPart.l.title):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
+        var ov=document.createElement('div');ov.className='ov-card';
+        var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'周目</span>':'');
+        var right=curPart?(curLbl+' <small>/ 全'+total+'</small>'):('クリア '+passedN+' <small>/ 全'+total+'</small>');
+        var pct=total?Math.round(passedN/total*100):0;
+        var map='<div class="dotmap">';
+        parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
+        map+='</div>';
+        ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtShortMt(c))+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
+          +'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>'+map
+          +'<div class="ov-sub"><span class="dm-s done"></span>クリアずみ <b>'+passedN+'</b>　'+(curPart?'<span class="dm-s cur"></span>いまここ <b>'+curLbl+'</b>　':'')+'のこり <b>'+(total-passedN)+'</b></div>';
+        var detail=document.createElement('div');detail.className='macc-detail';
+        var cleared=parts.filter(function(l){return l.passed&&!l.is_current;});
+        var rest=parts.filter(function(l){return !(l.passed&&!l.is_current);});
+        if(cleared.length){
+          var contig=!isTest&&cleared.every(function(l,i){return (l.part_order||0)===i+1;});
+          var lbl='クリアずみ '+(contig?('DAY 1〜'+cleared[cleared.length-1].part_order+'　'):'')+'（'+cleared.length+'）';
+          var fold=document.createElement('div');fold.className='done-fold';
+          fold.innerHTML='<div class="df-ic"><i class="ti ti-check"></i></div><div class="df-t">'+lbl+'</div><i class="ti ti-chevron-down df-arw"></i>';
+          var farea=document.createElement('div');farea.className='fold-area';
+          cleared.forEach(function(l){farea.appendChild(buildMapRow(l,isTest,true));});
+          fold.onclick=function(e){e.stopPropagation();fold.classList.toggle('open');farea.classList.toggle('open');};
+          detail.appendChild(fold);detail.appendChild(farea);
+        }
+        rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false));});
+        ov.onclick=function(){ov.classList.toggle('open');detail.classList.toggle('open');};
+        bdetail.appendChild(ov);bdetail.appendChild(detail);
+      });
+      macc.appendChild(book);
     });
   });
   // 間違いノート：教科ごとにカードを出す（理社対応・機能仕様書_テスト配信 §3-5・2026-07-04）。0件の教科はカードを出さない。
@@ -2085,6 +2526,20 @@ var noteSes=null;
 /* 間違いノートの教科別読み込み（理社対応 2026-07-04）：各教科のactive件数を取得しカード化。0件教科は出さない */
 /* 間違いノート：件数は notes_summary 1回でまとめて取得（ホーム軽量化 2026-07-04）。
    単語はカードを開いた時に mistake_set で取得（開かない教科ぶんの通信を省く）。 */
+/* ふくしゅう完了の見せ方（緑＝完了）：おさらい・間違いノートの各カードを完了状態に、両方空なら達成カード 2026-07-24 */
+var _revDone={osarai:null,note:null};
+function _reviewTileDone_(id,done){
+  var t=$(id);if(!t)return;
+  t.classList.toggle('done',!!done);t.classList.remove('dim');
+  var go=t.querySelector('.rc-go');
+  if(go){if(done){go.className='rc-go ok';go.innerHTML='<i class="ti ti-check"></i>';}else{go.className='rc-go';go.innerHTML='<i class="ti ti-arrow-right"></i>';}}
+}
+function renderReviewFin_(){
+  var host=$('review-fin');if(!host)return;
+  if(_revDone.osarai===true&&_revDone.note===true){
+    host.innerHTML='<div class="fin-card mini"><div class="dc-ic"><i class="ti ti-check"></i></div><div class="dc-t"><ruby>今日<rt class="uf">きょう</rt></ruby>の ふくしゅう、ぜんぶ できたよ！</div><div class="dc-s">おさらいも <ruby>間違<rt class="uf">まちが</rt></ruby>いノートも カラっぽ。よく がんばったね。</div></div>';
+  }else{host.innerHTML='';}
+}
 function loadNotes(){
   var order=['english','science','social','japanese','math'];
   var area=$('note-area');area.innerHTML='<div class="loading">読み込み中…</div>';
@@ -2093,11 +2548,12 @@ function loadNotes(){
     subs=subs.filter(function(x){return (x.count||0)>0;});
     subs.sort(function(a,b){return order.indexOf(a.subject)-order.indexOf(b.subject);});
     var totalN=subs.reduce(function(a,b){return a+(b.count||0);},0);
-    $('cnt-note').innerHTML=totalN?('<b>'+totalN+'</b> 語のこり'):'ぜんぶ卒業！';
-    var noteDoneToday=(localStorage.getItem('kwt_note_done')===todayStr_());
-    var noteDaily=(totalN===0)?true:noteDoneToday; // 本日1セットやれば完了（間違いが残っていても）2026-07-04
-    var dn=$('dot-note');if(dn)dn.style.display=(totalN>0&&!noteDoneToday)?'block':'none'; // 赤丸統一 2026-07-05
-    dailyState.note=noteDaily;renderDaily();
+    $('cnt-note').innerHTML=totalN?('<b>'+totalN+'</b> 語のこり'):'<b style="color:var(--ok)">ぜんぶ 直した！</b>';
+    dailyState.note=true;renderDaily(); // 間違いノートはデイリー完了に含めない（2026-07-24）
+    var dn=$('dot-note');if(dn)dn.style.display=totalN>0?'block':'none'; // 間違いがあればカードに赤丸
+    _reviewTileDone_('tile-note',totalN===0); // 完了なら緑
+    var ntag=$('note-tag');if(ntag)ntag.style.display=(totalN===0)?'inline-flex':'none';
+    _revDone.note=(totalN===0);renderReviewFin_();
     area.innerHTML='';
     if(!totalN){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">間違いゼロ！</div><div class="sub">いまは復習する単語がありません</div></div></div>';return;}
     subs.forEach(function(c){
@@ -2274,10 +2730,12 @@ function loadReviewSrs(){
     var trv=d.data.test_reviews||[]; // テスト配信おさらい（卒業方式・スライス3 2026-07-08）
     var trvUndone=trv.filter(function(c){return !c.studied_today;}).length;
     var lbl=[];if(rtot>0)lbl.push('<b>'+rtot+'</b> 語');if(trvUndone>0)lbl.push('<b>'+trvUndone+'</b> パート');
-    $('cnt-review').innerHTML=lbl.length?lbl.join(' + '):'なし';
     var anyReview=(rtot>0)||(trvUndone>0);
+    $('cnt-review').innerHTML=lbl.length?lbl.join(' + '):'<b style="color:var(--ok)">ぜんぶ できた</b>';
+    setBadge_('review',(rtot||0)+(trvUndone||0));
     var dr=$('dot-review');if(dr)dr.style.display=anyReview?'block':'none';
-    var trow=$('tile-review');if(trow)trow.classList.toggle('dim',!anyReview);
+    _reviewTileDone_('tile-review',!anyReview); // 完了なら緑（dimはやめる）
+    _revDone.osarai=!anyReview;renderReviewFin_();
     dailyState.review=!anyReview;renderDaily(); // おさらい完了＝自動反復due0 かつ テスト配信おさらい今日ぶん完了（0章§6）
     area.innerHTML='';
     if(ws.length){
@@ -2404,7 +2862,7 @@ function loadBadges(){
   });
 }
 
-if(token){var _rv=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}openHome();try{if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}}catch(e){}} // 更新後に最後のサブ画面を復元（openHome内のbackToTiles()が復元キーを消すので、必ず先に読む・川上さん確定2026-07-06）
+if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}try{_ht=sessionStorage.getItem('kwt_htab');}catch(e){}openHome();try{if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}else if(_ht&&['daily','review','unit'].indexOf(_ht)>=0){showHomeTab(_ht);}}catch(e){}} // 更新後は今の画面を復元：サブ画面(kwt_view)優先、なければホームのタブ(kwt_htab)。openHome内のbackToTiles()が復元キーを消すので必ず先に読む（川上さん 2026-07-06/24）
 
 /* ===== 生徒バグ報告（各画面から押せる・記録のみ＝メールは朝まとめ）2026-07-11 ===== */
 var _bugSending=false;
