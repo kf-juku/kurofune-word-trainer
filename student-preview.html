@@ -161,6 +161,18 @@
   .ptr-ind.show{border-bottom:1px solid transparent;}
   .ptr-ind.spin{color:var(--accent);}
   .q-head{font-size:11px;color:var(--sub);font-weight:700;margin:2px 4px 6px;}
+  .q-head.done{color:var(--ok);display:flex;align-items:center;gap:5px;margin-top:14px;}
+  .dprog{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 14px 12px;box-shadow:var(--shadow);margin-bottom:12px;}
+  .dprog-t{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:8px;}
+  .dprog-t b{font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;color:var(--ink);}
+  .dprog-t b .tot{color:var(--sub);font-size:12px;font-weight:700;}
+  .dprog-dots{display:flex;gap:4px;}
+  .dprog-dots i{height:7px;flex:1;border-radius:4px;background:var(--n-track);transition:background .3s;}
+  .dprog-dots i.on{background:var(--ok);}
+  .f-prog{margin:0 0 13px;}
+  .f-prog-t{display:flex;justify-content:space-between;font-size:11px;font-weight:700;opacity:.92;margin-bottom:5px;}
+  .f-prog-bar{height:6px;border-radius:4px;background:rgba(255,255,255,.25);overflow:hidden;}
+  .f-prog-bar i{display:block;height:100%;background:#fff;border-radius:4px;}
   .queue{position:relative;margin-bottom:8px;}
   .queue::before{content:'';position:absolute;left:20px;top:14px;bottom:14px;width:2px;background:repeating-linear-gradient(var(--n-track) 0 5px,transparent 5px 11px);}
   .qrow{display:flex;align-items:center;gap:12px;padding:7px 0;position:relative;z-index:1;cursor:pointer;}
@@ -1291,6 +1303,15 @@ function syncTestZone_(){setBadge_('unit',_quizMiss||0);}
 /* スケルトン（読み込み中の形だけ先に見せる）2026-07-24 */
 function skelDaily_(){return '<div class="skel skel-focus"></div><div class="skel skel-row"></div><div class="skel skel-row"></div>';}
 function skelUnit_(){return '<div class="skel skel-book"></div><div class="skel skel-book"></div>';}
+/* 通信エラー時：毎日タブにキャッシュ表示が無ければ再試行カードを出す（あればトーストだけ＝既存表示を壊さない）2026-07-24 */
+function renderHomeError_(){
+  var host=$('daily-list');
+  var hasContent=host&&host.querySelector&&host.querySelector('.focus,.done-card,.dprog,.qrow');
+  if(host&&!hasContent){
+    host.innerHTML='<div class="empty-note" style="flex-direction:column;text-align:center;align-items:center;gap:11px;"><i class="ti ti-wifi-off"></i><div>いま つながらないみたい。<br>でんぱの よい ところで もう一回 ためしてね。</div><button class="btn" id="home-retry" type="button" style="max-width:220px;">もう<ruby>一回<rt class="uf">いっかい</rt></ruby></button></div>';
+    var rb=$('home-retry');if(rb)rb.onclick=function(){host.innerHTML=skelDaily_();try{homeCacheClear_();}catch(e){}loadHomeData_(true);};
+  }else{try{toast('つながらないみたい。もう一回 ためしてね');}catch(e){}}
+}
 /* 引っ張って更新（pull-to-refresh）：ホーム最上部で下へ引くとキャッシュを消して再取得 2026-07-24 */
 function isHomeScreen_(){var h=$('scr-home');return !!(h&&h.classList.contains('active'));}
 var _refreshing=false;
@@ -1299,7 +1320,7 @@ function refreshHome_(){
   var ind=$('ptr-ind');if(ind){ind.classList.add('spin');ind.innerHTML=kwtSpin(26);}
   try{homeCacheClear_();}catch(e){}
   loadHomeData_(false);
-  setTimeout(function(){_refreshing=false;var i=$('ptr-ind');if(i){i.classList.remove('spin','show');i.style.height='0px';}},1100); // 取得は裏で継続。表示は約1.1秒で戻す
+  setTimeout(function(){_refreshing=false;var i=$('ptr-ind');if(i){i.classList.remove('spin','show');i.style.height='0px';}try{toast('さいしんに こうしんしたよ');}catch(e){}},1100); // 取得は裏で継続。表示は約1.1秒で戻す＋完了トースト
 }
 (function(){
   var startY=0,pulling=false,dist=0;var TH=68,MAX=110;
@@ -1322,15 +1343,22 @@ function refreshHome_(){
   });
 })();
 /* 単元別：開いた本をリロード後も保持（sessionStorage）2026-07-24 */
-function _unitOpenGet_(){try{return JSON.parse(sessionStorage.getItem('kwt_unit_open')||'[]')||[];}catch(e){return [];}}
-function _unitOpenToggle_(key,isOpen){var a=_unitOpenGet_();var i=a.indexOf(key);if(isOpen&&i<0)a.push(key);else if(!isOpen&&i>=0)a.splice(i,1);try{sessionStorage.setItem('kwt_unit_open',JSON.stringify(a));}catch(e){}}
+function _openGet_(sk){try{return JSON.parse(sessionStorage.getItem(sk)||'[]')||[];}catch(e){return [];}}
+function _openToggle_(sk,key,isOpen){var a=_openGet_(sk);var i=a.indexOf(key);if(isOpen&&i<0)a.push(key);else if(!isOpen&&i>=0)a.splice(i,1);try{sessionStorage.setItem(sk,JSON.stringify(a));}catch(e){}}
+function _unitOpenGet_(){return _openGet_('kwt_unit_open');}
+function _unitOpenToggle_(key,isOpen){_openToggle_('kwt_unit_open',key,isOpen);}
 /* 毎日学習＝1本道：先頭の未完了を大きく（つぎは これ）＋このあとを queue */
 function renderDailyList_(main){
   var host=$('daily-list');if(!host)return;host.innerHTML='';
   var sub=$('daily-sub2');
   if(!main||!main.length){host.innerHTML='<p class="muted" style="text-align:center;padding:18px 8px;"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>は ありません。先生に<ruby>聞<rt class="uf">き</rt></ruby>いてね。</p>';if(sub)sub.innerHTML='';setBadge_('daily',0);return;}
   var undone=main.filter(function(m){return !m.cleared_today;});
-  if(sub)sub.innerHTML=undone.length?('<ruby>今日<rt class="uf">きょう</rt></ruby>の のこり '+undone.length+' ・ まえから じゅんに'):'<ruby>今日<rt class="uf">きょう</rt></ruby>は ぜんぶ できたよ！';
+  var doneN=main.length-undone.length;
+  if(sub){
+    if(!undone.length)sub.innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>は ぜんぶ できたよ！';
+    else if(doneN>0)sub.innerHTML='ここまで '+doneN+'つ！ のこり '+undone.length+'、この ちょうしで いこう';
+    else sub.innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>の のこり '+undone.length+' ・ まえから じゅんに';
+  }
   setBadge_('daily',undone.length);
   // 今日ぜんぶ完了：達成カード＋「きょう やったこと」を出す（未完了があるときだけ1本道の focus/queue）2026-07-24
   if(!undone.length){
@@ -1341,10 +1369,19 @@ function renderDailyList_(main){
     var q0=document.createElement('div');q0.className='queue';main.forEach(function(m){q0.appendChild(_dailyQueueRow_(m));});host.appendChild(q0);
     return;
   }
+  // 全体像：今日の毎日学習の進み（1教材=1セグメント・終わったら緑）2026-07-24
+  var pg=document.createElement('div');pg.className='dprog';
+  var segs='';main.forEach(function(m){segs+='<i class="'+(m.cleared_today?'on':'')+'"></i>';});
+  pg.innerHTML='<div class="dprog-t"><span><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></span><b>'+doneN+'<span class="tot"> / '+main.length+' できた</span></b></div><div class="dprog-dots">'+segs+'</div>';
+  host.appendChild(pg);
   var fi=0;for(var i=0;i<main.length;i++){if(!main[i].cleared_today){fi=i;break;}}
   host.appendChild(_dailyFocus_(main[fi]));
-  var rest=main.filter(function(m,i){return i!==fi;});
-  if(rest.length){var qh=document.createElement('div');qh.className='q-head';qh.textContent='このあと';host.appendChild(qh);var q=document.createElement('div');q.className='queue';rest.forEach(function(m){q.appendChild(_dailyQueueRow_(m));});host.appendChild(q);}
+  // このあと＝まだ終わってない分だけ（完了済みは混ぜない）2026-07-24
+  var upNext=main.filter(function(m,i){return i!==fi&&!m.cleared_today;});
+  if(upNext.length){var qh=document.createElement('div');qh.className='q-head';qh.textContent='このあと';host.appendChild(qh);var q=document.createElement('div');q.className='queue';upNext.forEach(function(m){q.appendChild(_dailyQueueRow_(m));});host.appendChild(q);}
+  // きょう できた＝終わった分を「がんばったね」の枠でまとめる 2026-07-24
+  var doneItems=main.filter(function(m){return m.cleared_today;});
+  if(doneItems.length){var dh=document.createElement('div');dh.className='q-head done';dh.innerHTML='<i class="ti ti-circle-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby> できたよ（'+doneItems.length+'）・ よく がんばったね';host.appendChild(dh);var dq=document.createElement('div');dq.className='queue';doneItems.forEach(function(m){dq.appendChild(_dailyQueueRow_(m));});host.appendChild(dq);}
 }
 function _dailyFocus_(m){
   var el=document.createElement('div');el.className='focus';
@@ -1352,7 +1389,9 @@ function _dailyFocus_(m){
   var road='';if(!cleared&&pc>po){var arr=[];for(var d=po+1;d<=pc&&arr.length<3;d++)arr.push('DAY'+d);road=' ・ この<ruby>先<rt class="uf">さき</rt></ruby> '+arr.join('・')+(pc>po+3?(' … DAY'+pc+'まで'):'');}
   var subj=m.subject?esc(subjLabel(m.subject)):'';
   var label=cleared?'<i class="ti ti-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> <ruby>完了<rt class="uf">かんりょう</rt></ruby>！':'つぎは これ';
-  el.innerHTML='<div class="f-label">'+label+'</div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+esc(mtLabelMt(m))+'</div><div class="f-sub">'+subj+road+'</div></div></div><button class="f-btn">'+(cleared?'つづける':'はじめる')+' <i class="ti ti-arrow-right"></i></button>';
+  // 教材のどこまで進んだか（DAY po / 全pc）＝全体像。複数DAYの教材だけ出す 2026-07-24
+  var prog='';if(pc>1){var pct=Math.max(0,Math.min(100,Math.round(po/pc*100)));prog='<div class="f-prog"><div class="f-prog-t"><span>DAY '+po+' / '+pc+'</span><span>'+pct+'%</span></div><div class="f-prog-bar"><i style="width:'+pct+'%"></i></div></div>';}
+  el.innerHTML='<div class="f-label">'+label+'</div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+esc(mtLabelMt(m))+'</div><div class="f-sub">'+subj+road+'</div></div></div>'+prog+'<button class="f-btn">'+(cleared?'つづける':'はじめる')+' <i class="ti ti-arrow-right"></i></button>';
   el.onclick=function(){startPractice(m.part_id);};
   return el;
 }
@@ -1445,7 +1484,7 @@ function openHome(){
 function loadHomeData_(showSkel){
   if(showSkel){var _dl0=$('daily-list');if(_dl0)_dl0.innerHTML=skelDaily_();var _ul0=$('unit-list');if(_ul0)_ul0.innerHTML=skelUnit_();}
   callCached({action:'student_home'},function(d,_cached){
-    if(!d.ok){if(d.error&&d.error.indexOf('ログイン')>=0){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');show('scr-login');}return;}
+    if(!d.ok){if(d.error&&d.error.indexOf('ログイン')>=0){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');show('scr-login');return;}renderHomeError_();return;} // 通信エラーは再試行カードを出す（ログイン切れ以外）2026-07-24
     var main=d.data.main||[];
     var tests=d.data.tests||[]; // テスト配信カード（GAS studentHome tests・2026-07-04）
     main.sort(function(a,b){return (a.display_order||0)-(b.display_order||0);});tests.sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // シートの番号順・川上さん 2026-07-22
@@ -1533,14 +1572,16 @@ function loadHomeData_(showSkel){
     var macc=document.createElement('div');macc.className='macc';$('review-area').appendChild(macc);
     // 本(シリーズ)ごとにまとめる（同じ本の教材を1つに畳む）2026-07-24
     var _mg=[],_mgm={};
-    cs.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!_mgm[k]){_mgm[k]={lab:mtSeriesLabelMt(c),items:[]};_mg.push(_mgm[k]);}_mgm[k].items.push(c);});
+    cs.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!_mgm[k]){_mgm[k]={lab:mtSeriesLabelMt(c),items:[],key:k};_mg.push(_mgm[k]);}_mgm[k].items.push(c);});
+    var _mapOpen=_openGet_('kwt_map_open');
     _mg.forEach(function(g){
       var btot=0,bpas=0;g.items.forEach(function(c){var _ps=c.parts||[];btot+=_ps.length;bpas+=_ps.filter(function(l){return l.passed;}).length;});
       var bpct=btot?Math.round(bpas/btot*100):0;var subjB=_subjGuess_(g.items[0]);
       var book=document.createElement('div');book.className='nbook';
       book.innerHTML='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subjB)+'"></i></div><div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+'</div><div class="nbk-meta">'+(subjB?'<span class="nbk-subj">'+esc(subjLabel(subjB))+'</span> ':'')+'できた '+bpct+'%</div><div class="nbk-bar"><i style="width:'+bpct+'%"></i></div></div><i class="ti ti-chevron-down nbk-arw"></i></div>';
       var bdetail=document.createElement('div');bdetail.className='nbk-detail';book.appendChild(bdetail);
-      book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');};
+      if(_mapOpen.indexOf(g.key)>=0)book.classList.add('open'); // 学習マップも開いた本を保持（単元別と統一）2026-07-24
+      book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_openToggle_('kwt_map_open',g.key,book.classList.contains('open'));};
       g.items.forEach(function(c){
         var isTest=(c.content_type==='test');
         var parts=c.parts||[];
