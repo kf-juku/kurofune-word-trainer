@@ -1318,10 +1318,14 @@ function subjIcon_(s){return s==='science'?'ti-flask':(s==='social'?'ti-books':(
 /* 教科：材料に subject が無いとき（material_parts）はタイトルから推定。undefined表示を防ぐ 2026-07-24 */
 function _subjGuess_(o){var s=o&&o.subject;if(s)return s;var t=String((o&&o.material_title)||'');if(/理科|生物|物質|エネルギー|生命|地球|化学|物理/.test(t))return 'science';if(/歴史|地理|公民|社会/.test(t))return 'social';if(/語彙|国語|漢字|文章/.test(t))return 'japanese';if(/数学|算数/.test(t))return 'math';if(/英/.test(t))return 'english';return '';}
 function setTab5_(name){['daily','review','unit','team','record'].forEach(function(k){var e=$('ntab5-'+k);if(e)e.classList.toggle('on',k===name);});}
-function setBadge_(tab,n){var e=$('bdg-'+tab);if(!e)return;if(n>0){e.textContent=(n>9?'9+':String(n));e.classList.add('on');}else{e.classList.remove('on');}} // 10以上は9+＝数の圧迫感を減らす（2026-07-24）
+/* 下メニューの通知：毎日・ふくしゅう＝今日の残り「数字」（意味のある今日の数）／単元別・記録＝赤●「見といてね」（自主ペース・知らせ）。役割で分ける（川上さん確定 2026-07-24） */
+function setBadge_(tab,n){var e=$('bdg-'+tab);if(!e)return;if((n||0)>0){e.classList.remove('dot');e.textContent=(n>9?'9+':String(n));e.classList.add('on');}else{e.classList.remove('on');}} // 数字（10以上は9+）
+function setNavDot_(tab,on){var e=$('bdg-'+tab);if(!e)return;e.classList.add('dot');e.textContent='';e.classList.toggle('on',!!on);} // 赤●（数字なし）
+var _revNum={osarai:0,note:0};
+function setReviewNavNum_(){setBadge_('review',(_revNum.osarai||0)+(_revNum.note||0));} // ふくしゅう＝おさらい残り＋間違いノート残りの合計
 var _homeTab='daily',_quizMiss=0;
 function showHomeTab(name){_homeTab=name;$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);sessionStorage.removeItem('kwt_view');}catch(e){}window.scrollTo(0,0);} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
-function syncTestZone_(){setBadge_('unit',_quizMiss||0);}
+function syncTestZone_(){setNavDot_('unit',(_quizMiss||0)>0);} // 単元別＝確認テストに直しがあるとき赤●（自主ペースなので数字にしない）2026-07-24
 /* スケルトン（読み込み中の形だけ先に見せる）2026-07-24 */
 function skelDaily_(){return '<div class="skel skel-focus"></div><div class="skel skel-row"></div><div class="skel skel-row"></div>';}
 function skelUnit_(){return '<div class="skel skel-book"></div><div class="skel skel-book"></div>';}
@@ -1816,7 +1820,7 @@ function recvAckKey_(){return 'kwt_recv_ack_'+(nickname||'');}
 function teamDotUpdate_(){var on=(_recvUnseen||_cheerLeft>0);
   var d=$('dot-team');if(d)d.style.display=on?'':'none';
   var nd=document.querySelector('#home-star-pop .newdot');if(nd)nd.style.display=on?'':'none';
-  var nb=$('bdg-team');if(nb){nb.classList.add('dot');nb.textContent='';nb.classList.toggle('on',on);}} // 記録タブのナビにも赤●＝なかま未読/応援できる仲間があるとき（bdg-teamをドット化）2026-07-24
+  try{setNavDot_('team',on);}catch(e){}} // 記録タブのナビにも赤●＝なかま未読/応援できる仲間があるとき 2026-07-24
 function loadStarReceived(){
   callCached({action:'star_received'},function(d){
     // 描画のたびに初期化する（キャッシュ描画→フレッシュ描画で追記が二重になるバグ修正 2026-07-05・川上さん報告）
@@ -2556,6 +2560,7 @@ function loadNotes(){
     _reviewTileDone_('tile-note',totalN===0); // 完了なら緑
     var ntag=$('note-tag');if(ntag)ntag.style.display=(totalN===0)?'inline-flex':'none';
     _revDone.note=(totalN===0);renderReviewFin_();
+    _revNum.note=totalN;setReviewNavNum_(); // ふくしゅうバッジに間違いノート残りも含める
     area.innerHTML='';
     if(!totalN){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">間違いゼロ！</div><div class="sub">いまは復習する単語がありません</div></div></div>';return;}
     subs.forEach(function(c){
@@ -2734,7 +2739,7 @@ function loadReviewSrs(){
     var lbl=[];if(rtot>0)lbl.push('<b>'+rtot+'</b> 語');if(trvUndone>0)lbl.push('<b>'+trvUndone+'</b> パート');
     var anyReview=(rtot>0)||(trvUndone>0);
     $('cnt-review').innerHTML=lbl.length?lbl.join(' + '):'<b style="color:var(--ok)">ぜんぶ できた</b>';
-    setBadge_('review',(rtot||0)+(trvUndone||0));
+    _revNum.osarai=(rtot||0)+(trvUndone||0);setReviewNavNum_();
     var dr=$('dot-review');if(dr)dr.style.display=anyReview?'block':'none';
     _reviewTileDone_('tile-review',!anyReview); // 完了なら緑（dimはやめる）
     _revDone.osarai=!anyReview;renderReviewFin_();
