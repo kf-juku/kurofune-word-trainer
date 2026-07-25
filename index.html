@@ -444,6 +444,43 @@
   .cheerbtn.off{opacity:.28;pointer-events:none;}
   .cheer-done{display:none;align-items:center;justify-content:center;gap:7px;margin-top:11px;font-size:13px;font-weight:700;color:#ffe9b0;animation:recvIn .4s ease;}
   .cheer-done.show{display:flex;}
+  /* 三連星（前日いちばん頑張った3人・初ログイン演出）2026-07-25：流れ星の星空をそのまま流用 */
+  .trio-ov{position:fixed;inset:0;z-index:200;background:rgba(6,9,18,.62);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:16px;animation:starIn .35s ease;}
+  .trio-panel{width:100%;max-width:420px;max-height:94vh;overflow:auto;background:linear-gradient(160deg,#101830,#1c2a52);border-radius:22px;box-shadow:0 18px 60px rgba(0,0,0,.5);position:relative;padding-bottom:16px;}
+  .trio-close{position:absolute;top:12px;right:14px;z-index:6;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;border:none;font-size:17px;cursor:pointer;}
+  .trio-title{color:#fff;text-align:center;padding:26px 16px 4px;}
+  .trio-title .t1{font-size:12.5px;color:#ffe9a8;}
+  .trio-title .t2{font-size:20px;font-weight:900;margin-top:3px;text-shadow:0 2px 14px rgba(227,196,119,.4);}
+  .trio-title .t2 b{color:#ffd873;}
+  .trio-sky{position:relative;height:74px;overflow:hidden;}
+  .trio-sky .meteor{top:24%;animation-duration:2.2s;}
+  .trio-sky .m2{top:44%;animation-delay:.4s;}
+  .trio-sky .m3{top:64%;animation-delay:.62s;}
+  .trio-row{display:flex;gap:8px;padding:4px 12px 0;align-items:stretch;}
+  .tcard{flex:1;min-width:0;background:rgba(15,20,40,.72);border:1px solid rgba(227,196,119,.45);border-radius:16px;padding:11px 8px 10px;text-align:center;color:#eef1f6;opacity:0;transform:translateY(12px);}
+  .tcard.show{animation:cardUp .5s ease forwards;}
+  .trio-row.podium .tcard[data-r="1"]{order:2;border-color:rgba(255,216,115,.7);background:rgba(255,216,115,.15);box-shadow:0 0 22px rgba(255,216,115,.26);}
+  .trio-row.podium .tcard[data-r="2"]{order:1;}
+  .trio-row.podium .tcard[data-r="3"]{order:3;}
+  .tc-rank{font-size:11.5px;font-weight:800;color:#ffd873;}
+  .tc-ava{width:46px;height:46px;border-radius:50%;margin:5px auto;display:grid;place-items:center;font-size:22px;font-weight:800;background:#22304f;color:#ffe9b0;}
+  .trio-row.podium .tcard[data-r="1"] .tc-ava{width:52px;height:52px;}
+  .tc-nick{font-size:14px;font-weight:800;color:#fff;}
+  .trio-row.podium .tcard[data-r="1"] .tc-nick{color:#ffe9a8;}
+  .tc-eff{font-size:12px;color:#ffe9a8;font-weight:800;margin-top:4px;}
+  .tc-eff b{color:#ffd873;}
+  .tc-sub{font-size:10px;color:#9aa4bd;margin-top:2px;line-height:1.4;}
+  .tcheer{margin-top:9px;width:100%;border:1px solid rgba(227,196,119,.5);background:rgba(255,255,255,.06);border-radius:12px;padding:8px 2px;color:#e3c477;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:transform .12s;}
+  .tcheer:active{transform:scale(.95);}
+  .tcheer.sent{background:linear-gradient(135deg,#e3c477,#a9842f);border-color:#e3c477;color:#fff;pointer-events:none;}
+  .tcard.me{border-color:#ffd873!important;background:rgba(255,216,115,.18)!important;box-shadow:0 0 22px rgba(255,216,115,.3)!important;}
+  .tcard.me .tc-ava{background:linear-gradient(135deg,#ffe08a,#e0a93a);color:#3a2b06;}
+  .tc-mebadge{margin-top:9px;width:100%;border-radius:12px;padding:8px 2px;background:rgba(255,255,255,.14);color:#fff;font-size:11px;font-weight:800;}
+  .trio-foot{color:#cdd6e6;font-size:12px;text-align:center;margin-top:12px;padding:0 20px;line-height:1.7;}
+  .trio-foot b{color:#ffd873;}
+  .trio-cta{display:block;margin:12px auto 4px;background:#fff;color:#15161a;border:none;border-radius:12px;padding:11px 26px;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;}
+  .trio-heart{position:absolute;font-size:17px;pointer-events:none;animation:heartUp .9s ease forwards;z-index:7;}
+  @keyframes heartUp{0%{opacity:0;transform:translateY(0) scale(.6);}20%{opacity:1;}100%{opacity:0;transform:translateY(-42px) scale(1.2);}}
   /* 受け取った応援の通知（ホーム） */
   .star-recv{display:flex;align-items:center;gap:8px;background:rgba(202,162,74,.12);border:1px solid var(--gold);border-radius:14px;padding:11px 14px;margin-bottom:14px;font-size:14px;font-weight:700;color:var(--ink);}
   /* 受信リスト（川上さん確定 2026-07-03 grill：送り主つき直近10件） */
@@ -1611,7 +1648,7 @@ function openHome(){
   $('btn-nick-edit').onclick=openNickModal;
   backToTiles();
   $('btn-back').onclick=goBack_; // 「もどる」＝1つ前の画面へ（履歴が無ければホーム）2026-07-24
-  var _hl=$('hdr-logo');if(_hl){_hl.onclick=function(){try{showHomeTab(_homeTab||'daily');}catch(e){}};_hl.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();try{showHomeTab(_homeTab||'daily');}catch(e2){}}};} // 左上ロゴ→ホーム（サブ画面からでも）2026-07-24
+  var _hl=$('hdr-logo');if(_hl){_hl.onclick=function(){try{showHomeTab('daily');}catch(e){}};_hl.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();try{showHomeTab('daily');}catch(e2){}}};} // 左上ロゴ→毎日学習の画面へ（川上さん 2026-07-24）
   var _bind=function(id,fn){var e=$(id);if(e)e.onclick=fn;};
   _bind('home-star-pop',function(){showSub('team');});
   _bind('tile-records',function(){showSub('records');});
@@ -1632,6 +1669,7 @@ function openHome(){
   _bind('ntab5-record',function(){setTab5_('record');showSub('records');});
   loadHomeData_(true);
   try{checkStreakCele_();}catch(e){} // ホーム復帰のお祝い（その日はじめて学習後）2026-07-24
+  try{maybeShowTrio_();}catch(e){} // 初ログインで前日の三連星（上位3名）を1日1回だけ表示 2026-07-25
 }
 /* ホームの全データ取得（openHome初回・引っ張って更新の両方から呼ぶ）2026-07-24 */
 function loadHomeData_(showSkel){
@@ -1897,6 +1935,108 @@ function buildStarCard(star){
     };
   });
   return wrap;
+}
+
+// ===== 三連星（前日いちばん頑張った3人）初ログイン演出 2026-07-25 =====
+// 1日1回だけ・当日のキーで判定。流れ星の星空をそのまま流用して隕石3つ＋カード3枚（表彰台順）。
+function trioDayKey_(){var j=new Date(Date.now()+9*3600*1000);var p=function(n){return String(n).padStart(2,'0');};return ''+j.getUTCFullYear()+p(j.getUTCMonth()+1)+p(j.getUTCDate());}
+function trioSeenKey_(){return 'kwt_trio_'+trioDayKey_()+'_'+(nickname||'');}
+function maybeShowTrio_(){
+  try{if(localStorage.getItem(trioSeenKey_()))return;}catch(e){}
+  if(window._trioBusy)return;window._trioBusy=true;
+  call({action:'trio_stars'}).then(function(d){
+    window._trioBusy=false;
+    try{localStorage.setItem(trioSeenKey_(),'1');}catch(e){} // 見た＝1日1回（人がいなくても再呼び出ししない）
+    if(!d||!d.ok||!d.data||!d.data.trio||!d.data.trio.length)return;
+    showTrioOverlay_(d.data);
+  }).catch(function(){window._trioBusy=false;});
+}
+// サブ情報（応援したくなる事実を最大2つ）：連続日数・いつもの何倍・昨日の問題数・ていねいさ
+function trioSub_(t){
+  var f=[];
+  if(t.streak>=2)f.push('連続'+t.streak+'日');
+  if(t.mult&&t.mult>=1.3&&t.mult<9)f.push('いつもの'+t.mult+'倍');
+  f.push('昨日'+t.q+'問');
+  if(t.acc>=90)f.push('ていねい◎');
+  return f.slice(0,2).join(' ・ ');
+}
+function showTrioOverlay_(data){
+  if(document.querySelector('.trio-ov'))return;
+  var trio=data.trio||[],meRank=data.me_rank||0,cheered={};
+  (data.cheered||[]).forEach(function(id){cheered[String(id)]=true;});
+  var ov=document.createElement('div');ov.className='trio-ov';
+  var panel=document.createElement('div');panel.className='trio-panel';
+  var close=function(){try{ov.remove();}catch(e){}};
+  // タイトル
+  panel.innerHTML='<button class="trio-close" aria-label="とじる">✕</button>'
+    +'<div class="trio-title"><div class="t1">✨ きのう いちばん がんばった</div>'
+    +'<div class="t2"><b>三連星</b> の '+trio.length+'人！</div></div>';
+  // 星空＋隕石（人数ぶん・最大3）
+  var sky=document.createElement('div');sky.className='trio-sky';
+  for(var s=0;s<22;s++){var bs=document.createElement('span');bs.className='bgstar';bs.style.left=Math.random()*100+'%';bs.style.top=Math.random()*100+'%';bs.style.animationDelay=(Math.random()*2.5)+'s';sky.appendChild(bs);}
+  for(var mi=0;mi<trio.length;mi++){var mt=document.createElement('div');mt.className='meteor'+(mi===1?' m2':mi===2?' m3':'');sky.appendChild(mt);}
+  panel.appendChild(sky);
+  // カード（3人なら表彰台順、それ未満は素直に並べる）
+  var row=document.createElement('div');row.className='trio-row'+(trio.length===3?' podium':'');
+  trio.forEach(function(t,i){
+    var rank=i+1;var isMe=(meRank===rank);
+    var ini=(t.nickname||'?').slice(0,1);
+    var medal=rank===1?'🥇 1位':rank===2?'🥈 2位':'🥉 3位';
+    var c=document.createElement('div');c.className='tcard'+(isMe?' me':'');c.setAttribute('data-r',rank);
+    var bottom=isMe
+      ? '<div class="tc-mebadge">🎉 '+rank+'位 おめでとう！</div>'
+      : '<button class="tcheer'+(cheered[String(t.student_id)]?' sent':'')+'" data-to="'+t.student_id+'">'+(cheered[String(t.student_id)]?'✓ 応援した！':'👏 応援')+'</button>';
+    c.innerHTML='<div class="tc-rank">'+medal+'</div>'
+      +'<div class="tc-ava">'+esc(ini)+'</div>'
+      +'<div class="tc-nick">'+esc(t.nickname||'なかま')+'</div>'
+      +'<div class="tc-eff">がんばり <b>'+t.score+'</b></div>'
+      +'<div class="tc-sub">'+esc(trioSub_(t))+'</div>'
+      +bottom;
+    row.appendChild(c);
+  });
+  panel.appendChild(row);
+  // フッター
+  var foot=document.createElement('div');foot.className='trio-foot';
+  foot.innerHTML=(meRank>0)
+    ? 'きみは <b>'+meRank+'位</b> に入ったよ！ ほかのなかまも応援しよう。'
+    : 'きみも上位に入ると、みんなから <b>応援</b> がもらえるよ！';
+  panel.appendChild(foot);
+  var cta=document.createElement('button');cta.className='trio-cta';cta.textContent='やる気でた！はじめる';cta.onclick=close;
+  panel.appendChild(cta);
+  ov.appendChild(panel);
+  document.body.appendChild(ov);
+  // 閉じる操作
+  panel.querySelector('.trio-close').onclick=close;
+  ov.addEventListener('click',function(e){if(e.target===ov)close();});
+  // 応援ボタン
+  row.querySelectorAll('.tcheer').forEach(function(b){
+    b.onclick=function(){
+      if(b.classList.contains('sent'))return;
+      var to=b.getAttribute('data-to');
+      b.classList.add('sent');b.textContent='✓ 応援した！';
+      try{sndLikeSend();}catch(e){}
+      trioHearts_(panel,b);
+      call({action:'trio_cheer',to_student_id:to,type:'congrats'}).then(function(r){
+        if(r&&r.ok)return;
+        if(r&&r.data&&r.data.already)return; // すでに送信済みは成功扱い
+        b.classList.remove('sent');b.textContent='👏 応援';
+        toast((r&&r.error)||'送れなかったよ。もう一度ためしてね');
+      });
+    };
+  });
+  // 演出：隕石音→カードを表彰台順(2位→1位→3位)にポップ
+  try{sndStarFly();}catch(e){}
+  var cards=[].slice.call(row.querySelectorAll('.tcard'));
+  var seq=(trio.length===3)?[cards[1],cards[0],cards[2]]:cards;
+  seq.forEach(function(cd,i){setTimeout(function(){if(cd)cd.classList.add('show');},1200+i*200);});
+}
+function trioHearts_(panel,btn){
+  var r=btn.getBoundingClientRect(),pb=panel.getBoundingClientRect();
+  for(var i=0;i<5;i++){(function(i){setTimeout(function(){
+    var h=document.createElement('div');h.className='trio-heart';h.textContent=['💛','⭐','👏','✨','💛'][i];
+    h.style.left=(r.left-pb.left+12+(Math.random()*36-18))+'px';h.style.top=(r.top-pb.top-4)+'px';
+    panel.appendChild(h);setTimeout(function(){h.remove();},900);
+  },i*70);})(i);}
 }
 // 受け取った応援：件数＋送り主つき直近10件（川上さん確定 2026-07-03 grill）
 function relDay(day){
