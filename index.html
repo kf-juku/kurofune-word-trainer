@@ -464,6 +464,19 @@
   .trio-row.podium .tcard[data-r="3"]{order:3;}
   .tc-rank{font-size:11.5px;font-weight:800;color:#ffd873;}
   .tc-ava{width:46px;height:46px;border-radius:50%;margin:5px auto;display:grid;place-items:center;font-size:22px;font-weight:800;background:#22304f;color:#ffe9b0;}
+  /* プロフィールアイコン（OpenMoji SVG・全端末で同じ絵）2026-07-25 */
+  .kwt-ico{display:inline-grid;place-items:center;width:100%;height:100%;line-height:0;}
+  .kwt-ico svg{width:78%;height:78%;display:block;}
+  .h-ava{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;flex-shrink:0;margin-right:8px;overflow:hidden;}
+  #set-icon .sr-ic{overflow:hidden;}
+  #set-icon-ic .kwt-ico svg{width:88%;height:88%;}
+  .icgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px;}
+  .icpick{position:relative;aspect-ratio:1;border:2px solid var(--line);border-radius:16px;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;padding:4px;transition:transform .1s,border-color .15s,background .15s;}
+  .icpick:active{transform:scale(.94);}
+  .icpick .ici{width:36px;height:36px;}
+  .icpick .icl{font-size:10px;color:var(--sub);font-weight:700;}
+  .icpick.on{border-color:var(--gold);background:linear-gradient(160deg,rgba(202,162,74,.14),transparent);box-shadow:0 0 0 3px rgba(202,162,74,.16);}
+  .icpick.on .icl{color:var(--gold);}
   .trio-row.podium .tcard[data-r="1"] .tc-ava{width:52px;height:52px;}
   .tc-nick{font-size:14px;font-weight:800;color:#fff;}
   .trio-row.podium .tcard[data-r="1"] .tc-nick{color:#ffe9a8;}
@@ -822,7 +835,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <div class="body" style="padding-top:60px;">
       <div class="center" style="font-size:40px;color:var(--gold);"><i class="ti ti-anchor"></i></div>
       <div class="center" style="margin:8px 0 4px;"><span class="kt-logo kt-lg"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="en3"><span>Kurofune</span><span>Word</span><span>Trainer</span></span></span></div>
-      <p class="muted center" style="margin-bottom:26px;">先生からもらったIDとパスワードでログイン</p>
+      <p class="muted center" style="margin-bottom:26px;"><ruby>先生<rt class="uf">せんせい</rt></ruby>からもらったIDとパスワードでログイン</p>
       <div class="card">
         <div class="err" id="login-err"></div>
         <input id="in-id" placeholder="ID（例：student1）" autocomplete="username">
@@ -837,14 +850,14 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <div class="head">
       <span class="kt-logo kt-sm" id="hdr-logo" role="button" tabindex="0" aria-label="ホームに戻る" style="cursor:pointer;"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="en3"><span>Kurofune</span><span>Word</span><span>Trainer</span></span></span>
       <div class="right">
-        <div class="streak" role="button" tabindex="0" aria-label="連続学習日数のせつめい"><i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b>日</div>
+        <div class="streak" role="button" tabindex="0" aria-label="連続学習日数のせつめい"><i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b><ruby>日<rt class="uf">にち</rt></ruby></div>
         <button class="iconbtn" id="themeBtn" aria-label="テーマ切替"><i class="ti ti-moon"></i></button>
       </div>
       <div id="streak-pop" class="streak-pop" style="display:none;"><div class="sp-h"><i class="ti ti-flame"></i><ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby><ruby>日数<rt class="uf">にっすう</rt></ruby></div><ruby>毎日<rt class="uf">まいにち</rt></ruby>1<ruby>回<rt class="uf">かい</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>すると<ruby>日数<rt class="uf">にっすう</rt></ruby>が<ruby>増<rt class="uf">ふ</rt></ruby>えるよ。1<ruby>日<rt class="uf">にち</rt></ruby>でも<ruby>休<rt class="uf">やす</rt></ruby>むと0に<ruby>戻<rt class="uf">もど</rt></ruby>るよ。</div>
     </div>
     <div class="greet">
-      <div class="who"><div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div><button class="nick-edit" id="btn-nick-edit" aria-label="ニックネームを変更" title="ニックネームを変更"><i class="ti ti-pencil"></i></button></div>
-      <span class="oa" id="home-star-pop" style="display:none;" role="button" tabindex="0" aria-label="とどいた応援を見る"><span class="newdot"></span><span class="avs" id="star-avs"></span><i class="ti ti-sparkles oa-spk"></i><span class="oa-txt">応援 <b class="num" id="star-pop-n">0</b></span><i class="ti ti-chevron-right oa-arw"></i></span>
+      <div class="who"><div class="h-ava" id="hdr-ava" style="display:none"></div><div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div><button class="nick-edit" id="btn-nick-edit" aria-label="ニックネームを変更" title="ニックネームを変更"><i class="ti ti-pencil"></i></button></div>
+      <span class="oa" id="home-star-pop" style="display:none;" role="button" tabindex="0" aria-label="とどいた応援を見る"><span class="newdot"></span><span class="avs" id="star-avs"></span><i class="ti ti-sparkles oa-spk"></i><span class="oa-txt"><ruby>応援<rt class="uf">おうえん</rt></ruby> <b class="num" id="star-pop-n">0</b></span><i class="ti ti-chevron-right oa-arw"></i></span>
     </div>
     <div class="undername"><div id="chill-area"></div></div>
     <div class="body">
@@ -854,7 +867,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="tabpanel on" id="tp-daily">
           <div class="ph"><i class="ti ti-anchor" style="color:var(--gold)"></i> <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></div>
           <div class="psub" id="daily-sub2"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>学習<rt class="uf">がくしゅう</rt></ruby></div>
-          <div id="daily-list"><div class="loading">読み込み中…</div></div>
+          <div id="daily-list"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
           <span id="nz-daily-sub" style="display:none;"></span>
         </div>
         <!-- ふくしゅう（おさらい＋間違いノート・並列） -->
@@ -870,7 +883,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="tabpanel" id="tp-unit">
           <div class="ph"><i class="ti ti-flag" style="color:var(--accent)"></i> <ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></div>
           <div class="psub">テストまでに やりきろう。やりたい <ruby>所<rt class="uf">ところ</rt></ruby>から で OK。</div>
-          <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;">先生が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに出るよ</p></div>
+          <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;"><ruby>先生<rt class="uf">せんせい</rt></ruby>が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに<ruby>出<rt class="uf">で</rt></ruby>るよ</p></div>
           <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>力<rt class="uf">ちから</rt></ruby>だめし（<ruby>確認<rt class="uf">かくにん</rt></ruby>テスト）</div><div class="nqc-s">おぼえたら ここで テスト。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div><div class="rc-go" style="margin-left:9px"><i class="ti ti-arrow-right"></i></div></div>
         </div>
       </div>
@@ -882,13 +895,14 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="subview" id="sv-records">
           <div id="rec-streak-card"></div>
           <div class="tiles">
-            <div class="tile" id="tile-lists"><div class="tic"><i class="ti ti-list-check"></i></div><div class="tnm">学習マップ</div><div class="tcnt">何回でも復習</div></div>
+            <div class="tile" id="tile-lists"><div class="tic"><i class="ti ti-list-check"></i></div><div class="tnm"><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップ</div><div class="tcnt"><ruby>何<rt class="uf">なん</rt></ruby><ruby>回<rt class="uf">かい</rt></ruby>でも<ruby>復習<rt class="uf">ふくしゅう</rt></ruby></div></div>
             <div class="tile" id="tile-badge"><div class="tic"><i class="ti ti-award"></i></div><div class="tnm">バッジ</div><div class="tcnt" id="cnt-badge">–</div></div>
             <div class="tile" id="tile-team"><span class="reddot" id="dot-team" style="display:none;"></span><div class="tic"><i class="ti ti-users"></i></div><div class="tnm">なかま</div><div class="tcnt" id="cnt-team">–</div></div>
             <div class="tile" id="tile-overall"><div class="tic"><i class="ti ti-world"></i></div><div class="tnm">クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby></div><div class="tcnt">みんなの がんばり</div></div>
           </div>
           <div class="set-h"><ruby>設定<rt class="uf">せってい</rt></ruby></div>
           <div class="setgrp">
+            <div class="setrow" id="set-icon"><div class="sr-ic" id="set-icon-ic"><i class="ti ti-mood-smile"></i></div><div class="sr-b"><div class="sr-t">アイコン</div><div class="sr-s" id="set-icon-val">まだ えらんでいないよ</div></div><div class="sr-go"><ruby>選<rt class="uf">えら</rt></ruby>ぶ <i class="ti ti-chevron-down"></i></div></div>
             <div class="setrow" id="set-nick"><div class="sr-ic"><i class="ti ti-user"></i></div><div class="sr-b"><div class="sr-t">ニックネーム</div><div class="sr-s" id="set-nick-val">—</div></div><div class="sr-go"><ruby>変更<rt class="uf">へんこう</rt></ruby> <i class="ti ti-pencil"></i></div></div>
             <div class="setrow" id="set-theme"><div class="sr-ic" id="set-theme-ic"><i class="ti ti-moon"></i></div><div class="sr-b"><div class="sr-t"><ruby>見<rt class="uf">み</rt></ruby>た<ruby>目<rt class="uf">め</rt></ruby>（テーマ）</div><div class="sr-s" id="set-theme-val">ライト</div></div><div class="sr-go"><ruby>切替<rt class="uf">きりかえ</rt></ruby> <i class="ti ti-repeat"></i></div></div>
             <div class="setrow static" id="set-furi"><div class="sr-ic"><i class="ti ti-a-b-2"></i></div><div class="sr-b"><div class="sr-t">ふりがな</div><div class="sr-s" id="set-furi-val"><ruby>学年<rt class="uf">がくねん</rt></ruby>に <ruby>合<rt class="uf">あ</rt></ruby>わせて <ruby>自動<rt class="uf">じどう</rt></ruby></div></div><div class="sr-go" id="set-furi-badge">—</div></div>
@@ -896,26 +910,26 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <div class="setrow-note" style="font-size:11px;color:var(--sub);text-align:center;margin:12px 4px 4px;line-height:1.5;"><ruby>小学生<rt class="uf">しょうがくせい</rt></ruby>は <ruby>漢字<rt class="uf">かんじ</rt></ruby>に ふりがなが つくよ。ログアウトは <ruby>下<rt class="uf">した</rt></ruby>の メニューから。</div>
         </div>
         <div class="subview" id="sv-note">
-          <div id="note-area"><div class="loading">読み込み中…</div></div>
+          <div id="note-area"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
         </div>
         <div class="subview" id="sv-review">
-          <div id="review-srs-area"><div class="loading">読み込み中…</div></div>
+          <div id="review-srs-area"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
         </div>
         <div class="subview" id="sv-badge">
-          <div id="badge-area"><div class="loading">読み込み中…</div></div>
+          <div id="badge-area"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
         </div>
         <div class="subview" id="sv-lists">
-          <div id="review-area"><div class="loading">読み込み中…</div></div>
+          <div id="review-area"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
         </div>
         <div class="subview" id="sv-team">
           <div id="star-recv-area"></div>
-          <div id="team-area"><div class="loading">読み込み中…</div></div>
+          <div id="team-area"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
         </div>
         <div class="subview" id="sv-quiz">
-          <div id="quiz-area"><div class="loading">読み込み中…</div></div>
+          <div id="quiz-area"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
         </div>
         <div class="subview" id="sv-overall">
-          <div class="overall-card" id="overall-card"><div class="oc-ic"><i class="ti ti-world"></i></div><div class="oc-nm">クロフネ全体</div><div class="oc-stats"><div class="oc-st"><div class="v"><span class="num" id="cnt-people">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> 人</small></div><div class="k">今日</div></div><div class="oc-st"><div class="v"><span class="num" id="cnt-words">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> 語</small></div><div class="k">今週</div></div></div></div>
+          <div class="overall-card" id="overall-card"><div class="oc-ic"><i class="ti ti-world"></i></div><div class="oc-nm">クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby></div><div class="oc-stats"><div class="oc-st"><div class="v"><span class="num" id="cnt-people">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> <ruby>人<rt class="uf">にん</rt></ruby></small></div><div class="k"><ruby>今日<rt class="uf">きょう</rt></ruby></div></div><div class="oc-st"><div class="v"><span class="num" id="cnt-words">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> <ruby>語<rt class="uf">ご</rt></ruby></small></div><div class="k"><ruby>今週<rt class="uf">こんしゅう</rt></ruby></div></div></div></div>
         </div>
       </div>
     </div>
@@ -935,7 +949,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       <div class="prog"><i id="prog"></i></div>
       <div class="muted center" id="step-label"></div>
       <div class="furi-bar" id="furi-bar"></div>
-      <div class="qtimer" id="qtimer" style="display:none;"><div class="qbar"><i id="qbar-fill"></i></div><span class="qsec num" id="qsec">10秒</span></div>
+      <div class="qtimer" id="qtimer" style="display:none;"><div class="qbar"><i id="qbar-fill"></i></div><span class="qsec num" id="qsec">10<ruby>秒<rt class="uf">びょう</rt></ruby></span></div>
       <div class="card" id="step-listen" style="display:none;">
         <div class="word-en" id="w-en"></div><div class="reading" id="w-reading"></div>
         <!-- 発音ステップ（川上さん承認モック 2026-07-06）：正解音声を先に流さない→3・2・1でマイク自動起動→お手本自動再生→自動進行 -->
@@ -944,28 +958,28 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="pron-sub" id="pron-sub"></div>
         <div class="pron-cnt num" id="pron-cnt"></div>
         <div class="pron-foot">
-          <button class="fbtn" id="btn-sound" type="button"><span class="fic hear"><i class="ti ti-volume"></i></span>もう一回聞く</button>
-          <button class="fbtn" id="btn-mic" type="button"><span class="fic mic"><i class="ti ti-microphone"></i></span>もう一回言う</button>
+          <button class="fbtn" id="btn-sound" type="button"><span class="fic hear"><i class="ti ti-volume"></i></span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</button>
+          <button class="fbtn" id="btn-mic" type="button"><span class="fic mic"><i class="ti ti-microphone"></i></span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>言<rt class="uf">い</rt></ruby>う</button>
           <button class="fbtn" id="btn-skip" type="button"><span class="fic skip"><i class="ti ti-player-skip-forward"></i></span>スキップ</button>
         </div>
       </div>
       <div class="card" id="step-e2j" style="display:none;">
-        <div class="word-en" id="e2j-en"></div><div class="reading" id="e2j-reading" style="display:none;"></div><p class="center muted" id="e2j-label" style="margin-bottom:14px;">意味を選ぼう</p><div id="e2j-choices"></div>
+        <div class="word-en" id="e2j-en"></div><div class="reading" id="e2j-reading" style="display:none;"></div><p class="center muted" id="e2j-label" style="margin-bottom:14px;"><ruby>意味<rt class="uf">いみ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう</p><div id="e2j-choices"></div>
       </div>
       <div class="card" id="step-j2e" style="display:none;">
-        <div class="word-en" id="j2e-ja" style="font-size:30px;"></div><p class="center muted" id="j2e-label" style="margin-bottom:14px;">英語を選ぼう</p><div id="j2e-choices"></div>
+        <div class="word-en" id="j2e-ja" style="font-size:30px;"></div><p class="center muted" id="j2e-label" style="margin-bottom:14px;"><ruby>英語<rt class="uf">えいご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう</p><div id="j2e-choices"></div>
       </div>
       <div class="card" id="step-tf" style="display:none;">
-        <div id="tf-table"></div><p class="center muted" id="tf-ask" style="margin:10px 0 14px;">□に入る形をえらぼう</p><div id="tf-choices"></div>
+        <div id="tf-table"></div><p class="center muted" id="tf-ask" style="margin:10px 0 14px;">□に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>形<rt class="uf">かたち</rt></ruby>をえらぼう</p><div id="tf-choices"></div>
       </div>
-      <button class="listen-btn" id="btn-listen" type="button" style="display:none;"><i class="ti ti-volume"></i> 音を聞く</button>
+      <button class="listen-btn" id="btn-listen" type="button" style="display:none;"><i class="ti ti-volume"></i> <ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く</button>
       <div class="explain" id="explain" style="display:none;">
         <div class="ex-ans" id="ex-ans"></div>
         <div class="ex-kai" id="ex-kai"></div>
         <div class="ex-fig" id="ex-img" style="display:none;"></div>
         <div class="ex-actions">
           <button type="button" class="ex-next" id="ex-next"><i class="ti ti-hand-finger"></i> つぎへ</button>
-          <button type="button" class="ex-report" id="ex-report" onclick="openBugFromExplain()"><i class="ti ti-message-report"></i> まちがい報告</button>
+          <button type="button" class="ex-report" id="ex-report" onclick="openBugFromExplain()"><i class="ti ti-message-report"></i> まちがい<ruby>報告<rt class="uf">ほうこく</rt></ruby></button>
         </div>
       </div>
     </div>
@@ -979,7 +993,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="done-info">
           <div class="done-ttl" id="done-result"></div>
           <p id="done-lap" style="display:none;margin:2px 0 0;"><span class="hpill lap"></span></p><!-- 周バッジ 2026-07-03 -->
-          <div class="done-nums"><span class="done-score num" id="done-score-wrap"><span id="score-anim">0</span><small> 点</small></span><span class="done-rate" id="done-rate">意味 <span id="done-mr"></span>％ ・ 日本語→英語 <span id="done-rr"></span>％</span></div>
+          <div class="done-nums"><span class="done-score num" id="done-score-wrap"><span id="score-anim">0</span><small> <ruby>点<rt class="uf">てん</rt></ruby></small></span><span class="done-rate" id="done-rate"><ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr"></span>％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> <span id="done-rr"></span>％</span></div>
           <div class="done-miss" id="done-miss"></div>
         </div>
       </div>
@@ -988,9 +1002,9 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       <div id="star-area"></div>
       <div id="done-guide-area"></div>
       <div style="margin-top:14px;">
-        <button class="btn gold" id="btn-next" style="display:none;"><i class="ti ti-arrow-right"></i> つぎのDAYへ進む</button>
+        <button class="btn gold" id="btn-next" style="display:none;"><i class="ti ti-arrow-right"></i> つぎのDAYへ<ruby>進<rt class="uf">すす</rt></ruby>む</button>
         <div class="btnrow">
-          <button class="btn sub" id="btn-retry"><i class="ti ti-refresh"></i> もう一回やる</button>
+          <button class="btn sub" id="btn-retry"><i class="ti ti-refresh"></i> もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる</button>
           <button class="btn ghost" id="btn-home">ホームへもどる</button>
         </div>
       </div>
@@ -1005,64 +1019,73 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 <div class="stk-cele-mask" id="stk-cele-mask"><div class="stk-cele" id="stk-cele-box"></div></div>
 <div class="modal-mask" id="nick-mask">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="nick-title">
-    <h3 id="nick-title">ニックネームの変更</h3>
-    <p class="hint">2〜10文字。ひらがな・カタカナ・英数字が使えます（漢字・記号・スペースは使えません）。</p>
-    <p class="nick-see"><i class="ti ti-users"></i> このニックネームは、なかまや応援の画面で <b>ほかの生徒にも見えます</b>。本名は使わないでね。</p>
-    <p class="remain">今月あと <b id="nick-remain">3</b> 回 変えられます</p>
+    <h3 id="nick-title">ニックネームの<ruby>変更<rt class="uf">へんこう</rt></ruby></h3>
+    <p class="hint">2〜10<ruby>文字<rt class="uf">もじ</rt></ruby>。ひらがな・カタカナ・<ruby>英数字<rt class="uf">えいすうじ</rt></ruby>が<ruby>使<rt class="uf">つか</rt></ruby>えます（<ruby>漢字<rt class="uf">かんじ</rt></ruby>・<ruby>記号<rt class="uf">きごう</rt></ruby>・スペースは<ruby>使<rt class="uf">つか</rt></ruby>えません）。</p>
+    <p class="nick-see"><i class="ti ti-users"></i> このニックネームは、なかまや<ruby>応援<rt class="uf">おうえん</rt></ruby>の<ruby>画面<rt class="uf">がめん</rt></ruby>で <b>ほかの<ruby>生徒<rt class="uf">せいと</rt></ruby>にも<ruby>見<rt class="uf">み</rt></ruby>えます</b>。<ruby>本名<rt class="uf">ほんみょう</rt></ruby>は<ruby>使<rt class="uf">つか</rt></ruby>わないでね。</p>
+    <p class="remain"><ruby>今月<rt class="uf">こんげつ</rt></ruby>あと <b id="nick-remain">3</b> <ruby>回<rt class="uf">かい</rt></ruby> <ruby>変<rt class="uf">か</rt></ruby>えられます</p>
     <input type="text" id="nick-input" maxlength="10" autocomplete="off" placeholder="あたらしいニックネーム">
     <div class="err" id="nick-err"></div>
     <div class="row">
       <button class="btn ghost" id="nick-cancel" type="button">やめる</button>
-      <button class="btn" id="nick-save" type="button">変更する</button>
+      <button class="btn" id="nick-save" type="button"><ruby>変更<rt class="uf">へんこう</rt></ruby>する</button>
     </div>
+  </div>
+</div>
+<div class="modal-mask" id="icon-mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="icon-title">
+    <h3 id="icon-title">アイコンを えらぶ</h3>
+    <p class="nick-see"><i class="ti ti-users"></i> えらんだ アイコンは、<b>なかまや <ruby>三連星<rt class="uf">さんれんせい</rt></ruby>の <ruby>画面<rt class="uf">がめん</rt></ruby></b>でも みんなに <ruby>見<rt class="uf">み</rt></ruby>えるよ。</p>
+    <div class="icgrid" id="icon-grid"></div>
+    <div class="err" id="icon-err"></div>
+    <div class="row"><button class="btn ghost" id="icon-cancel" type="button">とじる</button></div>
   </div>
 </div>
 <div class="modal-mask" id="logout-mask">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logout-title">
     <h3 id="logout-title">ログアウトしますか？</h3>
-    <p class="hint">またログインすれば、つづきから べんきょうできます。</p>
+    <p class="hint">またログインすれば、つづきから <ruby>勉強<rt class="uf">べんきょう</rt></ruby>できます。</p>
     <div class="row">
       <button class="btn ghost" id="logout-cancel" type="button">やめる</button>
       <button class="btn" id="logout-yes" type="button">ログアウト</button>
     </div>
   </div>
 </div>
-<button class="bug-fab" id="bug-fab" onclick="openBug()" style="display:none;" aria-label="不具合を報告"><i class="ti ti-message-report"></i><span>不具合を報告</span></button>
+<button class="bug-fab" id="bug-fab" onclick="openBug()" style="display:none;" aria-label="不具合を報告"><i class="ti ti-message-report"></i><span><ruby>不具合<rt class="uf">ふぐあい</rt></ruby>を<ruby>報告<rt class="uf">ほうこく</rt></ruby></span></button>
 <div class="modal-mask" id="bug-mask">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bug-title">
     <div id="bug-form">
-      <h3 id="bug-title"><i class="ti ti-message-report" style="color:var(--accent);margin-right:6px;"></i>不具合・バグの報告</h3>
-      <p class="hint">うまく動かないところがあれば教えてください。勘違いでも大丈夫なので、気軽に送ってください。</p>
-      <label class="bug-lbl">どんな不具合ですか？<span class="opt">近いものを選ぶ（いくつでも）</span></label>
+      <h3 id="bug-title"><i class="ti ti-message-report" style="color:var(--accent);margin-right:6px;"></i><ruby>不具合<rt class="uf">ふぐあい</rt></ruby>・バグの<ruby>報告<rt class="uf">ほうこく</rt></ruby></h3>
+      <p class="hint">うまく<ruby>動<rt class="uf">うご</rt></ruby>かないところがあれば<ruby>教<rt class="uf">おし</rt></ruby>えてください。<ruby>勘違<rt class="uf">かんちが</rt></ruby>いでも<ruby>大丈夫<rt class="uf">だいじょうぶ</rt></ruby>なので、<ruby>気軽<rt class="uf">きがる</rt></ruby>に<ruby>送<rt class="uf">おく</rt></ruby>ってください。</p>
+      <label class="bug-lbl">どんな<ruby>不具合<rt class="uf">ふぐあい</rt></ruby>ですか？<span class="opt"><ruby>近<rt class="uf">ちか</rt></ruby>いものを<ruby>選<rt class="uf">えら</rt></ruby>ぶ（いくつでも）</span></label>
       <div class="bug-chips" id="bug-chips">
-        <button type="button" class="bug-chip" data-cat="音が鳴らない" onclick="bugPick(this)"><span class="tk"></span>音が鳴らない</button>
-        <button type="button" class="bug-chip" data-cat="点数・結果が出ない／止まる" onclick="bugPick(this)"><span class="tk"></span>点数・結果が出ない／止まる</button>
-        <button type="button" class="bug-chip" data-cat="画面が固まる・真っ白" onclick="bugPick(this)"><span class="tk"></span>画面が固まる・真っ白</button>
-        <button type="button" class="bug-chip" data-cat="表示・文字がおかしい" onclick="bugPick(this)"><span class="tk"></span>表示・文字がおかしい</button>
-        <button type="button" class="bug-chip" data-cat="ボタンが反応しない" onclick="bugPick(this)"><span class="tk"></span>ボタンが反応しない</button>
+        <button type="button" class="bug-chip" data-cat="音が鳴らない" onclick="bugPick(this)"><span class="tk"></span><ruby>音<rt class="uf">おと</rt></ruby>が<ruby>鳴<rt class="uf">な</rt></ruby>らない</button>
+        <button type="button" class="bug-chip" data-cat="点数・結果が出ない／止まる" onclick="bugPick(this)"><span class="tk"></span><ruby>点数<rt class="uf">てんすう</rt></ruby>・<ruby>結果<rt class="uf">けっか</rt></ruby>が<ruby>出<rt class="uf">で</rt></ruby>ない／<ruby>止<rt class="uf">と</rt></ruby>まる</button>
+        <button type="button" class="bug-chip" data-cat="画面が固まる・真っ白" onclick="bugPick(this)"><span class="tk"></span><ruby>画面<rt class="uf">がめん</rt></ruby>が<ruby>固<rt class="uf">かた</rt></ruby>まる・<ruby>真<rt class="uf">ま</rt></ruby>っ<ruby>白<rt class="uf">しろ</rt></ruby></button>
+        <button type="button" class="bug-chip" data-cat="表示・文字がおかしい" onclick="bugPick(this)"><span class="tk"></span><ruby>表示<rt class="uf">ひょうじ</rt></ruby>・<ruby>文字<rt class="uf">もじ</rt></ruby>がおかしい</button>
+        <button type="button" class="bug-chip" data-cat="ボタンが反応しない" onclick="bugPick(this)"><span class="tk"></span>ボタンが<ruby>反応<rt class="uf">はんのう</rt></ruby>しない</button>
         <button type="button" class="bug-chip" data-cat="ログインできない" onclick="bugPick(this)"><span class="tk"></span>ログインできない</button>
-        <button type="button" class="bug-chip" data-cat="その他" onclick="bugPick(this)"><span class="tk"></span>その他</button>
+        <button type="button" class="bug-chip" data-cat="その他" onclick="bugPick(this)"><span class="tk"></span>その<ruby>他<rt class="uf">た</rt></ruby></button>
       </div>
       <div class="bug-field">
-        <label>どの画面で起きましたか？</label>
+        <label>どの<ruby>画面<rt class="uf">がめん</rt></ruby>で<ruby>起<rt class="uf">お</rt></ruby>きましたか？</label>
         <select id="bug-screen"></select>
       </div>
-      <label class="bug-lbl">くわしく教えてください<span class="opt">任意・タップして入力できます</span></label>
+      <label class="bug-lbl">くわしく<ruby>教<rt class="uf">おし</rt></ruby>えてください<span class="opt"><ruby>任意<rt class="uf">にんい</rt></ruby>・タップして<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>できます</span></label>
       <textarea class="bug-ta" id="bug-msg" placeholder="例：2問目のこたえを押したあと、画面が止まって進めなくなった"></textarea>
       <div class="row">
         <button class="btn ghost" type="button" onclick="closeBug()">やめる</button>
-        <button class="btn" type="button" id="bug-send" disabled onclick="submitBug()"><i class="ti ti-send"></i> 送る</button>
+        <button class="btn" type="button" id="bug-send" disabled onclick="submitBug()"><i class="ti ti-send"></i> <ruby>送<rt class="uf">おく</rt></ruby>る</button>
       </div>
     </div>
     <div id="bug-send-pane" style="display:none;text-align:center;">
       <div id="bug-spin" style="margin:12px 0 8px;"></div>
-      <div style="font-weight:700;font-size:15px;">送っています…</div>
-      <div style="font-size:12.5px;color:var(--sub);margin-top:4px;">少し待ってください</div>
+      <div style="font-weight:700;font-size:15px;"><ruby>送<rt class="uf">おく</rt></ruby>っています…</div>
+      <div style="font-size:12.5px;color:var(--sub);margin-top:4px;"><ruby>少<rt class="uf">すこ</rt></ruby>し<ruby>待<rt class="uf">ま</rt></ruby>ってください</div>
     </div>
     <div id="bug-done-pane" style="display:none;text-align:center;">
       <div style="width:60px;height:60px;border-radius:50%;background:rgba(31,170,107,.13);color:var(--ok);display:grid;place-items:center;font-size:30px;margin:8px auto 12px;"><i class="ti ti-check"></i></div>
-      <div style="font-weight:800;font-size:17px;">送れました。ありがとう！</div>
-      <div style="font-size:12.5px;color:var(--sub);margin:6px 0 16px;line-height:1.7;">先生が確認して直します。<br>教えてくれて助かりました。</div>
+      <div style="font-weight:800;font-size:17px;"><ruby>送<rt class="uf">おく</rt></ruby>れました。ありがとう！</div>
+      <div style="font-size:12.5px;color:var(--sub);margin:6px 0 16px;line-height:1.7;"><ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>確認<rt class="uf">かくにん</rt></ruby>して<ruby>直<rt class="uf">なお</rt></ruby>します。<br><ruby>教<rt class="uf">おし</rt></ruby>えてくれて<ruby>助<rt class="uf">たす</rt></ruby>かりました。</div>
       <button class="btn" type="button" onclick="closeBug()">とじる</button>
     </div>
   </div>
@@ -1082,6 +1105,23 @@ var stuGrade=localStorage.getItem('kwt_grade')||'';
 function _isElementary(g){return String(g||'').charAt(0)==='小';}
 function applyFuriByGrade_(g){try{document.documentElement.classList.toggle('furi-on',_isElementary(g));}catch(e){}}
 applyFuriByGrade_(stuGrade); // 起動時（前回ログインの学年で即反映＝再読み込みでもチラつかない）
+/* ===== プロフィールアイコン（OpenMoji SVG・CC BY-SA 4.0）2026-07-25 =====
+   DBには短いキー（fox 等）だけ保存。SVGはここに1組だけ持つ。空=頭文字表示（後方互換）。
+   全端末で同じ絵にするためインライン。他人のアイコンは trio/team/流れ星 の返却に含まれる。 */
+var ICON_SVG={"star":"<svg viewBox=\"0 0 72 72\" xmlns=\"http://www.w3.org/2000/svg\"><g><polygon fill=\"#FCEA2B\" stroke=\"none\" points=\"35.9928,10.7363 27.7913,27.3699 9.4394,30.0436 22.7245,42.9838 19.5962,61.2637 36.0084,52.6276 52.427,61.2515 49.2851,42.9739 62.5606,30.0239 44.2067,27.3638\"/></g><g/><g/><g/><g><polygon fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" points=\"35.9928,10.7363 27.7913,27.3699 9.4394,30.0436 22.7245,42.9838 19.5962,61.2637 36.0084,52.6276 52.427,61.2515 49.2851,42.9739 62.5606,30.0239 44.2067,27.3638\"/></g></svg>","fox":"<svg viewBox=\"0 0 72 72\" xmlns=\"http://www.w3.org/2000/svg\"><g><path fill=\"#E27022\" stroke=\"none\" d=\"M17.1228,5.3057L13.7993,9.348l-2.1112,12.8954l2.5003,11.9161l-2.5003,5.0356l0.4829,11.3882l2.2344,4.5 c0,0,6.9323-3.3333,8.7656,3.9167l12.9023,3.8333l13.216-4.25l0.715-2.439l3.5745-2.2785l3.5235,0.5481l2.5725-6.1293L60.3119,42 l-1.7215-6.5752l-0.7776-1.2636l1.4468-4.7673l0.2177-8.9431l-0.9631-9.823l-1.7047-3.8692L54.171,4.6667l-5.1846,6.5784 l-5.482,6.707H42.171l-5.1591-1.4108l-9.1742,0.5805l-4.75-5.0384l-3.2746-5.1667L17.1228,5.3057\"/><path fill=\"#FFFFFF\" stroke=\"none\" d=\"M11.3377,45.0833c6.0422-0.6554,11.9908,4.5417,15.9913,10.0022h0l6.0087,2.2478l2.6566,0.7608 L39.046,57.25l5.7089-2.0836c0,0,5.0827-11.2498,15.9161-10.1392l-2.0833,8.2542L56.9002,55l-3.1875-0.8438l-3.0625,1.3865 l-1.5173,3.0909c0,0-3.5452,4.4554-12.8684,4.4497c-5.8283-0.0036-12.2601-1.375-13.473-4.484 c-0.8609-2.2069-3.8288-5.0369-3.8288-5.0369l-4.493,0.3564L11.3377,45.0833z\"/><path fill=\"#d0cfce\" stroke=\"none\" d=\"M28.796,60.9583c0,0-0.3695,3.5417,1.3778,5.0417c1.7472,1.5,6.4139,1.7083,6.4139,1.7083l5.9583-1.7917 c0,0,1.7083-1.6667,0.875-5l-2.75,0.7917l-6.4972,0.2083L28.796,60.9583z\"/><path fill=\"#FFFFFF\" stroke=\"none\" d=\"M57.671,7.375l-3.0417,2.0417L50.171,15.375L48.6294,22.5l0.2083,1.9583c0,0,5,8.375,11.25,0.2917 l-0.5833-8.5833l-0.9167-7.25L57.671,7.375z\"/><path fill=\"#FFFFFF\" stroke=\"none\" d=\"M14.2714,7.375l3.0417,2.0417l4.4583,5.9583l1.5417,7.125l-0.2083,1.9583c0,0-5,8.375-11.25,0.2917 l0.5833-8.5833l0.9167-7.25L14.2714,7.375z\"/></g><g/><g/><g/><g><path fill=\"#000000\" stroke=\"none\" d=\"M29.0454,41.681c0,0-3.0393,1.5997-4.5092,1.0171c-1.4698-0.5826-2.2313-2.14-1.7007-3.4785 c0.5306-1.3386,2.1522-1.9514,3.622-1.3688C27.9274,38.4334,29.0454,41.681,29.0454,41.681z\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M35.9943,56.9292c-1.513-0.2346-2.7355-0.9125-3.641-2.075v-0.698\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M16.9156,10.2884c0,0,7.7517,5.915,5.3244,13.6668\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M23.6069,58.0941c-1.4877-3.2886-4.481-4.3848-5.1857-4.2282l-3.5235,0.5481c-2.6622-2.6622-3.132-10.1791-3.132-10.1791 c-0.4337-4.7705,1.0302-8.0757,2.4227-10.0754l-0.3869-0.7301c-2.5056-6.1857-1.0179-15.6601-0.4698-21.6892 c0.3975-4.3723,2.6068-5.9162,3.7911-6.4345c0.4153-0.1818,0.8959-0.0599,1.1789,0.2943 c1.2956,1.6213,5.3162,6.5744,9.1241,10.4468c1.6822,1.7107,2.4508,3.2218,2.748,4.4518\"/><path fill=\"#000000\" stroke=\"none\" d=\"M42.9546,41.681c0,0,3.0393,1.5997,4.5092,1.0171c1.4698-0.5826,2.2313-2.14,1.7007-3.4785s-2.1522-1.9514-3.622-1.3688 C44.0726,38.4334,42.9546,41.681,42.9546,41.681z\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M36.0733,61.7083v-4.7791c1.513-0.2346,2.7355-0.9125,3.641-2.075v-0.698\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M43.7468,50.1562l1.1745,5.8367c0,0,0,6.6555-7.4385,6.1074h-2.8978c-7.4385,0.5481-7.4385-6.1074-7.4385-6.1074l1.1745-5.8367\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M55.0844,10.2884c0,0-7.7517,5.915-5.3244,13.6668\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M48.3931,58.0941c1.4877-3.2886,4.481-4.3848,5.1857-4.2282l3.5235,0.5481c2.6622-2.6622,3.132-10.1791,3.132-10.1791 c0.4336-4.7691-1.0294-8.0739-2.4216-10.0737l0.3858-0.7317c2.5056-6.1857,1.0179-15.6601,0.4698-21.6892 c-0.3975-4.3723-2.6068-5.9162-3.7911-6.4345C54.4619,5.1239,53.9814,5.2458,53.6983,5.6 c-1.2956,1.6213-5.3162,6.5744-9.1241,10.4468c-1.7324,1.7618-2.4958,3.3118-2.7734,4.5611\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M41.6672,65.4494c-3.804,2.0509-7.418,2.0886-10.8055,0\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M29.0178,17.9521c0,0,6.0552-3.1842,13.7809-0.1044\"/></g></svg>","dolphin":"<svg viewBox=\"0 0 72 72\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><g><path fill=\"#9b9b9a\" d=\"m35.546 38.031c-1.0014 0.10832-4.0792 1.4989-3.8998 5.2083 0.26209 5.4174-7.6423-3.1345-0.98053-11.892\"/><path fill=\"#9b9b9a\" d=\"m12 33.938s-2 4 16 4h8s10-0.5 15.5 9.75c0.29517 0.57883 0.50441 1.2045 0.62771 1.7365 1.0477 4.0472-5.5475 2.4327-6.6491 5.2532-0.40316 1.0322-1.1544 4.1685-0.56439 4.5874 0.0393 0.0283 0.0851 0.0437 0.13677 0.0467 0.19108 0.009 0.47061-0.16726 0.86303-0.59882 2.0599-1.5336 4.9982 0.51116 6.9868-0.6529 0.80032-0.46845 1.2022-1.2239 1.4915-1.7917 0.46148 0.7394 1.075 2.2683 2.1236 2.6224 1.8358 0.5511 4.5889 0.37522 5.8969 3.8416 1.1916-3.6368 2.3829-6.2308-2.0593-9.292-1.5604-1.057-3.9503-2.6878-4.0085-4.1251-0.009-0.1798 0.39822-10.231-5.5746-18.566 0.20821-2.2288 1.8232-5.3148 4.1092-5.8167 2.0556-0.45133-3.4045-4.5113-11.387-0.88331-10.758-6.1609-23.196 0.0287-23.548 6.7324-3.125-0.25-7.8698 0.23039-7.9948 2.9804\"/><path fill=\"#d0cfce\" fill-rule=\"evenodd\" d=\"m13.96 31.324c-1.243 0.46701-2.1344 1.2238-2.1875 2.3926l0.0508 0.17579s-1.5608 3.2084 11.084 3.873l7.5 0.12696h5.416s0.76556-0.0308 1.9668 0.125l0.17969 0.004 0.082 0.0332c1.8927 0.27635 4.7352 1.0324 7.5606 3.0234l0.3125 0.125 0.18945 0.2461c1.8744 1.4244 3.7096 3.3991 5.209 6.1934 0.19867 0.38958 0.34208 0.79051 0.46289 1.1797l0.94532 1.2207c-1.149-16.617-15.964-17.629-32.492-18.601-3.434-0.236-4.161-0.34-6.28-0.118z\"/><path fill=\"#9b9b9a\" d=\"m43.469 36.098c-0.76004 0.66098-2.4918 3.5606-0.22546 6.5026 3.3099 4.2967-8.0632 1.7931-7.5983-9.2004l0.84937-2.9011 9.2997 2.737z\"/></g><g/><g/><g/><g fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\"><path d=\"m28.035 37.938c-0.44221 5.6934 3.8049 9.3193 3.6113 5.3184-0.17947-3.7094 2.899-5.1007 3.9004-5.209l-0.08-0.109h-7.4316\"/><path d=\"m42.202 39.165c3.0822 1.2277 6.6941 3.6708 9.2976 8.5229 0.29517 0.57883 0.50441 1.2045 0.62771 1.7365 1.0477 4.0472-5.5475 2.4327-6.6491 5.2532-0.40316 1.0322-1.1544 4.1685-0.56439 4.5874 0.0393 0.0283 0.0851 0.0437 0.13677 0.0467 0.19108 0.009 0.47061-0.16726 0.86303-0.59882 2.0599-1.5336 4.9982 0.51116 6.9868-0.6529 0.80032-0.46845 1.2022-1.2239 1.4915-1.7917 0.46148 0.7394 1.075 2.2683 2.1236 2.6224 1.8358 0.5511 4.5889 0.37522 5.8969 3.8416 1.1916-3.6368 2.3829-6.2308-2.0593-9.292-1.5604-1.057-3.9503-2.6878-4.0085-4.1251-0.009-0.1798 0.39822-10.231-5.5746-18.566 0.20821-2.2288 1.8232-5.3148 4.1092-5.8167 2.0556-0.45133-3.4045-4.5113-11.387-0.88331-10.758-6.1609-23.196 0.0287-23.548 6.7324-3.125-0.25-7.8698 0.23039-7.9697 3.0681 0.0156 0.54688-0.14674 4.0878 16.025 4.0878h8s0.01921-0.000961 0.05642-0.0019\"/><path d=\"m43.469 36.098c-0.76004 0.66098-2.4918 3.5606-0.22546 6.5026 3.3099 4.2967-8.0632 1.7931-7.5983-9.2004\"/></g></svg>","whale":"<svg viewBox=\"0 0 72 72\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><g stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path fill=\"#61b2e4\" d=\"m22.3 44.828c0.62116 2.6752 1.8697 5.2427 3.5273 7.752 0.90598 1.3714 2.5825 0.78665 2.9766-0.8086 0.3406-0.88089 0.54173-1.8991 0.63282-2.959\"/><path fill=\"#61b2e4\" stroke-miterlimit=\"10\" d=\"m46.638 14.502c-0.69375 0.20563-0.99696 3.4163-0.94922 4.5234 0.13123 3.0431 5.2776 3.0916 2.8477 6.4004-10.496 11.84-26.393-3.7844-34.527 3.6602-1.2447 11.436 16.858 27.45 30.99 17.914 8.2058-5.537 10.459-14.795 11.082-20.096 0.44063-1.1459 1.4648-1.4028 3.2832-1.8984 5.1933-1.4603 4.9047-4.3002 4.9531-8.127-2.3585 2.8572-4.9069 1.8006-6.8223 1.7285-1.1068-0.004-2.1817 1.2444-2.8574 1.7949-0.0901-0.63086-0.22618-1.4757-0.83203-2.1777-1.5055-1.7445-4.947-0.75965-6.4004-2.877-0.2318-0.53526-0.43943-0.79209-0.62305-0.84571-0.0497-0.0145-0.0983-0.0137-0.14453 0z\"/><path fill=\"#d0cfce\" d=\"m57 26.054-0.21093 0.0645-0.8086 1.4707c0.005-0.04 0.0143-0.0893 0.0195-0.12891v-0.041c-0.0185 0.0842-0.0415 0.16082-0.0605 0.24414l-1.4375 2.6152c-0.32488 1.4765-0.7974 3.0771-1.4277 4.7051-5.5366 8.8989-15.765 7.7844-22.539 3.2774-3.7744-2.5113-8.691-7.2733-11.914-7.6699-2.1209-0.26099-4.4794 1.0163-4.0644 3.1387l-0.73243 1.291c1.5312 4.4107 5.0009 8.6791 9.3711 11.699 6.3756 4.406 14.943 6.1214 22.389 1.0977 8.2808-5.5876 10.687-14.682 11.416-20.201v-1.5625z\"/><path fill=\"#61b2e4\" d=\"m35.89 40.827c0.52212 5.6188 3.5252 9.756 8.0055 13.242 1.2972 1.0094 2.6965-0.0816 2.5593-1.7191 0.18853-4.3613-2.6643-10.672-5.7064-10.677\"/></g><g stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"m19.455 13.84c-0.60501-0.05852-1.225 0.02574-1.8105 0.25195-1.1711 0.45243-2.2349 1.3801-3.2305 2.6895a1.0001 1.0001 0 1 0 1.5918 1.209c0.84851-1.1159 1.687-1.7735 2.3594-2.0332 0.67236-0.25974 1.1465-0.21155 1.7051 0.1582 1.1171 0.73951 2.4316 3.3282 2.8516 8a1.0001 1.0001 0 1 0 1.992 -0.177c-0.44453-4.9449-1.6394-8.1008-3.7383-9.4902-0.52471-0.34735-1.1157-0.5489-1.7207-0.60742z\" color=\"#000000\"/><path d=\"m31.482 12.607c-0.58064-0.042-1.1664 0.02885-1.7383 0.22852-2.2876 0.79867-3.91 3.4604-4.0977 7.8066a1.0001 1.0001 0 1 0 1.998 0.08594c0.16828-3.8968 1.521-5.5714 2.7598-6.0039 1.2387-0.43247 2.7986 0.18985 3.9043 1.9863a1.0001 1.0001 0 1 0 1.7031 -1.0488c-1.095-1.78-2.787-2.928-4.529-3.054z\" color=\"#000000\"/><path d=\"m23.621 9.8984a1.0001 1.0001 0 0 0 -0.9375 1.3086c0.23434 0.75994 0.47877 1.3276 0.52344 2.291a1.0001 1.0001 0 1 0 1.998 -0.0918c-0.05933-1.2798-0.41693-2.1587-0.61133-2.7891a1.0001 1.0001 0 0 0 -0.973 -0.7186z\" color=\"#000000\"/><path d=\"m47.197 39.408a1.0001 1.0001 0 0 0 -0.45312 0.10156c-1.8686 0.87872-3.8974 1.2318-5.9609 1.166a1.0005 1.0005 0 1 0 -0.0625 2c2.3349 0.07443 4.6887-0.32934 6.875-1.3574a1.0001 1.0001 0 0 0 -0.39844 -1.9102z\" color=\"#000000\"/><path d=\"m35.881 39.812a1.0001 1.0001 0 0 0 -0.98633 1.1074c0.55062 5.9255 3.7748 10.351 8.3867 13.939 0.92395 0.71896 2.1822 0.74704 3.0117 0.1582 0.81921-0.58152 1.2323-1.6077 1.1523-2.7109 0.0848-2.3988-0.60528-5.1302-1.7383-7.3789-0.573-1.136-1.258-2.147-2.066-2.918-0.809-0.772-1.785-1.332-2.891-1.334a1.0001 1.0001 0 1 0 -0.0039 2c0.41508 0.000772 0.93767 0.22972 1.5137 0.7793 0.576 0.54958 1.1634 1.3891 1.6602 2.375 0.99351 1.9718 1.6211 4.5361 1.5371 6.4785a1.0001 1.0001 0 0 0 0.002 0.12695c0.04343 0.51845-0.16406 0.83943-0.32422 0.95312s-0.25174 0.18498-0.625-0.10547c-4.349-3.384-7.13-7.236-7.623-12.548a1.0001 1.0001 0 0 0 -1.006 -0.922z\" color=\"#000000\"/><path d=\"m18.742 29.598c-1.3102-0.16123-2.6473 0.12971-3.6934 0.85742s-1.7749 2.0657-1.4648 3.5254a1.0004 1.0004 0 1 0 1.957 -0.41602c-0.14637-0.68904 0.08536-1.0751 0.64844-1.4668 0.56308-0.39172 1.4832-0.61719 2.3086-0.51562 1.1912 0.14659 3.2104 1.3256 5.2793 2.8535s4.24 3.3501 6.2031 4.6562c1.6868 1.1223 3.5736 2.0425 5.5586 2.6719a1.0001 1.0001 0 1 0 0.60547 -1.9062c-1.7971-0.56986-3.5214-1.4095-5.0547-2.4297-1.8113-1.2051-3.9857-3.0197-6.125-4.5996s-4.1909-2.9804-6.2227-3.2305z\" color=\"#000000\"/><path stroke-miterlimit=\"10\" d=\"m47.088 13.537c-0.22746-0.06636-0.48987-0.06298-0.70898 0.002a1.0001 1.0001 0 0 0 -0.56641 0.4355c-0.05501 0.06363-0.17767 0.10759-0.21875 0.16797-0.1475 0.2168-0.23961 0.4286-0.32031 0.65234-0.16141 0.44749-0.26733 0.94662-0.35156 1.4668-0.16847 1.0403-0.23662 2.1166-0.20703 2.8027 0.04492 1.0417 0.55371 1.8755 1.1172 2.4648 0.56348 0.58931 1.1829 1.0031 1.6367 1.3691 0.45379 0.36608 0.68125 0.65614 0.72656 0.82031 0.04379 0.15864 0.0323 0.43304-0.42383 1.0723-2.4573 2.7517-5.1138 3.8598-7.9922 4.1543-2.8939 0.29613-6.0153-0.27891-9.1367-1.0195-3.1214-0.74062-6.2292-1.6434-9.1758-1.8887-2.9465-0.24526-5.8277 0.21834-8.1094 2.3066a1.0001 1.0001 0 0 0 -0.31836 0.62891c-0.53279 4.8955 2.0932 10.255 6.252 14.473 4.1587 4.218 9.9272 7.3313 16.002 7.4531a1.0002 1.0002 0 1 0 0.03906 -2c-5.411-0.107-10.766-2.949-14.618-6.856-3.716-3.769-5.902-8.477-5.664-12.406 1.7232-1.4054 3.7526-1.8133 6.25-1.6055 2.6499 0.22057 5.6972 1.0888 8.8789 1.8438 3.1817 0.75494 6.5117 1.3995 9.8047 1.0625 3.293-0.33696 6.5447-1.716 9.3242-4.8516a1.0001 1.0001 0 0 0 0.05859 -0.07031c0.70787-0.96386 0.99617-1.9556 0.75586-2.8262-0.24031-0.87061-0.85297-1.4057-1.3984-1.8457-0.54547-0.44004-1.0848-0.8143-1.4473-1.1934-0.36244-0.37906-0.54376-0.69206-0.56445-1.1719-0.01815-0.42098 0.03896-1.5033 0.18359-2.3965 0.02429-0.14998 0.05926-0.23374 0.08789-0.37109 0.97887 1.0781 2.3142 1.4774 3.4375 1.6934 1.2548 0.24123 2.2067 0.45425 2.6523 0.9707 0.395 0.45773 0.50982 1.051 0.59766 1.666a1.0001 1.0001 0 0 0 1.623 0.63281c0.42358-0.34506 0.82902-0.76705 1.2461-1.0898 0.4154-0.32149 0.79355-0.47788 0.9707-0.47852 0.79079 0.03415 1.9603 0.32826 3.3242 0.23047 0.78247-0.0561 1.6188-0.35407 2.4473-0.83203-0.04598 0.94817-0.1374 1.795-0.4082 2.4316-0.45912 1.0795-1.3264 1.9223-3.7559 2.6055-0.90157 0.24561-1.6514 0.43093-2.3359 0.77344-0.68673 0.34362-1.3068 0.93666-1.6113 1.7285a1.0001 1.0001 0 0 0 -0.05859 0.24219c-0.50394 4.2894-2.1224 11.218-7.1543 16.445a1.0001 1.0001 0 1 0 1.4414 1.3867c5.4136-5.6241 7.1052-12.838 7.6621-17.381 0.12997-0.32454 0.23922-0.44467 0.61523-0.63281 0.39013-0.19521 1.0618-0.38791 1.9746-0.63672a1.0001 1.0001 0 0 0 0.0078 -0.002c2.7639-0.7772 4.3477-2.0838 5.0547-3.7461 0.707-1.6622 0.60312-3.445 0.62695-5.3301a1.0001 1.0001 0 0 0 -1.7715 -0.64844c-1.0282 1.2456-1.9102 1.5322-2.877 1.6016-0.96676 0.06931-2.0122-0.19401-3.1367-0.23633a1.0001 1.0001 0 0 0 -0.0332 -0.002c-0.93055-0.0034-1.6391 0.46234-2.2051 0.90039-0.06379 0.04937-0.08339 0.07703-0.14453 0.12695-0.15103-0.35599-0.28809-0.71736-0.58594-1.0625-1.0598-1.2281-2.5834-1.3952-3.7891-1.627-1.1963-0.22998-2.0498-0.46754-2.5293-1.1504-0.23642-0.55444-0.44269-1.0362-1.1816-1.252z\" color=\"#000000\"/><path d=\"m22.281 43.816a1.0001 1.0001 0 0 0 -0.92773 1.2383c0.65605 2.8254 1.9628 5.4979 3.666 8.0762 0.64539 0.97697 1.8281 1.4071 2.8027 1.1152 0.95991-0.28745 1.6798-1.1245 1.959-2.1914 0.36882-0.97988 0.58488-2.0531 0.67969-3.1562a1.0008 1.0008 0 1 0 -1.9941 -0.17188c-0.085 0.98918-0.27348 1.921-0.56836 2.6836a1.0001 1.0001 0 0 0 -0.03906 0.12109c-0.12467 0.5047-0.42268 0.74234-0.61133 0.79883s-0.298 0.0937-0.55859-0.30078c-1.612-2.4402-2.8024-4.9028-3.3887-7.4277a1.0001 1.0001 0 0 0 -1.019 -0.785z\" color=\"#000000\"/></g></svg>","turtle":"<svg viewBox=\"0 0 72 72\" xmlns=\"http://www.w3.org/2000/svg\"><g><path fill=\"#b1cc33\" stroke=\"#b1cc33\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m20.725 54.299-7.6415 0.68486c-1.5508 0.02674-3.1026 0.0535-2.8221-0.69574 0.2806-0.7492 2.3942-2.2742 3.2638-4.0529s0.49504-3.8121 1.0703-5.3512c0.5753-1.5391 2.1003-2.5826 3.6252-3.6259l4.3121-3.4877\"/><path fill=\"#b1cc33\" stroke=\"#b1cc33\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m49.069 46.164 0.93729 4.0839c0.11633 0.7191 0.23247 1.437-0.07081 2.2369-0.30327 0.8-1.0256 1.6829-0.77093 2.1109 0.2548 0.42803 1.4855 0.40128 2.7153 0.37454l5.4534-0.47742-2.6472-11.622\"/><path fill=\"#5c9e31\" stroke=\"#5c9e31\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m54.352 39.57-24.731-2.7541-2.8103 7.1383 4.6544 1.7993c3.6935 1.0973 7.3857 2.1943 10.535 2.4791 3.1492 0.28474 5.7556-0.24225 8.3612-0.76909 2.2023-0.57679 5.4396-4.6161 5.4396-4.6161z\"/><path fill=\"#b1cc33\" stroke=\"#b1cc33\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m32.282 35.123-2.9846 8.462c-1.0169 3.2649-2.0336 6.529-2.3409 8.5494s0.094 2.7963-2.2336 3.197c-2.3276 0.40075-7.3843 0.42751-8.4682-0.30839-1.084-0.7359 1.8055-2.2342 2.956-4.3205 1.1505-2.0863 0.56226-4.7602 1.1381-6.4198 0.5759-1.6597 2.3129-2.299 2.4872-3.2221 0.1742-0.9231-1.2163-2.1283-2.9694-2.9703s-3.8673-1.3192-4.9785-3.1922-1.2172-5.142-2.7004-7.0835-4.3473-2.5571-5.5921-4.3227-0.8702-4.6819 1.2374-5.9733c2.1076-1.2913 5.9472-0.95693 7.6321 0.22067s1.2167 3.1977 1.2772 5.131c0.0605 1.9334 0.64915 3.7795 1.2374 5.6245 0.52446 1.9573 2.1325 2.0094 3.1972 2.0441 2.3899-0.14965 3.2292-0.3003 5.6171-0.45195\"/><path fill=\"#b1cc33\" stroke=\"#b1cc33\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m57.33 37.49-4.8089 2.5654s-0.35331 5.6935 0.4558 7.1414c0.55443 1.2145 1.1237 2.463 1.2437 3.8675 0.12004 1.4045-0.20092 2.9829 0.81641 3.7852 1.0173 0.8023 3.3731 0.82868 4.7773 0.58789s1.8578-0.74822 1.4883-2.4219c-0.36953-1.6737-1.5826-4.5598-2.7871-7.4238l2.9688-1.2031 4.8164-0.96289-3.291-1.8477z\"/><path fill=\"#5c9e31\" stroke=\"none\" d=\"m58.678 42.528c2.6841-2.401 2.6116-8.287.99152-12.75s-4.7883-7.5021-9.4684-9.2152c-4.68-1.7131-10.872-2.0991-15.866-.83269-4.9949 1.2664-8.792 4.1852-10.727 5.9948-1.935 1.8097-2.0075 2.5092-1.5115 4.7407.49602 2.2315 1.5194 5.8505 5.6005 8.2432s10.617 3.2069 16.736 4.1719 11.561 2.0481 14.245-.35294z\"/></g><g/><g/><g/><g><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m17.98 28.495c-.58825-1.845-1.1769-3.6911-1.2374-5.6245-.06048-1.9333.40775-3.9534-1.2772-5.131s-5.5245-1.512-7.6321-.22067c-2.1076 1.2914-2.4822 4.2077-1.2374 5.9733s4.1089 2.3812 5.5921 4.3227c1.4832 1.9415 1.5892 5.2105 2.7004 7.0835 1.1112 1.873 3.2254 2.3502 4.9785 3.1922s3.1436 2.0472 2.9694 2.9703c-.17428.92308-1.9113 1.5624-2.4872 3.2221-.57584 1.6596.01241 4.3335-1.1381 6.4198-1.1505 2.0863-4.04 3.5846-2.956 4.3205 1.0839.7359 6.1406.70914 8.4682.30839 2.3276-.40074 1.9263-1.1766 2.2336-3.197s1.324-5.2845 2.3409-8.5494\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m18.221 41.258c-1.5249 1.0433-3.0499 2.0868-3.6252 3.6259-.57526 1.5391-.2007 3.5725-1.0703 5.3512s-2.9832 3.3037-3.2638 4.0529c-.28054.74924 1.2713.72248 2.8221.69574\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m52.977 47.197c.55443 1.2145 1.1243 2.4627 1.2443 3.8672.12004 1.4045-.20102 2.983.81631 3.7853 1.0173.8023 3.3718.82906 4.776.58827s1.859-.74914 1.4895-2.4228c-.36953-1.6737-1.5831-4.5593-2.7876-7.4233\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m51.88 54.97c-1.2298.02674-2.4605.05349-2.7153-.37454-.25472-.42804.46766-1.3109.77093-2.1109.30328-.79994.18714-1.5178.07081-2.2369\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m31.465 45.753c3.6935 1.0973 7.3857 2.1943 10.535 2.4791 3.1492.28474 5.7556-.24225 8.3612-.76909\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m58.678 42.528c2.6841-2.401 2.6116-8.287.99152-12.75s-4.7883-7.5021-9.4684-9.2152c-4.68-1.7131-10.872-2.0991-15.866-.83269-4.9949 1.2664-8.792 4.1852-10.727 5.9948-1.935 1.8097-2.0075 2.5092-1.5115 4.7407.49602 2.2315 1.5194 5.8505 5.6005 8.2432s10.617 3.2069 16.736 4.1719 11.561 2.0481 14.245-.35294z\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m63.01 41.579 3.291 1.8462-4.8161.96321\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m42.114 42.171 1.7027-11.749 8.7407-.96488 4.4839-3.6893\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m43.647 30.138-9.7056-5.9596\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m33.884 24.009-1.2487-3.3487\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m33.828 24.349-6.9244 12.941\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"m52.898 30.082 4.4271 13.054\"/></g></svg>","penguin":"<svg viewBox=\"0 0 72 72\" xmlns=\"http://www.w3.org/2000/svg\"><g><path fill=\"#3F3F3F\" stroke=\"none\" d=\"M45,12c0.964-0.9633,4.0386-2.304,4.3591-2.9468c0.1525-0.3049-0.6522-0.8271-0.964-0.964 c-0.9577-0.4188-3.213,0-4.177-0.1606c-3.5341-1.7668-6.1043-2.0879-8.3527-1.1245c-3.5341,1.6068-4.1764,5.7826-4.1764,7.3894 c0,1.4488-0.0815,4.3556-0.3217,5.7826c-0.0971,0.5769-0.4145,1.7114-0.6422,2.2497c-0.6428,2.249-2.2497,4.4981-3.5348,6.1043 c-0.9248,1.1569-8.6744,9.9602-9.9595,12.5303c-1.1538,2.236-4.1764,7.3894-2.8913,9.3167 c1.3106,0.1879,1.6062-4.1764,8.0447-9.3167C23.9415,39.4529,26.5249,36.8275,27,36c0.2251-0.3921,0.0085,1.548,0,2 c-0.1486,7.8633,1,12,0.9931,16.6751c0.4817,2.5702,0.5028,3.4918,0,4.4981c-1.4463,2.8913-4.0164,2.8913-4.6586,4.0164 c0,0,2.9989,2.09,9.8322-2.0498 M45.3795,38.845c1.1031,1.1148,4.1969,3.2073,4.975,3.9433 c1.942,1.8358,6.5844,8.3527,7.6235,7.3888c0.349-0.3211,0.8874-1.9479,0.6954-2.5708c-0.8143-2.6416-4.3123-7.9998-7.1632-12.9309 c-2.8824-4.9856-4.9433-9.3882-4.9433-9.3882l-3.2527-3.5616 M36.7544,61.4449c5.3265,4.4657,12.0519,0.9147,12.0519,0.9147 c0-0.5748-3.9442-2.6363-8.0167-4.7347\"/><path fill=\"#FFFFFF\" stroke=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M32,14c0.0291,1.3236,7.2847,6.8282,11,1c0,0-1.0451,11.0186,1,15c2.3884,4.6498-0.4794,22.871-5,29 c-1.5278,2.0714-7.151,5.2303-10-5s-2-9.8618-2-16S34.5308,19,32,14z\"/></g><g/><g/><g/><g><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M32,14c0.0291,1.3236,7.2847,6.8282,11,1c0,0-1.0451,11.0186,1,15c2.3884,4.6498-0.4794,22.871-5,29 c-1.5278,2.0714-7.151,5.2303-10-5s-2-9.8618-2-16S34.5308,19,32,14z\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M45,12c0.964-0.9633,4.0386-2.304,4.3591-2.9468c0.1525-0.3049-0.6522-0.8271-0.964-0.964c-0.9577-0.4188-3.213,0-4.177-0.1606 c-3.5341-1.7668-6.1043-2.0879-8.3527-1.1245c-3.5341,1.6068-4.1764,5.7826-4.1764,7.3894c0,1.4488-0.0815,4.3556-0.3217,5.7826 c-0.0971,0.5769-0.4145,1.7114-0.6422,2.2497c-0.6428,2.249-2.2497,4.4981-3.5348,6.1043 c-0.9248,1.1569-8.6744,9.9602-9.9595,12.5303c-1.1538,2.236-4.1764,7.3894-2.8913,9.3167 c1.3106,0.1879,1.6062-4.1764,8.0447-9.3167C23.9415,39.4529,26.5249,36.8275,27,36c0.2251-0.3921,0.0085,1.548,0,2 c-0.1486,7.8633,1,12,0.9931,16.6751c0.4817,2.5702,0.5028,3.4918,0,4.4981c-1.4463,2.8913-4.0164,2.8913-4.6586,4.0164 c0,0,2.9989,2.09,9.8322-2.0498 M47.9654,39.92c1.0227,1.1148,2.2772,2.1323,2.9986,2.8683 c1.8004,1.8358,6.1043,8.3527,7.0676,7.3888c0.3236-0.3211,0.8227-1.9479,0.6447-2.5708 c-1.9279-6.7465-9.0089-15.028-12.7614-21.5495 M39.8668,62.2657c4.7581,1.8332,8.5087,0.4778,8.5087,0.4778 c-0.2625-0.3716-2.9493-1.8113-4.4778-2.4\"/></g></svg>","owl":"<svg viewBox=\"0 0 72 72\" xmlns=\"http://www.w3.org/2000/svg\"><g><path fill=\"#9B9B9A\" stroke=\"#9B9B9A\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"1.8\" d=\"M30,29l-3,2c-9.5,4.375-2,30-2,30s8.75-9.25,15.875-10.125S51.75,36.75,50,32l-2-4\"/><path fill=\"#9B9B9A\" stroke=\"none\" d=\"M30,30c0,0-6.5-5.5-0.25-14.75c0,0-0.75-3.25-2.75-3.25s5-3,6,1c0,0,7-3,11,0c0,0,5.25-3.5,7.125-1.75 C51.125,11.25,47,14,49,16s4,10-1,14\"/><path fill=\"#A57939\" stroke=\"none\" d=\"M40,30c0,0-10,0-10-7.875c0-8.7341,8.1907-4.7359,9-3.125c0,0,7-6,9.125,1.5C50.1834,27.7649,40,30,40,30z\"/><path fill=\"#A57939\" stroke=\"none\" d=\"M25.0192,59c0,0-0.8782-7,1.9027-9S40,40,37,35\"/></g><g/><g/><g/><g><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"1.5\" d=\"M37,22c0,0,0.5-1.5-3-2\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"1.5\" d=\"M41,22c0,0-0.5-1.5,3-2\"/><polyline fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"1.5\" points=\"37.625,25.43 39.375,27 41.375,25.3438\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M38,60c0,0,1-4-5-3v-2.375\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M43,57.375c0,0,1-4-5-3V52\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M30,30c0,0-6.5-5.5-0.25-14.75c0,0-0.75-3.25-2.75-3.25s5-3,6,1c0,0,7-3,11,0c0,0,5.25-3.5,7.125-1.75C51.125,11.25,47,14,49,16 s4,10-1,14\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M40,30c0,0-10,0-10-7.875c0-8.7341,8.1907-4.7359,9-3.125c0,0,7-6,9.125,1.5C50.1834,27.7649,40,30,40,30z\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M27,31c-9.5,4.375-2,30-2,30s8.75-9.25,15.875-10.125S51.75,36.75,50,32\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M25,59c0,0-0.75-7,1.625-9S37,41,36,35\"/></g></svg>","cat":"<svg viewBox=\"0 0 72 72\" xmlns=\"http://www.w3.org/2000/svg\"><g><path fill=\"#f4aa41\" d=\"m58.2673,11.3469s-10.4076,2.3754-15.5743,6.7088c0,0-9-2.5-13.8333.1667,0,0-9.6549-6.7318-15.6549-6.7318,0,0-5.0326,3.75.3216,21.0651,0,0-2.6667,10.6667,1.6667,16.3333.7823,1.023,1.6026,1.9862,2.4217,2.8779,3.4268,3.7306,7.5912,6.7046,12.1937,8.8205l1.696.7797c1.5277.7023,3.1777,1.1,4.8576,1.1707h0c.9304.0392,1.8573-.1359,2.7093-.5118l4.5429-2.0042c3.8082-1.6801,7.2734-4.0872,10.0486-7.1894,1.1585-1.295,2.2135-2.71,2.8635-4.11,4.4736-10.6191,1.5314-16.2624,1.5314-16.2624l1.2356-7.1292c.8094-3.1482.8268-6.4477.0506-9.6043l-1.0768-4.3796Z\"/><path fill=\"#fff\" d=\"m30.8377,47.3355s-7.3487,2.8338-1.0987,9.3338c0,0-1.6971,4.2984,3.5271,4.6285.6823.0431,2.7339.0635,2.7339.0635l1.5797.0367c.4833.0112.9656-.0228,1.4424-.1026,1.8709-.3132,3.9279-.7821,3.181-4.5878,0,0,7.5513-6.3722-1.3654-9.3722l-4.875,2-5.125-1.9999Z\"/></g><g><ellipse cx=\"45.0854\" cy=\"38.1033\" rx=\"1.6461\" ry=\"2.8119\"/><ellipse cx=\"26.8427\" cy=\"38.1033\" rx=\"1.6461\" ry=\"2.8119\"/><polyline fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" points=\"31.9328 47.2287 36.037 50.0204 39.8495 47.2287\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m36.037,50.0204v4.2708s-1.1042,3.6875-5.5417,2.875\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m15.8717,48.4759c-4.8928-7.2535-2.0014-15.8722-2.0014-15.8722,0,0-5.25-14.875-.4375-21.25,0,0,9.1875,1.5,15.6875,7.375,4.5946-1.9379,9.1575-2.0128,13.6875-.1437,6.5-5.875,15.6875-7.375,15.6875-7.375,4.8125,6.375-.4375,21.25-.4375,21.25,0,0,2.8914,8.6187-2.0014,15.8722\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m14.7453,15.1037s12.8125,6.1875,10.0625,11.8125\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m24.8491,50.8753s-9.3615-.458-13.6525,7.5243\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m35.8911,49.8767v4.2708s1.1042,3.6875,5.5417,2.875\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m57.1828,14.96s-12.8125,6.1875-10.0625,11.8125\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m47.2048,54.6836s8.2116,2.2454,8.6795,11.2958\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m48.079,50.7316s9.3615-.458,13.6525,7.5243\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m31.3859,60.7598c3.88,1.6845,5.6481,1.8093,9.3021,0\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m25.4446,54.6836s-8.2116,2.2454-8.6795,11.2958\"/></g></svg>","dog":"<svg viewBox=\"0 0 72 72\" xmlns=\"http://www.w3.org/2000/svg\"><g><path fill=\"#f4aa41\" d=\"m24.473,15.1583l-5.0799,1.9352-7.2963,7.901-4.1377,10.5005,1.291,5.3405c1.2554,3.7911,3.3357,6.4338,7.0626,9.2506l2.6874-2.5839s3.8218,7.7098,10.7384,8.9598c0,0,10.2616,1.936,15.5949-.8765,1.4899-.7857,2.5141-1.8291,3.2921-2.5939,2.0702-2.0351,3.033-3.5201,4.5413-5.2395h0s1.6701,1.8077,1.6701,1.8077l1.838-.0557,5.0169-7.2292,2.0032-5.0703-.0215-4.255-2.1735-5.6141-4.8333-7.4167s-2.6368-4.2558-8.1667-3.9167c0,0-6.5-4.8333-11.8333-4.0833s-3.6104-.6772-12.1937,3.2395Z\"/><polygon fill=\"#ea5a47\" points=\"36 46.7324 32.9167 49.1491 30.4167 49.1491 30.9413 53.0386 31.362 56.0539 32.1667 58.3991 35 59.8991 39.5833 59.3158 40.4429 57.1116 41.1441 52.9335 41.9167 49.3158 39.9167 49.5658 36 46.7324\"/><polygon fill=\"#3f3f3f\" points=\"32.5 36.9188 30.9167 40.6688 33.0833 41.9188 34.3333 42.4188 38.6667 42.5855 41.5833 40.3355 39.8333 37.0855 32.5 36.9188\"/></g><g><path d=\"m29.5059,30.1088s-1.8051,1.2424-2.7484.6679c-.9434-.5745-1.2424-1.8051-.6679-2.7484s1.805-1.2424,2.7484-.6679.6679,2.7484.6679,2.7484Z\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m33.1089,37.006h6.1457c.4011,0,.7634.2397.9203.6089l1.1579,2.7245-2.1792,1.1456c-.6156.3236-1.3654-.0645-1.4567-.754\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m34.7606,40.763c-.1132.6268-.7757.9895-1.3647.7471l-2.3132-.952,1.0899-2.9035c.1465-.3901.5195-.6486.9362-.6486\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m30.4364,50.0268s-.7187,8.7934,3.0072,9.9375c2.6459.8125,5.1497.5324,6.0625-.25.875-.75,2.6323-4.4741,1.8267-9.6875\"/><path d=\"m44.2636,30.1088s1.805,1.2424,2.7484.6679,1.2424-1.8051.6679-2.7484c-.5745-.9434-1.805-1.2424-2.7484-.6679s-.6679,2.7484-.6679,2.7484Z\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m25.6245,42.8393c-.475,3.6024,2.2343,5.7505,4.2847,6.8414,1.1968.6367,2.6508.5182,3.7176-.3181l2.581-2.0233,2.581,2.0233c1.0669.8363,2.5209.9548,3.7176.3181,2.0504-1.0909,4.7597-3.239,4.2847-6.8414\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m19.9509,28.3572c-2.3166,5.1597-.5084,13.0249.119,15.3759.122.4571.0755.9355-.1271,1.3631l-1.9874,4.1937c-.623,1.3146-2.3934,1.5533-3.331.4409-3.1921-3.7871-8.5584-11.3899-6.5486-16.686,7.0625-18.6104,15.8677-18.1429,15.8677-18.1429,2.8453-1.9336,13.1042-6.9375,24.8125.875,0,0,8.6323-1.7175,14.9375,16.9375,1.8036,5.3362-3.4297,12.8668-6.5506,16.6442-.9312,1.127-2.7162.8939-3.3423-.4272l-1.9741-4.1656c-.2026-.4275-.2491-.906-.1271-1.3631.6275-2.3509,2.4356-10.2161.119-15.3759\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m52.6309,46.4628s-3.0781,6.7216-7.8049,8.2712\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m19.437,46.969s3.0781,6.0823,7.8049,7.632\"/><line x1=\"36.2078\" x2=\"36.2078\" y1=\"47.3393\" y2=\"44.3093\" fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"/></g></svg>","rabbit":"<svg viewBox=\"0 0 72 72\" xmlns=\"http://www.w3.org/2000/svg\"><g><path fill=\"#fff\" d=\"m30.921,28.0021s3.8009-4.523,10.1088.4052l-.6097,11.5103,3.9176,6.0845s4.5833,5.503,4.8333,6.2515,1.75,7.9151,1.5833,8.2485c-.1667.3333-4.5149,5.4097-4.5149,5.4097h-20.1851l-3.3-4.8928.5833-11.1003,5.5833-5.1667,2.8333-7-.8332-9.7499Z\"/><path fill=\"#3f3f3f\" d=\"m39.7544,27.7521s-4.8333,14.8333,4.6667,21.6667c0,0,8.3333,7.6667.1667,17l5.5334-1.4188,3.2271-2.5623c.5819-.462,1.0198-1.0805,1.2624-1.7828l1.2097-3.503c.1869-.5412.2771-1.1073.2651-1.6798-.0244-1.166-.1073-3.1664-.3878-3.9766-1.6508-4.7696-5.7766-8.5767-5.7766-8.5767,0,0-2.8333-2.8333.1667-5.5l5.4319-6.7592c.3966-.4935.7615-1.0116,1.0926-1.5513l4.3088-7.0229,2.0447-7.2442.2096-8.0482-3.0876-1.041-5.6667,1-5.8333,5-4,6.1667-2.6667,6.3333-2.1668,3.4999Z\"/><path fill=\"#3f3f3f\" d=\"m32.1082,27.7521s4.8333,14.8333-4.6667,21.6667c0,0-8.3333,7.6667-.1667,17l-4.8289-1.4382c-.6515-.194-1.2579-.5161-1.7835-.9472l-2.0427-1.6754c-.388-.3182-.6961-.7228-.8997-1.1815l-1.4937-3.3652c-.3046-.6863-.4222-1.438-.3412-2.1845.1361-1.2547.3649-3.1969.5584-4.0234.5508-2.3521,5.4979-8.6846,5.4979-8.6846,0,0,2.8333-2.8333-.1667-5.5l-6.1002-7.0634-4.7331-8.2699-2.0964-7.1858-.9278-8.1831,3.8575-.9644,5.6465,1.0693,5.8535,4.9307,4,6.1667,2.6667,6.3333,2.1668,3.4999Z\"/></g><g><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m60.5693,9.8131s-12.4983-.3048-16.784,19.8578\"/><polyline fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" points=\"41.0298 50.553 35.8398 53.9543 30.5638 50.553\"/><polyline fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" points=\"31.3767 61.0191 35.7968 58.9868 40.4201 61.0191\"/><line x1=\"35.8398\" x2=\"35.7968\" y1=\"53.9543\" y2=\"58.9868\" fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"/><ellipse cx=\"45.1214\" cy=\"39.9176\" rx=\"1.6461\" ry=\"2.8119\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m22.3332,36.7338C5.6688,23.7275,7.9043,6.2824,7.9043,6.2824,23.959.7258,31.3767,27.9952,31.3767,27.9952c0,0,4.4135-3.561,9.0435,0,0,0,7.4177-27.2693,23.4724-21.7128,0,0,2.2355,17.4451-14.4289,30.4514\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m11.2275,9.8131s12.4983-.3048,16.784,19.8578\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m22.3332,43.745s-10.8725,8.2306-4.7758,17.9853c0,0,2.8451,5.2838,13.2096,4.979h10.2628c10.3644.3048,13.2095-4.979,13.2095-4.979,6.0967-9.7547-4.7758-17.9853-4.7758-17.9853\"/><ellipse cx=\"26.8786\" cy=\"39.9176\" rx=\"1.6461\" ry=\"2.8119\"/></g></svg>","bear":"<svg viewBox=\"0 0 72 72\" xmlns=\"http://www.w3.org/2000/svg\"><g><path fill=\"#6a462f\" d=\"m24.6652,18.7248l-7.08-5.5564-7.174,1.328-2.6553,3.9763.5468,5.8354,1.7123,3.7383c.8278,1.8073,2.8223,4.0696,4.5257,5.0942l-2.5346,7.8679-.0528,5.4917,1.4257,5.0165,2.2706,3.1683,5.9141,4.4005s14.0427,9.0796,29.0427.2463l7.0759-6.0726,2.429-5.3349.2112-5.226-1.6898-7.2343-.3783-2.7117,2.0153-2.3048,3.318-4.6952.8007-6.1324-2.0559-4.8943-4.1751-2.3066-5.0864,1.3726-4.014,3.0639-2.5168,1.6581-8.8712-2.165-8.1946.3282-4.8094,2.048Z\"/><path fill=\"#a57939\" d=\"m29.5877,37.7521l-2,5-.8333,6.6667,2,3.1667.3333,4.3333,2.8333,2.1667,8.6667-.3333,2.3333-1,.1667-5.1667,2-3.1667-1.1667-6.6667-2.5-5.5s-7-4.8333-11.8333.5Z\"/><path fill=\"#3f3f3f\" d=\"m30.7544,47.7521s4.3333-4.6667,9.8333-.3333l-1.8333,2.8333-6-.1667-2-2.3333Z\"/><path fill=\"#a57939\" d=\"m47.7544,18.4188s12.8333-4,15.1667,8l1.2421-5.1254-1.0055-5.3115-3.7823-3.0263-3.6495-.2524-5.4715,2.7158-2.5,2.9999Z\"/><path fill=\"#a57939\" d=\"m24.2544,18.4188s-12.8333-4-15.1667,8l-.8567-1.751c-.5486-1.1213-.8155-2.3593-.7777-3.607l.0229-.7565c.0556-1.8349.7667-3.5891,2.0045-4.9447h0c1.0309-1.1291,2.3755-1.9247,3.8614-2.2849l.1544-.0374c1.9642-.4762,4.037-.1587,5.7687.8836l2.4891,1.4982,2.5,2.9999Z\"/></g><g><circle cx=\"28.6339\" cy=\"36.999\" r=\"2\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m26.0089,19.8949s-7.6875-11.625-14.9375-6.8125c-6.6011,4.3818-3.9113,13.9584.603,16.915\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m21.0714,58.5824c-15.9375-6.3125-7.8506-24.0133-7.8506-24.0133,0,0,3.645-9.3586,9.3416-11.6086\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m51.0978,58.5824c15.9375-6.3125,7.8506-24.0133,7.8506-24.0133,0,0-3.645-9.3586-9.3416-11.6086\"/><circle cx=\"43.3661\" cy=\"36.999\" r=\"2\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m43.495,43.3313l1.5607,4.8039c.2196.8168.0853,1.6816-.3675,2.3961-1.2194,1.924-4.0542,5.1185-8.2597,2.2386h-.8572c-4.2055,2.8798-7.0402-.3147-8.2597-2.2386-.4528-.7144-.5871-1.5793-.3675-2.3961l1.5607-4.8039\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m40.172,47.9243c-.1014,3.008-2.8052,1.6561-2.8052,1.6561l-1.3668-.6766-1.3667.6766s-2.7039,1.3519-2.8052-1.6561\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m45.9911,19.8949s7.6875-11.625,14.9375-6.8125c6.6011,4.3818,3.9113,13.9584-.603,16.915\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m29.9464,57.1478s5.1875,6.6013,12.1072.5625\"/><path fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m24.6652,17.9512s8.7098-4.9304,22.3259,0\"/><line x1=\"36\" x2=\"36\" y1=\"52.7699\" y2=\"49.5804\" fill=\"none\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"/></g></svg>","lion":"<svg viewBox=\"0 0 72 72\" xmlns=\"http://www.w3.org/2000/svg\"><g><path fill=\"#A57939\" stroke=\"none\" d=\"M18.921,25.5021c-0.75,0.25-8.5,9.3333-9.25,15.0833s-0.3333,8.0833-0.3333,8.0833 s2.8333,8.75,11.1667,13.0833c0,0,13.0833,13.1667,30.0833,0.25c0,0,8.3333-2.8333,12-14.5833l-0.3333-9.6667l-2.4167-6.1667 c0,0-4.5-4.3333-4.6667-4.75c-0.1667-0.4167-5.4167-4-5.4167-4l-1.9167-0.5833L23.921,22.6688L18.921,25.5021z\"/><path fill=\"#F4AA41\" stroke=\"none\" d=\"M60.0877,21.2105l0.25-5.75l-1.125-3.875l-5.625-0.75l-5.25,2.5l-3.125,2.625l-3.25-5.375l-5.875-2.75 l-10.125,2l-1.125,0.25c0,0-2.375,1.75-2.25,2.5c0,0-6.75-3-9.625-0.375c0,0-3.75,6.875,0.375,11.375l4,3.5 c0,0-9.5,8.625,1.25,19.5c0,0-2.6198,5.6214,1.1127,11.9173l3.2206,6.666c6,5.3333,19.4167,5.0833,25.4167-0.25l2.3253-4.8129 c0.9155-1.0835,4.6646-5.941,3.6747-11.7704c0,0,8.5-8.125,1.625-20.75l-1.625-1.5l3-1.625L60.0877,21.2105z\"/><path fill=\"#A57939\" stroke=\"none\" d=\"M22.3377,12.398c0,0,1-1.9375,3.875-3s5.8125-1.6875,5.8125-1.6875s6.4375,0.9375,6.9375,1 s6,6.3125,6,6.3125l0.4375,2.4375c0,0-1.8125,1.875-6.5625-0.5625s-5.8125-2.375-6-2.25c-0.1875,0.125-5.625,2.3125-5.625,2.3125 l-2.0625-1.6875L22.3377,12.398z\"/><path fill=\"#FFFFFF\" stroke=\"none\" d=\"M47.671,42.3355c0.0834-0.2084,1.5-8.6667,1.5-8.6667h-0.1666c0,0-2.6667,4.7917-5.625,5.6667l-0.5,1.5416 l0.0937,1.5181c-0.6256-0.0616-1.2596-0.024-1.6979,0.2527c-1.1875,0.75-2.375,0.5-2.375,0.5l-1.8125,1.6875l-0.5625,0.875 l-1.6875-0.5625c0,0-0.6875-2-0.875-2.0625c-0.1875-0.0625-2.0625-0.75-2.0625-0.75l-1.1875,0.4375 c0,0-0.9572-0.3216-1.9857-0.1018l0.1107-1.7941l-0.5-1.5416c-2.9583-0.875-5.625-5.6667-5.625-5.6667H22.546 c0,0,1.4167,8.4583,1.5,8.6667c0.0643,0.1606,1.7091,1.8027,2.4614,2.5486c-0.7147,2.222,0.2053,4.6389,0.2053,4.6389l2.25,2.8125 l5.25-0.75l1.9375-1.5625l1.8125,0.9375l3.9375,1.5l2.5-1.3125c0,0,1.6875-4.5,1.75-4.6875 c0.0327-0.098-0.2592-1.0667-0.5452-1.9694C46.4254,43.6732,47.6166,42.4716,47.671,42.3355z\"/><path fill=\"#f4aa41\" stroke=\"none\" d=\"M27.046,18.0855c0,0,0.4583,2.875-2.2917,5.7083c0,0-4.3333,0.9167-4.5417,1.0417 c-0.2083,0.125-2.3333,1.3333-2.6667,1.5c-0.3333,0.1667-1.7083-0.2917-2.0417-0.5417s-3.4583-5.5-3.4583-5.5l0.1667-3.625 l1.0417-4.375l4.6667-0.5833l4,1.0417l3.8333,3.0417L27.046,18.0855z\"/><path fill=\"#f4aa41\" stroke=\"none\" d=\"M45.033,17.2521c0,0-0.4583,2.875,2.2917,5.7083c0,0,4.3333,0.9167,4.5417,1.0417 c0.2083,0.125,2.3333,1.3333,2.6667,1.5s1.7083-0.2917,2.0417-0.5417c0.3333-0.25,3.4583-5.5,3.4583-5.5l-0.1667-3.625 l-1.0417-4.375l-4.6667-0.5833l-4,1.0417l-3.8333,3.0417L45.033,17.2521z\"/><path fill=\"#FFFFFF\" stroke=\"none\" d=\"M27.671,51.3355l2,4.5l2.5833,1.5833l5.75,0.4167l4.4167-1.5833l2.4167-5.25l-2.9375,1.4583l-4.3958-1.4583 l-1.5-1.3333l-3.0833,1.6667c0,0,0,1.3333-1.75,0.9167C29.421,51.8355,27.671,51.3355,27.671,51.3355z\"/></g><g/><g/><g/><g><ellipse cx=\"28.7782\" cy=\"31.5656\" rx=\"2\" ry=\"2\" transform=\"matrix(0.5156 -0.8568 0.8568 0.5156 -13.1061 39.9485)\" fill=\"#000000\" stroke=\"none\"/><ellipse cx=\"43.4629\" cy=\"31.5656\" rx=\"2\" ry=\"2\" transform=\"matrix(0.8568 -0.5156 0.5156 0.8568 -10.0526 26.9285)\" fill=\"#000000\" stroke=\"none\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M40.3928,43.0656c0,0-1.8705-1.3333-2.9394,2.0833l-1.4252,1.0833l-1.4252-1.0833c-1.0689-3.4167-2.9394-2.0833-2.9394-2.0833\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M42.9467,39.9822l2.1482,3.519c0.1941,0.3179,0.3227,0.6662,0.3793,1.0272l0.326,2.0779c0.0856,0.5453,0.0042,1.1018-0.235,1.6067 l-1.1399,2.407c-0.4169,0.8804-1.2717,1.5195-2.2925,1.7141l0,0c-0.6475,0.1234-1.3206,0.0597-1.9273-0.1826l-1.3016-0.5197 c-0.3174-0.1267-0.6105-0.2999-0.868-0.5128l-1.3748-1.1369h-1.2661l-1.3748,1.1369c-0.2575,0.2129-0.5505,0.3861-0.868,0.5128 l-1.3016,0.5197c-0.6067,0.2423-1.2798,0.306-1.9273,0.1826h0c-1.0208-0.1946-1.8756-0.8337-2.2925-1.7141l-1.1399-2.407 c-0.2391-0.505-0.3205-1.0614-0.235-1.6067l0.326-2.0779c0.0566-0.361,0.1853-0.7093,0.3793-1.0272l2.1482-3.519\"/><line x1=\"36.0282\" x2=\"36.0282\" y1=\"46.2322\" y2=\"48.9822\" fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M30.5366,55.5239l0.7708,0.7941c0.8297,0.8549,1.9545,1.3607,3.1446,1.4142l3.0167,0.1356 c1.1576,0.052,2.2933-0.3278,3.1868-1.0657l0.8644-0.714\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M17.7391,26.8288c-9.9983-4.0396-4.7942-14.1799-4.7942-14.1799c7.5833-4.5833,13.833,4.75,13.833,4.75 s4.8857-4.6468,12.3055-1.3781\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M24.0282,23.1489c0,0-17.3333,6.0833-13.75,25\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M19.456,45.1873c-2.6014,3.7405-3.5847,9.9899,4.4889,19.4616\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M24.0282,27.7322c0,0-5.6115,8.4105,2.1526,17.7886\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M25.3605,10.9187c0,0,12.7053-9.5,19.8616,5.3333\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M45.2221,16.4903c0,0,6.2497-9.3333,13.833-4.75c0,0,5.2041,10.1403-4.7942,14.1799\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M47.9718,22.2403c0,0,17.3333,6.0833,13.75,25\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M53.6231,46.2342c1.6075,3.8321,1.2349,9.5252-5.5679,17.5062\"/><path fill=\"none\" stroke=\"#000000\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-miterlimit=\"10\" stroke-width=\"2\" d=\"M47.9718,26.8237c0,0,5.6115,8.4105-2.1526,17.7886\"/></g></svg>"};
+var ICON_LIST=[{k:'star',nm:'ほし'},{k:'fox',nm:'きつね'},{k:'dolphin',nm:'いるか'},{k:'whale',nm:'くじら'},{k:'turtle',nm:'かめ'},{k:'penguin',nm:'ペンギン'},{k:'owl',nm:'ふくろう'},{k:'cat',nm:'ねこ'},{k:'dog',nm:'いぬ'},{k:'rabbit',nm:'うさぎ'},{k:'bear',nm:'くま'},{k:'lion',nm:'ライオン'}];
+var myIcon=localStorage.getItem('kwt_icon')||'';
+function iconNameOf_(k){for(var i=0;i<ICON_LIST.length;i++){if(ICON_LIST[i].k===k)return ICON_LIST[i].nm;}return '';}
+function iconInnerHtml_(k){return (k&&ICON_SVG[k])?('<span class="kwt-ico">'+ICON_SVG[k]+'</span>'):'';}
+/* アバター中身：アイコンがあればSVG、無ければ頭文字（従来どおり） */
+function iconAvatarHtml(icon,nickname){if(icon&&ICON_SVG[icon])return iconInnerHtml_(icon);return esc((nickname||'?').slice(0,1));}
+/* 自分のアイコンをヘッダーと設定行に反映 */
+function applyMyIcon_(){var h=$('hdr-ava');if(h){if(myIcon&&ICON_SVG[myIcon]){h.innerHTML=iconInnerHtml_(myIcon);h.style.display='';}else{h.innerHTML='';h.style.display='none';}}try{syncIconRow_();}catch(e){}}
+function syncIconRow_(){var ic=$('set-icon-ic'),val=$('set-icon-val');if(ic){ic.innerHTML=(myIcon&&ICON_SVG[myIcon])?iconInnerHtml_(myIcon):'<i class="ti ti-mood-smile"></i>';}if(val){val.textContent=(myIcon&&iconNameOf_(myIcon))?iconNameOf_(myIcon):'まだ えらんでいないよ';}}
+function renderIconGrid_(){var g=$('icon-grid');if(!g)return;var h='';ICON_LIST.forEach(function(o){h+='<div class="icpick'+(myIcon===o.k?' on':'')+'" data-k="'+o.k+'"><div class="ici kwt-ico">'+ICON_SVG[o.k]+'</div><div class="icl">'+o.nm+'</div></div>';});h+='<div class="icpick'+(myIcon===''?' on':'')+'" data-k=""><div class="ici" style="display:grid;place-items:center;color:var(--sub)"><i class="ti ti-user"></i></div><div class="icl">なし</div></div>';g.innerHTML=h;g.querySelectorAll('.icpick').forEach(function(el){el.onclick=function(){saveIcon_(el.getAttribute('data-k'));};});}
+function openIconModal(){renderIconGrid_();var er=$('icon-err');if(er)er.textContent='';var mk=$('icon-mask');if(mk)mk.classList.add('show');}
+function closeIconModal(){var mk=$('icon-mask');if(mk)mk.classList.remove('show');}
+function saveIcon_(k){var prev=myIcon;myIcon=k;try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}renderIconGrid_();applyMyIcon_();call({action:'icon_update',icon:k}).then(function(d){if(!d||!d.ok){myIcon=prev;try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}renderIconGrid_();applyMyIcon_();var er=$('icon-err');if(er)er.textContent=(d&&d.error)||'ほぞんできなかったよ。もう一回ためしてね';return;}toast('アイコンを かえたよ！');closeIconModal();});}
 /* ===== デイリー未完了●（本日の学習/おさらい/間違いノート）2026-07-04 ===== */
 function todayStr_(){var d=new Date(Date.now()+9*3600*1000);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}/* JST固定 2026-07-08 */
 var dailyState={main:null,review:null,note:null};
@@ -1107,9 +1147,9 @@ function buildMapRow(l,isTest,inFold){
   var row=document.createElement('div');row.className='list-row';
   var icon=l.is_current?'<div class="dot cur"><i class="ti ti-player-play"></i></div>':(l.passed?'<div class="dot done"><i class="ti ti-check"></i></div>':'<div class="dot"><i class="ti ti-book-2"></i></div>');
   // テスト配信＝クリア済/挑戦中/未挑戦の3状態（未挑戦=この周で未着手・「いまここ」なし・川上さん確定 2026-07-06）
-  var st=inFold?'':(isTest?(l.passed?'クリア済':(l.attempted?'挑戦中':'未挑戦')):(l.passed?'合格済み':(l.is_current?'':'未挑戦')));
+  var st=inFold?'':(isTest?(l.passed?'クリア<ruby>済<rt class="uf">ずみ</rt></ruby>':(l.attempted?'<ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>中':'<ruby>未<rt class="uf">み</rt></ruby><ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>')):(l.passed?'<ruby>合格<rt class="uf">ごうかく</rt></ruby><ruby>済<rt class="uf">ずみ</rt></ruby>み':(l.is_current?'':'<ruby>未<rt class="uf">み</rt></ruby><ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>')));
   var ttl=isTest?esc(l.title):('DAY '+(l.part_order||1)); // 毎日学習=DAY表記（川上さん確定 2026-07-03）
-  var redo=inFold?'<span class="redo-pill"><i class="ti ti-refresh"></i> もう一回</span>':'';
+  var redo=inFold?'<span class="redo-pill"><i class="ti ti-refresh"></i> もう<ruby>一回<rt class="uf">いっかい</rt></ruby></span>':'';
   row.innerHTML=icon+'<div class="t">'+ttl+(st?'<div class="s">'+st+'</div>':'')+'</div>'+(l.is_current?'<span class="cur-badge">いまここ</span>':'')+redo;
   row.onclick=function(){startPractice(l.part_id);};
   return row;
@@ -1143,6 +1183,7 @@ function backToTiles(){
   window.scrollTo(0,0);
 }
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1700);}
+function toastH(m){var t=$('toast');t.innerHTML=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1700);}
 
 /* 🔥マークのタップ説明ポップ（イベント委譲＝ヘッダーの再描画に強い）2026-07-21 */
 document.addEventListener('click',function(e){
@@ -1167,7 +1208,7 @@ function showPracticeLoading_(){
   var br=$('btn-retry');if(br)br.style.display='none';
   var bn=$('btn-next');if(bn)bn.style.display='none';
   var pg=$('prog');if(pg)pg.style.width='0%';
-  $('step-label').innerHTML=kwtSpin(64)+'<div style="margin-top:6px">よみこみ中…</div>';
+  $('step-label').innerHTML=kwtSpin(64)+'<div style="margin-top:6px"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div>';
 }
 
 /* ===== 確認テスト（生徒）2026-07-10：点数表。受験は startQuiz（スライス3b）===== */
@@ -1184,8 +1225,8 @@ function quizRenderHome_(d){
   _quizMiss=miss;syncTestZone_();
 }
 function quizPill_(p){
-  if(p.status==='ok')return '<span style="background:rgba(31,157,87,.15);color:var(--ok);font-weight:800;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">合格 '+(p.latest_rate!=null?p.latest_rate+'%':'')+'</span>';
-  if(p.status==='ng')return '<span style="background:rgba(214,69,69,.13);color:var(--ng);font-weight:800;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">もう一歩 '+(p.latest_rate!=null?p.latest_rate+'%':'')+'</span>';
+  if(p.status==='ok')return '<span style="background:rgba(31,157,87,.15);color:var(--ok);font-weight:800;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;"><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+(p.latest_rate!=null?p.latest_rate+'%':'')+'</span>';
+  if(p.status==='ng')return '<span style="background:rgba(214,69,69,.13);color:var(--ng);font-weight:800;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+(p.latest_rate!=null?p.latest_rate+'%':'')+'</span>';
   return '<span style="background:rgba(148,163,184,.18);color:var(--sub);font-weight:700;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">まだ</span>';
 }
 var quizOpen_={};
@@ -1193,9 +1234,9 @@ function renderQuiz(){
   var el=$('quiz-area');if(!el)return;
   callCached({action:'quiz_list'},function(d){
     quizRenderHome_(d);
-    if(!d.ok){el.innerHTML='<p class="muted">読み込みに失敗しました。もう一度ひらいてね。</p>';return;}
+    if(!d.ok){el.innerHTML='<p class="muted"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>みに<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました。もう<ruby>一度<rt class="uf">いちど</rt></ruby>ひらいてね。</p>';return;}
     var mats=(d.data&&d.data.materials)||[];
-    if(!mats.length){el.innerHTML='<p class="muted">まだ確認テストは配信されていません。先生が配信すると ここに出るよ。</p>';return;}
+    if(!mats.length){el.innerHTML='<p class="muted">まだ<ruby>確認<rt class="uf">かくにん</rt></ruby>テストは<ruby>配信<rt class="uf">はいしん</rt></ruby>されていません。<ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>配信<rt class="uf">はいしん</rt></ruby>すると ここに<ruby>出<rt class="uf">で</rt></ruby>るよ。</p>';return;}
     // 本ごとにまとめる＋シリーズ内は章番号順（ホームと同じ考え方）2026-07-22
     var _bk=function(g){var sk=_mSeries(g.title);return sk?('S:'+sk.k):('M:'+String(g.title||''));};
     var _bl=function(g){var sk=_mSeries(g.title);var bp=_bookPrefix(g.title);return sk?(bp||sk.label):(bp||String(g.title||''));};
@@ -1214,13 +1255,13 @@ function renderQuiz(){
       html+='<div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;box-shadow:var(--shadow);overflow:hidden;">';
       html+='<div onclick="quizToggle_(\''+gid+'\')" style="display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;">'
         +'<div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:14px;line-height:1.35;">'+esc(_chapShort(g.title)||'教材')+'</div>'
-        +'<div style="font-size:12px;color:var(--sub);margin-top:3px;">合格 <b style="color:var(--ok);">'+np+'</b> / '+ps.length+(ngc>0?('　もう一歩 <b style="color:var(--ng);">'+ngc+'</b>'):'')+(yt>0?('　まだ '+yt):'')+'</div></div>'
-        +(g.all_pass?'<span style="background:rgba(202,162,74,.15);color:var(--gold);font-weight:800;font-size:11px;padding:3px 9px;border-radius:12px;white-space:nowrap;">全合格🎉</span>':'')
+        +'<div style="font-size:12px;color:var(--sub);margin-top:3px;"><ruby>合格<rt class="uf">ごうかく</rt></ruby> <b style="color:var(--ok);">'+np+'</b> / '+ps.length+(ngc>0?('　もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> <b style="color:var(--ng);">'+ngc+'</b>'):'')+(yt>0?('　まだ '+yt):'')+'</div></div>'
+        +(g.all_pass?'<span style="background:rgba(202,162,74,.15);color:var(--gold);font-weight:800;font-size:11px;padding:3px 9px;border-radius:12px;white-space:nowrap;"><ruby>全<rt class="uf">ぜん</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby>🎉</span>':'')
         +'<i id="'+gid+'-a" class="ti '+(quizOpen_[gid]?'ti-chevron-up':'ti-chevron-down')+'" style="color:var(--sub);font-size:20px;"></i></div>';
       html+='<div id="'+gid+'" style="display:'+(quizOpen_[gid]?'block':'none')+';padding:0 14px 6px;">';
       ps.forEach(function(p){
         html+='<div onclick="startQuiz(\''+esc(p.part_id)+'\')" style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-top:1px solid var(--line);cursor:pointer;">'
-          +'<div style="flex:1;font-weight:700;font-size:14px;min-width:0;">'+esc(p.title||'パート')+(p.attempt_count>0?'<span style="font-size:11px;color:var(--sub);font-weight:500;"> ・'+p.attempt_count+'回</span>':'')+'</div>'
+          +'<div style="flex:1;font-weight:700;font-size:14px;min-width:0;">'+esc(p.title||'パート')+(p.attempt_count>0?'<span style="font-size:11px;color:var(--sub);font-weight:500;"> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></span>':'')+'</div>'
           +quizPill_(p)+'<i class="ti ti-chevron-right" style="color:var(--sub)"></i></div>';
       });
       html+='</div></div>';
@@ -1297,7 +1338,7 @@ function saveNick(){
     try{var _sv=$('set-nick-val');if(_sv)_sv.textContent=nickname;}catch(e){} // 設定行のニックネーム表示も更新（2026-07-24）
     closeNickModal();
     if(d.data.unchanged){toast('ニックネームはそのままだよ');}
-    else{toast('ニックネームを変更したよ！');}
+    else{toastH('ニックネームを<ruby>変更<rt class="uf">へんこう</rt></ruby>したよ！');}
   });
 }
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
@@ -1344,6 +1385,7 @@ function toggleTheme_(){var d=document.documentElement.getAttribute('data-theme'
 /* 記録タブの設定行の表示を同期（ニックネーム／ふりがな状態／テーマ）2026-07-24 */
 function syncSettings_(){
   var nv=$('set-nick-val');if(nv)nv.textContent=nickname||'きみ';
+  try{syncIconRow_();}catch(e){}
   var el=false;try{el=_isElementary(stuGrade);}catch(e){}
   var fb=$('set-furi-badge');if(fb)fb.textContent=el?'オン':'オフ';
   try{syncThemeIcon();}catch(e){}
@@ -1373,9 +1415,9 @@ function _fmtDur_(ms){var s=Math.max(0,Math.round((ms||0)/1000));var m=Math.floo
 function renderDoneTiles_(score,mc,ac,ms){
   var host=$('done-tiles');if(!host)return;
   var perfect=(ac>0&&mc>=ac); /* ノーミス＝最大コンボが総回答数に到達 */
-  var comboCell='<span id="dt-combo">0</span>'+(perfect?'<span class="dtag">最大！</span>':'');
+  var comboCell='<span id="dt-combo">0</span>'+(perfect?'<span class="dtag"><ruby>最大<rt class="uf">さいだい</rt></ruby>！</span>':'');
   host.innerHTML='<div class="dtiles" id="dtiles">'
-   +'<div class="dtile ok"><div class="dtl">正答率</div><div class="dtv"><span id="dt-rate">0</span><small>%</small></div></div>'
+   +'<div class="dtile ok"><div class="dtl"><ruby>正答率<rt class="uf">せいとうりつ</rt></ruby></div><div class="dtv"><span id="dt-rate">0</span><small>%</small></div></div>'
    +'<div class="dtile blue"><div class="dtl">タイム</div><div class="dtv">'+_fmtDur_(ms)+'</div></div>'
    +'<div class="dtile gold"><div class="dtl">コンボ</div><div class="dtv">'+comboCell+'</div></div>'
    +'</div>';
@@ -1384,16 +1426,16 @@ function renderDoneTiles_(score,mc,ac,ms){
 }
 function renderStreakCard_(){
   var host=$('rec-streak-card');if(!host)return;var n=_streakDays||0;var body;
-  if(n<=0){body='<div class="stk-num">0</div><div class="stk-lbl">日 連続記録</div><div class="stk-msg">今日から スタート！<br>1つ 学習すると 記録が はじまるよ。</div>';}
-  else{body='<div class="stk-num">'+n+'</div><div class="stk-lbl">日 連続記録</div><div class="stk-msg">今日も クリアで <b>'+n+'日</b> つながってるよ。<br>あした やると <b>'+(n+1)+'日</b> になる！</div>';}
+  if(n<=0){body='<div class="stk-num">0</div><div class="stk-lbl"><ruby>日<rt class="uf">にち</rt></ruby> <ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>記録<rt class="uf">きろく</rt></ruby></div><div class="stk-msg"><ruby>今日<rt class="uf">きょう</rt></ruby>から スタート！<br>1つ <ruby>学習<rt class="uf">がくしゅう</rt></ruby>すると <ruby>記録<rt class="uf">きろく</rt></ruby>が はじまるよ。</div>';}
+  else{body='<div class="stk-num">'+n+'</div><div class="stk-lbl"><ruby>日<rt class="uf">にち</rt></ruby> <ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>記録<rt class="uf">きろく</rt></ruby></div><div class="stk-msg"><ruby>今日<rt class="uf">きょう</rt></ruby>も クリアで <b>'+n+'<ruby>日<rt class="uf">にち</rt></ruby></b> つながってるよ。<br>あした やると <b>'+(n+1)+'<ruby>日<rt class="uf">にち</rt></ruby></b> になる！</div>';}
   host.innerHTML='<div class="stk-rec"><div class="stk-card"><div class="stk-flame"><i class="ti ti-flame"></i></div>'+body+'</div></div>';
 }
 function showStreakCele_(n){
   var mask=$('stk-cele-mask'),box=$('stk-cele-box');if(!mask||!box)return;n=n||1;
-  var msg=(n<=1)?'今日から 記録が はじまったよ。<br>あした やると <b>2日</b>！':('<b>'+n+'日 連続！</b> のびたよ。<br>あした やると <b>'+(n+1)+'日</b> になる！');
+  var msg=(n<=1)?'<ruby>今日<rt class="uf">きょう</rt></ruby>から <ruby>記録<rt class="uf">きろく</rt></ruby>が はじまったよ。<br>あした やると <b>2<ruby>日<rt class="uf">にち</rt></ruby></b>！':('<b>'+n+'<ruby>日<rt class="uf">にち</rt></ruby> <ruby>連続<rt class="uf">れんぞく</rt></ruby>！</b> のびたよ。<br>あした やると <b>'+(n+1)+'<ruby>日<rt class="uf">にち</rt></ruby></b> になる！');
   box.innerHTML='<button class="stk-close" id="stk-cele-close" type="button" aria-label="とじる"><i class="ti ti-x"></i></button>'
    +'<div class="stk-card"><div class="stk-flame"><span class="stk-glow"></span><i class="ti ti-flame"></i></div>'
-   +'<div class="stk-num"><span id="stk-cele-num">'+Math.max(0,n-1)+'</span></div><div class="stk-lbl">日 連続記録</div>'
+   +'<div class="stk-num"><span id="stk-cele-num">'+Math.max(0,n-1)+'</span></div><div class="stk-lbl"><ruby>日<rt class="uf">にち</rt></ruby> <ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>記録<rt class="uf">きろく</rt></ruby></div>'
    +'<div style="text-align:center;"><span class="stk-plus"><i class="ti ti-flame"></i> ＋1</span></div>'
    +'<div class="stk-msg">'+msg+'</div></div>';
   mask.classList.add('show');try{sndWin();flash();}catch(e){}
@@ -1414,16 +1456,16 @@ function checkStreakCele_(){
     setTimeout(function(){showStreakCele_(pp.streak||1);},450);
   }catch(e){}
 }
-function gradPop_(en,ja){var el=$('gradpop');if(!el)return;el.innerHTML='<div class="gp-em">🎓</div><div class="gp-w">'+String(en==null?'':en)+(ja?' <span class="gp-ja">'+String(ja)+'</span>':'')+'</div><div class="gp-l">卒業！</div>';el.classList.remove('show');void el.offsetWidth;el.classList.add('show');try{beep(784,0.12,'triangle');setTimeout(function(){beep(1175,0.16,'triangle');},110);}catch(e){}confetti(14);}
+function gradPop_(en,ja){var el=$('gradpop');if(!el)return;el.innerHTML='<div class="gp-em">🎓</div><div class="gp-w">'+String(en==null?'':en)+(ja?' <span class="gp-ja">'+String(ja)+'</span>':'')+'</div><div class="gp-l"><ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！</div>';el.classList.remove('show');void el.offsetWidth;el.classList.add('show');try{beep(784,0.12,'triangle');setTimeout(function(){beep(1175,0.16,'triangle');},110);}catch(e){}confetti(14);}
 
 $('themeBtn').onclick=toggleTheme_;
 
 $('nick-cancel').onclick=closeNickModal;
 $('nick-save').onclick=saveNick;
-$('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};
+$('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};var _icx=$('icon-cancel');if(_icx)_icx.onclick=closeIconModal;var _icm=$('icon-mask');if(_icm)_icm.onclick=function(e){if(e.target===this)closeIconModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
-$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスワードを入れてね';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> 確認中…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
-function doLogout_(){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');stuGrade='';applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');}
+$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').textContent='IDとパスワードを入れてね';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='はじめる <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
+function doLogout_(){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');stuGrade='';myIcon='';applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');}
 $('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
 $('logout-cancel').onclick=function(){$('logout-mask').classList.remove('show');};
 $('logout-mask').onclick=function(e){if(e.target===this)$('logout-mask').classList.remove('show');};
@@ -1482,7 +1524,7 @@ function renderHomeError_(){
   if(host&&!hasContent){
     host.innerHTML='<div class="empty-note" style="flex-direction:column;text-align:center;align-items:center;gap:11px;"><i class="ti ti-wifi-off"></i><div>いま つながらないみたい。<br>でんぱの よい ところで もう一回 ためしてね。</div><button class="btn" id="home-retry" type="button" style="max-width:220px;">もう<ruby>一回<rt class="uf">いっかい</rt></ruby></button></div>';
     var rb=$('home-retry');if(rb)rb.onclick=function(){host.innerHTML=skelDaily_();try{homeCacheClear_();}catch(e){}loadHomeData_(true);};
-  }else{try{toast('つながらないみたい。もう一回 ためしてね');}catch(e){}}
+  }else{try{toastH('つながらないみたい。もう<ruby>一回<rt class="uf">いっかい</rt></ruby> ためしてね');}catch(e){}}
 }
 /* 引っ張って更新（pull-to-refresh）：ホーム最上部で下へ引くとキャッシュを消して再取得 2026-07-24 */
 function isHomeScreen_(){var h=$('scr-home');return !!(h&&h.classList.contains('active'));}
@@ -1492,7 +1534,7 @@ function refreshHome_(){
   var ind=$('ptr-ind');if(ind){ind.classList.add('spin');ind.innerHTML=kwtSpin(26);}
   try{homeCacheClear_();}catch(e){}
   loadHomeData_(false);
-  setTimeout(function(){_refreshing=false;var i=$('ptr-ind');if(i){i.classList.remove('spin','show');i.style.height='0px';}try{toast('さいしんに こうしんしたよ');}catch(e){}},1100); // 取得は裏で継続。表示は約1.1秒で戻す＋完了トースト
+  setTimeout(function(){_refreshing=false;var i=$('ptr-ind');if(i){i.classList.remove('spin','show');i.style.height='0px';}try{toastH('<ruby>最新<rt class="uf">さいしん</rt></ruby>に<ruby>更新<rt class="uf">こうしん</rt></ruby>したよ');}catch(e){}},1100); // 取得は裏で継続。表示は約1.1秒で戻す＋完了トースト
 }
 (function(){
   var startY=0,pulling=false,dist=0;var TH=68,MAX=110;
@@ -1505,7 +1547,7 @@ function refreshHome_(){
   document.addEventListener('touchmove',function(e){
     if(!pulling)return;dist=e.touches[0].clientY-startY;
     if(dist<=0){var i0=ind();if(i0){i0.classList.remove('show');i0.style.height='0px';}return;}
-    var h=Math.min(dist*0.5,MAX);var i=ind();if(i){i.classList.add('show');i.style.height=h+'px';i.innerHTML=(dist>=TH?'<i class="ti ti-arrow-up"></i> はなして こうしん':'<i class="ti ti-arrow-down"></i> ひっぱって こうしん');}
+    var h=Math.min(dist*0.5,MAX);var i=ind();if(i){i.classList.add('show');i.style.height=h+'px';i.innerHTML=(dist>=TH?'<i class="ti ti-arrow-up"></i> はなして<ruby>更新<rt class="uf">こうしん</rt></ruby>':'<i class="ti ti-arrow-down"></i> <ruby>引<rt class="uf">ひ</rt></ruby>っぱって<ruby>更新<rt class="uf">こうしん</rt></ruby>');}
   },{passive:true});
   document.addEventListener('touchend',function(){
     if(!pulling)return;pulling=false;
@@ -1637,12 +1679,12 @@ function renderNoteNudge_(totalN){
   var wrap=$('note-nudge-wrap');if(!wrap)return;
   if(!totalN||totalN<NOTE_THRESHOLD){wrap.innerHTML='';return;}
   wrap.innerHTML='<div class="nnudge"><div class="nn-ic"><i class="ti ti-notebook"></i></div>'
-    +'<div class="nn-b"><div class="nn-t">間違いノートが たまってきたよ</div><div class="nn-s">まちがえた '+totalN+'語。ときどき 空に しよう</div></div>'
-    +'<div class="nn-go">空にする →</div></div>';
+    +'<div class="nn-b"><div class="nn-t"><ruby>間違<rt class="uf">まちが</rt></ruby>いノートが たまってきたよ</div><div class="nn-s">まちがえた '+totalN+'<ruby>語<rt class="uf">ご</rt></ruby>。ときどき <ruby>空<rt class="uf">から</rt></ruby>に しよう</div></div>'
+    +'<div class="nn-go"><ruby>空<rt class="uf">から</rt></ruby>にする →</div></div>';
   var el=wrap.querySelector('.nnudge');if(el)el.onclick=function(){showSub('note');};
 }
 function openHome(){
-  $('nick').textContent=nickname;syncThemeIcon();show('scr-home');
+  $('nick').textContent=nickname;try{applyMyIcon_();}catch(e){}syncThemeIcon();show('scr-home');
   // 初回ログイン：ニックネーム未設定なら設定モーダルを自動表示（スキップ可・1ログイン1回だけ・川上さん確定 2026-07-04 機能仕様書_テスト配信 §5-2）
   if((!nickname||nickname==='きみ'||localStorage.getItem('kwt_nick_auto')==='1')&&!window._nickPrompted){window._nickPrompted=true;setTimeout(openNickModal,600);} // 自動付与された子にも初回1回だけ案内（§5-2踏襲・2026-07-05）
   $('btn-nick-edit').onclick=openNickModal;
@@ -1659,6 +1701,7 @@ function openHome(){
   _bind('tile-team',function(){showSub('team');});
   _bind('tile-overall',function(){showSub('overall');});
   _bind('set-nick',openNickModal);
+  _bind('set-icon',openIconModal);
   _bind('set-theme',toggleTheme_);
   syncSettings_();
   _bind('tile-quiz',function(){showSub('quiz');renderQuiz();});
@@ -1691,16 +1734,16 @@ function loadHomeData_(showSkel){
       var h=document.createElement('div');h.className='hero';
       var isTest=(m.content_type==='test');
       // 形式ピル（毎日学習/テスト配信）＋教科
-      var fmtPill=isTest?'<span class="hpill test">単元別対策</span>':'<span class="hpill daily">毎日学習</span>';
+      var fmtPill=isTest?'<span class="hpill test"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby><ruby>対策<rt class="uf">たいさく</rt></ruby></span>':'<span class="hpill daily"><ruby>毎日学習<rt class="uf">まいにちがくしゅう</rt></ruby></span>';
       var subj=m.subject?'<span class="hsubj">'+subjLabel(m.subject)+'</span>':'';
       // 周バッジ：2周目以降だけ表示（川上さん確定 2026-07-03）
-      var lapPill=(m.lap>=2)?'<span class="hpill lap">'+m.lap+'周目</span>':'';
+      var lapPill=(m.lap>=2)?'<span class="hpill lap">'+m.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'';
       // パート表記（川上さん確定 2026-07-03）：毎日学習=DAY n／テスト配信=教材由来名。複数パートの教材だけ出す
       var partLine='';
       var pcount=(m.part_count!==undefined?m.part_count:m.total_parts)||0; // テスト配信はtotal_parts（2026-07-04）
       if(pcount>1){ partLine=isTest?esc(m.part_title):('DAY '+(m.part_order||1)); }
       // ○回目：2回目以降だけ金色で出す（川上さん確定 2026-07-03）
-      if((m.times||1)>=2){ partLine=(partLine?partLine+' <span class="rnd">・'+m.times+'回目</span>':'<span class="rnd">'+m.times+'回目</span>'); }
+      if((m.times||1)>=2){ partLine=(partLine?partLine+' <span class="rnd">・'+m.times+'<ruby>回<rt class="uf">かい</rt></ruby><ruby>目<rt class="uf">め</rt></ruby></span>':'<span class="rnd">'+m.times+'<ruby>回<rt class="uf">かい</rt></ruby><ruby>目<rt class="uf">め</rt></ruby></span>'); }
       // リングのアイコン（形式で色分け・進捗連動は次スライス）
       var ringStroke='var(--accent)';
       var ic=isTest?'<i class="ti ti-flag" style="font-size:18px;color:var(--sub)"></i>':'<i class="ti ti-anchor" style="font-size:18px;color:var(--sub)"></i>';
@@ -1724,8 +1767,8 @@ function loadHomeData_(showSkel){
       if(isTest&&m.graduated){
         if(m.next_part_id){ // テスト配信：先に進む未クリアパートがある→先取り
           h.classList.add('cleared');
-          var _nb=document.createElement('span');_nb.className='clr-badge';_nb.innerHTML='<i class="ti ti-check"></i> 今日のぶん完了';h.appendChild(_nb);
-          var ctaEl=h.querySelector('.cta');if(ctaEl)ctaEl.innerHTML='じぶんで先に進む <i class="ti ti-arrow-right"></i>';
+          var _nb=document.createElement('span');_nb.className='clr-badge';_nb.innerHTML='<i class="ti ti-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>のぶん<ruby>完了<rt class="uf">かんりょう</rt></ruby>';h.appendChild(_nb);
+          var ctaEl=h.querySelector('.cta');if(ctaEl)ctaEl.innerHTML='じぶんで<ruby>先<rt class="uf">さき</rt></ruby>に<ruby>進<rt class="uf">すす</rt></ruby>む <i class="ti ti-arrow-right"></i>';
           h.onclick=function(){startPractice(m.next_part_id);};
         }else{ // 全パートクリア済み
           h.classList.add('done');
@@ -1735,8 +1778,8 @@ function loadHomeData_(showSkel){
       }else if(!isTest&&!_undone){
         // 毎日学習：今日クリア済み。current は合格で次DAYに進んでいるので、そのままタップで先取りできる
         h.classList.add('cleared');
-        var _nb2=document.createElement('span');_nb2.className='clr-badge';_nb2.innerHTML='<i class="ti ti-check"></i> 今日のぶん完了';h.appendChild(_nb2);
-        var ctaEl2=h.querySelector('.cta');if(ctaEl2)ctaEl2.innerHTML='じぶんで先に進む <i class="ti ti-arrow-right"></i>';
+        var _nb2=document.createElement('span');_nb2.className='clr-badge';_nb2.innerHTML='<i class="ti ti-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>のぶん<ruby>完了<rt class="uf">かんりょう</rt></ruby>';h.appendChild(_nb2);
+        var ctaEl2=h.querySelector('.cta');if(ctaEl2)ctaEl2.innerHTML='じぶんで<ruby>先<rt class="uf">さき</rt></ruby>に<ruby>進<rt class="uf">すす</rt></ruby>む <i class="ti ti-arrow-right"></i>';
         h.onclick=function(){startPractice(m.part_id);};
       }else{
         h.onclick=function(){startPractice(m.part_id);};
@@ -1746,7 +1789,7 @@ function loadHomeData_(showSkel){
     // 教材(本)ごとにグループ化：本名は見出しに1回・カードは章/回が主役。既知シリーズ以外も本ごとに見出しを付け、英単語・一問一答が他シリーズに紛れて見えるのを防ぐ（川上さん指摘 2026-07-22）
     var _grps=[],_gm={};
     cards.forEach(function(m){var k=_gkey(m);if(!_gm[k]){_gm[k]={lab:_glabel(m),items:[]};_grps.push(_gm[k]);}_gm[k].items.push(m);});
-    _grps.forEach(function(g){var un=g.items.filter(function(m){return !m.cleared_today;}).length;var meta=(g.items.length>1)?(un?('のこり'+un+'章'):'きょうは完了'):'';var sh=document.createElement('div');sh.className='shead';sh.innerHTML='<div class="snm">'+esc(g.lab)+'</div>'+(meta?('<div class="smeta">'+meta+'</div>'):'');$('main-list').appendChild(sh);g.items.forEach(function(m){_rc(m);});});
+    _grps.forEach(function(g){var un=g.items.filter(function(m){return !m.cleared_today;}).length;var meta=(g.items.length>1)?(un?('のこり'+un+'章'):'きょうは<ruby>完了<rt class="uf">かんりょう</rt></ruby>'):'';var sh=document.createElement('div');sh.className='shead';sh.innerHTML='<div class="snm">'+esc(g.lab)+'</div>'+(meta?('<div class="smeta">'+meta+'</div>'):'');$('main-list').appendChild(sh);g.items.forEach(function(m){_rc(m);});});
     }
     /* 連続日数のヘッダー表示は loadBadges 内で更新する（studentHome は streak を返していない。
        ヘッダーが常に0日のままだった潜在バグの修正・2026-07-05発見） */
@@ -1756,10 +1799,10 @@ function loadHomeData_(showSkel){
     try{renderUnitZone_((d&&d.ok&&d.data&&d.data.materials)||[]);}catch(e){} // 単元別ゾーン（新ホーム 2026-07-24）
     if(!d.ok){$('review-area').innerHTML='<p class="muted">—</p>';return;}
     var cs=d.data.materials||[];
-    if(!cs.length){$('review-area').innerHTML='<p class="muted">まだ教材がありません。</p>';return;}
+    if(!cs.length){$('review-area').innerHTML='<p class="muted">まだ<ruby>教材<rt class="uf">きょうざい</rt></ruby>がありません。</p>';return;}
     $('review-area').innerHTML='';
     // 学習マップ アコーディオン（A案・既定全畳み・川上さん確定 2026-07-08：2教材以上でも各教材カードが上に並び、2つ目が埋もれない）
-    var hint=document.createElement('p');hint.className='map-hint';hint.innerHTML='<i class="ti ti-refresh"></i> 本をタップすると 中の教材がひらくよ';$('review-area').appendChild(hint);
+    var hint=document.createElement('p');hint.className='map-hint';hint.innerHTML='<i class="ti ti-refresh"></i> <ruby>本<rt class="uf">ほん</rt></ruby>をタップすると <ruby>中<rt class="uf">なか</rt></ruby>の<ruby>教材<rt class="uf">きょうざい</rt></ruby>がひらくよ';$('review-area').appendChild(hint);
     var macc=document.createElement('div');macc.className='macc';$('review-area').appendChild(macc);
     // 本(シリーズ)ごとにまとめる（同じ本の教材を1つに畳む）2026-07-24
     var _mg=[],_mgm={};
@@ -1781,8 +1824,8 @@ function loadHomeData_(showSkel){
         var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
         var curLbl=curPart?(isTest?esc(curPart.l.title):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
         var ov=document.createElement('div');ov.className='ov-card';
-        var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'周目</span>':'');
-        var right=curPart?(curLbl+' <small>/ 全'+total+'</small>'):('クリア '+passedN+' <small>/ 全'+total+'</small>');
+        var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'');
+        var right=curPart?(curLbl+' <small>/ <ruby>全<rt class="uf">ぜん</rt></ruby>'+total+'</small>'):('クリア '+passedN+' <small>/ <ruby>全<rt class="uf">ぜん</rt></ruby>'+total+'</small>');
         var pct=total?Math.round(passedN/total*100):0;
         var map='<div class="dotmap">';
         parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
@@ -1834,18 +1877,18 @@ var LIKE_ICONS={
 var LIKE_LABEL={like:'いいね',great:'すごい',congrats:'おめでとう'};
 function loadTeamFeed(){
   var area=$('team-area');
-  area.innerHTML='<div class="loading">読み込み中…</div>';
+  area.innerHTML='<div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div>';
   callCached({action:'team_feed'},function(d){
     if(!d.ok){area.innerHTML='<p class="muted">—</p>';$('cnt-team').textContent='–';return;}
-    if(!d.data.in_team){area.innerHTML='<div class="tmate empty">まだチームに入っていないよ。先生がチームを作ってくれるのを待ってね。</div>';$('cnt-team').textContent='まだチームなし';_cheerLeft=0;teamDotUpdate_();return;}
+    if(!d.data.in_team){area.innerHTML='<div class="tmate empty">まだチームに<ruby>入<rt class="uf">はい</rt></ruby>っていないよ。<ruby>先生<rt class="uf">せんせい</rt></ruby>がチームを<ruby>作<rt class="uf">つく</rt></ruby>ってくれるのを<ruby>待<rt class="uf">ま</rt></ruby>ってね。</div>';$('cnt-team').textContent='まだチームなし';_cheerLeft=0;teamDotUpdate_();return;}
     var ms=d.data.members||[];
-    if(!ms.length){area.innerHTML='<div class="tmate empty">いまはチームにあなただけ。仲間が増えるのを待ってね。</div>';$('cnt-team').textContent='あなただけ';_cheerLeft=0;teamDotUpdate_();renderChill(ms);return;}
+    if(!ms.length){area.innerHTML='<div class="tmate empty">いまはチームにあなただけ。<ruby>仲間<rt class="uf">なかま</rt></ruby>が<ruby>増<rt class="uf">ふ</rt></ruby>えるのを<ruby>待<rt class="uf">ま</rt></ruby>ってね。</div>';$('cnt-team').textContent='あなただけ';_cheerLeft=0;teamDotUpdate_();renderChill(ms);return;}
     var active=ms.filter(function(m){return m.did_today;}); // 今日やった子だけ表示・応援対象（やってない子は晒さない）川上さん確定 2026-07-11
     _cheerLeft=active.filter(function(m){var st=false;['like','great','congrats'].forEach(function(t){if(m.like_state&&m.like_state[t]==='sent')st=true;});return !st;}).length; // 今日まだ応援していない仲間の数（赤丸用）2026-07-14
     teamDotUpdate_();
-    $('cnt-team').innerHTML='今日がんばった仲間 <b>'+active.length+'</b>人';
+    $('cnt-team').innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>がんばった<ruby>仲間<rt class="uf">なかま</rt></ruby> <b>'+active.length+'</b><ruby>人<rt class="uf">にん</rt></ruby>';
     area.innerHTML='';
-    if(!active.length){area.innerHTML='<div class="tmate empty">今日はまだ、がんばっている仲間はいないよ。だれかがやったら ここに出てくるよ。</div>';}
+    if(!active.length){area.innerHTML='<div class="tmate empty"><ruby>今日<rt class="uf">きょう</rt></ruby>はまだ、がんばっている<ruby>仲間<rt class="uf">なかま</rt></ruby>はいないよ。だれかがやったら ここに<ruby>出<rt class="uf">で</rt></ruby>てくるよ。</div>';}
     else{active.forEach(function(m){area.appendChild(buildMate(m));});}
     renderChill(ms);  // 仲間チル演出（ホーム。川上さん確定 2026-07-03）
   });
@@ -1860,7 +1903,7 @@ function renderChill(ms){
     var names=today.slice(0,2).map(function(m){return '<b>'+esc(m.nickname)+'さん</b>';}).join('、');
     var extra=today.length>2?('、ほか'+(today.length-2)+'人'):'';
     text='<ruby>今日<rt class="uf">きょう</rt></ruby>は '+names+extra+'も がんばってるよ';
-    avs=today.slice(0,2).map(function(m){return '<div class="av">'+esc((m.nickname||'?').slice(0,1))+'</div>';}).join('');
+    avs=today.slice(0,2).map(function(m){return '<div class="av">'+iconAvatarHtml(m.icon,m.nickname)+'</div>';}).join('');
   }else{
     var y=yesterdayStr_();
     var ycnt=(ms||[]).filter(function(m){return m.last_studied===y;}).length;
@@ -1909,9 +1952,9 @@ function buildStarCard(star){
   cheer+='</div>';
   wrap.innerHTML='<div class="star-head"><i class="ti ti-star"></i> クロフネのなかま</div>'
     +'<div class="star-copy"><ruby>今日<rt class="uf">きょう</rt></ruby>クロフネで<b><ruby>同<rt class="uf">おな</rt></ruby>じようにがんばった<ruby>仲間<rt class="uf">なかま</rt></ruby></b>だよ。<ruby>応援<rt class="uf">おうえん</rt></ruby>しよう！</div>'
-    +'<div class="star-mate"><div class="star-ava">'+ini+'</div>'
+    +'<div class="star-mate"><div class="star-ava">'+iconAvatarHtml(star.icon,star.nickname)+'</div>'
     +'<div class="star-info"><div class="star-nick">'+star.nickname+'</div>'
-    +'<div class="star-ach">'+(star.achievement||'')+' に合格したよ</div></div></div>'
+    +'<div class="star-ach">'+(star.achievement||'')+' に<ruby>合格<rt class="uf">ごうかく</rt></ruby>したよ</div></div></div>'
     +cheer
     +'<div class="cheer-done"><i class="ti ti-send"></i><span class="cd-txt"></span></div>';
   var doneEl=wrap.querySelector('.cheer-done'),doneTxt=wrap.querySelector('.cd-txt');
@@ -1970,7 +2013,7 @@ function showTrioOverlay_(data){
   // タイトル
   panel.innerHTML='<button class="trio-close" aria-label="とじる">✕</button>'
     +'<div class="trio-title"><div class="t1">✨ きのう いちばん がんばった</div>'
-    +'<div class="t2"><b>三連星</b> の '+trio.length+'人！</div></div>';
+    +'<div class="t2"><b><ruby>三連星<rt class="uf">さんれんせい</rt></ruby></b> の '+trio.length+'<ruby>人<rt class="uf">にん</rt></ruby>！</div></div>';
   // 星空＋隕石（人数ぶん・最大3）
   var sky=document.createElement('div');sky.className='trio-sky';
   for(var s=0;s<22;s++){var bs=document.createElement('span');bs.className='bgstar';bs.style.left=Math.random()*100+'%';bs.style.top=Math.random()*100+'%';bs.style.animationDelay=(Math.random()*2.5)+'s';sky.appendChild(bs);}
@@ -1984,10 +2027,10 @@ function showTrioOverlay_(data){
     var medal=rank===1?'🥇 1位':rank===2?'🥈 2位':'🥉 3位';
     var c=document.createElement('div');c.className='tcard'+(isMe?' me':'');c.setAttribute('data-r',rank);
     var bottom=isMe
-      ? '<div class="tc-mebadge">🎉 '+rank+'位 おめでとう！</div>'
+      ? '<div class="tc-mebadge">🎉 '+rank+'<ruby>位<rt class="uf">い</rt></ruby> おめでとう！</div>'
       : '<button class="tcheer'+(cheered[String(t.student_id)]?' sent':'')+'" data-to="'+t.student_id+'">'+(cheered[String(t.student_id)]?'✓ 応援した！':'👏 応援')+'</button>';
     c.innerHTML='<div class="tc-rank">'+medal+'</div>'
-      +'<div class="tc-ava">'+esc(ini)+'</div>'
+      +'<div class="tc-ava">'+iconAvatarHtml(t.icon,t.nickname)+'</div>'
       +'<div class="tc-nick">'+esc(t.nickname||'なかま')+'</div>'
       +'<div class="tc-eff">がんばり <b>'+t.score+'</b></div>'
       +'<div class="tc-sub">'+esc(trioSub_(t))+'</div>'
@@ -1998,8 +2041,8 @@ function showTrioOverlay_(data){
   // フッター
   var foot=document.createElement('div');foot.className='trio-foot';
   foot.innerHTML=(meRank>0)
-    ? 'きみは <b>'+meRank+'位</b> に入ったよ！ ほかのなかまも応援しよう。'
-    : 'きみも上位に入ると、みんなから <b>応援</b> がもらえるよ！';
+    ? 'きみは <b>'+meRank+'<ruby>位<rt class="uf">い</rt></ruby></b> に<ruby>入<rt class="uf">はい</rt></ruby>ったよ！ ほかのなかまも<ruby>応援<rt class="uf">おうえん</rt></ruby>しよう。'
+    : 'きみも<ruby>上位<rt class="uf">じょうい</rt></ruby>に<ruby>入<rt class="uf">はい</rt></ruby>ると、みんなから <b><ruby>応援<rt class="uf">おうえん</rt></ruby></b> がもらえるよ！';
   panel.appendChild(foot);
   var cta=document.createElement('button');cta.className='trio-cta';cta.textContent='やる気でた！はじめる';cta.onclick=close;
   panel.appendChild(cta);
@@ -2123,9 +2166,9 @@ function buildMate(m){
   var ini=(m.nickname||'?').slice(0,1);
   var meta='';
   if(m.did_today){
-    meta='<span class="today">今日やったよ！</span>';
-    if((m.streak||0)>=2)meta+='<span class="chip streak"><i class="ti ti-flame"></i> 連続'+m.streak+'日</span>';
-    meta+='<span class="chip week"><i class="ti ti-book"></i> 今週'+(m.week_words||0)+'語</span>';
+    meta='<span class="today"><ruby>今日<rt class="uf">きょう</rt></ruby>やったよ！</span>';
+    if((m.streak||0)>=2)meta+='<span class="chip streak"><i class="ti ti-flame"></i> <ruby>連続<rt class="uf">れんぞく</rt></ruby>'+m.streak+'<ruby>日<rt class="uf">にち</rt></ruby></span>';
+    meta+='<span class="chip week"><i class="ti ti-book"></i> <ruby>今週<rt class="uf">こんしゅう</rt></ruby>'+(m.week_words||0)+'<ruby>語<rt class="uf">ご</rt></ruby></span>';
   }else{
     meta=(m.last_studied?'さいご '+m.last_studied:'まだ学習がないよ');
   }
@@ -2142,7 +2185,7 @@ function buildMate(m){
     var bic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[m.top_badge.axis])||'ti-award';
     meta+='<span class="chip badge"><i class="ti '+bic+'"></i> '+m.top_badge.label+'</span>'; // バッジも今日のがんばりチップで 2026-07-11
   }
-  row.innerHTML='<div class="ava">'+ini+'</div><div class="info"><div class="nm">'+m.nickname+'</div><div class="meta">'+meta+'</div></div>'+likesHtml;
+  row.innerHTML='<div class="ava">'+iconAvatarHtml(m.icon,m.nickname)+'</div><div class="info"><div class="nm">'+m.nickname+'</div><div class="meta">'+meta+'</div></div>'+likesHtml;
   var mateNick=m.nickname||'なかま';
   row.querySelectorAll('.likebtn').forEach(function(b){
     if(b.disabled)return;
@@ -2268,7 +2311,7 @@ function renderTF(){
     h+='</tr>';});
   h+='</table>';
   $('tf-table').innerHTML=h;
-  $('tf-ask').style.display='';$('tf-ask').innerHTML='<b style="color:var(--accent)">'+(TF_CIRC[myN]||myN)+'</b> に入る形をえらぼう';
+  $('tf-ask').style.display='';$('tf-ask').innerHTML='<b style="color:var(--accent)">'+(TF_CIRC[myN]||myN)+'</b> に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>形<rt class="uf">かたち</rt></ruby>をえらぼう';
   var _tl=(s.content_type==='test')?0:qSecFor('table_fill'); // 表を読むため理社と同じ秒数（15秒）
   buildChoices('tf-choices',w.english,[],function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},
     {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,next:function(){nextWord();}});
@@ -2283,8 +2326,8 @@ function imgHoles(words,assetId){var out=[];words.forEach(function(x,i){if(x.qty
 function imgFigHtml(w,assets){var qd=tfParse(w);var a=(assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';var h='';/* 出題図はタイトル非表示＝答えバレ防止 2026-07-16 */h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';return h;}
 /* 解説画像（参考資料画像）2026-07-16：解説文の下に参考画像を1枚出す。qdata.kaisetsu_asset のアセットを使う（image_fillでない4択にも付く） */
 var _kaiImgCur='';var _curExW=null;
-function kaiImgHtml(w,assets){var qd=tfParse(w);var aid=qd&&qd.kaisetsu_asset;if(!aid)return '';var a=(assets||{})[aid]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';if(!url)return '';var h='<img src="'+esc(url)+'" alt="参考資料" onerror="this.style.opacity=.2;">';h+='<div class="tf-title">'+(a.title?esc(a.title)+'<br>':'')+'<span class="ex-zoom">タップで拡大</span></div>';return h;}
-function missWordsHtml(missIds,words){var uniq=(missIds||[]).filter(function(v,i){return missIds.indexOf(v)===i;});if(!uniq.length)return '';var byId={};(words||[]).forEach(function(w){byId[String(w.id||w.word_id)]=w;});var list=uniq.map(function(id){var w=byId[String(id)];if(!w)return '';var jp=(w.qtype==='image_fill')?'':('（'+esc(w.japanese)+'）');return '<div style="font-size:14px;padding:5px 0;border-top:1px solid var(--line);">'+esc(w.english)+jp+'</div>';}).filter(Boolean).join('');if(!list)return '';return '<div style="background:var(--surface);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;">まちがえた語句（'+uniq.length+'）— 見直そう</div>'+list+'</div>';}
+function kaiImgHtml(w,assets){var qd=tfParse(w);var aid=qd&&qd.kaisetsu_asset;if(!aid)return '';var a=(assets||{})[aid]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';if(!url)return '';var h='<img src="'+esc(url)+'" alt="参考資料" onerror="this.style.opacity=.2;">';h+='<div class="tf-title">'+(a.title?esc(a.title)+'<br>':'')+'<span class="ex-zoom">タップで<ruby>拡大<rt class="uf">かくだい</rt></ruby></span></div>';return h;}
+function missWordsHtml(missIds,words){var uniq=(missIds||[]).filter(function(v,i){return missIds.indexOf(v)===i;});if(!uniq.length)return '';var byId={};(words||[]).forEach(function(w){byId[String(w.id||w.word_id)]=w;});var list=uniq.map(function(id){var w=byId[String(id)];if(!w)return '';var jp=(w.qtype==='image_fill')?'':('（'+esc(w.japanese)+'）');return '<div style="font-size:14px;padding:5px 0;border-top:1px solid var(--line);">'+esc(w.english)+jp+'</div>';}).filter(Boolean).join('');if(!list)return '';return '<div style="background:var(--surface);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;">まちがえた<ruby>語句<rt class="uf">ごく</rt></ruby>（'+uniq.length+'）— <ruby>見<rt class="uf">み</rt></ruby><ruby>直<rt class="uf">なお</rt></ruby>そう</div>'+list+'</div>';}
 function quizToggle_(id){var e=document.getElementById(id);var a=document.getElementById(id+'-a');if(!e)return;var o=e.style.display==='none';e.style.display=o?'block':'none';quizOpen_[id]=o;if(a)a.className='ti '+(o?'ti-chevron-up':'ti-chevron-down');}
 function renderIMG(){
   var s=session,w=s.words[s.idx],qd=tfParse(w);
@@ -2293,9 +2336,9 @@ function renderIMG(){
   var holes=imgHoles(s.words,qd.asset);var myN=0;holes.forEach(function(hh,n){hh.n=n+1;if(hh.i===s.idx)myN=n+1;});
   var h='';
   /* 出題図はタイトル非表示＝答えバレ防止 2026-07-16（答えは解説で出す）。設問は図の上に大きく表示 */
-  var _askH=qd.num?('<b style="color:var(--accent)">'+esc(qd.num)+'</b> が指す部分の名前をえらぼう'):esc(qd.ask||'この名前をえらぼう');
+  var _askH=qd.num?('<b style="color:var(--accent)">'+esc(qd.num)+'</b> が<ruby>指<rt class="uf">さ</rt></ruby>す<ruby>部分<rt class="uf">ぶぶん</rt></ruby>の<ruby>名前<rt class="uf">なまえ</rt></ruby>をえらぼう'):esc(qd.ask||'この名前をえらぼう');
   h+='<div class="imgq-ask">'+_askH+'</div>';
-  if(!qd.num){h+='<div class="imgq-askhint">画像は覚える手がかり。まず問題文を読んで答えよう</div>';}
+  if(!qd.num){h+='<div class="imgq-askhint"><ruby>画像<rt class="uf">がぞう</rt></ruby>は<ruby>覚<rt class="uf">おぼ</rt></ruby>える<ruby>手<rt class="uf">て</rt></ruby>がかり。まず<ruby>問題文<rt class="uf">もんだいぶん</rt></ruby>を<ruby>読<rt class="uf">よ</rt></ruby>んで<ruby>答<rt class="uf">こた</rt></ruby>えよう</div>';}
   h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';
   if(holes.length>1){h+='<div class="imgq-track">';holes.forEach(function(hh){var st=hh.i<s.idx?'done':(hh.i===s.idx?'cur':'');var lb=hh.q.num||(TF_CIRC[hh.n]||hh.n);h+='<span class="'+st+'">'+esc(lb)+'</span>';});h+='</div>';}
   $('tf-table').innerHTML=h;
@@ -2625,34 +2668,34 @@ function hideQTimer(){stopQTimer();var w=$('qtimer');if(w)w.style.display='none'
 var QSEC={english:10};function qSecFor(subj){return QSEC[subj]||15;}
 /* ===== 採点中のTips（勉強法＋機能紹介・ランダム1つ）2026-07-09 川上さん承認。文＋エンブレム(任意)で拡張可 ===== */
 var TIPS=[
- {t:'暗記は「覚える」より「思い出す」ほうが力になる。答えを見る前に、まず思い出してみよう。'},
- {t:'一回で完ぺきにしなくていい。日をあけて「まだ覚えてる?」と試すほど、記憶に残る。'},
- {t:'見ながら「できた」は本番では出せない。何も見ずにできるかで確かめよう。'},
- {t:'まちがえた単語ほど、あとでもう一回やると効く。まちがいは伸びしろ。'},
- {t:'短くても毎日つづけるほうが、たまに長くやるより覚えやすい。'},
+ {t:'<ruby>暗記<rt class="uf">あんき</rt></ruby>は「<ruby>覚<rt class="uf">おぼ</rt></ruby>える」より「<ruby>思<rt class="uf">おも</rt></ruby>い<ruby>出<rt class="uf">だ</rt></ruby>す」ほうが<ruby>力<rt class="uf">ちから</rt></ruby>になる。<ruby>答<rt class="uf">こた</rt></ruby>えを<ruby>見<rt class="uf">み</rt></ruby>る<ruby>前<rt class="uf">まえ</rt></ruby>に、まず<ruby>思<rt class="uf">おも</rt></ruby>い<ruby>出<rt class="uf">だ</rt></ruby>してみよう。'},
+ {t:'<ruby>一回<rt class="uf">いっかい</rt></ruby>で<ruby>完<rt class="uf">かん</rt></ruby>ぺきにしなくていい。<ruby>日<rt class="uf">にち</rt></ruby>をあけて「まだ<ruby>覚<rt class="uf">おぼ</rt></ruby>えてる?」と<ruby>試<rt class="uf">ため</rt></ruby>すほど、<ruby>記憶<rt class="uf">きおく</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>る。'},
+ {t:'<ruby>見<rt class="uf">み</rt></ruby>ながら「できた」は<ruby>本番<rt class="uf">ほんばん</rt></ruby>では<ruby>出<rt class="uf">だ</rt></ruby>せない。<ruby>何<rt class="uf">なに</rt></ruby>も<ruby>見<rt class="uf">み</rt></ruby>ずにできるかで<ruby>確<rt class="uf">たし</rt></ruby>かめよう。'},
+ {t:'まちがえた<ruby>単語<rt class="uf">たんご</rt></ruby>ほど、あとでもう<ruby>一回<rt class="uf">いっかい</rt></ruby>やると<ruby>効<rt class="uf">き</rt></ruby>く。まちがいは<ruby>伸<rt class="uf">の</rt></ruby>びしろ。'},
+ {t:'<ruby>短<rt class="uf">みじか</rt></ruby>くても<ruby>毎日<rt class="uf">まいにち</rt></ruby>つづけるほうが、たまに<ruby>長<rt class="uf">なが</rt></ruby>くやるより<ruby>覚<rt class="uf">おぼ</rt></ruby>えやすい。'},
  {e:'star',t:'<b>【クロフネのなかま】</b>は、<ruby>今日<rt class="uf">きょう</rt></ruby>クロフネできみと<ruby>同<rt class="uf">おな</rt></ruby>じようにがんばった<ruby>仲間<rt class="uf">なかま</rt></ruby>。<ruby>応援<rt class="uf">おうえん</rt></ruby>を<ruby>送<rt class="uf">おく</rt></ruby>ってみよう。'},
- {e:'review',t:'<b>【おさらい】</b>は、忘れたころにもう一度出てくるしくみ。ここで思い出せると、しっかり定着する。'},
- {e:'note',t:'<b>【間違いノート】</b>は、きみがまちがえた単語だけを集めた自分専用の復習。ここをつぶすと点が伸びる。'},
- {e:'daily',t:'今日のぶんが終わっても、その先に進んでOK。<b>【毎日学習】</b>はやる気があるだけ先に行ける。'}
+ {e:'review',t:'<b>【おさらい】</b>は、<ruby>忘<rt class="uf">わす</rt></ruby>れたころにもう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>出<rt class="uf">で</rt></ruby>てくるしくみ。ここで<ruby>思<rt class="uf">おも</rt></ruby>い<ruby>出<rt class="uf">だ</rt></ruby>せると、しっかり<ruby>定着<rt class="uf">ていちゃく</rt></ruby>する。'},
+ {e:'note',t:'<b>【<ruby>間違<rt class="uf">まちが</rt></ruby>いノート】</b>は、きみがまちがえた<ruby>単語<rt class="uf">たんご</rt></ruby>だけを<ruby>集<rt class="uf">あつ</rt></ruby>めた<ruby>自分<rt class="uf">じぶん</rt></ruby><ruby>専用<rt class="uf">せんよう</rt></ruby>の<ruby>復習<rt class="uf">ふくしゅう</rt></ruby>。ここをつぶすと<ruby>点<rt class="uf">てん</rt></ruby>が<ruby>伸<rt class="uf">の</rt></ruby>びる。'},
+ {e:'daily',t:'<ruby>今日<rt class="uf">きょう</rt></ruby>のぶんが<ruby>終<rt class="uf">お</rt></ruby>わっても、その<ruby>先<rt class="uf">さき</rt></ruby>に<ruby>進<rt class="uf">すす</rt></ruby>んでOK。<b>【<ruby>毎日学習<rt class="uf">まいにちがくしゅう</rt></ruby>】</b>はやる<ruby>気<rt class="uf">き</rt></ruby>があるだけ<ruby>先<rt class="uf">さき</rt></ruby>に<ruby>行<rt class="uf">い</rt></ruby>ける。'}
 ];
 function tipEmblem_(e){
-  if(e==='star')return '<div class="tip-emb" style="background:rgba(202,162,74,.16);border-color:rgba(202,162,74,.35)"><i class="ti ti-star" style="color:var(--gold)"></i><b style="color:var(--gold)">流れ星</b></div>';
+  if(e==='star')return '<div class="tip-emb" style="background:rgba(202,162,74,.16);border-color:rgba(202,162,74,.35)"><i class="ti ti-star" style="color:var(--gold)"></i><b style="color:var(--gold)"><ruby>流<rt class="uf">なが</rt></ruby>れ<ruby>星<rt class="uf">ほし</rt></ruby></b></div>';
   if(e==='review')return '<div class="tip-emb" style="background:rgba(31,170,107,.12);border-color:rgba(31,170,107,.3)"><i class="ti ti-clock-bolt" style="color:var(--ok)"></i><b style="color:var(--ok)">おさらい</b></div>';
-  if(e==='note')return '<div class="tip-emb"><i class="ti ti-notebook" style="color:var(--accent)"></i><b>間違いノート</b></div>';
-  if(e==='daily')return '<div class="tip-emb" style="background:var(--accent-soft);border-color:rgba(10,108,255,.2)"><i class="ti ti-anchor" style="color:var(--accent)"></i><b style="color:var(--accent)">毎日学習</b></div>';
+  if(e==='note')return '<div class="tip-emb"><i class="ti ti-notebook" style="color:var(--accent)"></i><b><ruby>間違<rt class="uf">まちが</rt></ruby>いノート</b></div>';
+  if(e==='daily')return '<div class="tip-emb" style="background:var(--accent-soft);border-color:rgba(10,108,255,.2)"><i class="ti ti-anchor" style="color:var(--accent)"></i><b style="color:var(--accent)"><ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></b></div>';
   return '<div class="tip-emb" style="background:rgba(202,162,74,.14);border-color:rgba(202,162,74,.3)"><i class="ti ti-bulb" style="color:var(--gold)"></i><b style="color:var(--gold)">コツ</b></div>';
 }
 function tipHtml_(){var tp=TIPS[Math.floor(Math.random()*TIPS.length)];return '<div class="tip-card">'+tipEmblem_(tp.e)+'<div class="tip-txt">'+tp.t+'</div></div>';}
 /* 確認テストの完了：quiz_submit へ記録し、結果画面（正答率・前回比・間違えた単語）を出す。2026-07-10
    採点・合格判定はGAS側(quizSubmit)が sessionComplete と同一ロジックで実施。ここは表示のみ。 */
 function doneClearTtl_(){return '<div style="font-weight:800;font-size:20px;letter-spacing:-.01em;">ぜんぶクリア！おめでとう</div>'
- +'<div style="margin-top:5px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(202,162,74,.06));color:var(--gold);border:1px solid rgba(202,162,74,.35);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;"><i class="ti ti-anchor"></i> この教材ぜんぶ合格</div>';}
-function doneTodayDoneTtl_(){return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;">今日のぶん、完了！</div><div class="done-guide" style="margin-top:3px;">●が消えたよ。今日はここまででOK</div>';}
+ +'<div style="margin-top:5px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(202,162,74,.06));color:var(--gold);border:1px solid rgba(202,162,74,.35);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;"><i class="ti ti-anchor"></i> この<ruby>教材<rt class="uf">きょうざい</rt></ruby>ぜんぶ<ruby>合格<rt class="uf">ごうかく</rt></ruby></div>';}
+function doneTodayDoneTtl_(){return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;"><ruby>今日<rt class="uf">きょう</rt></ruby>のぶん、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div><div class="done-guide" style="margin-top:3px;">●が<ruby>消<rt class="uf">き</rt></ruby>えたよ。<ruby>今日<rt class="uf">きょう</rt></ruby>はここまででOK</div>';}
 function doneGuideHtml_(){return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;">'
  +'<div style="font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;"><i class="ti ti-sparkles" style="color:var(--gold)"></i> つぎは？</div>'
- +'<div style="font-size:12.8px;color:var(--sub);margin:6px 0 10px;">つぎの教材は先生が用意するよ。それまで、まちがえた単語で腕だめししよう。</div>'
+ +'<div style="font-size:12.8px;color:var(--sub);margin:6px 0 10px;">つぎの<ruby>教材<rt class="uf">きょうざい</rt></ruby>は<ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>用意<rt class="uf">ようい</rt></ruby>するよ。それまで、まちがえた<ruby>単語<rt class="uf">たんご</rt></ruby>で<ruby>腕<rt class="uf">うで</rt></ruby>だめししよう。</div>'
  +'<div style="display:flex;gap:8px;">'
- +'<button onclick="openHome();showSub(\'note\');" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;"><i class="ti ti-notebook"></i> 間違いノート</button>'
+ +'<button onclick="openHome();showSub(\'note\');" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;"><i class="ti ti-notebook"></i> <ruby>間違<rt class="uf">まちが</rt></ruby>いノート</button>'
  +'<button onclick="openHome();showSub(\'review\');" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;"><i class="ti ti-clock-bolt"></i> おさらい</button>'
  +'</div></div>';}
 function finishQuizSubmit_(){
@@ -2660,34 +2703,34 @@ function finishQuizSubmit_(){
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
   var score=termOnly?rr:Math.round((mr+rr)/2);
-  $('done-rate').innerHTML=termOnly?('正答 <b>'+rr+'</b>％'):('意味 '+mr+'％ ・ 日本語→英語 '+rr+'％');
+  $('done-rate').innerHTML=termOnly?('<ruby>正答<rt class="uf">せいとう</rt></ruby> <b>'+rr+'</b>％'):('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> '+rr+'％');
   animNum($('score-anim'),score,900);
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
-  $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(38)+'<span>記録を保存中…</span></div>';
+  $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(38)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>';
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
   $('btn-retry').style.display='flex';$('btn-next').style.display='none';lockBtns(true);
-  $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> もう一回うける';
+  $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> もう<ruby>一回<rt class="uf">いっかい</rt></ruby>うける';
   $('btn-retry').onclick=function(){startQuiz(s.quizPartId);};
-  $('btn-home').textContent='点数表にもどる';
+  $('btn-home').innerHTML='<ruby>点数表<rt class="uf">てんすうひょう</rt></ruby>にもどる';
   $('btn-home').onclick=function(){openHome();showSub('quiz');renderQuiz();};
   var _g=setTimeout(function(){lockBtns(false);},12000);
   var missU=(s.miss||[]).filter(function(v,i){return s.miss.indexOf(v)===i;}); // 重複除去（意味と日英で二重に入るため）
   call({action:'quiz_submit',part_id:s.quizPartId,total:s.total,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,miss_word_ids:missU}).then(function(d){
     clearTimeout(_g);lockBtns(false);var _db2=$('done-badge');if(_db2)_db2.style.display='';
-    if(!d.ok){$('star-area').innerHTML='';$('done-result').textContent='結果の保存に失敗しました。もう一回ためしてね';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}
+    if(!d.ok){$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>結果<rt class="uf">けっか</rt></ruby>の<ruby>保存<rt class="uf">ほぞん</rt></ruby>に<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました。もう<ruby>一回<rt class="uf">いっかい</rt></ruby>ためしてね';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}
     homeCacheClear_(); // 点数表を次に開くとき最新に
     var r=d.data;
-    if(r.passed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').textContent='合格！（'+r.pass_line+'％以上）';sndWin();flash();confetti(120);}
-    else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='あと <b>'+Math.max(0,r.pass_line-r.latest_rate)+'</b>％で合格！ もう一回うけてみよう';}
-    var delta=(r.delta==null)?'<span style="background:#eef1f5;color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;">はじめての受験</span>'
-      :(r.delta>0?'<span style="background:rgba(31,170,107,.15);color:var(--ok);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;">前回より ＋'+r.delta+'％</span>'
-      :(r.delta<0?'<span style="background:rgba(224,83,60,.13);color:var(--ng);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;">前回より '+r.delta+'％</span>'
-      :'<span style="background:#eef1f5;color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;">前回と同じ</span>'));
+    if(r.passed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+r.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';sndWin();flash();confetti(120);}
+    else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='あと <b>'+Math.max(0,r.pass_line-r.latest_rate)+'</b>％で<ruby>合格<rt class="uf">ごうかく</rt></ruby>！ もう<ruby>一回<rt class="uf">いっかい</rt></ruby>うけてみよう';}
+    var delta=(r.delta==null)?'<span style="background:#eef1f5;color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;">はじめての<ruby>受験<rt class="uf">じゅけん</rt></ruby></span>'
+      :(r.delta>0?'<span style="background:rgba(31,170,107,.15);color:var(--ok);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>より ＋'+r.delta+'％</span>'
+      :(r.delta<0?'<span style="background:rgba(224,83,60,.13);color:var(--ng);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>より '+r.delta+'％</span>'
+      :'<span style="background:#eef1f5;color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>と<ruby>同<rt class="uf">おな</rt></ruby>じ</span>'));
     var byId={};(s.words||[]).forEach(function(w){byId[String(w.id)]=w;});
     var missWords=missU.map(function(id){var w=byId[String(id)];return w?(esc(w.english)+'（'+esc(w.japanese)+'）'):'';}).filter(Boolean);
     var missHtml=missWords.length
-      ?('<div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;">まちがえた単語（'+missWords.length+'）— 見直そう</div>'+missWords.map(function(x){return '<div style="font-size:14px;padding:4px 0;border-top:1px solid var(--line);">'+x+'</div>';}).join('')+'</div>')
-      :'<div style="margin-top:14px;color:var(--ok);font-weight:700;">全部正解！ かんぺき⚓</div>';
+      ?('<div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;">まちがえた<ruby>単語<rt class="uf">たんご</rt></ruby>（'+missWords.length+'）— <ruby>見<rt class="uf">み</rt></ruby><ruby>直<rt class="uf">なお</rt></ruby>そう</div>'+missWords.map(function(x){return '<div style="font-size:14px;padding:4px 0;border-top:1px solid var(--line);">'+x+'</div>';}).join('')+'</div>')
+      :'<div style="margin-top:14px;color:var(--ok);font-weight:700;"><ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby>！ かんぺき⚓</div>';
     $('star-area').innerHTML='<div style="text-align:center;margin:6px 0 2px;">'+delta+'</div>'+missHtml;
   });
 }
@@ -2697,29 +2740,29 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   var termOnly=(s.isEnglish===false)||s.tfOnly;
   var score=termOnly?rr:Math.round((mr+rr)/2);
   if(termOnly){$('done-rate').innerHTML=(s.tfOnly?'正答':'用語')+' <b>'+rr+'</b>％';}
-  else{$('done-rate').innerHTML='意味 <span id="done-mr">'+mr+'</span>％ ・ 日本語→英語 <span id="done-rr">'+rr+'</span>％';}
+  else{$('done-rate').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr">'+mr+'</span>％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> <span id="done-rr">'+rr+'</span>％';}
   animNum($('score-anim'),score,900); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）
   try{renderDoneTiles_(score,maxCombo,ansCount,(s.startedMs?(Date.now()-s.startedMs):0));}catch(e){} // 完了3タイル 2026-07-24
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=missWordsHtml(s.miss,s.words);
   var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
-  $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(38)+'<span>記録を保存中…</span></div>'+tipHtml_();
+  $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(38)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>'+tipHtml_();
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
   $('btn-retry').style.display='flex';$('btn-next').style.display='none';$('btn-next').className='btn gold';lockBtns(true);
   var _dg0=$('done-guide-area');if(_dg0)_dg0.innerHTML='';var _bh=$('btn-home');if(_bh){_bh.textContent='ホームへもどる';_bh.onclick=function(){openHome();};}
   var _saveGuard=setTimeout(function(){lockBtns(false);},12000); // 保存が返らなくてもボタンは戻す（詰み防止）
   call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,word_ids:(s.words||[]).map(function(w){return w.id;}),mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:(Date.now()-(s.startedMs||Date.now())),rush_wrong_count:Object.keys(s._rushWords||{}).length}).then(function(d){
     clearTimeout(_saveGuard);lockBtns(false);var _db2=$('done-badge');if(_db2)_db2.style.display='';
-    if(!d.ok){$('star-area').innerHTML='';$('done-result').textContent='結果の保存に失敗しました。もう一回ためしてね';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
+    if(!d.ok){$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>結果<rt class="uf">けっか</rt></ruby>の<ruby>保存<rt class="uf">ほぞん</rt></ruby>に<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました。もう<ruby>一回<rt class="uf">いっかい</rt></ruby>ためしてね';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
     /* 高速化 2026-07-15：今日のがんばり集計＋word_statsは保存(session_complete)の待ちから外し、
        完了後に complete_extras を裏で取得してチップを出す。保存本体はこの前に確定済み＝失敗しても学習データは無事。 */
     (function(){var ar=$('today-did-area');if(!ar)return;ar.innerHTML='';
       call({action:'complete_extras',part_id:s.listId,word_ids:(s.words||[]).map(function(w){return w.id;}),miss_word_ids:s.miss}).then(function(ex){
         if(!ex||!ex.ok||!ex.data)return;var d2=ex.data;var chips='';
         try{var _tk=(d2.today_streak||0),_td=todayStr_();if(_tk>=1&&localStorage.getItem('kwt_cele_shown')!==_td){localStorage.setItem('kwt_streak_pending',JSON.stringify({date:_td,streak:_tk}));}}catch(e){} // ホーム復帰お祝いの予約（その日はじめて）2026-07-24
-        if((d2.today_streak||0)>=2)chips+='<span class="chip streak"><i class="ti ti-flame"></i> 連続'+d2.today_streak+'日</span>';
-        if((d2.week_words||0)>0)chips+='<span class="chip week"><i class="ti ti-book"></i> 今週'+d2.week_words+'語</span>';
+        if((d2.today_streak||0)>=2)chips+='<span class="chip streak"><i class="ti ti-flame"></i> <ruby>連続<rt class="uf">れんぞく</rt></ruby>'+d2.today_streak+'<ruby>日<rt class="uf">にち</rt></ruby></span>';
+        if((d2.week_words||0)>0)chips+='<span class="chip week"><i class="ti ti-book"></i> <ruby>今週<rt class="uf">こんしゅう</rt></ruby>'+d2.week_words+'<ruby>語<rt class="uf">ご</rt></ruby></span>';
         if(d2.today_top_badge){var tb=d2.today_top_badge;var bic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[tb.axis])||'ti-award';chips+='<span class="chip badge"><i class="ti '+bic+'"></i> '+tb.label+'</span>';}
-        if(chips)ar.innerHTML='<div class="today-did"><div class="h"><i class="ti ti-flame"></i> きみの今日のがんばり</div><div class="row">'+chips+'</div></div>';
+        if(chips)ar.innerHTML='<div class="today-did"><div class="h"><i class="ti ti-flame"></i> きみの<ruby>今日<rt class="uf">きょう</rt></ruby>のがんばり</div><div class="row">'+chips+'</div></div>';
       });
     })();
     var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').textContent=d.data.lap+'周目';}else{dl.style.display='none';}}
@@ -2728,7 +2771,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
       $('btn-next').style.display='none';
       if(d.data.review_graduated){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML='卒業！🎓 このパートは もう出てこないよ';sndWin();flash();confetti(140);}
       else if(d.data.review_full){$('done-badge').innerHTML='<i class="ti ti-star" style="color:var(--gold)"></i>';$('done-result').innerHTML='今日は 100%！ でも卒業は、あした もう一度 100%を とれたら だよ';sndWin();flash();}
-      else{var _rem=termOnly?(s.total-s.reverseCorrect):((s.total-s.meaningCorrect)+(s.total-s.reverseCorrect));$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='あと <b>'+_rem+'</b>問で 100%！<br><span class="done-guide">今日は「もう一回やる」で練習できるよ。あした 100%で 卒業（もう出てこない）だよ</span>';}
+      else{var _rem=termOnly?(s.total-s.reverseCorrect):((s.total-s.meaningCorrect)+(s.total-s.reverseCorrect));$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='あと <b>'+_rem+'</b><ruby>問<rt class="uf">もん</rt></ruby>で 100%！<br><span class="done-guide"><ruby>今日<rt class="uf">きょう</rt></ruby>は「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で<ruby>練習<rt class="uf">れんしゅう</rt></ruby>できるよ。あした 100%で <ruby>卒業<rt class="uf">そつぎょう</rt></ruby>（もう<ruby>出<rt class="uf">で</rt></ruby>てこない）だよ</span>';}
       /* 点数は保存前に表示済み（2026-07-08）*/
       if(s.miss.length){$('done-miss').textContent='まちがえた単語：'+s.miss.length+'個（復習にまわしたよ）';}else{$('done-miss').textContent='';}
       loadStar();return;
@@ -2738,12 +2781,12 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
       if(d.data.passed){sndWin();flash();confetti(120);
         if(d.data.completed_material){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML=doneClearTtl_();confetti(180);$('done-guide-area').innerHTML=doneGuideHtml_();}
         else{$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML=doneTodayDoneTtl_();
-          if(d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> つづけて先取り（つぎのパート）';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}}
+          if(d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> つづけて<ruby>先取<rt class="uf">さきど</rt></ruby>り（つぎのパート）';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}}
       else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='今日のぶんは <b>まだ終わっていない</b>よ（<span style=\"color:#e0574b;\">●</span>がのこってるよ）。<br><span class=\"done-guide\">「もう一回やる」で <b>80%</b> とれたら、今日のぶん完了！</span>';}
     }else if(d.data.passed){sndWin();flash();confetti(120);
       if(d.data.completed_material){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML=doneClearTtl_();confetti(180);$('done-guide-area').innerHTML=doneGuideHtml_();}
       else{$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML=doneTodayDoneTtl_();
-        if(d.data.advanced&&d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> つづけて先取り（つぎのDAY）';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}
+        if(d.data.advanced&&d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> つづけて<ruby>先取<rt class="uf">さきど</rt></ruby>り（つぎのDAY）';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}
     }else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='今日のぶんは <b>まだ終わっていない</b>よ（<span style=\"color:#e0574b;\">●</span>がのこってるよ）。<br><span class=\"done-guide\">「もう一回やる」で <b>80%</b> とれたら、今日のぶん完了！</span>';}
     /* 点数は保存前に表示済み（2026-07-08）*/
     if(s.miss.length){$('done-miss').textContent='まちがえた単語：'+s.miss.length+'個（復習にまわしたよ）';}else{$('done-miss').textContent='';}
@@ -2775,7 +2818,7 @@ function pumpGrades_(){
   call(job.p).then(function(d){
     if(d&&d.ok){gradeQueue.shift();gradeBusy=false;if(job.cb){try{job.cb(d);}catch(e){}}pumpGrades_();return;}
     job.tries++;
-    if(job.tries>=3){gradeQueue.shift();gradeFailed++;gradeBusy=false;toast('記録の保存に失敗しました');pumpGrades_();return;}
+    if(job.tries>=3){gradeQueue.shift();gradeFailed++;gradeBusy=false;toastH('<ruby>記録<rt class="uf">きろく</rt></ruby>の<ruby>保存<rt class="uf">ほぞん</rt></ruby>に<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました');pumpGrades_();return;}
     setTimeout(function(){gradeBusy=false;pumpGrades_();},1200*job.tries);
   });
 }
@@ -2801,13 +2844,13 @@ function renderReviewFin_(){
 }
 function loadNotes(){
   var order=['english','science','social','japanese','math'];
-  var area=$('note-area');area.innerHTML='<div class="loading">読み込み中…</div>';
+  var area=$('note-area');area.innerHTML='<div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div>';
   callCached({action:'notes_summary'},function(d){
     var subs=(d&&d.ok&&d.data.subjects)?d.data.subjects.slice():[];
     subs=subs.filter(function(x){return (x.count||0)>0;});
     subs.sort(function(a,b){return order.indexOf(a.subject)-order.indexOf(b.subject);});
     var totalN=subs.reduce(function(a,b){return a+(b.count||0);},0);
-    $('cnt-note').innerHTML=totalN?('<b>'+totalN+'</b> 語のこり'):'<b style="color:var(--ok)">ぜんぶ 直した！</b>';
+    $('cnt-note').innerHTML=totalN?('<b>'+totalN+'</b> <ruby>語<rt class="uf">ご</rt></ruby>のこり'):'<b style="color:var(--ok)">ぜんぶ <ruby>直<rt class="uf">なお</rt></ruby>した！</b>';
     dailyState.note=true;renderDaily(); // 間違いノートはデイリー完了に含めない（2026-07-24）
     var dn=$('dot-note');if(dn)dn.style.display=totalN>0?'block':'none'; // 間違いがあればカードに赤丸
     _reviewTileDone_('tile-note',totalN===0); // 完了なら緑
@@ -2815,10 +2858,10 @@ function loadNotes(){
     _revDone.note=(totalN===0);renderReviewFin_();
     _revNum.note=totalN;setReviewNavNum_(); // ふくしゅうバッジに間違いノート残りも含める
     area.innerHTML='';
-    if(!totalN){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">間違いゼロ！</div><div class="sub">いまは復習する単語がありません</div></div></div>';return;}
+    if(!totalN){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl"><ruby>間違<rt class="uf">まちが</rt></ruby>いゼロ！</div><div class="sub">いまは<ruby>復習<rt class="uf">ふくしゅう</rt></ruby>する<ruby>単語<rt class="uf">たんご</rt></ruby>がありません</div></div></div>';return;}
     subs.forEach(function(c){
       var card=document.createElement('div');card.className='note-card';
-      card.innerHTML='<div class="note-ic"><i class="ti ti-notebook"></i></div><div class="t"><div class="ttl">間違いノート（'+subjLabel(c.subject)+'）</div><div class="sub">2<ruby>回<rt class="uf">かい</rt></ruby><ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby>で<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！</div></div><div class="cnt">'+c.count+'<small> 語</small></div>';
+      card.innerHTML='<div class="note-ic"><i class="ti ti-notebook"></i></div><div class="t"><div class="ttl"><ruby>間違<rt class="uf">まちが</rt></ruby>いノート（'+subjLabel(c.subject)+'）</div><div class="sub">2<ruby>回<rt class="uf">かい</rt></ruby><ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby>で<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！</div></div><div class="cnt">'+c.count+'<small> <ruby>語<rt class="uf">ご</rt></ruby></small></div>';
       card.onclick=function(){openNote(c.subject);};
       area.appendChild(card);
     });
@@ -2826,14 +2869,14 @@ function loadNotes(){
 }
 /* 間違いノートを開く：クリック時に単語を取得してから開始（2026-07-04） */
 function openNote(subject){
-  toast('よみこみ中…');
+  toastH('<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…');
   call({action:'mistake_set',subject:subject}).then(function(d){
     if(d&&d.ok&&d.data.words&&d.data.words.length){startNote(subject,d.data.words,d.data.assets);}
-    else{toast('復習する単語がありません');loadNotes();}
+    else{toastH('<ruby>復習<rt class="uf">ふくしゅう</rt></ruby>する<ruby>単語<rt class="uf">たんご</rt></ruby>がありません');loadNotes();}
   });
 }
 function startNote(subject,words,assets){
-  if(!words||!words.length){toast('復習する単語がありません');return;}
+  if(!words||!words.length){toastH('<ruby>復習<rt class="uf">ふくしゅう</rt></ruby>する<ruby>単語<rt class="uf">たんご</rt></ruby>がありません');return;}
   show('scr-practice');combo=0;
   gradeReset_(); // 採点キュー初期化 2026-07-05
   noteSes={subject:subject,words:words,idx:0,step:(subject==='english'?2:3),wordOK:true,cleared:0,clearedWords:[],total:words.length,assets:(assets||{}),miss:[]};
@@ -2845,7 +2888,7 @@ function renderNoteStep(){hideQTimer();
   $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
   $('step-label').textContent='復習 '+(s.idx+1)+' / '+tot+'語目';
   if(w.qtype==='image_fill'){ // 図問題はノートでも図を出す（qdata.choices使用）2026-07-12
-    var qi=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').style.display='';$('tf-ask').innerHTML=qi.num?('<b style="color:var(--accent)">'+esc(qi.num)+'</b> が指す部分をえらぼう'):esc(qi.ask||'この生物の名前をえらぼう');
+    var qi=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').style.display='';$('tf-ask').innerHTML=qi.num?('<b style="color:var(--accent)">'+esc(qi.num)+'</b> が<ruby>指<rt class="uf">さ</rt></ruby>す<ruby>部分<rt class="uf">ぶぶん</rt></ruby>をえらぼう'):esc(qi.ask||'この生物の名前をえらぼう');
     buildNoteChoices('tf-choices',w.english,(qi.choices||[]).filter(function(x){return x!==w.english;}),function(ok){if(!ok)s.wordOK=false;},{kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitNoteWord();}});
     $('step-tf').style.display='block';return;
   }
@@ -2917,8 +2960,8 @@ function finishNote(){
   $('done-rate').textContent='';
   $('done-score-wrap').style.display='none';var _dtn=$('done-tiles');if(_dtn)_dtn.innerHTML='';
   // 採点（保存）中：スピナー＋Tips（成功と偽らない・待ちを価値に）2026-07-13
-  $('done-miss').textContent='記録を保存中…';
-  $('star-area').innerHTML='<div class="note-saving"><div class="sw-load">'+kwtSpin(30)+'<span>記録を保存しています…</span></div>'+tipHtml_()+'</div>';
+  $('done-miss').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
+  $('star-area').innerHTML='<div class="note-saving"><div class="sw-load">'+kwtSpin(30)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby>しています…</span></div>'+tipHtml_()+'</div>';
   whenGradesFlushed(function(){
     if(gradeFailed>0){
       $('star-area').innerHTML='';
@@ -2928,7 +2971,7 @@ function finishNote(){
       var n=s.cleared||0;
       if(n>0){
         $('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';
-        $('done-result').innerHTML='<span class="num" id="note-gnum">0</span>語 卒業！🎓';
+        $('done-result').innerHTML='<span class="num" id="note-gnum">0</span><ruby>語<rt class="uf">ご</rt></ruby> <ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓';
         $('done-miss').innerHTML='2<ruby>回<rt class="uf">かい</rt></ruby><ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby>でクリアした<ruby>単語<rt class="uf">たんご</rt></ruby>だよ。よくがんばった！';
         $('star-area').innerHTML=noteGradCardHtml_(s.clearedWords||[]);
         var gn=$('note-gnum');if(gn)animNum(gn,n,900);
@@ -2937,24 +2980,24 @@ function finishNote(){
         $('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';
         $('done-result').textContent='復習 おつかれさま！';
         $('done-miss').innerHTML='<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>はあと<ruby>一歩<rt class="uf">いっぽ</rt></ruby>。<b style="color:var(--ink)">2<ruby>回<rt class="uf">かい</rt></ruby><ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby></b>でクリアだよ。もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やってみよう！';
-        $('star-area').innerHTML='<div class="note-none"><i class="ti ti-seedling"></i>今日つぶした分は、記憶に残りはじめてる。くり返すほど「思い出せる」に変わっていくよ。</div>';
+        $('star-area').innerHTML='<div class="note-none"><i class="ti ti-seedling"></i><ruby>今日<rt class="uf">きょう</rt></ruby>つぶした<ruby>分<rt class="uf">ぶん</rt></ruby>は、<ruby>記憶<rt class="uf">きおく</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>りはじめてる。くり<ruby>返<rt class="uf">かえ</rt></ruby>すほど「<ruby>思<rt class="uf">おも</rt></ruby>い<ruby>出<rt class="uf">だ</rt></ruby>せる」に<ruby>変<rt class="uf">か</rt></ruby>わっていくよ。</div>';
       }
     }
     $('btn-retry').style.display='flex';
-    $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> もう一回やる';
+    $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる';
     $('btn-retry').onclick=function(){noteRetry(s.subject);};
   });
 }
 function noteGradCardHtml_(words){
   var lis=(words||[]).map(function(w,i){return '<div class="gword" style="animation-delay:'+(0.12+i*0.1)+'s"><span class="gw-chk"><i class="ti ti-check"></i></span><span class="gw-en">'+String(w.en||'')+'</span><span class="gw-ja">'+String(w.ja||'')+'</span></div>';}).join('');
-  return '<div class="grad-card"><div class="grad-h"><i class="ti ti-award"></i>卒業した単語<span class="grad-cap">もう間違いノートに出てこないよ</span></div>'+lis+'</div>';
+  return '<div class="grad-card"><div class="grad-h"><i class="ti ti-award"></i><ruby>卒業<rt class="uf">そつぎょう</rt></ruby>した<ruby>単語<rt class="uf">たんご</rt></ruby><span class="grad-cap">もう<ruby>間違<rt class="uf">まちが</rt></ruby>いノートに<ruby>出<rt class="uf">で</rt></ruby>てこないよ</span></div>'+lis+'</div>';
 }
 /* 間違いノートの「もう一回」：最新のactiveを取り直して再開（卒業済みは除外される） */
 function noteRetry(subject){
   showPracticeLoading_();
   whenGradesFlushed(function(){ // 裏送信が残ったまま取り直すと卒業済みが混ざる 2026-07-05
   call({action:'mistake_set',subject:subject}).then(function(d){
-    if(!d.ok||!d.data.words.length){toast('間違いはもうありません！');openHome();return;}
+    if(!d.ok||!d.data.words.length){toastH('<ruby>間違<rt class="uf">まちが</rt></ruby>いはもうありません！');openHome();return;}
     startNote(subject,d.data.words,d.data.assets);
   });
   });
@@ -2971,11 +3014,11 @@ function startReviewTest(partId){_fromReviewTest=true;startPractice(partId);}
 function buildReviewTestCard(m){
   var h=document.createElement('div');h.className='hero';
   var subj=m.subject?'<span class="hsubj">'+subjLabel(m.subject)+'</span>':'';
-  var lapPill=(m.lap>=2)?'<span class="hpill lap">'+m.lap+'周目</span>':'';
+  var lapPill=(m.lap>=2)?'<span class="hpill lap">'+m.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'';
   var partLine=esc(m.part_title||'');
-  if((m.times||1)>=2){partLine=(partLine?partLine+' <span class="rnd">・'+m.times+'回目</span>':'<span class="rnd">'+m.times+'回目</span>');}
+  if((m.times||1)>=2){partLine=(partLine?partLine+' <span class="rnd">・'+m.times+'<ruby>回<rt class="uf">かい</rt></ruby><ruby>目<rt class="uf">め</rt></ruby></span>':'<span class="rnd">'+m.times+'<ruby>回<rt class="uf">かい</rt></ruby><ruby>目<rt class="uf">め</rt></ruby></span>');}
   h.innerHTML='<div class="ring"><svg width="60" height="60"><circle cx="30" cy="30" r="25" fill="none" stroke="var(--ring-track)" stroke-width="6"></circle><circle cx="30" cy="30" r="25" fill="none" stroke="var(--gold)" stroke-width="6" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157" class="ringfg"></circle></svg><div class="pct"><i class="ti ti-flag" style="font-size:18px;color:var(--gold)"></i></div></div>'
-    +'<div style="flex:1;min-width:0;"><div class="htop"><span class="hpill test">単元別対策</span><span class="hpill" style="background:rgba(212,160,23,.14);color:var(--gold)">おさらい</span>'+subj+lapPill+'</div>'
+    +'<div style="flex:1;min-width:0;"><div class="htop"><span class="hpill test"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby><ruby>対策<rt class="uf">たいさく</rt></ruby></span><span class="hpill" style="background:rgba(212,160,23,.14);color:var(--gold)">おさらい</span>'+subj+lapPill+'</div>'
     +'<div class="course">'+esc(mtLabelMt(m))+'</div>'
     +(partLine?'<div class="list">'+partLine+'</div>':'')
     +'<div class="cta">はじめる <i class="ti ti-arrow-right"></i></div></div>';
@@ -2992,7 +3035,7 @@ function loadReviewSrs(){
     var rtot=(d.data.due_total||ws.length);
     var trv=d.data.test_reviews||[]; // テスト配信おさらい（卒業方式・スライス3 2026-07-08）
     var trvUndone=trv.filter(function(c){return !c.studied_today;}).length;
-    var lbl=[];if(rtot>0)lbl.push('<b>'+rtot+'</b> 語');if(trvUndone>0)lbl.push('<b>'+trvUndone+'</b> パート');
+    var lbl=[];if(rtot>0)lbl.push('<b>'+rtot+'</b> <ruby>語<rt class="uf">ご</rt></ruby>');if(trvUndone>0)lbl.push('<b>'+trvUndone+'</b> パート');
     var anyReview=(rtot>0)||(trvUndone>0);
     $('cnt-review').innerHTML=lbl.length?lbl.join(' + '):'<b style="color:var(--ok)">ぜんぶ できた</b>';
     _revNum.osarai=(rtot||0)+(trvUndone||0);setReviewNavNum_();
@@ -3005,12 +3048,12 @@ function loadReviewSrs(){
       var n=ws.length, total=d.data.due_total||n;
       var card=document.createElement('div');card.className='note-card';
       var more=(total>n)?('　ほか'+(total-n)+'語は明日'):'';
-      card.innerHTML='<div class="note-ic"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おさらい</div><div class="sub">わすれない うちに もう一回'+more+'</div></div><div class="cnt">'+n+'<small> 語</small></div>';
+      card.innerHTML='<div class="note-ic"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おさらい</div><div class="sub">わすれない うちに もう<ruby>一回<rt class="uf">いっかい</rt></ruby>'+more+'</div></div><div class="cnt">'+n+'<small> <ruby>語<rt class="uf">ご</rt></ruby></small></div>';
       card.onclick=function(){startReviewSrs(ws,d.data.assets);};
       area.appendChild(card);
     }
     trv.forEach(function(m){area.appendChild(buildReviewTestCard(m));}); // 本日の学習と同じ様式・自動反復の後に並べる
-    if(!ws.length&&!trv.length){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub">合格した単語やテストが、ここに出てくるよ</div></div></div>';}
+    if(!ws.length&&!trv.length){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub"><ruby>合格<rt class="uf">ごうかく</rt></ruby>した<ruby>単語<rt class="uf">たんご</rt></ruby>やテストが、ここに<ruby>出<rt class="uf">で</rt></ruby>てくるよ</div></div></div>';}
   });
 }
 function startReviewSrs(words,assets){
@@ -3026,7 +3069,7 @@ function renderSrsStep(){
   $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
   $('step-label').textContent='復習 '+(s.idx+1)+' / '+tot+'語目';
   if(w.qtype==='image_fill'){ // 図問題はおさらいでも図を出す 2026-07-12
-    var qi2=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').style.display='';$('tf-ask').innerHTML=qi2.num?('<b style="color:var(--accent)">'+esc(qi2.num)+'</b> が指す部分をえらぼう'):esc(qi2.ask||'この生物の名前をえらぼう');
+    var qi2=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').style.display='';$('tf-ask').innerHTML=qi2.num?('<b style="color:var(--accent)">'+esc(qi2.num)+'</b> が<ruby>指<rt class="uf">さ</rt></ruby>す<ruby>部分<rt class="uf">ぶぶん</rt></ruby>をえらぼう'):esc(qi2.ask||'この生物の名前をえらぼう');
     buildChoices('tf-choices',w.english,[],function(ok){if(!ok)s.wordOK=false;},{fixedChoices:(qi2.choices||[]),timeLimit:qSecFor('table_fill'),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitSrsWord();}});
     $('step-tf').style.display='block';return;
   }
@@ -3079,7 +3122,7 @@ function finishSrs(){
   var _dw=s.doneWords||[];
   $('done-rate').textContent=_dw.length?('英語 '+_dw.length+'語（'+_dw.slice(0,3).join('・')+(_dw.length>3?' ほか'+(_dw.length-3)+'語':'')+'）をおさらいしたよ'):'';
   // 記録の保存（裏送信キュー）が終わるまで結果を確定しない（gas-html-checklist：成功と偽らない）2026-07-05
-  $('done-miss').textContent='記録を保存中…';
+  $('done-miss').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
   whenGradesFlushed(function(){
     if(gradeFailed>0){$('done-miss').textContent='⚠ 一部の記録を保存できませんでした。電波の良いところで もう一回やってね';return;}homeCacheClear_();/* おさらい完了でホームキャッシュ無効化（案A 2026-07-08）*/
     // つぎはいつ出るか（川上さん承認モック 2026-07-05）：今日やった語のうち最短の次回日数
@@ -3105,8 +3148,8 @@ function loadBadges(){
     _streakDays=_stk;try{renderStreakCard_();}catch(e){} // 連続記録カード（記録タブ）2026-07-24
     var _sw=document.querySelector('.head .streak');
     if(_sw){
-      if(_stk>0){_sw.innerHTML='<i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b>日';animNum($('streak'),_stk,800);}
-      else{_sw.innerHTML='<span style="font-size:12px;color:var(--sub)">今日からスタート！</span>';} /* ストリーク0日表示（川上さん承認 2026-07-05） */
+      if(_stk>0){_sw.innerHTML='<i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b><ruby>日<rt class="uf">にち</rt></ruby>';animNum($('streak'),_stk,800);}
+      else{_sw.innerHTML='<span style="font-size:12px;color:var(--sub)"><ruby>今日<rt class="uf">きょう</rt></ruby>からスタート！</span>';} /* ストリーク0日表示（川上さん承認 2026-07-05） */
     }
     var got=list.filter(function(b){return b.achieved;}).length, tot=list.length; // ＋α除外後で数え直す（9バッジ基準）2026-07-24
     $('cnt-badge').innerHTML='<b>'+got+'</b> / '+tot;
@@ -3168,7 +3211,7 @@ function submitBug(){
   if(_bugSending)return;
   var cats=[];document.querySelectorAll('#bug-chips .bug-chip.sel').forEach(function(c){cats.push(c.getAttribute('data-cat'));});
   var msg=$('bug-msg').value.trim();
-  if(!cats.length&&!msg){toast('近いものを選ぶか、内容を書いてね');return;}
+  if(!cats.length&&!msg){toastH('<ruby>近<rt class="uf">ちか</rt></ruby>いものを<ruby>選<rt class="uf">えら</rt></ruby>ぶか、<ruby>内容<rt class="uf">ないよう</rt></ruby>を<ruby>書<rt class="uf">か</rt></ruby>いてね');return;}
   _bugSending=true;$('bug-send').disabled=true;
   $('bug-form').style.display='none';$('bug-send-pane').style.display='block';$('bug-spin').innerHTML=kwtSpin(72);
   var reportId='BR_'+Date.now()+'_'+Math.random().toString(36).slice(2,10); /* 冪等キー：二重送信を弾く */
