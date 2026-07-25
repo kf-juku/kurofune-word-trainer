@@ -263,6 +263,7 @@
   input{width:100%;padding:14px;font-size:16px;border:1px solid var(--line);border-radius:13px;margin-bottom:11px;background:var(--surface);color:var(--ink);}
   input:focus{outline:none;border-color:var(--accent);}
   .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;font-family:inherit;font-size:16px;font-weight:700;border:none;border-radius:14px;background:var(--accent);color:#fff;cursor:pointer;transition:transform .12s;}
+.btn.danger{background:var(--ng);}
   .btn:active{transform:translateY(2px) scale(.99);}
   .btn.sub{background:var(--surface);color:var(--accent);border:1px solid var(--accent);}
   .btn.ghost{background:transparent;color:var(--sub);}
@@ -467,7 +468,9 @@
   /* プロフィールアイコン（OpenMoji SVG・全端末で同じ絵）2026-07-25 */
   .kwt-ico{display:inline-grid;place-items:center;width:100%;height:100%;line-height:0;}
   .kwt-ico svg{width:78%;height:78%;display:block;}
-  .h-ava{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;flex-shrink:0;margin-right:8px;overflow:hidden;}
+  .h-ava{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;flex-shrink:0;margin-right:8px;overflow:hidden;cursor:pointer;transition:transform .12s;}
+  .h-ava:active{transform:scale(.92);}
+  .h-ava i{color:var(--sub);font-size:19px;}
   #set-icon .sr-ic{overflow:hidden;}
   #set-icon-ic .kwt-ico svg{width:88%;height:88%;}
   .icgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px;}
@@ -856,7 +859,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       <div id="streak-pop" class="streak-pop" style="display:none;"><div class="sp-h"><i class="ti ti-flame"></i><ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby><ruby>日数<rt class="uf">にっすう</rt></ruby></div><ruby>毎日<rt class="uf">まいにち</rt></ruby>1<ruby>回<rt class="uf">かい</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>すると<ruby>日数<rt class="uf">にっすう</rt></ruby>が<ruby>増<rt class="uf">ふ</rt></ruby>えるよ。1<ruby>日<rt class="uf">にち</rt></ruby>でも<ruby>休<rt class="uf">やす</rt></ruby>むと0に<ruby>戻<rt class="uf">もど</rt></ruby>るよ。</div>
     </div>
     <div class="greet">
-      <div class="who"><div class="h-ava" id="hdr-ava" style="display:none"></div><div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div><button class="nick-edit" id="btn-nick-edit" aria-label="ニックネームを変更" title="ニックネームを変更"><i class="ti ti-pencil"></i></button></div>
+      <div class="who"><div class="h-ava" id="hdr-ava" role="button" tabindex="0" aria-label="アイコンを変える" title="アイコンを変える"></div><div><div class="hi">おかえり</div><div class="nick" id="nick">—</div></div><button class="nick-edit" id="btn-nick-edit" aria-label="ニックネームを変更" title="ニックネームを変更"><i class="ti ti-pencil"></i></button></div>
       <span class="oa" id="home-star-pop" style="display:none;" role="button" tabindex="0" aria-label="とどいた応援を見る"><span class="newdot"></span><span class="avs" id="star-avs"></span><i class="ti ti-sparkles oa-spk"></i><span class="oa-txt"><ruby>応援<rt class="uf">おうえん</rt></ruby> <b class="num" id="star-pop-n">0</b></span><i class="ti ti-chevron-right oa-arw"></i></span>
     </div>
     <div class="undername"><div id="chill-area"></div></div>
@@ -1046,7 +1049,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <p class="hint">またログインすれば、つづきから <ruby>勉強<rt class="uf">べんきょう</rt></ruby>できます。</p>
     <div class="row">
       <button class="btn ghost" id="logout-cancel" type="button">やめる</button>
-      <button class="btn" id="logout-yes" type="button">ログアウト</button>
+      <button class="btn danger" id="logout-yes" type="button">ログアウト</button>
     </div>
   </div>
 </div>
@@ -1116,7 +1119,7 @@ function iconInnerHtml_(k){return (k&&ICON_SVG[k])?('<span class="kwt-ico">'+ICO
 /* アバター中身：アイコンがあればSVG、無ければ頭文字（従来どおり） */
 function iconAvatarHtml(icon,nickname){if(icon&&ICON_SVG[icon])return iconInnerHtml_(icon);return esc((nickname||'?').slice(0,1));}
 /* 自分のアイコンをヘッダーと設定行に反映 */
-function applyMyIcon_(){var h=$('hdr-ava');if(h){if(myIcon&&ICON_SVG[myIcon]){h.innerHTML=iconInnerHtml_(myIcon);h.style.display='';}else{h.innerHTML='';h.style.display='none';}}try{syncIconRow_();}catch(e){}}
+function applyMyIcon_(){var h=$('hdr-ava');if(h){h.innerHTML=(myIcon&&ICON_SVG[myIcon])?iconInnerHtml_(myIcon):'<i class="ti ti-mood-smile"></i>';h.style.display='';}try{syncIconRow_();}catch(e){}}
 function syncIconRow_(){var ic=$('set-icon-ic'),val=$('set-icon-val');if(ic){ic.innerHTML=(myIcon&&ICON_SVG[myIcon])?iconInnerHtml_(myIcon):'<i class="ti ti-mood-smile"></i>';}if(val){val.textContent=(myIcon&&iconNameOf_(myIcon))?iconNameOf_(myIcon):'まだ えらんでいないよ';}}
 function renderIconGrid_(){var g=$('icon-grid');if(!g)return;var h='';ICON_LIST.forEach(function(o){h+='<div class="icpick'+(myIcon===o.k?' on':'')+'" data-k="'+o.k+'"><div class="ici kwt-ico">'+ICON_SVG[o.k]+'</div><div class="icl">'+o.nm+'</div></div>';});h+='<div class="icpick'+(myIcon===''?' on':'')+'" data-k=""><div class="ici" style="display:grid;place-items:center;color:var(--sub)"><i class="ti ti-user"></i></div><div class="icl">なし</div></div>';g.innerHTML=h;g.querySelectorAll('.icpick').forEach(function(el){el.onclick=function(){saveIcon_(el.getAttribute('data-k'));};});}
 function openIconModal(){renderIconGrid_();var er=$('icon-err');if(er)er.textContent='';var mk=$('icon-mask');if(mk)mk.classList.add('show');}
@@ -1702,6 +1705,7 @@ function openHome(){
   _bind('tile-overall',function(){showSub('overall');});
   _bind('set-nick',openNickModal);
   _bind('set-icon',openIconModal);
+  _bind('hdr-ava',openIconModal);
   _bind('set-theme',toggleTheme_);
   syncSettings_();
   _bind('tile-quiz',function(){showSub('quiz');renderQuiz();});
