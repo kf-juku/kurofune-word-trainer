@@ -798,7 +798,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   <section id="scr-home" class="screen">
     <div id="ptr-ind" class="ptr-ind" style="height:0px;"></div>
     <div class="head">
-      <span class="kt-logo kt-sm"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="en3"><span>Kurofune</span><span>Word</span><span>Trainer</span></span></span>
+      <span class="kt-logo kt-sm" id="hdr-logo" role="button" tabindex="0" aria-label="ホームに戻る" style="cursor:pointer;"><span class="kt-jp">クロ<span class="kt-u">トレ</span></span><span class="en3"><span>Kurofune</span><span>Word</span><span>Trainer</span></span></span>
       <div class="right">
         <div class="streak" role="button" tabindex="0" aria-label="連続学習日数のせつめい"><i class="ti ti-flame" style="color:var(--gold)"></i><b class="num" id="streak">0</b>日</div>
         <button class="iconbtn" id="themeBtn" aria-label="テーマ切替"><i class="ti ti-moon"></i></button>
@@ -1190,14 +1190,30 @@ function renderQuiz(){
       });
     });
     el.innerHTML=html;
+    try{var _qids=[];mats.forEach(function(g){(g.parts||[]).forEach(function(p){if(p.part_id)_qids.push(p.part_id);});});prefetchQuizSeq_(_qids);}catch(e){} // 一覧を開いたら裏で問題＋解説を先読み（一気にやっても軽い）2026-07-24
   });
 }
 /* 確認テスト 受験：既存の出題エンジン(_startPracticeWith_)を quizMode で流用。毎回シャッフル。2026-07-10 */
 function quizShuffle_(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+/* 確認テストの先読みキャッシュ（一覧を開いたら裏で問題＋解説をどんどん取得）2026-07-24 */
+var _qprefetch={}; // part_id -> データ(d) または 取得中Promise
+function prefetchQuizSeq_(ids){
+  ids=(ids||[]).filter(function(pid){return pid&&!_qprefetch[pid];});
+  var i=0,MAXQ=40; // 取りすぎ防止の上限
+  (function next(){
+    if(i>=ids.length||i>=MAXQ)return;
+    var pid=ids[i++];
+    if(_qprefetch[pid]){return next();}
+    var pr=call({action:'quiz_words',part_id:pid}).then(function(d){ if(d&&d.ok&&d.data&&d.data.words&&d.data.words.length){_qprefetch[pid]=d;}else{delete _qprefetch[pid];} return d; }).catch(function(){delete _qprefetch[pid];}).then(function(){ setTimeout(next,50); }); // 1件ずつ・裏で連続取得（バースト回避）
+    _qprefetch[pid]=pr;
+  })();
+}
 function startQuiz(partId){
   showPracticeLoading_();
   $('btn-next').style.display='none';$('btn-retry').style.display='flex';combo=0;maxCombo=0;ansCount=0;
-  call({action:'quiz_words',part_id:partId}).then(function(d){
+  var _c=_qprefetch[partId];
+  var _p=(_c&&_c.then)?_c:(_c?Promise.resolve(_c):call({action:'quiz_words',part_id:partId})); // 先読み済み/取得中があれば使う
+  _p.then(function(d){
     if(!d.ok||!d.data||!d.data.words||!d.data.words.length){toast((d&&d.error)||'単語がありません');openHome();showSub('quiz');renderQuiz();return;}
     var words=quizShuffle_(d.data.words.slice()); // 毎回シャッフル
     _fromReviewTest=false;
@@ -1595,6 +1611,7 @@ function openHome(){
   $('btn-nick-edit').onclick=openNickModal;
   backToTiles();
   $('btn-back').onclick=goBack_; // 「もどる」＝1つ前の画面へ（履歴が無ければホーム）2026-07-24
+  var _hl=$('hdr-logo');if(_hl){_hl.onclick=function(){try{showHomeTab(_homeTab||'daily');}catch(e){}};_hl.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();try{showHomeTab(_homeTab||'daily');}catch(e2){}}};} // 左上ロゴ→ホーム（サブ画面からでも）2026-07-24
   var _bind=function(id,fn){var e=$(id);if(e)e.onclick=fn;};
   _bind('home-star-pop',function(){showSub('team');});
   _bind('tile-records',function(){showSub('records');});

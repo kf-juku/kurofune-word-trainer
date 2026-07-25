@@ -924,6 +924,7 @@
         <span class="filter-count" id="teamCount"></span>
       </div>
       <div class="loading-msg" id="teamLoading" style="display:none;">読み込み中...</div>
+      <div id="teamUnassigned" style="margin-bottom:14px;"></div>
       <div class="team-grid" id="teamGrid"></div>
       <div class="empty-state" id="teamEmpty" style="display:none;">
         <div class="empty-state-icon"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
@@ -2343,7 +2344,27 @@ function loadTeams(){
   }).finally(function(){hideLoading();});
 }
 
+/* 未所属の生徒（教材割当済み＝つかう子 を目立たせる）2026-07-24 */
+function renderUnassigned_(){
+  var box=$('teamUnassigned');if(!box)return;
+  var un=(_unassigned||[]).slice();
+  if(!un.length){box.innerHTML='';return;}
+  un.sort(function(a,b){var am=a.has_material?0:1,bm=b.has_material?0:1;if(am!==bm)return am-bm;return String(a.name||'').localeCompare(String(b.name||''),'ja');}); // 割当済みを上に
+  var need=un.filter(function(u){return u.has_material;}).length;
+  var chips=un.map(function(u){
+    var nm=esc(u.name||'(無名)')+(u.nickname?'<span class="mc-nick">'+esc(u.nickname)+'</span>':'');
+    if(u.has_material){return '<span class="member-chip" style="background:#fff5f5;border-color:#f3b4b4;color:#a01018;font-weight:800;" title="教材割当済み＝つかう子。チーム未所属です">'+nm+' <span style="font-size:10px;color:#c0121e;">要編成</span></span>';}
+    return '<span class="member-chip" style="opacity:.7;" title="教材未割当">'+nm+'</span>';
+  }).join('');
+  box.innerHTML='<div class="team-card" style="border-color:#f0c4c4;">'
+    +'<div class="team-card-head"><span class="team-name">未所属の生徒</span>'
+    +(need>0?'<span class="badge" style="background:#fde8e8;color:#a01018;border:1px solid #f3b4b4;">教材割当済み '+need+'人</span>':'<span class="badge badge-gray">割当済みなし</span>')
+    +'<span class="team-count">'+un.length+'人</span></div>'
+    +'<div style="font-size:11.5px;color:var(--text-muted);margin:2px 0 8px;">赤＝教材割当済み（つかう子）なのにチーム未所属。編集からチームに入れてください。</div>'
+    +'<div class="team-members">'+chips+'</div></div>';
+}
 function renderTeams(){
+  try{renderUnassigned_();}catch(e){}
   var g=$('teamGrid');g.innerHTML='';
   $('teamCount').textContent=_teams.length+'チーム';
   if(!_teams.length){$('teamEmpty').style.display='';return;}
