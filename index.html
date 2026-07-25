@@ -695,6 +695,8 @@
   @keyframes flash{0%{opacity:0;}30%{opacity:1;}100%{opacity:0;}}
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:24px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:70;}
   .toast.show{opacity:1;}
+  /* 演出の登場直後、貯まっていた先行タップを一定時間すべて飲み込む透明レイヤー（要件：しっかり見えてからのタップで消す/押すのはOK）2026-07-25 */
+  .tap-guard{position:fixed;inset:0;z-index:9999;background:transparent;}
 
   /* ニックネーム変更モーダル */
   .nick-edit{margin-left:8px;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--sub);font-size:13px;display:inline-grid;place-items:center;cursor:pointer;vertical-align:middle;transition:transform .15s,color .15s;}
@@ -1190,6 +1192,20 @@ function backToTiles(){
 }
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1700);}
 function toastH(m){var t=$('toast');t.innerHTML=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1700);}
+/* 先行入力ガード：演出が出た瞬間から ms ミリ秒だけ、全画面の透明レイヤーで先行タップを飲み込む。
+   これで（1）オーバーレイの背景タップ暴発（2）pointer-events:none 演出を貫通して裏の次問に刺さる、を防ぐ。
+   ms 経過後にレイヤーを外すので、しっかり見えてからのタップは通常どおり効く。2026-07-25 */
+function guardTaps_(ms){
+  ms=ms||600;
+  var g=document.createElement('div');g.className='tap-guard';
+  var swallow=function(e){e.stopPropagation();if(e.cancelable)e.preventDefault();};
+  ['pointerdown','pointerup','click','touchstart','touchend','mousedown','mouseup'].forEach(function(ev){
+    g.addEventListener(ev,swallow,{capture:true,passive:false});
+  });
+  document.body.appendChild(g);
+  setTimeout(function(){try{g.remove();}catch(e){}},ms);
+  return g;
+}
 
 /* 🔥マークのタップ説明ポップ（イベント委譲＝ヘッダーの再描画に強い）2026-07-21 */
 document.addEventListener('click',function(e){
@@ -1445,6 +1461,7 @@ function showStreakCele_(n){
    +'<div style="text-align:center;"><span class="stk-plus"><i class="ti ti-flame"></i> ＋1</span></div>'
    +'<div class="stk-msg">'+msg+'</div></div>';
   mask.classList.add('show');try{sndWin();flash();}catch(e){}
+  guardTaps_(600); // 登場直後の先行タップで背景/✕が暴発して即閉じするのを防ぐ 2026-07-25
   setTimeout(function(){var el=$('stk-cele-num');if(el)animNum(el,n,700);},520);
   var close=function(){mask.classList.remove('show');if(_celeTimer){clearTimeout(_celeTimer);_celeTimer=null;}};
   var cb=$('stk-cele-close');if(cb)cb.onclick=close;
@@ -1965,8 +1982,11 @@ function buildStarCard(star){
     +cheer
     +'<div class="cheer-done"><i class="ti ti-send"></i><span class="cd-txt"></span></div>';
   var doneEl=wrap.querySelector('.cheer-done'),doneTxt=wrap.querySelector('.cd-txt');
+  // カードは1.1秒後にふわっと登場するので、それまで応援ボタンは無効化＝完了画面に飛び込んだ先行タップでの誤送信を防ぐ 2026-07-25
+  var _starArmed=false;setTimeout(function(){_starArmed=true;},1300);
   wrap.querySelectorAll('.cheerbtn').forEach(function(b){
     b.onclick=function(){
+      if(!_starArmed)return; // 登場前の先行タップは無視
       if(b.classList.contains('sent')||b.classList.contains('off'))return;
       var to=b.getAttribute('data-to'),type=b.getAttribute('data-type');
       b.classList.add('sent');
@@ -2055,6 +2075,7 @@ function showTrioOverlay_(data){
   panel.appendChild(cta);
   ov.appendChild(panel);
   document.body.appendChild(ov);
+  guardTaps_(600); // 登場直後の先行タップで背景/CTA/✕が暴発して即閉じするのを防ぐ 2026-07-25
   // 閉じる操作
   panel.querySelector('.trio-close').onclick=close;
   ov.addEventListener('click',function(e){if(e.target===ov)close();});
@@ -2957,7 +2978,7 @@ function submitNoteWord(){
   enqueueGrade({action:'review_complete',review_id:w.review_id,correct:correct},function(d){
     if(d.data&&d.data.cleared){s.cleared++;if(s.clearedWords)s.clearedWords.push({en:w.english,ja:w.japanese});} // 卒業演出はローカルで先に出すのでここはカウントのみ
   });
-  if(willGrad)gradPop_(w.english,w.japanese); // 答えた瞬間に卒業ポップ
+  if(willGrad){gradPop_(w.english,w.japanese);guardTaps_(600);} // 答えた瞬間に卒業ポップ＋先行タップが裏の次問に貫通しないようガード 2026-07-25
   var adv=function(){s.idx++;s.step=(s.subject==='english'?2:3);s.wordOK=true;if(s.idx>=s.words.length){finishNote();}else renderNoteStep();};
   if(willGrad){setTimeout(adv,750);}else{adv();} // 卒業時だけ一拍おいて次へ（読み込みではなく演出を見せるため）
 }
@@ -3118,7 +3139,7 @@ function submitSrsWord(){
     if(d.data&&d.data.graduated){s.graduated++;} // マスター演出はローカルで先に出すのでここはカウントのみ
     if(d.data&&!d.data.graduated&&d.data.next_days){var nd=d.data.next_days|0;if(!s.nextDays||nd<s.nextDays)s.nextDays=nd;}
   });
-  if(willGrad)toast('「'+w.english+'」をマスター！🎓'); // 答えた瞬間にマスタートースト
+  if(willGrad){toast('「'+w.english+'」をマスター！🎓');guardTaps_(600);} // 答えた瞬間にマスタートースト＋先行タップが裏の次問に貫通しないようガード 2026-07-25
   var adv=function(){s.idx++;s.step=2;s.wordOK=true;if(s.idx>=s.words.length){finishSrs();}else renderSrsStep();};
   if(willGrad){setTimeout(adv,750);}else{adv();} // 卒業時だけ一拍おいて次へ（読み込みではなく演出を見せるため）
 }
