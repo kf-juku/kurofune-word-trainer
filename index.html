@@ -840,7 +840,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 
       <!-- ===== サブビュー（タイルから遷移）===== -->
       <div id="home-sub">
-        <div class="subhead"><button class="btn-back" id="btn-back"><i class="ti ti-arrow-left"></i> ホーム</button><div class="subttl" id="sub-title">—</div></div>
+        <div class="subhead"><button class="btn-back" id="btn-back"><i class="ti ti-arrow-left"></i> もどる</button><div class="subttl" id="sub-title">—</div></div>
 
         <div class="subview" id="sv-records">
           <div id="rec-streak-card"></div>
@@ -1079,7 +1079,12 @@ function buildMapRow(l,isTest,inFold){
 }
 /* ===== タイル型ホームのビュー切替（2026-06-24）===== */
 var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でも復習',team:'チームのなかま',overall:'クロフネ全体',records:'じぶんの記録',quiz:'確認テスト'};
+/* 「もどる」用の画面履歴（1つ前に戻る）2026-07-24。従来のbtn-backは必ずホームへ戻っていたのを、1つ前の画面に戻す。 */
+var _navStack=[],_navBack=false;
+function _curViewKey_(){var v='';try{v=sessionStorage.getItem('kwt_view')||'';}catch(e){}return (v&&SUB_TITLES[v])?('sub:'+v):('tab:'+(_homeTab||'daily'));}
+function goBack_(){var prev=_navStack.pop();if(!prev){backToTiles();return;}_navBack=true;try{if(prev.indexOf('sub:')===0){showSub(prev.slice(4));}else{showHomeTab(prev.slice(4));}}finally{_navBack=false;}}
 function showSub(name){
+  if(!_navBack){try{var cur=_curViewKey_();if(cur!==('sub:'+name))_navStack.push(cur);}catch(e){}} // 今の画面を履歴に積む（戻る用）
   try{sessionStorage.setItem('kwt_view',name);}catch(e){} // スマホ更新で最後の画面を復元（川上さん確定2026-07-06）
   try{if(name==='team')setTab5_('team');else if(name==='records'||name==='overall'||name==='badge'||name==='lists')setTab5_('record');}catch(e){}
   $('home-tiles').style.display='none';
@@ -1092,6 +1097,7 @@ function showSub(name){
   window.scrollTo(0,0);
 }
 function backToTiles(){
+  if(!_navBack)_navStack.length=0; // ホームに戻ったら履歴もクリア
   try{sessionStorage.removeItem('kwt_view');}catch(e){} // ホームに戻ったら復元対象を解除
   try{setTab5_(_homeTab||'daily');}catch(e){}
   $('home-sub').style.display='none';
@@ -1411,7 +1417,7 @@ function setNavDot_(tab,on){var e=$('bdg-'+tab);if(!e)return;e.classList.add('do
 var _revNum={osarai:0,note:0};
 function setReviewNavNum_(){setBadge_('review',(_revNum.osarai||0)+(_revNum.note||0));} // ふくしゅう＝おさらい残り＋間違いノート残りの合計
 var _homeTab='daily',_quizMiss=0;
-function showHomeTab(name){_homeTab=name;$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);sessionStorage.removeItem('kwt_view');}catch(e){}window.scrollTo(0,0);} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
+function showHomeTab(name){if(!_navBack)_navStack.length=0;_homeTab=name;$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);sessionStorage.removeItem('kwt_view');}catch(e){}window.scrollTo(0,0);} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
 function syncTestZone_(){setNavDot_('unit',(_quizMiss||0)>0);} // 単元別＝確認テストに直しがあるとき赤●（自主ペースなので数字にしない）2026-07-24
 /* スケルトン（読み込み中の形だけ先に見せる）2026-07-24 */
 function skelDaily_(){return '<div class="skel skel-focus"></div><div class="skel skel-row"></div><div class="skel skel-row"></div>';}
@@ -1588,7 +1594,7 @@ function openHome(){
   if((!nickname||nickname==='きみ'||localStorage.getItem('kwt_nick_auto')==='1')&&!window._nickPrompted){window._nickPrompted=true;setTimeout(openNickModal,600);} // 自動付与された子にも初回1回だけ案内（§5-2踏襲・2026-07-05）
   $('btn-nick-edit').onclick=openNickModal;
   backToTiles();
-  $('btn-back').onclick=backToTiles;
+  $('btn-back').onclick=goBack_; // 「もどる」＝1つ前の画面へ（履歴が無ければホーム）2026-07-24
   var _bind=function(id,fn){var e=$(id);if(e)e.onclick=fn;};
   _bind('home-star-pop',function(){showSub('team');});
   _bind('tile-records',function(){showSub('records');});
@@ -2734,12 +2740,15 @@ function buildNoteChoices(containerId,correct,wrongs,onResult,opts){
 function submitNoteWord(){
   var s=noteSes,w=s.words[s.idx],correct=s.wordOK;
   if(!correct&&s.miss)s.miss.push(w.word_id||w.id);
+  // 卒業（2回連続正解）を画面側で即判定＝streakが既に1で今回正解なら卒業。答えた瞬間に演出（サーバー返事を待たない）2026-07-24
+  var willGrad=correct&&(Number(w.streak||0)>=1);
   // テンポ改善C（2026-07-05）：採点は裏送信し、次の語を即出題（結果は完了画面がキュー完了を待って確定）
   enqueueGrade({action:'review_complete',review_id:w.review_id,correct:correct},function(d){
-    if(d.data&&d.data.cleared){s.cleared++;if(s.clearedWords)s.clearedWords.push({en:w.english,ja:w.japanese});gradPop_(w.english,w.japanese);}
+    if(d.data&&d.data.cleared){s.cleared++;if(s.clearedWords)s.clearedWords.push({en:w.english,ja:w.japanese});} // 卒業演出はローカルで先に出すのでここはカウントのみ
   });
-  s.idx++;s.step=(s.subject==='english'?2:3);s.wordOK=true;
-  if(s.idx>=s.words.length){finishNote();}else renderNoteStep();
+  if(willGrad)gradPop_(w.english,w.japanese); // 答えた瞬間に卒業ポップ
+  var adv=function(){s.idx++;s.step=(s.subject==='english'?2:3);s.wordOK=true;if(s.idx>=s.words.length){finishNote();}else renderNoteStep();};
+  if(willGrad){setTimeout(adv,750);}else{adv();} // 卒業時だけ一拍おいて次へ（読み込みではなく演出を見せるため）
 }
 function finishNote(){
   try{localStorage.setItem('kwt_note_done',todayStr_());}catch(e){} dailyState.note=true;renderDaily(); // デイリー：間違いノート本日分 完了 2026-07-04
@@ -2891,13 +2900,16 @@ function submitSrsWord(){
   var s=srsSes,w=s.words[s.idx],correct=s.wordOK;
   if(!correct&&s.miss)s.miss.push(w.word_id||w.id);
   s.doneWords.push(w.english); // 完了画面の「何をおさらいしたか」用（ローカル確定）2026-07-05
+  // 卒業（最大box=3で正解）を画面側で即判定。答えた瞬間に演出（サーバー返事を待たない）2026-07-24
+  var willGrad=correct&&(Number(w.box||0)>=3);
   // テンポ改善C（2026-07-05）：採点は裏送信し、次の語を即出題（結果は完了画面がキュー完了を待って確定）
   enqueueGrade({action:'review_grade',progress_id:w.progress_id,correct:correct},function(d){
-    if(d.data&&d.data.graduated){s.graduated++;toast('「'+w.english+'」をマスター！🎓');}
+    if(d.data&&d.data.graduated){s.graduated++;} // マスター演出はローカルで先に出すのでここはカウントのみ
     if(d.data&&!d.data.graduated&&d.data.next_days){var nd=d.data.next_days|0;if(!s.nextDays||nd<s.nextDays)s.nextDays=nd;}
   });
-  s.idx++;s.step=2;s.wordOK=true;
-  if(s.idx>=s.words.length){finishSrs();}else renderSrsStep();
+  if(willGrad)toast('「'+w.english+'」をマスター！🎓'); // 答えた瞬間にマスタートースト
+  var adv=function(){s.idx++;s.step=2;s.wordOK=true;if(s.idx>=s.words.length){finishSrs();}else renderSrsStep();};
+  if(willGrad){setTimeout(adv,750);}else{adv();} // 卒業時だけ一拍おいて次へ（読み込みではなく演出を見せるため）
 }
 function finishSrs(){
   var s=srsSes;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();

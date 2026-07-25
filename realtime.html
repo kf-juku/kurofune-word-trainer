@@ -616,7 +616,16 @@ function openPrint(){
   }).catch(function(){ $sheets.innerHTML='<div style="padding:40px;color:#c0121e;">通信エラーで取得できませんでした。</div>'; $n.textContent=''; });
 }
 function closePrint(){ document.getElementById('printOv').classList.remove('show'); }
-function doPrint(){ window.print(); }
+function doPrint(){ // 図の画像を読み込んでから印刷（画像未読込での印刷＝図が空白 を回避）2026-07-24
+  var c=document.getElementById('printSheets');
+  var imgs=c?Array.prototype.slice.call(c.querySelectorAll('img')):[];
+  var pending=imgs.filter(function(im){ return !(im.complete && im.naturalWidth>0); });
+  var fired=false, go=function(){ if(fired)return; fired=true; window.print(); };
+  if(!pending.length){ go(); return; }
+  var done=0, on=function(){ done++; if(done>=pending.length) go(); };
+  pending.forEach(function(im){ im.addEventListener('load',on,{once:true}); im.addEventListener('error',on,{once:true}); });
+  setTimeout(go,4000);
+}
 
 // ====== 更新ループと自動停止（本番） ======
 // 停止するのは①最小化・完全に隠したとき（戻すと自動再開）②生徒の動きが30分ないとき（授業終わり）だけ。
