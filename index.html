@@ -1739,7 +1739,9 @@ function renderUnitZone_(materials){
       g.items.forEach(function(c){
         var ps=(c.parts||[]);var t2=ps.length,p2=ps.filter(function(l){return l.passed;}).length;
         var cur=null;ps.forEach(function(l){if(l.is_current&&!cur)cur=l;});
-        var target=cur?cur.part_id:(ps[0]?ps[0].part_id:'');
+        // 単元別(test)はサーバーが is_current を常にfalseで返す。→は「最初の未合格パート」を始める（2026-07-26 修正：常に先頭パートを始めて前進しないバグ）
+        var firstUnpassed=null;ps.forEach(function(l){if(!l.passed&&!firstUnpassed)firstUnpassed=l;});
+        var target=cur?cur.part_id:(firstUnpassed?firstUnpassed.part_id:(ps[0]?ps[0].part_id:''));
         var allPass=(t2>0&&p2===t2);
         detail+='<div class="nchap" data-pid="'+esc(String(target))+'"><div class="ncf-nm">'+esc(mtShortMt(c))+'<small>できた '+p2+'/'+t2+'</small></div>'
           +(allPass?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
