@@ -1357,8 +1357,19 @@ function runPrint_(ids,scope,days,limit,types){
       return unifiedStudentHtml_(s,{wrapClass:'print-student',docTitle:subLbl,showSubmit:false,missLabel:missLbl,emptyLabel:emptyLbl});
     }).join('');
     $('printArea').innerHTML=html;
-    setTimeout(function(){window.print();},80);
+    printWhenImagesReady_($('printArea')); // 図の画像を読み込んでから印刷（旧80ms固定だと図の読み込み前に印刷が走り図が空白になった）2026-07-24
   }).finally(function(){hideLoading();});
+}
+/* 印刷対象の画像（設問の図）が全部 読み込み終わる（or エラー確定）まで待ってから window.print()。
+   保険で最大4秒。cが空/画像なしなら即印刷。2026-07-24（「印刷で図が出ない」の実体＝画像未読込での印刷を解消） */
+function printWhenImagesReady_(c){
+  var imgs=Array.prototype.slice.call((c||document).querySelectorAll('img'));
+  var pending=imgs.filter(function(im){ return !(im.complete && im.naturalWidth>0); });
+  var fired=false, go=function(){ if(fired)return; fired=true; setTimeout(function(){window.print();},60); };
+  if(!pending.length){ go(); return; }
+  var done=0, on=function(){ done++; if(done>=pending.length) go(); };
+  pending.forEach(function(im){ im.addEventListener('load',on,{once:true}); im.addEventListener('error',on,{once:true}); });
+  setTimeout(go,4000); // 未push(404)や遅い回線でも、最大4秒で印刷は進める
 }
 function lastStudiedCell(s){var da=daysAgo(s.last_studied_at);if(da===null)return '<div class="dash">未学習</div>';var lbl=da<=0?'今日':(da===1?'昨日':da+'日前');var warn=(da>=_inactiveDays)?' warn':'';var m=String(s.last_studied_at).match(/^(\d{4})-(\d{2})-(\d{2})/);var md=m?(parseInt(m[2],10)+'/'+parseInt(m[3],10)):'';return '<div class="num" style="font-size:12px;">'+md+'</div><div class="last-ago'+warn+'">'+lbl+'</div>';}
 /* 割当教材ピル：全割当を表示（青=毎日学習/金=テスト配信・3件目からは+◯・川上さん承認モック 2026-07-05）
