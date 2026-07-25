@@ -533,6 +533,17 @@
   @keyframes recvIn{0%{opacity:0;transform:translateX(-6px);}100%{opacity:1;transform:none;}}
   #recv-list{margin-bottom:14px;}
   .star-recv i{color:var(--gold);font-size:20px;}
+  /* 一番星（三連星の特別応援を受け取った別枠メダル）2026-07-25 */
+  .ich-recv{background:linear-gradient(160deg,rgba(227,196,119,.16),rgba(227,196,119,.03));border:1px solid rgba(227,196,119,.5);border-radius:16px;padding:14px;margin-bottom:14px;}
+  .ich-medal{display:flex;align-items:center;gap:13px;}
+  .ich-star{width:50px;height:50px;flex:0 0 auto;border-radius:50%;background:linear-gradient(135deg,var(--gold),#a9842f);display:grid;place-items:center;color:#241905;box-shadow:0 0 20px rgba(227,196,119,.35);}
+  .ich-star i{font-size:26px;}
+  .ich-n{font-size:13px;color:var(--gold);font-weight:800;}
+  .ich-v{font-family:'Manrope';font-weight:800;font-size:24px;color:var(--ink);line-height:1.1;}
+  .ich-v small{font-size:12px;color:var(--sub);font-weight:700;margin-left:3px;}
+  .ich-s{font-size:11px;color:var(--sub);margin-top:2px;line-height:1.5;}
+  .ich-list{margin-top:10px;padding-top:10px;border-top:1px solid rgba(227,196,119,.25);font-size:11.5px;color:var(--sub);display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .ich-from{background:rgba(227,196,119,.14);color:var(--gold);border-radius:20px;padding:2px 9px;font-weight:700;}
   /* ===== ホーム再構成（2026-07-02）応援ポップ／学習行／全体カード ===== */
   .star-pop{display:flex;align-items:center;gap:8px;background:rgba(202,162,74,.14);border:1px solid var(--gold);border-radius:13px;padding:8px 12px;margin-bottom:10px;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;transition:transform .12s;}
   /* 仲間チル演出（川上さん確定 2026-07-03：今日の仲間ニックネーム／朝は前日実績・きらめき粒ON・音なし） */
@@ -2121,7 +2132,7 @@ function showTrioOverlay_(data){
       b.classList.add('sent');b.innerHTML='✓ <ruby>特別<rt class="uf">とくべつ</rt></ruby><ruby>応援<rt class="uf">おうえん</rt></ruby>した！';
       try{sndLikeSend();}catch(e){}
       trioHearts_(panel,b);
-      call({action:'trio_cheer',to_student_id:to,type:'congrats'}).then(function(r){
+      call({action:'trio_cheer',to_student_id:to,type:'ichiban'}).then(function(r){
         if(r&&r.ok)return;
         if(r&&r.data&&r.data.already)return; // すでに送信済みは成功扱い
         b.classList.remove('sent');b.innerHTML='✨ <ruby>特別<rt class="uf">とくべつ</rt></ruby><ruby>応援<rt class="uf">おうえん</rt></ruby>';
@@ -2182,11 +2193,26 @@ function loadStarReceived(){
     // 描画のたびに初期化する（キャッシュ描画→フレッシュ描画で追記が二重になるバグ修正 2026-07-05・川上さん報告）
     var area=$('star-recv-area');area.innerHTML='';
     var pop=$('home-star-pop');if(pop)pop.style.display='none';
-    if(!d.ok||!d.data||!d.data.count){_recvCount=0;_recvUnseen=false;teamDotUpdate_();return;}   // 0件は出さない
-    var n=d.data.count;
-    _recvCount=n;
-    try{var _ackn=parseInt(localStorage.getItem(recvAckKey_())||'0',10)||0;_recvUnseen=(n>_ackn);}catch(e){_recvUnseen=(n>0);}
+    if(!d.ok||!d.data){_recvCount=0;_recvUnseen=false;teamDotUpdate_();return;}
+    var n=d.data.count||0;                          // 通常の応援（いいね/すごい/おめでとう）
+    var ichN=d.data.ichiban_count||0;               // 一番星（三連星の特別応援）＝別枠
+    var tot=(d.data.total!=null?d.data.total:(n+ichN));
+    if(!tot){_recvCount=0;_recvUnseen=false;teamDotUpdate_();return;}   // 0件は出さない
+    _recvCount=tot;
+    try{var _ackn=parseInt(localStorage.getItem(recvAckKey_())||'0',10)||0;_recvUnseen=(tot>_ackn);}catch(e){_recvUnseen=(tot>0);}
     teamDotUpdate_();
+    // 一番星（別枠メダル：だれから＋個数）2026-07-25
+    if(ichN>0){
+      var _ichItems=d.data.ichiban_items||[];
+      var _froms=_ichItems.map(function(r){return '<span class="ich-from">'+esc(r.nickname||'なかま')+'さん</span>';}).join('');
+      var iw=document.createElement('div');iw.className='ich-recv';
+      iw.innerHTML='<div class="ich-medal"><div class="ich-star"><i class="ti ti-star-filled"></i></div>'
+        +'<div><div class="ich-n"><ruby>一番星<rt class="uf">いちばんぼし</rt></ruby></div>'
+        +'<div class="ich-v">'+ichN+'<small>こ もらった</small></div>'
+        +'<div class="ich-s"><ruby>三連星<rt class="uf">さんれんせい</rt></ruby>に<ruby>入<rt class="uf">はい</rt></ruby>って みんなから もらった<ruby>証<rt class="uf">あかし</rt></ruby></div></div></div>'
+        +(_froms?'<div class="ich-list"><ruby>特別<rt class="uf">とくべつ</rt></ruby><ruby>応援<rt class="uf">おうえん</rt></ruby>：'+_froms+'</div>':'');
+      area.appendChild(iw);
+    }
     // 新しく届いた応援だけをお祝い（端末に前回見た数を保存・GAS変更なし）2026-07-11
     try{
       var _seenKey='kwt_recv_seen_'+(nickname||'');
@@ -2202,10 +2228,10 @@ function loadStarReceived(){
       localStorage.setItem(_seenKey,String(n));
     }catch(e){}
     // なかま赤丸は teamDotUpdate_ に集約（数字なし・未読/応援できる仲間で点灯）2026-07-14
-    if(pop){var _it=d.data.items||[],_sn={},_av=[];_it.forEach(function(r){var nk=r.nickname||'なかま';if(!_sn[nk]){_sn[nk]=true;_av.push(nk);}});var _avh=_av.slice(0,3).map(function(nk){return '<span class="av">'+esc(nk.slice(0,1))+'</span>';}).join('')+(_av.length>3?'<span class="av more">+'+(_av.length-3)+'</span>':'');var _ae=$('star-avs');if(_ae)_ae.innerHTML=_avh;var _ne=$('star-pop-n');if(_ne)_ne.textContent=n;pop.style.display='inline-flex';}
-    var el=document.createElement('div');el.className='star-recv';
+    if(pop&&n>0){var _it=d.data.items||[],_sn={},_av=[];_it.forEach(function(r){var nk=r.nickname||'なかま';if(!_sn[nk]){_sn[nk]=true;_av.push(nk);}});var _avh=_av.slice(0,3).map(function(nk){return '<span class="av">'+esc(nk.slice(0,1))+'</span>';}).join('')+(_av.length>3?'<span class="av more">+'+(_av.length-3)+'</span>':'');var _ae=$('star-avs');if(_ae)_ae.innerHTML=_avh;var _ne=$('star-pop-n');if(_ne)_ne.textContent=n;pop.style.display='inline-flex';}
+    if(n>0){var el=document.createElement('div');el.className='star-recv';
     el.innerHTML='<i class="ti ti-sparkles"></i> ぜんぶで '+n+' この<ruby>応援<rt class="uf">おうえん</rt></ruby>がとどいてるよ！';
-    area.appendChild(el);
+    area.appendChild(el);}
     // 送り主つきリスト（直近10件・過去分も表示）
     var items=d.data.items||[];
     if(items.length){
