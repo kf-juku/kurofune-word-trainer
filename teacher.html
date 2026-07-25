@@ -1344,13 +1344,13 @@ function unifiedStudentHtml_(st, opts){
   return h;
 }
 /* 一括印刷の実行部（対象・内容はモーダルから渡す）2026-07-05 ／ 統一レイアウトに変更 2026-07-24 */
-function runPrint_(ids,scope,days,limit){
+function runPrint_(ids,scope,days,limit,types){
   if(!ids.length){toast('印刷する生徒がいません');return;}
-  var subLbl=(scope==='recent')?('直近'+days+'日にまちがえた問題'):(scope==='graduated')?'復習チェック（前にやって克服した語）':'まちがえた問題（間違いノート）';
+  var subLbl=(scope==='recent')?('直近'+days+'日にまちがえた問題'):(scope==='graduated')?'復習チェック（前にやって克服した語）':'まちがえた問題';
   var emptyLbl=(scope==='graduated')?'まだ克服した語がありません。':'いまはまちがえている問題はありません。';
   var missLbl=(scope==='graduated')?'復習チェック':'まちがえた問題';
   showLoading('印刷データを準備中…');
-  call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit}).then(function(d){
+  call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit,types:(types||'daily,unit,quiz')}).then(function(d){
     if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
     var sts=d.data.students||[];
     var html=sts.map(function(s){
@@ -2677,12 +2677,20 @@ function tmStepPrint_(body){
   var scope=localStorage.getItem('kwt_print_scope')||'active';
   var days=localStorage.getItem('kwt_print_days')||'7';
   var limit=localStorage.getItem('kwt_print_limit')||'20';
+  var typesRaw=localStorage.getItem('kwt_print_types'); var types=(typesRaw==null?'daily,unit,quiz':typesRaw).split(',');
+  var has=function(t){return types.indexOf(t)>=0;};
   body.innerHTML=
-    '<div class="tm-qh">印刷する内容</div>'
+    '<div class="tm-qh">印刷する種別（複数えらべます）</div>'
+    +'<div style="display:flex;gap:16px;flex-wrap:wrap;margin:2px 0 2px;">'
+    +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-daily"'+(has('daily')?' checked':'')+'> 毎日学習</label>'
+    +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-unit"'+(has('unit')?' checked':'')+'> 単元別</label>'
+    +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-quiz"'+(has('quiz')?' checked':'')+'> 確認テスト</label>'
+    +'</div>'
+    +'<div class="tm-qh" style="margin-top:10px;">印刷する範囲</div>'
     +'<select id="tmScope" class="tm-sel">'
-    +'<option value="active"'+(scope==='active'?' selected':'')+'>まちがえ中ぜんぶ（いま間違いノートにある語）</option>'
+    +'<option value="active"'+(scope==='active'?' selected':'')+'>まちがえ中ぜんぶ（いまの間違い）</option>'
     +'<option value="recent"'+(scope==='recent'?' selected':'')+'>直近◯日のまちがえ</option>'
-    +'<option value="graduated"'+(scope==='graduated'?' selected':'')+'>復習チェック（克服した語）</option>'
+    +'<option value="graduated"'+(scope==='graduated'?' selected':'')+'>復習チェック（克服した語・種別は無視）</option>'
     +'</select>'
     +'<div class="tm-qh" style="margin-top:10px;">直近 <input id="tmDays" type="number" min="1" max="99" value="'+esc(days)+'" class="tm-num"> 日（「直近◯日」のときだけ）　／　1人あたり上限 <input id="tmLimit" type="number" min="1" max="99" value="'+esc(limit)+'" class="tm-num"> 語</div>'
     +'<div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">🖨 生徒ごとに<b>新しい紙の表（奇数ページ）から</b>印刷されます。両面印刷でも、前の子の裏面に次の子が入りません。</div>';
@@ -2692,9 +2700,11 @@ function tmPrint(){
   var scope=$('tmScope').value;
   var days=parseInt($('tmDays').value,10);if(!(days>=1))days=7;
   var limit=parseInt($('tmLimit').value,10);if(!(limit>=1))limit=20;
-  localStorage.setItem('kwt_print_scope',scope);localStorage.setItem('kwt_print_days',days);localStorage.setItem('kwt_print_limit',limit);
+  var types=[]; ['daily','unit','quiz'].forEach(function(t){ var c=$('tmT-'+t); if(c&&c.checked) types.push(t); });
+  if(!types.length && scope!=='graduated'){ toast('印刷する種別を1つ以上えらんでください'); return; }
+  localStorage.setItem('kwt_print_scope',scope);localStorage.setItem('kwt_print_days',days);localStorage.setItem('kwt_print_limit',limit);localStorage.setItem('kwt_print_types',types.join(','));
   closeModal('bulkModal');
-  runPrint_(ids,scope,days,limit);
+  runPrint_(ids,scope,days,limit,types.join(','));
 }
 /* 教材の表示順：毎日学習→テスト配信、各グループ内はタイトル五十音順（川上さん承認 2026-07-05）
    ※シートの行順に依存しない。教材が増えても探しやすさを保つ */
