@@ -2985,16 +2985,16 @@ function showExplain(correct,kaisetsu,reading,ok){
   var kai=$('ex-kai');
   if(kaisetsu){
     kai.style.display='';
-    if(ok===false){kaiTraceStart_(kai,kaisetsu,2200);} // 不正解だけ下線なぞり（正解はテンポ維持）2026-07-26
-    else{kaiTraceStop_();kai.classList.remove('trace');kai.textContent=kaisetsu;}
-  }else{kaiTraceStop_();kai.classList.remove('trace');kai.style.display='none';}
+    if(ok===false){var _ms=Math.min(5000,Math.max(1200,String(kaisetsu).length*85));_kaiWaitMs=_ms;kaiTraceStart_(kai,kaisetsu,_ms);} // 不正解だけ下線なぞり。速さは文字数に応じて可変（約85ms/字・1.2〜5秒でクランプ）。正解はテンポ維持 2026-07-26
+    else{_kaiWaitMs=0;kaiTraceStop_();kai.classList.remove('trace');kai.textContent=kaisetsu;}
+  }else{_kaiWaitMs=0;kaiTraceStop_();kai.classList.remove('trace');kai.style.display='none';}
   var _kimg=$('ex-img');if(_kimg){if(_kaiImgCur){_kimg.innerHTML=_kaiImgCur;_kimg.style.display='';}else{_kimg.innerHTML='';_kimg.style.display='none';}}
   var _bf=$('bug-fab');if(_bf)_bf.style.display='none'; /* 解説中はフローティング報告を隠す＝機能は解説内「まちがい報告」へ 2026-07-16 */
   $('explain').style.display='block';
   try{$('explain').scrollIntoView({behavior:'smooth',block:'end'});}catch(e){try{$('explain').scrollIntoView(false);}catch(e2){}}
 }
 /* 解説なぞり（下線が伸びる）2026-07-26：不正解時、解説を1文字ずつ span 化し、読み進む所に金の下線を左から流す。時間で自動進行（クリック不要）。次へボタンには触れない＝目線を解説に留める */
-var _kaiTId=null;
+var _kaiTId=null;var _kaiWaitMs=0; // _kaiWaitMs＝不正解の「つぎへ」解禁までの時間＝解説なぞりの所要時間に合わせる 2026-07-26
 function kaiTraceStop_(){if(_kaiTId){clearInterval(_kaiTId);_kaiTId=null;}}
 function kaiTraceStart_(el,text,ms){
   kaiTraceStop_();el.classList.add('trace');
@@ -3015,7 +3015,7 @@ function waitTap(next,ok){
   function go(){if(done)return;done=true;hideExplain();next();}
   if(!btn){setTimeout(function(){var s=$('scr-practice');if(s)s.addEventListener('click',go,{once:true,capture:true});},80);return;}
   btn.onclick=function(){if(btn.disabled)return;go();};
-  var _wms=(ok===false)?2500:1000; // 不正解＝2.5秒／正解＝1秒の"読む間"（解説を読ませてから次へ）2026-07-22。カウントメーターは廃止しグレーアウトのみ
+  var _wms=(ok===false)?(_kaiWaitMs||2500):1000; // 不正解＝解説のなぞり所要時間に合わせる（解説なしは2.5秒）／正解＝1秒。カウントメーターは廃止しグレーアウトのみ 2026-07-26
   btn.disabled=true;btn.classList.add('waiting');
   setTimeout(function(){btn.disabled=false;btn.classList.remove('waiting');},_wms);
 }
