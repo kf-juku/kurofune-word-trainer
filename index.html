@@ -935,7 +935,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <!-- 間違いノート（旧ふくしゅう。おさらいは毎日タブへ移設 2026-07-25） -->
         <div class="tabpanel" id="tp-review">
           <div class="ph"><i class="ti ti-notebook" style="color:var(--accent)"></i> <ruby>間違<rt class="uf">まちが</rt></ruby>いノート</div>
-          <div class="psub"><ruby>間違<rt class="uf">まちが</rt></ruby>えた <ruby>所<rt class="uf">ところ</rt></ruby>だけ もう<ruby>一度<rt class="uf">いちど</rt></ruby>。ここが <ruby>力<rt class="uf">ちから</rt></ruby>の つきどころ</div>
+          <div class="psub"><ruby>間違<rt class="uf">まちが</rt></ruby>えた <ruby>所<rt class="uf">ところ</rt></ruby>だけ もう<ruby>一度<rt class="uf">いちど</rt></ruby>。ここが <ruby>力<rt class="uf">ちから</rt></ruby>の つきどころ。<ruby>2回<rt class="uf">にかい</rt></ruby><ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby>で <ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！</div>
           <div class="rsub-total" id="note-total" style="font-size:13px;color:var(--sub);font-weight:700;margin:2px 2px 11px;"></div>
           <div id="note-list"></div>
           <div id="note-nudge-wrap" style="display:none;"></div>
@@ -1316,7 +1316,7 @@ function quizRenderHome_(d){
   var miss=0;mats.forEach(function(g){(g.parts||[]).forEach(function(p){if(p.status==='miss'||p.status==='ng')miss++;});});
   tile.style.display='';
   $('cnt-quiz').textContent=miss>0?(miss+'こ のこり'):'ぜんぶOK';
-  var dq=$('dot-quiz');if(dq)dq.style.display=miss>0?'':'none';
+  var dq=$('dot-quiz');if(dq)dq.style.display='none'; // 確認テストの直しは間違いノートに出る＝確認テスト自体に赤●は出さない（自主ペース）2026-07-26
   _quizMiss=miss;syncTestZone_();
 }
 function quizPill_(p){
@@ -1522,13 +1522,24 @@ function renderDoneTiles_(score,mc,ac,ms){
   setTimeout(function(){var r=$('dt-rate');if(r)animNum(r,score||0,700);var c=$('dt-combo');if(c)animNum(c,mc||0,700);},260);
 }
 function renderStreakCard_(){
-  var host=$('rec-streak-card');if(!host)return;var n=_streakDays||0;var body;
-  if(n<=0){body='<div class="stk-num">0</div><div class="stk-lbl"><ruby>日<rt class="uf">にち</rt></ruby> <ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>記録<rt class="uf">きろく</rt></ruby></div><div class="stk-msg"><ruby>今日<rt class="uf">きょう</rt></ruby>から スタート！<br>1つ <ruby>学習<rt class="uf">がくしゅう</rt></ruby>すると <ruby>記録<rt class="uf">きろく</rt></ruby>が はじまるよ。</div>';}
-  else{body='<div class="stk-num">'+n+'</div><div class="stk-lbl"><ruby>日<rt class="uf">にち</rt></ruby> <ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>記録<rt class="uf">きろく</rt></ruby></div><div class="stk-msg"><ruby>今日<rt class="uf">きょう</rt></ruby>も クリアで <b>'+n+'<ruby>日<rt class="uf">にち</rt></ruby></b> つながってるよ。<br>あした やると <b>'+(n+1)+'<ruby>日<rt class="uf">にち</rt></ruby></b> になる！</div>';}
-  var fz='<div class="stk-freeze"><i class="ti ti-snowflake"></i> フリーズ <b>'+(_freezeCount||0)+'</b> / '+(_freezeMax||3)+'<ruby>個<rt class="uf">こ</rt></ruby></div>';
-  /* 簡潔に：連続の のび方＋フリーズの もらい方 を1文で（川上さん 2026-07-26）*/
-  var note='<div class="stk-note" style="font-size:11px;color:var(--sub);text-align:center;margin-top:8px;line-height:1.6;"><ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>で<ruby>連続<rt class="uf">れんぞく</rt></ruby>がのびる。デイリーを<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>やり<ruby>終<rt class="uf">お</rt></ruby>えると、<ruby>休<rt class="uf">やす</rt></ruby>んだ<ruby>日<rt class="uf">ひ</rt></ruby>の<ruby>連続<rt class="uf">れんぞく</rt></ruby>をまもる「フリーズ」がもらえるよ。</div>';
-  host.innerHTML='<div class="stk-rec"><div class="stk-card"><div class="stk-flame"><i class="ti ti-flame"></i></div>'+body+fz+note+'</div></div>';
+  var host=$('rec-streak-card');if(!host)return;var n=_streakDays||0;
+  var msg=(n<=0)
+    ?'<ruby>今日<rt class="uf">きょう</rt></ruby>から スタート！1つ <ruby>学習<rt class="uf">がくしゅう</rt></ruby>すると <ruby>記録<rt class="uf">きろく</rt></ruby>が はじまるよ。'
+    :'<ruby>今日<rt class="uf">きょう</rt></ruby>も クリアで <b>'+n+'<ruby>日<rt class="uf">にち</rt></ruby></b> つながってるよ。あした やると <b>'+(n+1)+'<ruby>日<rt class="uf">にち</rt></ruby></b>！';
+  var fz='<span class="stk-freeze" style="margin:0;"><i class="ti ti-snowflake"></i> フリーズ <b>'+(_freezeCount||0)+'</b> / '+(_freezeMax||3)+'<ruby>個<rt class="uf">こ</rt></ruby></span>';
+  var note='<div class="stk-note" style="font-size:11px;color:var(--sub);margin-top:9px;line-height:1.6;"><ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>で<ruby>連続<rt class="uf">れんぞく</rt></ruby>がのびる。デイリーを<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>やり<ruby>終<rt class="uf">お</rt></ruby>えると、<ruby>休<rt class="uf">やす</rt></ruby>んだ<ruby>日<rt class="uf">ひ</rt></ruby>の<ruby>連続<rt class="uf">れんぞく</rt></ruby>をまもる「フリーズ」がもらえるよ。</div>';
+  // 炎アイコン＋数＋「日 連続記録」を横並びにして省スペース化（川上さん 2026-07-26）
+  host.innerHTML='<div class="stk-rec">'
+    +'<div style="display:flex;align-items:center;gap:13px;">'
+      +'<div class="stk-flame" style="width:56px;height:56px;margin:0;flex:0 0 auto;"><i class="ti ti-flame" style="font-size:28px"></i></div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="display:flex;align-items:baseline;gap:7px;"><span class="stk-num" style="font-size:32px">'+n+'</span><span class="stk-lbl" style="margin:0;"><ruby>日<rt class="uf">にち</rt></ruby> <ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>記録<rt class="uf">きろく</rt></ruby></span></div>'
+        +'<div class="stk-msg" style="text-align:left;margin:3px 0 0;">'+msg+'</div>'
+      +'</div>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:center;margin-top:10px;">'+fz+'</div>'
+    +note
+  +'</div>';
 }
 function showStreakCele_(n){
   var mask=$('stk-cele-mask'),box=$('stk-cele-box');if(!mask||!box)return;n=n||1;
@@ -1632,7 +1643,7 @@ var _dailyMain=null; // デイリー進捗をおさらい取得後に描き直�
 // 毎日タブ＝毎日学習の未完了＋おさらい残りの合計（2026-07-25 おさらいを毎日タブへ移設＝デイリーの構成要素）
 function setDailyNavNum_(){var osDone=(dailyState.review===true);setBadge_('daily',(_dailyUndone||0)+(osDone?0:1));} // デイリーの残り「個数」＝毎日学習の未完＋おさらい枠(1)。おさらいの残り語数(最大20)を足さない＝分母4と一致（2026-07-26）
 // 間違いノートタブ＝間違いノート残りのみ（2026-07-25 おさらいは毎日タブへ）
-function setReviewNavNum_(){setBadge_('review',(_revNum.note||0));}
+function setReviewNavNum_(){setNavDot_('review',(_revNum.note||0)>0);} // 間違いノート＝自主ペースの復習なので数字(9+)ではなく赤●で「たまってるよ」。実数は中の教科カードで見える 2026-07-26
 var _homeTab='daily',_quizMiss=0;
 function showHomeTab(name){if(!_navBack)_navStack.length=0;_homeTab=name;$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);sessionStorage.removeItem('kwt_view');}catch(e){}window.scrollTo(0,0);} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
 function syncTestZone_(){setNavDot_('unit',false);} // 単元別のナビ赤●は出さない＝自主ペースで「今日やる必須」ではない。確認テストの直しは間違いノートに出る（川上さん 2026-07-26）
@@ -1978,7 +1989,8 @@ function loadHomeData_(showSkel){
         var map='<div class="dotmap">';
         parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
         map+='</div>';
-        ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtShortMt(c))+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
+        var kindPill='<span style="font-size:10px;font-weight:700;color:var(--sub);background:rgba(148,163,184,.16);border-radius:6px;padding:1px 7px;margin-left:6px;vertical-align:middle;white-space:nowrap;">'+(isTest?'<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>':'<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>')+'</span>'; // どの種類の教材か 2026-07-26
+        ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtShortMt(c))+kindPill+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
           +'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>'+map
           +'<div class="ov-sub"><span class="dm-s done"></span>クリアずみ <b>'+passedN+'</b>　'+(curPart?'<span class="dm-s cur"></span>いまここ <b>'+curLbl+'</b>　':'')+'のこり <b>'+(total-passedN)+'</b></div>';
         var detail=document.createElement('div');detail.className='macc-detail';
