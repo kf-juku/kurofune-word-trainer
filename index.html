@@ -929,6 +929,8 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <span id="nz-daily-sub" style="display:none;"></span>
           <!-- おさらい（毎日学習の間隔反復）＝デイリーの一部（2026-07-25 ふくしゅうから移設） -->
           <div class="rcard" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> ・ <span id="cnt-review">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
+          <!-- 全体像への導線（行動カードと並べない・控えめリンク）2026-07-26 -->
+          <div id="daily-maplink" role="button" tabindex="0" style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--sub);padding:12px;margin-top:2px;cursor:pointer;"><i class="ti ti-map-2" style="color:var(--gold);font-size:16px;"></i> <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで ぜんぶの<ruby>進<rt class="uf">すす</rt></ruby>みを<ruby>見<rt class="uf">み</rt></ruby>る <i class="ti ti-chevron-right"></i></div>
         </div>
         <!-- 間違いノート（旧ふくしゅう。おさらいは毎日タブへ移設 2026-07-25） -->
         <div class="tabpanel" id="tp-review">
@@ -1202,6 +1204,19 @@ function kwtSpin(px){px=px||64;return '<svg class="kwtld" viewBox="0 0 120 120" 
   +'<g class="i" style="transform-origin:60px 60px"><rect x="48" y="48" width="24" height="24" rx="2" fill="none" stroke="#0a6cff" stroke-width="2.6" opacity=".85"/></g>'
   +'<circle cx="60" cy="60" r="4" fill="#0a6cff"/></svg>';}
 function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}}
+/* 学習マップのパート行のメタ：前回合格日・正答率・おさらいの進み（GAS material_parts が per-part で返す）2026-07-26 */
+function _mapMetaHtml_(l){
+  if(!l||!l.last_pass_date)return ''; // 合格していないパートは出さない
+  var md=String(l.last_pass_date).slice(5).replace('-','/'); // M/D
+  var rate='';
+  if(l.last_rate!=null){var rc=(l.last_rate>=80?'var(--ok)':(l.last_rate>=60?'#b9852b':'var(--ng)'));rate=' ・ <b style="color:'+rc+';font-family:Manrope,sans-serif">'+l.last_rate+'%</b>';}
+  var srs='';
+  if(l.srs){
+    if(l.srs.all_graduated){srs=' ・ <span style="color:var(--ok);font-weight:700"><i class="ti ti-award" style="font-size:11px"></i> おさらい卒業</span>';}
+    else{var b=l.srs.box|0,dd='';for(var i=0;i<4;i++){dd+='<i style="display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:2px;background:'+(i<b?'var(--gold)':'#dfe3ea')+'"></i>';}srs=' ・ おさらい <span style="vertical-align:middle">'+dd+'</span>';}
+  }
+  return '<div style="font-size:10.5px;color:var(--sub);margin-top:3px;line-height:1.5"><ruby>前回<rt class="uf">ぜんかい</rt></ruby> '+md+rate+srs+'</div>';
+}
 /* 学習マップの1行（川上さん承認モック 2026-07-05）。inFold=クリアずみ枠内（「もう一回」バッジつき・状態文言なし） */
 function buildMapRow(l,isTest,inFold){
   var row=document.createElement('div');row.className='list-row';
@@ -1210,7 +1225,9 @@ function buildMapRow(l,isTest,inFold){
   var st=inFold?'':(isTest?(l.passed?'クリア<ruby>済<rt class="uf">ずみ</rt></ruby>':(l.attempted?'<ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>中':'<ruby>未<rt class="uf">み</rt></ruby><ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>')):(l.passed?'<ruby>合格<rt class="uf">ごうかく</rt></ruby><ruby>済<rt class="uf">ずみ</rt></ruby>み':(l.is_current?'':'<ruby>未<rt class="uf">み</rt></ruby><ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>')));
   var ttl=isTest?esc(l.title):('DAY '+(l.part_order||1)); // 毎日学習=DAY表記（川上さん確定 2026-07-03）
   var redo=inFold?'<span class="redo-pill"><i class="ti ti-refresh"></i> もう<ruby>一回<rt class="uf">いっかい</rt></ruby></span>':'';
-  row.innerHTML=icon+'<div class="t">'+ttl+(st?'<div class="s">'+st+'</div>':'')+'</div>'+(l.is_current?'<span class="cur-badge">いまここ</span>':'')+redo;
+  // パートごとの記録＝前回合格日・正答率・おさらいの進み（GAS material_parts が返す）2026-07-26
+  var meta=_mapMetaHtml_(l);
+  row.innerHTML=icon+'<div class="t">'+ttl+(st?'<div class="s">'+st+'</div>':'')+meta+'</div>'+(l.is_current?'<span class="cur-badge">いまここ</span>':'')+redo;
   row.onclick=function(){startPractice(l.part_id);};
   return row;
 }
@@ -1806,6 +1823,7 @@ function openHome(){
   _bind('tile-review',function(){showSub('review');});
   _bind('tile-badge',function(){showSub('badge');});
   _bind('tile-lists',function(){showSub('lists');});
+  _bind('daily-maplink',function(){showSub('lists');}); // 毎日タブ→学習マップの導線 2026-07-26
   _bind('tile-team',function(){showSub('team');});
   _bind('tile-overall',function(){showSub('overall');});
   _bind('set-nick',openNickModal);
@@ -3208,18 +3226,42 @@ function startReviewSrs(words,assets){
   srsSes={words:words,idx:0,step:2,wordOK:true,graduated:0,total:words.length,doneWords:[],nextDays:null,assets:(assets||{}),miss:[]};
   renderSrsStep();
 }
+/* おさらい/間違いノートの table_fill：実際の表を出し、その語のセルだけ空欄で強調（元と同じ形式で出す・2026-07-26）。
+   おさらいは語が1つずつ来る＝その語のセル(r,c)を「？」、他セルは表データそのまま。asset(表)は reviewDue/mistakeSet が collectAssets_ で返す。 */
+function srsTfTableHtml_(w,assets){
+  var qd=tfParse(w);var a=(assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){}
+  if(!(pl.rows&&pl.rows.length)) return ''; // 表データが無ければ空（呼び出し側で文字版にフォールバック）
+  var h='';if(a.title){h+='<div class="tf-title">'+esc(a.title)+'</div>';}
+  h+='<table class="tf-table"><tr><th></th>';(pl.cols||[]).forEach(function(c){h+='<th>'+esc(c)+'</th>';});h+='</tr>';
+  var rr=(qd.r|0),cc=(qd.c|0);
+  (pl.rows||[]).forEach(function(row,ri){h+='<tr><td class="tf-rowh">'+esc(row.label||'')+'</td>';
+    (row.cells||[]).forEach(function(cell,ci){
+      if(ri===rr&&ci===cc){h+='<td><span class="tf-hole cur">？</span></td>';} // この語のセル＝空欄で強調
+      else{h+='<td class="tf-en">'+esc(cell)+'</td>';}
+    });h+='</tr>';});
+  h+='</table>';return h;
+}
 function renderSrsStep(){
   var s=srsSes,w=s.words[s.idx],tot=s.words.length;showListen_(w,s.subject==='english');_kaiImgCur=kaiImgHtml(w,s.assets);_curExW=w;
   $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
   $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
-  $('step-label').innerHTML='<ruby>復習<rt class="uf">ふくしゅう</rt></ruby> '+(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
+  // どの教材・パートのおさらいか（タグ）＝reviewDue が material_title/part_title を返す。教材名は mtLabelMt アクセサ経由 2026-07-26
+  var _srsTag=(w.material_title||w.part_title)?('<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 11px;margin-bottom:7px;"><i class="ti ti-map-pin" style="font-size:12px"></i> おさらい・'+esc(mtLabelMt(w))+(w.part_title?('／'+esc(w.part_title)):'')+'</div><br>'):'';
+  $('step-label').innerHTML=_srsTag+'<ruby>復習<rt class="uf">ふくしゅう</rt></ruby> '+(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
   if(w.qtype==='image_fill'){ // 図問題はおさらいでも図を出す 2026-07-12
     var qi2=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').style.display='';$('tf-ask').innerHTML=qi2.num?('<b style="color:var(--accent)">'+esc(qi2.num)+'</b> が<ruby>指<rt class="uf">さ</rt></ruby>す<ruby>部分<rt class="uf">ぶぶん</rt></ruby>をえらぼう'):esc(qi2.ask||'この生物の名前をえらぼう');
     buildChoices('tf-choices',w.english,[],function(ok){if(!ok)s.wordOK=false;},{fixedChoices:(qi2.choices||[]),timeLimit:qSecFor('table_fill'),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitSrsWord();}});
     $('step-tf').style.display='block';return;
   }
-  if(w.qtype==='table_fill'){ // 表穴埋め語はおさらいでも文字版1問＋qdata.choices（2026-07-05）
-    var qtf=tfParse(w);$('j2e-label').innerHTML='<ruby>正<rt class="uf">ただ</rt></ruby>しい<ruby>形<rt class="uf">かたち</rt></ruby>をえらぼう';$('j2e-ja').textContent=w.japanese;
+  if(w.qtype==='table_fill'){ // 表穴埋め語はおさらいでも「元と同じ表」を出す＋その語のセルを空欄で強調（2026-07-26）。表データが無いときだけ文字版にフォールバック
+    var qtf=tfParse(w);var _tfh=srsTfTableHtml_(w,s.assets);
+    if(_tfh){
+      $('tf-table').innerHTML=_tfh;$('tf-ask').style.display='';
+      $('tf-ask').innerHTML='<ruby>空<rt class="uf">あ</rt></ruby>いている <b style="color:var(--accent)">？</b> に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>言葉<rt class="uf">ことば</rt></ruby>をえらぼう';
+      buildChoices('tf-choices',w.english,[],function(ok){if(!ok)s.wordOK=false;},{fixedChoices:(qtf.choices||[]),timeLimit:qSecFor('table_fill'),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitSrsWord();}});
+      $('step-tf').style.display='block';return;
+    }
+    $('j2e-label').innerHTML='<ruby>正<rt class="uf">ただ</rt></ruby>しい<ruby>形<rt class="uf">かたち</rt></ruby>をえらぼう';$('j2e-ja').textContent=w.japanese;
     buildChoices('j2e-choices',w.english,[],function(ok){if(!ok)s.wordOK=false;},{fixedChoices:(qtf.choices||[]),timeLimit:qSecFor('table_fill'),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitSrsWord();}});
     $('step-j2e').style.display='block';return;
   }
