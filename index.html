@@ -873,6 +873,35 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   .bug-fab span{font-size:13px;font-weight:700;}
   .bug-fab:active{transform:translateY(2px);}
   .bug-fab.dim{opacity:.2;transition:opacity .15s;}
+  /* 羅針盤アドバイザーを右下の一等地に置くので、不具合報告は左下の小アイコンに退避（大ボタンを2つ並べない）2026-07-26 */
+  .bug-fab{right:auto;left:14px;padding:10px;border-radius:50%;}
+  .bug-fab span{display:none;}
+  /* ===== 羅針盤アドバイザー（総括・全タブ常駐フローター＋パネル）2026-07-26 ===== */
+  .rb-float{position:fixed;right:14px;bottom:20px;z-index:71;width:60px;height:60px;cursor:pointer;filter:drop-shadow(0 8px 16px rgba(13,24,48,.4));animation:rbBob 3.4s ease-in-out infinite;display:none;}
+  @keyframes rbBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .rb-float .rb-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--ng);color:#fff;font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+  .rb-mask{position:fixed;inset:0;z-index:120;background:rgba(6,9,18,.55);backdrop-filter:blur(2px);display:none;align-items:flex-end;justify-content:center;}
+  .rb-mask.show{display:flex;}
+  .rb-panel{width:100%;max-width:440px;background:var(--surface);border-radius:22px 22px 0 0;max-height:88vh;overflow:auto;animation:rbUp .3s ease;position:relative;}
+  @keyframes rbUp{from{transform:translateY(34px);opacity:.5}to{transform:translateY(0);opacity:1}}
+  .rb-head{background:radial-gradient(circle at 22% 18%,#22345f,#0b1424);color:#fff;padding:16px 16px 15px;display:flex;align-items:center;gap:12px;}
+  .rb-head .nm{font-size:11px;color:var(--gold);font-weight:800;letter-spacing:.05em;}
+  .rb-head .hello{font-size:15.5px;font-weight:800;margin-top:3px;line-height:1.35;}
+  .rb-close{position:absolute;top:12px;right:13px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;border:none;font-size:16px;cursor:pointer;z-index:3;}
+  .rb-body{padding:15px 15px 20px;}
+  .rb-sec-t{font-size:11.5px;font-weight:800;color:var(--sub);letter-spacing:.03em;margin:2px 2px 7px;}
+  .rb-change{background:var(--accent-soft);border-radius:14px;padding:11px 13px;margin-bottom:14px;}
+  .rb-change .ci{font-size:13px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:7px;padding:3px 0;}
+  .rb-change .ci i{color:var(--accent);font-size:15px;}
+  .rb-praise{font-size:13.5px;color:var(--ink);line-height:1.7;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .rb-praise p{margin:0 0 6px;}.rb-praise p:last-child{margin:0;}
+  .rb-next{background:linear-gradient(135deg,#22345f,#0b1424);color:#fff;border-radius:16px;padding:14px;cursor:pointer;display:flex;align-items:center;gap:12px;}
+  .rb-next .rn-ic{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .rb-next .rn-ic i{font-size:22px;color:var(--gold);}
+  .rb-next .rn-lbl{font-size:11px;color:var(--gold);font-weight:800;}
+  .rb-next .rn-ttl{font-size:16px;font-weight:800;margin-top:1px;}
+  .rb-next .rn-why{font-size:12px;color:rgba(255,255,255,.8);margin-top:2px;}
+  .rb-next .rn-go{margin-left:auto;font-size:20px;color:#fff;}
   .bug-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
   .bug-chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:9px 12px;font-size:13.5px;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;}
   .bug-chip .tk{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line);display:inline-grid;place-items:center;font-size:11px;color:#fff;}
@@ -958,7 +987,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="subview" id="sv-records">
           <div id="rec-streak-card"></div>
           <div class="tiles">
-            <div class="tile" id="tile-lists"><div class="tic"><i class="ti ti-list-check"></i></div><div class="tnm"><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップ</div><div class="tcnt"><ruby>何<rt class="uf">なん</rt></ruby><ruby>回<rt class="uf">かい</rt></ruby>でも<ruby>復習<rt class="uf">ふくしゅう</rt></ruby></div></div>
+            <div class="tile" id="tile-lists"><div class="tic"><i class="ti ti-map-2"></i></div><div class="tnm"><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップ</div><div class="tcnt"><ruby>何<rt class="uf">なん</rt></ruby><ruby>回<rt class="uf">かい</rt></ruby>でも<ruby>復習<rt class="uf">ふくしゅう</rt></ruby></div></div>
             <div class="tile" id="tile-badge"><div class="tic"><i class="ti ti-award"></i></div><div class="tnm">バッジ</div><div class="tcnt" id="cnt-badge">–</div></div>
             <div class="tile" id="tile-team"><span class="reddot" id="dot-team" style="display:none;"></span><div class="tic"><i class="ti ti-users"></i></div><div class="tnm">なかま</div><div class="tcnt" id="cnt-team">–</div></div>
             <div class="tile" id="tile-overall"><div class="tic"><i class="ti ti-world"></i></div><div class="tnm">クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby></div><div class="tcnt">みんなの がんばり</div></div>
@@ -1001,7 +1030,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       <button class="ntab on" id="ntab5-daily" type="button"><span class="ic"><i class="ti ti-anchor"></i><span class="bdg" id="bdg-daily"></span></span><ruby>毎日<rt class="uf">まいにち</rt></ruby></button>
       <button class="ntab" id="ntab5-unit" type="button"><span class="ic"><i class="ti ti-flag"></i><span class="bdg" id="bdg-unit"></span></span><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></button>
       <button class="ntab" id="ntab5-review" type="button"><span class="ic"><i class="ti ti-notebook"></i><span class="bdg" id="bdg-review"></span></span><span style="white-space:nowrap"><ruby>間違<rt class="uf">まちが</rt></ruby>い</span><br>ノート</button>
-      <button class="ntab" id="ntab5-record" type="button"><span class="ic"><i class="ti ti-award"></i><span class="bdg" id="bdg-team"></span></span><ruby>記録<rt class="uf">きろく</rt></ruby></button>
+      <button class="ntab" id="ntab5-record" type="button"><span class="ic"><i class="ti ti-chart-line"></i><span class="bdg" id="bdg-team"></span></span><ruby>記録<rt class="uf">きろく</rt></ruby></button>
       <button class="ntab" id="btn-logout" type="button"><span class="ic"><i class="ti ti-logout"></i></span>ログアウト</button>
     </nav>
   </section>
@@ -1113,6 +1142,34 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     </div>
   </div>
 </div>
+<!-- 羅針盤（コンパス）SVG定義：アンティーク・紺地×金（川上さん承認モック 2026-07-26） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<radialGradient id="rbFace" cx="42%" cy="38%" r="70%"><stop offset="0%" stop-color="#20315a"/><stop offset="70%" stop-color="#101e3c"/><stop offset="100%" stop-color="#0a1428"/></radialGradient>
+<linearGradient id="rbBrass" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f0d79b"/><stop offset="38%" stop-color="#caa24a"/><stop offset="70%" stop-color="#9c7a2b"/><stop offset="100%" stop-color="#6f571f"/></linearGradient>
+<g id="rbCompass">
+  <circle cx="50" cy="50" r="49" fill="url(#rbBrass)"/><circle cx="50" cy="50" r="49" fill="none" stroke="#5c4718" stroke-width="1"/><circle cx="50" cy="50" r="43.5" fill="#6f571f"/>
+  <g fill="#f0d79b"><circle cx="50" cy="6.5" r="1.5"/><circle cx="93.5" cy="50" r="1.5"/><circle cx="50" cy="93.5" r="1.5"/><circle cx="6.5" cy="50" r="1.5"/><circle cx="81" cy="19" r="1.2"/><circle cx="81" cy="81" r="1.2"/><circle cx="19" cy="81" r="1.2"/><circle cx="19" cy="19" r="1.2"/></g>
+  <circle cx="50" cy="50" r="41" fill="url(#rbFace)"/><circle cx="50" cy="50" r="41" fill="none" stroke="#caa24a" stroke-width="1"/>
+  <g><g transform="rotate(45 50 50)"><path d="M50 50 L48.4 44 L50 30 Z" fill="#e6cf94"/><path d="M50 50 L51.6 44 L50 30 Z" fill="#9c7a2b"/></g><g transform="rotate(135 50 50)"><path d="M50 50 L48.4 44 L50 30 Z" fill="#e6cf94"/><path d="M50 50 L51.6 44 L50 30 Z" fill="#9c7a2b"/></g><g transform="rotate(225 50 50)"><path d="M50 50 L48.4 44 L50 30 Z" fill="#e6cf94"/><path d="M50 50 L51.6 44 L50 30 Z" fill="#9c7a2b"/></g><g transform="rotate(315 50 50)"><path d="M50 50 L48.4 44 L50 30 Z" fill="#e6cf94"/><path d="M50 50 L51.6 44 L50 30 Z" fill="#9c7a2b"/></g></g>
+  <g transform="rotate(90 50 50)"><path d="M50 50 L47 43 L50 15 Z" fill="#e6cf94"/><path d="M50 50 L53 43 L50 15 Z" fill="#9c7a2b"/></g><g transform="rotate(180 50 50)"><path d="M50 50 L47 43 L50 15 Z" fill="#e6cf94"/><path d="M50 50 L53 43 L50 15 Z" fill="#9c7a2b"/></g><g transform="rotate(270 50 50)"><path d="M50 50 L47 43 L50 15 Z" fill="#e6cf94"/><path d="M50 50 L53 43 L50 15 Z" fill="#9c7a2b"/></g>
+  <path d="M50 50 L47 43 L50 13 Z" fill="#e8896f"/><path d="M50 50 L53 43 L50 13 Z" fill="#b23a26"/>
+  <circle cx="50" cy="50" r="4.5" fill="url(#rbBrass)" stroke="#5c4718" stroke-width="0.6"/><circle cx="50" cy="50" r="1.6" fill="#3a2c0e"/>
+  <g font-family="serif" font-weight="700" fill="#e6cf94"><text x="50" y="27" text-anchor="middle" font-size="7.5">N</text><text x="74" y="52.5" text-anchor="middle" font-size="6">E</text><text x="50" y="77" text-anchor="middle" font-size="6">S</text><text x="26" y="52.5" text-anchor="middle" font-size="6">W</text></g>
+</g></defs></svg>
+<div class="rb-float" id="rb-float" role="button" tabindex="0" aria-label="今日のアドバイスを見る"><span class="rb-badge" id="rb-badge">アドバイス</span><svg viewBox="0 0 100 100" width="60" height="60"><use href="#rbCompass"/></svg></div>
+<div class="rb-mask" id="rb-mask">
+  <div class="rb-panel">
+    <button class="rb-close" id="rb-close" type="button" aria-label="とじる"><i class="ti ti-x"></i></button>
+    <div class="rb-head"><svg viewBox="0 0 100 100" width="52" height="52" style="flex:0 0 auto"><use href="#rbCompass"/></svg><div><div class="nm">クロトレの <ruby>羅針盤<rt class="uf">らしんばん</rt></ruby></div><div class="hello" id="rb-hello">今日の アドバイス</div></div></div>
+    <div class="rb-body">
+      <div id="rb-change-wrap" style="display:none;"><div class="rb-sec-t"><ruby>昨日<rt class="uf">きのう</rt></ruby>から こう<ruby>変<rt class="uf">か</rt></ruby>わった</div><div class="rb-change" id="rb-change"></div></div>
+      <div class="rb-sec-t" id="rb-praise-t"><ruby>今日<rt class="uf">きょう</rt></ruby>の みたて</div>
+      <div class="rb-praise" id="rb-praise"></div>
+      <div class="rb-sec-t"><ruby>次<rt class="uf">つぎ</rt></ruby>の <ruby>一手<rt class="uf">いって</rt></ruby></div>
+      <div class="rb-next" id="rb-next"></div>
+    </div>
+  </div>
+</div>
 <button class="bug-fab" id="bug-fab" onclick="openBug()" style="display:none;" aria-label="不具合を報告"><i class="ti ti-message-report"></i><span><ruby>不具合<rt class="uf">ふぐあい</rt></ruby>を<ruby>報告<rt class="uf">ほうこく</rt></ruby></span></button>
 <div class="modal-mask" id="bug-mask">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bug-title">
@@ -1206,7 +1263,7 @@ function kwtSpin(px){px=px||64;return '<svg class="kwtld" viewBox="0 0 120 120" 
   +'<g class="o" style="transform-origin:60px 60px"><rect x="36" y="36" width="48" height="48" rx="3" fill="none" stroke="#caa24a" stroke-width="2" opacity=".55" transform="rotate(45 60 60)"/></g>'
   +'<g class="i" style="transform-origin:60px 60px"><rect x="48" y="48" width="24" height="24" rx="2" fill="none" stroke="#0a6cff" stroke-width="2.6" opacity=".85"/></g>'
   +'<circle cx="60" cy="60" r="4" fill="#0a6cff"/></svg>';}
-function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}}
+function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}}
 /* 学習マップのパート行のメタ：前回合格日・正答率・おさらいの進み（GAS material_parts が per-part で返す）2026-07-26 */
 function _mapMetaHtml_(l){
   if(!l||!l.last_pass_date)return ''; // 合格していないパートは出さない
@@ -2487,7 +2544,7 @@ function renderQz_(s){
   _kaiImgCur=kaiImgHtml(w,s.assets);_curExW=w;
   // 進捗ラベル（おさらいは教材・パートのタグつき）
   if(s.mode==='srs'){
-    var _tag=(w.material_title||w.part_title)?('<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 11px;margin-bottom:7px;"><i class="ti ti-map-pin" style="font-size:12px"></i> おさらい・'+esc(mtLabelMt(w))+(w.part_title?('／'+esc(w.part_title)):'')+'</div><br>'):'';
+    var _tag=(w.material_title||w.part_title)?('<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 11px;margin-bottom:7px;"><i class="ti ti-clock-bolt" style="font-size:12px"></i> おさらい・'+esc(mtLabelMt(w))+(w.part_title?('／'+esc(w.part_title)):'')+'</div><br>'):'';
     $('step-label').innerHTML=_tag+'<ruby>復習<rt class="uf">ふくしゅう</rt></ruby> '+(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
   }else if(s.mode==='note'){
     $('step-label').innerHTML='<ruby>復習<rt class="uf">ふくしゅう</rt></ruby> '+(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
@@ -3280,7 +3337,16 @@ function loadReviewSrs(){
     area.appendChild(omk);
     if(subjects.length){
       var hd=document.createElement('div');hd.style.cssText='font-size:12px;color:var(--sub);font-weight:700;margin:15px 2px 7px;';hd.innerHTML=rb('教科','きょうか')+'でえらぶ';area.appendChild(hd);
-      subjects.forEach(function(c){ area.appendChild(subjCard_(c.subject,c.count,function(){openOsaraiSubject(c.subject);})); });
+      subjects.forEach(function(c){
+        // 教科の中身＝教材別内訳（上位2つ＋ほかN）。何がたまっているか見せる 2026-07-26
+        var mats=c.materials||[];var sub='';
+        if(mats.length){
+          var _sh=function(t){t=String(t||'');return t.length>16?(t.slice(0,15)+'…'):t;};
+          var top=mats.slice(0,2).map(function(m){return esc(_sh(m.label))+' '+m.count;}); // labelはサーバー整形済み（シリーズ名）
+          sub=top.join('・')+(mats.length>2?(' ほか'+(mats.length-2)):'');
+        }
+        area.appendChild(subjCard_(c.subject,c.count,function(){openOsaraiSubject(c.subject);},sub));
+      });
     }
   });
 }
@@ -3430,8 +3496,79 @@ if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catc
 /* ===== 生徒バグ報告（各画面から押せる・記録のみ＝メールは朝まとめ）2026-07-11 ===== */
 var _bugSending=false;
 /* 報告ボタンの表示：BUG_FAB_SCREENS で出す画面を絞れる（null=全画面） */
-function refreshBugFab(){var fab=$('bug-fab');if(!fab)return;var a=document.querySelector('.screen.active');var id=a?a.id:'';var showIt=(!BUG_FAB_SCREENS)||(BUG_FAB_SCREENS.indexOf(id)>=0);fab.style.display=showIt?'flex':'none';if(!showIt)return;/* 下メニュー(#ntabbar)の実高さを測って必ずその上に出す＝固定値(旧82px)をやめる。レイアウトが変わっても再発しない 2026-07-26 */var onHome=document.body.classList.contains('on-home');var b=20;if(onHome){var nav=$('ntabbar');var nh=nav?(nav.getBoundingClientRect().height||0):0;if(nh>0)b=Math.round(nh)+16;else b=82;/* 測れないときだけ従来値で保険 */}fab.style.bottom=b+'px';}
+function refreshBugFab(){var fab=$('bug-fab');if(!fab)return;var a=document.querySelector('.screen.active');var id=a?a.id:'';var showIt=(!BUG_FAB_SCREENS)||(BUG_FAB_SCREENS.indexOf(id)>=0);fab.style.display=showIt?'flex':'none';if(!showIt)return;/* 下メニュー(#ntabbar)の実高さを測って必ずその上に出す＝固定値(旧82px)をやめる。レイアウトが変わっても再発しない 2026-07-26 */var onHome=document.body.classList.contains('on-home');var b=20;if(onHome){var nav=$('ntabbar');var nh=nav?(nav.getBoundingClientRect().height||0):0;if(nh>0)b=Math.round(nh)+16;else b=82;/* 測れないときだけ従来値で保険 */}fab.style.bottom=b+'px';try{rbFloatSync_();}catch(_e){}}
 window.addEventListener('resize',function(){try{refreshBugFab();}catch(e){}});window.addEventListener('orientationchange',function(){try{setTimeout(refreshBugFab,120);}catch(e){}});
+/* ===== 羅針盤アドバイザー（総括・v1：既存データで褒め＋昨日からの変化＋今日の1つの次アクション。全体平均比較はv3）2026-07-26 ===== */
+function _rbSeenKey_(){return 'kwt_rb_seen_'+(nickname||'');}
+function _rbSnapKey_(){return 'kwt_rb_snap_'+(nickname||'');}
+function rbState_(){return {
+  streak:_streakDays||0, freeze:_freezeCount||0,
+  dailyDone:!!(typeof dailyState==='object'&&dailyState&&dailyState.main),
+  osaraiDone:!!(typeof dailyState==='object'&&dailyState&&dailyState.review),
+  dailyUndone:_dailyUndone||0, osaraiRem:(_revNum&&_revNum.osarai)||0,
+  noteRem:(_revNum&&_revNum.note)||0, quizMiss:_quizMiss||0, unit:_unitCount||0, newBadge:!!_newBadge
+};}
+/* 今日の1つの次アクション＝赤●の誘導順（毎日→おさらい→間違いノート→単元別）。タップで各ページへ送り出す */
+function rbNextAction_(s){
+  if(s.dailyUndone>0)return {icon:'ti-anchor',lbl:'毎日学習',why:'今日の デイリーを すすめよう',go:function(){rbClose_();showHomeTab('daily');}};
+  if(!s.osaraiDone&&s.osaraiRem>0)return {icon:'ti-clock-bolt',lbl:'おさらい',why:'わすれない うちに もう一回',go:function(){rbClose_();showSub('review');}};
+  if(s.noteRem>0)return {icon:'ti-notebook',lbl:'間違いノート',why:'間違えた 所を 直そう',go:function(){rbClose_();showHomeTab('review');}};
+  if(s.quizMiss>0||s.unit>0)return {icon:'ti-flag',lbl:'単元別',why:'テスト範囲を すすめよう',go:function(){rbClose_();showHomeTab('unit');}};
+  return {icon:'ti-clock-bolt',lbl:'おさらいを つづける',why:'今日のぶんは 完了！余裕があれば もう少し',go:function(){rbClose_();showSub('review');}};
+}
+/* 昨日からの変化＝前日スナップショット(1日1回更新)との差分。前向きな変化だけ出す（下位は晒さない） */
+function rbChange_(s){
+  var prev=null;try{prev=JSON.parse(localStorage.getItem(_rbSnapKey_())||'null');}catch(e){}
+  var out=[];
+  if(prev&&prev.date&&prev.date!==todayStr_()){
+    if((s.streak||0)>(prev.streak||0))out.push({i:'ti-flame',t:'連続が ＋'+(s.streak-prev.streak)+'日 のびた！'});
+    if(typeof prev.noteRem==='number'&&prev.noteRem>s.noteRem)out.push({i:'ti-notebook',t:'間違いノートを '+(prev.noteRem-s.noteRem)+'語 減らした！'});
+    if(s.newBadge)out.push({i:'ti-award',t:'新しいバッジを ゲット！'});
+  }
+  return out;
+}
+/* 褒め（多軸・自己成長中心）。日替わりで切り口を変える。平均比較はv3。 */
+function rbPraise_(s){
+  var j=new Date(Date.now()+9*3600*1000);var day=j.getUTCFullYear()*372+j.getUTCMonth()*31+j.getUTCDate();
+  var pool=[];
+  if(s.streak>=2)pool.push('<b>'+s.streak+'日</b> 続けてるのは すごいこと。習慣に なってきてるよ。');
+  if(s.dailyDone)pool.push('今日のデイリー、きちんと やり切ったね。この積み重ねが 効くよ。');
+  if(s.newBadge)pool.push('新しいバッジ、おめでとう！がんばりが 形に なってる。');
+  if(s.freeze>0)pool.push('フリーズを <b>'+s.freeze+'個</b> 持ってるよ。休んだ日も 連続を まもれる。');
+  if(s.noteRem===0)pool.push('間違いノートが カラっぽ。ていねいに 直せてる 証拠だよ。');
+  if(!pool.length)pool.push('今日 ここに 来られたのが えらい。まずは 1つ やってみよう。');
+  var start=day%pool.length;var picked=[pool[start]];if(pool.length>1)picked.push(pool[(start+1)%pool.length]);
+  return picked;
+}
+function rbBadgeSync_(){var b=$('rb-badge');if(!b)return;var seen=false;try{seen=(localStorage.getItem(_rbSeenKey_())===todayStr_());}catch(e){}b.style.display=seen?'none':'';}
+function rbFloatSync_(){
+  var f=$('rb-float');if(!f)return;
+  var a=document.querySelector('.screen.active');var onHome=(a&&a.id==='scr-home');
+  if(!onHome){f.style.display='none';return;}
+  var nav=$('ntabbar');var nh=nav?(nav.getBoundingClientRect().height||0):0;f.style.bottom=((nh>0?Math.round(nh):66)+16)+'px';
+  f.style.display='block';rbBadgeSync_();
+}
+function rbOpen_(){
+  var s=rbState_();
+  var nm=(nickname&&nickname!=='きみ')?nickname:'きみ';
+  var h=$('rb-hello');if(h)h.textContent=nm+'さんへの 今日の アドバイス';
+  var chg=rbChange_(s);
+  var cw=$('rb-change-wrap'),cc=$('rb-change');
+  if(cw&&cc){ if(chg.length){cc.innerHTML=chg.map(function(c){return '<div class="ci"><i class="ti '+c.i+'"></i>'+c.t+'</div>';}).join('');cw.style.display='';}else{cw.style.display='none';} }
+  var pr=$('rb-praise');if(pr)pr.innerHTML=rbPraise_(s).map(function(t){return '<p>'+t+'</p>';}).join('');
+  var na=rbNextAction_(s);var ne=$('rb-next');
+  if(ne){ne.innerHTML='<div class="rn-ic"><i class="ti '+na.icon+'"></i></div><div><div class="rn-lbl">つぎは これ</div><div class="rn-ttl">'+esc(na.lbl)+'</div><div class="rn-why">'+na.why+'</div></div><div class="rn-go"><i class="ti ti-arrow-right"></i></div>';ne.onclick=na.go;}
+  try{localStorage.setItem(_rbSnapKey_(),JSON.stringify({date:todayStr_(),streak:s.streak,noteRem:s.noteRem}));}catch(e){} // 今日ぶんを確定（次の日の比較用）
+  try{localStorage.setItem(_rbSeenKey_(),todayStr_());}catch(e){}
+  rbBadgeSync_();
+  var m=$('rb-mask');if(m)m.classList.add('show');
+}
+function rbClose_(){var m=$('rb-mask');if(m)m.classList.remove('show');}
+(function(){
+  var f=$('rb-float');if(f)f.onclick=rbOpen_;
+  var c=$('rb-close');if(c)c.onclick=rbClose_;
+  var m=$('rb-mask');if(m)m.onclick=function(e){if(e.target===m)rbClose_();};
+})();
 /* いま開いている画面の名前（報告のデフォルト値。ちがえば生徒が選び直す） */
 function currentScreenName(){
   var a=document.querySelector('.screen.active');var id=a?a.id:'';
