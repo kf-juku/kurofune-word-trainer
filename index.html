@@ -529,9 +529,10 @@
   .tcheer{margin-top:9px;width:100%;border:1px solid rgba(227,196,119,.5);background:rgba(255,255,255,.06);border-radius:12px;padding:8px 2px;color:#e3c477;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:transform .12s;}
   .tcheer:active{transform:scale(.95);}
   .tcheer.sent{background:linear-gradient(135deg,#e3c477,#a9842f);border-color:#e3c477;color:#fff;pointer-events:none;}
-  .tcard.me{border-color:#ffd873!important;background:rgba(255,216,115,.18)!important;box-shadow:0 0 22px rgba(255,216,115,.3)!important;}
-  .tcard.me .tc-ava{background:linear-gradient(135deg,#ffe08a,#e0a93a);color:#3a2b06;}
-  .tc-mebadge{margin-top:9px;width:100%;border-radius:12px;padding:8px 2px;background:rgba(255,255,255,.14);color:#fff;font-size:11px;font-weight:800;}
+  /* 自分の強調は「シアン系（きみ色）」＝金色(1位)と被らせない 2026-07-26 */
+  .tcard.me{border-color:#5fd0ff!important;background:rgba(95,208,255,.16)!important;box-shadow:0 0 22px rgba(95,208,255,.28)!important;}
+  .tcard.me .tc-ava{background:linear-gradient(135deg,#9fe6ff,#3aa6e0);color:#04283c;}
+  .tc-mebadge{margin-top:9px;width:100%;border-radius:12px;padding:8px 2px;background:rgba(95,208,255,.22);color:#eafaff;font-size:11px;font-weight:800;}
   .trio-foot{color:#cdd6e6;font-size:12px;text-align:center;margin-top:12px;padding:0 20px;line-height:1.7;}
   .trio-foot b{color:#ffd873;}
   .trio-cta{display:block;margin:12px auto 4px;background:#fff;color:#15161a;border:none;border-radius:12px;padding:11px 26px;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;}
@@ -892,6 +893,12 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   .rb-axis .ax-l{color:var(--sub);font-weight:800;font-size:11.5px;flex:0 0 62px;}
   .rb-axis .ax-v{color:var(--ink);line-height:1.5;}
   .rb-praise-line{font-size:13px;color:var(--sub);line-height:1.7;padding:11px 13px;background:var(--accent-soft);}
+  .rb-trend{padding:12px 13px;border-top:1px solid var(--line);}
+  .rb-trend-t{font-size:11.5px;font-weight:800;color:var(--sub);margin-bottom:9px;}
+  .rb-bars{display:flex;align-items:flex-end;gap:8px;height:64px;}
+  .rb-bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;}
+  .rb-bar .rb-bv{font-size:10px;color:var(--sub);font-weight:700;font-family:Manrope,sans-serif;}
+  .rb-bar i{width:100%;max-width:26px;border-radius:5px 5px 0 0;display:block;}
   .rb-mask{position:fixed;inset:0;z-index:120;background:rgba(6,9,18,.55);backdrop-filter:blur(2px);display:none;align-items:flex-end;justify-content:center;}
   .rb-mask.show{display:flex;}
   .rb-panel{width:100%;max-width:440px;background:var(--surface);border-radius:22px 22px 0 0;max-height:88vh;overflow:auto;animation:rbUp .3s ease;position:relative;}
@@ -3575,9 +3582,17 @@ function rbRenderStatus_(adv){
   if(adv&&adv.volume&&adv.volume.today>0){var mul=(adv.volume.ratio>=1.4)?(' ・ いつもの <b>約'+adv.volume.ratio+'倍</b>'):'';rows+=rbAxis_('ti-bolt','<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>量<rt class="uf">りょう</rt></ruby>','<b>'+adv.volume.today+'問</b>'+mul);}
   if(adv&&adv.base&&adv.base.words30>0)rows+=rbAxis_('ti-stack-2','<ruby>積<rt class="uf">つ</rt></ruby>み<ruby>上<rt class="uf">あ</rt></ruby>げ','この30日で <b>'+adv.base.words30+'問</b>');
   if(!rows)rows=rbAxis_('ti-compass','ようす','これから <ruby>記録<rt class="uf">きろく</rt></ruby>が たまっていくよ');
+  var trend=(adv&&adv.recent)?rbTrendHtml_(adv.recent):'';
   var praise=(rbPraise_(s)[0]||'');
-  el.innerHTML='<div class="rb-statuscard">'+rows+(praise?'<div class="rb-praise-line">'+praise+'</div>':'')+'</div>';
+  el.innerHTML='<div class="rb-statuscard">'+rows+trend+(praise?'<div class="rb-praise-line">'+praise+'</div>':'')+'</div>';
 }
+/* 直近の推移（正答率・古→新）＝先生画面のミニ棒グラフを生徒にも。80以上=緑/60以上=金/未満=赤 2026-07-26 */
+function rbTrendHtml_(recent){
+  if(!recent||recent.length<2)return '';
+  var bars=recent.map(function(v){var h=Math.max(8,Math.round((v||0)/100*46));var col=v>=80?'var(--ok)':(v>=60?'var(--gold)':'var(--ng)');return '<div class="rb-bar"><span class="rb-bv">'+v+'</span><i style="height:'+h+'px;background:'+col+'"></i></div>';}).join('');
+  return '<div class="rb-trend"><div class="rb-trend-t"><ruby>直近<rt class="uf">ちょっきん</rt></ruby>の <ruby>推移<rt class="uf">すいい</rt></ruby>（<ruby>正答率<rt class="uf">せいとうりつ</rt></ruby>・<ruby>古<rt class="uf">ふる</rt></ruby>→<ruby>新<rt class="uf">しん</rt></ruby>）</div><div class="rb-bars">'+bars+'</div></div>';
+}
+function rbStatusSpinner_(){var el=$('rb-status');if(el)el.innerHTML='<div class="rb-statuscard" style="padding:24px 13px;text-align:center;color:var(--sub);font-size:12.5px;">'+kwtSpin(40)+'<div style="margin-top:8px"><ruby>分析<rt class="uf">ぶんせき</rt></ruby>中…</div></div>';}
 function rbOpen_(){
   var s=rbState_();
   var nm=(nickname&&nickname!=='きみ')?nickname:'きみ';
@@ -3585,7 +3600,7 @@ function rbOpen_(){
   var chg=rbChange_(s);
   var cw=$('rb-change-wrap'),cc=$('rb-change');
   if(cw&&cc){ if(chg.length){cc.innerHTML=chg.map(function(c){return '<div class="ci"><i class="ti '+c.i+'"></i>'+c.t+'</div>';}).join('');cw.style.display='';}else{cw.style.display='none';} }
-  rbRenderStatus_(null); // まずクライアント分（継続・褒め）で描く
+  rbStatusSpinner_(); // 分析中スピナー（サーバー取得までは空にしない＝すぐ閉じられない）
   var na=rbNextAction_(s);var ne=$('rb-next');
   if(ne){ne.innerHTML='<div class="rn-ic"><i class="ti '+na.icon+'"></i></div><div><div class="rn-ttl">'+esc(na.lbl)+'</div><div class="rn-why">'+na.why+'</div></div><div class="rn-go"><i class="ti ti-arrow-right"></i></div>';ne.onclick=na.go;}
   try{localStorage.setItem(_rbSnapKey_(),JSON.stringify({date:todayStr_(),streak:s.streak,noteRem:s.noteRem}));}catch(e){} // 今日ぶんを確定（次の日の比較用）
@@ -3594,7 +3609,7 @@ function rbOpen_(){
   var m=$('rb-mask');if(m)m.classList.add('show');
   try{rbFetchAdvisor_();}catch(e){} // サーバーの多軸（正答率・平均比較・量・積み上げ・成長）で描き直す
 }
-function rbFetchAdvisor_(){ call({action:'advisor_summary'}).then(function(d){ if(d&&d.ok&&d.data)rbRenderStatus_(d.data); }).catch(function(){}); }
+function rbFetchAdvisor_(){ call({action:'advisor_summary'}).then(function(d){ if(d&&d.ok&&d.data)rbRenderStatus_(d.data); else rbRenderStatus_(null); }).catch(function(){ rbRenderStatus_(null); }); } // 取得できたら多軸＋推移、ダメならクライアント分で描く
 function rbClose_(){var m=$('rb-mask');if(m)m.classList.remove('show');}
 (function(){
   var f=$('rb-float');if(f)f.onclick=rbOpen_;
