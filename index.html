@@ -622,6 +622,11 @@
   .ex-ans{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;}
   .ex-ans b{color:var(--ok);}
   .ex-kai{font-size:13.5px;line-height:1.6;color:var(--sub);margin-bottom:7px;}
+  /* 解説なぞり（不正解時・下線が伸びる）2026-07-26：文字は最初から読める色のまま、読み進む所に金の下線が流れる＝目で追わせる。次へボタンには何もしない（目線を奪わない） */
+  .ex-kai.trace{color:var(--ink);}
+  .ex-kai .kc{box-shadow:inset 0 0 0 transparent;transition:box-shadow .12s linear,background-color .12s linear;border-radius:3px;}
+  .ex-kai .kc.read{box-shadow:inset 0 -0.16em 0 var(--gold);}
+  .ex-kai .kc.cur{box-shadow:inset 0 -0.16em 0 var(--gold);background-color:rgba(202,162,74,.20);}
   .ex-actions{display:flex;gap:9px;margin-top:12px;}
   .ex-next{flex:1;background:var(--accent);color:#fff;border:0;border-radius:13px;padding:14px;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;cursor:pointer;position:relative;overflow:hidden;}
   .ex-next i{font-size:19px;}
@@ -742,6 +747,9 @@
   #confetti{position:fixed;inset:0;pointer-events:none;z-index:50;}
   .conf{position:absolute;width:10px;height:14px;top:-20px;animation:fall linear forwards;}
   @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.9;}}
+  /* 花火（おさらい完了：中心から粒が飛び散る1発を時間差で複数＝ボンボンボン）2026-07-26。背景は画面のまま＝テーマ追従、上に重ねるだけ */
+  .fw-spark{position:fixed;width:8px;height:8px;border-radius:50%;opacity:0;z-index:60;pointer-events:none;}
+  @keyframes fwBurst{0%{opacity:1;transform:translate(0,0) scale(1);}80%{opacity:1;}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.35);}}
   .flash{position:fixed;inset:0;background:radial-gradient(circle,rgba(202,162,74,.4),transparent 60%);opacity:0;pointer-events:none;z-index:40;}
   .flash.show{animation:flash .5s;}
   @keyframes flash{0%{opacity:0;}30%{opacity:1;}100%{opacity:0;}}
@@ -1581,6 +1589,25 @@ function sndPronOk(){ // 発音OK＝しっかり達成感の上がる3音（大�
 }
 function sndPronSoft(){setTimeout(function(){tone_(523,0.22,'sine',0.18,0,784);},240);} // 発音（受理以外）＝やわらかい中立音（少し大きめ）2026-07-14
 function confetti(n){var box=$('confetti');var cs=['#caa24a','#0a6cff','#1faa6b','#e0533c','#9b6dd6'];for(var i=0;i<n;i++){var c=document.createElement('i');c.className='conf';c.style.left=Math.random()*100+'vw';c.style.background=cs[Math.floor(Math.random()*cs.length)];c.style.animationDuration=(1.6+Math.random()*1.4)+'s';c.style.transform='rotate('+Math.random()*360+'deg)';box.appendChild(c);(function(el){setTimeout(function(){el.remove();},3200);})(c);}}
+/* 花火：1発＝中心(xvw,yvh)から粒がn個飛び散る。level='batch'|'grad'|'empty' で発数・粒数を変える＝ボンボンボン。背景は触らずオーバーレイのみ（テーマ追従）2026-07-26 */
+function fireworks_(level){
+  var COLS=['#ffd873','#ffb03a','#5fd0ff','#7cf0b0','#ff8fb0','#ffffff','#caa24a'];
+  function burst(xvw,yvh,n){for(var i=0;i<n;i++){(function(k){
+    var s=document.createElement('i');s.className='fw-spark';
+    var ang=(Math.PI*2)*(k/n)+Math.random()*0.3,dist=70+Math.random()*110;
+    s.style.left=xvw+'vw';s.style.top=yvh+'vh';s.style.background=COLS[Math.floor(Math.random()*COLS.length)];
+    s.style.setProperty('--dx',(Math.cos(ang)*dist)+'px');s.style.setProperty('--dy',(Math.sin(ang)*dist)+'px');
+    var dur=(1.0+Math.random()*0.7);s.style.animation='fwBurst '+dur+'s ease-out forwards';
+    document.body.appendChild(s);setTimeout(function(){s.remove();},dur*1000+90);
+  })(i);}}
+  var shots=(level==='empty')
+    ?[[50,22,0],[28,30,150],[72,28,300],[40,16,470],[60,18,640],[50,34,820],[20,42,980],[80,40,1120],[35,50,1280],[65,48,1420]]
+    :(level==='grad')
+      ?[[50,24,0],[28,32,180],[72,30,360],[45,18,540],[58,20,720],[50,38,900]]
+      :[[50,26,0],[32,34,220],[68,32,440],[50,20,700]];
+  var per=(level==='empty')?30:((level==='grad')?24:20);
+  shots.forEach(function(sh){setTimeout(function(){burst(sh[0],sh[1],per);},sh[2]);});
+}
 function flash(){var f=$('flash');f.classList.remove('show');void f.offsetWidth;f.classList.add('show');}
 function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
 /* ===== モチベ演出（完了3タイル・連続記録カード・ホーム復帰お祝い）2026-07-24 ===== */
@@ -2956,13 +2983,32 @@ function showExplain(correct,kaisetsu,reading,ok){
   var _mk=(ok===true)?'<span style="color:#1fa971;font-weight:800;">⭕ </span>':((ok===false)?'<span style="color:#e0574b;font-weight:800;">❌ </span>':'');
   $('ex-ans').innerHTML=_mk+'せいかい：<b>'+esc(correct)+'</b>'+(reading?'<span style="font-size:13px;color:var(--sub);font-weight:400;">（'+esc(reading)+'）</span>':'');
   var kai=$('ex-kai');
-  if(kaisetsu){kai.textContent=kaisetsu;kai.style.display='';}else{kai.style.display='none';}
+  if(kaisetsu){
+    kai.style.display='';
+    if(ok===false){kaiTraceStart_(kai,kaisetsu,2200);} // 不正解だけ下線なぞり（正解はテンポ維持）2026-07-26
+    else{kaiTraceStop_();kai.classList.remove('trace');kai.textContent=kaisetsu;}
+  }else{kaiTraceStop_();kai.classList.remove('trace');kai.style.display='none';}
   var _kimg=$('ex-img');if(_kimg){if(_kaiImgCur){_kimg.innerHTML=_kaiImgCur;_kimg.style.display='';}else{_kimg.innerHTML='';_kimg.style.display='none';}}
   var _bf=$('bug-fab');if(_bf)_bf.style.display='none'; /* 解説中はフローティング報告を隠す＝機能は解説内「まちがい報告」へ 2026-07-16 */
   $('explain').style.display='block';
   try{$('explain').scrollIntoView({behavior:'smooth',block:'end'});}catch(e){try{$('explain').scrollIntoView(false);}catch(e2){}}
 }
-function hideExplain(){var e=$('explain');if(e)e.style.display='none';try{refreshBugFab();}catch(_e){var _bf=$('bug-fab');if(_bf)_bf.style.display='';}}
+/* 解説なぞり（下線が伸びる）2026-07-26：不正解時、解説を1文字ずつ span 化し、読み進む所に金の下線を左から流す。時間で自動進行（クリック不要）。次へボタンには触れない＝目線を解説に留める */
+var _kaiTId=null;
+function kaiTraceStop_(){if(_kaiTId){clearInterval(_kaiTId);_kaiTId=null;}}
+function kaiTraceStart_(el,text,ms){
+  kaiTraceStop_();el.classList.add('trace');
+  var chars=String(text).split('');
+  el.innerHTML=chars.map(function(ch){return '<span class="kc">'+((ch===' '||ch==='\n'||ch==='\t')?'&nbsp;':esc(ch))+'</span>';}).join('');
+  var cs=el.querySelectorAll('.kc');if(!cs.length)return;
+  var per=Math.max(26,ms/cs.length),i=0;
+  _kaiTId=setInterval(function(){
+    if(i>0&&cs[i-1])cs[i-1].classList.remove('cur');
+    if(i<cs.length){cs[i].classList.add('read','cur');i++;}
+    else{kaiTraceStop_();if(cs[cs.length-1])cs[cs.length-1].classList.remove('cur');}
+  },per);
+}
+function hideExplain(){kaiTraceStop_();var e=$('explain');if(e)e.style.display='none';try{refreshBugFab();}catch(_e){var _bf=$('bug-fab');if(_bf)_bf.style.display='';}}
 /* 画面のどこかをタップで次へ（同じクリックで即進まないよう少し遅らせて登録）2026-07-04 */
 function waitTap(next,ok){
   var btn=$('ex-next');var done=false;
@@ -3426,29 +3472,46 @@ function finishSrs(){
   var _sa=$('star-area');if(_sa)_sa.innerHTML=missWordsHtml(s.miss,s.words);
   $('btn-next').style.display='none';
   $('done-badge').innerHTML='<i class="ti ti-clock-bolt" style="color:var(--gold)"></i>';
-  $('done-result').innerHTML='おさらい お<ruby>疲<rt class="uf">つか</rt></ruby>れさま！'; // 表記は漢字（川上さん指示 2026-07-05）
+  $('done-result').innerHTML='おさらい <ruby>完了<rt class="uf">かんりょう</rt></ruby>！'; // 表記は漢字（川上さん指示 2026-07-05）
   $('done-score-wrap').style.display='none';var _dtn=$('done-tiles');if(_dtn)_dtn.innerHTML='';
-  // 自主的に続けられる：期限が来た分は上限を気にせず消化してよい（正解＝箱前進）川上さん 2026-07-26
   var _osS=s.osSubject||'';
-  $('btn-next').innerHTML='<i class="ti ti-clock-bolt"></i> もっとやる'+(_osS?('（'+esc(subjLabel(_osS))+'）'):'');
-  $('btn-next').className='btn sub';$('btn-next').style.display='flex';
-  $('btn-next').onclick=function(){osaraiMore_(_osS);};
   // 何をおさらいしたか（川上さん指示 2026-07-05）：3語まで列挙＋ほか◯語
   var _dw=s.doneWords||[];
   $('done-rate').innerHTML=_dw.length?('<ruby>英語<rt class="uf">えいご</rt></ruby> '+_dw.length+'<ruby>語<rt class="uf">ご</rt></ruby>（'+_dw.slice(0,3).map(esc).join('・')+(_dw.length>3?' ほか'+(_dw.length-3)+'<ruby>語<rt class="uf">ご</rt></ruby>':'')+'）をおさらいしたよ'):'';
   // 記録の保存（裏送信キュー）が終わるまで結果を確定しない（gas-html-checklist：成功と偽らない）2026-07-05
   $('done-miss').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
-  whenGradesFlushed(function(){
-    if(gradeFailed>0){$('done-miss').innerHTML='⚠ <ruby>一部<rt class="uf">いちぶ</rt></ruby>の<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby>できませんでした。<ruby>電波<rt class="uf">でんぱ</rt></ruby>の<ruby>良<rt class="uf">よ</rt></ruby>いところで もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やってね';return;}homeCacheClear_();/* おさらい完了でホームキャッシュ無効化（案A 2026-07-08）*/
-    // つぎはいつ出るか（川上さん承認モック 2026-07-05）：今日やった語のうち最短の次回日数
-    var _ls=[];
-    if(s.graduated)_ls.push('<ruby>今回<rt class="uf">こんかい</rt></ruby> '+s.graduated+'<ruby>語<rt class="uf">ご</rt></ruby> マスター！🎓');
-    if(s.nextDays)_ls.push('つぎは '+s.nextDays+'<ruby>日<rt class="uf">にち</rt></ruby><ruby>後<rt class="uf">ご</rt></ruby>に また<ruby>出<rt class="uf">で</rt></ruby>てくるよ');
-    $('done-miss').innerHTML=_ls.join('　');
-    if(s.graduated){sndWin();flash();confetti(100);}
-  });
   $('btn-retry').style.display='none';
   $('btn-home').onclick=openHome;
+  whenGradesFlushed(function(){
+    if(gradeFailed>0){$('done-miss').innerHTML='⚠ <ruby>一部<rt class="uf">いちぶ</rt></ruby>の<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby>できませんでした。<ruby>電波<rt class="uf">でんぱ</rt></ruby>の<ruby>良<rt class="uf">よ</rt></ruby>いところで もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やってね';return;}homeCacheClear_();/* おさらい完了でホームキャッシュ無効化（案A 2026-07-08）*/
+    // 残りの期限をピーク（フロントのみ・既存review_due）。due_total<=0＝おさらいが空＝特別フィナーレ。>0＝1回分完了の花火。2026-07-26
+    call({action:'review_due'}).then(function(d){
+      var empty=!!(d&&d.ok&&d.data&&typeof d.data.due_total==='number'&&d.data.due_total<=0);
+      srsDoneCelebrate_(s,_osS,empty);
+    }).catch(function(){srsDoneCelebrate_(s,_osS,false);});
+  });
+}
+/* おさらい完了の演出確定（grades flush後）：1回分完了＝花火／全消化で空＝王冠フィナーレ。背景は画面のまま（テーマ追従）、花火をオーバーレイ 2026-07-26 */
+function srsDoneCelebrate_(s,_osS,empty){
+  var _ls=[];
+  if(s.graduated)_ls.push('<ruby>今回<rt class="uf">こんかい</rt></ruby> '+s.graduated+'<ruby>語<rt class="uf">ご</rt></ruby> マスター！🎓');
+  if(empty){
+    $('done-badge').innerHTML='<i class="ti ti-crown" style="color:var(--gold)"></i>';
+    $('done-result').innerHTML='おさらい ぜんぶクリア！';
+    _ls.unshift('<ruby>今日<rt class="uf">きょう</rt></ruby>おさらいする<ruby>単語<rt class="uf">たんご</rt></ruby>は もう<ruby>無<rt class="uf">な</rt></ruby>いよ。<ruby>完<rt class="uf">かん</rt></ruby>ぺき！');
+    $('btn-next').style.display='none'; // 空の日は「もっとやる」を出さない
+    fireworks_('empty');
+  }else{
+    $('done-badge').innerHTML='<i class="ti ti-clock-check" style="color:var(--gold)"></i>';
+    $('done-result').innerHTML='おさらい <ruby>完了<rt class="uf">かんりょう</rt></ruby>！'; // 空でない＝1回分完了（呼び出し元に依存せず明示）
+    if(s.nextDays)_ls.push('つぎは '+s.nextDays+'<ruby>日<rt class="uf">にち</rt></ruby><ruby>後<rt class="uf">ご</rt></ruby>に また<ruby>出<rt class="uf">で</rt></ruby>てくるよ');
+    $('btn-next').innerHTML='<i class="ti ti-clock-bolt"></i> もっとやる'+(_osS?('（'+esc(subjLabel(_osS))+'）'):'');
+    $('btn-next').className='btn sub';$('btn-next').style.display='flex';
+    $('btn-next').onclick=function(){osaraiMore_(_osS);};
+    fireworks_(s.graduated?'grad':'batch');
+  }
+  $('done-miss').innerHTML=_ls.join('　');
+  try{sndWin();flash();}catch(e){}
 }
 /* おさらいを続ける：期限の来た次の分を出す（教科指定があればその教科）。無ければ今日の期限は完了 2026-07-26 */
 function osaraiMore_(subject){
