@@ -210,7 +210,7 @@
   .ntab .ic .bdg{position:absolute;top:-3px;right:-9px;min-width:15px;height:15px;padding:0 4px;border-radius:8px;background:var(--ng);color:#fff;font-size:9px;font-weight:800;font-family:'Manrope';display:none;align-items:center;justify-content:center;line-height:1;}
   .ntab .ic .bdg.on{display:flex;}
   .ntab .ic .bdg.dot{min-width:9px;width:9px;height:9px;padding:0;border-radius:50%;font-size:0;top:-2px;right:-6px;}
-  #home-tiles,#home-sub{padding-bottom:84px;}
+  #home-tiles,#home-sub{padding-bottom:150px;}/* 下メニュー＋不具合報告ボタンの上に本文末尾（学習マップ導線・ログアウト注記）が来ないよう余白を確保 2026-07-26 */
   .daily-bar.done .db-n{color:var(--gold);}
   .ldot{width:9px;height:9px;border-radius:50%;background:var(--ng);display:none;}
   .ldot.on{display:inline-block;}
@@ -936,8 +936,11 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="tabpanel" id="tp-review">
           <div class="ph"><i class="ti ti-notebook" style="color:var(--accent)"></i> <ruby>間違<rt class="uf">まちが</rt></ruby>いノート</div>
           <div class="psub"><ruby>間違<rt class="uf">まちが</rt></ruby>えた <ruby>所<rt class="uf">ところ</rt></ruby>だけ もう<ruby>一度<rt class="uf">いちど</rt></ruby>。ここが <ruby>力<rt class="uf">ちから</rt></ruby>の つきどころ</div>
-          <div class="rcard" id="tile-note"><span class="reddot" id="dot-note" style="display:none;"></span><div class="rc-ic"><i class="ti ti-notebook"></i></div><div class="rc-b"><div class="rc-t"><ruby>間違<rt class="uf">まちが</rt></ruby>いノート<span class="rc-tag" id="note-tag" style="display:none;"><i class="ti ti-award"></i> ぜんぶ<ruby>卒業<rt class="uf">そつぎょう</rt></ruby></span></div><div class="rc-s"><ruby>間違<rt class="uf">まちが</rt></ruby>えた <ruby>所<rt class="uf">ところ</rt></ruby>だけ ・ <span id="cnt-note">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
+          <div class="rsub-total" id="note-total" style="font-size:13px;color:var(--sub);font-weight:700;margin:2px 2px 11px;"></div>
+          <div id="note-list"></div>
           <div id="note-nudge-wrap" style="display:none;"></div>
+          <!-- 旧UIの参照先（残置ガード用・非表示） -->
+          <span id="cnt-note" style="display:none"></span><span id="note-tag" style="display:none"></span><span id="dot-note" style="display:none"></span>
         </div>
         <!-- 単元別（やる所から） -->
         <div class="tabpanel" id="tp-unit">
@@ -1249,6 +1252,7 @@ function showSub(name){
   if(name==='team'){try{localStorage.setItem(recvAckKey_(),String(_recvCount));}catch(e){}_recvUnseen=false;teamDotUpdate_();} // なかまを開いたら受信を既読化 2026-07-14
   if(name==='records'||name==='badge'){try{markRecordSeen_();}catch(e){}} // 記録/バッジを見たら 新バッジ・新アイコンを既読化＝記録タブの赤●を消す 2026-07-26
   if(name==='quiz'&&typeof renderQuiz==='function')renderQuiz(); // 更新復元・直接表示でも点数表を読み込む（読み込み中で固まる修正 2026-07-10）
+  if(name==='review'&&typeof loadReviewSrs==='function')loadReviewSrs(); // おさらい：開くたびに最新の期限（教科別）を描き直す 2026-07-26
   window.scrollTo(0,0);
 }
 function backToTiles(){
@@ -1521,9 +1525,9 @@ function renderStreakCard_(){
   var host=$('rec-streak-card');if(!host)return;var n=_streakDays||0;var body;
   if(n<=0){body='<div class="stk-num">0</div><div class="stk-lbl"><ruby>日<rt class="uf">にち</rt></ruby> <ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>記録<rt class="uf">きろく</rt></ruby></div><div class="stk-msg"><ruby>今日<rt class="uf">きょう</rt></ruby>から スタート！<br>1つ <ruby>学習<rt class="uf">がくしゅう</rt></ruby>すると <ruby>記録<rt class="uf">きろく</rt></ruby>が はじまるよ。</div>';}
   else{body='<div class="stk-num">'+n+'</div><div class="stk-lbl"><ruby>日<rt class="uf">にち</rt></ruby> <ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>記録<rt class="uf">きろく</rt></ruby></div><div class="stk-msg"><ruby>今日<rt class="uf">きょう</rt></ruby>も クリアで <b>'+n+'<ruby>日<rt class="uf">にち</rt></ruby></b> つながってるよ。<br>あした やると <b>'+(n+1)+'<ruby>日<rt class="uf">にち</rt></ruby></b> になる！</div>';}
-  var fz='<div class="stk-freeze"><i class="ti ti-snowflake"></i> <ruby>連続<rt class="uf">れんぞく</rt></ruby>を まもる フリーズ <b>'+(_freezeCount||0)+'</b> / '+(_freezeMax||3)+' <ruby>個<rt class="uf">こ</rt></ruby></div>';
-  /* 説明は簡潔に（細かいフリーズ規則は省く・川上さん2026-07-26）*/
-  var note='<div class="stk-note" style="font-size:11px;color:var(--sub);text-align:center;margin-top:8px;line-height:1.55;"><ruby>毎日<rt class="uf">まいにち</rt></ruby>1<ruby>回<rt class="uf">かい</rt></ruby> <ruby>学習<rt class="uf">がくしゅう</rt></ruby>すると のびるよ。1<ruby>日<rt class="uf">にち</rt></ruby> <ruby>休<rt class="uf">やす</rt></ruby>んでも フリーズが あれば <ruby>続<rt class="uf">つづ</rt></ruby>くよ。</div>';
+  var fz='<div class="stk-freeze"><i class="ti ti-snowflake"></i> フリーズ <b>'+(_freezeCount||0)+'</b> / '+(_freezeMax||3)+'<ruby>個<rt class="uf">こ</rt></ruby></div>';
+  /* 簡潔に：連続の のび方＋フリーズの もらい方 を1文で（川上さん 2026-07-26）*/
+  var note='<div class="stk-note" style="font-size:11px;color:var(--sub);text-align:center;margin-top:8px;line-height:1.6;"><ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>で<ruby>連続<rt class="uf">れんぞく</rt></ruby>がのびる。デイリーを<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>やり<ruby>終<rt class="uf">お</rt></ruby>えると、<ruby>休<rt class="uf">やす</rt></ruby>んだ<ruby>日<rt class="uf">ひ</rt></ruby>の<ruby>連続<rt class="uf">れんぞく</rt></ruby>をまもる「フリーズ」がもらえるよ。</div>';
   host.innerHTML='<div class="stk-rec"><div class="stk-card"><div class="stk-flame"><i class="ti ti-flame"></i></div>'+body+fz+note+'</div></div>';
 }
 function showStreakCele_(n){
@@ -1600,6 +1604,20 @@ var _unitCount=0;
 /* UI文言のルビ（小学生アカウント＝html.furi-on のときだけ rt.uf が出る。中学生は漢字のみ）2026-07-24 */
 function rb(k,y){return '<ruby>'+k+'<rt class="uf">'+y+'</rt></ruby>';}
 function subjIcon_(s){return s==='science'?'ti-flask':(s==='social'?'ti-books':(s==='japanese'?'ti-book-2':(s==='math'?'ti-calculator':(s==='english'?'ti-language':'ti-flag'))));}
+/* 教科カラー（おさらい・間違いノートの教科カードで共通に使う）2026-07-26 */
+function subjColor_(s){var m={english:{bg:'rgba(43,124,255,.12)',fg:'#2b7cff'},science:{bg:'rgba(31,170,107,.12)',fg:'#1faa6b'},social:{bg:'rgba(240,160,32,.14)',fg:'#e08a12'},japanese:{bg:'rgba(230,80,90,.12)',fg:'#e0574b'},math:{bg:'rgba(150,90,230,.12)',fg:'#8a5ad0'}};return m[s]||{bg:'var(--accent-soft)',fg:'var(--accent)'};}
+/* 教科カード（共通）：左＝教科アイコン(色つき)・中＝教科名＋任意サブ・右＝残り語数。onClickでその教科を開く 2026-07-26 */
+function subjCard_(subject,count,onClick,sub,reddot){
+  var col=subjColor_(subject);
+  var card=document.createElement('div');card.className='note-card';
+  card.innerHTML=(reddot?'<span class="reddot" style="position:absolute;top:12px;right:12px;"></span>':'')
+    +'<div class="note-ic" style="background:'+col.bg+';color:'+col.fg+'"><i class="ti '+subjIcon_(subject)+'"></i></div>'
+    +'<div class="t"><div class="ttl">'+esc(subjLabel(subject))+'</div>'+(sub?('<div class="sub">'+sub+'</div>'):'')+'</div>'
+    +'<div class="cnt">'+count+'<small> '+rb('語','ご')+'</small></div>';
+  if(onClick)card.onclick=onClick;
+  card.style.position='relative';
+  return card;
+}
 /* 教科：材料に subject が無いとき（material_parts）はタイトルから推定。undefined表示を防ぐ 2026-07-24 */
 function _subjGuess_(o){var s=o&&o.subject;if(s)return s;var t=String((o&&o.material_title)||'');if(/理科|生物|物質|エネルギー|生命|地球|化学|物理/.test(t))return 'science';if(/歴史|地理|公民|社会/.test(t))return 'social';if(/語彙|国語|漢字|文章/.test(t))return 'japanese';if(/数学|算数/.test(t))return 'math';if(/英/.test(t))return 'english';return '';}
 function setTab5_(name){['daily','review','unit','team','record'].forEach(function(k){var e=$('ntab5-'+k);if(e)e.classList.toggle('on',k===name);});}
@@ -1607,10 +1625,12 @@ function setTab5_(name){['daily','review','unit','team','record'].forEach(functi
 function setBadge_(tab,n){var e=$('bdg-'+tab);if(!e)return;if((n||0)>0){e.classList.remove('dot');e.textContent=(n>9?'9+':String(n));e.classList.add('on');}else{e.classList.remove('on');}} // 数字（10以上は9+）
 function setNavDot_(tab,on){var e=$('bdg-'+tab);if(!e)return;e.classList.add('dot');e.textContent='';e.classList.toggle('on',!!on);} // 赤●（数字なし）
 var _revNum={osarai:0,note:0};
+var _srsReady={words:[],assets:{},loaded:false}; // おさらいの今日分を先読みしておき、タイル/フォーカスから直接開始＝中間ページを挟まない 2026-07-26
+function startOsaraiDirect_(){ showSub('review'); } // おさらいは教科タブ・おまかせを見せる画面へ（中身が見える＝氷山感を減らす）2026-07-26
 var _dailyUndone=0;
 var _dailyMain=null; // デイリー進捗をおさらい取得後に描き直すため、直近のmainを保持 2026-07-26
 // 毎日タブ＝毎日学習の未完了＋おさらい残りの合計（2026-07-25 おさらいを毎日タブへ移設＝デイリーの構成要素）
-function setDailyNavNum_(){setBadge_('daily',(_dailyUndone||0)+(_revNum.osarai||0));}
+function setDailyNavNum_(){var osDone=(dailyState.review===true);setBadge_('daily',(_dailyUndone||0)+(osDone?0:1));} // デイリーの残り「個数」＝毎日学習の未完＋おさらい枠(1)。おさらいの残り語数(最大20)を足さない＝分母4と一致（2026-07-26）
 // 間違いノートタブ＝間違いノート残りのみ（2026-07-25 おさらいは毎日タブへ）
 function setReviewNavNum_(){setBadge_('review',(_revNum.note||0));}
 var _homeTab='daily',_quizMiss=0;
@@ -1717,7 +1737,7 @@ function _osaraiFocus_(){
     +'<div class="f-main"><div class="f-day"><i class="ti ti-clock-bolt" style="font-size:26px;color:#fff"></i></div>'
     +'<div><div class="f-title">おさらい</div><div class="f-sub">'+subT+'</div></div></div>'
     +'<button class="f-btn">はじめる <i class="ti ti-arrow-right"></i></button>';
-  el.onclick=function(){showSub('review');};
+  el.onclick=function(){startOsaraiDirect_();}; // フォーカス→おさらいへ直行 2026-07-26
   return el;
 }
 function _dailyFocus_(m){
@@ -1806,7 +1826,7 @@ function renderNoteNudge_(totalN){
   wrap.innerHTML='<div class="nnudge"><div class="nn-ic"><i class="ti ti-notebook"></i></div>'
     +'<div class="nn-b"><div class="nn-t"><ruby>間違<rt class="uf">まちが</rt></ruby>いノートが たまってきたよ</div><div class="nn-s">まちがえた '+totalN+'<ruby>語<rt class="uf">ご</rt></ruby>。ときどき <ruby>空<rt class="uf">から</rt></ruby>に しよう</div></div>'
     +'<div class="nn-go"><ruby>空<rt class="uf">から</rt></ruby>にする →</div></div>';
-  var el=wrap.querySelector('.nnudge');if(el)el.onclick=function(){showSub('note');};
+  var el=wrap.querySelector('.nnudge');if(el)el.onclick=function(){showHomeTab('review');var nl=$('note-list');if(nl&&nl.scrollIntoView)nl.scrollIntoView({behavior:'smooth'});}; // 間違いノートの一覧は間違いタブ内に表示（sv-noteは廃止）2026-07-26
 }
 function openHome(){
   $('nick').textContent=nickname;try{applyMyIcon_();}catch(e){}syncThemeIcon();show('scr-home');
@@ -1820,7 +1840,7 @@ function openHome(){
   _bind('home-star-pop',function(){showSub('team');});
   _bind('tile-records',function(){showSub('records');});
   _bind('tile-note',function(){showSub('note');});
-  _bind('tile-review',function(){showSub('review');});
+  _bind('tile-review',function(){startOsaraiDirect_();}); // タイル→おさらいへ直行（中間ページを挟まない）2026-07-26
   _bind('tile-badge',function(){showSub('badge');});
   _bind('tile-lists',function(){showSub('lists');});
   _bind('daily-maplink',function(){showSub('lists');}); // 毎日タブ→学習マップの導線 2026-07-26
@@ -2429,14 +2449,63 @@ function startPractice(listId){srsSes=null;noteSes=null;showPracticeLoading_();c
   call({action:'student_today',part_id:listId,start:1}).then(function(d){_startPracticeWith_(listId,d);});}
 function _startPracticeWith_(listId,d){if(!d.ok){toastH(d.error?esc(d.error):'<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>失敗<rt class="uf">しっぱい</rt></ruby>');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
-session={listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now()};session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});renderStep();}
-function renderStep(){var s=session,w=s.words[s.idx],totalSteps=s.words.length;$('prog').style.width=Math.round((s.idx/totalSteps)*100)+'%';$('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';var _fb=$('furi-bar');if(_fb)_fb.style.display='none';$('step-label').innerHTML=(s.idx+1)+' / '+totalSteps+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';_kaiImgCur=kaiImgHtml(w,s.assets);_curExW=w;
-  if(w.qtype==='table_fill'){renderTF();return;} // 表穴埋め（問題タイプ拡張 2026-07-05）
-  if(w.qtype==='image_fill'){renderIMG();return;} // 図問題（番号方式）2026-07-12
-  var _tl=(s.content_type==='test')?0:qSecFor(s.subject); // テスト配信は制限なし（川上さん確定2026-07-04）
-  if(s.step===1){hideQTimer();$('w-en').textContent=w.english;var _wr=$('w-reading');if(_wr){_wr.textContent='';_wr.style.display='none';} /* 発音ステップは読みを出さない（答えバレ防止）川上さん確定 2026-07-11 */$('step-listen').style.display='block';hideListen_();pronBegin_();} // 正解音声は先に流さない（川上さん確定 2026-07-06）
-  else if(s.step===2){$('e2j-label').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';$('e2j-en').textContent=w.english;var _er=$('e2j-reading');if(_er){_er.textContent=w.reading_hint||'';_er.style.display=w.reading_hint?'':'none';}buildChoices('e2j-choices',w.japanese,s.words.map(function(x){return x.japanese;}),function(ok,_el){measAns_(_el,ok);if(ok){s.meaningCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderStep();}});$('step-e2j').style.display='block';showListen_(w,s.isEnglish);}
-  else if(s.step===3){$('j2e-label').innerHTML=(s.isEnglish===false)?'<ruby>用語<rt class="uf">ようご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう':'<ruby>英語<rt class="uf">えいご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';$('j2e-ja').innerHTML=renderQ(w,furiQ);renderFuriBar(w);var _qd3=tfParse(w);var _fx3=(_qd3&&_qd3.choices&&_qd3.choices.length)?_qd3.choices:null;buildChoices('j2e-choices',w.english,s.words.filter(function(x){var _qx=tfParse(x);return !(_qx&&_qx.choices&&_qx.choices.length);}).map(function(x){return x.english;}),function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},{timeLimit:_tl,kaisetsu:w.kaisetsu,reading:(s.isEnglish===false?w.reading_hint:''),promptText:w.japanese,fixedChoices:_fx3,next:function(){nextWord();}});$('step-j2e').style.display='block';showListen_(w,s.isEnglish);}}
+session={mode:'daily',onNext:function(){nextWord();},listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now()};session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});renderStep();}
+/* ===== 出題エンジン（毎日学習・おさらい・間違いノート 共通）2026-07-26 =====
+   3フローで「元と全く同じ問題」を出すため描画を1本化。違いは、語の出どころ(session/srsSes/noteSes)・
+   採点と次へ(s.onNext)・最初のステップ(英語=発音/意味, 用語=英語)だけ。表/図は renderTF/renderIMG を共用。 */
+var _quizSes=null;
+function _actSes(){return _quizSes;}
+function _wIsEng(s,w){ if(!s)return true; if(s.mode==='srs')return ((w&&w.subject)||s.subject)==='english'; if(s.isEnglish!==undefined)return s.isEnglish!==false; return (s.subject||'english')==='english'; }
+function _startStepFor(s,w){ return _wIsEng(s,w) ? (s.mode==='daily'?1:2) : 3; } // 英語=毎日は発音1/復習は意味2、用語=英語3から
+function qPresentE2J(w){ $('e2j-label').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';$('e2j-en').textContent=w.english;var _er=$('e2j-reading');if(_er){_er.textContent=w.reading_hint||'';_er.style.display=w.reading_hint?'':'none';} }
+function qPresentJ2E(w,isEng){ $('j2e-label').innerHTML=(!isEng)?'<ruby>用語<rt class="uf">ようご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう':'<ruby>英語<rt class="uf">えいご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';$('j2e-ja').innerHTML=renderQ(w,furiQ);renderFuriBar(w); }
+function _quizAns(s,w,ok,_el,which){ measAns_(_el,ok); if(s.mode==='daily'){ if(ok){ if(which==='e2j')s.meaningCorrect++; else s.reverseCorrect++; } else { pushMiss(w.id); } } else { if(!ok)s.wordOK=false; } }
+function renderStep(){renderQz_(session);}
+function renderSrsStep(){renderQz_(srsSes);}
+function renderNoteStep(){renderQz_(noteSes);}
+function renderQz_(s){
+  if(!s||!s.words||!s.words[s.idx])return; _quizSes=s;
+  var w=s.words[s.idx],tot=s.words.length;
+  $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
+  $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
+  var _fb=$('furi-bar');if(_fb)_fb.style.display='none';
+  _kaiImgCur=kaiImgHtml(w,s.assets);_curExW=w;
+  // 進捗ラベル（おさらいは教材・パートのタグつき）
+  if(s.mode==='srs'){
+    var _tag=(w.material_title||w.part_title)?('<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 11px;margin-bottom:7px;"><i class="ti ti-map-pin" style="font-size:12px"></i> おさらい・'+esc(mtLabelMt(w))+(w.part_title?('／'+esc(w.part_title)):'')+'</div><br>'):'';
+    $('step-label').innerHTML=_tag+'<ruby>復習<rt class="uf">ふくしゅう</rt></ruby> '+(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
+  }else if(s.mode==='note'){
+    $('step-label').innerHTML='<ruby>復習<rt class="uf">ふくしゅう</rt></ruby> '+(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
+  }else{
+    $('step-label').innerHTML=(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
+  }
+  // 表・図＝毎日学習と同じレンダラーをそのまま使う（元と同じ設問・表・図）
+  if(w.qtype==='table_fill'){
+    if(_tfRenderable_(w,s.assets)){renderTF(s);return;}
+    // 表データが取れないときだけ文字版にフォールバック（描画不能で無表示にしない）
+    var _qtf=tfParse(w);$('j2e-label').innerHTML='<ruby>正<rt class="uf">ただ</rt></ruby>しい<ruby>形<rt class="uf">かたち</rt></ruby>をえらぼう';$('j2e-ja').innerHTML=renderQ(w,furiQ);renderFuriBar(w);
+    buildChoices('j2e-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},{fixedChoices:(_qtf.choices||[]),timeLimit:(s.mode==='note'?0:qSecFor('table_fill')),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',promptText:w.japanese,next:s.onNext});
+    $('step-j2e').style.display='block';showListen_(w,_wIsEng(s,w));return;
+  }
+  if(w.qtype==='image_fill'){renderIMG(s);return;}
+  var isEng=_wIsEng(s,w);
+  var _tl=(s.mode==='note')?0:((s.content_type==='test')?0:qSecFor(isEng?'english':(w.subject||s.subject||'english')));
+  if(s.step===1){ // 発音（毎日学習の英語のみ）。正解音声は先に流さない・読みは出さない（答えバレ防止）
+    hideQTimer();$('w-en').textContent=w.english;var _wr=$('w-reading');if(_wr){_wr.textContent='';_wr.style.display='none';}$('step-listen').style.display='block';hideListen_();pronBegin_();return;
+  }
+  if(s.step===2){
+    qPresentE2J(w);
+    var poolJa=(s.mode==='daily')?s.words.map(function(x){return x.japanese;}):((w.wrong_choices_ja&&w.wrong_choices_ja.length)?w.wrong_choices_ja:s.words.map(function(x){return x.japanese;})); // 誤答：毎日=同セッション語、復習=同パート誤答(サーバー)優先
+    buildChoices('e2j-choices',w.japanese,poolJa,function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderQz_(s);}});
+    $('step-e2j').style.display='block';showListen_(w,isEng);
+  }else if(s.step===3){
+    qPresentJ2E(w,isEng);
+    var _qd3=tfParse(w),_fx3=(_qd3&&_qd3.choices&&_qd3.choices.length)?_qd3.choices:null; // 教材のqdata.choices（同カテゴリ）優先
+    var poolEn=(s.mode==='daily')?s.words.filter(function(x){var _qx=tfParse(x);return !(_qx&&_qx.choices&&_qx.choices.length);}).map(function(x){return x.english;}):((w.wrong_choices_en&&w.wrong_choices_en.length)?w.wrong_choices_en:s.words.map(function(x){return x.english;}));
+    buildChoices('j2e-choices',w.english,(_fx3?[]:poolEn),function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},{timeLimit:_tl,kaisetsu:w.kaisetsu,reading:(!isEng?w.reading_hint:''),promptText:w.japanese,fixedChoices:_fx3,next:s.onNext});
+    $('step-j2e').style.display='block';showListen_(w,isEng);
+  }
+}
 function pushMiss(id){if(session.miss.indexOf(id)<0)session.miss.push(id);}
 /* ===== 表穴埋め（table_fill）レンダラー：同一asset保持・連続出題の汎用フロー（設計仕様_問題タイプ拡張 2026-07-05） ===== */
 function tfParse(w){try{return JSON.parse(w.qdata||'{}');}catch(e){return{};}}
@@ -2445,7 +2514,7 @@ var _readingMap={},furiQ=false,furiC=false;
 function _kanjiRe(x){return /[一-龯々〆ヶ]/.test(String(x));}
 function _rubyTag(t,y){return '<ruby>'+esc(t)+'<rt>'+esc(y)+'</rt></ruby>';}
 function _boxBlank(h){return h.replace(/（[\s　]*）/g,'<span class="qblank"></span>');}
-function _isKokugo(){return !!(session&&session.subject==='japanese');}
+function _isKokugo(){var s=_actSes()||session;if(!s)return false;var w=s.words&&s.words[s.idx];var subj=(w&&w.subject)||s.subject;return subj==='japanese';} // おさらいは教科混在＝語ごとに判定 2026-07-26
 function renderQ(w,showFuri){var q=tfParse(w);if(q&&q.q_ruby&&q.q_ruby.length){var h='';q.q_ruby.forEach(function(seg){var t=String((seg&&seg[0])||'');var y=(seg&&seg[1])?seg[1]:'';h+=(showFuri&&y)?_rubyTag(t,y):esc(t);});return _boxBlank(h);}return _boxBlank(esc(String(w.japanese||'')));}
 function _choiceHtml(v){v=String(v);if(furiC&&_isKokugo()&&_kanjiRe(v)&&_readingMap[v])return _rubyTag(v,_readingMap[v]);return esc(v);}
 function _hasQRuby(w){var q=tfParse(w);return !!(q&&q.q_ruby&&q.q_ruby.length);}
@@ -2453,33 +2522,38 @@ function _furiCoachSeen(){try{return localStorage.getItem('kwt_furicoach')==='1'
 function _furiCoachDone(){try{localStorage.setItem('kwt_furicoach','1');}catch(e){}var c=document.querySelector('.furi-coach');if(c)c.remove();}
 var _furiCoachT=false;
 function renderFuriBar(w){var bar=$('furi-bar');if(!bar)return;if(!_isKokugo()){bar.style.display='none';bar.innerHTML='';return;}var seg='<span class="fb-seg">';if(_hasQRuby(w))seg+='<button type="button" class="fb-tg'+(furiQ?' on':'')+'" data-fb="q">問題文</button>';seg+='<button type="button" class="fb-tg'+(furiC?' on':'')+'" data-fb="c">選択肢</button></span>';var coach=(!_furiCoachSeen())?'<span class="furi-coach">タップでふりがな</span>':'';bar.innerHTML='<span class="fb-lbl"><span class="fb-ic">あ</span>ふりがな</span>'+seg+coach;bar.style.display='flex';if(coach&&!_furiCoachT){_furiCoachT=true;setTimeout(_furiCoachDone,6000);}}
-function applyFuri_(){var s=session;if(!s)return;var w=s.words[s.idx];var jb=$('j2e-ja'),sj=$('step-j2e');if(jb&&sj&&sj.style.display!=='none')jb.innerHTML=renderQ(w,furiQ);['j2e-choices','tf-choices'].forEach(function(cid){var box=$(cid);if(!box)return;Array.prototype.forEach.call(box.children,function(b){var v=b.getAttribute('data-val');if(v==null)return;b.innerHTML=_choiceHtml(v);});});renderFuriBar(w);}
+function applyFuri_(){var s=_actSes()||session;if(!s)return;var w=s.words[s.idx];var jb=$('j2e-ja'),sj=$('step-j2e');if(jb&&sj&&sj.style.display!=='none')jb.innerHTML=renderQ(w,furiQ);['j2e-choices','tf-choices'].forEach(function(cid){var box=$(cid);if(!box)return;Array.prototype.forEach.call(box.children,function(b){var v=b.getAttribute('data-val');if(v==null)return;b.innerHTML=_choiceHtml(v);});});renderFuriBar(w);}
 document.addEventListener('click',function(e){var t=(e.target&&e.target.closest)?e.target.closest('[data-fb]'):null;if(!t)return;e.stopPropagation();e.preventDefault();var k=t.getAttribute('data-fb');if(k==='q')furiQ=!furiQ;else if(k==='c')furiC=!furiC;_furiCoachDone();applyFuri_();},true);
 var TF_CIRC=['⓪','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫'];
 function tfHoles(words,assetId){var out=[];words.forEach(function(x,i){if(x.qtype==='table_fill'){var q=tfParse(x);if(String(q.asset)===String(assetId))out.push({i:i,q:q,w:x});}});return out;}
-function renderTF(){
-  var s=session,w=s.words[s.idx],qd=tfParse(w);
+function renderTF(ss){
+  var s=ss||session,w=s.words[s.idx],qd=tfParse(w);
   var a=(s.assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){}
   var holes=tfHoles(s.words,qd.asset);
-  var holeAt={},myN=0;holes.forEach(function(hh,n){holeAt[hh.q.r+'_'+hh.q.c]=hh;hh.n=n+1;if(hh.i===s.idx)myN=n+1;});
+  var holeAt={};holes.forEach(function(hh){holeAt[hh.q.r+'_'+hh.q.c]=hh;});
+  // 穴の番号づけ：毎日学習＝セッションに全穴が揃う→出題順。おさらい＝一部の穴だけ来る→アセットの全穴位置(a.holes)を(r,c)順に並べ、来ていない穴も①②③で出す（＝答えを見せない）2026-07-26
+  var order=[];
+  if(a.holes){Object.keys(a.holes).forEach(function(k){var rc=k.split('_');order.push({r:String(+rc[0]),c:String(+rc[1]),key:(+rc[0])+'_'+(+rc[1])});});order.sort(function(A,B){return (A.r-B.r)||(A.c-B.c);});}
+  else{holes.forEach(function(hh){order.push({r:String(hh.q.r),c:String(hh.q.c),key:hh.q.r+'_'+hh.q.c});});}
+  var numAt={},myN=0;order.forEach(function(p,n){numAt[p.key]=n+1;if(String(p.r)===String(qd.r)&&String(p.c)===String(qd.c))myN=n+1;});
   var h='';
   if(a.title){h+='<div class="tf-title">'+esc(a.title)+'</div>';}
   h+='<table class="tf-table"><tr><th></th>';(pl.cols||[]).forEach(function(c){h+='<th>'+esc(c)+'</th>';});h+='</tr>';
   (pl.rows||[]).forEach(function(row,ri){h+='<tr><td class="tf-rowh">'+esc(row.label||'')+'</td>';
-    (row.cells||[]).forEach(function(cell,ci){var hh=holeAt[ri+'_'+ci];
-      if(hh){
-        if(hh.i<s.idx){h+='<td><span class="tf-hole ok">'+esc(hh.w.english)+'</span></td>';}
-        else if(hh.i===s.idx){h+='<td><span class="tf-hole cur">'+(TF_CIRC[hh.n]||hh.n)+'</span></td>';}
-        else{h+='<td><span class="tf-hole">'+(TF_CIRC[hh.n]||hh.n)+'</span></td>';}
+    (row.cells||[]).forEach(function(cell,ci){var key=ri+'_'+ci;var hh=holeAt[key];var num=numAt[key];
+      if(num!=null){
+        if(hh&&hh.i<s.idx){h+='<td><span class="tf-hole ok">'+esc(hh.w.english)+'</span></td>';}       // このセッションで答え済み＝英語表示（元と同じ）
+        else if(String(ri)===String(qd.r)&&String(ci)===String(qd.c)){h+='<td><span class="tf-hole cur">'+(TF_CIRC[num]||num)+'</span></td>';} // いま解く穴
+        else{h+='<td><span class="tf-hole">'+(TF_CIRC[num]||num)+'</span></td>';}                        // まだの穴＝番号のみ（答えを見せない）
       }else{h+='<td class="tf-en">'+esc(cell)+'</td>';}});
     h+='</tr>';});
   h+='</table>';
   $('tf-table').innerHTML=h;
   $('tf-ask').style.display='';$('tf-ask').innerHTML='<b style="color:var(--accent)">'+(TF_CIRC[myN]||myN)+'</b> に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>形<rt class="uf">かたち</rt></ruby>をえらぼう';
-  var _tl=(s.content_type==='test')?0:qSecFor('table_fill'); // 表を読むため理社と同じ秒数（15秒）
-  buildChoices('tf-choices',w.english,[],function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},
-    {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,next:function(){nextWord();}});
-  $('step-tf').style.display='block';showListen_(w,s.isEnglish);
+  var _tl=(s.mode==='note')?0:((s.content_type==='test')?0:qSecFor('table_fill')); // 表を読むため理社と同じ秒数（15秒）。間違いノートはタイマー無し
+  buildChoices('tf-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},
+    {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,next:s.onNext});
+  $('step-tf').style.display='block';showListen_(w,_wIsEng(s,w));
 }
 /* ===== 図問題（image_fill・番号方式）レンダラー 2026-07-12 =====
    table_fillの「同一asset保持・連続出題」を流用。表の代わりに asset(kind=image) の画像を出し、
@@ -2493,8 +2567,8 @@ var _kaiImgCur='';var _curExW=null;
 function kaiImgHtml(w,assets){var qd=tfParse(w);var aid=qd&&qd.kaisetsu_asset;if(!aid)return '';var a=(assets||{})[aid]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';if(!url)return '';var h='<img src="'+esc(url)+'" alt="参考資料" onerror="this.style.opacity=.2;">';h+='<div class="tf-title">'+(a.title?esc(a.title)+'<br>':'')+'<span class="ex-zoom">タップで<ruby>拡大<rt class="uf">かくだい</rt></ruby></span></div>';return h;}
 function missWordsHtml(missIds,words){var uniq=(missIds||[]).filter(function(v,i){return missIds.indexOf(v)===i;});if(!uniq.length)return '';var byId={};(words||[]).forEach(function(w){byId[String(w.id||w.word_id)]=w;});var list=uniq.map(function(id){var w=byId[String(id)];if(!w)return '';var jp=(w.qtype==='image_fill')?'':('（'+esc(w.japanese)+'）');return '<div style="font-size:14px;padding:5px 0;border-top:1px solid var(--line);">'+esc(w.english)+jp+'</div>';}).filter(Boolean).join('');if(!list)return '';return '<div style="background:var(--surface);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;">まちがえた<ruby>語句<rt class="uf">ごく</rt></ruby>（'+uniq.length+'）— <ruby>見<rt class="uf">み</rt></ruby><ruby>直<rt class="uf">なお</rt></ruby>そう</div>'+list+'</div>';}
 function quizToggle_(id){var e=document.getElementById(id);var a=document.getElementById(id+'-a');if(!e)return;var o=e.style.display==='none';e.style.display=o?'block':'none';quizOpen_[id]=o;if(a)a.className='ti '+(o?'ti-chevron-up':'ti-chevron-down');}
-function renderIMG(){
-  var s=session,w=s.words[s.idx],qd=tfParse(w);
+function renderIMG(ss){
+  var s=ss||session,w=s.words[s.idx],qd=tfParse(w);
   var a=(s.assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}
   var url=pl.url||pl.src||a.url||'';
   var holes=imgHoles(s.words,qd.asset);var myN=0;holes.forEach(function(hh,n){hh.n=n+1;if(hh.i===s.idx)myN=n+1;});
@@ -2507,10 +2581,10 @@ function renderIMG(){
   if(holes.length>1){h+='<div class="imgq-track">';holes.forEach(function(hh){var st=hh.i<s.idx?'done':(hh.i===s.idx?'cur':'');var lb=hh.q.num||(TF_CIRC[hh.n]||hh.n);h+='<span class="'+st+'">'+esc(lb)+'</span>';});h+='</div>';}
   $('tf-table').innerHTML=h;
   $('tf-ask').innerHTML='';$('tf-ask').style.display='none'; /* 設問は図の上に表示済み 2026-07-16 */
-  var _tl=(s.content_type==='test')?0:qSecFor('table_fill');
-  buildChoices('tf-choices',w.english,[],function(ok,_el){measAns_(_el,ok);if(ok){s.reverseCorrect++;}else{pushMiss(w.id);}},
-    {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,promptText:w.japanese,next:function(){nextWord();}});
-  $('step-tf').style.display='block';showListen_(w,s.isEnglish);
+  var _tl=(s.mode==='note')?0:((s.content_type==='test')?0:qSecFor('table_fill'));
+  buildChoices('tf-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},
+    {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,promptText:w.japanese,next:s.onNext});
+  $('step-tf').style.display='block';showListen_(w,_wIsEng(s,w));
 }
 function nextWord(){var s=session;s.idx++;s.step=(s.isEnglish===false)?3:1;if(s.idx>=s.words.length){finishSession();}else renderStep();}
 /* 練習をやめてホームへ（まちがえて始めた時の中断・2026-07-04）。途中の記録は保存しない（session_complete前に抜けるだけ） */
@@ -3015,27 +3089,23 @@ function renderReviewFin_(){
 }
 function loadNotes(){
   var order=['english','science','social','japanese','math'];
-  var area=$('note-area');area.innerHTML='<div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div>';
+  var host=$('note-list')||$('note-area');if(host)host.innerHTML='<div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div>';
   callCached({action:'notes_summary'},function(d){
     var subs=(d&&d.ok&&d.data.subjects)?d.data.subjects.slice():[];
     subs=subs.filter(function(x){return (x.count||0)>0;});
     subs.sort(function(a,b){return order.indexOf(a.subject)-order.indexOf(b.subject);});
     var totalN=subs.reduce(function(a,b){return a+(b.count||0);},0);
-    $('cnt-note').innerHTML=totalN?('<b>'+totalN+'</b> <ruby>語<rt class="uf">ご</rt></ruby>のこり'):'<b style="color:var(--ok)">ぜんぶ <ruby>直<rt class="uf">なお</rt></ruby>した！</b>';
+    var cn=$('cnt-note');if(cn)cn.innerHTML=totalN?('<b>'+totalN+'</b>語のこり'):'ぜんぶ直した！'; // 旧参照ガード
+    var nt=$('note-total');if(nt)nt.innerHTML=totalN?('のこり <b style="color:var(--accent)">'+totalN+'</b> '+rb('語','ご')+'（'+rb('教科','きょうか')+'ごと）'):'';
     dailyState.note=true;renderDaily(); // 間違いノートはデイリー完了に含めない（2026-07-24）
-    var dn=$('dot-note');if(dn)dn.style.display=totalN>0?'block':'none'; // 間違いがあればカードに赤丸
-    _reviewTileDone_('tile-note',totalN===0); // 完了なら緑
-    var ntag=$('note-tag');if(ntag)ntag.style.display=(totalN===0)?'inline-flex':'none';
+    var dn=$('dot-note');if(dn)dn.style.display=totalN>0?'block':'none';
+    _reviewTileDone_('tile-note',totalN===0); // 存在すれば完了表示（今は非表示スタブ・ガードあり）
     _revDone.note=(totalN===0);renderReviewFin_();
-    _revNum.note=totalN;setReviewNavNum_(); // ふくしゅうバッジに間違いノート残りも含める
-    area.innerHTML='';
-    if(!totalN){area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl"><ruby>間違<rt class="uf">まちが</rt></ruby>いゼロ！</div><div class="sub">いまは<ruby>復習<rt class="uf">ふくしゅう</rt></ruby>する<ruby>単語<rt class="uf">たんご</rt></ruby>がありません</div></div></div>';return;}
-    subs.forEach(function(c){
-      var card=document.createElement('div');card.className='note-card';
-      card.innerHTML='<div class="note-ic"><i class="ti ti-notebook"></i></div><div class="t"><div class="ttl"><ruby>間違<rt class="uf">まちが</rt></ruby>いノート（'+subjLabel(c.subject)+'）</div><div class="sub">2<ruby>回<rt class="uf">かい</rt></ruby><ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby>で<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！</div></div><div class="cnt">'+c.count+'<small> <ruby>語<rt class="uf">ご</rt></ruby></small></div>';
-      card.onclick=function(){openNote(c.subject);};
-      area.appendChild(card);
-    });
+    _revNum.note=totalN;setReviewNavNum_(); // ノートナビのバッジ
+    if(!host)return;host.innerHTML='';
+    if(!totalN){host.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl"><ruby>間違<rt class="uf">まちが</rt></ruby>いゼロ！</div><div class="sub">いまは<ruby>復習<rt class="uf">ふくしゅう</rt></ruby>する<ruby>単語<rt class="uf">たんご</rt></ruby>がありません</div></div></div>';return;}
+    // 教科ごとのカード（アイコン＋色＋教科名＋残り数）。「間違いノート」「2回連続正解で卒業」の繰り返しはやめる（タブ名とヘッダで文脈は分かる）2026-07-26
+    subs.forEach(function(c){ host.appendChild(subjCard_(c.subject,c.count,function(){openNote(c.subject);})); });
   });
 }
 /* 間違いノートを開く：クリック時に単語を取得してから開始（2026-07-04） */
@@ -3047,43 +3117,13 @@ function openNote(subject){
   });
 }
 function startNote(subject,words,assets){
-  srsSes=null;
+  srsSes=null;session=null; // 出題エンジンの活性セッションを間違いノートに切替（共通レンダラーが正しい語を参照）2026-07-26
   if(!words||!words.length){toastH('<ruby>復習<rt class="uf">ふくしゅう</rt></ruby>する<ruby>単語<rt class="uf">たんご</rt></ruby>がありません');return;}
   show('scr-practice');combo=0;
   gradeReset_(); // 採点キュー初期化 2026-07-05
-  noteSes={subject:subject,words:words,idx:0,step:(subject==='english'?2:3),wordOK:true,cleared:0,clearedWords:[],total:words.length,assets:(assets||{}),miss:[]};
-  renderNoteStep();
-}
-function renderNoteStep(){hideQTimer();
-  var s=noteSes,w=s.words[s.idx],tot=s.words.length;showListen_(w,s.subject==='english');_kaiImgCur=kaiImgHtml(w,s.assets);_curExW=w;
-  $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
-  $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
-  $('step-label').innerHTML='<ruby>復習<rt class="uf">ふくしゅう</rt></ruby> '+(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
-  if(w.qtype==='image_fill'){ // 図問題はノートでも図を出す（qdata.choices使用）2026-07-12
-    var qi=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').style.display='';$('tf-ask').innerHTML=qi.num?('<b style="color:var(--accent)">'+esc(qi.num)+'</b> が<ruby>指<rt class="uf">さ</rt></ruby>す<ruby>部分<rt class="uf">ぶぶん</rt></ruby>をえらぼう'):esc(qi.ask||'この生物の名前をえらぼう');
-    buildNoteChoices('tf-choices',w.english,(qi.choices||[]).filter(function(x){return x!==w.english;}),function(ok){if(!ok)s.wordOK=false;},{kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitNoteWord();}});
-    $('step-tf').style.display='block';return;
-  }
-  if(w.qtype==='table_fill'){ // 表穴埋め語はノートでは文字版1問＋qdata.choices（設計仕様_問題タイプ拡張 2026-07-05）
-    var qtf=tfParse(w);$('j2e-label').innerHTML='<ruby>正<rt class="uf">ただ</rt></ruby>しい<ruby>形<rt class="uf">かたち</rt></ruby>をえらぼう';$('j2e-ja').textContent=w.japanese;
-    buildNoteChoices('j2e-choices',w.english,(qtf.choices||[]).filter(function(x){return x!==w.english;}),function(ok){if(!ok)s.wordOK=false;},{kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitNoteWord();}});
-    $('step-j2e').style.display='block';return;
-  }
-  if(s.step===2){
-    $('e2j-en').textContent=w.english;
-    buildNoteChoices('e2j-choices',w.japanese,w.wrong_choices_ja,function(ok){
-      if(!ok)s.wordOK=false;
-    },{kaisetsu:w.kaisetsu,next:function(){s.step=3;renderNoteStep();}});
-    $('step-e2j').style.display='block';
-  }else if(s.step===3){
-    $('j2e-label').innerHTML=(s.subject!=='english')?'<ruby>用語<rt class="uf">ようご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう':'<ruby>英語<rt class="uf">えいご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
-    $('j2e-ja').textContent=w.japanese;
-    var _qn3=tfParse(w),_nwEn=(_qn3&&_qn3.choices&&_qn3.choices.length)?_qn3.choices.filter(function(x){return x!==w.english;}):w.wrong_choices_en; // 選択肢は教材のqdata.choices優先（同カテゴリ）、無ければ同パート誤答（サーバー）2026-07-23
-    buildNoteChoices('j2e-choices',w.english,_nwEn,function(ok){
-      if(!ok)s.wordOK=false;
-    },{kaisetsu:w.kaisetsu,reading:(s.subject!=='english'?w.reading_hint:''),promptText:w.japanese,next:function(){submitNoteWord();}});
-    $('step-j2e').style.display='block';
-  }
+  noteSes={mode:'note',subject:subject,words:words,idx:0,step:(subject==='english'?2:3),wordOK:true,cleared:0,clearedWords:[],total:words.length,assets:(assets||{}),miss:[],onNext:function(){submitNoteWord();}};
+  _readingMap={};(words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;}); // 国語の選択肢ふりがな用 2026-07-26
+  renderNoteStep(); // ＝renderQuiz(noteSes)。表・図・国語ふりがな・音声すべて毎日学習と同じ描画
 }
 /* 誤答候補が固定で渡ってくる版（pool不足時も落ちない） */
 function buildNoteChoices(containerId,correct,wrongs,onResult,opts){
@@ -3185,104 +3225,70 @@ var _fromReviewTest=false;
 // 単元別おさらい（卒業方式）は廃止（2026-07-25）：startReviewTest / buildReviewTestCard を削除。
 // _fromReviewTest は設定元（startReviewTest）が無くなったため常に false。fromReview経路の残りは後続クリーンアップで撤去。
 function loadReviewSrs(){
-  var area=$('review-srs-area');
+  var area=$('review-srs-area');if(!area)return;
   callCached({action:'review_due'},function(d){
-    if(!d.ok){area.innerHTML='<p class="muted">—</p>';$('cnt-review').textContent='–';return;}
+    if(!d.ok){area.innerHTML='<p class="muted">—</p>';var cr0=$('cnt-review');if(cr0)cr0.textContent='–';return;}
     var ws=d.data.words||[];                          // 今日の枠ぶん（サーバーが枠を適用済み）
+    _srsReady={words:ws,assets:(d.data.assets||{}),loaded:true};
     var dueTotal=(d.data.due_total||ws.length);       // 期限が来ている全語数
-    // 新GAS＝osarai_today_done（1日枠を使い切った or due0）／旧GAS＝due0で判定（後方互換）2026-07-25
+    var subjects=(d.data.subjects||[]).filter(function(x){return (x.count||0)>0;});
+    var order=['english','science','social','japanese','math'];
+    subjects.sort(function(a,b){return order.indexOf(a.subject)-order.indexOf(b.subject);});
     var todayDone=(d.data.osarai_today_done!==undefined)?!!d.data.osarai_today_done:(dueTotal<=0);
-    var todayRemain=ws.length;                        // いまから出す分
-    var anyReview=!todayDone;
-    var lbl=[];if(todayRemain>0)lbl.push('<b>'+todayRemain+'</b> <ruby>語<rt class="uf">ご</rt></ruby>');
-    $('cnt-review').innerHTML=(!todayDone&&lbl.length)?lbl.join(' + '):'<b style="color:var(--ok)">ぜんぶ できた</b>';
-    _revNum.osarai=todayRemain;setDailyNavNum_();      // バッジ＝今日の残り枠
-    var dr=$('dot-review');if(dr)dr.style.display=anyReview?'block':'none';
-    _reviewTileDone_('tile-review',!anyReview); // 完了なら緑
-    _revDone.osarai=!anyReview;renderReviewFin_();
-    dailyState.review=todayDone;renderDaily(); // デイリー：おさらいの今日の枠を終えたら完了（2026-07-25 1日枠20語）
-    if(_dailyMain)renderDailyList_(_dailyMain); // おさらい状態が分かったら毎日タブの進捗(◯/4)を描き直す 2026-07-26
+    var todayRemain=ws.length;
+    // バッジ・デイリー・完了表示（既存の意味を維持）
+    var cr=$('cnt-review');if(cr)cr.innerHTML=(!todayDone&&todayRemain>0)?('<b>'+todayRemain+'</b> '+rb('語','ご')):'<b style="color:var(--ok)">ぜんぶ できた</b>';
+    _revNum.osarai=todayRemain;setDailyNavNum_();
+    var dr=$('dot-review');if(dr)dr.style.display=(!todayDone)?'block':'none';
+    _reviewTileDone_('tile-review',todayDone);
+    _revDone.osarai=todayDone;renderReviewFin_();
+    dailyState.review=todayDone;renderDaily();
+    if(_dailyMain)renderDailyList_(_dailyMain);
+    // ===== 画面：総量→おまかせ(今日の分)→教科でえらぶ（氷山の中身を見せる＋教科で選べる）2026-07-26 =====
     area.innerHTML='';
-    if(ws.length){
-      var n=ws.length;
-      var more=(dueTotal>n)?('　ほか'+(dueTotal-n)+'<ruby>語<rt class="uf">ご</rt></ruby>は<ruby>明日<rt class="uf">あした</rt></ruby>'):'';
-      var card=document.createElement('div');card.className='note-card';
-      card.innerHTML='<div class="note-ic"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おさらい</div><div class="sub">わすれない うちに もう<ruby>一回<rt class="uf">いっかい</rt></ruby>'+more+'</div></div><div class="cnt">'+n+'<small> <ruby>語<rt class="uf">ご</rt></ruby></small></div>';
-      card.onclick=function(){startReviewSrs(ws,d.data.assets);};
-      area.appendChild(card);
-    } else if(dueTotal>0){
-      // 今日の枠は終わったが、まだ期限の来た語が残っている＝残りは明日以降
-      area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl"><ruby>今日<rt class="uf">きょう</rt></ruby>の おさらいは <ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div><div class="sub">のこりは また<ruby>明日<rt class="uf">あした</rt></ruby></div></div></div>';
+    if(dueTotal<=0){
+      area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub"><ruby>合格<rt class="uf">ごうかく</rt></ruby>した<ruby>単語<rt class="uf">たんご</rt></ruby>が、わすれた ころに ここへ<ruby>出<rt class="uf">で</rt></ruby>てくるよ</div></div></div>';
+      return;
+    }
+    var tot=document.createElement('div');tot.style.cssText='font-size:13px;color:var(--sub);font-weight:700;margin:2px 2px 11px;';
+    tot.innerHTML='のこり <b style="color:var(--accent)">'+dueTotal+'</b> '+rb('語','ご')+'（'+rb('期限','きげん')+'が 来た分）';
+    area.appendChild(tot);
+    var omk=document.createElement('div');omk.className='note-card';omk.style.position='relative';
+    if(!todayDone&&todayRemain>0){
+      omk.innerHTML='<div class="note-ic" style="background:var(--accent-soft);color:var(--accent)"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おまかせ（'+rb('今日','きょう')+'の分）</div><div class="sub">'+rb('期限','きげん')+'が 古いものから まとめて</div></div><div class="cnt">'+todayRemain+'<small> '+rb('語','ご')+'</small></div>';
+      omk.onclick=function(){startReviewSrs(ws,d.data.assets,'');};
     } else {
-      area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub"><ruby>合格<rt class="uf">ごうかく</rt></ruby>した<ruby>単語<rt class="uf">たんご</rt></ruby>が、ここに<ruby>出<rt class="uf">で</rt></ruby>てくるよ</div></div></div>';
+      omk.innerHTML='<div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">'+rb('今日','きょう')+'の分 おわり！</div><div class="sub">'+rb('教科','きょうか')+'をえらんで つづけてもOK</div></div>';
+    }
+    area.appendChild(omk);
+    if(subjects.length){
+      var hd=document.createElement('div');hd.style.cssText='font-size:12px;color:var(--sub);font-weight:700;margin:15px 2px 7px;';hd.innerHTML=rb('教科','きょうか')+'でえらぶ';area.appendChild(hd);
+      subjects.forEach(function(c){ area.appendChild(subjCard_(c.subject,c.count,function(){openOsaraiSubject(c.subject);})); });
     }
   });
 }
-function startReviewSrs(words,assets){
-  noteSes=null;
+/* 教科を選んでおさらい：期限の来た分を上限を超えて出す（自主・期限語は箱前進の対象）2026-07-26 */
+function openOsaraiSubject(subject){
+  toastH('<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…');
+  whenGradesFlushed(function(){
+    call({action:'review_due',subject:subject}).then(function(d){
+      if(!d.ok||!d.data.words||!d.data.words.length){toastH('この<ruby>教科<rt class="uf">きょうか</rt></ruby>の おさらいは ありません');loadReviewSrs();return;}
+      startReviewSrs(d.data.words,d.data.assets,subject);
+    });
+  });
+}
+function startReviewSrs(words,assets,osSubject){
+  noteSes=null;session=null; // 出題エンジンの活性セッションをおさらいに切替 2026-07-26
   if(!words||!words.length){toast('おさらいはありません');return;}
   show('scr-practice');combo=0;
   gradeReset_(); // 採点キュー初期化 2026-07-05
-  srsSes={words:words,idx:0,step:2,wordOK:true,graduated:0,total:words.length,doneWords:[],nextDays:null,assets:(assets||{}),miss:[]};
-  renderSrsStep();
+  srsSes={mode:'srs',osSubject:(osSubject||''),words:words,idx:0,step:2,wordOK:true,graduated:0,total:words.length,doneWords:[],nextDays:null,assets:(assets||{}),miss:[],onNext:function(){submitSrsWord();}};
+  srsSes.step=_startStepFor(srsSes,words[0]); // 語ごとに開始ステップ（英語=意味2 / 用語=英語3）＝元と同じ流れ
+  _readingMap={};(words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;}); // 国語の選択肢ふりがな用 2026-07-26
+  renderSrsStep(); // ＝renderQuiz(srsSes)。表・図・国語ふりがな・音声すべて毎日学習と同じ描画
 }
-/* おさらい/間違いノートの table_fill：実際の表を出し、その語のセルだけ空欄で強調（元と同じ形式で出す・2026-07-26）。
-   おさらいは語が1つずつ来る＝その語のセル(r,c)を「？」、他セルは表データそのまま。asset(表)は reviewDue/mistakeSet が collectAssets_ で返す。 */
-function srsTfTableHtml_(w,assets){
-  var qd=tfParse(w);var a=(assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){}
-  if(!(pl.rows&&pl.rows.length)) return ''; // 表データが無ければ空（呼び出し側で文字版にフォールバック）
-  var h='';if(a.title){h+='<div class="tf-title">'+esc(a.title)+'</div>';}
-  h+='<table class="tf-table"><tr><th></th>';(pl.cols||[]).forEach(function(c){h+='<th>'+esc(c)+'</th>';});h+='</tr>';
-  var rr=(qd.r|0),cc=(qd.c|0);
-  (pl.rows||[]).forEach(function(row,ri){h+='<tr><td class="tf-rowh">'+esc(row.label||'')+'</td>';
-    (row.cells||[]).forEach(function(cell,ci){
-      if(ri===rr&&ci===cc){h+='<td><span class="tf-hole cur">？</span></td>';} // この語のセル＝空欄で強調
-      else{h+='<td class="tf-en">'+esc(cell)+'</td>';}
-    });h+='</tr>';});
-  h+='</table>';return h;
-}
-function renderSrsStep(){
-  var s=srsSes,w=s.words[s.idx],tot=s.words.length;showListen_(w,s.subject==='english');_kaiImgCur=kaiImgHtml(w,s.assets);_curExW=w;
-  $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
-  $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
-  // どの教材・パートのおさらいか（タグ）＝reviewDue が material_title/part_title を返す。教材名は mtLabelMt アクセサ経由 2026-07-26
-  var _srsTag=(w.material_title||w.part_title)?('<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 11px;margin-bottom:7px;"><i class="ti ti-map-pin" style="font-size:12px"></i> おさらい・'+esc(mtLabelMt(w))+(w.part_title?('／'+esc(w.part_title)):'')+'</div><br>'):'';
-  $('step-label').innerHTML=_srsTag+'<ruby>復習<rt class="uf">ふくしゅう</rt></ruby> '+(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
-  if(w.qtype==='image_fill'){ // 図問題はおさらいでも図を出す 2026-07-12
-    var qi2=tfParse(w);$('tf-table').innerHTML=imgFigHtml(w,s.assets);$('tf-ask').style.display='';$('tf-ask').innerHTML=qi2.num?('<b style="color:var(--accent)">'+esc(qi2.num)+'</b> が<ruby>指<rt class="uf">さ</rt></ruby>す<ruby>部分<rt class="uf">ぶぶん</rt></ruby>をえらぼう'):esc(qi2.ask||'この生物の名前をえらぼう');
-    buildChoices('tf-choices',w.english,[],function(ok){if(!ok)s.wordOK=false;},{fixedChoices:(qi2.choices||[]),timeLimit:qSecFor('table_fill'),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitSrsWord();}});
-    $('step-tf').style.display='block';return;
-  }
-  if(w.qtype==='table_fill'){ // 表穴埋め語はおさらいでも「元と同じ表」を出す＋その語のセルを空欄で強調（2026-07-26）。表データが無いときだけ文字版にフォールバック
-    var qtf=tfParse(w);var _tfh=srsTfTableHtml_(w,s.assets);
-    if(_tfh){
-      $('tf-table').innerHTML=_tfh;$('tf-ask').style.display='';
-      $('tf-ask').innerHTML='<ruby>空<rt class="uf">あ</rt></ruby>いている <b style="color:var(--accent)">？</b> に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>言葉<rt class="uf">ことば</rt></ruby>をえらぼう';
-      buildChoices('tf-choices',w.english,[],function(ok){if(!ok)s.wordOK=false;},{fixedChoices:(qtf.choices||[]),timeLimit:qSecFor('table_fill'),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitSrsWord();}});
-      $('step-tf').style.display='block';return;
-    }
-    $('j2e-label').innerHTML='<ruby>正<rt class="uf">ただ</rt></ruby>しい<ruby>形<rt class="uf">かたち</rt></ruby>をえらぼう';$('j2e-ja').textContent=w.japanese;
-    buildChoices('j2e-choices',w.english,[],function(ok){if(!ok)s.wordOK=false;},{fixedChoices:(qtf.choices||[]),timeLimit:qSecFor('table_fill'),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',next:function(){submitSrsWord();}});
-    $('step-j2e').style.display='block';return;
-  }
-  var pool=s.words;
-  var _tl=qSecFor(s.subject||'english'); // 自動反復にも制限時間（2026-07-04）
-  if(s.step===2){
-    $('e2j-en').textContent=w.english;
-    buildChoices('e2j-choices',w.japanese,((w.wrong_choices_ja&&w.wrong_choices_ja.length)?w.wrong_choices_ja:pool.map(function(x){return x.japanese;})),function(ok){ // 誤答は同パート（サーバー）優先。無ければ寄せ集めpool 2026-07-23
-      if(!ok)s.wordOK=false;
-    },{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderSrsStep();}});
-    $('step-e2j').style.display='block';
-  }else if(s.step===3){
-    $('j2e-label').innerHTML='<ruby>英語<rt class="uf">えいご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'; // ラベル残留防止（自動反復は英語のみ）2026-07-04
-    $('j2e-ja').textContent=w.japanese;
-    var _qs3=tfParse(w),_sfx=(_qs3&&_qs3.choices&&_qs3.choices.length)?_qs3.choices:null; // 教材のqdata.choices優先（同カテゴリ）2026-07-23
-    buildChoices('j2e-choices',w.english,(_sfx?[]:((w.wrong_choices_en&&w.wrong_choices_en.length)?w.wrong_choices_en:pool.map(function(x){return x.english;}))),function(ok){
-      if(!ok)s.wordOK=false;
-    },{timeLimit:_tl,kaisetsu:w.kaisetsu,promptText:w.japanese,fixedChoices:_sfx,next:function(){submitSrsWord();}});
-    $('step-j2e').style.display='block';
-  }
-}
+/* 表アセット（table_fill）が描画可能か＝payloadに行がある。無ければ文字版にフォールバック 2026-07-26 */
+function _tfRenderable_(w,assets){var qd=tfParse(w);var a=(assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){}return !!(pl.rows&&pl.rows.length);}
 function submitSrsWord(){
   var s=srsSes,w=s.words[s.idx],correct=s.wordOK;
   if(!correct&&s.miss)s.miss.push(w.word_id||w.id);
@@ -3295,7 +3301,7 @@ function submitSrsWord(){
     if(d.data&&!d.data.graduated&&d.data.next_days){var nd=d.data.next_days|0;if(!s.nextDays||nd<s.nextDays)s.nextDays=nd;}
   });
   if(willGrad){toast('「'+w.english+'」をマスター！🎓');guardTaps_(600);} // 答えた瞬間にマスタートースト＋先行タップが裏の次問に貫通しないようガード 2026-07-25
-  var adv=function(){s.idx++;s.step=2;s.wordOK=true;if(s.idx>=s.words.length){finishSrs();}else renderSrsStep();};
+  var adv=function(){s.idx++;s.wordOK=true;if(s.idx>=s.words.length){finishSrs();}else{s.step=_startStepFor(s,s.words[s.idx]);renderSrsStep();}}; // 語ごとに開始ステップ
   if(willGrad){setTimeout(adv,750);}else{adv();} // 卒業時だけ一拍おいて次へ（読み込みではなく演出を見せるため）
 }
 function finishSrs(){
@@ -3305,6 +3311,11 @@ function finishSrs(){
   $('done-badge').innerHTML='<i class="ti ti-clock-bolt" style="color:var(--gold)"></i>';
   $('done-result').innerHTML='おさらい お<ruby>疲<rt class="uf">つか</rt></ruby>れさま！'; // 表記は漢字（川上さん指示 2026-07-05）
   $('done-score-wrap').style.display='none';var _dtn=$('done-tiles');if(_dtn)_dtn.innerHTML='';
+  // 自主的に続けられる：期限が来た分は上限を気にせず消化してよい（正解＝箱前進）川上さん 2026-07-26
+  var _osS=s.osSubject||'';
+  $('btn-next').innerHTML='<i class="ti ti-clock-bolt"></i> もっとやる'+(_osS?('（'+esc(subjLabel(_osS))+'）'):'');
+  $('btn-next').className='btn sub';$('btn-next').style.display='flex';
+  $('btn-next').onclick=function(){osaraiMore_(_osS);};
   // 何をおさらいしたか（川上さん指示 2026-07-05）：3語まで列挙＋ほか◯語
   var _dw=s.doneWords||[];
   $('done-rate').innerHTML=_dw.length?('<ruby>英語<rt class="uf">えいご</rt></ruby> '+_dw.length+'<ruby>語<rt class="uf">ご</rt></ruby>（'+_dw.slice(0,3).map(esc).join('・')+(_dw.length>3?' ほか'+(_dw.length-3)+'<ruby>語<rt class="uf">ご</rt></ruby>':'')+'）をおさらいしたよ'):'';
@@ -3321,6 +3332,17 @@ function finishSrs(){
   });
   $('btn-retry').style.display='none';
   $('btn-home').onclick=openHome;
+}
+/* おさらいを続ける：期限の来た次の分を出す（教科指定があればその教科）。無ければ今日の期限は完了 2026-07-26 */
+function osaraiMore_(subject){
+  toastH('<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…');
+  whenGradesFlushed(function(){
+    var req={action:'review_due',more:1};if(subject)req.subject=subject;
+    call(req).then(function(d){
+      if(!d.ok||!d.data.words||!d.data.words.length){toastH('<ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>期限<rt class="uf">きげん</rt></ruby>は ぜんぶ おわり！よく がんばったね');openHome();return;}
+      startReviewSrs(d.data.words,d.data.assets,subject||'');
+    });
+  });
 }
 
 /* ===== バッジ（実績の節目）2026-06-22 ===== */
