@@ -812,6 +812,7 @@
   .pron-foot{display:flex;gap:8px;margin-top:16px;}
   .fbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:9px 4px 8px;font-family:inherit;font-size:11.5px;font-weight:700;color:var(--sub);cursor:pointer;transition:transform .12s;}
   .fbtn .fic{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:23px;}
+  .fbtn-t{white-space:nowrap;text-align:center;line-height:1.35;} /* ラベルを1つのフレックスアイテムに（ruby直下配置で縦積みになる不具合の防止）2026-07-26 */
   .fic.hear{background:var(--accent-soft);color:var(--accent);}
   .fic.mic{background:rgba(31,170,107,.14);color:var(--ok);}
   .fic.skip{background:var(--ring-track);color:var(--sub);}
@@ -879,7 +880,18 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   /* ===== 羅針盤アドバイザー（総括・全タブ常駐フローター＋パネル）2026-07-26 ===== */
   .rb-float{position:fixed;right:14px;bottom:20px;z-index:71;width:60px;height:60px;cursor:pointer;filter:drop-shadow(0 8px 16px rgba(13,24,48,.4));animation:rbBob 3.4s ease-in-out infinite;display:none;}
   @keyframes rbBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-  .rb-float .rb-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--ng);color:#fff;font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+  /* 初回（その日はじめて）だけ出す吹き出し。開いたら消す 2026-07-26 */
+  .rb-bubble{position:absolute;right:66px;bottom:12px;background:#15161a;color:#fff;font-size:12px;font-weight:800;padding:8px 12px;border-radius:13px;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.28);animation:rbPop .3s ease;}
+  .rb-bubble:after{content:'';position:absolute;right:-6px;bottom:15px;border:6px solid transparent;border-left-color:#15161a;}
+  @keyframes rbPop{from{opacity:0;transform:translateX(6px) scale(.9)}to{opacity:1;transform:none}}
+  /* いまの学習のようす＝多軸（三連星の評価軸を流用） */
+  .rb-statuscard{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px;}
+  .rb-axis{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .rb-axis:last-child{border-bottom:none;}
+  .rb-axis>i{color:var(--accent);font-size:18px;width:20px;text-align:center;flex:0 0 auto;}
+  .rb-axis .ax-l{color:var(--sub);font-weight:800;font-size:11.5px;flex:0 0 62px;}
+  .rb-axis .ax-v{color:var(--ink);line-height:1.5;}
+  .rb-praise-line{font-size:13px;color:var(--sub);line-height:1.7;padding:11px 13px;background:var(--accent-soft);}
   .rb-mask{position:fixed;inset:0;z-index:120;background:rgba(6,9,18,.55);backdrop-filter:blur(2px);display:none;align-items:flex-end;justify-content:center;}
   .rb-mask.show{display:flex;}
   .rb-panel{width:100%;max-width:440px;background:var(--surface);border-radius:22px 22px 0 0;max-height:88vh;overflow:auto;animation:rbUp .3s ease;position:relative;}
@@ -1050,9 +1062,9 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="pron-sub" id="pron-sub"></div>
         <div class="pron-cnt num" id="pron-cnt"></div>
         <div class="pron-foot">
-          <button class="fbtn" id="btn-sound" type="button"><span class="fic hear"><i class="ti ti-volume"></i></span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</button>
-          <button class="fbtn" id="btn-mic" type="button"><span class="fic mic"><i class="ti ti-microphone"></i></span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>言<rt class="uf">い</rt></ruby>う</button>
-          <button class="fbtn" id="btn-skip" type="button"><span class="fic skip"><i class="ti ti-player-skip-forward"></i></span>スキップ</button>
+          <button class="fbtn" id="btn-sound" type="button"><span class="fic hear"><i class="ti ti-volume"></i></span><span class="fbtn-t">もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>
+          <button class="fbtn" id="btn-mic" type="button"><span class="fic mic"><i class="ti ti-microphone"></i></span><span class="fbtn-t">もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>言<rt class="uf">い</rt></ruby>う</span></button>
+          <button class="fbtn" id="btn-skip" type="button"><span class="fic skip"><i class="ti ti-player-skip-forward"></i></span><span class="fbtn-t">スキップ</span></button>
         </div>
       </div>
       <div class="card" id="step-e2j" style="display:none;">
@@ -1156,17 +1168,16 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   <circle cx="50" cy="50" r="4.5" fill="url(#rbBrass)" stroke="#5c4718" stroke-width="0.6"/><circle cx="50" cy="50" r="1.6" fill="#3a2c0e"/>
   <g font-family="serif" font-weight="700" fill="#e6cf94"><text x="50" y="27" text-anchor="middle" font-size="7.5">N</text><text x="74" y="52.5" text-anchor="middle" font-size="6">E</text><text x="50" y="77" text-anchor="middle" font-size="6">S</text><text x="26" y="52.5" text-anchor="middle" font-size="6">W</text></g>
 </g></defs></svg>
-<div class="rb-float" id="rb-float" role="button" tabindex="0" aria-label="今日のアドバイスを見る"><span class="rb-badge" id="rb-badge">アドバイス</span><svg viewBox="0 0 100 100" width="60" height="60"><use href="#rbCompass"/></svg></div>
+<div class="rb-float" id="rb-float" role="button" tabindex="0" aria-label="今日のアドバイスを見る"><div class="rb-bubble" id="rb-bubble" style="display:none;"><ruby>今日<rt class="uf">きょう</rt></ruby>の アドバイス！</div><svg viewBox="0 0 100 100" width="60" height="60"><use href="#rbCompass"/></svg></div>
 <div class="rb-mask" id="rb-mask">
   <div class="rb-panel">
     <button class="rb-close" id="rb-close" type="button" aria-label="とじる"><i class="ti ti-x"></i></button>
-    <div class="rb-head"><svg viewBox="0 0 100 100" width="52" height="52" style="flex:0 0 auto"><use href="#rbCompass"/></svg><div><div class="nm">クロトレの <ruby>羅針盤<rt class="uf">らしんばん</rt></ruby></div><div class="hello" id="rb-hello">今日の アドバイス</div></div></div>
+    <div class="rb-head"><svg viewBox="0 0 100 100" width="50" height="50" style="flex:0 0 auto"><use href="#rbCompass"/></svg><div class="hello" id="rb-hello">今日の アドバイス</div></div>
     <div class="rb-body">
       <div id="rb-change-wrap" style="display:none;"><div class="rb-sec-t"><ruby>昨日<rt class="uf">きのう</rt></ruby>から こう<ruby>変<rt class="uf">か</rt></ruby>わった</div><div class="rb-change" id="rb-change"></div></div>
-      <div class="rb-sec-t" id="rb-praise-t"><ruby>今日<rt class="uf">きょう</rt></ruby>の みたて</div>
-      <div id="rb-avg" style="display:none;"></div>
-      <div class="rb-praise" id="rb-praise"></div>
-      <div class="rb-sec-t"><ruby>次<rt class="uf">つぎ</rt></ruby>の <ruby>一手<rt class="uf">いって</rt></ruby></div>
+      <div class="rb-sec-t">いまの <ruby>学習<rt class="uf">がくしゅう</rt></ruby>の ようす</div>
+      <div id="rb-status"></div>
+      <div class="rb-sec-t"><ruby>次<rt class="uf">つぎ</rt></ruby>の アクション</div>
       <div class="rb-next" id="rb-next"></div>
     </div>
   </div>
@@ -3541,13 +3552,31 @@ function rbPraise_(s){
   var start=day%pool.length;var picked=[pool[start]];if(pool.length>1)picked.push(pool[(start+1)%pool.length]);
   return picked;
 }
-function rbBadgeSync_(){var b=$('rb-badge');if(!b)return;var seen=false;try{seen=(localStorage.getItem(_rbSeenKey_())===todayStr_());}catch(e){}b.style.display=seen?'none':'';}
+function rbBubbleSync_(){var bub=$('rb-bubble');if(!bub)return;var seen=false;try{seen=(localStorage.getItem(_rbSeenKey_())===todayStr_());}catch(e){}bub.style.display=seen?'none':'';} // 初回（その日）だけ吹き出し
 function rbFloatSync_(){
   var f=$('rb-float');if(!f)return;
   var a=document.querySelector('.screen.active');var onHome=(a&&a.id==='scr-home');
   if(!onHome){f.style.display='none';return;}
   var nav=$('ntabbar');var nh=nav?(nav.getBoundingClientRect().height||0):0;f.style.bottom=((nh>0?Math.round(nh):66)+16)+'px';
-  f.style.display='block';rbBadgeSync_();
+  f.style.display='block';rbBubbleSync_();
+}
+function rbAxis_(icon,label,val){return '<div class="rb-axis"><i class="ti '+icon+'"></i><span class="ax-l">'+label+'</span><span class="ax-v">'+val+'</span></div>';}
+/* いまの学習のようす＝多軸（三連星の評価軸を流用）。advは advisor_summary の結果（null＝取得前はクライアント分だけ先に描く）2026-07-26 */
+function rbRenderStatus_(adv){
+  var el=$('rb-status');if(!el)return;var s=rbState_();var rows='';
+  if(adv&&adv.rate&&adv.rate.my!=null){
+    var ex=[];
+    if(adv.rate.above)ex.push('クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby>の<ruby>平均<rt class="uf">へいきん</rt></ruby> '+adv.rate.avg+'% を <b style="color:var(--gold)">上回り</b>');
+    if(adv.rate.best)ex.push('<b style="color:var(--gold)">自己ベスト</b>');
+    rows+=rbAxis_('ti-target','<ruby>正答率<rt class="uf">せいとうりつ</rt></ruby>','<b>'+adv.rate.my+'%</b>'+(ex.length?'<br><span style="font-size:12px">'+ex.join(' ・ ')+'</span>':''));
+  }
+  if(adv&&adv.growth&&adv.growth.delta>0)rows+=rbAxis_('ti-trending-up','<ruby>成長<rt class="uf">せいちょう</rt></ruby>','<ruby>正答率<rt class="uf">せいとうりつ</rt></ruby>が さいきん <b style="color:var(--ok)">+'+adv.growth.delta+'%</b>');
+  if(s.streak>0)rows+=rbAxis_('ti-flame','<ruby>継続<rt class="uf">けいぞく</rt></ruby>','<b>'+s.streak+'日</b> <ruby>連続<rt class="uf">れんぞく</rt></ruby>'+(s.freeze>0?('（フリーズ '+s.freeze+'）'):''));
+  if(adv&&adv.volume&&adv.volume.today>0){var mul=(adv.volume.ratio>=1.4)?(' ・ いつもの <b>約'+adv.volume.ratio+'倍</b>'):'';rows+=rbAxis_('ti-bolt','<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>量<rt class="uf">りょう</rt></ruby>','<b>'+adv.volume.today+'問</b>'+mul);}
+  if(adv&&adv.base&&adv.base.words30>0)rows+=rbAxis_('ti-stack-2','<ruby>積<rt class="uf">つ</rt></ruby>み<ruby>上<rt class="uf">あ</rt></ruby>げ','この30日で <b>'+adv.base.words30+'問</b>');
+  if(!rows)rows=rbAxis_('ti-compass','ようす','これから <ruby>記録<rt class="uf">きろく</rt></ruby>が たまっていくよ');
+  var praise=(rbPraise_(s)[0]||'');
+  el.innerHTML='<div class="rb-statuscard">'+rows+(praise?'<div class="rb-praise-line">'+praise+'</div>':'')+'</div>';
 }
 function rbOpen_(){
   var s=rbState_();
@@ -3556,28 +3585,16 @@ function rbOpen_(){
   var chg=rbChange_(s);
   var cw=$('rb-change-wrap'),cc=$('rb-change');
   if(cw&&cc){ if(chg.length){cc.innerHTML=chg.map(function(c){return '<div class="ci"><i class="ti '+c.i+'"></i>'+c.t+'</div>';}).join('');cw.style.display='';}else{cw.style.display='none';} }
-  var pr=$('rb-praise');if(pr)pr.innerHTML=rbPraise_(s).map(function(t){return '<p>'+t+'</p>';}).join('');
+  rbRenderStatus_(null); // まずクライアント分（継続・褒め）で描く
   var na=rbNextAction_(s);var ne=$('rb-next');
-  if(ne){ne.innerHTML='<div class="rn-ic"><i class="ti '+na.icon+'"></i></div><div><div class="rn-lbl">つぎは これ</div><div class="rn-ttl">'+esc(na.lbl)+'</div><div class="rn-why">'+na.why+'</div></div><div class="rn-go"><i class="ti ti-arrow-right"></i></div>';ne.onclick=na.go;}
+  if(ne){ne.innerHTML='<div class="rn-ic"><i class="ti '+na.icon+'"></i></div><div><div class="rn-ttl">'+esc(na.lbl)+'</div><div class="rn-why">'+na.why+'</div></div><div class="rn-go"><i class="ti ti-arrow-right"></i></div>';ne.onclick=na.go;}
   try{localStorage.setItem(_rbSnapKey_(),JSON.stringify({date:todayStr_(),streak:s.streak,noteRem:s.noteRem}));}catch(e){} // 今日ぶんを確定（次の日の比較用）
   try{localStorage.setItem(_rbSeenKey_(),todayStr_());}catch(e){}
-  rbBadgeSync_();
+  rbBubbleSync_();
   var m=$('rb-mask');if(m)m.classList.add('show');
-  try{rbFetchAvg_();}catch(e){} // v3：クロフネ全体平均との比較（上回ったときだけ表示）
+  try{rbFetchAdvisor_();}catch(e){} // サーバーの多軸（正答率・平均比較・量・積み上げ・成長）で描き直す
 }
-/* v3：全体平均と自分の直近正答率を取り、上回ったときだけ褒める（下回り・順位は絶対に出さない）2026-07-26 */
-function rbFetchAvg_(){
-  var el=$('rb-avg');if(!el)return;el.style.display='none';el.innerHTML='';
-  var nm=(nickname&&nickname!=='きみ')?nickname:'きみ';
-  call({action:'advisor_summary'}).then(function(d){
-    if(!d||!d.ok||!d.data||!d.data.above)return; // 上回ったときだけ
-    var g=d.data;
-    el.innerHTML='<div style="background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(202,162,74,.04));border:1px solid rgba(202,162,74,.35);border-radius:14px;padding:12px 13px;margin-bottom:12px;font-size:13.5px;color:var(--ink);line-height:1.6;display:flex;align-items:center;gap:10px;">'
-      +'<i class="ti ti-trophy" style="color:var(--gold);font-size:22px;flex:0 0 auto"></i>'
-      +'<div>クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby>の <ruby>平均<rt class="uf">へいきん</rt></ruby>は <b>'+g.avg_rate+'%</b>。<br>'+esc(nm)+'さんは <b style="color:var(--gold)">'+g.my_rate+'%</b> で <ruby>上回<rt class="uf">うわまわ</rt></ruby>ってるよ！</div></div>';
-    el.style.display='';
-  }).catch(function(){});
-}
+function rbFetchAdvisor_(){ call({action:'advisor_summary'}).then(function(d){ if(d&&d.ok&&d.data)rbRenderStatus_(d.data); }).catch(function(){}); }
 function rbClose_(){var m=$('rb-mask');if(m)m.classList.remove('show');}
 (function(){
   var f=$('rb-float');if(f)f.onclick=rbOpen_;
