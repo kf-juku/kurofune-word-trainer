@@ -1164,6 +1164,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <div class="rb-body">
       <div id="rb-change-wrap" style="display:none;"><div class="rb-sec-t"><ruby>昨日<rt class="uf">きのう</rt></ruby>から こう<ruby>変<rt class="uf">か</rt></ruby>わった</div><div class="rb-change" id="rb-change"></div></div>
       <div class="rb-sec-t" id="rb-praise-t"><ruby>今日<rt class="uf">きょう</rt></ruby>の みたて</div>
+      <div id="rb-avg" style="display:none;"></div>
       <div class="rb-praise" id="rb-praise"></div>
       <div class="rb-sec-t"><ruby>次<rt class="uf">つぎ</rt></ruby>の <ruby>一手<rt class="uf">いって</rt></ruby></div>
       <div class="rb-next" id="rb-next"></div>
@@ -3562,6 +3563,20 @@ function rbOpen_(){
   try{localStorage.setItem(_rbSeenKey_(),todayStr_());}catch(e){}
   rbBadgeSync_();
   var m=$('rb-mask');if(m)m.classList.add('show');
+  try{rbFetchAvg_();}catch(e){} // v3：クロフネ全体平均との比較（上回ったときだけ表示）
+}
+/* v3：全体平均と自分の直近正答率を取り、上回ったときだけ褒める（下回り・順位は絶対に出さない）2026-07-26 */
+function rbFetchAvg_(){
+  var el=$('rb-avg');if(!el)return;el.style.display='none';el.innerHTML='';
+  var nm=(nickname&&nickname!=='きみ')?nickname:'きみ';
+  call({action:'advisor_summary'}).then(function(d){
+    if(!d||!d.ok||!d.data||!d.data.above)return; // 上回ったときだけ
+    var g=d.data;
+    el.innerHTML='<div style="background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(202,162,74,.04));border:1px solid rgba(202,162,74,.35);border-radius:14px;padding:12px 13px;margin-bottom:12px;font-size:13.5px;color:var(--ink);line-height:1.6;display:flex;align-items:center;gap:10px;">'
+      +'<i class="ti ti-trophy" style="color:var(--gold);font-size:22px;flex:0 0 auto"></i>'
+      +'<div>クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby>の <ruby>平均<rt class="uf">へいきん</rt></ruby>は <b>'+g.avg_rate+'%</b>。<br>'+esc(nm)+'さんは <b style="color:var(--gold)">'+g.my_rate+'%</b> で <ruby>上回<rt class="uf">うわまわ</rt></ruby>ってるよ！</div></div>';
+    el.style.display='';
+  }).catch(function(){});
 }
 function rbClose_(){var m=$('rb-mask');if(m)m.classList.remove('show');}
 (function(){
