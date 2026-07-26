@@ -876,10 +876,10 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   .bug-fab:active{transform:translateY(2px);}
   .bug-fab.dim{opacity:.2;transition:opacity .15s;}
   /* 羅針盤アドバイザーを右下の一等地に置くので、不具合報告は左下の小アイコンに退避（大ボタンを2つ並べない）2026-07-26 */
-  .bug-fab{right:auto;left:14px;padding:10px;border-radius:50%;}
+  .bug-fab{right:auto;left:max(14px, calc(50vw - 201px));padding:10px;border-radius:50%;}/* 中央寄せ430px列の左端に合わせる（大画面で端に飛ぶのを防ぐ）2026-07-26 */
   .bug-fab span{display:none;}
   /* ===== 羅針盤アドバイザー（総括・全タブ常駐フローター＋パネル）2026-07-26 ===== */
-  .rb-float{position:fixed;right:14px;bottom:20px;z-index:71;width:60px;height:60px;cursor:pointer;filter:drop-shadow(0 8px 16px rgba(13,24,48,.4));animation:rbBob 3.4s ease-in-out infinite;display:none;}
+  .rb-float{position:fixed;right:max(14px, calc(50vw - 201px));bottom:20px;z-index:71;width:60px;height:60px;cursor:pointer;filter:drop-shadow(0 8px 16px rgba(13,24,48,.4));animation:rbBob 3.4s ease-in-out infinite;display:none;}/* 中央寄せ430px列の右端に合わせる 2026-07-26 */
   @keyframes rbBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
   /* 初回（その日はじめて）だけ出す吹き出し。開いたら消す 2026-07-26 */
   .rb-bubble{position:absolute;right:66px;bottom:12px;background:#15161a;color:#fff;font-size:12px;font-weight:800;padding:8px 12px;border-radius:13px;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.28);animation:rbPop .3s ease;}
@@ -3562,6 +3562,7 @@ function rbPraise_(s){
 function rbBubbleSync_(){var bub=$('rb-bubble');if(!bub)return;var seen=false;try{seen=(localStorage.getItem(_rbSeenKey_())===todayStr_());}catch(e){}bub.style.display=seen?'none':'';} // 初回（その日）だけ吹き出し
 function rbFloatSync_(){
   var f=$('rb-float');if(!f)return;
+  f.style.display='none';return; // 【羅針盤 表示停止 2026-07-26 川上さん指示】機能・コードはそのまま残す。再開するときはこの1行を消すだけ。フローターを出さない＝パネルも開けない。
   var a=document.querySelector('.screen.active');var onHome=(a&&a.id==='scr-home');
   if(!onHome){f.style.display='none';return;}
   var nav=$('ntabbar');var nh=nav?(nav.getBoundingClientRect().height||0):0;f.style.bottom=((nh>0?Math.round(nh):66)+16)+'px';
