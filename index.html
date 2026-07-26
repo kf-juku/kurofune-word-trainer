@@ -1970,8 +1970,12 @@ function loadHomeData_(showSkel){
     _mg.forEach(function(g){
       var btot=0,bpas=0;g.items.forEach(function(c){var _ps=c.parts||[];btot+=_ps.length;bpas+=_ps.filter(function(l){return l.passed;}).length;});
       var bpct=btot?Math.round(bpas/btot*100):0;var subjB=_subjGuess_(g.items[0]);
+      // 本(シリーズ)は種類が混ざらないので、種類タグは一番外側の見出しに1個だけ出す 2026-07-26
+      var _allTest=g.items.every(function(c){return c.content_type==='test';});var _allDaily=g.items.every(function(c){return c.content_type!=='test';});
+      var bookKind=_allTest?'<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>':(_allDaily?'<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>':'');
+      var kindPill=bookKind?(' <span style="font-size:10px;font-weight:700;color:var(--sub);background:rgba(148,163,184,.16);border-radius:6px;padding:1px 7px;vertical-align:middle;white-space:nowrap;">'+bookKind+'</span>'):'';
       var book=document.createElement('div');book.className='nbook';
-      book.innerHTML='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subjB)+'"></i></div><div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+'</div><div class="nbk-meta">'+(subjB?'<span class="nbk-subj">'+esc(subjLabel(subjB))+'</span> ':'')+'できた '+bpct+'%</div><div class="nbk-bar"><i style="width:'+bpct+'%"></i></div></div><i class="ti ti-chevron-down nbk-arw"></i></div>';
+      book.innerHTML='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subjB)+'"></i></div><div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+kindPill+'</div><div class="nbk-meta">'+(subjB?'<span class="nbk-subj">'+esc(subjLabel(subjB))+'</span> ':'')+'できた '+bpct+'%</div><div class="nbk-bar"><i style="width:'+bpct+'%"></i></div></div><i class="ti ti-chevron-down nbk-arw"></i></div>';
       var bdetail=document.createElement('div');bdetail.className='nbk-detail';book.appendChild(bdetail);
       if(_mapOpen.indexOf(g.key)>=0)book.classList.add('open'); // 学習マップも開いた本を保持（単元別と統一）2026-07-24
       book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_openToggle_('kwt_map_open',g.key,book.classList.contains('open'));};
@@ -1989,8 +1993,7 @@ function loadHomeData_(showSkel){
         var map='<div class="dotmap">';
         parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
         map+='</div>';
-        var kindPill='<span style="font-size:10px;font-weight:700;color:var(--sub);background:rgba(148,163,184,.16);border-radius:6px;padding:1px 7px;margin-left:6px;vertical-align:middle;white-space:nowrap;">'+(isTest?'<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>':'<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>')+'</span>'; // どの種類の教材か 2026-07-26
-        ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtShortMt(c))+kindPill+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
+        ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtShortMt(c))+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
           +'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>'+map
           +'<div class="ov-sub"><span class="dm-s done"></span>クリアずみ <b>'+passedN+'</b>　'+(curPart?'<span class="dm-s cur"></span>いまここ <b>'+curLbl+'</b>　':'')+'のこり <b>'+(total-passedN)+'</b></div>';
         var detail=document.createElement('div');detail.className='macc-detail';
@@ -3259,7 +3262,9 @@ function loadReviewSrs(){
     // ===== 画面：総量→おまかせ(今日の分)→教科でえらぶ（氷山の中身を見せる＋教科で選べる）2026-07-26 =====
     area.innerHTML='';
     if(dueTotal<=0){
-      area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub"><ruby>合格<rt class="uf">ごうかく</rt></ruby>した<ruby>単語<rt class="uf">たんご</rt></ruby>が、わすれた ころに ここへ<ruby>出<rt class="uf">で</rt></ruby>てくるよ</div></div></div>';
+      area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub"><ruby>合格<rt class="uf">ごうかく</rt></ruby>した<ruby>単語<rt class="uf">たんご</rt></ruby>が、わすれた ころに ここへ<ruby>出<rt class="uf">で</rt></ruby>てくるよ</div></div></div>'
+        +'<div style="text-align:center;margin-top:10px;"><button id="osarai-dbg-btn" type="button" style="background:none;border:none;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;text-decoration:underline;">なぜ？ データを<ruby>調<rt class="uf">しら</rt></ruby>べる</button></div><div id="osarai-dbg"></div>';
+      var _db=$('osarai-dbg-btn');if(_db)_db.onclick=osaraiDebug_;
       return;
     }
     var tot=document.createElement('div');tot.style.cssText='font-size:13px;color:var(--sub);font-weight:700;margin:2px 2px 11px;';
@@ -3277,6 +3282,21 @@ function loadReviewSrs(){
       var hd=document.createElement('div');hd.style.cssText='font-size:12px;color:var(--sub);font-weight:700;margin:15px 2px 7px;';hd.innerHTML=rb('教科','きょうか')+'でえらぶ';area.appendChild(hd);
       subjects.forEach(function(c){ area.appendChild(subjCard_(c.subject,c.count,function(){openOsaraiSubject(c.subject);})); });
     }
+  });
+}
+/* おさらいが空のときの診断：登録語数・期限が来ている数・最短期限日・索引/シート不一致を表示（p.debug）2026-07-26 */
+function osaraiDebug_(){
+  var out=$('osarai-dbg');if(out)out.innerHTML='<div style="text-align:center;color:var(--sub);font-size:12px;margin-top:8px;">しらべています…</div>';
+  call({action:'review_due',debug:1}).then(function(d){
+    if(!out)return;
+    if(!d.ok||!d.data||!d.data.debug){out.innerHTML='<div style="text-align:center;color:var(--sub);font-size:12px;margin-top:8px;">取得できませんでした</div>';return;}
+    var g=d.data.debug;
+    out.innerHTML='<div style="font-size:12px;color:var(--sub);line-height:1.8;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-top:10px;">'
+      +'おさらいに<ruby>登録<rt class="uf">とうろく</rt></ruby>ずみ：<b>'+(g.raw_active||0)+'</b> <ruby>語<rt class="uf">ご</rt></ruby>（<ruby>卒業<rt class="uf">そつぎょう</rt></ruby><ruby>済<rt class="uf">ず</rt></ruby>み '+(g.raw_graduated||0)+'）<br>'
+      +'いま<ruby>期限<rt class="uf">きげん</rt></ruby>が<ruby>来<rt class="uf">き</rt></ruby>ている：<b style="color:var(--accent)">'+(g.raw_due||0)+'</b> <ruby>語<rt class="uf">ご</rt></ruby><br>'
+      +'いちばん<ruby>近<rt class="uf">ちか</rt></ruby>い<ruby>期限<rt class="uf">きげん</rt></ruby>：<b>'+(g.earliest_due||'なし')+'</b>'
+      +((g.idx_rows!==g.raw_rows)?('<br><span style="color:var(--ng)">⚠ <ruby>索引<rt class="uf">さくいん</rt></ruby>('+g.idx_rows+')とシート('+g.raw_rows+')が<ruby>不一致<rt class="uf">ふいっち</rt></ruby></span>'):'')
+      +'</div>';
   });
 }
 /* 教科を選んでおさらい：期限の来た分を上限を超えて出す（自主・期限語は箱前進の対象）2026-07-26 */
