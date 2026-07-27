@@ -455,6 +455,41 @@
   .kns-meteor.run{animation:knsShoot 1.6s cubic-bezier(.25,.6,.35,1) forwards;}
   @keyframes knsShoot{0%{opacity:0;transform:translate(0,0) rotate(24deg);}12%{opacity:1;}80%{opacity:1;}100%{opacity:0;transform:translate(250px,112px) rotate(24deg);}}
   .kns-vig{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 60px 12px rgba(0,0,0,.5);border-radius:16px;}
+  /* ===== 時間帯テーマ（日本時間で自動切替・2026-07-27）：夜=既定(.kns-*)のまま／早朝・昼間・夕暮れだけ色を上書き。流れ星・三連星で共用 ===== */
+  .kns-mist{position:absolute;left:-12%;right:-12%;border-radius:50%;filter:blur(7px);display:none;}
+  .t-morning .kns-mist{display:block;}
+  .kns-mist.m1{top:112px;height:30px;background:rgba(246,242,238,.5);animation:knsMist 15s infinite ease-in-out;}
+  .kns-mist.m2{top:150px;height:38px;background:rgba(236,242,248,.55);animation:knsMist 19s infinite ease-in-out reverse;}
+  .kns-mist.m3{top:86px;height:22px;background:rgba(248,245,240,.32);animation:knsMist 23s infinite ease-in-out;}
+  @keyframes knsMist{0%,100%{transform:translateX(-5%);}50%{transform:translateX(5%);}}
+  /* 早朝（6:00–11:00）：涼しい淡色＋霧で早朝感。太陽は白っぽく控えめ */
+  .t-morning .kns-sky{background:linear-gradient(180deg,#6f86ad 0%,#93a3c0 30%,#b7bcc8 55%,#d4cbc6 78%,#ecdcc8 100%);}
+  .t-morning .kns-star{display:none;}
+  .t-morning .kns-moon{top:88px;right:auto;left:22%;width:40px;height:40px;background:radial-gradient(circle at 44% 42%,#ffffff,#fdf4dd 52%,#f2e4bb 100%);box-shadow:0 0 22px 8px rgba(255,250,230,.55),0 0 54px 20px rgba(230,235,245,.2);}
+  .t-morning .kns-sea{background:linear-gradient(180deg,#9aa8b4,#6f8090 52%,#42586a);}
+  .t-morning .kns-refl{background:linear-gradient(180deg,rgba(255,252,240,.5),rgba(255,252,240,0));}
+  .t-morning .kns-vig{box-shadow:inset 0 0 60px 14px rgba(40,52,66,.2);}
+  .t-morning .kns-meteor{box-shadow:0 0 9px 2px rgba(255,255,255,.95);}
+  .t-morning .kns-meteor::before{background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.95));}
+  /* 昼間・快晴（11:00–16:00）：雲ひとつない青空＋高く白い太陽 */
+  .t-day .kns-sky{background:linear-gradient(180deg,#1f74c8 0%,#3f93de 45%,#79bdf0 80%,#c3e4fb 100%);}
+  .t-day .kns-star{display:none;}
+  .t-day .kns-moon{top:26px;right:38px;width:42px;height:42px;background:radial-gradient(circle at 42% 40%,#ffffff,#fff6c8 52%,#ffe07a 100%);box-shadow:0 0 30px 10px rgba(255,238,150,.7),0 0 80px 30px rgba(255,240,170,.3);}
+  .t-day .kns-sea{background:linear-gradient(180deg,#2f96db,#1f6fb0 55%,#124a7d);}
+  .t-day .kns-sea::before{background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);}
+  .t-day .kns-refl{display:none;}
+  .t-day .kns-vig{box-shadow:inset 0 0 46px 10px rgba(0,20,40,.16);}
+  .t-day .kns-meteor{background:#fff;box-shadow:0 0 10px 3px rgba(255,255,255,.98);}
+  .t-day .kns-meteor::before{background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.98));}
+  /* 夕暮れ（16:00–18:00）：濃い暖色＋大きな夕日でドラマチック */
+  .t-dusk .kns-sky{background:linear-gradient(180deg,#2a2350 0%,#6a2f66 30%,#b34350 55%,#ef7e3a 80%,#f9b13f 100%);}
+  .t-dusk .kns-star{opacity:.3;}
+  .t-dusk .kns-moon{top:70px;right:auto;left:50%;margin-left:-27px;width:54px;height:54px;background:radial-gradient(circle at 46% 44%,#ffe29a,#ff8a34 52%,#df3b26 100%);box-shadow:0 0 34px 12px rgba(255,110,50,.55),0 0 90px 34px rgba(225,60,35,.3);}
+  .t-dusk .kns-sea{background:linear-gradient(180deg,#8a3548,#4a2544 50%,#20122f);}
+  .t-dusk .kns-refl{background:linear-gradient(180deg,rgba(255,130,70,.6),rgba(255,130,70,0));}
+  .t-dusk .kns-vig{box-shadow:inset 0 0 60px 14px rgba(40,8,18,.42);}
+  .t-dusk .kns-meteor{box-shadow:0 0 9px 2px rgba(255,196,140,.95);}
+  .t-dusk .kns-meteor::before{background:linear-gradient(90deg,rgba(255,196,140,0),rgba(255,196,140,.95));}
   /* 応援ファースト（川上さん承認モック 2026-07-05）：常設コピー＋ラベル付き大ボタン＋送信後の反応 */
   .star-copy{font-size:12.5px;line-height:1.7;color:#c9d2e8;margin:0 0 10px;}
   .star-copy b{color:#fff;}
@@ -2199,17 +2234,30 @@ function loadStar(){
 }
 // 夜の海＋黒船＋カメラ見上げシーン（承認モック v2 2026-07-25）：船を映す→上へパン→夜空で流れ星＋さざ波。流れ星・三連星で共用
 var KNS_SHIP_SVG='<svg class="kns-ship" viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg"><path d="M14 42 Q60 55 106 42 L99 49 Q60 59 21 49 Z" fill="#04060e"/><rect x="30" y="41" width="60" height="4" rx="1.5" fill="#04060e"/><rect x="44" y="12" width="2.4" height="30" fill="#04060e"/><rect x="73" y="8" width="2.4" height="34" fill="#04060e"/><rect x="57" y="18" width="7" height="24" rx="1" fill="#04060e"/><path d="M46.4 14 q13 5 0 24 z" fill="#0a1226"/><path d="M75.4 10 q12 6 0 30 z" fill="#0a1226"/><circle cx="60.5" cy="16" r="1.5" fill="#ffcf6b"/></svg>';
+// 日本時間の時間帯を返す（端末TZ非依存＝UTC+9で計算・よくズレる対策）2026-07-27
+function kwtSkyPeriod_(){
+  var now=new Date();
+  var t=((now.getUTCHours()+9)%24)+now.getUTCMinutes()/60; // JSTの「時.分」
+  if(t>=6&&t<11)return 'morning'; // 早朝
+  if(t>=11&&t<16)return 'day';    // 昼間（快晴）
+  if(t>=16&&t<18)return 'dusk';   // 夕暮れ
+  return 'night';                 // 18:00–翌6:00 夜（現行のまま）
+}
 function nightSeaStage(opts){opts=opts||{};
+  var theme=opts.theme||kwtSkyPeriod_(); // 出す瞬間に日本時間で1回だけ判定
   var stage=document.createElement('div');stage.className='kns-stage';if(opts.h)stage.style.height=opts.h+'px';
-  var cam=document.createElement('div');cam.className='kns-cam';
+  var cam=document.createElement('div');cam.className='kns-cam t-'+theme;
   var starsHtml='';for(var i=0;i<28;i++){starsHtml+='<span class="kns-star'+(Math.random()<.3?' b':'')+'" style="left:'+(Math.random()*100).toFixed(1)+'%;top:'+(Math.random()*230).toFixed(0)+'px;animation-delay:'+(Math.random()*3).toFixed(1)+'s"></span>';}
-  cam.innerHTML='<div class="kns-sky"></div>'+starsHtml+'<div class="kns-moon"></div><div class="kns-meteor"></div><div class="kns-sea"></div><div class="kns-refl"></div>'+KNS_SHIP_SVG;
+  var mistHtml='<div class="kns-mist m1"></div><div class="kns-mist m2"></div><div class="kns-mist m3"></div>'; // 早朝だけCSSで表示
+  var mc=opts.meteorCount||1,meteorsHtml=''; // 流れ星=1つ／三連星=3つ（ポポポっと連続）
+  for(var k=0;k<mc;k++){meteorsHtml+='<div class="kns-meteor" style="top:'+(mc===1?70:(52+k*20))+'px;left:'+(mc===1?10:(6+k*8))+'%"></div>';}
+  cam.innerHTML='<div class="kns-sky"></div>'+starsHtml+'<div class="kns-moon"></div>'+meteorsHtml+mistHtml+'<div class="kns-sea"></div><div class="kns-refl"></div>'+KNS_SHIP_SVG;
   stage.appendChild(cam);
   var vig=document.createElement('div');vig.className='kns-vig';stage.appendChild(vig);
   function play(){cam.classList.remove('pan');void cam.offsetWidth;cam.classList.add('pan');
     try{sndWaves(3.8);}catch(e){}
-    var mt=cam.querySelector('.kns-meteor');
-    setTimeout(function(){if(!mt)return;mt.classList.remove('run');void mt.offsetWidth;mt.classList.add('run');try{sndStarFly();}catch(e){}},2700); // 船→見上げ(pan 3s)が空に着いてから流れ星（旧1950=見上げ途中で早すぎ）。流れ星・三連星で共用の1関数＝両方同時に直る 2026-07-26
+    var mts=[].slice.call(cam.querySelectorAll('.kns-meteor'));
+    mts.forEach(function(mt,k){setTimeout(function(){mt.classList.remove('run');void mt.offsetWidth;mt.classList.add('run');if(k===0){try{sndStarFly();}catch(e){}}},2700+k*150);}); // 船→見上げ(pan 3s)が空に着いてから。三連星は150msずつずらして連続。流れ星・三連星で共用 2026-07-27
   }
   return {node:stage,play:play,cam:cam};
 }
@@ -2299,7 +2347,7 @@ function showTrioOverlay_(data){
     +'<div class="trio-title"><div class="t1">✨ きのう いちばん がんばった</div>'
     +'<div class="t2"><b><ruby>三連星<rt class="uf">さんれんせい</rt></ruby></b> の '+trio.length+'<ruby>人<rt class="uf">にん</rt></ruby>！</div></div>';
   // 星空＋隕石（人数ぶん・最大3）
-  var trioScene=nightSeaStage({h:150});   // 夜の海＋黒船→見上げ→流れ星（流れ星と共用）2026-07-25
+  var trioScene=nightSeaStage({h:150,meteorCount:3});   // 夜の海＋黒船→見上げ→流れ星3つ（三連星＝ポポポっ）。時間帯は日本時間で自動 2026-07-27
   panel.appendChild(trioScene.node);
   // カード（3人なら表彰台順、それ未満は素直に並べる）
   var row=document.createElement('div');row.className='trio-row'+(trio.length===3?' podium':'');
