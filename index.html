@@ -621,6 +621,8 @@
   @keyframes exIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
   .ex-ans{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;}
   .ex-ans b{color:var(--ok);}
+  /* 「正解」は漢字の小さめラベル＝答えの用語の読みがなと誤読させない（ひらがな「せいかい」だと読みがなに見える）2026-07-26 */
+  .ex-ans .ex-lbl{display:inline-block;font-size:11px;font-weight:800;color:var(--sub);background:rgba(31,170,107,.12);border-radius:6px;padding:1px 7px;margin-right:6px;vertical-align:2px;}
   .ex-kai{font-size:13.5px;line-height:1.6;color:var(--sub);margin-bottom:7px;}
   /* 解説なぞり（不正解時・下線が伸びる）2026-07-26：文字は最初から読める色のまま、読み進む所に金の下線が流れる＝目で追わせる。次へボタンには何もしない（目線を奪わない） */
   .ex-kai.trace{color:var(--ink);}
@@ -2207,7 +2209,7 @@ function nightSeaStage(opts){opts=opts||{};
   function play(){cam.classList.remove('pan');void cam.offsetWidth;cam.classList.add('pan');
     try{sndWaves(3.8);}catch(e){}
     var mt=cam.querySelector('.kns-meteor');
-    setTimeout(function(){if(!mt)return;mt.classList.remove('run');void mt.offsetWidth;mt.classList.add('run');try{sndStarFly();}catch(e){}},1950);
+    setTimeout(function(){if(!mt)return;mt.classList.remove('run');void mt.offsetWidth;mt.classList.add('run');try{sndStarFly();}catch(e){}},2700); // 船→見上げ(pan 3s)が空に着いてから流れ星（旧1950=見上げ途中で早すぎ）。流れ星・三連星で共用の1関数＝両方同時に直る 2026-07-26
   }
   return {node:stage,play:play,cam:cam};
 }
@@ -2981,7 +2983,7 @@ function afterAnswer(ok,correct,kaisetsu,reading,next){
 }
 function showExplain(correct,kaisetsu,reading,ok){
   var _mk=(ok===true)?'<span style="color:#1fa971;font-weight:800;">⭕ </span>':((ok===false)?'<span style="color:#e0574b;font-weight:800;">❌ </span>':'');
-  $('ex-ans').innerHTML=_mk+'せいかい：<b>'+esc(correct)+'</b>'+(reading?'<span style="font-size:13px;color:var(--sub);font-weight:400;">（'+esc(reading)+'）</span>':'');
+  $('ex-ans').innerHTML=_mk+'<span class="ex-lbl"><ruby>正解<rt class="uf">せいかい</rt></ruby></span><b>'+esc(correct)+'</b>'+(reading?'<span style="font-size:13px;color:var(--sub);font-weight:400;">（'+esc(reading)+'）</span>':'');
   var kai=$('ex-kai');
   if(kaisetsu){
     kai.style.display='';
@@ -3373,11 +3375,23 @@ function loadReviewSrs(){
     subjects.sort(function(a,b){return order.indexOf(a.subject)-order.indexOf(b.subject);});
     var todayDone=(d.data.osarai_today_done!==undefined)?!!d.data.osarai_today_done:(dueTotal<=0);
     var todayRemain=ws.length;
-    // バッジ・デイリー・完了表示（既存の意味を維持）
-    var cr=$('cnt-review');if(cr)cr.innerHTML=(!todayDone&&todayRemain>0)?('<b>'+todayRemain+'</b> '+rb('語','ご')):'<b style="color:var(--ok)">ぜんぶ できた</b>';
+    // おさらいタイル＝毎日学習の完了カード(.dcard)と同じ部品・同じ文言に統一。未完了は残り語数の.rcard、完了は「✓今日のぶん完了＋じぶんで つづける」（毎日学習と揃える）2026-07-26
+    var moreAvail=(todayDone&&dueTotal>0);   // 今日の分は済み・でも期限が残ってる＝自主で続けられる
+    var tile=$('tile-review');
+    if(tile){
+      if(todayDone){
+        tile.className='dcard';
+        tile.innerHTML='<div class="dcard-l"><i class="ti ti-circle-check"></i></div>'
+          +'<div class="dcard-r"><div class="dcard-top"><span class="dpill">おさらい</span><span class="dbadge"><i class="ti ti-check"></i> '+rb('今日','きょう')+'のぶん '+rb('完了','かんりょう')+'</span></div>'
+          +'<div class="dcard-nm">'+(moreAvail?'まだ つづけられるよ':'ぜんぶ できた')+'</div>'
+          +(moreAvail?('<div class="dcard-cta">じぶんで つづける <i class="ti ti-arrow-right"></i></div>'):'')
+          +'</div>';
+      }else{
+        tile.className='rcard';
+        tile.innerHTML='<span class="reddot" id="dot-review"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s">'+rb('今日','きょう')+'の'+rb('分','ぶん')+' ・ <b>'+todayRemain+'</b> '+rb('語','ご')+'</div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div>';
+      }
+    }
     _revNum.osarai=todayRemain;setDailyNavNum_();
-    var dr=$('dot-review');if(dr)dr.style.display=(!todayDone)?'block':'none';
-    _reviewTileDone_('tile-review',todayDone);
     _revDone.osarai=todayDone;renderReviewFin_();
     dailyState.review=todayDone;renderDaily();
     if(_dailyMain)renderDailyList_(_dailyMain);
@@ -3463,7 +3477,7 @@ function submitSrsWord(){
     if(d.data&&d.data.graduated){s.graduated++;} // マスター演出はローカルで先に出すのでここはカウントのみ
     if(d.data&&!d.data.graduated&&d.data.next_days){var nd=d.data.next_days|0;if(!s.nextDays||nd<s.nextDays)s.nextDays=nd;}
   });
-  if(willGrad){toast('「'+w.english+'」をマスター！🎓');guardTaps_(600);} // 答えた瞬間にマスタートースト＋先行タップが裏の次問に貫通しないようガード 2026-07-25
+  if(willGrad){toast('「'+w.english+'」を卒業！🎓');guardTaps_(600);} // 答えた瞬間にマスタートースト＋先行タップが裏の次問に貫通しないようガード 2026-07-25
   var adv=function(){s.idx++;s.wordOK=true;if(s.idx>=s.words.length){finishSrs();}else{s.step=_startStepFor(s,s.words[s.idx]);renderSrsStep();}}; // 語ごとに開始ステップ
   if(willGrad){setTimeout(adv,750);}else{adv();} // 卒業時だけ一拍おいて次へ（読み込みではなく演出を見せるため）
 }
@@ -3485,7 +3499,7 @@ function finishSrs(){
   $('btn-home').onclick=openHome;
   // 花火は即・保存やピークを待たない（保存が遅くても演出は必ず出す）2026-07-26。※以前は保存flush後に花火を出していて、保存が長引くと演出ゼロになっていた不具合を修正。
   fireworks_(s.graduated?'grad':'batch');try{sndWin();flash();}catch(e){}
-  var _mkLines=function(){var a=[];if(s.graduated)a.push('<ruby>今回<rt class="uf">こんかい</rt></ruby> '+s.graduated+'<ruby>語<rt class="uf">ご</rt></ruby> マスター！🎓');if(s.nextDays)a.push('つぎは '+s.nextDays+'<ruby>日<rt class="uf">にち</rt></ruby><ruby>後<rt class="uf">ご</rt></ruby>に また<ruby>出<rt class="uf">で</rt></ruby>てくるよ');return a;};
+  var _mkLines=function(){var a=[];if(s.graduated)a.push('<ruby>今回<rt class="uf">こんかい</rt></ruby> '+s.graduated+'<ruby>語<rt class="uf">ご</rt></ruby> 卒業！🎓');if(s.nextDays)a.push('つぎは '+s.nextDays+'<ruby>日<rt class="uf">にち</rt></ruby><ruby>後<rt class="uf">ご</rt></ruby>に また<ruby>出<rt class="uf">で</rt></ruby>てくるよ');return a;};
   var _init=_mkLines();
   $('done-miss').innerHTML=_init.length?_init.join('　'):'<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
   whenGradesFlushed(function(){
@@ -3503,7 +3517,7 @@ function srsUpgradeEmpty_(s){
   $('done-result').innerHTML='おさらい ぜんぶクリア！';
   $('btn-next').style.display='none'; // 空の日は「もっとやる」を出さない
   var _ls=['<ruby>今日<rt class="uf">きょう</rt></ruby>おさらいする<ruby>単語<rt class="uf">たんご</rt></ruby>は もう<ruby>無<rt class="uf">な</rt></ruby>いよ。<ruby>完<rt class="uf">かん</rt></ruby>ぺき！'];
-  if(s.graduated)_ls.push('<ruby>今回<rt class="uf">こんかい</rt></ruby> '+s.graduated+'<ruby>語<rt class="uf">ご</rt></ruby> マスター！🎓');
+  if(s.graduated)_ls.push('<ruby>今回<rt class="uf">こんかい</rt></ruby> '+s.graduated+'<ruby>語<rt class="uf">ご</rt></ruby> 卒業！🎓');
   $('done-miss').innerHTML=_ls.join('　');
   fireworks_('empty');try{sndWin();}catch(e){}
 }
