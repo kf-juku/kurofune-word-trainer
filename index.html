@@ -1587,7 +1587,7 @@ function prefetchParts_(cards){
   });
 }
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-function animNum(el,to,dur){var st=performance.now();function f(t){var p=Math.min(1,(t-st)/(dur||900));el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f);}requestAnimationFrame(f);}
+function animNum(el,to,dur){if(document.hidden){el.textContent=Math.round(to||0);return;} /* 裏タブ/非表示はrAFが止まり数字が0で残るので最終値を即表示 2026-07-27 */ var st=performance.now();function f(t){var p=Math.min(1,(t-st)/(dur||900));el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f);}requestAnimationFrame(f);}
 
 /* テーマ：端末設定に追従＋手動切替 */
 (function(){
