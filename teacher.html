@@ -604,6 +604,9 @@
   table.qtable th.stu,table.qtable td.stu{text-align:left;font-weight:700;white-space:nowrap;}
   .qcell{display:inline-block;min-width:46px;border-radius:8px;padding:5px 4px;font-weight:800;font-size:12px;cursor:pointer;}
   .q-ok{background:#e6f6ee;color:#1f9d57;}.q-ng{background:#fdeaea;color:#d64545;}.q-miss{background:#eef1f5;color:#9aa6b3;}
+  .q-un{background:#fff;border:1.5px dashed #c3ccd8;color:#5b6675;display:inline-flex;flex-direction:column;align-items:center;line-height:1.1;padding:3px 6px;min-width:46px;border-radius:9px;cursor:pointer;vertical-align:middle;} /* 再配信後の未実施＝点線で一目で分かる 2026-07-28 */
+  .q-un b{font-size:12px;font-weight:900;color:#5b6675;}
+  .q-un i{font-size:9px;color:#aab3c0;font-style:normal;margin-top:1px;}
   .qlegend{font-size:11px;color:var(--text-muted);margin-top:10px;display:flex;gap:14px;flex-wrap:wrap;}
   .qlegend i.qlg{width:13px;height:13px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:-2px;}
   .qsendbtn{background:#caa24a;color:#3a2e08;border:none;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:800;cursor:pointer;margin-left:6px;white-space:nowrap;}
@@ -914,7 +917,7 @@
       <div class="qcard"><div class="qch">注目リスト（未実施・未合格の子）<span class="c2cnt" id="qtAttCnt">–</span></div><div id="qtAtt"></div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">※配信は「教材ごと」タブの各教材の「確認テストを配信」ボタンから。</div></div>
       <div class="qcard"><div class="qch">点数表（教材ごと）</div><div class="qmatsel" id="qtMatSel"></div><div id="qtBoard"></div>
-        <div class="qlegend"><span><i class="qlg q-ok"></i>合格</span><span><i class="qlg q-ng"></i>未合格</span><span><i class="qlg q-miss"></i>未実施</span><span><b style="color:var(--text-muted);">前○%</b>＝前回の点数（この配信ではまだ）</span><span>セルをタップで詳細</span></div></div>
+        <div class="qlegend"><span><i class="qlg q-ok"></i>合格</span><span><i class="qlg q-ng"></i>未合格</span><span><span class="q-un" style="padding:1px 5px;line-height:1;"><b style="font-size:10px;">未</b></span> 未実施（再配信後・前○%＝前回の点数）</span><span>— ＝未受験</span><span>セルをタップで詳細</span></div></div>
     </div>
 
     <!-- ===== チーム編成ビュー 2026-06-21 ===== -->
@@ -2122,7 +2125,7 @@ function renderQuizBoard(){
   stuOrder.forEach(function(sid){
     h+='<tr><td class="stu">'+esc(stuMap[sid])+'</td><td class="qdel">'+quizDelBadge_(lastOf[sid])+'</td>'+parts.map(function(p){
       var e=cellOf[sid+'|'+p.id];var cell;
-      if(!e||e.status==='miss'){cell=(e&&e.latest_rate!=null&&(e.attempt_count||0)>0)?'<span class="qcell q-miss" title="未実施（前回 '+e.latest_rate+'%）">前'+e.latest_rate+'%</span>':'<span class="qcell q-miss">—</span>';}
+      if(!e||e.status==='miss'){cell=(e&&e.latest_rate!=null&&(e.attempt_count||0)>0)?'<span class="q-un" title="未実施（前回 '+e.latest_rate+'%）"><b>未</b><i>前'+e.latest_rate+'%</i></span>':'<span class="qcell q-miss">—</span>';}
       else if(e.status==='ok')cell='<span class="qcell q-ok">'+e.latest_rate+'%</span>';
       else cell='<span class="qcell q-ng">'+e.latest_rate+'%</span>';
       return '<td onclick="openQuizCell(\''+esc(sid)+'\',\''+esc(p.id)+'\')">'+cell+'</td>';

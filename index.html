@@ -573,6 +573,19 @@
   .bd-v{font-size:13.5px;margin-top:3px;line-height:1.7;color:var(--ink);}
   .bd-btn{display:block;width:100%;margin-top:14px;border:none;border-radius:14px;padding:13px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;background:var(--accent);color:#fff;}
   .bd-btn.ghost{background:var(--bg);color:var(--sub);margin-top:8px;}
+  /* 確認テスト：前回→今回／未実施（再配信後）2026-07-28 */
+  .qst{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+  .qp{font-weight:800;font-size:12px;padding:4px 11px;border-radius:12px;white-space:nowrap;}
+  .qp-ok{background:rgba(31,157,87,.14);color:var(--ok);}
+  .qp-ng{background:rgba(214,69,69,.13);color:var(--ng);}
+  .qp-mada{background:rgba(148,163,184,.18);color:var(--sub);font-weight:700;}
+  .qp-un{background:var(--surface);border:1.5px dashed #c3ccd8;color:#5b6675;display:inline-flex;flex-direction:column;align-items:center;line-height:1.12;padding:4px 11px;} /* 再配信後の未実施＝点線で"やり直す"合図 */
+  .qp-un b{font-size:12px;font-weight:900;}
+  .qp-un i{font-size:9.5px;color:#9aa6b3;font-style:normal;margin-top:1px;}
+  [data-theme="dark"] .qp-un{border-color:#3a4459;color:#c3ccd8;}
+  .qprev{font-size:10.5px;color:var(--sub);}
+  .qprev .qup{color:var(--ok);font-weight:800;}
+  .qprev .qdn{color:var(--ng);font-weight:800;}
   .ach{margin-top:14px;border:1.5px solid var(--rc,var(--line));background:var(--rs,var(--bg));border-radius:14px;padding:12px 14px;}
   .ach-top{display:flex;justify-content:space-between;align-items:center;}
   .ach-lbl{font-size:12px;font-weight:900;letter-spacing:.06em;color:var(--rc,var(--sub));}
@@ -1532,6 +1545,20 @@ function quizPill_(p){
   if(p.status==='ng')return '<span style="background:rgba(214,69,69,.13);color:var(--ng);font-weight:800;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+(p.latest_rate!=null?p.latest_rate+'%':'')+'</span>';
   return '<span style="background:rgba(148,163,184,.18);color:var(--sub);font-weight:700;font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap;">まだ</span>';
 }
+/* 確認テストの状態＝前回→今回／未実施（再配信後）。status: ok=合格 / ng=もう一歩 / miss+attempt>0=未実施(再配信後・前回あり) / miss+attempt0=まだ 2026-07-28 */
+function _qIsUnfinished_(p){ return p.status==='miss' && (p.attempt_count||0)>0 && p.latest_rate!=null; } // 再配信後まだ受けていない
+function quizStatus2_(p){
+  var lr=p.latest_rate, pr=p.prev_rate;
+  if(p.status==='miss'){
+    if(_qIsUnfinished_(p)) return '<span class="qst"><span class="qp qp-un"><b>未実施</b><i>前 '+lr+'%</i></span></span>';
+    return '<span class="qst"><span class="qp qp-mada">まだ</span></span>';
+  }
+  var cls=(p.status==='ok')?'qp-ok':'qp-ng';
+  var lbl=(p.status==='ok')?'<ruby>合格<rt class="uf">ごうかく</rt></ruby> '+lr+'%':'もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+lr+'%';
+  var prev='';
+  if(pr!=null && lr!=null){ var up=(lr-pr)>=0; prev='<span class="qprev">前 '+pr+'% <span class="'+(up?'qup':'qdn')+'">'+(up?'↑':'↓')+'</span></span>'; }
+  return '<span class="qst"><span class="qp '+cls+'">'+lbl+'</span>'+prev+'</span>';
+}
 var quizOpen_={};
 function renderQuiz(){
   var el=$('quiz-area');if(!el)return;
@@ -1553,19 +1580,20 @@ function renderQuiz(){
       var ps=g.parts||[];
       var np=ps.filter(function(p){return p.status==='ok';}).length;
       var ngc=ps.filter(function(p){return p.status==='ng';}).length;
-      var yt=ps.length-np-ngc;
+      var unc=ps.filter(function(p){return _qIsUnfinished_(p);}).length; // 未実施（再配信後）2026-07-28
+      var yt=ps.length-np-ngc-unc; // まだ（一度も）
       var gid='qzg'+gi;
       html+='<div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;box-shadow:var(--shadow);overflow:hidden;">';
       html+='<div onclick="quizToggle_(\''+gid+'\')" style="display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;">'
         +'<div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:14px;line-height:1.35;">'+esc(_chapShort(g.title)||'教材')+'</div>'
-        +'<div style="font-size:12px;color:var(--sub);margin-top:3px;"><ruby>合格<rt class="uf">ごうかく</rt></ruby> <b style="color:var(--ok);">'+np+'</b> / '+ps.length+(ngc>0?('　もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> <b style="color:var(--ng);">'+ngc+'</b>'):'')+(yt>0?('　まだ '+yt):'')+'</div></div>'
+        +'<div style="font-size:12px;color:var(--sub);margin-top:3px;"><ruby>合格<rt class="uf">ごうかく</rt></ruby> <b style="color:var(--ok);">'+np+'</b> / '+ps.length+(ngc>0?('　もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> <b style="color:var(--ng);">'+ngc+'</b>'):'')+(unc>0?('　<ruby>未実施<rt class="uf">みじっし</rt></ruby> <b style="color:#b45309;">'+unc+'</b>'):'')+(yt>0?('　まだ '+yt):'')+'</div></div>'
         +(g.all_pass?'<span style="background:rgba(202,162,74,.15);color:var(--gold);font-weight:800;font-size:11px;padding:3px 9px;border-radius:12px;white-space:nowrap;"><ruby>全<rt class="uf">ぜん</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby>🎉</span>':'')
         +'<i id="'+gid+'-a" class="ti '+(quizOpen_[gid]?'ti-chevron-up':'ti-chevron-down')+'" style="color:var(--sub);font-size:20px;"></i></div>';
       html+='<div id="'+gid+'" style="display:'+(quizOpen_[gid]?'block':'none')+';padding:0 14px 6px;">';
       ps.forEach(function(p){
         html+='<div onclick="startQuiz(\''+esc(p.part_id)+'\')" style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-top:1px solid var(--line);cursor:pointer;">'
           +'<div style="flex:1;font-weight:700;font-size:14px;min-width:0;">'+esc(p.title||'パート')+(p.attempt_count>0?'<span style="font-size:11px;color:var(--sub);font-weight:500;"> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></span>':'')+'</div>'
-          +quizPill_(p)+'<i class="ti ti-chevron-right" style="color:var(--sub)"></i></div>';
+          +quizStatus2_(p)+'<i class="ti ti-chevron-right" style="color:var(--sub)"></i></div>';
       });
       html+='</div></div>';
       });
