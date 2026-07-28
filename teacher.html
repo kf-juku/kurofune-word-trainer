@@ -892,6 +892,7 @@
     <!-- ===== 教材ごとビュー 2026-07-09 ===== -->
     <div id="view-mat" style="display:none;">
       <div style="background:#fff;border-radius:var(--radius);padding:8px 12px;margin-bottom:10px;box-shadow:var(--shadow-sm);font-size:12px;color:var(--text-muted);">教材ごとに「今 誰が持っているか」を見て、行をクリックすると名簿（追加・外す）を編集できます。外しても進捗・間違いノートは残ります。</div>
+      <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><button type="button" onclick="refreshMatList(this)" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;">🔄 最新に更新</button><span style="font-size:11px;color:var(--text-muted);">シートに貼った教材がまだ出ないときに押す（キャッシュを消して読み直します）</span></div>
       <details style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:10px;font-size:12px;color:var(--text-muted);">
         <summary style="cursor:pointer;padding:8px 12px;font-weight:800;color:var(--text);">教材の並び・ラベルの仕組み（メモ）</summary>
         <div style="padding:0 14px 12px;line-height:1.75;">
@@ -1882,6 +1883,17 @@ function renderMatTab(){
   };
   if(bulkMaterials&&bulkMaterials.length){draw(bulkMaterials);}
   else{ call({action:'materials_list'}).then(function(d){ var mats=(d&&d.ok)?(d.data.materials||[]):[]; bulkMaterials=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}); draw(bulkMaterials); }); }
+}
+/* 教材タブの「最新に更新」＝サーバーの教材キャッシュを消して materials_list を取り直す（シート直貼りを待たずに反映）2026-07-28 */
+function refreshMatList(btn){
+  var _o = btn ? btn.textContent : '';
+  if(btn){ btn.disabled=true; btn.textContent='更新中…'; }
+  call({action:'clear_content_cache'}).then(function(r){
+    bulkMaterials=null;      // クライアント側キャッシュ破棄→renderMatTab が materials_list を再取得
+    renderMatTab();
+    if(btn){ btn.disabled=false; btn.textContent=_o||'🔄 最新に更新'; }
+    try{ toast((r&&r.ok)?'教材を最新に更新しました':'更新に失敗しました'); }catch(e){}
+  });
 }
 /* ===== 教材プレビュー（中身を見る・読み取り専用）2026-07-15 ===== */
 var _mpAssets={};
