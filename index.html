@@ -1585,12 +1585,13 @@ function prefetchQuizSeq_(ids){
     if(i>=ids.length||i>=MAXQ)return;
     var pid=ids[i++];
     if(_qprefetch[pid]){return next();}
-    var pr=call({action:'quiz_words',part_id:pid}).then(function(d){ if(d&&d.ok&&d.data&&d.data.words&&d.data.words.length){_qprefetch[pid]=d;}else{delete _qprefetch[pid];} return d; }).catch(function(){delete _qprefetch[pid];}).then(function(){ setTimeout(next,50); }); // 1件ずつ・裏で連続取得（バースト回避）
+    var pr=call({action:'quiz_words',part_id:pid,prefetch:1}).then(function(d){ if(d&&d.ok&&d.data&&d.data.words&&d.data.words.length){_qprefetch[pid]=d;}else{delete _qprefetch[pid];} return d; }).catch(function(){delete _qprefetch[pid];}).then(function(){ setTimeout(next,50); }); // 1件ずつ・裏で連続取得（バースト回避）。prefetch:1＝先読み印（開始は記録しない）2026-07-28
     _qprefetch[pid]=pr;
   })();
 }
 function startQuiz(partId){
   srsSes=null;noteSes=null;showPracticeLoading_();
+  try{ call({action:'quiz_start',part_id:partId}); }catch(e){} /* リアルタイム：確認テストの「実際の開始」を専用pingで飛ばす（先読みでは飛ばさない＝一覧を開いただけで全パートが解き中になる不具合の対策）2026-07-28 */
   $('btn-next').style.display='none';$('btn-retry').style.display='flex';combo=0;maxCombo=0;ansCount=0;
   var _c=_qprefetch[partId];
   var _p=(_c&&_c.then)?_c:(_c?Promise.resolve(_c):call({action:'quiz_words',part_id:partId})); // 先読み済み/取得中があれば使う
