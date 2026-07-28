@@ -1629,7 +1629,7 @@ function startQuiz(partId){
     if(!d.ok||!d.data||!d.data.words||!d.data.words.length){toast((d&&d.error)||'単語がありません');openHome();showSub('quiz');renderQuiz();return;}
     var words=quizShuffle_(d.data.words.slice()); // 毎回シャッフル
     _fromReviewTest=false;
-    _startPracticeWith_(partId,{ok:true,data:{words:words,subject:(d.data.subject||'english'),assets:(d.data.assets||{}),content_type:'test'}});
+    _startPracticeWith_(partId,{ok:true,data:{words:words,subject:(d.data.subject||'english'),assets:(d.data.assets||{}),content_type:'test',direction:(d.data.direction||'')}});
     if(session){session.quizMode=true;session.quizPartId=partId;} // 別セッション変数で確認テストと判別
   });
 }
@@ -2774,7 +2774,7 @@ function startPractice(listId){srsSes=null;noteSes=null;showPracticeLoading_();c
   call({action:'student_today',part_id:listId,start:1}).then(function(d){_startPracticeWith_(listId,d);});}
 function _startPracticeWith_(listId,d){if(!d.ok){toastH(d.error?esc(d.error):'<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>失敗<rt class="uf">しっぱい</rt></ruby>');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
-session={mode:'daily',onNext:function(){nextWord();},listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now()};session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});renderStep();}
+session={mode:'daily',onNext:function(){nextWord();},listId:listId,words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),dir:(d.data.direction||''),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now()};session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});renderStep();}
 /* ===== 出題エンジン（毎日学習・おさらい・間違いノート 共通）2026-07-26 =====
    3フローで「元と全く同じ問題」を出すため描画を1本化。違いは、語の出どころ(session/srsSes/noteSes)・
    採点と次へ(s.onNext)・最初のステップ(英語=発音/意味, 用語=英語)だけ。表/図は renderTF/renderIMG を共用。 */
@@ -2821,7 +2821,7 @@ function renderQz_(s){
   if(s.step===2){
     qPresentE2J(w);
     var poolJa=(s.mode==='daily')?s.words.map(function(x){return x.japanese;}):((w.wrong_choices_ja&&w.wrong_choices_ja.length)?w.wrong_choices_ja:s.words.map(function(x){return x.japanese;})); // 誤答：毎日=同セッション語、復習=同パート誤答(サーバー)優先
-    buildChoices('e2j-choices',w.japanese,poolJa,function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){s.step=3;renderQz_(s);}});
+    buildChoices('e2j-choices',w.japanese,poolJa,function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){ if(((w&&w.direction)||(s&&s.dir)||'')==='e2j'){ (s.onNext||nextWord)(); } else { s.step=3;renderQz_(s); } }});
     $('step-e2j').style.display='block';showListen_(w,isEng);
   }else if(s.step===3){
     qPresentJ2E(w,isEng);
@@ -3289,8 +3289,9 @@ function finishQuizSubmit_(){
   var s=session;show('scr-done');var _dgq=document.getElementById('done-guide-area');if(_dgq)_dgq.innerHTML='';hideQTimer();hideExplain();$('done-score-wrap').style.display='';var _dtq=$('done-tiles');if(_dtq)_dtq.innerHTML='';
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
-  var score=termOnly?rr:Math.round((mr+rr)/2);
-  $('done-rate').innerHTML=termOnly?('<ruby>正答<rt class="uf">せいとう</rt></ruby> <b>'+rr+'</b>％'):('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> '+rr+'％');
+  var e2jOnly=(s.dir==='e2j'); // 方向固定 2026-07-28
+  var score=termOnly?rr:(e2jOnly?mr:Math.round((mr+rr)/2));
+  $('done-rate').innerHTML=termOnly?('<ruby>正答<rt class="uf">せいとう</rt></ruby> <b>'+rr+'</b>％'):(e2jOnly?('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％'):('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> '+rr+'％'));
   animNum($('score-anim'),score,900);
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
   $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(38)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>';
@@ -3325,8 +3326,10 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   _starPre=call({action:'shooting_star',exclude:starRecent_().join(',')}).catch(function(){return {ok:false};}); // 流れ星を採点と並行取得（体感改善 2026-07-08）／直近に出た子はexcludeで避ける 2026-07-21
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
-  var score=termOnly?rr:Math.round((mr+rr)/2);
+  var e2jOnly=(s.dir==='e2j'); // 方向固定：英→日だけ 2026-07-28
+  var score=termOnly?rr:(e2jOnly?mr:Math.round((mr+rr)/2));
   if(termOnly){$('done-rate').innerHTML=(s.tfOnly?'正答':'用語')+' <b>'+rr+'</b>％';}
+  else if(e2jOnly){$('done-rate').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr">'+mr+'</span>％';}
   else{$('done-rate').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr">'+mr+'</span>％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> <span id="done-rr">'+rr+'</span>％';}
   animNum($('score-anim'),score,900); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）
   try{renderDoneTiles_(score,maxCombo,ansCount,(s.startedMs?(Date.now()-s.startedMs):0));}catch(e){} // 完了3タイル 2026-07-24
