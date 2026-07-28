@@ -113,7 +113,8 @@
   .nqc-cnt small{display:block;font-size:9.5px;color:var(--sub);font-weight:500;font-family:'Noto Sans JP';}
   /* 下部メニュー */
   .ntabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:430px;display:flex;background:var(--glass);backdrop-filter:saturate(160%) blur(16px);-webkit-backdrop-filter:saturate(160%) blur(16px);border-top:1px solid var(--line);padding:7px 6px calc(9px + env(safe-area-inset-bottom));z-index:30;}
-  .ntab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--sub);cursor:pointer;padding:3px 0;background:none;border:none;font-family:inherit;}
+  .ntab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:700;line-height:1.1;color:var(--sub);cursor:pointer;padding:3px 0;background:none;border:none;font-family:inherit;} /* justify-center＝1行タブの内容を縦中央に（間違いノートだけ2行で他タブの下に空きが出て「空行」に見える対策）2026-07-28 */
+  .ntab .ntab-nl{line-height:1.08;} /* 「間違い／ノート」の2行を詰める 2026-07-28 */
   .ntab.on{color:var(--accent);}
   .ntab i{font-size:23px;}
   .ntab .nbadge{position:relative;}
@@ -536,8 +537,8 @@
   .icpick .ici{width:36px;height:36px;}
   .icpick .icl{font-size:10px;color:var(--sub);font-weight:700;}
   /* レア度枠（6段階・川上さん確定 2026-07-25）：白→緑→青→紫→金→赤。紫/金/赤は右ほど強く光る */
-  :root{--rar1:#9aa2b1;--rar1s:rgba(154,162,177,.14);--rar1g:rgba(154,162,177,.35);--rar2:#22b26a;--rar2s:rgba(34,178,106,.14);--rar2g:rgba(34,178,106,.5);--rar3:#3d8bff;--rar3s:rgba(61,139,255,.14);--rar3g:rgba(61,139,255,.55);--rar4:#9b5cff;--rar4s:rgba(155,92,255,.15);--rar4g:rgba(155,92,255,.6);--rar5:#e3aa1b;--rar5s:rgba(227,170,27,.16);--rar5g:rgba(245,197,66,.7);--rar6:#ff3a3a;--rar6s:rgba(255,58,58,.16);--rar6g:rgba(255,58,58,.85);}
-  [data-theme="dark"]{--rar1:#c3cbd8;--rar1s:rgba(195,203,216,.16);--rar1g:rgba(195,203,216,.4);--rar2:#3ad07f;--rar2s:rgba(58,208,127,.18);--rar2g:rgba(58,208,127,.6);--rar3:#5b9dff;--rar3s:rgba(91,157,255,.18);--rar3g:rgba(91,157,255,.6);--rar4:#b07dff;--rar4s:rgba(176,125,255,.18);--rar4g:rgba(176,125,255,.65);--rar5:#f5c542;--rar5s:rgba(245,197,66,.18);--rar5g:rgba(245,197,66,.75);--rar6:#ff5555;--rar6s:rgba(255,85,85,.2);--rar6g:rgba(255,85,85,.9);}
+  :root{--rar1:#5566a0;--rar1s:rgba(85,102,160,.13);--rar1g:rgba(85,102,160,.4);--rar2:#22b26a;--rar2s:rgba(34,178,106,.14);--rar2g:rgba(34,178,106,.5);--rar3:#3d8bff;--rar3s:rgba(61,139,255,.14);--rar3g:rgba(61,139,255,.55);--rar4:#9b5cff;--rar4s:rgba(155,92,255,.15);--rar4g:rgba(155,92,255,.6);--rar5:#e3aa1b;--rar5s:rgba(227,170,27,.16);--rar5g:rgba(245,197,66,.7);--rar6:#ff3a3a;--rar6s:rgba(255,58,58,.16);--rar6g:rgba(255,58,58,.85);}
+  [data-theme="dark"]{--rar1:#8ea0d8;--rar1s:rgba(142,160,216,.18);--rar1g:rgba(142,160,216,.42);--rar2:#3ad07f;--rar2s:rgba(58,208,127,.18);--rar2g:rgba(58,208,127,.6);--rar3:#5b9dff;--rar3s:rgba(91,157,255,.18);--rar3g:rgba(91,157,255,.6);--rar4:#b07dff;--rar4s:rgba(176,125,255,.18);--rar4g:rgba(176,125,255,.65);--rar5:#f5c542;--rar5s:rgba(245,197,66,.18);--rar5g:rgba(245,197,66,.75);--rar6:#ff5555;--rar6s:rgba(255,85,85,.2);--rar6g:rgba(255,85,85,.9);}
   .rr1{--rc:var(--rar1);--rs:var(--rar1s);--rg:var(--rar1g);}.rr2{--rc:var(--rar2);--rs:var(--rar2s);--rg:var(--rar2g);}.rr3{--rc:var(--rar3);--rs:var(--rar3s);--rg:var(--rar3g);}.rr4{--rc:var(--rar4);--rs:var(--rar4s);--rg:var(--rar4g);}.rr5{--rc:var(--rar5);--rs:var(--rar5s);--rg:var(--rar5g);}.rr6{--rc:var(--rar6);--rs:var(--rar6s);--rg:var(--rar6g);}
   @keyframes rgGentle{0%,100%{box-shadow:0 0 0 2px var(--rs),0 0 8px 1px var(--rg);}50%{box-shadow:0 0 0 3px var(--rs),0 0 16px 3px var(--rg);}}
   @keyframes rgMed{0%,100%{box-shadow:0 0 0 2px var(--rs),0 0 11px 2px var(--rg);}50%{box-shadow:0 0 0 4px var(--rs),0 0 22px 5px var(--rg);}}
@@ -555,13 +556,38 @@
   .badge.rr6{border-color:var(--rc);animation:rgStrong 1.5s infinite ease-in-out;}
   .badge.rr1 .bic,.badge.rr2 .bic,.badge.rr3 .bic,.badge.rr4 .bic,.badge.rr5 .bic,.badge.rr6 .bic{background:var(--rc);color:#fff;}
   .badge.rr1 .bsub,.badge.rr2 .bsub,.badge.rr3 .bsub,.badge.rr4 .bsub,.badge.rr5 .bsub,.badge.rr6 .bsub{color:var(--rc);}
+  .badge.locked{border-style:dashed;} /* 未取得＝破線＝取得済み(色つき)と区別 2026-07-28 */
+  /* バッジ／アイコンの詳細シート（タップで開く・レア度/入手方法/実績解除/豆知識）2026-07-28 */
+  .bd-mask{position:fixed;inset:0;background:rgba(10,16,30,.5);display:none;align-items:flex-end;justify-content:center;z-index:120;}
+  .bd-mask.show{display:flex;}
+  .bd-sheet{width:100%;max-width:430px;background:var(--surface);border-radius:22px 22px 0 0;padding:8px 18px calc(20px + env(safe-area-inset-bottom));animation:bdUp .22s ease;max-height:88vh;overflow:auto;}
+  @keyframes bdUp{from{transform:translateY(30px);opacity:.4;}to{transform:none;opacity:1;}}
+  .bd-grab{width:38px;height:4px;border-radius:3px;background:var(--line);margin:6px auto 12px;}
+  .bd-ic{width:66px;height:66px;border-radius:50%;margin:2px auto 8px;display:flex;align-items:center;justify-content:center;background:var(--bg);overflow:hidden;}
+  .bd-ic i{font-size:30px;color:var(--sub);}
+  .bd-ic .kwt-ico{width:72%;height:72%;}
+  .bd-nm{text-align:center;font-size:17px;font-weight:800;color:var(--ink);}
+  .bd-rar{display:block;width:max-content;margin:8px auto 0;font-size:11px;font-weight:800;border-radius:20px;padding:3px 12px;border:1.5px solid var(--rc,var(--line));color:var(--rc,var(--sub));background:var(--rs,transparent);}
+  .bd-row{margin-top:14px;}
+  .bd-k{font-size:11px;font-weight:800;color:var(--sub);}
+  .bd-v{font-size:13.5px;margin-top:3px;line-height:1.7;color:var(--ink);}
+  .bd-btn{display:block;width:100%;margin-top:14px;border:none;border-radius:14px;padding:13px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;background:var(--accent);color:#fff;}
+  .bd-btn.ghost{background:var(--bg);color:var(--sub);margin-top:8px;}
+  .ach{margin-top:14px;border:1.5px solid var(--rc,var(--line));background:var(--rs,var(--bg));border-radius:14px;padding:12px 14px;}
+  .ach-top{display:flex;justify-content:space-between;align-items:center;}
+  .ach-lbl{font-size:12px;font-weight:900;letter-spacing:.06em;color:var(--rc,var(--sub));}
+  .ach-rar{font-size:10.5px;font-weight:800;border-radius:20px;padding:2px 9px;border:1.5px solid var(--rc,var(--line));color:var(--rc,var(--sub));}
+  .ach-note{font-size:12.5px;color:var(--ink);margin-top:6px;line-height:1.6;}
   .trio-row.podium .tcard[data-r="1"] .tc-ava{width:52px;height:52px;}
   .tc-nick{font-size:14px;font-weight:800;color:#fff;}
   .trio-row.podium .tcard[data-r="1"] .tc-nick{color:#ffe9a8;}
   .tc-eff{font-size:12px;color:#ffe9a8;font-weight:800;margin-top:4px;}
   .tc-eff b{color:#ffd873;}
   .tc-sub{font-size:10px;color:#9aa4bd;margin-top:2px;line-height:1.4;}
-  .tcheer{margin-top:9px;width:100%;border:1px solid rgba(227,196,119,.5);background:rgba(255,255,255,.06);border-radius:12px;padding:8px 2px;color:#e3c477;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:transform .12s;}
+  .tc-sub .tsub-seg{white-space:nowrap;} /* 「連続2日」「いつもの4.5倍」「昨日19問」を語の途中で改行しない。折り返すのは「・」の所だけ 2026-07-28 */
+  .tc-sub .tsub-dot{color:#6b7690;margin:0 3px;}
+  .tcheer{margin-top:9px;width:100%;border:1px solid rgba(227,196,119,.5);background:rgba(255,255,255,.06);border-radius:12px;padding:8px 4px;color:#e3c477;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;display:block;text-align:center;line-height:1.3;transition:transform .12s;}
+  .tcheer .tch-l{display:inline;white-space:normal;} /* ラベルは1かたまり＝「特別/応援」が1文字ずつ縦に散らばるのを防ぐ（狭い端末対策）2026-07-28 */
   .tcheer:active{transform:scale(.95);}
   .tcheer.sent{background:linear-gradient(135deg,#e3c477,#a9842f);border-color:#e3c477;color:#fff;pointer-events:none;}
   /* 自分の強調は「シアン系（きみ色）」＝金色(1位)と被らせない 2026-07-26 */
@@ -1055,6 +1081,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
             <div class="tile" id="tile-badge"><div class="tic"><i class="ti ti-award"></i></div><div class="tnm">バッジ</div><div class="tcnt" id="cnt-badge">–</div></div>
             <div class="tile" id="tile-team"><span class="reddot" id="dot-team" style="display:none;"></span><div class="tic"><i class="ti ti-users"></i></div><div class="tnm">なかま</div><div class="tcnt" id="cnt-team">–</div></div>
             <div class="tile" id="tile-overall"><div class="tic"><i class="ti ti-world"></i></div><div class="tnm">クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby></div><div class="tcnt">みんなの がんばり</div></div>
+            <div class="tile" id="tile-trio"><div class="tic"><i class="ti ti-star"></i></div><div class="tnm"><ruby>三連星<rt class="uf">さんれんせい</rt></ruby></div><div class="tcnt"><ruby>昨日<rt class="uf">きのう</rt></ruby>の <ruby>上位<rt class="uf">じょうい</rt></ruby>3<ruby>人<rt class="uf">にん</rt></ruby></div></div>
           </div>
           <div class="set-h"><ruby>設定<rt class="uf">せってい</rt></ruby></div>
           <div class="setgrp">
@@ -1093,7 +1120,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <nav class="ntabbar" id="ntabbar">
       <button class="ntab on" id="ntab5-daily" type="button"><span class="ic"><i class="ti ti-anchor"></i><span class="bdg" id="bdg-daily"></span></span><ruby>毎日<rt class="uf">まいにち</rt></ruby></button>
       <button class="ntab" id="ntab5-unit" type="button"><span class="ic"><i class="ti ti-flag"></i><span class="bdg" id="bdg-unit"></span></span><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></button>
-      <button class="ntab" id="ntab5-review" type="button"><span class="ic"><i class="ti ti-notebook"></i><span class="bdg" id="bdg-review"></span></span><span style="white-space:nowrap"><ruby>間違<rt class="uf">まちが</rt></ruby>い</span><br>ノート</button>
+      <button class="ntab" id="ntab5-review" type="button"><span class="ic"><i class="ti ti-notebook"></i><span class="bdg" id="bdg-review"></span></span><span class="ntab-nl"><span style="white-space:nowrap"><ruby>間違<rt class="uf">まちが</rt></ruby>い</span><br>ノート</span></button>
       <button class="ntab" id="ntab5-record" type="button"><span class="ic"><i class="ti ti-chart-line"></i><span class="bdg" id="bdg-team"></span></span><ruby>記録<rt class="uf">きろく</rt></ruby></button>
       <button class="ntab" id="btn-logout" type="button"><span class="ic"><i class="ti ti-logout"></i></span>ログアウト</button>
     </nav>
@@ -1196,6 +1223,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <div class="row"><button class="btn ghost" id="icon-cancel" type="button">とじる</button></div>
   </div>
 </div>
+<div class="bd-mask" id="bd-mask"><div class="bd-sheet" id="bd-sheet"></div></div>
 <div class="modal-mask" id="logout-mask">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logout-title">
     <h3 id="logout-title">ログアウトしますか？</h3>
@@ -1304,9 +1332,68 @@ function iconAvatarHtml(icon,nickname){if(icon&&ICON_SVG[icon])return iconInnerH
 /* 自分のアイコンをヘッダーと設定行に反映 */
 function applyMyIcon_(){var h=$('hdr-ava');if(h){h.innerHTML=iconAvatarHtml(myIcon,nickname);h.style.display='';}try{syncIconRow_();}catch(e){}}
 function syncIconRow_(){var ic=$('set-icon-ic'),val=$('set-icon-val');if(ic){ic.innerHTML=(myIcon&&ICON_SVG[myIcon])?iconInnerHtml_(myIcon):'<i class="ti ti-mood-smile"></i>';}if(val){val.textContent=(myIcon&&iconNameOf_(myIcon))?iconNameOf_(myIcon):'まだ えらんでいないよ';}}
-function renderIconGrid_(){var g=$('icon-grid');if(!g)return;var h='';ICON_LIST.forEach(function(o){if(o.locked&&unlockedIcons.indexOf(o.k)<0)return;h+='<div class="icpick rr'+(o.rar||1)+(myIcon===o.k?' on':'')+'" data-k="'+o.k+'"><div class="ici kwt-ico">'+ICON_SVG[o.k]+'</div><div class="icl">'+o.nm+'</div></div>';});h+='<div class="icpick'+(myIcon===''?' on':'')+'" data-k=""><div class="ici" style="display:grid;place-items:center;color:var(--sub)"><i class="ti ti-user"></i></div><div class="icl">なし</div></div>';g.innerHTML=h;g.querySelectorAll('.icpick').forEach(function(el){el.onclick=function(){saveIcon_(el.getAttribute('data-k'));};});}
+function renderIconGrid_(){var g=$('icon-grid');if(!g)return;var h='';ICON_LIST.forEach(function(o){if(o.locked&&unlockedIcons.indexOf(o.k)<0)return;h+='<div class="icpick rr'+(o.rar||1)+(myIcon===o.k?' on':'')+'" data-k="'+o.k+'"><div class="ici kwt-ico">'+ICON_SVG[o.k]+'</div><div class="icl">'+o.nm+'</div></div>';});h+='<div class="icpick'+(myIcon===''?' on':'')+'" data-k=""><div class="ici" style="display:grid;place-items:center;color:var(--sub)"><i class="ti ti-user"></i></div><div class="icl">なし</div></div>';g.innerHTML=h;g.querySelectorAll('.icpick').forEach(function(el){el.onclick=function(){openIconDetail_(el.getAttribute('data-k'));};});} /* タップ＝詳細シート（レア度・入手方法・豆知識）→「これにする」で決定 2026-07-28 */
 function openIconModal(){renderIconGrid_();var er=$('icon-err');if(er)er.textContent='';var mk=$('icon-mask');if(mk)mk.classList.add('show');try{localStorage.setItem('kwt_icon_seen',JSON.stringify(unlockedIcons||[]));}catch(e){}_newIcon=false;recordNavDotUpdate_();/* アイコンを見たら新アイコンを既読化 2026-07-26 */ /* 解放状態を最新化（再ログイン不要でフラグ/達成を反映）2026-07-25 */try{call({action:'icon_unlocks'}).then(function(d){if(d&&d.ok&&d.data){var u=d.data.unlocked_icons||[];unlockedIcons=u;try{localStorage.setItem('kwt_unlocks',JSON.stringify(u));}catch(e){}try{localStorage.setItem('kwt_icon_seen',JSON.stringify(unlockedIcons||[]));}catch(e){}_newIcon=false;recordNavDotUpdate_();renderIconGrid_();}});}catch(e){}}
 function closeIconModal(){var mk=$('icon-mask');if(mk)mk.classList.remove('show');}
+/* ===== バッジ／アイコンの詳細シート（タップで レア度・入手方法・実績解除・豆知識）2026-07-28 ===== */
+var RAR_NAMES=['','コモン','アンコモン','レア','エピック','レジェンダリー','エンシェント'];
+/* レア度の特別割り当て（軸ごと goal→rar）。三連星は特別枠でコモン(白)を使わず 1/3=アンコモン・5=レア・10=エピック・20=レジェンダリー 2026-07-28 */
+var RAR_OVERRIDE={trio:{1:2,3:2,5:3,10:4,20:5}};
+var RAR_NOTE=['','みんなが<ruby>最初<rt class="uf">さいしょ</rt></ruby>に手にする<ruby>称号<rt class="uf">しょうごう</rt></ruby>。','持っている人は 少なめ。','持っている人は ごくわずか。','めったにお目にかかれない。','ほとんど<ruby>誰<rt class="uf">だれ</rt></ruby>も持っていない。','<ruby>伝説級<rt class="uf">でんせつきゅう</rt></ruby>。'];
+var ICON_TRIVIA={
+ star:'星の<ruby>光<rt class="uf">ひかり</rt></ruby>は、<ruby>何年<rt class="uf">なんねん</rt></ruby>〜何万年も前に出た光。いま見えているのは 遠い<ruby>過去<rt class="uf">かこ</rt></ruby>の<ruby>姿<rt class="uf">すがた</rt></ruby>。',
+ fox:'キツネは雪の下のネズミの<ruby>足音<rt class="uf">あしおと</rt></ruby>を聞き分け、<ruby>頭<rt class="uf">あたま</rt></ruby>から雪に とびこんで<ruby>捕<rt class="uf">つか</rt></ruby>まえる。',
+ dolphin:'イルカは<ruby>脳<rt class="uf">のう</rt></ruby>を左右<ruby>半分<rt class="uf">はんぶん</rt></ruby>ずつ<ruby>交代<rt class="uf">こうたい</rt></ruby>で<ruby>眠<rt class="uf">ねむ</rt></ruby>り、泳ぎながら休める。',
+ whale:'シロナガスクジラの<ruby>心臓<rt class="uf">しんぞう</rt></ruby>は 小型車ほどの大きさがある。',
+ turtle:'ウミガメの<ruby>甲羅<rt class="uf">こうら</rt></ruby>は<ruby>背骨<rt class="uf">せぼね</rt></ruby>や<ruby>肋骨<rt class="uf">ろっこつ</rt></ruby>と つながっていて、<ruby>脱<rt class="uf">ぬ</rt></ruby>げない。',
+ penguin:'ペンギンの<ruby>背中<rt class="uf">せなか</rt></ruby>が黒く お腹が白いのは<ruby>保護色<rt class="uf">ほごしょく</rt></ruby>。上からは海に、下からは空に とけこんで<ruby>敵<rt class="uf">てき</rt></ruby>から見つかりにくい。',
+ owl:'フクロウは<ruby>羽<rt class="uf">はね</rt></ruby>の<ruby>音<rt class="uf">おと</rt></ruby>を消す<ruby>特別<rt class="uf">とくべつ</rt></ruby>な<ruby>羽根<rt class="uf">はね</rt></ruby>で、ほぼ<ruby>無音<rt class="uf">むおん</rt></ruby>で とぶ。',
+ cat:'ネコのヒゲは、<ruby>通<rt class="uf">とお</rt></ruby>れる すき間を<ruby>測<rt class="uf">はか</rt></ruby>るセンサー。',
+ dog:'イヌは<ruby>鼻<rt class="uf">はな</rt></ruby>の<ruby>湿<rt class="uf">しめ</rt></ruby>りで<ruby>風向<rt class="uf">かざむ</rt></ruby>きを感じ、においの<ruby>方向<rt class="uf">ほうこう</rt></ruby>まで つかむ。',
+ rabbit:'ウサギは<ruby>危険<rt class="uf">きけん</rt></ruby>を<ruby>仲間<rt class="uf">なかま</rt></ruby>に知らせるとき、<ruby>後<rt class="uf">うし</rt></ruby>ろ足で<ruby>地面<rt class="uf">じめん</rt></ruby>を<ruby>叩<rt class="uf">たた</rt></ruby>く。',
+ bear:'クマは<ruby>木<rt class="uf">き</rt></ruby>登りが<ruby>得意<rt class="uf">とくい</rt></ruby>で、<ruby>時速<rt class="uf">じそく</rt></ruby>50kmで<ruby>走<rt class="uf">はし</rt></ruby>れる<ruby>種<rt class="uf">しゅ</rt></ruby>もいる。',
+ lion:'ライオンは<ruby>群<rt class="uf">む</rt></ruby>れ（プライド）で<ruby>暮<rt class="uf">く</rt></ruby>らす、ネコの<ruby>仲間<rt class="uf">なかま</rt></ruby>では<ruby>珍<rt class="uf">めずら</rt></ruby>しい種。<ruby>狩<rt class="uf">か</rt></ruby>りは<ruby>主<rt class="uf">おも</rt></ruby>にメスがする。',
+ grad:'<ruby>卒業式<rt class="uf">そつぎょうしき</rt></ruby>で<ruby>帽子<rt class="uf">ぼうし</rt></ruby>のふさを右から左へ<ruby>移<rt class="uf">うつ</rt></ruby>すのが<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>の<ruby>合図<rt class="uf">あいず</rt></ruby>。'
+};
+function openBdSheet_(html){var s=$('bd-sheet');if(s)s.innerHTML=html;var m=$('bd-mask');if(m){m.classList.add('show');m.onclick=function(e){if(e.target===m)closeBdSheet_();};}}
+function closeBdSheet_(){var m=$('bd-mask');if(m)m.classList.remove('show');}
+function badgeHow_(ax,goal,unit){
+  if(ax==='streak')return goal+'日 <ruby>連続<rt class="uf">れんぞく</rt></ruby>で<ruby>学習<rt class="uf">がくしゅう</rt></ruby>すると もらえる。';
+  if(ax==='words')return '<ruby>合計<rt class="uf">ごうけい</rt></ruby> '+goal+'語 クリアすると もらえる。';
+  if(ax==='parts')return '<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>で '+goal+'DAY <ruby>合格<rt class="uf">ごうかく</rt></ruby>すると もらえる。';
+  if(ax==='dailyclear')return 'デイリー（毎日<ruby>学習<rt class="uf">がくしゅう</rt></ruby>＋おさらい）を <ruby>合計<rt class="uf">ごうけい</rt></ruby>'+goal+'日 やりきると もらえる。';
+  if(ax==='trio')return '<ruby>前日<rt class="uf">ぜんじつ</rt></ruby>トップ3（<ruby>三連星<rt class="uf">さんれんせい</rt></ruby>）に '+goal+'<ruby>回<rt class="uf">かい</rt></ruby> 入ると もらえる。';
+  return goal+(unit||'')+' <ruby>達成<rt class="uf">たっせい</rt></ruby>で もらえる。';
+}
+function openBadgeDetail_(ax,goal,got,label,unit,rar){
+  var ic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[ax])||'ti-award';
+  var h='<div class="bd-grab"></div>'
+    +'<div class="bd-ic rr'+rar+'"'+(got?'':' style="filter:grayscale(1);opacity:.5"')+'><i class="ti '+ic+'"></i></div>'
+    +'<div class="bd-nm">'+esc(label)+' '+goal+esc(unit||'')+'</div>'
+    +'<span class="bd-rar rr'+rar+'">'+RAR_NAMES[rar]+'</span>'
+    +'<div class="bd-row"><div class="bd-k"><ruby>入手<rt class="uf">にゅうしゅ</rt></ruby>方法</div><div class="bd-v">'+badgeHow_(ax,goal,unit)+'</div></div>';
+  if(got){ h+='<div class="ach rr'+rar+'"><div class="ach-top"><span class="ach-lbl">✦ <ruby>実績<rt class="uf">じっせき</rt></ruby><ruby>解除<rt class="uf">かいじょ</rt></ruby></span><span class="ach-rar rr'+rar+'">'+RAR_NAMES[rar]+'</span></div><div class="ach-note">'+RAR_NOTE[rar]+'</div></div>'; }
+  h+='<button class="bd-btn ghost" onclick="closeBdSheet_()">とじる</button>';
+  openBdSheet_(h);
+}
+function openIconDetail_(k){
+  if(k===''){saveIcon_('');return;} // 「なし」はそのまま解除
+  var o=null;for(var i=0;i<ICON_LIST.length;i++){if(ICON_LIST[i].k===k)o=ICON_LIST[i];}
+  if(!o)return;
+  var rar=o.rar||1;
+  var how=o.locked?'<ruby>特別<rt class="uf">とくべつ</rt></ruby>なアイコン。先生から もらうか、<ruby>条件<rt class="uf">じょうけん</rt></ruby>を<ruby>達成<rt class="uf">たっせい</rt></ruby>すると<ruby>選<rt class="uf">えら</rt></ruby>べる。':'<ruby>最初<rt class="uf">さいしょ</rt></ruby>から<ruby>選<rt class="uf">えら</rt></ruby>べる。';
+  var triv=ICON_TRIVIA[k]||'';
+  var h='<div class="bd-grab"></div>'
+    +'<div class="bd-ic rr'+rar+'">'+iconInnerHtml_(k)+'</div>'
+    +'<div class="bd-nm">'+esc(o.nm)+'</div>'
+    +'<span class="bd-rar rr'+rar+'">'+RAR_NAMES[rar]+'</span>'
+    +'<div class="bd-row"><div class="bd-k"><ruby>入手<rt class="uf">にゅうしゅ</rt></ruby>方法</div><div class="bd-v">'+how+'</div></div>'
+    +(triv?'<div class="bd-row"><div class="bd-k"><ruby>豆知識<rt class="uf">まめちしき</rt></ruby></div><div class="bd-v">'+triv+'</div></div>':'')
+    +'<button class="bd-btn" onclick="bdPickIcon_(\''+k+'\')">'+(myIcon===k?'いま<ruby>選<rt class="uf">えら</rt></ruby>んでいる':'これにする')+'</button>'
+    +'<button class="bd-btn ghost" onclick="closeBdSheet_()">とじる</button>';
+  openBdSheet_(h);
+}
+function bdPickIcon_(k){closeBdSheet_();saveIcon_(k);}
 function saveIcon_(k){var _lk=null;for(var _i=0;_i<ICON_LIST.length;_i++){if(ICON_LIST[_i].k===k)_lk=ICON_LIST[_i];}if(_lk&&_lk.locked&&unlockedIcons.indexOf(k)<0){return;}var prev=myIcon;myIcon=k;try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}renderIconGrid_();applyMyIcon_();call({action:'icon_update',icon:k}).then(function(d){if(!d||!d.ok){myIcon=prev;try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}renderIconGrid_();applyMyIcon_();var er=$('icon-err');if(er)er.innerHTML=(d&&d.error)?esc(d.error):'ほぞんできなかったよ。もう<ruby>一回<rt class="uf">いっかい</rt></ruby>ためしてね';return;}toast('アイコンを かえたよ！');closeIconModal();});}
 /* ===== デイリー未完了●（本日の学習/おさらい/間違いノート）2026-07-04 ===== */
 function todayStr_(){var d=new Date(Date.now()+9*3600*1000);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}/* JST固定 2026-07-08 */
@@ -1997,6 +2084,7 @@ function openHome(){
   _bind('daily-maplink',function(){showSub('lists');}); // 毎日タブ→学習マップの導線 2026-07-26
   _bind('tile-team',function(){showSub('team');});
   _bind('tile-overall',function(){showSub('overall');});
+  _bind('tile-trio',function(){openTrioReview_();}); // 昨日の三連星をいつでも見返す 2026-07-28
   _bind('set-nick',openNickModal);
   _bind('set-icon',openIconModal);
   _bind('hdr-ava',openIconModal);
@@ -2326,6 +2414,13 @@ function maybeShowTrio_(){
     showTrioOverlay_(d.data);
   }).catch(function(){window._trioBusy=false;});
 }
+/* 記録タブ→昨日の三連星をいつでも見返す（初ログイン1日1回の制限とは別・誤タップで見逃した人／自分が載って見直したい人向け）2026-07-28 */
+function openTrioReview_(){
+  call({action:'trio_stars'}).then(function(d){
+    if(!d||!d.ok||!d.data||!d.data.trio||!d.data.trio.length){try{toast('昨日の三連星は ありません');}catch(e){}return;}
+    showTrioOverlay_(d.data);
+  }).catch(function(){try{toast('うまく よみこめませんでした');}catch(e){}});
+}
 // サブ情報（応援したくなる事実を最大2つ）：連続日数・いつもの何倍・昨日の問題数・ていねいさ
 function trioSub_(t){
   var f=[];
@@ -2333,7 +2428,7 @@ function trioSub_(t){
   if(t.mult&&t.mult>=1.3&&t.mult<9)f.push('いつもの'+t.mult+'倍');
   f.push('昨日'+t.q+'問');
   if(t.acc>=90)f.push('ていねい◎');
-  return f.slice(0,2).join(' ・ ');
+  return f.slice(0,2).map(function(x){return '<span class="tsub-seg">'+x+'</span>';}).join('<span class="tsub-dot">・</span>'); // 各項目は改行で割らない（昨日19問/いつもの2.1倍 が「19\n問」に割れるのを防ぐ）。値は数値のみ＝esc不要
 }
 function showTrioOverlay_(data){
   if(document.querySelector('.trio-ov'))return;
@@ -2358,12 +2453,12 @@ function showTrioOverlay_(data){
     var c=document.createElement('div');c.className='tcard'+(isMe?' me':'');c.setAttribute('data-r',rank);
     var bottom=isMe
       ? '<div class="tc-mebadge">🎉 '+rank+'<ruby>位<rt class="uf">い</rt></ruby> おめでとう！</div>'
-      : '<button class="tcheer'+(cheered[String(t.student_id)]?' sent':'')+'" data-to="'+t.student_id+'">'+(cheered[String(t.student_id)]?'✓ <ruby>特別<rt class="uf">とくべつ</rt></ruby><ruby>応援<rt class="uf">おうえん</rt></ruby>した！':'✨ <ruby>特別<rt class="uf">とくべつ</rt></ruby><ruby>応援<rt class="uf">おうえん</rt></ruby>')+'</button>';
+      : '<button class="tcheer'+(cheered[String(t.student_id)]?' sent':'')+'" data-to="'+t.student_id+'"><span class="tch-l">'+(cheered[String(t.student_id)]?'✓ <ruby>特別<rt class="uf">とくべつ</rt></ruby><ruby>応援<rt class="uf">おうえん</rt></ruby>した！':'✨ <ruby>特別<rt class="uf">とくべつ</rt></ruby><ruby>応援<rt class="uf">おうえん</rt></ruby>')+'</span></button>';
     c.innerHTML='<div class="tc-rank">'+medal+'</div>'
       +'<div class="tc-ava">'+iconAvatarHtml(t.icon,t.nickname)+'</div>'
       +'<div class="tc-nick">'+esc(t.nickname||'なかま')+'</div>'
       +'<div class="tc-eff">がんばり <b>'+t.score+'</b></div>'
-      +'<div class="tc-sub">'+esc(trioSub_(t))+'</div>'
+      +'<div class="tc-sub">'+trioSub_(t)+'</div>'
       +bottom;
     row.appendChild(c);
   });
@@ -2387,13 +2482,13 @@ function showTrioOverlay_(data){
     b.onclick=function(){
       if(b.classList.contains('sent'))return;
       var to=b.getAttribute('data-to');
-      b.classList.add('sent');b.innerHTML='✓ <ruby>特別<rt class="uf">とくべつ</rt></ruby><ruby>応援<rt class="uf">おうえん</rt></ruby>した！';
+      b.classList.add('sent');b.innerHTML='<span class="tch-l">✓ <ruby>特別<rt class="uf">とくべつ</rt></ruby><ruby>応援<rt class="uf">おうえん</rt></ruby>した！</span>';
       try{sndLikeSend();}catch(e){}
       trioHearts_(panel,b);
       call({action:'trio_cheer',to_student_id:to,type:'ichiban'}).then(function(r){
         if(r&&r.ok)return;
         if(r&&r.data&&r.data.already)return; // すでに送信済みは成功扱い
-        b.classList.remove('sent');b.innerHTML='✨ <ruby>特別<rt class="uf">とくべつ</rt></ruby><ruby>応援<rt class="uf">おうえん</rt></ruby>';
+        b.classList.remove('sent');b.innerHTML='<span class="tch-l">✨ <ruby>特別<rt class="uf">とくべつ</rt></ruby><ruby>応援<rt class="uf">おうえん</rt></ruby></span>';
         toastH((r&&r.error)?esc(r.error):'<ruby>送<rt class="uf">おく</rt></ruby>れなかったよ。もう<ruby>一度<rt class="uf">いちど</rt></ruby>ためしてね');
       });
     };
@@ -3582,7 +3677,7 @@ function osaraiMore_(subject){
 }
 
 /* ===== バッジ（実績の節目）2026-06-22 ===== */
-var BADGE_ICONS={streak:'ti-flame',words:'ti-book-2',lists:'ti-trophy',dailyclear:'ti-calendar-check'};/* ＋α(plusalpha)は前面で非表示。dailyclear=累計デイリークリア（2026-07-25）。parts=合格DAYは既定 ti-award */
+var BADGE_ICONS={streak:'ti-flame',words:'ti-book-2',lists:'ti-trophy',dailyclear:'ti-calendar-check',trio:'ti-star'};/* ＋α(plusalpha)は前面で非表示。dailyclear=累計デイリークリア（2026-07-25）。parts=合格DAYは既定 ti-award */
 function loadBadges(){
   var area=$('badge-area');
   callCached({action:'badges'},function(d){
@@ -3614,7 +3709,7 @@ function loadBadges(){
     var grid=document.createElement('div');grid.className='badge-grid';
     /* レア度：軸ごとに目標値の小さい順で 1段目=白/2段目=緑/3段目=青（川上さん確定 2026-07-25）。ゲット済みだけ枠色を出す */
     var _axG={};list.forEach(function(b){(_axG[b.axis]=_axG[b.axis]||[]).push(Number(b.goal));});Object.keys(_axG).forEach(function(a){_axG[a].sort(function(x,y){return x-y;});});
-    function _badgeRar(b){var arr=_axG[b.axis]||[];var i=arr.indexOf(Number(b.goal));return (i<0?0:i)+1;}
+    function _badgeRar(b){if(typeof RAR_OVERRIDE!=='undefined'&&RAR_OVERRIDE[b.axis]&&RAR_OVERRIDE[b.axis][b.goal])return RAR_OVERRIDE[b.axis][b.goal];var arr=_axG[b.axis]||[];var i=arr.indexOf(Number(b.goal));return (i<0?0:i)+1;}
     list.forEach(function(b){
       var el=document.createElement('div');
       el.className='badge '+(b.achieved?('got rr'+_badgeRar(b)):'locked');
@@ -3623,6 +3718,8 @@ function loadBadges(){
       el.innerHTML='<div class="bic"><i class="ti '+ic+'"></i></div>'
         +'<div class="bttl">'+b.label+'<br>'+b.goal+b.unit+'</div>'
         +'<div class="bsub">'+sub+'</div>';
+      el.style.cursor='pointer';el.setAttribute('role','button'); // タップで詳細（レア度・入手方法・実績解除）2026-07-28
+      el.onclick=function(){openBadgeDetail_(b.axis,b.goal,!!b.achieved,b.label,b.unit,_badgeRar(b));};
       grid.appendChild(el);
     });
     area.appendChild(grid);
