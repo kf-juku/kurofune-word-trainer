@@ -2129,6 +2129,7 @@ function openHome(){
   loadHomeData_(true);
   try{checkStreakCele_();}catch(e){} // ホーム復帰のお祝い（その日はじめて学習後）2026-07-24
   try{maybeShowTrio_();}catch(e){} // 初ログインで前日の三連星（上位3名）を1日1回だけ表示 2026-07-25
+  try{setTimeout(trioPrefetch_,1200);}catch(e){} // 三連星を裏で先読みキャッシュ＝記録タブの「三連星」タイルをタップしたとき待たせない（起動直後の重い処理を避けて少し遅らせる）2026-07-28
 }
 /* ホームの全データ取得（openHome初回・引っ張って更新の両方から呼ぶ）2026-07-24 */
 function loadHomeData_(showSkel){
@@ -2433,19 +2434,29 @@ function buildStarCard(star){
 // 1日1回だけ・当日のキーで判定。流れ星の星空をそのまま流用して隕石3つ＋カード3枚（表彰台順）。
 function trioDayKey_(){var j=new Date(Date.now()+9*3600*1000);var p=function(n){return String(n).padStart(2,'0');};return ''+j.getUTCFullYear()+p(j.getUTCMonth()+1)+p(j.getUTCDate());}
 function trioSeenKey_(){return 'kwt_trio_'+trioDayKey_()+'_'+(nickname||'');}
+var _trioData=null; // 昨日の三連星（1日中同じ）＝一度取ったら使い回してタップ即表示 2026-07-28
+/* 裏で先読みしてキャッシュ（1セッション1回）。記録タブを開いた時・ホーム起動時に呼ぶ＝タイルを押したとき待たせない */
+function trioPrefetch_(){
+  if(window._trioPrefetched)return;window._trioPrefetched=true;
+  call({action:'trio_stars'}).then(function(d){ if(d&&d.ok&&d.data)_trioData=d.data; }).catch(function(){window._trioPrefetched=false;});
+}
 function maybeShowTrio_(){
   try{if(localStorage.getItem(trioSeenKey_()))return;}catch(e){}
-  if(window._trioBusy)return;window._trioBusy=true;
+  if(window._trioBusy)return;window._trioBusy=true;window._trioPrefetched=true;
   call({action:'trio_stars'}).then(function(d){
     window._trioBusy=false;
     try{localStorage.setItem(trioSeenKey_(),'1');}catch(e){} // 見た＝1日1回（人がいなくても再呼び出ししない）
+    if(d&&d.ok&&d.data)_trioData=d.data; // キャッシュ（記録タブの見返しで再利用＝待たせない）
     if(!d||!d.ok||!d.data||!d.data.trio||!d.data.trio.length)return;
     showTrioOverlay_(d.data);
-  }).catch(function(){window._trioBusy=false;});
+  }).catch(function(){window._trioBusy=false;window._trioPrefetched=false;});
 }
 /* 記録タブ→昨日の三連星をいつでも見返す（初ログイン1日1回の制限とは別・誤タップで見逃した人／自分が載って見直したい人向け）2026-07-28 */
 function openTrioReview_(){
+  if(_trioData&&_trioData.trio&&_trioData.trio.length){ showTrioOverlay_(_trioData); return; } // キャッシュ済み＝即表示
+  var tt=null;try{tt=toast('よみこみ中…');}catch(e){} // 未キャッシュのときだけローディング（フリーズに見せない）
   call({action:'trio_stars'}).then(function(d){
+    if(d&&d.ok&&d.data)_trioData=d.data;window._trioPrefetched=true;
     if(!d||!d.ok||!d.data||!d.data.trio||!d.data.trio.length){try{toast('昨日の三連星は ありません');}catch(e){}return;}
     showTrioOverlay_(d.data);
   }).catch(function(){try{toast('うまく よみこめませんでした');}catch(e){}});
