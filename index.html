@@ -1848,9 +1848,12 @@ function _mSeries(t){t=String(t||'');
   if(/中学理科【生命・地球】/.test(t)||(/理科/.test(t)&&/【生命・地球】/.test(t)))return {k:'sci',label:'メキメキ理科'};
   if(/中学歴史/.test(t))return {k:'hist',label:'メキメキ歴史'};
   if(/語彙力アップ/.test(t))return {k:'goi',label:'語彙力アップ'};
+  if(/教科書英単語 New Horizon 中1/.test(t))return {k:'nh1eng',label:'教科書英単語 New Horizon 中1'};
+  if(/教科書英単語 New Horizon 中2/.test(t))return {k:'nh2eng',label:'教科書英単語 New Horizon 中2'};
+  if(/教科書英単語 New Horizon 中3/.test(t))return {k:'nh3eng',label:'教科書英単語 New Horizon 中3'};
   return null;
 } /* シリーズ見出しは先生画面・サーバー整形と統一（フォールバック時も一致）2026-07-23 */
-function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;return t;}
+function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;if(s&&/^nh/.test(s.k))return t.replace(s.label,'').replace(/^\s+/,'')||t;return t;}
 function _bookPrefix(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>0)return t.slice(0,i).replace(/\s+$/,'');}return '';}
 function _chapNum(t){t=String(t||'');var m=t.match(/([0-9０-９]+)\s*章/);if(!m)return 99999;var n=m[1].replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});return parseInt(n,10);}
 /* ===== 教材名アクセサ（唯一の使い口）2026-07-23 =====
@@ -2820,8 +2823,9 @@ function renderQz_(s){
   }
   if(s.step===2){
     qPresentE2J(w);
-    var poolJa=(s.mode==='daily')?s.words.map(function(x){return x.japanese;}):((w.wrong_choices_ja&&w.wrong_choices_ja.length)?w.wrong_choices_ja:s.words.map(function(x){return x.japanese;})); // 誤答：毎日=同セッション語、復習=同パート誤答(サーバー)優先
-    buildChoices('e2j-choices',w.japanese,poolJa,function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},{timeLimit:_tl,kaisetsu:w.kaisetsu,next:function(){ if(((w&&w.direction)||(s&&s.dir)||'')==='e2j'){ (s.onNext||nextWord)(); } else { s.step=3;renderQz_(s); } }});
+    var _qje=tfParse(w),_fxJa=(_qje&&_qje.choices_ja&&_qje.choices_ja.length)?_qje.choices_ja:null; // 教材が用意した同品詞の誤答(英→日)を優先 2026-07-28
+    var poolJa=(s.mode==='daily')?s.words.map(function(x){return x.japanese;}):((w.wrong_choices_ja&&w.wrong_choices_ja.length)?w.wrong_choices_ja:s.words.map(function(x){return x.japanese;})); // 誤答：毎日=同セッション語、復習=同パート誤答(サーバー)優先。qdata.choices_jaがあればそちらを使う
+    buildChoices('e2j-choices',w.japanese,(_fxJa?[]:poolJa),function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},{timeLimit:_tl,kaisetsu:w.kaisetsu,fixedChoices:_fxJa,next:function(){ if(((w&&w.direction)||(s&&s.dir)||'')==='e2j'){ (s.onNext||nextWord)(); } else { s.step=3;renderQz_(s); } }});
     $('step-e2j').style.display='block';showListen_(w,isEng);
   }else if(s.step===3){
     qPresentJ2E(w,isEng);

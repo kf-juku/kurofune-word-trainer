@@ -1440,6 +1440,9 @@ function _mSeries(t){t=String(t||'');
   if(/中学理科【生命・地球】/.test(t)||(/理科/.test(t)&&/【生命・地球】/.test(t)))return {k:'sci',label:'メキメキ理科'};
   if(/中学歴史/.test(t))return {k:'hist',label:'メキメキ歴史'};
   if(/語彙力アップ/.test(t))return {k:'goi',label:'語彙力アップ'};
+  if(/教科書英単語 New Horizon 中1/.test(t))return {k:'nh1eng',label:'教科書英単語 New Horizon 中1'};
+  if(/教科書英単語 New Horizon 中2/.test(t))return {k:'nh2eng',label:'教科書英単語 New Horizon 中2'};
+  if(/教科書英単語 New Horizon 中3/.test(t))return {k:'nh3eng',label:'教科書英単語 New Horizon 中3'};
   return null;
 }
 function _mWorst(list){var lo=false,mi=false,hi=false,allNa=true;list.forEach(function(m){var a=m.acc;if(a===''||a==null)return;allNa=false;if(a<_needHelpRate)lo=true;else if(a<80)mi=true;else hi=true;});return allNa?'m-na':(lo?'m-low':(mi?'m-mid':'m-hi'));}
@@ -1826,7 +1829,7 @@ function _holdersMap(){
   return h;
 }
 function _bookPrefix(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>0)return t.slice(0,i).replace(/\s+$/,'');}return '';}
-function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;return t;}
+function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;if(s&&/^nh/.test(s.k))return t.replace(s.label,'').replace(/^\s+/,'')||t;return t;}
 function _chapNum(t){t=String(t||'');var m=t.match(/([0-9０-９]+)\s*章/);if(!m)return 99999;var n=m[1].replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});return parseInt(n,10);}
 function _bookKey(m){var k=mtSeriesKey(m);return k?('S:'+k):('M:'+String(m.title||''));}
 function _bookLabel(m){return mtSeriesLabel(m);}
@@ -2149,7 +2152,7 @@ function renderQuizAtt(){
   var groups={},order=[];
   miss.forEach(function(e){var k=e.part_id;if(!groups[k]){groups[k]={title:e.part_title,mat:_matTitleOf(e.material_id)||e.material_title||'',names:[]};order.push(k);}groups[k].names.push(e.student_name);});
   var _sg={},_so=[];
-  order.forEach(function(k){var g=groups[k];var sk=_mSeries(g.mat);var key=sk?('S:'+sk.k):('M:'+g.mat);var lab=sk?sk.label:g.mat;var rank=sk?({sci:2,hist:3,goi:4}[sk.k]||8):8;if(!_sg[key]){_sg[key]={label:lab,rank:rank,parts:[]};_so.push(key);}_sg[key].parts.push(g);});
+  order.forEach(function(k){var g=groups[k];var sk=_mSeries(g.mat);var key=sk?('S:'+sk.k):('M:'+g.mat);var lab=sk?sk.label:g.mat;var rank=sk?({sci:2,hist:3,goi:4,nh1eng:5,nh2eng:6,nh3eng:7}[sk.k]||8):8;if(!_sg[key]){_sg[key]={label:lab,rank:rank,parts:[]};_so.push(key);}_sg[key].parts.push(g);});
   var missHtml=_so.length? _so.map(function(key,si){var sg=_sg[key];var gid='qamg'+si;
       var inner=sg.parts.map(function(g,pi){var nid=gid+'n'+pi;
         return '<div class="qa-missrow" style="margin-left:16px;"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(_chapShort(g.mat))+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';
