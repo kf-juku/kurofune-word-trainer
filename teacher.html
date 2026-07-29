@@ -1944,6 +1944,11 @@ function openMatPreview(mid){
         }
         // 答えの読み
         h+=mpEdRow_(w.id,'reading_hint','読み',w.reading_hint);
+        // 選択肢（英→日＝文4択で choices_ja を持つ語）＝読み取り専用で表示。curした同品詞の誤答を確認するため 2026-07-28
+        if(w.choices_ja&&w.choices_ja.length&&w.qtype!=='image_fill'&&w.qtype!=='table_fill'){
+          var _opts=[w.japanese].concat(w.choices_ja);
+          h+='<div class="mp-row"><span class="mpl">選択肢</span><span class="mp-ro-note">'+_opts.map(function(o){return (o===w.japanese?'◯ ':'・')+esc(o);}).join('　')+'　<span style="color:var(--text-light)">（◯＝正解／英→日の同品詞の誤答・編集はシートで）</span></span></div>';
+        }
         // 図（設問の画像・編集対象外）
         if(w.is_fig&&w.asset){
           var url=mpAssetUrl_(w.asset);
