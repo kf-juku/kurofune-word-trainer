@@ -2150,9 +2150,9 @@ function renderQuizAtt(){
     return '<span class="qachip qa-ng" onclick="openQuizCell(\''+esc(e.student_id)+'\',\''+esc(e.part_id)+'\')">'+esc(e.student_name)+' <small>'+esc(e.part_title)+'・'+e.latest_rate+'%</small></span>';
   }).join('')||'<span class="chip-none">未合格の子はいません 🎉</span>';
   var groups={},order=[];
-  miss.forEach(function(e){var k=e.part_id;if(!groups[k]){groups[k]={title:e.part_title,mat:_matTitleOf(e.material_id)||e.material_title||'',names:[]};order.push(k);}groups[k].names.push(e.student_name);});
+  miss.forEach(function(e){var k=e.part_id;if(!groups[k]){groups[k]={title:e.part_title,mat:_matTitleOf(e.material_id)||e.material_title||'',skey:(e.series_key!=null?e.series_key:''),slabel:(e.series_label||''),names:[]};order.push(k);}groups[k].names.push(e.student_name);});
   var _sg={},_so=[];
-  order.forEach(function(k){var g=groups[k];var sk=_mSeries(g.mat);var key=sk?('S:'+sk.k):('M:'+g.mat);var lab=sk?sk.label:g.mat;var rank=sk?({sci:2,hist:3,goi:4,nh1eng:5,nh2eng:6,nh3eng:7}[sk.k]||8):8;if(!_sg[key]){_sg[key]={label:lab,rank:rank,parts:[]};_so.push(key);}_sg[key].parts.push(g);});
+  order.forEach(function(k){var g=groups[k];var kk=(g.skey!=null&&g.skey!=='')?g.skey:(function(){var s=_mSeries(g.mat);return s?s.k:'';})();var lab=kk?(g.slabel||(function(){var s=_mSeries(g.mat);return s?s.label:g.mat;})()):g.mat;var key=kk?('S:'+kk):('M:'+g.mat);var rank=kk?({sci:2,hist:3,goi:4,nh1eng:5,nh2eng:6,nh3eng:7}[kk]||8):8;if(!_sg[key]){_sg[key]={label:lab,rank:rank,parts:[]};_so.push(key);}_sg[key].parts.push(g);});/* GASのseries_key優先→無ければ_mSeries 2026-07-29 */
   var missHtml=_so.length? _so.map(function(key,si){var sg=_sg[key];var gid='qamg'+si;
       var inner=sg.parts.map(function(g,pi){var nid=gid+'n'+pi;
         return '<div class="qa-missrow" style="margin-left:16px;"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(_chapShort(g.mat))+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';

@@ -1570,8 +1570,8 @@ function renderQuiz(){
     var mats=(d.data&&d.data.materials)||[];
     if(!mats.length){el.innerHTML='<p class="muted">まだ<ruby>確認<rt class="uf">かくにん</rt></ruby>テストは<ruby>配信<rt class="uf">はいしん</rt></ruby>されていません。<ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>配信<rt class="uf">はいしん</rt></ruby>すると ここに<ruby>出<rt class="uf">で</rt></ruby>るよ。</p>';return;}
     // 本ごとにまとめる＋シリーズ内は章番号順（ホームと同じ考え方）2026-07-22
-    var _bk=function(g){var sk=_mSeries(g.title);return sk?('S:'+sk.k):('M:'+String(g.title||''));};
-    var _bl=function(g){var sk=_mSeries(g.title);var bp=_bookPrefix(g.title);return sk?(bp||sk.label):(bp||String(g.title||''));};
+    var _bk=function(g){var k=mtSeriesKey(g);return k?('S:'+k):('M:'+String(g.title||''));};/* GASのseries_key優先→無ければ_mSeries。新シリーズはGAS _seriesOf_ 1箇所でまとまる 2026-07-29 */
+    var _bl=function(g){var k=mtSeriesKey(g);var bp=_bookPrefix(g.title);return k?(bp||mtSeriesLabel(g)):(bp||String(g.title||''));};
     mats=mats.slice().sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // シートの番号順・川上さん 2026-07-22
     var _grps=[],_gm={};
     mats.forEach(function(g){var k=_bk(g);if(!_gm[k]){_gm[k]={lab:_bl(g),items:[]};_grps.push(_gm[k]);}_gm[k].items.push(g);});
