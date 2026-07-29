@@ -1915,6 +1915,7 @@ function openMatPreview(mid){
   call({action:'material_preview',material_id:mid}).then(function(d){
     if(!d||!d.ok){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
     var dt=d.data;
+    var _isEng=(dt&&dt.subject==='english'); // 英→日教材＝選択肢の誤答(choices_ja)をインライン編集 2026-07-28
     _mpAssets=dt.assets||{};
     $('mpTitle').textContent=esc(mtLabel(dt)||'教材の中身');
     var parts=dt.parts||[];
@@ -1944,10 +1945,9 @@ function openMatPreview(mid){
         }
         // 答えの読み
         h+=mpEdRow_(w.id,'reading_hint','読み',w.reading_hint);
-        // 選択肢（英→日＝文4択で choices_ja を持つ語）＝読み取り専用で表示。curした同品詞の誤答を確認するため 2026-07-28
-        if(w.choices_ja&&w.choices_ja.length&&w.qtype!=='image_fill'&&w.qtype!=='table_fill'){
-          var _opts=[w.japanese].concat(w.choices_ja);
-          h+='<div class="mp-row"><span class="mpl">選択肢</span><span class="mp-ro-note">'+_opts.map(function(o){return (o===w.japanese?'◯ ':'・')+esc(o);}).join('　')+'　<span style="color:var(--text-light)">（◯＝正解／英→日の同品詞の誤答・編集はシートで）</span></span></div>';
+        // 選択肢の誤答（英→日＝文4択の choices_ja）＝インライン編集（1行1つ・3つ）。正解は「問題文」。2026-07-28
+        if(_isEng&&w.qtype!=='image_fill'&&w.qtype!=='table_fill'){
+          h+=mpEdRow_(w.id,'choices_ja','誤答3つ',(w.choices_ja||[]),'multiline');
         }
         // 図（設問の画像・編集対象外）
         if(w.is_fig&&w.asset){
@@ -1987,7 +1987,7 @@ function mpServerCheck(){
       var wid=el.getAttribute('data-id'),field=el.getAttribute('data-wf');
       var w=byId[wid];el.classList.remove('srv-ok','srv-diff');el.removeAttribute('title');
       if(!w)return;
-      var sv=(field==='choices')?((w.choices||[]).join('\n')):String(w[field]!=null?w[field]:'');
+      var sv=(field==='choices')?((w.choices||[]).join('\n')):(field==='choices_ja')?((w.choices_ja||[]).join('\n')):String(w[field]!=null?w[field]:'');
       var cur=el.getAttribute('data-orig')||'';
       checked++;
       if(sv!==cur){diffs++;el.classList.add('srv-diff');el.setAttribute('title','サーバーの値: '+sv);}
@@ -1999,7 +1999,7 @@ function mpServerCheck(){
 }
 /* プレビューのインライン編集（フォーカスアウトで自動保存）2026-07-21 */
 function mpEdRow_(wid,field,label,val,extraCls){
-  var v=(field==='choices')?(Array.isArray(val)?val.join('\n'):String(val||'')):String(val==null?'':val);
+  var v=(field==='choices'||field==='choices_ja')?(Array.isArray(val)?val.join('\n'):String(val||'')):String(val==null?'':val);
   return '<div class="mp-row"><span class="mpl">'+label+'</span>'
     +'<span class="mp-ed'+(extraCls?(' '+extraCls):'')+'" contenteditable="true" data-id="'+esc(String(wid||''))+'" data-wf="'+field+'" data-orig="'+esc(v)+'">'+esc(v)+'</span>'
     +'<span class="mp-st"></span></div>';
@@ -2009,7 +2009,7 @@ function mpFieldSave_(el){
   if(!wid||!field)return;
   var orig=el.getAttribute('data-orig')||'';
   var val=(el.innerText||'').replace(/ /g,' ');
-  if(field==='choices'){val=val.replace(/\r/g,'').replace(/\n{2,}/g,'\n').replace(/^\n+|\n+$/g,'');}
+  if(field==='choices'||field==='choices_ja'){val=val.replace(/\r/g,'').replace(/\n{2,}/g,'\n').replace(/^\n+|\n+$/g,'');}
   else{val=val.replace(/\s*\n\s*/g,' ').replace(/^\s+|\s+$/g,'');}
   if(val===orig)return; // 変更なしは送らない
   // ① 空ガード（答え・問題文は空にできない＝事故防止・ハードで止める）
@@ -2038,7 +2038,7 @@ function mpDoSave_(el,wid,field,orig,val){
     el.classList.remove('saving');
     if(d&&d.ok){
       var saved=(d.data&&d.data.saved)||{};
-      var sv=(field==='choices')?((saved.choices||[]).join('\n')):(saved[field]!=null?String(saved[field]):val);
+      var sv=(field==='choices')?((saved.choices||[]).join('\n')):(field==='choices_ja')?((saved.choices_ja||[]).join('\n')):(saved[field]!=null?String(saved[field]):val);
       el.setAttribute('data-orig',sv);
       if(sv!==val){el.innerText=sv;} // サーバー保存値で照合・不一致なら合わせる
       el.classList.add('saved');if(st){st.textContent='✓';st.style.color='#16a34a';}
@@ -2060,6 +2060,12 @@ function mpWordCtx_(el,field,val){
 function mpValidate_(el,field,val){
   var c=mpWordCtx_(el,field,val),w=[];
   var ans=c.english||'';
+  if(field==='choices_ja'){ // 英→日の誤答チェック（正解=問題文=japanese）2026-07-28
+    var _aj=String(val).split('\n').map(function(x){return x.trim();}).filter(Boolean),_uj={};_aj.forEach(function(x){_uj[x]=1;});
+    if(_aj.length<3)w.push('・誤答が3つありません（今'+_aj.length+'つ）。生徒の選択肢が減ります');
+    if(Object.keys(_uj).length<_aj.length)w.push('・誤答に同じものが重複しています');
+    if(c.japanese&&_aj.indexOf(c.japanese)>=0)w.push('・誤答に正解（問題文）と同じものが入っています');
+  }
   var qtext=(c.ask!=null&&c.ask!==''?c.ask:'')||(c.japanese!=null?c.japanese:''); // 生徒に出る問題文（図ask方式=ask／文4択=japanese）
   // ③ 答えバレ：問題文に答えの語がそのまま含まれる（2文字以上・両方あるとき）
   if(ans&&ans.length>=2&&qtext&&String(qtext).indexOf(ans)>=0){w.push('・問題文に答えの語「'+ans+'」が含まれています（答えバレ）');}
