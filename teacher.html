@@ -1454,9 +1454,7 @@ function _mSeries(t){t=String(t||'');
   if(/中学理科【生命・地球】/.test(t)||(/理科/.test(t)&&/【生命・地球】/.test(t)))return {k:'sci',label:'メキメキ理科'};
   if(/中学歴史/.test(t))return {k:'hist',label:'メキメキ歴史'};
   if(/語彙力アップ/.test(t))return {k:'goi',label:'語彙力アップ'};
-  if(/教科書英単語 New Horizon 中1/.test(t))return {k:'nh1eng',label:'教科書英単語 New Horizon 中1'};
-  if(/教科書英単語 New Horizon 中2/.test(t))return {k:'nh2eng',label:'教科書英単語 New Horizon 中2'};
-  if(/教科書英単語 New Horizon 中3/.test(t))return {k:'nh3eng',label:'教科書英単語 New Horizon 中3'};
+  var _nh=t.match(/教科書英単語 New Horizon 中([123])/);if(_nh){var _g=_nh[1],_j=/（日→英）|\(日→英\)/.test(t);return {k:'nh'+_g+'eng_'+(_j?'j2e':'e2j'),label:'教科書英単語 New Horizon 中'+_g+'（'+(_j?'日→英':'英→日')+'）'};} /* 英→日/日→英でシリーズを分ける 2026-07-29 */
   return null;
 }
 function _mWorst(list){var lo=false,mi=false,hi=false,allNa=true;list.forEach(function(m){var a=m.acc;if(a===''||a==null)return;allNa=false;if(a<_needHelpRate)lo=true;else if(a<80)mi=true;else hi=true;});return allNa?'m-na':(lo?'m-low':(mi?'m-mid':'m-hi'));}
@@ -1843,7 +1841,7 @@ function _holdersMap(){
   return h;
 }
 function _bookPrefix(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>0)return t.slice(0,i).replace(/\s+$/,'');}return '';}
-function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;if(s&&/^nh/.test(s.k))return t.replace(s.label,'').replace(/^\s+/,'')||t;return t;}
+function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;if(s&&/^nh/.test(s.k)){var _mp=t.match(/^教科書英単語 New Horizon 中[123]\s*/);return (_mp?t.slice(_mp[0].length):t)||t;}return t;}
 function _chapNum(t){t=String(t||'');var m=t.match(/([0-9０-９]+)\s*章/);if(!m)return 99999;var n=m[1].replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});return parseInt(n,10);}
 function _bookKey(m){var k=mtSeriesKey(m);return k?('S:'+k):('M:'+String(m.title||''));}
 function _bookLabel(m){return mtSeriesLabel(m);}
@@ -2166,7 +2164,7 @@ function renderQuizAtt(){
   var groups={},order=[];
   miss.forEach(function(e){var k=e.part_id;if(!groups[k]){groups[k]={title:e.part_title,mat:_matTitleOf(e.material_id)||e.material_title||'',skey:(e.series_key!=null?e.series_key:''),slabel:(e.series_label||''),names:[]};order.push(k);}groups[k].names.push(e.student_name);});
   var _sg={},_so=[];
-  order.forEach(function(k){var g=groups[k];var kk=(g.skey!=null&&g.skey!=='')?g.skey:(function(){var s=_mSeries(g.mat);return s?s.k:'';})();var lab=kk?(g.slabel||(function(){var s=_mSeries(g.mat);return s?s.label:g.mat;})()):g.mat;var key=kk?('S:'+kk):('M:'+g.mat);var rank=kk?({sci:2,hist:3,goi:4,nh1eng:5,nh2eng:6,nh3eng:7}[kk]||8):8;if(!_sg[key]){_sg[key]={label:lab,rank:rank,parts:[]};_so.push(key);}_sg[key].parts.push(g);});/* GASのseries_key優先→無ければ_mSeries 2026-07-29 */
+  order.forEach(function(k){var g=groups[k];var kk=(g.skey!=null&&g.skey!=='')?g.skey:(function(){var s=_mSeries(g.mat);return s?s.k:'';})();var lab=kk?(g.slabel||(function(){var s=_mSeries(g.mat);return s?s.label:g.mat;})()):g.mat;var key=kk?('S:'+kk):('M:'+g.mat);var rank=kk?({sci:2,hist:3,goi:4,nh1eng:5,nh2eng:6,nh3eng:7}[kk.replace(/_(e2j|j2e)$/,'')]||8):8;/* nh?eng_e2j/j2e も学年でランク・2026-07-29 */if(!_sg[key]){_sg[key]={label:lab,rank:rank,parts:[]};_so.push(key);}_sg[key].parts.push(g);});/* GASのseries_key優先→無ければ_mSeries 2026-07-29 */
   var missHtml=_so.length? _so.map(function(key,si){var sg=_sg[key];var gid='qamg'+si;
       var inner=sg.parts.map(function(g,pi){var nid=gid+'n'+pi;
         return '<div class="qa-missrow" style="margin-left:16px;"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(_chapShort(g.mat))+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';

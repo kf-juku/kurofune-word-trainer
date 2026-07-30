@@ -1871,12 +1871,10 @@ function _mSeries(t){t=String(t||'');
   if(/中学理科【生命・地球】/.test(t)||(/理科/.test(t)&&/【生命・地球】/.test(t)))return {k:'sci',label:'メキメキ理科'};
   if(/中学歴史/.test(t))return {k:'hist',label:'メキメキ歴史'};
   if(/語彙力アップ/.test(t))return {k:'goi',label:'語彙力アップ'};
-  if(/教科書英単語 New Horizon 中1/.test(t))return {k:'nh1eng',label:'教科書英単語 New Horizon 中1'};
-  if(/教科書英単語 New Horizon 中2/.test(t))return {k:'nh2eng',label:'教科書英単語 New Horizon 中2'};
-  if(/教科書英単語 New Horizon 中3/.test(t))return {k:'nh3eng',label:'教科書英単語 New Horizon 中3'};
+  var _nh=t.match(/教科書英単語 New Horizon 中([123])/);if(_nh){var _g=_nh[1],_j=/（日→英）|\(日→英\)/.test(t);return {k:'nh'+_g+'eng_'+(_j?'j2e':'e2j'),label:'教科書英単語 New Horizon 中'+_g+'（'+(_j?'日→英':'英→日')+'）'};} /* 英→日/日→英でシリーズを分ける 2026-07-29 */
   return null;
 } /* シリーズ見出しは先生画面・サーバー整形と統一（フォールバック時も一致）2026-07-23 */
-function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;if(s&&/^nh/.test(s.k))return t.replace(s.label,'').replace(/^\s+/,'')||t;return t;}
+function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;if(s&&/^nh/.test(s.k)){var _mp=t.match(/^教科書英単語 New Horizon 中[123]\s*/);return (_mp?t.slice(_mp[0].length):t)||t;}return t;}
 function _bookPrefix(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>0)return t.slice(0,i).replace(/\s+$/,'');}return '';}
 function _chapNum(t){t=String(t||'');var m=t.match(/([0-9０-９]+)\s*章/);if(!m)return 99999;var n=m[1].replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});return parseInt(n,10);}
 /* ===== 教材名アクセサ（唯一の使い口）2026-07-23 =====
