@@ -868,6 +868,12 @@
   .streak-dots{display:flex;gap:6px;justify-content:center;margin:10px 0 2px;}
   .streak-dots i{width:9px;height:9px;border-radius:50%;background:var(--ring-track);display:inline-block;}
   .streak-dots i.on{background:var(--ok);}
+  /* 発音フローの指示（①声に出して言う→②お手本を聞く）2026-07-30 */
+  .pron-guide{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:2px auto 8px;max-width:340px;}
+  .pron-guide .pg-step{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;}
+  .pron-guide .pg-no{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;flex-shrink:0;}
+  .pron-guide .ti{color:var(--sub);font-size:16px;}
+  .pron-note{text-align:center;font-size:12px;color:var(--sub);line-height:1.6;margin:0 auto 12px;max-width:320px;}
   /* 発音ステップ（川上さん承認モック 2026-07-06：20260706_モック_発音ステップ改善.html）*/
   .mic-orb{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;font-size:40px;margin:6px auto 14px;transition:all .3s;}
   .mic-orb.ready{background:var(--accent-soft);color:var(--accent);}
@@ -1150,6 +1156,13 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       <div class="qtimer" id="qtimer" style="display:none;"><div class="qbar"><i id="qbar-fill"></i></div><span class="qsec num" id="qsec">10<ruby>秒<rt class="uf">びょう</rt></ruby></span></div>
       <div class="card" id="step-listen" style="display:none;">
         <div class="word-en" id="w-en"></div><div class="reading" id="w-reading"></div>
+        <!-- 発音フローの指示（①声に出して言う→②お手本を聞く）2026-07-30 -->
+        <div class="pron-guide">
+          <span class="pg-step"><span class="pg-no">1</span><span class="pg-t"><ruby>声<rt class="uf">こえ</rt></ruby>に<ruby>出<rt class="uf">だ</rt></ruby>して<ruby>言<rt class="uf">い</rt></ruby>う</span></span>
+          <i class="ti ti-arrow-right"></i>
+          <span class="pg-step"><span class="pg-no">2</span><span class="pg-t">お<ruby>手本<rt class="uf">てほん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く</span></span>
+        </div>
+        <div class="pron-note"><ruby>先<rt class="uf">さき</rt></ruby>に<ruby>自分<rt class="uf">じぶん</rt></ruby>で<ruby>言<rt class="uf">い</rt></ruby>ってから、お<ruby>手本<rt class="uf">てほん</rt></ruby>の<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いてまねしよう。</div>
         <!-- 発音ステップ（川上さん承認モック 2026-07-06）：正解音声を先に流さない→3・2・1でマイク自動起動→お手本自動再生→自動進行 -->
         <div class="mic-orb ready" id="pron-orb"><i class="ti ti-microphone"></i></div>
         <div class="pron-msg" id="pron-msg"></div>
@@ -3054,7 +3067,7 @@ function pronStop_(){ // タイマー・音声認識を全部止める（やめ�
   clearTimeout(pronTimer);pronTimer=null;
   clearInterval(pronCntIv);pronCntIv=null;
   clearTimeout(pronWatch);pronWatch=null;
-  try{if(pronRec)pronRec.abort();}catch(e){}
+  try{if(pronRec)pronRec.abort();}catch(e){}pronRec=null; // 中止した認識のonend/onerrorが後から pronMiss_（お手本再生＋マイク再ON）を誤発火するのを防ぐ 2026-07-30
   orbReactStop_();
   pronBusy=false;
 }
@@ -3164,7 +3177,14 @@ $('btn-mic').onclick=function(){ // もう一回言う（やり直し回数も�
   pronBusy=false;pronTries=0;
   pronListen_();
 };
-$('btn-skip').onclick=function(){countSelfReportIfNeeded();pronNext_();}; // スキップ
+$('btn-skip').onclick=function(){ // スキップしても「正しい発音を聞く」は必ず1回通す（②を飛ばさせない）2026-07-30
+  var s=session;if(!s)return;
+  countSelfReportIfNeeded();
+  pronStop_(); // マイク・タイマーを止める（pronRec=nullで中止認識の誤発火も防ぐ）
+  pronUI_('ok','ti-volume','ok','お<ruby>手本<rt class="uf">てほん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いてね','スキップしても、<ruby>正<rt class="uf">ただ</rt></ruby>しい<ruby>音<rt class="uf">おと</rt></ruby>は<ruby>最後<rt class="uf">さいご</rt></ruby>に<ruby>聞<rt class="uf">き</rt></ruby>いてまねしよう','');
+  try{speak(s.words[s.idx]);}catch(e){}
+  clearTimeout(pronTimer);pronTimer=setTimeout(pronNext_,PRON_AFTER_AUDIO);
+}; // スキップ
 /* 4択を作る。timeLimitSec>0 なら制限時間バーを回し、時間切れは不正解扱いで自動的にcb(false)（2026-07-04）。
    選択時・時間切れ時とも answered で1回だけ確定。既存の演出（コンボ・紙吹雪・正解ハイライト）は維持。 */
 /* 4択。onResult(ok)＝集計だけ。進行は opts.next。正解は自動で次へ、
