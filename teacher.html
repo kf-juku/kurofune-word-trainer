@@ -197,14 +197,18 @@
   #printArea{display:none;}
   .p-filler{display:none;}   /* 両面印刷の仕切りページ。1ページで終わる生徒にだけJSで挿入。画面では出さず印刷時のみ 2026-07-28 */
   @media print{
+    @page{ size:A4 portrait; margin:12mm; }   /* 用紙と余白を固定＝各生徒のページ数を正確に数え、奇数なら仕切りを1枚足して偶数化する（両面で表裏に別生徒を出さない）2026-07-30 */
     /* 本体をレイアウトごと非表示にする（visibility:hiddenだと本体の高さが残り、印刷内容の後ろに謎の空白ページが出る）2026-07-23 */
     body > *:not(#printArea){display:none !important;}
     #printArea{display:block !important;position:static;left:auto;top:auto;width:100%;}
+    .print-student{padding:0;}   /* 余白は@pageで固定＝ページ数計算を確実に。2026-07-30 */
     .p-unit{page-break-after:always;}
-    .p-unit:last-child{page-break-after:auto;}   /* 生徒ごとに新しい紙。1ページで終わる子には裏に仕切り(.p-filler)を足して、両面でも1人1枚に分ける＝プリンタの「白紙スキップ」設定に依存しない（旧 page-break-before:right の白紙は白紙スキップで消えて表裏に別生徒が混ざる）2026-07-28 */
-    .p-filler{display:flex;page-break-before:always;min-height:250mm;align-items:center;justify-content:center;color:#c2c7cf;font-size:11px;letter-spacing:.1em;text-align:center;padding:0 20mm;}
+    .p-unit:last-child{page-break-after:auto;}   /* 生徒ごとに新しい紙。ページ数が奇数の生徒の裏に仕切り(.p-filler)を1枚足して偶数化＝両面でも1人1枚に分ける（プリンタの「白紙スキップ」設定に依存しない）2026-07-30 */
+    /* 仕切りページ＝ほぼ余白（裏紙に使える・個人情報は載せない）。白紙だとプリンタに印刷対象から除外されるので、隅に小さな印だけ出す。2026-07-30 川上さん指示 */
+    .p-filler{display:block;position:relative;page-break-before:always;min-height:258mm;}
+    .p-filler::after{content:"";position:absolute;right:0;bottom:0;width:30mm;height:1.4mm;background:#b4bac4;}
   }
-  .print-student{padding:8mm 6mm;color:#000;} /* 生徒ごとに新しい紙の表＝仕切りページ方式（.p-unit＋.p-filler）で分ける。旧 page-break-before:right は撤去（川上さん指示2026-07-05の「生徒ごとに新しい紙の表」は維持）2026-07-28 */
+  .print-student{color:#000;} /* 生徒ごとに新しい紙の表＝仕切りページ方式（.p-unit＋.p-filler・ページ数が奇数なら仕切り1枚）で分ける 2026-07-30 */
   .print-h{font-size:18px;font-weight:800;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:6px;}
   .print-sub{font-size:12px;color:#333;margin-bottom:12px;}
   .print-item{display:flex;border:1px solid #999;border-radius:6px;margin-bottom:6px;overflow:hidden;page-break-inside:avoid;}
@@ -1392,43 +1396,83 @@ function runPrint_(ids,scope,days,limit,types){
 function printWhenImagesReady_(c){
   var imgs=Array.prototype.slice.call((c||document).querySelectorAll('img'));
   var pending=imgs.filter(function(im){ return !(im.complete && im.naturalWidth>0); });
-  var fired=false, go=function(){ if(fired)return; fired=true; insertDuplexFillers_(c); setTimeout(function(){window.print();},60); };
+  var fired=false, go=function(){ if(fired)return; fired=true; insertDuplexFillers_(c, function(){ setTimeout(function(){window.print();},60); }); };
   if(!pending.length){ go(); return; }
   var done=0, on=function(){ done++; if(done>=pending.length) go(); };
   pending.forEach(function(im){ im.addEventListener('load',on,{once:true}); im.addEventListener('error',on,{once:true}); });
   setTimeout(go,4000); // 未push(404)や遅い回線でも、最大4秒で印刷は進める
 }
-/* 両面印刷で「表と裏に別の生徒」が出るのを、プリンタ設定に頼らずツール側で防ぐ 2026-07-28（リアルタイム印刷 realtime.html と同じ対策）
-   1ページで終わる生徒の裏に、文字入りの「仕切りページ(.p-filler)」を1枚足して偶数ページ化する。
-   両面でも各生徒が新しい紙のオモテから始まり、白紙ではないので「白紙スキップ」でも消えない。
-   仕切りを足すのは印刷幅で測って「確実に1ページ(<235mm)」の子だけ＝境目/複数ページ/最後の子には足さず現状維持（fail-safe）。 */
-function insertDuplexFillers_(host){
+/* 改ページ禁止(.up-item/.print-item)を考慮して、印刷したときのページ数を数える（Chromeの page-break-inside:avoid を再現）。
+   wrap=印刷幅(186mm)・余白0で描画した .print-student/.p-sheet。usablePx=1ページの本文高さ(273mm)をpxにしたもの。2026-07-30 */
+function countPages_(wrap, usablePx){
+  var kids=Array.prototype.slice.call((wrap&&wrap.children)||[]);
+  if(!kids.length) return 1;
+  var shift=0, pages=1, EPS=1;
+  kids.forEach(function(el){
+    var h=el.offsetHeight, top=el.offsetTop; // offsetTopは直前要素のmarginも含む＝連続レイアウトでの位置
+    var ub = el.classList && (el.classList.contains('up-item')||el.classList.contains('print-item')); // 割れない問題1件
+    var rTop=top+shift, rBot=rTop+h;
+    var pTop=Math.floor(rTop/usablePx);
+    if(ub && h<=usablePx && Math.floor((rBot-EPS)/usablePx) > pTop){ // 次ページに送られる＝空白ができる
+      var nTop=(pTop+1)*usablePx; shift += (nTop-rTop); rTop=nTop; rBot=rTop+h;
+    }
+    var pg=Math.floor((rBot-EPS)/usablePx)+1;
+    if(pg>pages) pages=pg;
+  });
+  return pages;
+}
+/* 両面印刷で「表と裏に別の生徒」が出るのを、プリンタ設定に頼らずツール側で防ぐ 2026-07-28→2026-07-30 一般化。
+   各生徒のページ数を数え、奇数の生徒の裏に「仕切りページ(.p-filler)」を1枚足して偶数化する（旧：確実に1ページの子だけ→3ページ等の奇数の子が崩れていた）。
+   両面でも各生徒が新しい紙のオモテから始まる。仕切りはほぼ余白（裏紙に使える・個人情報なし）で、隅の小さな印だけ＝白紙スキップでも消えない。
+   done は仕切り確定後（図の画像を待ってから測る）に呼ばれる＝そのあと window.print()。2026-07-30 */
+function insertDuplexFillers_(host, done){
+  done = (typeof done==='function')?done:function(){};
   try{
-    host=host||document.getElementById('printArea'); if(!host) return;
+    host = host || document.getElementById('printArea');
+    if(!host){ done(); return; }
+    var WRAP='print-student';
+    var units=Array.prototype.slice.call(host.querySelectorAll('.p-unit'));
+    units.forEach(function(u){ var o=u.querySelector('.p-filler'); if(o&&o.parentNode) o.parentNode.removeChild(o); }); // 冪等（前回の仕切りを消す）
+    if(units.length<2){ done(); return; } // 生徒0/1人は表裏の混ざりが起きない＝仕切り不要
     var probe=document.createElement('div');
     probe.style.cssText='position:absolute;left:-99999px;top:0;width:100mm;height:0;';
     document.body.appendChild(probe);
     var px100=probe.getBoundingClientRect().width||378; document.body.removeChild(probe);
     var mmPerPx=100/px100;
+    var usablePx=273/mmPerPx; // A4縦 297 − 上下余白12mm×2（@pageと一致）
     var meas=document.createElement('div');
-    meas.style.cssText='position:absolute;left:-99999px;top:0;width:190mm;';
+    meas.style.cssText='position:absolute;left:-99999px;top:0;';
     document.body.appendChild(meas);
-    var units=Array.prototype.slice.call(host.querySelectorAll('.p-unit'));
-    var ONE_PAGE_SAFE_MM=235;
+    var reps=[];
     units.forEach(function(u,i){
-      var old=u.querySelector('.p-filler'); if(old&&old.parentNode) old.parentNode.removeChild(old); // 冪等
-      if(i===units.length-1) return; // 最後の生徒の裏に仕切りは不要
-      var sh=u.querySelector('.print-student'); if(!sh) return;
-      meas.innerHTML='<div class="print-student" style="width:190mm;padding:8mm 6mm;">'+sh.innerHTML+'</div>';
-      var hmm=(meas.firstChild?meas.firstChild.getBoundingClientRect().height:0)*mmPerPx;
-      if(hmm>0 && hmm<ONE_PAGE_SAFE_MM){
-        var f=document.createElement('div'); f.className='p-filler';
-        f.textContent='── このページはわざと空けています（両面印刷で生徒を1人1枚に分けるための仕切りです）──';
-        u.appendChild(f);
-      }
+      if(i===units.length-1){ reps.push(null); return; } // 最後の生徒の裏には仕切り不要（後ろに別生徒が来ない）
+      var sh=u.querySelector('.'+WRAP);
+      var box=document.createElement('div');
+      box.innerHTML='<div class="'+WRAP+'" style="position:relative;width:186mm;padding:0;margin:0;box-shadow:none;border-radius:0;max-width:none;">'+(sh?sh.innerHTML:'')+'</div>';
+      meas.appendChild(box);
+      reps.push({unit:u, wrap:box.firstChild});
     });
-    meas.innerHTML=''; if(meas.parentNode) document.body.removeChild(meas);
-  }catch(e){}
+    var finished=false;
+    var finish=function(){
+      if(finished) return; finished=true;
+      try{
+        reps.forEach(function(r){
+          if(!r) return;
+          if(countPages_(r.wrap, usablePx)%2===1){ // ページ数が奇数＝裏が空く→仕切りを1枚足して偶数化
+            var f=document.createElement('div'); f.className='p-filler'; r.unit.appendChild(f);
+          }
+        });
+      }catch(e){}
+      if(meas.parentNode) document.body.removeChild(meas);
+      done();
+    };
+    // 図の画像は再描画で読み込み直し＝未読込だと高さ0でページ数を誤る→読み込みを待ってから測る
+    var imgs=Array.prototype.slice.call(meas.querySelectorAll('img')).filter(function(im){ return !(im.complete&&im.naturalWidth>0); });
+    if(!imgs.length){ finish(); return; }
+    var c2=0, on=function(){ c2++; if(c2>=imgs.length) finish(); };
+    imgs.forEach(function(im){ im.addEventListener('load',on,{once:true}); im.addEventListener('error',on,{once:true}); });
+    setTimeout(finish,1500); // 保険（キャッシュ済みでもすぐ来ないことがある）
+  }catch(e){ done(); }
 }
 function lastStudiedCell(s){var da=daysAgo(s.last_studied_at);if(da===null)return '<div class="dash">未学習</div>';var lbl=da<=0?'今日':(da===1?'昨日':da+'日前');var warn=(da>=_inactiveDays)?' warn':'';var m=String(s.last_studied_at).match(/^(\d{4})-(\d{2})-(\d{2})/);var md=m?(parseInt(m[2],10)+'/'+parseInt(m[3],10)):'';return '<div class="num" style="font-size:12px;">'+md+'</div><div class="last-ago'+warn+'">'+lbl+'</div>';}
 /* 割当教材ピル：全割当を表示（青=毎日学習/金=テスト配信・3件目からは+◯・川上さん承認モック 2026-07-05）
