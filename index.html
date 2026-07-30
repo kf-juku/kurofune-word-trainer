@@ -2072,6 +2072,7 @@ function _dailyQueueRow_(m){
 function renderUnitZone_(materials){
   var host=$('unit-list');if(!host)return;
   var tests=(materials||[]).filter(function(c){return c.content_type==='test';});
+  tests=tests.slice().sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // 教材の並び順(display_order)で・ホーム/確認テストと統一 2026-07-29
   host.innerHTML='';_unitCount=tests.length;
   if(tests.length){
     var groups=[],gm={};
