@@ -2976,6 +2976,7 @@ var pronRec=null,pronBusy=false;
 /* ===== 声反応orb（マイク音量メーター）2026-07-08 ===== */
 var micStream=null,micCtx=null,micAnalyser=null,micData=null,micRAF=null,micReady=false,micTried=false;
 var pronHeard=false,pronGotResult=false,pronErr=false,pronWatch=null;
+var pronSpeakTimer=null,pronSkipping=false; // お手本タイマー（スキップで消せる）＋スキップ連打ガード 2026-07-30
 function micInit_(){ // 一度だけgetUserMediaで音量取得を用意。失敗しても発音自体は続行
   if(micReady||micTried)return; micTried=true;
   try{
@@ -3067,6 +3068,7 @@ function pronStop_(){ // タイマー・音声認識を全部止める（やめ�
   clearTimeout(pronTimer);pronTimer=null;
   clearInterval(pronCntIv);pronCntIv=null;
   clearTimeout(pronWatch);pronWatch=null;
+  clearTimeout(pronSpeakTimer);pronSpeakTimer=null;
   try{if(pronRec)pronRec.abort();}catch(e){}pronRec=null; // 中止した認識のonend/onerrorが後から pronMiss_（お手本再生＋マイク再ON）を誤発火するのを防ぐ 2026-07-30
   orbReactStop_();
   pronBusy=false;
@@ -3079,7 +3081,7 @@ function pronUI_(orbCls,orbIcon,msgCls,msg,sub,cnt){
 }
 function pronShowHeard_(t){var su=$('pron-sub');if(su&&t)su.innerHTML='「<b>'+esc(t)+'</b>」って<ruby>聞<rt class="uf">き</rt></ruby>こえたよ';} // 認識が拾えているサイン（2026-07-08 メーター廃止の代わり）
 function pronBegin_(){ // 単語表示：正解音声なし→3・2・1→マイク自動起動
-  pronStop_();pronTries=0;pronAdvanced=false;
+  pronStop_();pronTries=0;pronAdvanced=false;pronSkipping=false;
   var s=session;if(!s)return;
   if(!SR){ // 音声認識非対応端末：お手本を聞いて自動で次へ（自己申告扱い・attemptsのみ加算）
     countSelfReportIfNeeded();
@@ -3140,7 +3142,7 @@ function pronOk_(second,heard){
   sndPronOk();
   pronUI_('ok','ti-check','ok',(second?'オッケー！':'いいね！<ruby>読<rt class="uf">よ</rt></ruby>めてるね'),(heard?'「'+esc(heard)+'」って<ruby>聞<rt class="uf">き</rt></ruby>こえたよ　':'')+'<i class="ti ti-volume"></i> お<ruby>手本<rt class="uf">てほん</rt></ruby>の<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>流<rt class="uf">なが</rt></ruby>すよ','');
   clearTimeout(pronTimer);
-  setTimeout(function(){try{if(session===s)speak(s.words[s.idx]);}catch(e){}},650); // 達成音のあとにお手本 2026-07-14
+  clearTimeout(pronSpeakTimer);pronSpeakTimer=setTimeout(function(){try{if(session===s)speak(s.words[s.idx]);}catch(e){}},650); // 達成音のあとにお手本（スキップで消せるよう保持）2026-07-30
   pronTimer=setTimeout(pronNext_,PRON_AFTER_AUDIO+650);
 }
 function pronMiss_(heard){
@@ -3177,10 +3179,15 @@ $('btn-mic').onclick=function(){ // もう一回言う（やり直し回数も�
   pronBusy=false;pronTries=0;
   pronListen_();
 };
-$('btn-skip').onclick=function(){ // スキップしても「正しい発音を聞く」は必ず1回通す（②を飛ばさせない）2026-07-30
+$('btn-skip').onclick=function(){ // スキップ：結果前は お手本を1回聞かせて次へ／結果後は もう聞いた扱いで即・次へ（連打で止まらない）2026-07-30
   var s=session;if(!s)return;
+  if(pronAdvanced||pronSkipping)return; // 連打・二重進行を防ぐ（お手本ループ対策）
+  pronSkipping=true;
   countSelfReportIfNeeded();
-  pronStop_(); // マイク・タイマーを止める（pronRec=nullで中止認識の誤発火も防ぐ）
+  var already=pronGotResult; // 結果が出ていれば お手本は結果フロー（pronOk_/pronMiss_）で既に流れている
+  pronStop_(); // マイク・タイマー・お手本タイマーを止める（pronRec=nullで中止認識の誤発火も防ぐ）
+  if(already){ pronNext_(); return; } // 発音の結果が出たあと＝お手本は聞いた→すぐ次へ（お手本を重ねない）
+  // まだ結果が出ていない（カウント中・録音中）＝②お手本を1回だけ聞かせてから次へ
   pronUI_('ok','ti-volume','ok','お<ruby>手本<rt class="uf">てほん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いてね','スキップしても、<ruby>正<rt class="uf">ただ</rt></ruby>しい<ruby>音<rt class="uf">おと</rt></ruby>は<ruby>最後<rt class="uf">さいご</rt></ruby>に<ruby>聞<rt class="uf">き</rt></ruby>いてまねしよう','');
   try{speak(s.words[s.idx]);}catch(e){}
   clearTimeout(pronTimer);pronTimer=setTimeout(pronNext_,PRON_AFTER_AUDIO);
