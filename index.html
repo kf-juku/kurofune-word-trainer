@@ -683,9 +683,12 @@
   .stat .k{font-size:11px;color:var(--sub);margin-top:3px;}
 
   /* 練習 */
-  .prac-top{display:flex;margin:-4px 0 2px;}
+  .prac-top{display:flex;justify-content:space-between;align-items:center;margin:-4px 0 2px;}
   .prac-quit{background:none;border:none;color:var(--sub);font-size:13px;font-family:inherit;cursor:pointer;padding:6px 8px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;}
   .prac-quit:hover{background:var(--ring-track);color:var(--ink);}
+  .prac-refresh{background:none;border:none;color:var(--sub);font-size:13px;font-family:inherit;cursor:pointer;padding:6px 8px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;}
+  .prac-refresh:hover{background:var(--ring-track);color:var(--ink);}
+  .prac-refresh:active{transform:scale(.97);}
   .prog{height:8px;background:var(--ring-track);border-radius:6px;overflow:hidden;margin:8px 0 6px;}
   /* 1問あたりの制限時間バー（案C・太バー＋残り秒数・色変化）2026-07-04 */
   .qtimer{display:flex;align-items:center;gap:10px;margin:10px 0 4px;}
@@ -936,7 +939,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 .ex-fig img{width:92px;height:92px;object-fit:contain;flex:none;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:zoom-in}
 .ex-fig .ex-zoom{display:inline-block;margin-top:3px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px}
 /* ===== 図の全画面ズーム 2026-07-13 ===== */
-.kzoom{position:fixed;inset:0;background:rgba(15,20,30,.94);z-index:9999;display:none;flex-direction:column}
+.kzoom{position:fixed;inset:0;height:100dvh;background:rgba(15,20,30,.94);z-index:9999;display:none;flex-direction:column}
 .kzoom.open{display:flex}
 .kzstage{flex:1;position:relative;overflow:hidden;touch-action:none}
 .kzstage img{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;user-select:none;-webkit-user-drag:none;max-width:none;border-radius:6px}
@@ -945,7 +948,9 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 .kz-side{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:2}
 .kz-side button{width:58px;height:58px;border-radius:50%;border:none;background:rgba(255,255,255,.92);color:#111;font-size:32px;font-weight:800;line-height:1;box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:pointer;display:grid;place-items:center;font-family:inherit}
 .kz-side button:active{transform:scale(.94)}
-.kz-bar{display:flex;gap:12px;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(0,0,0,.25)}
+.kz-x{position:absolute;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:6;width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.92);color:#111;font-size:24px;display:grid;place-items:center;box-shadow:0 3px 12px rgba(0,0,0,.35);cursor:pointer;font-family:inherit}
+.kz-x:active{transform:scale(.94)}
+.kz-bar{display:flex;flex-shrink:0;gap:12px;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(0,0,0,.25)}
 .kz-bar button{flex:1;max-width:200px;border:none;border-radius:14px;padding:14px 10px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .kz-bar .kz-reset{background:rgba(255,255,255,.16);color:#fff}
 .kz-bar .kz-close{background:#fff;color:#111}
@@ -1149,7 +1154,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 
   <section id="scr-practice" class="screen">
     <div class="body">
-      <div class="prac-top"><button class="prac-quit" id="btn-quit" type="button"><i class="ti ti-x"></i> やめる</button></div>
+      <div class="prac-top"><button class="prac-quit" id="btn-quit" type="button"><i class="ti ti-x"></i> やめる</button><button class="prac-refresh" id="btn-refresh" type="button"><i class="ti ti-refresh"></i> <span class="pr-t"><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div>
       <div class="prog"><i id="prog"></i></div>
       <div class="muted center" id="step-label"></div>
       <div class="furi-bar" id="furi-bar"></div>
@@ -1334,7 +1339,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
-var APP_VERSION="kwt-2026-07-29"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-07-31"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -2960,6 +2965,16 @@ $('btn-quit').onclick=function(){
     openHome();
   }
 };
+/* 「更新」：今の問題をリセットせず画面を組み直す（固まった画像ビューア/レイアウト崩れからの復帰・通信なし・別の問題に飛ばない）2026-07-31 */
+function refreshCurrentView_(){
+  try{var kz=document.getElementById('kzoom');if(kz)kz.classList.remove('open');}catch(e){}
+  try{document.body.style.overflow='';}catch(e){}
+  try{var g=document.querySelectorAll('.tap-guard');for(var i=0;i<g.length;i++){if(g[i].parentNode)g[i].parentNode.removeChild(g[i]);}}catch(e){}
+  try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
+  var s=(typeof _actSes==='function'?_actSes():null)||session;
+  if(s&&s.words&&s.words[s.idx]){ try{renderQz_(s);}catch(e){} try{if(typeof toastH==='function')toastH('<ruby>画面<rt class="uf">がめん</rt></ruby>を<ruby>更新<rt class="uf">こうしん</rt></ruby>したよ');}catch(e){} }
+}
+try{var _brf=$('btn-refresh');if(_brf)_brf.onclick=refreshCurrentView_;}catch(e){}
 function speak(w){try{if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(w.tts_text||w.english);u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}}catch(e){}}
 /* どの画面でも発音を聞けるボタン 2026-07-08：選択問題中でも現在の単語を再生 */
 var _playWord=null;
@@ -4039,6 +4054,8 @@ try{refreshBugFab();}catch(e){}
     btnMinus.addEventListener('click',function(){zoomAt(cx(),cy(),scale/1.5);});
     el('kz-reset').addEventListener('click',fit);
     el('kz-close').addEventListener('click',close);
+    var _kzx=el('kz-x');if(_kzx)_kzx.addEventListener('click',close);
+    window.addEventListener('orientationchange',function(){ if(ov.classList.contains('open')) setTimeout(fit,250); }); // 向き変更で画像とバーを組み直す（とじる消失対策）2026-07-31
     ov.addEventListener('click',function(e){if(e.target===ov)close();});
     /* ドラッグで移動 */
     var pts={},lastDist=0,lastMid=null,dragId=null,dragX=0,dragY=0,dtx=0,dty=0;
@@ -4117,6 +4134,7 @@ try{refreshBugFab();}catch(e){}
 </script>
 <div class="kzoom" id="kzoom">
   <div class="kzstage" id="kzstage"><img id="kzimg" alt="図"></div>
+  <button class="kz-x" id="kz-x" type="button" aria-label="とじる"><i class="ti ti-x"></i></button>
   <div class="kz-move"><i class="ti ti-arrows-move"></i>指でうごかせます</div>
   <div class="kz-side">
     <button id="kz-plus" aria-label="大きく">＋</button>
