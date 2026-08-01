@@ -2087,10 +2087,11 @@ function _dailyQueueRow_(m){
 /* 単元別＝本(シリーズ)ごとにフラットな章リスト＋消化率。material_parts の content_type=test を使う */
 function renderUnitZone_(materials){
   var host=$('unit-list');if(!host)return;
-  var tests=(materials||[]).filter(function(c){return c.content_type==='test';});
+  var tests=(materials||[]).filter(function(c){return c.content_type==='test'&&c.sm_status!=='completed';}); // 完了(全クリア)は単元別タブから消す＝学習マップで復習 2026-08-01
   tests=tests.slice().sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // 教材の並び順(display_order)で・ホーム/確認テストと統一 2026-07-29
   host.innerHTML='';_unitCount=tests.length;
   if(tests.length){
+    var uhint=document.createElement('p');uhint.className='map-hint';uhint.style.cursor='pointer';uhint.innerHTML='<i class="ti ti-map-2"></i> <span><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>何度<rt class="uf">なんど</rt></ruby>でも <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ</span> <i class="ti ti-arrow-right"></i>';uhint.onclick=function(){showSub('lists');};host.appendChild(uhint); // 学習マップへの誘導 2026-08-01
     var groups=[],gm={};
     tests.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!gm[k]){gm[k]={lab:mtSeriesLabelMt(c),items:[],key:k};groups.push(gm[k]);}gm[k].items.push(c);});
     var _open=_unitOpenGet_();
@@ -2128,6 +2129,7 @@ function renderUnitZone_(materials){
     if(_allClear&&groups.length){var fc=document.createElement('div');fc.className='fin-card mini';fc.innerHTML='<div class="dc-ic"><i class="ti ti-trophy"></i></div><div class="dc-t"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>、ぜんぶ クリア！</div><div class="dc-s">わりあての テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を <ruby>全部<rt class="uf">ぜんぶ</rt></ruby> 100%に したよ。すごい！</div>';host.insertBefore(fc,host.firstChild);} // 全クリアの祝い 2026-07-24
   }else{
     host.innerHTML='<div class="empty-note"><i class="ti ti-flag"></i><div><ruby>先生<rt class="uf">せんせい</rt></ruby>が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに <ruby>出<rt class="uf">で</rt></ruby>るよ。<br>いまは <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>を すすめよう。</div></div>';
+    var uhint2=document.createElement('p');uhint2.className='map-hint';uhint2.style.cursor='pointer';uhint2.style.marginTop='10px';uhint2.innerHTML='<i class="ti ti-map-2"></i> <span><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ</span> <i class="ti ti-arrow-right"></i>';uhint2.onclick=function(){showSub('lists');};host.appendChild(uhint2); // 学習マップへの誘導 2026-08-01
   }
   syncTestZone_();
 }
@@ -2296,7 +2298,8 @@ function loadHomeData_(showSkel){
         var map='<div class="dotmap">';
         parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
         map+='</div>';
-        ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtShortMt(c))+lapPill+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
+        var doneTag=(total>0&&passedN===total)?' <span style="font-size:10px;font-weight:800;color:var(--ok);background:rgba(31,170,107,.12);border:1px solid rgba(31,170,107,.3);border-radius:6px;padding:1px 7px;vertical-align:middle;white-space:nowrap;"><i class="ti ti-circle-check" style="font-size:11px;vertical-align:-1px;"></i> クリア<ruby>済<rt class="uf">ずみ</rt></ruby></span>':''; // 完了教材は緑タグ 2026-08-01
+        ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtShortMt(c))+lapPill+doneTag+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
           +'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>'+map
           +'<div class="ov-sub"><span class="dm-s done"></span>クリアずみ <b>'+passedN+'</b>　'+(curPart?'<span class="dm-s cur"></span>いまここ <b>'+curLbl+'</b>　':'')+'のこり <b>'+(total-passedN)+'</b></div>';
         var detail=document.createElement('div');detail.className='macc-detail';
@@ -3345,6 +3348,18 @@ function tipHtml_(){var tp=TIPS[Math.floor(Math.random()*TIPS.length)];return '<
    採点・合格判定はGAS側(quizSubmit)が sessionComplete と同一ロジックで実施。ここは表示のみ。 */
 function doneClearTtl_(){return '<div style="font-weight:800;font-size:20px;letter-spacing:-.01em;">ぜんぶクリア！おめでとう</div>'
  +'<div style="margin-top:5px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(202,162,74,.06));color:var(--gold);border:1px solid rgba(202,162,74,.35);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;"><i class="ti ti-anchor"></i> この<ruby>教材<rt class="uf">きょうざい</rt></ruby>ぜんぶ<ruby>合格<rt class="uf">ごうかく</rt></ruby></div>';}
+function goMapSub_(){openHome();showSub('lists');} // 学習マップを開く（完了画面・単元別の誘導から）2026-08-01
+/* 単元別タブ全クリア＝grand（金トロフィー）2026-08-01 */
+function doneUnitAllTtl_(){return '<div style="font-weight:800;font-size:20px;letter-spacing:-.01em;"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>、ぜんぶクリア！おめでとう</div>'
+ +'<div style="margin-top:5px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(202,162,74,.06));color:var(--gold);border:1px solid rgba(202,162,74,.35);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;"><i class="ti ti-trophy"></i> わりあての<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>を ぜんぶ<ruby>合格<rt class="uf">ごうかく</rt></ruby></div>';}
+/* 単元別で1教材(章)クリア＝中お祝い（緑チェック）2026-08-01 */
+function doneMatClearTtl_(){return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;">この<ruby>教材<rt class="uf">きょうざい</rt></ruby>クリア！</div>'
+ +'<div style="margin-top:5px;display:inline-flex;align-items:center;gap:6px;background:rgba(31,170,107,.12);color:var(--ok);border:1px solid rgba(31,170,107,.3);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;"><i class="ti ti-circle-check"></i> 1つ<ruby>合格<rt class="uf">ごうかく</rt></ruby>したよ</div>';}
+/* 教材クリアの案内＝学習マップで何度でも復習できる（軽い誘導）2026-08-01 */
+function doneMatClearGuide_(){return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;">'
+ +'<div style="font-size:12.8px;color:var(--sub);margin-bottom:10px;"><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>何度<rt class="uf">なんど</rt></ruby>でも <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ。</div>'
+ +'<button onclick="goMapSub_()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;"><i class="ti ti-map-2"></i> <span><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップを ひらく</span></button>'
+ +'</div>';}
 function doneTodayDoneTtl_(){return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;"><ruby>今日<rt class="uf">きょう</rt></ruby>のぶん、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div><div class="done-guide" style="margin-top:3px;">●が<ruby>消<rt class="uf">き</rt></ruby>えたよ。<ruby>今日<rt class="uf">きょう</rt></ruby>はここまででOK</div>';}
 function doneGuideHtml_(){return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;">'
  +'<div style="font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;"><i class="ti ti-sparkles" style="color:var(--gold)"></i> <span>つぎは？</span></div>'
@@ -3439,7 +3454,8 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     if(d.data.is_test){
       // 2026-07-07 grill確定：テスト配信も毎日学習と同じ80%で前進（満点前進は廃止）。おさらいの100%卒業案内はスライス3で追加。正＝機能仕様書_テスト配信 0章。
       if(d.data.passed){sndWin();flash();confetti(120);
-        if(d.data.completed_material){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML=doneClearTtl_();confetti(180);$('done-guide-area').innerHTML=doneGuideHtml_();}
+        if(d.data.completed_material&&d.data.test_all_completed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML=doneUnitAllTtl_();confetti(180);$('done-guide-area').innerHTML=doneGuideHtml_();} /* 単元別タブ全消え＝grand 2026-08-01 */
+        else if(d.data.completed_material){$('done-badge').innerHTML='<i class="ti ti-circle-check" style="color:var(--ok)"></i>';$('done-result').innerHTML=doneMatClearTtl_();$('done-guide-area').innerHTML=doneMatClearGuide_();} /* 1章クリア＝中お祝い（緑）2026-08-01 */
         else{$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML=doneTodayDoneTtl_();
           if(d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span>つづけて<ruby>先取<rt class="uf">さきど</rt></ruby>り（つぎのパート）</span>';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}}
       else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='今日のぶんは <b>まだ終わっていない</b>よ（<span style=\"color:#e0574b;\">●</span>がのこってるよ）。<br><span class=\"done-guide\">「もう一回やる」で <b>80%</b> とれたら、今日のぶん完了！</span>';}
