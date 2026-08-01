@@ -697,6 +697,16 @@
 .table-wrap th:nth-child(n+5){min-width:56px;}
 .table-wrap th:nth-child(6),.table-wrap td:nth-child(6){min-width:66px;}
 .table-wrap th:nth-child(9),.table-wrap td:nth-child(9){min-width:60px;}
+/* 2026-08-01 生徒一覧の見切れ対策：表を詰めて画面内に収める（実データで最小必要幅≈894px＝コンテナ1072pxに余裕。横スクロールなし・原則12の最小レイアウト調整）。列や情報は増減せず幅だけ圧縮。 */
+.table-wrap th,.table-wrap td{padding-left:3px;padding-right:3px;}
+.table-wrap th:first-child,.table-wrap td:first-child{min-width:78px;}
+.table-wrap .t-nick{font-size:10px;}
+.table-wrap .mfold{min-width:158px;max-width:250px;}
+.table-wrap .mfold-h{padding:5px 7px;font-size:10.5px;}
+.table-wrap .mfold-h .fcaret,.table-wrap .mfold-h .fcount{font-size:10px;}
+.table-wrap .mchip{max-width:230px;}
+.table-wrap .chrow{font-size:10.5px;padding:2px 2px;}
+.table-wrap .chrow .cacc{width:42px;}
 .mchip.mgroup{cursor:pointer;}
 .mchip.mgroup .mtop{font-weight:800;}
 .qa-h{font-size:11px;font-weight:800;color:var(--text-muted);margin:2px 0 6px;}
@@ -1642,6 +1652,8 @@ function openStudentDetail(sid){
   var chips=[s.grade,s.school,s.class_name].filter(Boolean).map(function(x){return '<span class="sd-chip">'+esc(x)+'</span>';}).join('');
   var needBadge=needsHelp(s)?'<span class="badge b-red" style="margin-left:8px;">要指導</span>':'';
   var mv=s.materials_view||[];
+  var cv=s.completed_view||[];
+  var completedHtml=cv.length?('<details class="sd-fold"><summary>クリア済の教材（'+cv.length+'）— パート内訳を見る</summary><div style="margin-top:6px;">'+partsBlock(cv)+'</div></details>'):''; // 完了した単元別も毎日学習と同じパート内訳で見られる 2026-08-01
   var pm=s.past_materials||[];
   var pastHtml=pm.length?('<details class="sd-fold"><summary>過去にやった教材（'+pm.length+'）</summary><div style="margin-top:6px;">'+pm.map(function(x){return '<div class="pastrow">'+esc(mtLabel(x))+' <span class="t-sub">最終 '+esc(x.last||'')+'</span></div>';}).join('')+'</div></details>'):'';
   $('sdBody').innerHTML=''
@@ -1651,6 +1663,7 @@ function openStudentDetail(sid){
     +'<div class="sd-grid">'
       +'<div>'
         +'<div class="sd-sec" style="margin-top:0;">教材ごとの全パート正答率 <span class="t-sub">（赤＝基準未満＝弱点パート）</span></div>'+partsBlock(mv)
+        +completedHtml
         +pastHtml
       +'</div>'
       +'<div>'
