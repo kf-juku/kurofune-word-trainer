@@ -3176,8 +3176,27 @@ function applyBulk(){
   var sids=Object.keys(tmSel),mids=Object.keys(bulkMat);
   if(!sids.length){$('bulkErr').textContent='生徒を選んでください';return;}
   if(!mids.length){$('bulkErr').textContent='教材を選んでください';return;}
+  var testMids=bulkTestMids();
+  // 【配信取りこぼし防止 2026-08-01】配信履歴(dates)がまだ読めていない単元別教材があれば、
+  // 先に全部読み込んでから集計する（早く「割り当てる」を押した／シリーズ全選択で多数選んだ場合の未配信対策）。
+  var pending=testMids.filter(function(mid){return !bulkDelivDates[mid];});
+  if(pending.length){
+    $('bulkErr').textContent='';showLoading('確認テストの配信状況を確認中…');
+    Promise.all(pending.map(function(mid){
+      return call({action:'quiz_delivery_dates',material_id:mid}).then(function(d){
+        bulkDelivDates[mid]=(d&&d.ok&&d.data&&d.data.dates)?d.data.dates:{};
+      });
+    })).then(function(){hideLoading();_applyBulkRun(sids,mids,testMids);});
+    return;
+  }
+  _applyBulkRun(sids,mids,testMids);
+}
+function _applyBulkRun(sids,mids,testMids){
+  // 未設定の子には必ずデフォルト（未配信=配信ON／配信済み=スキップ）を適用してから集計する。
+  // ＝生徒を後から追加した／読み込み前だった場合の「配信されない」を防ぐ。
+  testMids.forEach(function(mid){ if(!bulkDeliver[mid])bulkDeliver[mid]={}; var dts=bulkDelivDates[mid]||{}; sids.forEach(function(sid){ if(bulkDeliver[mid][sid]===undefined)bulkDeliver[mid][sid]=dts[sid]?false:true; }); });
   var plan=[],totalDel=0,totalAgain=0;
-  bulkTestMids().forEach(function(mid){var dv=bulkDeliver[mid]||{},dates=bulkDelivDates[mid]||{};
+  testMids.forEach(function(mid){var dv=bulkDeliver[mid]||{},dates=bulkDelivDates[mid]||{};
     var on=sids.filter(function(sid){return dv[sid];});
     if(on.length){var again=on.filter(function(sid){return dates[sid];}).length;plan.push({mid:mid,sids:on,again:again});totalDel+=on.length;totalAgain+=again;}
   });
