@@ -497,7 +497,17 @@
   .mt-ssub{font-size:11px;color:var(--text-light);white-space:nowrap;}
   .mt-sbody{display:none;padding-left:22px;}
   .mt-series.open .mt-sbody{display:block;}
-  .mt-rgh{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--text-muted);padding:7px 11px 3px;background:#f7fbf8;}
+  .mt-rgh{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--text-muted);padding:6px 10px 3px;background:#f7fbf8;}
+  /* 管理画面のモーダルは一覧性優先＝大きく・高さいっぱい・詰めて多く見せる（余白より情報量）2026-08-01 川上さん */
+  #bulkModal .modal{max-height:95vh;padding:12px 18px;}
+  #bulkModal h3{margin-bottom:6px;}
+  #bulkModal #tmBody{flex:1 1 auto;min-height:0;}
+  #assignModal .modal{max-height:95vh;}
+  #bulkMatCand,#bulkMatSel{height:min(66vh,660px);max-height:none;}
+  #asgMatCand,#asgMatSel{height:min(58vh,560px);max-height:none;}
+  #bulkMatCand .pk-row,#bulkMatSel .pk-row,#asgMatCand .pk-row,#asgMatSel .pk-row{padding:5px 10px;}
+  #bulkMatCand .mt-shead,#asgMatCand .mt-shead{padding:6px 10px;}
+  #bulkMatCand .mt-typehead,#asgMatCand .mt-typehead{padding:5px 10px 3px;}
   /* 確認テスト：最終配信日バッジ（一覧・名簿編集 共通）2026-07-13 */
   .dbadge{font-size:10.5px;font-weight:800;border-radius:11px;padding:2px 9px;white-space:nowrap;display:inline-block;}
   .dbadge.d-recent{background:var(--blue-light);color:var(--blue-dark);}
@@ -1125,10 +1135,12 @@
 <!-- 教材の一括割当モーダル（クロフネLINE方式・2026-07-04） -->
 <div class="modal-back" id="bulkModal">
   <div class="modal">
-    <h3 id="bulkTitle">まとめて割り当てる</h3>
-    <div class="tm-steps"><span class="tm-step on" id="tmSt1">1 だれに</span><span class="tm-step" id="tmSt2">2 なにを</span></div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <h3 id="bulkTitle" style="margin-bottom:0;">まとめて割り当てる</h3>
+      <div class="tm-steps" style="margin:0;"><span class="tm-step on" id="tmSt1">1 だれに</span><span class="tm-step" id="tmSt2">2 なにを</span></div>
+    </div>
     <div class="err" id="bulkErr"></div>
-    <div id="tmBody" style="overflow-y:auto;max-height:52vh;"></div>
+    <div id="tmBody" style="overflow-y:auto;"></div>
     <div class="modal-actions" style="align-items:center;">
       <span style="font-weight:800;color:var(--crimson);font-size:13px;" id="tmCount">0名 選択中</span>
       <span style="flex:1;"></span>
@@ -2942,7 +2954,6 @@ function tmList_(){
   });
 }
 function tmStepAssign_(body){
-  var h=document.createElement('div');h.className='tm-qh';h.textContent='割り当てる教材（シリーズごと・教材ごとに選べます）';body.appendChild(h);
   var two=document.createElement('div');two.className='pk-two';
   two.innerHTML='<div class="pk-col"><div class="pk-coltitle">候補（割り当てできる教材）</div>'
     +'<input class="pk-search2" id="bulkMatSearch" placeholder="教材名で探す">'
