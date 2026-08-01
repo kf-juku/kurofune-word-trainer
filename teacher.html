@@ -793,11 +793,11 @@
     </div>
 
     <div class="topbarK">
-      <input class="filter-search" id="searchInput" placeholder="🔍 名前で検索" oninput="renderTable()" style="flex:1;min-width:160px;">
-      <button class="btn-ghost" id="advToggle" onclick="toggleAdvK(this)">詳しく絞り込む ▾</button>
+      <button class="btn-ghost" id="advToggle" onclick="toggleAdvK(this)">詳しく絞り込む ▴</button>
+      <input class="filter-search" id="searchInput" placeholder="🔍 名前で検索" oninput="renderTable()" style="flex:0 0 auto;width:190px;min-width:120px;">
       <span class="filter-count" id="filterCount"></span>
     </div>
-    <div class="filter-bar" id="advFilters" style="display:none;">
+    <div class="filter-bar" id="advFilters">
       <div class="filter-grp">
         <span class="filter-label">表示</span>
         <button class="filter-chip active" data-f="all" onclick="setFilter('all',this)">すべて</button>
@@ -805,10 +805,16 @@
         <button class="filter-chip" data-f="not_today" onclick="setFilter('not_today',this)">今日まだ</button>
       </div>
       <div class="filter-grp">
+        <span class="filter-label" id="classLabel" style="display:none;">教室</span>
+        <span id="classChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
+      </div>
+      <div class="filter-grp">
         <span class="filter-label">学年</span>
         <span id="gradeChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
-        <span class="filter-label" id="classLabel" style="margin-left:8px;display:none;">教室</span>
-        <span id="classChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
+      </div>
+      <div class="filter-grp">
+        <span class="filter-label" id="schoolLabel" style="display:none;">中学校</span>
+        <span id="schoolChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
       </div>
       <div class="filter-grp filter-colorset">
         <span class="filter-label">色分け（注意の目印）</span>
@@ -1272,16 +1278,18 @@ function fmtDate(s){
 }
 
 /* 学年・教室フィルタ＋学年ソート 2026-07-02 川上さん指示：学年ソート＋学年の複数選択・教室(class_name)フィルタ */
-var _gradeSel={};var _classSel={};var _sortKey='next',_sortDir=-1;/* 既定＝次の一手の重い順（要アクションを上に）2026-07-10 */
+var _gradeSel={};var _classSel={};var _schoolSel={};var _sortKey='next',_sortDir=-1;/* 既定＝次の一手の重い順（要アクションを上に）2026-07-10 */
 function gradeRank(g){var m=String(g||'').match(/^(小|中|高)\s*(\d)/);if(!m)return 99;var base={'小':0,'中':10,'高':20}[m[1]];return base+parseInt(m[2],10);}
 function buildFilterChips(){
-  var grades=[],classes=[];
+  var grades=[],classes=[],schools=[];
   _students.forEach(function(s){
     if(s.grade&&grades.indexOf(s.grade)<0)grades.push(s.grade);
     if(s.class_name&&classes.indexOf(s.class_name)<0)classes.push(s.class_name);
+    if(s.school&&schools.indexOf(s.school)<0)schools.push(s.school);
   });
   grades.sort(function(a,b){var d=gradeRank(a)-gradeRank(b);return d!==0?d:String(a).localeCompare(String(b),'ja');});
   classes.sort(function(a,b){return String(a).localeCompare(String(b),'ja');});
+  schools.sort(function(a,b){return String(a).localeCompare(String(b),'ja');});
   var gw=$('gradeChips');gw.innerHTML='';
   grades.forEach(function(g){
     var b=document.createElement('button');
@@ -1296,6 +1304,14 @@ function buildFilterChips(){
     b.className='filter-chip'+(_classSel[c]?' active':'');b.type='button';b.textContent=c;
     b.onclick=function(){toggleSelChip(_classSel,c,b);};
     cw.appendChild(b);
+  });
+  var sw=$('schoolChips');sw.innerHTML='';
+  $('schoolLabel').style.display=schools.length?'':'none';
+  schools.forEach(function(sc){
+    var b=document.createElement('button');
+    b.className='filter-chip'+(_schoolSel[sc]?' active':'');b.type='button';b.textContent=sc;
+    b.onclick=function(){toggleSelChip(_schoolSel,sc,b);};
+    sw.appendChild(b);
   });
 }
 function toggleSelChip(sel,v,el){if(sel[v])delete sel[v];else sel[v]=true;el.classList.toggle('active',!!sel[v]);renderTable();}
@@ -1562,12 +1578,13 @@ function retentionCell2(s){
 }
 function renderTable(){
   var search=($('searchInput').value||'').trim();
-  var gsel=Object.keys(_gradeSel),csel=Object.keys(_classSel);
+  var gsel=Object.keys(_gradeSel),csel=Object.keys(_classSel),scsel=Object.keys(_schoolSel);
   var rows=_students.filter(function(s){
     if(_filter==='today'&&!s.did_today)return false;
     if(_filter==='not_today'&&s.did_today)return false;
     if(gsel.length&&gsel.indexOf(String(s.grade))<0)return false;
     if(csel.length&&csel.indexOf(String(s.class_name))<0)return false;
+    if(scsel.length&&scsel.indexOf(String(s.school))<0)return false;
     if(search&&String(s.name).indexOf(search)<0&&String(s.nickname).indexOf(search)<0)return false;
     return true;
   });
