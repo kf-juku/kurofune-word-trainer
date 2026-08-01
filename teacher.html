@@ -480,6 +480,24 @@
   .pk-x{margin-left:8px;color:var(--text-light);font-weight:800;cursor:pointer;}
   .pk-empty{padding:18px;text-align:center;color:var(--text-light);font-size:12px;}
   .pk-hint{font-size:10px;color:var(--text-light);margin-top:5px;}
+  /* 教材トランスファー：候補側のシリーズ折りたたみ（2026-08-01） */
+  #assignModal .modal{max-width:none;width:min(96vw,1040px);}
+  .pk-cb.part{background:var(--crimson);border-color:var(--crimson);opacity:.5;}
+  .mt-typehead{font-size:11px;font-weight:800;color:var(--text-muted);padding:8px 11px 4px;background:#fbfcfd;}
+  .mt-series{border-bottom:1px solid var(--surface2);}
+  .mt-shead{display:flex;align-items:center;gap:8px;padding:8px 11px;cursor:pointer;}
+  .mt-shead:hover{background:#f5f8fb;}
+  .mt-selall{flex:0 0 auto;cursor:pointer;display:inline-flex;padding:1px;}
+  .mt-caret{font-size:9px;color:var(--text-light);width:11px;transition:transform .12s;}
+  .mt-series.open .mt-caret{transform:rotate(90deg);}
+  .mt-pill{font-size:10px;font-weight:800;border-radius:5px;padding:1px 7px;white-space:nowrap;}
+  .mt-pill.daily{background:var(--blue-light,#eff6ff);color:var(--blue-dark,#2563eb);border:1px solid #bfdbfe;}
+  .mt-pill.test{background:#fff8e6;color:#b8860b;border:1px solid #f0dca0;}
+  .mt-sname{font-weight:800;font-size:12.5px;flex:1;min-width:0;}
+  .mt-ssub{font-size:11px;color:var(--text-light);white-space:nowrap;}
+  .mt-sbody{display:none;padding-left:22px;}
+  .mt-series.open .mt-sbody{display:block;}
+  .mt-rgh{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--text-muted);padding:7px 11px 3px;background:#f7fbf8;}
   /* 確認テスト：最終配信日バッジ（一覧・名簿編集 共通）2026-07-13 */
   .dbadge{font-size:10.5px;font-weight:800;border-radius:11px;padding:2px 9px;white-space:nowrap;display:inline-block;}
   .dbadge.d-recent{background:var(--blue-light);color:var(--blue-dark);}
@@ -1088,11 +1106,13 @@
     <div id="asgAllq"></div>
     <div id="asgList"></div>
     <div class="asg-addbox">
-      <div class="asg-add-h">＋ 教材を追加（複数OK・クリックした順に追加）</div>
-      <div id="asgAddOpts"></div>
-      <div id="asgPickedWrap" style="display:none;margin-top:10px;">
-        <div class="asg-add-h" style="color:var(--crimson);">追加する教材（この順で追加）</div>
-        <div id="asgPicked"></div>
+      <div class="asg-add-h">＋ 教材を追加（シリーズごと・教材ごとに選べます）</div>
+      <div class="pk-two">
+        <div class="pk-col"><div class="pk-coltitle">候補（追加できる教材）</div>
+          <input class="pk-search2" id="asgMatSearch" placeholder="教材名で探す">
+          <div class="pk-list" id="asgMatCand"></div></div>
+        <div class="pk-col"><div class="pk-coltitle"><span>追加する教材</span><span class="pk-count" id="asgMatCnt">0教材</span></div>
+          <div class="pk-list sel" id="asgMatSel"></div></div>
       </div>
       <button class="btn-primary" id="asgAddBtn" style="width:auto;padding:8px 16px;margin-top:10px;" disabled onclick="addPicked()">教材を選んでください</button>
     </div>
@@ -2858,7 +2878,7 @@ var Picker=(function(){
 var bulkMat={}, bulkMaterials=[]; var bulkDeliver={}, bulkDelivDates={}, bulkDelivOpen={};
 var tmMode='assign', tmStep=1, tmSel={}, tmSearch='';
 function openTargetModal(mode,presetIds){
-  tmMode=mode;tmStep=1;tmSel={};tmSearch='';bulkMat={};bulkDeliver={};bulkDelivDates={};bulkDelivOpen={};
+  tmMode=mode;tmStep=1;tmSel={};tmSearch='';bulkMat={};bulkDeliver={};bulkDelivDates={};bulkDelivOpen={};_bulkOpen={};
   (presetIds||[]).forEach(function(id){tmSel[String(id)]=1;});
   $('bulkTitle').textContent=(mode==='assign')?'まとめて割り当てる':'まとめて印刷';
   $('bulkModal').classList.toggle('printmode',mode==='print');
@@ -2922,12 +2942,19 @@ function tmList_(){
   });
 }
 function tmStepAssign_(body){
-  var h=document.createElement('div');h.className='tm-qh';h.textContent='割り当てる教材（複数えらべます）';body.appendChild(h);
-  var box=document.createElement('div');box.id='bulkMatList';body.appendChild(box);
+  var h=document.createElement('div');h.className='tm-qh';h.textContent='割り当てる教材（シリーズごと・教材ごとに選べます）';body.appendChild(h);
+  var two=document.createElement('div');two.className='pk-two';
+  two.innerHTML='<div class="pk-col"><div class="pk-coltitle">候補（割り当てできる教材）</div>'
+    +'<input class="pk-search2" id="bulkMatSearch" placeholder="教材名で探す">'
+    +'<div class="pk-list" id="bulkMatCand"></div></div>'
+    +'<div class="pk-col"><div class="pk-coltitle"><span>割り当てる教材</span><span class="pk-count" id="bulkMatCnt">0教材</span></div>'
+    +'<div class="pk-list sel" id="bulkMatSel"></div></div>';
+  body.appendChild(two);
   var note=document.createElement('div');note.className='tm-note';note.textContent='開始＝先頭パート・1日1パート。すでに割り当て済みの生徒はスキップ。単元別対策は下で人ごとに確認テスト配信を設定できます。';body.appendChild(note);
   var dw=document.createElement('div');dw.id='bulkDelivWrap';dw.style.marginTop='10px';body.appendChild(dw);
+  var si=$('bulkMatSearch');if(si)si.oninput=function(){renderBulkMaterials();};
   if(!bulkMaterials.length){
-    box.innerHTML='<div style="color:#94a3b8;font-size:13px;">読み込み中…</div>';
+    $('bulkMatCand').innerHTML='<div class="pk-empty">読み込み中…</div>';
     call({action:'materials_list'}).then(function(d){
       bulkMaterials=(d&&d.ok?(d.data.materials||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}):[]);
       renderBulkMaterials();
@@ -2985,21 +3012,109 @@ function sortMaterials_(arr){
     return String(a.title||'').localeCompare(String(b.title||''),'ja');
   });
 }
-function renderBulkMaterials(){
-  var box=$('bulkMatList');box.innerHTML='';
-  if(!bulkMaterials.length){box.innerHTML='<div style="font-size:12px;color:#94a3b8;">教材がありません</div>';return;}
-  var _lastType=null;
-  sortMaterials_(bulkMaterials).forEach(function(m){
-    // グループ見出し（毎日学習／テスト配信）2026-07-05
-    var _t=(m.content_type==='test')?'単元別対策':'毎日学習';
-    if(_t!==_lastType){_lastType=_t;var hd=document.createElement('div');hd.style.cssText='font-size:11px;font-weight:800;color:var(--text-muted);margin:8px 2px 4px;';hd.textContent='── '+_t+' ──';box.appendChild(hd);}
-    var isTest=(m.content_type==='test');
-    var mid=String(m.id),on=!!bulkMat[mid];
-    var row=document.createElement('div');row.className='bm-row';
-    row.innerHTML='<span class="bulk-cb'+(on?' on':'')+'">'+(on?'✓':'')+'</span><span class="bulk-pill '+(isTest?'test':'daily')+'">'+(isTest?'単元別対策':'毎日学習')+'</span><span style="font-weight:700;">'+esc(mtLabel(m)||'(無題)')+'</span>';
-    row.onclick=function(){if(bulkMat[mid])delete bulkMat[mid];else{bulkMat[mid]=1;if(isTest)bulkEnsureDates(mid);}renderBulkMaterials();if(typeof tmUpdateFoot==='function')tmUpdateFoot();};
-    box.appendChild(row);
+/* ===== 教材トランスファー（候補↔選択中・シリーズ折りたたみ）2026-08-01 =====
+   人選びの Picker と同じ .pk-* 見た目。候補側は 種別→シリーズ で折りたたみ、
+   シリーズ全選択□は見出しタイトルの左端、□以外のバナー全体クリックで開閉。
+   分類は mtSeriesKey（サーバー series_key／_mSeries が控え）＝1か所判定。 */
+var _bulkOpen={}, _asgOpen={};
+function _matType(m){return (m.content_type==='test')?'test':'daily';}
+function _matTypeLabel(t){return t==='test'?'単元別対策':'毎日学習';}
+function matGroupPool_(materials, assignedSet, q){
+  var pool=sortMaterials_(materials).filter(function(m){
+    if(assignedSet&&assignedSet[String(m.id)])return false;
+    if(q&&String(m.title||'').indexOf(q)<0&&String(mtLabel(m)||'').indexOf(q)<0)return false;
+    return true;
   });
+  var types=[],byType={};
+  pool.forEach(function(m){
+    var t=_matType(m);
+    if(!byType[t]){byType[t]={type:t,groups:[],_seen:{}};types.push(t);}
+    var sk=mtSeriesKey(m),gk=sk||('__solo_'+m.id),bt=byType[t];
+    if(!bt._seen[gk]){bt._seen[gk]={key:sk,label:sk?mtSeriesLabel(m):'',solo:!sk,items:[]};bt.groups.push(bt._seen[gk]);}
+    bt._seen[gk].items.push(m);
+  });
+  return types.map(function(t){return byType[t];});
+}
+function _matRow(m,pickedSet,solo){
+  var on=!!pickedSet[String(m.id)];
+  var r=document.createElement('div');r.className='pk-row';
+  var nm=solo?mtLabel(m):mtShort(m);
+  r.innerHTML='<span class="pk-cb'+(on?' on':'')+'">'+(on?'✓':'')+'</span><span>'+esc(nm||'(無題)')+'</span>';
+  return r;
+}
+function renderMatCand_(listEl,cfg){
+  listEl.innerHTML='';
+  var groups=matGroupPool_(cfg.materials,cfg.assignedSet,cfg.search);
+  if(!groups.length){listEl.innerHTML='<div class="pk-empty">該当なし</div>';return 0;}
+  var total=0;
+  groups.forEach(function(tg){
+    var th=document.createElement('div');th.className='mt-typehead';th.textContent='── '+_matTypeLabel(tg.type)+' ──';listEl.appendChild(th);
+    tg.groups.forEach(function(g){
+      total+=g.items.length;
+      if(g.solo){
+        var m0=g.items[0];var r=_matRow(m0,cfg.pickedSet,true);
+        r.onclick=(function(id){return function(){cfg.onOne(id);};})(String(m0.id));
+        listEl.appendChild(r);return;
+      }
+      var okey=cfg.keyPrefix+':'+tg.type+':'+g.key;
+      var isOpen=!!cfg.openMap[okey]||!!cfg.search;
+      var on=g.items.filter(function(m){return cfg.pickedSet[String(m.id)];}).length;
+      var st=(on===0)?'off':((on===g.items.length)?'all':'part');
+      var mark=(st==='all')?'✓':((st==='part')?'−':'');
+      var sec=document.createElement('div');sec.className='mt-series'+(isOpen?' open':'');
+      sec.innerHTML='<div class="mt-shead">'
+        +'<span class="mt-selall" title="このシリーズを全部選ぶ"><span class="pk-cb'+(st==='all'?' on':(st==='part'?' part':''))+'">'+mark+'</span></span>'
+        +'<span class="mt-caret">▶</span>'
+        +'<span class="mt-pill '+(tg.type==='test'?'test':'daily')+'">'+_matTypeLabel(tg.type)+'</span>'
+        +'<span class="mt-sname">'+esc(g.label)+'</span>'
+        +'<span class="mt-ssub">'+g.items.length+'教材</span>'
+        +'</div><div class="mt-sbody"></div>';
+      var bodyEl=sec.querySelector('.mt-sbody');
+      g.items.forEach(function(m){var r=_matRow(m,cfg.pickedSet,false);r.onclick=(function(id){return function(){cfg.onOne(id);};})(String(m.id));bodyEl.appendChild(r);});
+      sec.querySelector('.mt-shead').onclick=function(e){if(e.target.closest('.mt-selall'))return;cfg.onOpen(okey);};
+      sec.querySelector('.mt-selall').onclick=(function(ids,state){return function(e){e.stopPropagation();cfg.onSeries(ids,state);};})(g.items.map(function(m){return String(m.id);}),st);
+      listEl.appendChild(sec);
+    });
+  });
+  return total;
+}
+function renderMatSel_(listEl,cfg){
+  listEl.innerHTML='';
+  var picked=(cfg.materials||[]).filter(function(m){return cfg.pickedSet[String(m.id)];});
+  if(!picked.length){listEl.innerHTML='<div class="pk-empty">まだ選んでいません</div>';return;}
+  var groups=matGroupPool_(picked,null,'');
+  groups.forEach(function(tg){
+    tg.groups.forEach(function(g){
+      if(g.solo){
+        var m0=g.items[0];var r=document.createElement('div');r.className='pk-row';
+        r.innerHTML='<span class="mt-pill '+(tg.type==='test'?'test':'daily')+'">'+_matTypeLabel(tg.type)+'</span><span>'+esc(mtLabel(m0))+'</span><span class="pk-x">✕</span>';
+        r.querySelector('.pk-x').onclick=(function(id){return function(){cfg.onRemove(id);};})(String(m0.id));
+        listEl.appendChild(r);return;
+      }
+      var head=document.createElement('div');head.className='mt-rgh';
+      head.innerHTML='<span class="mt-pill '+(tg.type==='test'?'test':'daily')+'">'+_matTypeLabel(tg.type)+'</span><span>'+esc(g.label)+'</span><span style="color:var(--text-light);font-weight:600;">'+g.items.length+'</span>';
+      listEl.appendChild(head);
+      g.items.forEach(function(m){
+        var r=document.createElement('div');r.className='pk-row';
+        r.innerHTML='<span style="width:17px;flex:0 0 auto;"></span><span>'+esc(mtShort(m))+'</span><span class="pk-x">✕</span>';
+        r.querySelector('.pk-x').onclick=(function(id){return function(){cfg.onRemove(id);};})(String(m.id));
+        listEl.appendChild(r);
+      });
+    });
+  });
+}
+function renderBulkMaterials(){
+  var candEl=$('bulkMatCand'),selEl=$('bulkMatSel');
+  if(!candEl||!selEl)return;
+  if(!bulkMaterials.length){candEl.innerHTML='<div class="pk-empty">教材がありません</div>';selEl.innerHTML='<div class="pk-empty">まだ選んでいません</div>';return;}
+  var q=(($('bulkMatSearch')||{}).value||'').trim();
+  renderMatCand_(candEl,{materials:bulkMaterials,assignedSet:null,pickedSet:bulkMat,openMap:_bulkOpen,search:q,keyPrefix:'bulk',
+    onOne:function(id){var m=bmById(id);if(bulkMat[id])delete bulkMat[id];else{bulkMat[id]=1;if(m&&m.content_type==='test')bulkEnsureDates(id);}renderBulkMaterials();if(typeof tmUpdateFoot==='function')tmUpdateFoot();},
+    onSeries:function(ids,st){ids.forEach(function(id){if(st==='all')delete bulkMat[id];else{bulkMat[id]=1;var m=bmById(id);if(m&&m.content_type==='test')bulkEnsureDates(id);}});renderBulkMaterials();if(typeof tmUpdateFoot==='function')tmUpdateFoot();},
+    onOpen:function(k){_bulkOpen[k]=!_bulkOpen[k];renderBulkMaterials();}
+  });
+  renderMatSel_(selEl,{materials:bulkMaterials,pickedSet:bulkMat,onRemove:function(id){delete bulkMat[id];renderBulkMaterials();if(typeof tmUpdateFoot==='function')tmUpdateFoot();}});
+  var cnt=$('bulkMatCnt');if(cnt)cnt.textContent=Object.keys(bulkMat).length+'教材';
   if(typeof renderBulkDeliver==='function')renderBulkDeliver();
 }
 function bmById(mid){var r=null;(bulkMaterials||[]).forEach(function(m){if(String(m.id)===String(mid))r=m;});return r;}
@@ -3084,7 +3199,8 @@ function applyBulk(){
    もう一周＝assignment_restart_lap。materials_list の教材を追加候補に出す。 */
 var _asgSid='', _asgName='', _asgMaterials=[], _asgParts=[], _asgList=[]; var _asgQuizDates={}; var _asgDatesLoaded=false;
 function openAssign(sid){
-  _asgSid=sid;_asgPicked=[];
+  _asgSid=sid;_asgPicked=[];_asgOpen={};
+  var _ss=$('asgMatSearch');if(_ss){_ss.value='';_ss.oninput=function(){renderAddOptions();};}
   var st=null;for(var i=0;i<_students.length;i++){if(String(_students[i].student_id)===String(sid)){st=_students[i];break;}}
   _asgName=st?(st.name||''):'';
   $('asgTitle').textContent=(_asgName||'この生徒')+' の教材';
@@ -3211,29 +3327,22 @@ var _asgPicked=[];
 function renderAddOptions(){
   var assigned={};_asgList.forEach(function(a){assigned[String(a.material_id)]=true;});
   _asgPicked=_asgPicked.filter(function(mid){return !assigned[String(mid)] && _asgMaterials.some(function(m){return String(m.id)===String(mid);});});
-  var pickedSet={};_asgPicked.forEach(function(x){pickedSet[String(x)]=true;});
-  var box=$('asgAddOpts');box.innerHTML='';var _grp=null;
-  sortMaterials_(_asgMaterials).forEach(function(m){
-    if(assigned[String(m.id)])return;
-    var _t=(m.content_type==='test')?'単元別対策':'毎日学習';
-    if(!_grp||_grp.getAttribute('data-l')!==_t){_grp=document.createElement('div');_grp.className='asg-grp-h';_grp.setAttribute('data-l',_t);_grp.textContent=_t;box.appendChild(_grp);}
-    var op=document.createElement('span');op.className='asg-opt'+(pickedSet[String(m.id)]?' picked':'');op.textContent='＋ '+(mtLabel(m)||'(無題)');
-    op.onclick=(function(mid){return function(){_asgPicked.push(String(mid));renderAddOptions();};})(m.id);
-    box.appendChild(op);
+  var candEl=$('asgMatCand'),selEl=$('asgMatSel');
+  if(!candEl||!selEl){renderPicked_();return;}
+  var pset={};_asgPicked.forEach(function(x){pset[String(x)]=1;});
+  var q=(($('asgMatSearch')||{}).value||'').trim();
+  renderMatCand_(candEl,{materials:_asgMaterials,assignedSet:assigned,pickedSet:pset,openMap:_asgOpen,search:q,keyPrefix:'asg',
+    onOne:function(id){var i=_asgPicked.indexOf(id);if(i>=0)_asgPicked.splice(i,1);else _asgPicked.push(id);renderAddOptions();},
+    onSeries:function(ids,st){ids.forEach(function(id){var i=_asgPicked.indexOf(id);if(st==='all'){if(i>=0)_asgPicked.splice(i,1);}else{if(i<0)_asgPicked.push(id);}});renderAddOptions();},
+    onOpen:function(k){_asgOpen[k]=!_asgOpen[k];renderAddOptions();}
   });
+  renderMatSel_(selEl,{materials:_asgMaterials,pickedSet:pset,onRemove:function(id){var i=_asgPicked.indexOf(id);if(i>=0)_asgPicked.splice(i,1);renderAddOptions();}});
+  var cnt=$('asgMatCnt');if(cnt)cnt.textContent=_asgPicked.length+'教材';
   renderPicked_();
 }
 function renderPicked_(){
-  var wrap=$('asgPickedWrap'),el=$('asgPicked'),bt=$('asgAddBtn');
-  if(!_asgPicked.length){wrap.style.display='none';bt.disabled=true;bt.textContent='教材を選んでください';return;}
-  wrap.style.display='';el.innerHTML='';
-  var titleOf=function(mid){var m=_asgMaterials.filter(function(x){return String(x.id)===String(mid);})[0];return m?(m.title||'(無題)'):mid;};
-  _asgPicked.forEach(function(mid,i){
-    var c=document.createElement('span');c.className='asg-pchip';
-    c.innerHTML='<span class="asg-pnum">'+(i+1)+'</span>'+esc(titleOf(mid))+' <span class="asg-px">✕</span>';
-    c.querySelector('.asg-px').onclick=(function(idx){return function(){_asgPicked.splice(idx,1);renderAddOptions();};})(i);
-    el.appendChild(c);
-  });
+  var bt=$('asgAddBtn');if(!bt)return;
+  if(!_asgPicked.length){bt.disabled=true;bt.textContent='教材を選んでください';return;}
   bt.disabled=false;bt.textContent='選んだ '+_asgPicked.length+' 教材を追加';
 }
 function addPicked(){
