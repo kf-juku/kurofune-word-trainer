@@ -2091,7 +2091,7 @@ function renderUnitZone_(materials){
   tests=tests.slice().sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // 教材の並び順(display_order)で・ホーム/確認テストと統一 2026-07-29
   host.innerHTML='';_unitCount=tests.length;
   if(tests.length){
-    var uhint=document.createElement('p');uhint.className='map-hint';uhint.style.cursor='pointer';uhint.innerHTML='<i class="ti ti-map-2"></i> <span><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>何度<rt class="uf">なんど</rt></ruby>でも <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ</span> <i class="ti ti-arrow-right"></i>';uhint.onclick=function(){showSub('lists');};host.appendChild(uhint); // 学習マップへの誘導 2026-08-01
+    var uhint=document.createElement('div');uhint.setAttribute('role','button');uhint.tabIndex=0;uhint.style.cssText='display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--sub);padding:12px;margin-top:2px;cursor:pointer;';uhint.innerHTML='<i class="ti ti-map-2" style="color:var(--gold);font-size:16px;"></i> <span><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>何度<rt class="uf">なんど</rt></ruby>でも <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ</span> <i class="ti ti-chevron-right"></i>';uhint.onclick=function(){showSub('lists');};host.appendChild(uhint); // 学習マップへの誘導（毎日タブ daily-maplink とアイコン・矢印を統一）2026-08-01
     var groups=[],gm={};
     tests.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!gm[k]){gm[k]={lab:mtSeriesLabelMt(c),items:[],key:k};groups.push(gm[k]);}gm[k].items.push(c);});
     var _open=_unitOpenGet_();
@@ -2129,7 +2129,7 @@ function renderUnitZone_(materials){
     if(_allClear&&groups.length){var fc=document.createElement('div');fc.className='fin-card mini';fc.innerHTML='<div class="dc-ic"><i class="ti ti-trophy"></i></div><div class="dc-t"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>、ぜんぶ クリア！</div><div class="dc-s">わりあての テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を <ruby>全部<rt class="uf">ぜんぶ</rt></ruby> 100%に したよ。すごい！</div>';host.insertBefore(fc,host.firstChild);} // 全クリアの祝い 2026-07-24
   }else{
     host.innerHTML='<div class="empty-note"><i class="ti ti-flag"></i><div><ruby>先生<rt class="uf">せんせい</rt></ruby>が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに <ruby>出<rt class="uf">で</rt></ruby>るよ。<br>いまは <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>を すすめよう。</div></div>';
-    var uhint2=document.createElement('p');uhint2.className='map-hint';uhint2.style.cursor='pointer';uhint2.style.marginTop='10px';uhint2.innerHTML='<i class="ti ti-map-2"></i> <span><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ</span> <i class="ti ti-arrow-right"></i>';uhint2.onclick=function(){showSub('lists');};host.appendChild(uhint2); // 学習マップへの誘導 2026-08-01
+    var uhint2=document.createElement('div');uhint2.setAttribute('role','button');uhint2.tabIndex=0;uhint2.style.cssText='display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--sub);padding:12px;margin-top:8px;cursor:pointer;';uhint2.innerHTML='<i class="ti ti-map-2" style="color:var(--gold);font-size:16px;"></i> <span><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ</span> <i class="ti ti-chevron-right"></i>';uhint2.onclick=function(){showSub('lists');};host.appendChild(uhint2); // 学習マップへの誘導（統一）2026-08-01
   }
   syncTestZone_();
 }
@@ -2351,6 +2351,7 @@ function loadTeamFeed(){
     if(!d.ok){area.innerHTML='<p class="muted">—</p>';$('cnt-team').textContent='–';return;}
     if(!d.data.in_team){area.innerHTML='<div class="tmate empty">まだチームに<ruby>入<rt class="uf">はい</rt></ruby>っていないよ。<ruby>先生<rt class="uf">せんせい</rt></ruby>がチームを<ruby>作<rt class="uf">つく</rt></ruby>ってくれるのを<ruby>待<rt class="uf">ま</rt></ruby>ってね。</div>';$('cnt-team').textContent='まだチームなし';_cheerLeft=0;teamDotUpdate_();return;}
     var ms=d.data.members||[];
+    mergeSentLikes_(ms); // 送信済み応援を反映＝古いキャッシュ/二段描画で戻らない 2026-08-01
     if(!ms.length){area.innerHTML='<div class="tmate empty">いまはチームにあなただけ。<ruby>仲間<rt class="uf">なかま</rt></ruby>が<ruby>増<rt class="uf">ふ</rt></ruby>えるのを<ruby>待<rt class="uf">ま</rt></ruby>ってね。</div>';$('cnt-team').textContent='あなただけ';_cheerLeft=0;teamDotUpdate_();renderChill(ms);return;}
     var active=ms.filter(function(m){return m.did_today;}); // 今日やった子だけ表示・応援対象（やってない子は晒さない）川上さん確定 2026-07-11
     _cheerLeft=active.filter(function(m){var st=false;['like','great','congrats'].forEach(function(t){if(m.like_state&&m.like_state[t]==='sent')st=true;});return !st;}).length; // 今日まだ応援していない仲間の数（赤丸用）2026-07-14
@@ -2644,6 +2645,13 @@ function showCheeredBurst_(names){
 var recvSoundDone=false; // 受信音はホームを開いた1回だけ（毎回鳴らすとうるさい）
 /* なかま赤丸（数字なし）2026-07-14：未読の応援がある or 今日まだ応援していない仲間がいれば点灯、どちらもなければ消灯 */
 var _recvCount=0,_recvUnseen=false,_cheerLeft=0;
+/* 今日この端末で送った応援(to→type)。callCachedの二段描画や古いキャッシュで、送信直後にサーバーの古い応答が
+   上書きして応援ボタンが戻る／赤●が消えない不具合の対策。楽観記録し、再描画時にlike_stateへマージする。2026-08-01 */
+var _sentLikes={};
+function sentLikesKey_(){return 'kwt_sentlikes_'+todayStr_()+'_'+(nickname||'');}
+function loadSentLikes_(){try{_sentLikes=JSON.parse(localStorage.getItem(sentLikesKey_())||'{}')||{};}catch(e){_sentLikes={};}return _sentLikes;}
+function saveSentLikes_(){try{localStorage.setItem(sentLikesKey_(),JSON.stringify(_sentLikes));}catch(e){}}
+function mergeSentLikes_(list){var sl=loadSentLikes_();(list||[]).forEach(function(m){var t=sl[String(m.student_id)];if(t){m.like_state=m.like_state||{};m.like_state[t]='sent';}});}
 /* 記録タブのナビ赤●＝なかま未読 or 新しい称号バッジ or 新しいアイコン（未読の要素があるとき点灯）川上さん2026-07-26 */
 var _newBadge=false,_newIcon=false,_badgeAchKeys=[];
 function _seenGet_(k){try{var a=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(a)?a.map(String):[];}catch(e){return [];}}
@@ -2748,6 +2756,7 @@ function buildMate(m){
       if(b.classList.contains('sent')||b.classList.contains('off'))return;
       var to=b.getAttribute('data-to'),type=b.getAttribute('data-type');
       markSentExclusive(b);
+      _sentLikes[String(to)]=type;saveSentLikes_(); // 楽観的に記録＝再描画・古いキャッシュでも戻らない 2026-08-01
       if(_cheerLeft>0){_cheerLeft--;teamDotUpdate_();} // 応援したら赤丸の対象を1人減らす 2026-07-14
       playLikeFx(b,row,type);
       sndLikeSend();
@@ -2755,6 +2764,7 @@ function buildMate(m){
       call({action:'send_like',to_student_id:to,type:type}).then(function(r){
         if(r.ok){return;}
         if(r.data&&r.data.already){return;}
+        delete _sentLikes[String(to)];saveSentLikes_(); // 送信失敗は記録も取り消す 2026-08-01
         unmarkSentExclusive(b);
         _cheerLeft++;teamDotUpdate_(); // 送信失敗は戻す 2026-07-14
         toastH(r.error?esc(r.error):'<ruby>送<rt class="uf">おく</rt></ruby>れなかったよ。もう<ruby>一度<rt class="uf">いちど</rt></ruby>ためしてね');
