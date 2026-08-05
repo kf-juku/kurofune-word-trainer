@@ -3403,7 +3403,7 @@ function nextStepGuide_(preferNote){
   var due=(typeof _osaraiDue==='number'?_osaraiDue:0);
   var note=(_revNum&&_revNum.note)||0;
   var bstyle='width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer;font-family:inherit;';
-  var osaraiBtn='<button onclick="openHome();showSub(\'review\');" style="'+bstyle+'"><i class="ti ti-clock-bolt"></i> <span>おさらいを やる（'+due+rb('語','ご')+'）</span></button><div style="font-size:11.5px;color:var(--sub);text-align:center;margin-top:7px;">'+rb('今','いま')+'やっておくほど わすれにくいよ</div>';
+  var osaraiBtn='<button onclick="openHome();showSub(\'review\');" style="'+bstyle+'"><i class="ti ti-clock-bolt"></i> <span>おさらいを やる（'+due+rb('語','ご')+'）</span></button><div style="font-size:11.5px;color:var(--sub);text-align:center;margin-top:7px;">'+rb('今','いま')+'やっておくほど '+rb('忘','わす')+'れにくいよ</div>';
   var noteBtn='<button onclick="openHome();showSub(\'note\');" style="'+bstyle+'"><i class="ti ti-notebook"></i> <span>'+rb('間違','まちが')+'いノートを '+rb('直','なお')+'す（'+note+rb('語','ご')+'）</span></button><div style="font-size:11.5px;color:var(--sub);text-align:center;margin-top:7px;">'+rb('直','なお')+'すと '+rb('点','てん')+'が のびるよ</div>';
   var body='';
   if(preferNote){ if(note>0)body=noteBtn; else if(due>0)body=osaraiBtn; }
@@ -3728,7 +3728,7 @@ function loadReviewSrs(){
         tile.innerHTML='<div class="dcard-l"><i class="ti ti-circle-check"></i></div>'
           +'<div class="dcard-r"><div class="dcard-top"><span class="dpill">おさらい</span><span class="dbadge"><i class="ti ti-check"></i> '+rb('今日','きょう')+'のぶん '+rb('完了','かんりょう')+'</span></div>'
           +'<div class="dcard-nm">'+(moreAvail?('おさらいが あと <b>'+dueTotal+'</b> '+rb('語','ご')):'ぜんぶ できた')+'</div>'
-          +(moreAvail?('<div class="dcard-cta">つづけると わすれにくい <i class="ti ti-arrow-right"></i></div>'):'')
+          +(moreAvail?('<div class="dcard-cta">'+rb('続','つづ')+'けると '+rb('忘','わす')+'れにくい <i class="ti ti-arrow-right"></i></div>'):'')
           +'</div>';
       }else{
         tile.className='rcard';
@@ -3742,7 +3742,7 @@ function loadReviewSrs(){
     // ===== 画面：総量→おまかせ(今日の分)→教科でえらぶ（氷山の中身を見せる＋教科で選べる）2026-07-26 =====
     area.innerHTML='';
     if(dueTotal<=0){
-      area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub"><ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>を すすめると、<ruby>覚<rt class="uf">おぼ</rt></ruby>えた<ruby>語<rt class="uf">ご</rt></ruby>が わすれた ころ ここに<ruby>出<rt class="uf">で</rt></ruby>てくるよ</div></div></div>'
+      area.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">おさらいはなし！</div><div class="sub"><ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>を <ruby>進<rt class="uf">すす</rt></ruby>めると、<ruby>覚<rt class="uf">おぼ</rt></ruby>えた<ruby>語<rt class="uf">ご</rt></ruby>が <ruby>忘<rt class="uf">わす</rt></ruby>れた ころ ここに<ruby>出<rt class="uf">で</rt></ruby>てくるよ</div></div></div>'
         +'<div style="text-align:center;margin-top:10px;"><button id="osarai-dbg-btn" type="button" style="background:none;border:none;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;text-decoration:underline;">なぜ？ データを<ruby>調<rt class="uf">しら</rt></ruby>べる</button></div><div id="osarai-dbg"></div>';
       var _db=$('osarai-dbg-btn');if(_db)_db.onclick=osaraiDebug_;
       return;
@@ -3753,10 +3753,10 @@ function loadReviewSrs(){
     if(todayDone){
       // 本日分クリア：緑のクリア表示（達成＋次の一手）。おまかせは"おかわり"として控えめに残す 2026-08-05
       var ban=document.createElement('div');ban.className='os-done';
-      ban.innerHTML='<div class="dic"><i class="ti ti-check"></i></div><div class="odt"><div class="odtt">'+rb('今日','きょう')+'のおさらい クリア！🎉</div><div class="odsub">'+rb('本日','ほんじつ')+rb('分','ぶん')+'（'+_target+rb('語','ご')+'）おわり。この'+rb('調子','ちょうし')+'で もう1'+rb('教科','きょうか')+' いける？</div></div>';
+      ban.innerHTML='<div class="dic"><i class="ti ti-check"></i></div><div class="odt"><div class="odtt">'+rb('今日','きょう')+'のおさらい クリア！🎉</div><div class="odsub">'+rb('本日','ほんじつ')+rb('分','ぶん')+'（'+_target+rb('語','ご')+'）'+rb('終','お')+'わり。この'+rb('調子','ちょうし')+'で もう1'+rb('教科','きょうか')+' いける？</div></div>';
       area.appendChild(ban);
       var g=document.createElement('div');g.className='os-guide';
-      g.innerHTML='ここから'+rb('先','さき')+'は <b>'+rb('自主練','じしゅれん')+'</b>。やった'+rb('分','ぶん')+'だけ わすれにくくなるよ。'+(_hasSub?('おまかせで つづけても、'+rb('教科','きょうか')+'をえらんでもOK。'):'おまかせで つづけられるよ。');
+      g.innerHTML='ここから'+rb('先','さき')+'は <b>'+rb('自主練','じしゅれん')+'</b>。やった'+rb('分','ぶん')+'だけ '+rb('忘','わす')+'れにくくなるよ。'+(_hasSub?('おまかせで '+rb('続','つづ')+'けても、'+rb('教科','きょうか')+'を'+rb('選','えら')+'んでもOK。'):'おまかせで '+rb('続','つづ')+'けられるよ。');
       area.appendChild(g);
       var more=document.createElement('div');more.className='os-more';
       more.innerHTML='<div class="mic"><i class="ti ti-clock-bolt"></i></div><div class="omt"><div class="omttl">おまかせで もう'+rb('少','すこ')+'し</div><div class="omsub">'+rb('全','ぜん')+rb('教科','きょうか')+'から '+rb('古','ふる')+'い'+rb('順','じゅん')+'に ・ もっとやる？</div></div><div class="omn">+'+todayRemain+'<small> '+rb('語','ご')+'</small></div>';
@@ -3769,17 +3769,17 @@ function loadReviewSrs(){
       area.appendChild(prog);
       // おまかせ＝青の大カードで主役（まずやる本命）。いつ押しても期限が来た古い順に最大20語 2026-08-05
       var hero=document.createElement('div');hero.className='os-hero';
-      hero.innerHTML='<div class="hic"><i class="ti ti-wand"></i></div><div class="oht"><span class="obadge">まずは これ</span><div class="ohtt">おまかせ</div><div class="ohsub">'+rb('全','ぜん')+rb('教科','きょうか')+'から '+rb('古','ふる')+'い'+rb('順','じゅん')+'に えらんだよ</div></div><div style="text-align:center"><div class="ohn">'+todayRemain+'<small> '+rb('語','ご')+'</small></div></div>';
+      hero.innerHTML='<div class="hic"><i class="ti ti-wand"></i></div><div class="oht"><span class="obadge">まずは これ</span><div class="ohtt">おまかせ</div><div class="ohsub">'+rb('全','ぜん')+rb('教科','きょうか')+'から '+rb('古','ふる')+'い'+rb('順','じゅん')+'に '+rb('選','えら')+'んだよ</div></div><div style="text-align:center"><div class="ohn">'+todayRemain+'<small> '+rb('語','ご')+'</small></div></div>';
       hero.onclick=function(){startReviewSrs(ws,d.data.assets,'');};
       area.appendChild(hero);
       // 関係の案内（153/322＝各教科の のこり、まずはおまかせ）。教科があるときだけ 2026-08-05
       var g2=document.createElement('div');g2.className='os-guide';
-      g2.innerHTML=_hasSub?('各'+rb('教科','きょうか')+'に これだけ たまってるけど、まずは <b>おまかせ</b> でOK。もっとやりたい人は '+rb('下','した')+'から '+rb('教科','きょうか')+'をえらんでね。'):('たまってるぶんを、おまかせで '+rb('古','ふる')+'い'+rb('順','じゅん')+'に '+_target+rb('語','ご')+' 出すよ。');
+      g2.innerHTML=_hasSub?('各'+rb('教科','きょうか')+'に これだけ たまってるけど、まずは <b>おまかせ</b> でOK。もっとやりたい人は '+rb('下','した')+'から '+rb('教科','きょうか')+'を'+rb('選','えら')+'んでね。'):('たまってるぶんを、おまかせで '+rb('古','ふる')+'い'+rb('順','じゅん')+'に '+_target+rb('語','ご')+' 出すよ。');
       area.appendChild(g2);
     }
     if(subjects.length){
       var sh=document.createElement('div');sh.className='os-sec-h';
-      sh.innerHTML='<span class="l">'+rb('教科','きょうか')+'でえらぶ</span><span class="r">＝各'+rb('教科','きょうか')+'の のこり</span>';
+      sh.innerHTML='<span class="l">'+rb('教科','きょうか')+'で'+rb('選','えら')+'ぶ</span><span class="r">＝各'+rb('教科','きょうか')+'の '+rb('残','のこ')+'り</span>';
       area.appendChild(sh);
       subjects.forEach(function(c){
         // 教科＝各教科の「のこり（全体量）」。二番手・小さく（見せ方だけ）2026-08-05
@@ -3789,7 +3789,7 @@ function loadReviewSrs(){
         var card=document.createElement('div');card.className='os-sc2';
         card.innerHTML='<div class="os-sc2-ic" style="background:'+col.bg+';color:'+col.fg+'"><i class="ti '+subjIcon_(c.subject)+'"></i></div>'
           +'<div class="os-sc2-t">'+esc(subjLabel(c.subject))+(subm?('<small>'+subm+'</small>'):'')+'</div>'
-          +'<div class="os-sc2-n">のこり <b>'+c.count+'</b></div>';
+          +'<div class="os-sc2-n">'+rb('残','のこ')+'り <b>'+c.count+'</b></div>';
         card.onclick=(function(cc){return function(){openOsaraiSubject(cc);};})(c.subject);
         area.appendChild(card);
       });
@@ -3895,7 +3895,7 @@ function osaraiMore_(subject){
   whenGradesFlushed(function(){
     var req={action:'review_due',more:1};if(subject)req.subject=subject;
     call(req).then(function(d){
-      if(!d.ok||!d.data.words||!d.data.words.length){toastH('<ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>期限<rt class="uf">きげん</rt></ruby>は ぜんぶ おわり！よく がんばったね');openHome();return;}
+      if(!d.ok||!d.data.words||!d.data.words.length){toastH('<ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>期限<rt class="uf">きげん</rt></ruby>は ぜんぶ <ruby>終<rt class="uf">お</rt></ruby>わり！よく がんばったね');openHome();return;}
       startReviewSrs(d.data.words,d.data.assets,subject||'');
     });
   });
@@ -3971,10 +3971,10 @@ function rbState_(){return {
 /* 今日の1つの次アクション＝赤●の誘導順（毎日→おさらい→間違いノート→単元別）。タップで各ページへ送り出す */
 function rbNextAction_(s){
   if(s.dailyUndone>0)return {icon:'ti-anchor',lbl:'毎日学習',why:'今日の デイリーを すすめよう',go:function(){rbClose_();showHomeTab('daily');}};
-  if(!s.osaraiDone&&s.osaraiRem>0)return {icon:'ti-clock-bolt',lbl:'おさらい',why:'わすれない うちに もう一回',go:function(){rbClose_();showSub('review');}};
+  if(!s.osaraiDone&&s.osaraiRem>0)return {icon:'ti-clock-bolt',lbl:'おさらい',why:'<ruby>忘<rt class="uf">わす</rt></ruby>れない うちに もう一回',go:function(){rbClose_();showSub('review');}};
   if(s.noteRem>0)return {icon:'ti-notebook',lbl:'間違いノート',why:'間違えた 所を 直そう',go:function(){rbClose_();showHomeTab('review');}};
   if(s.quizMiss>0||s.unit>0)return {icon:'ti-flag',lbl:'単元別',why:'テスト範囲を すすめよう',go:function(){rbClose_();showHomeTab('unit');}};
-  return {icon:'ti-clock-bolt',lbl:'おさらいを つづける',why:'つづけて どんどん のばそう',go:function(){rbClose_();showSub('review');}};
+  return {icon:'ti-clock-bolt',lbl:'おさらいを <ruby>続<rt class="uf">つづ</rt></ruby>ける',why:'<ruby>続<rt class="uf">つづ</rt></ruby>けて どんどん <ruby>伸<rt class="uf">の</rt></ruby>ばそう',go:function(){rbClose_();showSub('review');}};
 }
 /* 昨日からの変化＝前日スナップショット(1日1回更新)との差分。前向きな変化だけ出す（下位は晒さない） */
 function rbChange_(s){
