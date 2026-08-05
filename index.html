@@ -868,6 +868,34 @@
   .note-card .t .sub{font-size:12.5px;color:var(--sub);margin-top:2px;}
   .note-card .cnt{font-family:"Manrope";font-weight:800;font-size:22px;color:var(--ng);}
   .note-card .cnt small{font-size:11px;color:var(--sub);font-weight:500;}
+  /* おさらい 案A：おまかせ主役＋教科は「のこり」二番手（見せ方だけ）2026-08-05 */
+  .os-hero{background:linear-gradient(135deg,#0a6cff,#0a4fd0);color:#fff;border:none;border-radius:20px;padding:16px 17px;box-shadow:0 8px 22px rgba(10,79,208,.28);display:flex;align-items:center;gap:14px;margin-bottom:6px;cursor:pointer;transition:transform .18s,box-shadow .18s;}
+  .os-hero:active{transform:translateY(2px) scale(.99);}
+  .os-hero .hic{width:50px;height:50px;border-radius:15px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:26px;flex:none;}
+  .os-hero .oht{flex:1;min-width:0;}
+  .os-hero .obadge{display:inline-block;font-size:10.5px;font-weight:800;background:rgba(255,255,255,.22);padding:2px 9px;border-radius:999px;margin-bottom:5px;}
+  .os-hero .ohtt{font-size:18px;font-weight:800;line-height:1.2;}
+  .os-hero .ohsub{font-size:11.5px;opacity:.9;margin-top:4px;}
+  .os-hero .ohn{font-weight:800;font-size:26px;line-height:1;}.os-hero .ohn small{font-size:12px;opacity:.9;font-weight:700;}
+  .os-guide{font-size:12px;color:#4a5160;font-weight:700;line-height:1.7;margin:10px 2px 14px;background:rgba(10,108,255,.06);border-radius:12px;padding:9px 12px;}
+  .os-guide b{color:var(--accent);}
+  .os-sec-h{display:flex;align-items:baseline;gap:8px;margin:16px 2px 8px;}
+  .os-sec-h .l{font-size:12.5px;font-weight:800;color:var(--ink);}.os-sec-h .r{font-size:11px;color:var(--sub);font-weight:600;}
+  .os-sc2{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:8px;cursor:pointer;transition:transform .18s;position:relative;}
+  .os-sc2:active{transform:translateY(1px);}
+  .os-sc2-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:17px;flex:none;}
+  .os-sc2-t{flex:1;font-weight:700;font-size:14px;min-width:0;}.os-sc2-t small{display:block;font-weight:500;font-size:10.5px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .os-sc2-n{font-size:12.5px;color:var(--sub);font-weight:700;flex:none;}.os-sc2-n b{color:var(--ink);font-size:15px;}
+  .os-done{background:linear-gradient(135deg,#1faa6b,#0f8a54);color:#fff;border-radius:18px;padding:15px 16px;box-shadow:0 8px 22px rgba(15,138,84,.26);display:flex;align-items:center;gap:13px;margin-bottom:12px;}
+  .os-done .dic{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:24px;flex:none;}
+  .os-done .odt{flex:1;min-width:0;}
+  .os-done .odtt{font-size:16px;font-weight:800;line-height:1.25;}
+  .os-done .odsub{font-size:11.5px;opacity:.92;margin-top:4px;line-height:1.5;}
+  .os-more{display:flex;gap:13px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 15px;box-shadow:var(--shadow);margin-bottom:6px;cursor:pointer;transition:transform .18s;}
+  .os-more:active{transform:translateY(1px);}
+  .os-more .mic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:21px;flex:none;background:rgba(31,170,107,.12);color:var(--ok);}
+  .os-more .omt{flex:1;min-width:0;}.os-more .omt .omttl{font-size:14.5px;font-weight:800;}.os-more .omt .omsub{font-size:11px;color:var(--sub);margin-top:3px;line-height:1.5;}
+  .os-more .omn{font-weight:800;font-size:20px;color:var(--ok);flex:none;}.os-more .omn small{font-size:10.5px;color:var(--sub);font-weight:700;}
   .streak-dots{display:flex;gap:6px;justify-content:center;margin:10px 0 2px;}
   .streak-dots i{width:9px;height:9px;border-radius:50%;background:var(--ring-track);display:inline-block;}
   .streak-dots i.on{background:var(--ok);}
@@ -3720,32 +3748,50 @@ function loadReviewSrs(){
       return;
     }
     var _doneCnt=(typeof d.data.today_done_count==='number'?d.data.today_done_count:0), _target=(d.data.today_target||20);
+    var _hasSub=(subjects.length>0);
+    // 案A：おまかせ＝まずやる本命（大きく）／教科の数字＝各教科の「のこり（全体量）」で選ぶ二番手（小さく・のこりと明記）2026-08-05
     if(todayDone){
-      var ban=document.createElement('div');ban.className='note-card';ban.style.cssText='background:rgba(31,170,107,.09);border-color:rgba(31,170,107,.22);margin-bottom:12px;';
-      ban.innerHTML='<div class="note-ic" style="background:rgba(31,170,107,.16);color:var(--ok)"><i class="ti ti-clock-check"></i></div><div class="t"><div class="ttl">'+rb('今日','きょう')+'のおさらい クリア！🎉</div><div class="sub">この'+rb('調子','ちょうし')+'で もう1'+rb('教科','きょうか')+' いける？</div></div>';
+      // 本日分クリア：緑のクリア表示（達成＋次の一手）。おまかせは"おかわり"として控えめに残す 2026-08-05
+      var ban=document.createElement('div');ban.className='os-done';
+      ban.innerHTML='<div class="dic"><i class="ti ti-check"></i></div><div class="odt"><div class="odtt">'+rb('今日','きょう')+'のおさらい クリア！🎉</div><div class="odsub">'+rb('本日','ほんじつ')+rb('分','ぶん')+'（'+_target+rb('語','ご')+'）おわり。この'+rb('調子','ちょうし')+'で もう1'+rb('教科','きょうか')+' いける？</div></div>';
       area.appendChild(ban);
+      var g=document.createElement('div');g.className='os-guide';
+      g.innerHTML='ここから'+rb('先','さき')+'は <b>'+rb('自主練','じしゅれん')+'</b>。やった'+rb('分','ぶん')+'だけ わすれにくくなるよ。'+(_hasSub?('おまかせで つづけても、'+rb('教科','きょうか')+'をえらんでもOK。'):'おまかせで つづけられるよ。');
+      area.appendChild(g);
+      var more=document.createElement('div');more.className='os-more';
+      more.innerHTML='<div class="mic"><i class="ti ti-clock-bolt"></i></div><div class="omt"><div class="omttl">おまかせで もう'+rb('少','すこ')+'し</div><div class="omsub">'+rb('全','ぜん')+rb('教科','きょうか')+'から '+rb('古','ふる')+'い'+rb('順','じゅん')+'に ・ もっとやる？</div></div><div class="omn">+'+todayRemain+'<small> '+rb('語','ご')+'</small></div>';
+      more.onclick=function(){startReviewSrs(ws,d.data.assets,'');};
+      area.appendChild(more);
     } else {
       // 本日分の進捗（今日やった数/20）。おまかせの数は減らさない＝実データ today_done_count で表示 2026-08-05
       var prog=document.createElement('div');prog.style.cssText='font-size:13px;color:var(--sub);font-weight:700;margin:2px 2px 12px;';
       prog.innerHTML=rb('今日','きょう')+' やった ・ <b style="color:var(--accent)">'+_doneCnt+'/'+_target+'</b> '+rb('語','ご');
       area.appendChild(prog);
+      // おまかせ＝青の大カードで主役（まずやる本命）。いつ押しても期限が来た古い順に最大20語 2026-08-05
+      var hero=document.createElement('div');hero.className='os-hero';
+      hero.innerHTML='<div class="hic"><i class="ti ti-wand"></i></div><div class="oht"><span class="obadge">まずは これ</span><div class="ohtt">おまかせ</div><div class="ohsub">'+rb('全','ぜん')+rb('教科','きょうか')+'から '+rb('古','ふる')+'い'+rb('順','じゅん')+'に えらんだよ</div></div><div style="text-align:center"><div class="ohn">'+todayRemain+'<small> '+rb('語','ご')+'</small></div></div>';
+      hero.onclick=function(){startReviewSrs(ws,d.data.assets,'');};
+      area.appendChild(hero);
+      // 関係の案内（153/322＝各教科の のこり、まずはおまかせ）。教科があるときだけ 2026-08-05
+      var g2=document.createElement('div');g2.className='os-guide';
+      g2.innerHTML=_hasSub?('各'+rb('教科','きょうか')+'に これだけ たまってるけど、まずは <b>おまかせ</b> でOK。もっとやりたい人は '+rb('下','した')+'から '+rb('教科','きょうか')+'をえらんでね。'):('たまってるぶんを、おまかせで '+rb('古','ふる')+'い'+rb('順','じゅん')+'に '+_target+rb('語','ご')+' 出すよ。');
+      area.appendChild(g2);
     }
-    // おまかせ＝いつ押しても「期限が来た古い順に最大20語まとめて」（20達成後もつづけられる）2026-08-05
-    var omk=document.createElement('div');omk.className='note-card';omk.style.position='relative';
-    omk.innerHTML='<div class="note-ic" style="background:var(--accent-soft);color:var(--accent)"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おまかせ（'+rb('古','ふる')+'い'+rb('順','じゅん')+'）</div><div class="sub">'+(todayDone?(rb('今','いま')+'やっておくと わすれにくい ・ もっとやる？'):(rb('期限','きげん')+'が '+rb('古','ふる')+'いものから まとめて'))+'</div></div><div class="cnt">'+todayRemain+'<small> '+rb('語','ご')+'</small></div>';
-    omk.onclick=function(){startReviewSrs(ws,d.data.assets,'');};
-    area.appendChild(omk);
     if(subjects.length){
-      var hd=document.createElement('div');hd.style.cssText='font-size:12px;color:var(--sub);font-weight:700;margin:15px 2px 7px;';hd.innerHTML=rb('教科','きょうか')+'でえらぶ';area.appendChild(hd);
+      var sh=document.createElement('div');sh.className='os-sec-h';
+      sh.innerHTML='<span class="l">'+rb('教科','きょうか')+'でえらぶ</span><span class="r">＝各'+rb('教科','きょうか')+'の のこり</span>';
+      area.appendChild(sh);
       subjects.forEach(function(c){
-        // 教科の中身＝教材別内訳（上位2つ＋ほかN）。何がたまっているか見せる 2026-07-26
-        var mats=c.materials||[];var sub='';
-        if(mats.length){
-          var _sh=function(t){t=String(t||'');return t.length>16?(t.slice(0,15)+'…'):t;};
-          var top=mats.slice(0,2).map(function(m){return esc(_sh(m.label))+' '+m.count;}); // labelはサーバー整形済み（シリーズ名）
-          sub=top.join('・')+(mats.length>2?(' ほか'+(mats.length-2)):'');
-        }
-        area.appendChild(subjCard_(c.subject,c.count,function(){openOsaraiSubject(c.subject);},sub));
+        // 教科＝各教科の「のこり（全体量）」。二番手・小さく（見せ方だけ）2026-08-05
+        var col=subjColor_(c.subject);
+        var mats=c.materials||[];var subm='';
+        if(mats.length){var _sh2=function(t){t=String(t||'');return t.length>16?(t.slice(0,15)+'…'):t;};subm=esc(_sh2(mats[0].label));}
+        var card=document.createElement('div');card.className='os-sc2';
+        card.innerHTML='<div class="os-sc2-ic" style="background:'+col.bg+';color:'+col.fg+'"><i class="ti '+subjIcon_(c.subject)+'"></i></div>'
+          +'<div class="os-sc2-t">'+esc(subjLabel(c.subject))+(subm?('<small>'+subm+'</small>'):'')+'</div>'
+          +'<div class="os-sc2-n">のこり <b>'+c.count+'</b></div>';
+        card.onclick=(function(cc){return function(){openOsaraiSubject(cc);};})(c.subject);
+        area.appendChild(card);
       });
     }
   });
