@@ -3705,19 +3705,29 @@ function loadReviewSrs(){
       var _db=$('osarai-dbg-btn');if(_db)_db.onclick=osaraiDebug_;
       return;
     }
-    var tot=document.createElement('div');tot.style.cssText='font-size:13px;color:var(--sub);font-weight:700;margin:2px 2px 11px;';
-    tot.innerHTML='のこり <b style="color:var(--accent)">'+dueTotal+'</b> '+rb('語','ご')+'（'+rb('期限','きげん')+'が 来た分）';
-    area.appendChild(tot);
-    var omk=document.createElement('div');omk.className='note-card';omk.style.position='relative';
-    if(!todayDone&&todayRemain>0){
-      omk.innerHTML='<div class="note-ic" style="background:var(--accent-soft);color:var(--accent)"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おまかせ（'+rb('今日','きょう')+'の分）</div><div class="sub">'+rb('期限','きげん')+'が 古いものから まとめて</div></div><div class="cnt">'+todayRemain+'<small> '+rb('語','ご')+'</small></div>';
-      omk.onclick=function(){startReviewSrs(ws,d.data.assets,'');};
+    if(todayDone){
+      // 案B（2026-08-05）：達成を主役に。赤い「のこりN語」をやめ、緑の達成バナー＋繰り越し案内＋教科へ誘導。報告「おさらい終わったのに0語にならない」＝1日枠+繰り越しの仕様。数(dueTotal)は残すが「これから少しずつ」と伝える。
+      var ban=document.createElement('div');ban.className='note-card';ban.style.cssText='background:rgba(31,170,107,.09);border-color:rgba(31,170,107,.22);margin-bottom:12px;';
+      ban.innerHTML='<div class="note-ic" style="background:rgba(31,170,107,.16);color:var(--ok)"><i class="ti ti-clock-check"></i></div><div class="t"><div class="ttl">'+rb('今日','きょう')+'の おさらい '+rb('達成','たっせい')+'！🎉</div><div class="sub">のこりは わすれない ころに 少しずつ '+rb('出','で')+'てくるよ。'+rb('急','いそ')+'がなくて だいじょうぶ。</div></div>';
+      area.appendChild(ban);
+      var inv=document.createElement('div');inv.style.cssText='font-size:13px;color:#4a5160;font-weight:700;margin:2px 2px 13px;line-height:1.7;';
+      inv.innerHTML='まだ <b style="color:var(--accent)">'+dueTotal+'</b> '+rb('語','ご')+' のこっているから、もっとやりたい人は 下から '+rb('教科','きょうか')+'をえらんでね！';
+      area.appendChild(inv);
     } else {
-      omk.innerHTML='<div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">'+rb('今日','きょう')+'の分 おわり！</div><div class="sub">'+rb('教科','きょうか')+'をえらんで つづけてもOK</div></div>';
+      var tot=document.createElement('div');tot.style.cssText='font-size:13px;color:var(--sub);font-weight:700;margin:2px 2px 11px;';
+      tot.innerHTML='のこり <b style="color:var(--accent)">'+dueTotal+'</b> '+rb('語','ご')+'（'+rb('期限','きげん')+'が 来た分）';
+      area.appendChild(tot);
+      var omk=document.createElement('div');omk.className='note-card';omk.style.position='relative';
+      if(todayRemain>0){
+        omk.innerHTML='<div class="note-ic" style="background:var(--accent-soft);color:var(--accent)"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おまかせ（'+rb('今日','きょう')+'の分）</div><div class="sub">'+rb('期限','きげん')+'が 古いものから まとめて</div></div><div class="cnt">'+todayRemain+'<small> '+rb('語','ご')+'</small></div>';
+        omk.onclick=function(){startReviewSrs(ws,d.data.assets,'');};
+      } else {
+        omk.innerHTML='<div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">'+rb('今日','きょう')+'の分 おわり！</div><div class="sub">'+rb('教科','きょうか')+'をえらんで つづけてもOK</div></div>';
+      }
+      area.appendChild(omk);
     }
-    area.appendChild(omk);
     if(subjects.length){
-      var hd=document.createElement('div');hd.style.cssText='font-size:12px;color:var(--sub);font-weight:700;margin:15px 2px 7px;';hd.innerHTML=rb('教科','きょうか')+'でえらぶ';area.appendChild(hd);
+      if(!todayDone){var hd=document.createElement('div');hd.style.cssText='font-size:12px;color:var(--sub);font-weight:700;margin:15px 2px 7px;';hd.innerHTML=rb('教科','きょうか')+'でえらぶ';area.appendChild(hd);}
       subjects.forEach(function(c){
         // 教科の中身＝教材別内訳（上位2つ＋ほかN）。何がたまっているか見せる 2026-07-26
         var mats=c.materials||[];var sub='';
