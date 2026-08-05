@@ -3699,8 +3699,8 @@ function loadReviewSrs(){
         tile.className='dcard';
         tile.innerHTML='<div class="dcard-l"><i class="ti ti-circle-check"></i></div>'
           +'<div class="dcard-r"><div class="dcard-top"><span class="dpill">おさらい</span><span class="dbadge"><i class="ti ti-check"></i> '+rb('今日','きょう')+'のぶん '+rb('完了','かんりょう')+'</span></div>'
-          +'<div class="dcard-nm">'+(moreAvail?'まだ つづけられるよ':'ぜんぶ できた')+'</div>'
-          +(moreAvail?('<div class="dcard-cta">じぶんで つづける <i class="ti ti-arrow-right"></i></div>'):'')
+          +'<div class="dcard-nm">'+(moreAvail?('おさらいが あと <b>'+dueTotal+'</b> '+rb('語','ご')):'ぜんぶ できた')+'</div>'
+          +(moreAvail?('<div class="dcard-cta">つづけると わすれにくい <i class="ti ti-arrow-right"></i></div>'):'')
           +'</div>';
       }else{
         tile.className='rcard';
@@ -3732,7 +3732,7 @@ function loadReviewSrs(){
     }
     // おまかせ＝いつ押しても「期限が来た古い順に最大20語まとめて」（20達成後もつづけられる）2026-08-05
     var omk=document.createElement('div');omk.className='note-card';omk.style.position='relative';
-    omk.innerHTML='<div class="note-ic" style="background:var(--accent-soft);color:var(--accent)"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おまかせ（'+rb('古','ふる')+'い'+rb('順','じゅん')+'）</div><div class="sub">'+(todayDone?(rb('今日','きょう')+'の'+rb('分','ぶん')+'は クリア！ もっとやる？'):(rb('期限','きげん')+'が '+rb('古','ふる')+'いものから まとめて'))+'</div></div><div class="cnt">'+todayRemain+'<small> '+rb('語','ご')+'</small></div>';
+    omk.innerHTML='<div class="note-ic" style="background:var(--accent-soft);color:var(--accent)"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おまかせ（'+rb('古','ふる')+'い'+rb('順','じゅん')+'）</div><div class="sub">'+(todayDone?(rb('今','いま')+'やっておくと わすれにくい ・ もっとやる？'):(rb('期限','きげん')+'が '+rb('古','ふる')+'いものから まとめて'))+'</div></div><div class="cnt">'+todayRemain+'<small> '+rb('語','ご')+'</small></div>';
     omk.onclick=function(){startReviewSrs(ws,d.data.assets,'');};
     area.appendChild(omk);
     if(subjects.length){
