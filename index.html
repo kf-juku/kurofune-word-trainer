@@ -3719,29 +3719,24 @@ function loadReviewSrs(){
       var _db=$('osarai-dbg-btn');if(_db)_db.onclick=osaraiDebug_;
       return;
     }
+    var _doneCnt=(typeof d.data.today_done_count==='number'?d.data.today_done_count:0), _target=(d.data.today_target||20);
     if(todayDone){
-      // 案B（2026-08-05）：達成を主役に。赤い「のこりN語」をやめ、緑の達成バナー＋繰り越し案内＋教科へ誘導。報告「おさらい終わったのに0語にならない」＝1日枠+繰り越しの仕様。数(dueTotal)は残すが「これから少しずつ」と伝える。
       var ban=document.createElement('div');ban.className='note-card';ban.style.cssText='background:rgba(31,170,107,.09);border-color:rgba(31,170,107,.22);margin-bottom:12px;';
       ban.innerHTML='<div class="note-ic" style="background:rgba(31,170,107,.16);color:var(--ok)"><i class="ti ti-clock-check"></i></div><div class="t"><div class="ttl">'+rb('今日','きょう')+'のおさらい クリア！🎉</div><div class="sub">この'+rb('調子','ちょうし')+'で もう1'+rb('教科','きょうか')+' いける？</div></div>';
       area.appendChild(ban);
-      var inv=document.createElement('div');inv.style.cssText='font-size:13px;color:#4a5160;font-weight:700;margin:2px 2px 13px;line-height:1.7;';
-      inv.innerHTML=''+rb('期限','きげん')+'が来た おさらいが あと <b style="color:var(--accent)">'+dueTotal+'</b> '+rb('語','ご')+'。'+rb('今','いま')+'やっておくほど わすれにくくなるよ。';
-      area.appendChild(inv);
     } else {
-      var tot=document.createElement('div');tot.style.cssText='font-size:13px;color:var(--sub);font-weight:700;margin:2px 2px 11px;';
-      tot.innerHTML='のこり <b style="color:var(--accent)">'+dueTotal+'</b> '+rb('語','ご')+'（'+rb('期限','きげん')+'が 来た分）';
-      area.appendChild(tot);
-      var omk=document.createElement('div');omk.className='note-card';omk.style.position='relative';
-      if(todayRemain>0){
-        omk.innerHTML='<div class="note-ic" style="background:var(--accent-soft);color:var(--accent)"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おまかせ（'+rb('今日','きょう')+'の分）</div><div class="sub">'+rb('期限','きげん')+'が 古いものから まとめて</div></div><div class="cnt">'+todayRemain+'<small> '+rb('語','ご')+'</small></div>';
-        omk.onclick=function(){startReviewSrs(ws,d.data.assets,'');};
-      } else {
-        omk.innerHTML='<div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl">'+rb('今日','きょう')+'の分 おわり！</div><div class="sub">'+rb('教科','きょうか')+'をえらんで つづけよう</div></div>';
-      }
-      area.appendChild(omk);
+      // 本日分の進捗（今日やった数/20）。おまかせの数は減らさない＝実データ today_done_count で表示 2026-08-05
+      var prog=document.createElement('div');prog.style.cssText='font-size:13px;color:var(--sub);font-weight:700;margin:2px 2px 12px;';
+      prog.innerHTML=rb('今日','きょう')+' やった ・ <b style="color:var(--accent)">'+_doneCnt+'/'+_target+'</b> '+rb('語','ご');
+      area.appendChild(prog);
     }
+    // おまかせ＝いつ押しても「期限が来た古い順に最大20語まとめて」（20達成後もつづけられる）2026-08-05
+    var omk=document.createElement('div');omk.className='note-card';omk.style.position='relative';
+    omk.innerHTML='<div class="note-ic" style="background:var(--accent-soft);color:var(--accent)"><i class="ti ti-clock-bolt"></i></div><div class="t"><div class="ttl">おまかせ（'+rb('古','ふる')+'い'+rb('順','じゅん')+'）</div><div class="sub">'+(todayDone?(rb('今日','きょう')+'の'+rb('分','ぶん')+'は クリア！ もっとやる？'):(rb('期限','きげん')+'が '+rb('古','ふる')+'いものから まとめて'))+'</div></div><div class="cnt">'+todayRemain+'<small> '+rb('語','ご')+'</small></div>';
+    omk.onclick=function(){startReviewSrs(ws,d.data.assets,'');};
+    area.appendChild(omk);
     if(subjects.length){
-      if(!todayDone){var hd=document.createElement('div');hd.style.cssText='font-size:12px;color:var(--sub);font-weight:700;margin:15px 2px 7px;';hd.innerHTML=rb('教科','きょうか')+'でえらぶ';area.appendChild(hd);}
+      var hd=document.createElement('div');hd.style.cssText='font-size:12px;color:var(--sub);font-weight:700;margin:15px 2px 7px;';hd.innerHTML=rb('教科','きょうか')+'でえらぶ';area.appendChild(hd);
       subjects.forEach(function(c){
         // 教科の中身＝教材別内訳（上位2つ＋ほかN）。何がたまっているか見せる 2026-07-26
         var mats=c.materials||[];var sub='';
@@ -3829,7 +3824,8 @@ function finishSrs(){
   var _init=_mkLines();
   $('done-miss').innerHTML=_init.length?_init.join('　'):'<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
   whenGradesFlushed(function(){
-    if(gradeFailed>0){$('done-miss').innerHTML='⚠ <ruby>一部<rt class="uf">いちぶ</rt></ruby>の<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby>できませんでした。<ruby>電波<rt class="uf">でんぱ</rt></ruby>の<ruby>良<rt class="uf">よ</rt></ruby>いところで もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やってね';return;}homeCacheClear_();/* おさらい完了でホームキャッシュ無効化（案A 2026-07-08）*/
+    homeCacheClear_(); // 保存失敗でも次のホームで最新取得（キャッシュ無効化漏れ修正）2026-08-05
+    if(gradeFailed>0){$('done-miss').innerHTML='⚠ <ruby>一部<rt class="uf">いちぶ</rt></ruby>の<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby>できませんでした。<ruby>電波<rt class="uf">でんぱ</rt></ruby>の<ruby>良<rt class="uf">よ</rt></ruby>いところで もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やってね';return;}/* おさらい完了でホームキャッシュ無効化（案A 2026-07-08）*/
     $('done-miss').innerHTML=_mkLines().join('　'); // 保存確定後に卒業/次回を確定表示（無ければ空）
     // 空チェック（花火はもう出ている）→ 全消化なら王冠に格上げ。ピークが遅くても演出済みなので害なし。2026-07-26
     call({action:'review_due'}).then(function(d){
