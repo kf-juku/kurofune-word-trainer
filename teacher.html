@@ -407,6 +407,21 @@
 .alert-cardK.bad{border-left-color:#C6000B}
 .alert-cardK .ac-h{font-weight:700;font-size:13px}
 .alert-cardK .ac-h b{font-size:17px}
+/* 見出しクリックでカテゴリ絞り込み 2026-08-07 */
+.alert-cardK .ac-h.afc{cursor:pointer;border-radius:6px;transition:color .12s}
+.alert-cardK .ac-h.afc:hover{color:#C6000B}
+.alert-cardK.good .ac-h.afc:hover{color:#12805a}
+.alert-cardK.afon{box-shadow:0 0 0 2px #C6000B inset,0 1px 3px rgba(0,0,0,.08);background:#FFF7F7}
+.alert-cardK.good.afon{box-shadow:0 0 0 2px #1faa6b inset,0 1px 3px rgba(0,0,0,.08);background:#F1FBF6}
+.af-hint{font-size:10px;color:#94a3b8;font-weight:600;margin-left:6px;white-space:nowrap}
+.alert-cardK.afon .af-hint{color:#C6000B}
+.alert-cardK.good.afon .af-hint{color:#12805a}
+#alFilterBar{display:none;align-items:center;gap:10px;background:#FFF7F7;border:1px solid #f1c7c7;border-radius:8px;padding:7px 12px;margin:0 0 10px;font-size:13px;color:#8a1a1a}
+#alFilterBar.good{background:#F1FBF6;border-color:#bfe6d3;color:#12805a}
+#alFilterBar .afb-clear{margin-left:auto;background:#fff;border:1px solid #d6b3b3;border-radius:99px;padding:3px 12px;font-size:12px;cursor:pointer;color:#8a1a1a;font-weight:600}
+#alFilterBar.good .afb-clear{border-color:#a6d8bf;color:#12805a}
+#alFilterBar .afb-clear:hover{background:#ffeaea}
+#alFilterBar.good .afb-clear:hover{background:#e6f7ee}
 .alert-cardK .ac-sub{font-size:11px;color:#5a6a7e;font-weight:400;margin-left:6px}
 .chipsK{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
 .chipK{background:#f3f4f6;border:1px solid #dde3ec;border-radius:99px;padding:2px 10px;font-size:12px;cursor:pointer}
@@ -795,12 +810,12 @@
 
     <!-- 要注意（メール通知と同じ基準・共通しきい値）teacher-dashboard-design 2026-07-05 -->
     <div class="alertsK">
-      <div class="alert-cardK"><div class="ac-h">😴 未着手 <b id="alIdleN">–</b>名<span class="ac-sub">毎日学習・昨日やってない</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習を昨日1回もやっていない子。あき日数（既定1日）を超えたら出ます。→「今日のをやろう」と声かけ。</span></span></div><div class="chipsK" id="alIdleChips"></div></div>
-      <div class="alert-cardK"><div class="ac-h">⏳ やりかけ <b id="alHalfN">–</b>名<span class="ac-sub">毎日学習・やったが未合格</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">昨日、毎日学習をやったけれど、昨日のうちに合格せず前進していない子。→あと少し・どこで詰まってるか確認。</span></span></div><div class="chipsK" id="alHalfChips"></div></div>
-      <div class="alert-cardK"><div class="ac-h">📘 単元別 未着手 <b id="alTIdleN">–</b>名<span class="ac-sub">割当あり・昨日ゼロ</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">単元別対策を割り当て済みなのに、昨日1つもさわっていない子。単元別の割当が無い子は出ません。→テスト対策を進めるよう声かけ。</span></span></div><div class="chipsK" id="alTIdleChips"></div></div>
-      <div class="alert-cardK"><div class="ac-h">📙 単元別 やりかけ <b id="alTHalfN">–</b>名<span class="ac-sub">さわったが未合格</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">昨日、単元別をさわったけれど1つも合格しなかった子。1つ通せばOK＝全部やる必要はありません。→あと少し・詰まりを確認。</span></span></div><div class="chipsK" id="alTHalfChips"></div></div>
-      <div class="alert-cardK bad"><div class="ac-h">⚠️ つまずき <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">いちばん弱い教材の直近3回平均が、正答率の基準（既定60%）未満の子。→「まちがいを印刷」で対策プリント。</span></span></div><div class="chipsK" id="alTeachChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTeachPrintBtn" onclick="printTeachAll()" style="display:none;">🖨 この<span id="alTeachPrintN">0</span>名のまちがいを印刷</button></div></div>
-      <div class="alert-cardK good" style="grid-column:1/-1;"><div class="ac-h">👏 昨日デイリークリアした子 <b id="alPraiseN">–</b>名<span class="ac-sub">毎日学習＋おさらいを 昨日ぜんぶ完了</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習の今日の分と、おさらいの枠を、昨日ぜんぶ終えた子（＝デイリークリア）。さらに先取り・単元別合格・確認テスト合格・間違いノート卒業をしていれば印を添えます。→ ひとことほめてあげてください。</span></span></div><div class="chipsK" id="alPraiseChips"></div></div>
+      <div class="alert-cardK" id="alCardIdle"><div class="ac-h afc" onclick="alertFilterClick(event,'idle')">😴 未着手 <b id="alIdleN">–</b>名<span class="ac-sub">毎日学習・昨日やってない</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習を昨日1回もやっていない子。あき日数（既定1日）を超えたら出ます。→「今日のをやろう」と声かけ。</span></span></div><div class="chipsK" id="alIdleChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alIdlePrintBtn" onclick="alPrint('idle')" style="display:none;">🖨 この<span id="alIdlePrintN">0</span>名を印刷</button></div></div>
+      <div class="alert-cardK" id="alCardHalf"><div class="ac-h afc" onclick="alertFilterClick(event,'half')">⏳ やりかけ <b id="alHalfN">–</b>名<span class="ac-sub">毎日学習・やったが未合格</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">昨日、毎日学習をやったけれど、昨日のうちに合格せず前進していない子。→あと少し・どこで詰まってるか確認。</span></span></div><div class="chipsK" id="alHalfChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alHalfPrintBtn" onclick="alPrint('half')" style="display:none;">🖨 この<span id="alHalfPrintN">0</span>名を印刷</button></div></div>
+      <div class="alert-cardK" id="alCardTIdle"><div class="ac-h afc" onclick="alertFilterClick(event,'test_idle')">📘 単元別 未着手 <b id="alTIdleN">–</b>名<span class="ac-sub">割当あり・昨日ゼロ</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">単元別対策を割り当て済みなのに、昨日1つもさわっていない子。単元別の割当が無い子は出ません。→テスト対策を進めるよう声かけ。</span></span></div><div class="chipsK" id="alTIdleChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTIdlePrintBtn" onclick="alPrint('test_idle')" style="display:none;">🖨 この<span id="alTIdlePrintN">0</span>名を印刷</button></div></div>
+      <div class="alert-cardK" id="alCardTHalf"><div class="ac-h afc" onclick="alertFilterClick(event,'test_half')">📙 単元別 やりかけ <b id="alTHalfN">–</b>名<span class="ac-sub">さわったが未合格</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">昨日、単元別をさわったけれど1つも合格しなかった子。1つ通せばOK＝全部やる必要はありません。→あと少し・詰まりを確認。</span></span></div><div class="chipsK" id="alTHalfChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTHalfPrintBtn" onclick="alPrint('test_half')" style="display:none;">🖨 この<span id="alTHalfPrintN">0</span>名を印刷</button></div></div>
+      <div class="alert-cardK bad" id="alCardStuck"><div class="ac-h afc" onclick="alertFilterClick(event,'stuck')">⚠️ つまずき <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">いちばん弱い教材の直近3回平均が、正答率の基準（既定60%）未満の子。→「まちがいを印刷」で対策プリント。</span></span></div><div class="chipsK" id="alTeachChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTeachPrintBtn" onclick="printTeachAll()" style="display:none;">🖨 この<span id="alTeachPrintN">0</span>名のまちがいを印刷</button></div></div>
+      <div class="alert-cardK good" id="alCardPraise" style="grid-column:1/-1;"><div class="ac-h afc" onclick="alertFilterClick(event,'praise')">👏 昨日デイリークリアした子 <b id="alPraiseN">–</b>名<span class="ac-sub">毎日学習＋おさらいを 昨日ぜんぶ完了</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習の今日の分と、おさらいの枠を、昨日ぜんぶ終えた子（＝デイリークリア）。さらに先取り・単元別合格・確認テスト合格・間違いノート卒業をしていれば印を添えます。→ ひとことほめてあげてください。</span></span></div><div class="chipsK" id="alPraiseChips"></div></div>
       <div class="alert-setK" style="grid-column:1/-1;">⚙ この基準は毎朝のメール通知と共通：未着手＝昨日やってなければ即（あき<input id="cfgIdle" type="number" min="1" max="99" value="1" onchange="saveAlertConfig()">日超・<span id="alIdleDaysLbl">1</span>）／つまずき＝正答率<input id="cfgAcc" type="number" min="1" max="100" value="60" onchange="saveAlertConfig()">%未満<span class="cfg-tag">毎日学習・単元別 共通。ここを変えると画面もメールも両方変わります</span></div>
     </div>
     <!-- 通知について（毎朝メールの一覧）2026-07-23 -->
@@ -820,9 +835,11 @@
       <button class="btn-primary btn-outlineK" style="width:auto;" onclick="openTargetModal('print')">🖨 まとめて印刷</button>
     </div>
 
+    <div id="alFilterBar"><span id="alFilterLabel"></span><button class="afb-clear" onclick="clearAlertFilter()">✕ 絞り込みを解除</button></div>
+
     <div class="topbarK">
       <button class="btn-ghost" id="advToggle" onclick="toggleAdvK(this)">詳しく絞り込む ▴</button>
-      <input class="filter-search" id="searchInput" placeholder="🔍 名前で検索" oninput="renderTable()" style="flex:0 0 auto;width:190px;min-width:120px;">
+      <input class="filter-search" id="searchInput" placeholder="🔍 名前で検索" oninput="_alertFilter=null;renderTable()" style="flex:0 0 auto;width:190px;min-width:120px;">
       <span class="filter-count" id="filterCount"></span>
     </div>
     <div class="filter-bar" id="advFilters">
@@ -1201,6 +1218,25 @@ var token=localStorage.getItem('kwt_t_token')||'';
 var teacherName=localStorage.getItem('kwt_t_name')||'';
 var _students=[];
 var _filter='all';
+var _alertFilter=null; /* カテゴリ絞り込み（アラート見出しクリック）2026-08-07 idle/half/test_idle/test_half/stuck/praise */
+/* アラートのバケット判定（renderAlertsK と同じ基準） */
+function alertBucketMatch(s,k){
+  if(!s)return false;
+  if(_cheerCfg&&_cheerCfg.exclude_alert&&s.is_teacher_account)return false;
+  if(k==='praise')return !!(s.praise&&s.praise.length);
+  if(!(s.assignments&&s.assignments.length))return false;
+  return (s.next_actions||[]).indexOf(k)>=0;
+}
+var _AF_LABEL={idle:'😴 未着手',half:'⏳ やりかけ',test_idle:'📘 単元別 未着手',test_half:'📙 単元別 やりかけ',stuck:'⚠️ つまずき',praise:'👏 昨日デイリークリアした子'};
+function alertFilterClick(e,k){
+  if(e&&e.target&&e.target.closest&&e.target.closest('.tt'))return; /* ？ツールチップのクリックは無視 */
+  _alertFilter=(_alertFilter===k)?null:k;
+  if($('searchInput'))$('searchInput').value=''; /* カテゴリ絞りと名前検索は排他 */
+  renderTable();
+  if(_alertFilter){var tw=$('tableWrap');if(tw&&tw.scrollIntoView)tw.scrollIntoView({behavior:'smooth',block:'start'});}
+}
+function clearAlertFilter(){_alertFilter=null;renderTable();}
+function alPrint(k){openTargetModal('print',(window._alIds&&window._alIds[k])||[]);}
 function $(id){return document.getElementById(id);}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._tid);t._tid=setTimeout(function(){t.classList.remove('show');},2000);}
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
@@ -1618,6 +1654,7 @@ function renderTable(){
     if(csel.length&&csel.indexOf(String(s.class_name))<0)return false;
     if(scsel.length&&scsel.indexOf(String(s.school))<0)return false;
     if(search&&String(s.name).indexOf(search)<0&&String(s.nickname).indexOf(search)<0)return false;
+    if(_alertFilter&&!alertBucketMatch(s,_alertFilter))return false;
     return true;
   });
   var _idi=$('inactiveDays');if(_idi&&String(_inactiveDays)!==_idi.value)_idi.value=_inactiveDays;
@@ -1875,19 +1912,19 @@ function renderAlertsK(){
   (_students||[]).forEach(function(st){
     if(_cheerCfg&&_cheerCfg.exclude_alert&&st.is_teacher_account)return; // 先生応援：要注意から除外 2026-07-07
     if(!(st.assignments&&st.assignments.length))return; // 割当なしは対象外（メール通知と同じ）
-    var a=st.next_actions||[],nm=st.name||st.nickname||'';
-    if(a.indexOf('idle')>=0){var da=daysAgo(st.last_studied_at);idle.push({n:nm,d:(da===null?'未学習':'あき'+da+'日')});}
-    if(a.indexOf('half')>=0)half.push({n:nm});
-    if(a.indexOf('test_idle')>=0)tidle.push({n:nm});
-    if(a.indexOf('test_half')>=0)thalf.push({n:nm});
-    if(a.indexOf('stuck')>=0)teach.push({id:String(st.student_id),n:nm,r:st.teach_rate});
+    var a=st.next_actions||[],nm=st.name||st.nickname||'',sid=String(st.student_id);
+    if(a.indexOf('idle')>=0){var da=daysAgo(st.last_studied_at);idle.push({id:sid,n:nm,d:(da===null?'未学習':'あき'+da+'日')});}
+    if(a.indexOf('half')>=0)half.push({id:sid,n:nm});
+    if(a.indexOf('test_idle')>=0)tidle.push({id:sid,n:nm});
+    if(a.indexOf('test_half')>=0)thalf.push({id:sid,n:nm});
+    if(a.indexOf('stuck')>=0)teach.push({id:sid,n:nm,r:st.teach_rate});
   });
   idle.sort(function(a,b){return (b.d==='未学習'?1e9:parseInt(b.d.replace(/\D/g,''),10))-(a.d==='未学習'?1e9:parseInt(a.d.replace(/\D/g,''),10));});
   teach.sort(function(a,b){return a.r-b.r;});
   $('alIdleN').textContent=idle.length;$('alHalfN').textContent=half.length;$('alTIdleN').textContent=tidle.length;$('alTHalfN').textContent=thalf.length;$('alTeachN').textContent=teach.length;
   var mk=function(host,arr,fmt){
     var el=$(host);if(!el)return;el.innerHTML=arr.length?'':'<span class="chip-none">なし 🎉</span>';
-    arr.forEach(function(x){var b=document.createElement('span');b.className='chipK';b.textContent=fmt(x);b.title='クリックで検索';b.onclick=function(){$('searchInput').value=x.n;renderTable();};el.appendChild(b);});
+    arr.forEach(function(x){var b=document.createElement('span');b.className='chipK';b.textContent=fmt(x);b.title='クリックで検索';b.onclick=function(){_alertFilter=null;$('searchInput').value=x.n;renderTable();};el.appendChild(b);});
   };
   mk('alIdleChips',idle,function(x){return x.n+'（'+x.d+'）';});
   mk('alHalfChips',half,function(x){return x.n;});
@@ -1896,6 +1933,13 @@ function renderAlertsK(){
   mk('alTeachChips',teach,function(x){return x.n+'（'+x.r+'%）';});
   // 印刷ショートカット（川上さん承認モック 2026-07-05）：対象プリセットで印刷モーダルへ
   window._teachIds=teach.map(function(x){return x.id;});
+  // カテゴリ絞り込み用のバケットID＋各カードの印刷ボタン 2026-08-07
+  window._alIds={idle:idle.map(function(x){return x.id;}),half:half.map(function(x){return x.id;}),test_idle:tidle.map(function(x){return x.id;}),test_half:thalf.map(function(x){return x.id;}),stuck:teach.map(function(x){return x.id;})};
+  var _setAlPrint=function(btnId,nId,arr){var b=$(btnId);if(!b)return;var n=$(nId);if(n)n.textContent=arr.length;b.style.display=arr.length?'inline-flex':'none';};
+  _setAlPrint('alIdlePrintBtn','alIdlePrintN',idle);
+  _setAlPrint('alHalfPrintBtn','alHalfPrintN',half);
+  _setAlPrint('alTIdlePrintBtn','alTIdlePrintN',tidle);
+  _setAlPrint('alTHalfPrintBtn','alTHalfPrintN',thalf);
   var tb=$('alTeachPrintBtn');
   if(tb){$('alTeachPrintN').textContent=teach.length;tb.style.display=teach.length?'inline-flex':'none';}
   // 👏 今日ほめたい子（昨日ぶん・GASの praise と同基準）2026-07-23
@@ -1908,7 +1952,17 @@ function renderAlertsK(){
   var _pN=$('alPraiseN'); if(_pN)_pN.textContent=praise.length;
   var _pc=$('alPraiseChips');
   if(_pc){ _pc.innerHTML=praise.length?'':'<span class="chip-none">きのうは まだ いません</span>';
-    praise.forEach(function(x){var b=document.createElement('span');b.className='pchipK';b.textContent=x.n+'（'+x.r+'）';b.title='クリックで検索';b.onclick=function(){$('searchInput').value=x.n;renderTable();};_pc.appendChild(b);}); }
+    praise.forEach(function(x){var b=document.createElement('span');b.className='pchipK';b.textContent=x.n+'（'+x.r+'）';b.title='クリックで検索';b.onclick=function(){_alertFilter=null;$('searchInput').value=x.n;renderTable();};_pc.appendChild(b);}); }
+  // カテゴリ絞り込みの見た目：選択中カードのハイライトと絞り込みバー 2026-08-07
+  [['idle','alCardIdle'],['half','alCardHalf'],['test_idle','alCardTIdle'],['test_half','alCardTHalf'],['stuck','alCardStuck'],['praise','alCardPraise']].forEach(function(p){var c=$(p[1]);if(c)c.classList.toggle('afon',_alertFilter===p[0]);});
+  var bar=$('alFilterBar');
+  if(bar){
+    if(_alertFilter){
+      bar.style.display='flex';
+      bar.classList.toggle('good',_alertFilter==='praise');
+      var lb=$('alFilterLabel');if(lb)lb.innerHTML='絞り込み中：<b>'+esc(_AF_LABEL[_alertFilter]||'')+'</b>（'+($('filterCount')?$('filterCount').textContent:'')+'）';
+    }else{ bar.style.display='none'; }
+  }
 }
 if(token){setTimeout(loadAlertConfig,400);setTimeout(loadCheerConfig,500);setTimeout(function(){ensureMatParts(function(){if(_students&&_students.length)renderTable();});},600);}
 
