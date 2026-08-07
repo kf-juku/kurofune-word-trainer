@@ -2605,7 +2605,7 @@ function showTrioOverlay_(data){
     ? 'きみは <b>'+meRank+'<ruby>位<rt class="uf">い</rt></ruby></b> に<ruby>入<rt class="uf">はい</rt></ruby>ったよ！ ほかのなかまも<ruby>応援<rt class="uf">おうえん</rt></ruby>しよう。'
     : 'きみも<ruby>上位<rt class="uf">じょうい</rt></ruby>に<ruby>入<rt class="uf">はい</rt></ruby>ると、みんなから <b><ruby>応援<rt class="uf">おうえん</rt></ruby></b> がもらえるよ！';
   bottomWrap.appendChild(foot);
-  var cta=document.createElement('button');cta.className='trio-cta';cta.innerHTML='やる<ruby>気<rt class="uf">き</rt></ruby>でた！はじめる';cta.onclick=close;
+  var cta=document.createElement('button');cta.className='trio-cta';cta.innerHTML='やる<ruby>気<rt class="uf">き</rt></ruby>でた！はじめる';cta.onclick=function(){close();try{showHomeTab('daily');}catch(e){}}; // やる気→今日のデイリー（毎日タブ）へ移動。先頭の「つぎは これ」フォーカスがscrollTo(0,0)で見える。初ログイン・記録から見返し どちらも同じ 2026-08-07
   bottomWrap.appendChild(cta);
   panel.appendChild(bottomWrap);
   ov.appendChild(panel);
