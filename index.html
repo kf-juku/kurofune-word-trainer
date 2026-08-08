@@ -103,6 +103,7 @@
   .ncf-nm small{display:block;font-weight:500;font-size:10.5px;color:var(--sub);margin-top:1px;}
   .ncf-go{width:30px;height:30px;border-radius:9px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto;}
   .ncf-done{color:var(--ok);font-size:17px;}
+  .nchap.done .ncf-nm small.chap-done{color:var(--ok);font-weight:700;} /* 完走章＝おめでとう＋学習マップ復習 2026-08-08 */
   /* 確認テスト ひとまとめ */
   .nquiz{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:11px 12px;display:flex;align-items:center;gap:11px;cursor:pointer;margin-top:4px;position:relative;}
   .nqc-ic{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;}
@@ -2115,7 +2116,7 @@ function _dailyQueueRow_(m){
 /* 単元別＝本(シリーズ)ごとにフラットな章リスト＋消化率。material_parts の content_type=test を使う */
 function renderUnitZone_(materials){
   var host=$('unit-list');if(!host)return;
-  var tests=(materials||[]).filter(function(c){return c.content_type==='test'&&c.sm_status!=='completed';}); // 完了(全クリア)は単元別タブから消す＝学習マップで復習 2026-08-01
+  var tests=(materials||[]).filter(function(c){return c.content_type==='test';}); // 【2026-08-08】完走(sm_status=completed)も残す＝「割り当てが残る限り消さない」。完走した章は🎉完走・学習マップ復習に差し替え（旧2026-08-01の「completedは消す」を廃止）
   tests=tests.slice().sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // 教材の並び順(display_order)で・ホーム/確認テストと統一 2026-07-29
   host.innerHTML='';_unitCount=tests.length;
   if(tests.length){
@@ -2144,14 +2145,16 @@ function renderUnitZone_(materials){
         var firstUnpassed=null;ps.forEach(function(l){if(!l.passed&&!firstUnpassed)firstUnpassed=l;});
         var target=cur?cur.part_id:(firstUnpassed?firstUnpassed.part_id:(ps[0]?ps[0].part_id:''));
         var allPass=(t2>0&&p2===t2);
-        detail+='<div class="nchap" data-pid="'+esc(String(target))+'"><div class="ncf-nm">'+esc(mtShortMt(c))+'<small>できた '+p2+'/'+t2+'</small></div>'
-          +(allPass?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
+        var isDone=(String(c.sm_status)==='completed')||allPass; // 完走＝全パート合格 or 割当が完了状態 2026-08-08
+        detail+='<div class="nchap'+(isDone?' done':'')+'" data-pid="'+esc(String(target))+'"'+(isDone?' data-map="1"':'')+'><div class="ncf-nm">'+esc(mtShortMt(c))
+          +(isDone?'<small class="chap-done">🎉 <ruby>完走<rt class="uf">かんそう</rt></ruby> ・ <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できる</small>':'<small>できた '+p2+'/'+t2+'</small>')+'</div>'
+          +(isDone?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
       });
       detail+='</div>';
       book.innerHTML=head+detail;
       if(_open.indexOf(g.key)>=0)book.classList.add('open'); // リロード後も開いた本を保持
       book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_unitOpenToggle_(g.key,book.classList.contains('open'));};
-      book.querySelectorAll('.nchap').forEach(function(row){var pid=row.getAttribute('data-pid');if(pid)row.onclick=function(){startPractice(pid);};});
+      book.querySelectorAll('.nchap').forEach(function(row){var pid=row.getAttribute('data-pid');var isMap=row.getAttribute('data-map')==='1';row.onclick=function(){ if(isMap){showSub('lists');} else if(pid){startPractice(pid);} };}); // 完走章は学習マップ(復習)へ・未完走は練習へ 2026-08-08
       host.appendChild(book);
     });
     if(_allClear&&groups.length){var fc=document.createElement('div');fc.className='fin-card mini';fc.innerHTML='<div class="dc-ic"><i class="ti ti-trophy"></i></div><div class="dc-t"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>、ぜんぶ クリア！</div><div class="dc-s">わりあての テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を <ruby>全部<rt class="uf">ぜんぶ</rt></ruby> 100%に したよ。すごい！</div>';host.insertBefore(fc,host.firstChild);} // 全クリアの祝い 2026-07-24
