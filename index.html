@@ -1969,6 +1969,7 @@ var _srsReady={words:[],assets:{},loaded:false}; // おさらいの今日分を�
 function startOsaraiDirect_(){ showSub('review'); } // おさらいは教科タブ・おまかせを見せる画面へ（中身が見える＝氷山感を減らす）2026-07-26
 var _dailyUndone=0;
 var _dailyMain=null; // デイリー進捗をおさらい取得後に描き直すため、直近のmainを保持 2026-07-26
+var _dailyCompletedMains=[]; // 完走した毎日学習(main・sm_status=completed)。毎日タブに「学習マップで復習」バナーを出す判定に使う 2026-08-08。material_parts から供給
 // 毎日タブ＝毎日学習の未完了＋おさらい残りの合計（2026-07-25 おさらいを毎日タブへ移設＝デイリーの構成要素）
 function setDailyNavNum_(){var osDone=(dailyState.review===true);setBadge_('daily',(_dailyUndone||0)+(osDone?0:1));} // デイリーの残り「個数」＝毎日学習の未完＋おさらい枠(1)。おさらいの残り語数(最大20)を足さない＝分母4と一致（2026-07-26）
 // 間違いノートタブ＝間違いノート残りのみ（2026-07-25 おさらいは毎日タブへ）
@@ -2028,7 +2029,17 @@ function renderDailyList_(main){
   var host=$('daily-list');if(!host)return;host.innerHTML='';
   _dailyMain=main||[]; // おさらい取得後に描き直すため保持
   var sub=$('daily-sub2');
-  if(!main||!main.length){host.innerHTML='<p class="muted" style="text-align:center;padding:18px 8px;"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>は ありません。先生に<ruby>聞<rt class="uf">き</rt></ruby>いてね。</p>';if(sub)sub.innerHTML='';_dailyUndone=0;setDailyNavNum_();return;}
+  if(!main||!main.length){
+    // 完走した毎日学習が残っているなら「ぜんぶ完走・次の教材を待つ」に。まだ何も割当が無い子だけ従来の「ありません」2026-08-08
+    var _hasComp=(_dailyCompletedMains&&_dailyCompletedMains.length);
+    var _emptyMsg=_hasComp
+      ?'<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>は ぜんぶ <ruby>完走<rt class="uf">かんそう</rt></ruby>したよ！つぎの<ruby>教材<rt class="uf">きょうざい</rt></ruby>が <ruby>届<rt class="uf">とど</rt></ruby>くまで まってね。'
+      :'<ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>は ありません。先生に<ruby>聞<rt class="uf">き</rt></ruby>いてね。';
+    host.innerHTML='<p class="muted" style="text-align:center;padding:18px 8px;">'+_emptyMsg+'</p>';
+    if(sub)sub.innerHTML='';_dailyUndone=0;setDailyNavNum_();
+    _appendCompletedMains_(host); // 既存デザインの学習マップ・バナーを流用
+    return;
+  }
   var undone=main.filter(function(m){return !m.cleared_today;});
   var mainDoneN=main.length-undone.length;
   var mainAllDone=(undone.length===0);
@@ -2046,6 +2057,7 @@ function renderDailyList_(main){
   if(dailyComplete){
     var qh0=document.createElement('div');qh0.className='q-head done';qh0.innerHTML='<i class="ti ti-circle-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby> やったこと ・ もっと やりたい子は <ruby>先<rt class="uf">さき</rt></ruby>へ';host.appendChild(qh0);
     main.forEach(function(m){host.appendChild(_dailyDoneCard_(m));});
+    _appendCompletedMains_(host);
     return;
   }
   // 全体像：今日のデイリーの進み（毎日学習の各教材＋おさらい枠・終わったら緑）2026-07-26
@@ -2067,6 +2079,7 @@ function renderDailyList_(main){
   // きょう できた＝終わった分を「がんばったね」の枠でまとめる 2026-07-24
   var doneItems=main.filter(function(m){return m.cleared_today;});
   if(doneItems.length){var dh=document.createElement('div');dh.className='q-head done';dh.innerHTML='<i class="ti ti-circle-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby> できたよ（'+doneItems.length+'）・ よく がんばったね';host.appendChild(dh);doneItems.forEach(function(m){host.appendChild(_dailyDoneCard_(m));});}
+  _appendCompletedMains_(host);
 }
 /* おさらい枠が残ったときの focus（毎日学習は完了・つぎは おさらい）2026-07-26 */
 function _osaraiFocus_(){
@@ -2103,6 +2116,21 @@ function _dailyDoneCard_(m){
     +'<div class="dcard-cta">じぶんで <ruby>先<rt class="uf">さき</rt></ruby>に すすむ <i class="ti ti-arrow-right"></i></div></div>';
   el.onclick=function(){startPractice(m.part_id);};
   return el;
+}
+/* 毎日タブに、完走した毎日学習があるときだけ「学習マップで何度でも復習」バナーを1つ出す。
+   既存の完了画面バナー doneMatClearGuide_() と同一デザインを流用（UIのブレを作らない）2026-08-08。
+   単語(毎日学習)は「単元」ではないので文言だけ「終わった毎日学習」に差し替え。 */
+function _dailyMapGuide_(){
+  return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;">'
+   +'<div style="font-size:12.8px;color:var(--sub);margin-bottom:10px;"><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>何度<rt class="uf">なんど</rt></ruby>でも <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ。</div>'
+   +'<button onclick="goMapSub_()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;"><i class="ti ti-map-2"></i> <span><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップを ひらく</span></button>'
+   +'</div>';
+}
+/* 完走した毎日学習が残っているときだけ、上のバナーを1つ足す（今日のノルマ N/total には数えない）2026-08-08 */
+function _appendCompletedMains_(host){
+  if(!host||!(_dailyCompletedMains&&_dailyCompletedMains.length))return;
+  var w=document.createElement('div');w.innerHTML=_dailyMapGuide_();
+  if(w.firstChild)host.appendChild(w.firstChild);
 }
 function _dailyQueueRow_(m){
   var el=document.createElement('div');el.className='qrow';
@@ -2292,6 +2320,11 @@ function loadHomeData_(showSkel){
   callCached({action:'quiz_list'},quizRenderHome_); // 確認テストの入口表示（配信があれば出す）2026-07-10
   callCached({action:'material_parts'},function(d){
     try{renderUnitZone_((d&&d.ok&&d.data&&d.data.materials)||[]);}catch(e){} // 単元別ゾーン（新ホーム 2026-07-24）
+    try{ // 完走した毎日学習(main・sm_status=completed)を毎日タブに残す 2026-08-08。studentHome.main は active限定なので material_parts から拾う
+      var _mpAll=(d&&d.ok&&d.data&&d.data.materials)||[];
+      _dailyCompletedMains=_mpAll.filter(function(c){return c.content_type!=='test'&&String(c.sm_status)==='completed';});
+      if(_dailyMain)renderDailyList_(_dailyMain); // studentHome先着でも後着でも完走セクションを反映
+    }catch(e){}
     if(!d.ok){$('review-area').innerHTML='<p class="muted">—</p>';return;}
     var cs=d.data.materials||[];
     if(!cs.length){$('review-area').innerHTML='<p class="muted">まだ<ruby>教材<rt class="uf">きょうざい</rt></ruby>がありません。</p>';return;}
