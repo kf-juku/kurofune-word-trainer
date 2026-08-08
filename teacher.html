@@ -651,7 +651,11 @@
   table.qtable{width:100%;border-collapse:collapse;}
   table.qtable th,table.qtable td{padding:8px 6px;font-size:12.5px;text-align:center;border-bottom:1px solid var(--surface2);}
   table.qtable th{background:var(--surface2);color:var(--text-muted);font-size:11px;font-weight:700;}
-  table.qtable th.stu,table.qtable td.stu{text-align:left;font-weight:700;white-space:nowrap;}
+  table.qtable th.stu,table.qtable td.stu{text-align:left;font-weight:700;white-space:nowrap;position:sticky;left:0;z-index:2;background:#fff;min-width:88px;max-width:88px;overflow:hidden;text-overflow:ellipsis;}
+  table.qtable th.qkey,table.qtable td.qkey{position:sticky;left:88px;z-index:2;background:#fbfcfe;border-right:2px solid #d7dfea;text-align:left;white-space:nowrap;min-width:92px;}
+  table.qtable thead th.stu,table.qtable thead th.qkey{z-index:3;}
+  .qkey-h{font-size:10px;color:var(--text-light);font-weight:700;line-height:1.3;}
+  .qkey-c{display:flex;flex-direction:column;gap:12px;font-size:10.5px;color:#6b7686;font-weight:600;line-height:1.1;}
   .qcell{display:inline-block;min-width:46px;border-radius:8px;padding:5px 4px;font-weight:800;font-size:12px;cursor:pointer;}
   .q-ok{background:#e6f6ee;color:#1f9d57;}.q-ng{background:#fdeaea;color:#d64545;}.q-miss{background:#eef1f5;color:#9aa6b3;}
   .q-un{background:#fff;border:1.5px dashed #c3ccd8;color:#5b6675;display:inline-flex;flex-direction:column;align-items:center;line-height:1.1;padding:3px 6px;min-width:46px;border-radius:9px;cursor:pointer;vertical-align:middle;} /* 再配信後の未実施＝点線で一目で分かる 2026-07-28 */
@@ -812,7 +816,7 @@
     <div class="alertsK">
       <div class="alert-cardK" id="alCardIdle"><div class="ac-h afc" onclick="alertFilterClick(event,'idle')">😴 未着手 <b id="alIdleN">–</b>名<span class="ac-sub">毎日学習・昨日やってない</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習を昨日1回もやっていない子。あき日数（既定1日）を超えたら出ます。→「今日のをやろう」と声かけ。</span></span></div><div class="chipsK" id="alIdleChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alIdlePrintBtn" onclick="alPrint('idle')" style="display:none;">🖨 この<span id="alIdlePrintN">0</span>名を印刷</button></div></div>
       <div class="alert-cardK" id="alCardHalf"><div class="ac-h afc" onclick="alertFilterClick(event,'half')">⏳ やりかけ <b id="alHalfN">–</b>名<span class="ac-sub">毎日学習・やったが未合格</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">昨日、毎日学習をやったけれど、昨日のうちに合格せず前進していない子。→あと少し・どこで詰まってるか確認。</span></span></div><div class="chipsK" id="alHalfChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alHalfPrintBtn" onclick="alPrint('half')" style="display:none;">🖨 この<span id="alHalfPrintN">0</span>名を印刷</button></div></div>
-      <div class="alert-cardK" id="alCardTIdle"><div class="ac-h afc" onclick="alertFilterClick(event,'test_idle')">📘 単元別 未着手 <b id="alTIdleN">–</b>名<span class="ac-sub">割当あり・昨日ゼロ</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">単元別対策を割り当て済みなのに、昨日1つもさわっていない子。単元別の割当が無い子は出ません。→テスト対策を進めるよう声かけ。</span></span></div><div class="chipsK" id="alTIdleChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTIdlePrintBtn" onclick="alPrint('test_idle')" style="display:none;">🖨 この<span id="alTIdlePrintN">0</span>名を印刷</button></div></div>
+      <div class="alert-cardK" id="alCardTIdle"><div class="ac-h afc" onclick="alertFilterClick(event,'test_idle')">📘 単元別 未練習 <b id="alTIdleN">–</b>名<span class="ac-sub">割当あり・昨日ゼロ</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">単元別対策を割り当て済みなのに、昨日1つもさわっていない子。単元別の割当が無い子は出ません。→テスト対策を進めるよう声かけ。</span></span></div><div class="chipsK" id="alTIdleChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTIdlePrintBtn" onclick="alPrint('test_idle')" style="display:none;">🖨 この<span id="alTIdlePrintN">0</span>名を印刷</button></div></div>
       <div class="alert-cardK" id="alCardTHalf"><div class="ac-h afc" onclick="alertFilterClick(event,'test_half')">📙 単元別 やりかけ <b id="alTHalfN">–</b>名<span class="ac-sub">さわったが未合格</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">昨日、単元別をさわったけれど1つも合格しなかった子。1つ通せばOK＝全部やる必要はありません。→あと少し・詰まりを確認。</span></span></div><div class="chipsK" id="alTHalfChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTHalfPrintBtn" onclick="alPrint('test_half')" style="display:none;">🖨 この<span id="alTHalfPrintN">0</span>名を印刷</button></div></div>
       <div class="alert-cardK bad" id="alCardStuck"><div class="ac-h afc" onclick="alertFilterClick(event,'stuck')">⚠️ つまずき <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">いちばん弱い教材の直近3回平均が、正答率の基準（既定60%）未満の子。→「まちがいを印刷」で対策プリント。</span></span></div><div class="chipsK" id="alTeachChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTeachPrintBtn" onclick="printTeachAll()" style="display:none;">🖨 この<span id="alTeachPrintN">0</span>名のまちがいを印刷</button></div></div>
       <div class="alert-cardK good" id="alCardPraise" style="grid-column:1/-1;"><div class="ac-h afc" onclick="alertFilterClick(event,'praise')">👏 昨日デイリークリアした子 <b id="alPraiseN">–</b>名<span class="ac-sub">毎日学習＋おさらいを 昨日ぜんぶ完了</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習の今日の分と、おさらいの枠を、昨日ぜんぶ終えた子（＝デイリークリア）。さらに先取り・単元別合格・確認テスト合格・間違いノート卒業をしていれば印を添えます。→ ひとことほめてあげてください。</span></span></div><div class="chipsK" id="alPraiseChips"></div></div>
@@ -823,7 +827,7 @@
       <summary>ⓘ 通知について（毎朝の自動メール）</summary>
       <div class="np-body">
         <div class="np-intro">塾のメール（kurofune.school@gmail.com ／ kurihama@kurofune-school.com）に、<b>該当がある日だけ</b>自動で届きます。順調な日は届きません。</div>
-        <div class="np-item">① <b>学習アラート</b><span class="np-when">毎朝</span><br>昨日ぶんの気になる子。毎日学習の「未着手・やりかけ」、単元別対策の「未着手・やりかけ」、つまずき（正答率が基準未満）、完走、雑（2秒未満の誤答が多いパッと押し）、確認テストの「未実施・未合格」。基準（あき日数・正答率）は上の⚙で変更でき、メールにも反映されます。<b>また、昨日「👏 デイリークリア」した子（毎日学習の今日の分＋おさらいの枠を完了）も同じメールに一緒に届きます</b>。</div>
+        <div class="np-item">① <b>学習アラート</b><span class="np-when">毎朝</span><br>昨日ぶんの気になる子。毎日学習の「未着手・やりかけ」、単元別対策の「未練習・やりかけ」、つまずき（正答率が基準未満）、完走、雑（2秒未満の誤答が多いパッと押し）、確認テストの「未受験・未合格」。基準（あき日数・正答率）は上の⚙で変更でき、メールにも反映されます。<b>また、昨日「👏 デイリークリア」した子（毎日学習の今日の分＋おさらいの枠を完了）も同じメールに一緒に届きます</b>。</div>
         <div class="np-item">② <b>生徒からの不具合報告まとめ</b><span class="np-when">毎朝・①と同送</span><br>生徒アプリの「不具合報告」に新着があった日だけ。誰が・どの画面・内容・端末・アプリ版を一覧します。</div>
         <div class="np-item">③ <b>学習データの減少検知</b><span class="np-when">毎朝</span><br>前日比でデータ（有効な生徒数・自動反復・間違いノート・学習履歴）が減った日だけ。誰が有効から外れたか、学習データが0件になった生徒を名前で知らせます。</div>
         <div class="np-item">④ <b>エラー通知</b><span class="np-when">失敗時のみ</span><br>①〜③の集計自体が失敗したとき「⚠️実行できませんでした」を送ります。</div>
@@ -877,7 +881,7 @@
             <tr>
               <th data-sk="name" onclick="sortBy('name')">生徒 <span class="sort-ar" data-ar="name"></span></th>
               <th data-sk="grade" onclick="sortBy('grade')">学年 <span class="sort-ar" data-ar="grade"></span></th>
-              <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。毎日学習は 😴未着手=昨日ゼロ／⏳やりかけ=やったが未合格。単元別は 📘未着手／📙やりかけ（毎日学習と別で判定）。🎉完走=次を割当／⚠️つまずき=復習・印刷／💨雑=ていねいに／✅順調=不要／👀未評価=一度も未着手。当てはまるものは全部表示。</span></span></th>
+              <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。毎日学習は 😴未着手=昨日ゼロ／⏳やりかけ=やったが未合格。単元別は 📘未練習／📙やりかけ（毎日学習と別で判定）。🎉完走=次を割当／⚠️つまずき=復習・印刷／💨雑=ていねいに／✅順調=不要／👀未評価=一度も未着手。当てはまるものは全部表示。</span></span></th>
               <th>教材と進み<span class="tt"><span class="help-mark">?</span><span class="tt-body">割当教材ごとの状態（閲覧のみ）。色＝その教材の直近3回の平均正答率（緑80/黄60/赤=60%未満は要指導）。→いまここ。🔊＝英語の発音（○大半/△一部/–）。</span></span></th>
               <th class="gcol">今日</th>
               <th data-sk="last" onclick="sortBy('last')">最終学習 <span class="sort-ar" data-ar="last"></span></th>
@@ -1040,7 +1044,9 @@
         .qsu-serfold .cr{color:var(--text-light);font-size:11px;margin-right:2px;}
         .qsu-sercnt{font-size:10.5px;color:var(--text-light);font-weight:600;margin-left:8px;}
         .qb-prac{display:block;font-size:9.5px;color:#12805a;font-weight:700;margin-top:1px;line-height:1.1;}
-        .qb-prac0{display:block;font-size:9.5px;color:#b6bcc6;font-weight:600;margin-top:1px;line-height:1.1;}
+        .qb-prac0{display:block;font-size:9.5px;color:#7b8794;font-weight:600;margin-top:1px;line-height:1.1;} /* 📘未練習＝グレー（まだ） */
+        .qb-none{display:block;font-size:9.5px;color:#aab4c0;font-weight:600;margin-top:1px;line-height:1.1;} /* 未割当＝薄グレー（なし） */
+        .q-nosend{display:inline-block;min-width:46px;color:#c7cfda;font-weight:800;font-size:12px;cursor:pointer;} /* 未配信＝薄い・ */
         .qb-date{display:block;font-size:9px;color:#94a3b8;font-weight:600;line-height:1.1;margin-top:1px;}
         .qsu-date{font-size:10px;color:#94a3b8;font-weight:600;margin-left:6px;}
         .qsu-note{font-size:10.5px;color:#94a3b8;font-weight:600;}
@@ -1061,7 +1067,7 @@
       </div>
       <div id="qpaneStu">
         <div class="qcard"><div class="qch qafc" id="qtNgH" onclick="applyQNg({t:'all'})" title="クリックで未合格の子を絞り込み">✅ 要対応：確認テストで未合格<span class="c2cnt" id="qtNgCnt">–</span><span class="qaf-hint">🔍 クリックで絞り込む</span></div><div id="qtNgList"></div>
-          <div class="qmute2">※ 未実施（まだ受けていない）は数が多いので山にしません。「教材ごと（点数表）」のセルで確認できます。</div></div>
+          <div class="qmute2">※ 未受験（まだ受けていない）は数が多いので山にしません。「教材ごと（点数表）」のセルで確認できます。</div></div>
         <div class="qcard">
           <div id="qtFstrip" class="qfstrip"></div>
           <div id="qsFilters" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;"></div>
@@ -1076,14 +1082,14 @@
         </div>
       </div>
       <div id="qpaneMat" style="display:none;">
-        <div class="qcard"><div class="qch">まだ受けていないテスト（未実施）<span class="c2cnt" id="qtAttCnt">–</span></div><div id="qtAtt"></div>
+        <div class="qcard"><div class="qch">まだ受けていないテスト（未受験）<span class="c2cnt" id="qtAttCnt">–</span></div><div id="qtAtt"></div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">※未合格の子は「生徒ごと」の要対応にまとめています。／配信は「教材ごと」タブの各教材の「確認テストを配信」ボタンから。</div></div>
         <div class="qcard"><div class="qch">点数表（教材ごと）</div><div class="qmatsel" id="qtMatSel"></div>
           <div id="qbFilters" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0;"></div>
           <div id="qbFstrip" class="qfstrip"></div>
           <div id="qbBoardCap" style="font-size:12.5px;font-weight:800;margin:4px 0 8px;"></div>
           <div style="overflow-x:auto;"><div id="qtBoard"></div></div>
-          <div class="qlegend"><span><i class="qlg q-ok"></i>合格</span><span><i class="qlg q-ng"></i>未合格</span><span><span class="q-un" style="padding:1px 5px;line-height:1;"><b style="font-size:10px;">未</b></span> 未実施（再配信後・前○%＝前回の点数）</span><span>— ＝未受験</span><span><b style="color:#12805a;">📘%</b>＝単元別の練習・<span style="color:#94a3b8;">日付</span>＝受けた日</span><span>見出しクリックで並び替え／セルをタップで詳細</span></div></div>
+          <div class="qlegend"><span style="width:100%;color:var(--text-light);font-weight:700;">上段＝✅確認テスト</span><span><i class="qlg q-ok"></i>合格%</span><span><i class="qlg q-ng"></i>未合格%</span><span>— ＝未受験（送ったがまだ）</span><span><span class="q-un" style="padding:1px 5px;line-height:1;"><b style="font-size:10px;">未受験</b></span> 再配信・前○%＝前回の点</span><span style="color:#c7cfda;">・</span>＝未配信（送っていない）<span style="width:100%;color:var(--text-light);font-weight:700;">下段＝📘単元別</span><span><b style="color:#12805a;">📗/📘%</b>＝練習した（完走/途中）・<span style="color:#94a3b8;">日付</span>＝練習日</span><span><b style="color:#7b8794;">📘未練習</b>＝割当あり・練習まだ</span><span><b style="color:#aab4c0;">未割当</b>＝単元別なし</span><span style="width:100%;">見出しクリックで並び替え／セルをタップで詳細</span></div></div>
       </div>
     </div>
 
@@ -1178,7 +1184,7 @@
 <div class="modal-back" id="quizDeliverModal">
   <div class="modal">
     <h3 id="qdTitle">確認テストを配信</h3>
-    <div class="mhint">押した時点でスタート。全パートが「未実施」に戻ります（過去の点数は消えません）。2回目でも受け直すまで「未実施」です。対象＝この教材の名簿をプリセット、左から追加・右の✕で外せます。</div>
+    <div class="mhint">押した時点でスタート。全パートが「未受験」に戻ります（過去の点数は消えません）。2回目でも受け直すまで「未受験」です。対象＝この教材の名簿をプリセット、左から追加・右の✕で外せます。</div>
     <div class="err" id="qdErr"></div>
     <div id="qdBody"></div>
     <div class="modal-actions">
@@ -1324,7 +1330,7 @@ function alertBucketMatch(s,k){
   if(!(s.assignments&&s.assignments.length))return false;
   return (s.next_actions||[]).indexOf(k)>=0;
 }
-var _AF_LABEL={idle:'😴 未着手',half:'⏳ やりかけ',test_idle:'📘 単元別 未着手',test_half:'📙 単元別 やりかけ',stuck:'⚠️ つまずき',praise:'👏 昨日デイリークリアした子'};
+var _AF_LABEL={idle:'😴 未着手',half:'⏳ やりかけ',test_idle:'📘 単元別 未練習',test_half:'📙 単元別 やりかけ',stuck:'⚠️ つまずき',praise:'👏 昨日デイリークリアした子'};
 function alertFilterClick(e,k){
   if(e&&e.target&&e.target.closest&&e.target.closest('.tt'))return; /* ？ツールチップのクリックは無視 */
   _alertFilter=(_alertFilter===k)?null:k;
@@ -1503,7 +1509,7 @@ function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate
 function needsHelp(s){return hasTeach(s)&&s.teach_rate<_needHelpRate;}
 /* 次の一手（機能仕様書§先生ダッシュボード「次の一手」2026-07-10）。GAS next_actions を表示。 */
 /* 2026-07-22 2トラック化：idle=毎日未着手／half=毎日やりかけ／test_idle=単元別未着手／test_half=単元別やりかけ */
-var NA_META={done:{c:'na-done',t:'🎉完走'},idle:{c:'na-idle',t:'😴未着手'},half:{c:'na-half',t:'⏳やりかけ'},test_idle:{c:'na-tidle',t:'📘単元別まだ'},test_half:{c:'na-thalf',t:'📙単元別やりかけ'},stuck:{c:'na-stuck',t:'⚠️つまずき'},rush:{c:'na-rush',t:'💨雑'},ok:{c:'na-ok',t:'✅順調'},na:{c:'na-na',t:'👀未評価'}};
+var NA_META={done:{c:'na-done',t:'🎉完走'},idle:{c:'na-idle',t:'😴未着手'},half:{c:'na-half',t:'⏳やりかけ'},test_idle:{c:'na-tidle',t:'📘未練習'},test_half:{c:'na-thalf',t:'📙単元別やりかけ'},stuck:{c:'na-stuck',t:'⚠️つまずき'},rush:{c:'na-rush',t:'💨雑'},ok:{c:'na-ok',t:'✅順調'},na:{c:'na-na',t:'👀未評価'}};
 var NA_ORDER=['done','idle','half','test_idle','test_half','stuck','rush','ok','na'];
 var NA_SEV={stuck:5,idle:4,half:4,test_idle:3,test_half:3,rush:3,done:2,ok:1,na:0};
 function naList(s){var a=s.next_actions||[];return NA_ORDER.filter(function(k){return a.indexOf(k)>=0;});}
@@ -1797,7 +1803,7 @@ function naWhy(s,k){
   if(k==='done')return {t:'🎉 完走',why:'教材を最後まで合格。次の教材が未割当です。',btn:'<button class="btn-primary sd-act" onclick="sdAssign('+"'"+esc(String(s.student_id))+"'"+')">＋ 次の教材を割り当てる</button>'};
   if(k==='idle')return {t:'😴 未着手',why:'昨日、毎日学習をやっていません（最終学習 '+esc(lastStudiedText(s))+'）。',btn:'<span class="sd-actnote">「今日のをやろう」と声かけ</span>'};
   if(k==='half')return {t:'⏳ やりかけ',why:'昨日、毎日学習をやりましたが、まだ合格していません（前進なし）。',btn:'<span class="sd-actnote">あと少し・どこで詰まってるか確認</span>'};
-  if(k==='test_idle')return {t:'📘 単元別まだ',why:'単元別対策を割当済みですが、昨日1つもさわっていません。',btn:'<span class="sd-actnote">テスト対策を進めるよう声かけ</span>'};
+  if(k==='test_idle')return {t:'📘 未練習',why:'単元別対策を割当済みですが、昨日1つもさわっていません。',btn:'<span class="sd-actnote">テスト対策を進めるよう声かけ</span>'};
   if(k==='test_half')return {t:'📙 単元別やりかけ',why:'昨日、単元別をさわりましたが、1つも合格していません（1つ通せばOK）。',btn:'<span class="sd-actnote">あと少し・詰まりを確認</span>'};
   if(k==='stuck'){var wp=weakPartName(s);return {t:'⚠️ つまずき',why:'正答率が基準未満'+(wp?'（弱点：'+esc(wp)+'）':'')+'。下のパート内訳の赤を確認。',btn:'<span class="sd-actnote">→ 右の「まちがいを印刷」で対策プリント</span>'};}
   if(k==='rush')return {t:'💨 雑（パッと押し）',why:'2秒未満の誤答が目立ちます。答えを見ずに押している可能性。',btn:'<span class="sd-actnote">ていねいにやるよう声かけ</span>'};
@@ -2480,7 +2486,7 @@ function _qsDateHtml(e){ var d=_qDate(e.last_date||e.round_started_at); return d
 function _qsCell(e){
   if(e.status==='ok')return '<span class="qcell q-ok">合格 '+e.latest_rate+'%</span>'+_qsDelta(e)+_qsDateHtml(e);
   if(e.status==='ng')return '<span class="qcell q-ng">未合格 '+e.latest_rate+'%</span>'+_qsDelta(e)+_qsDateHtml(e);
-  return '<span class="qcell q-miss">未実施</span>';
+  return '<span class="qcell q-miss">未受験</span>';
 }
 function _qsAct(e,sid){
   if(e.status==='ng')return '<span class="qsu-print" onclick="event.stopPropagation();printOne(\''+esc(String(sid))+'\')">🖨 まちがい印刷</span>';
@@ -2494,20 +2500,19 @@ function _practiceIndex(){
   var idx={};
   (_students||[]).forEach(function(s){
     var sid=String(s.student_id); idx[sid]={};
-    (s.materials_view||[]).concat(s.completed_view||[]).forEach(function(m){
-      var pm={}; (m.parts||[]).forEach(function(p){ pm[p.name]={acc:p.acc,status:p.status,last:p.last}; });
-      idx[sid][String(m.material_id)]={parts:pm,acc:m.acc,here:m.here};
-    });
+    var add=function(m,done){ var pm={}; (m.parts||[]).forEach(function(p){ pm[p.name]={acc:p.acc,status:p.status,last:p.last}; }); idx[sid][String(m.material_id)]={parts:pm,acc:m.acc,here:m.here,done:done}; };
+    (s.materials_view||[]).forEach(function(m){ add(m,false); });          // 割当中（active）
+    (s.completed_view||[]).forEach(function(m){ add(m,true); });           // 完走（completed）＝📗
   });
   return idx;
 }
 function _qsPrac(sid,e,PIDX){
   var pr=(PIDX[String(sid)]||{})[String(e.material_id)];
   if(pr){ var pp=pr.parts[e.part_title];
-    if(pp&&pp.acc!=null)return '<span class="qsu-pr">📘 練習 <b>'+pp.acc+'%</b></span>'+(pp.last?'<span class="qsu-date">'+_qDate(pp.last)+'</span>':'');
-    return '<span class="qsu-pr0">📘 未着手</span>';
+    if(pp&&pp.acc!=null){ var ic=pr.done?'📗':'📘'; return '<span class="qsu-pr">'+ic+' 練習 <b>'+pp.acc+'%</b></span>'+(pp.last?'<span class="qsu-date">'+_qDate(pp.last)+'</span>':''); }
+    return '<span class="qsu-pr0">📘 未練習</span>';
   }
-  return '<span class="qsu-pr0">–</span>';
+  return '<span class="qsu-pr0" title="この教材の単元別は割り当てていません">未割当</span>';
 }
 function renderQuizStu(){
   var el=$('qtStu'); if(!el)return;
@@ -2543,9 +2548,9 @@ function renderQuizStu(){
       var rows=ents.map(function(e){
         return '<tr class="'+cls+'" style="display:none;" onclick="openQuizCell(\''+esc(sid)+'\',\''+esc(e.part_id)+'\')"><td class="qsu-u">'+esc(e.part_title)+'</td><td class="qsu-prac">'+_qsPrac(sid,e,PIDX)+'</td><td class="qsu-arw">→</td><td>'+_qsCell(e)+'</td><td class="qsu-a">'+_qsAct(e,sid)+'</td></tr>';
       }).join('');
-      return '<tr class="qsu-ser qsu-serfold" onclick="qsSerToggle(\''+cls+'\',this)"><td colspan="5"><span class="cr">▸</span> '+esc(sk)+' <span class="qsu-sercnt">合格'+so+'・未合格'+sn+'・未実施'+sm+'</span></td></tr>'+rows;
+      return '<tr class="qsu-ser qsu-serfold" onclick="qsSerToggle(\''+cls+'\',this)"><td colspan="5"><span class="cr">▸</span> '+esc(sk)+' <span class="qsu-sercnt">合格'+so+'・未合格'+sn+'・未受験'+sm+'</span></td></tr>'+rows;
     }).join('');
-    return '<div class="qsu-block"><div class="qsu-h" onclick="qsToggle('+i+')"><span class="qs-caret" id="qsc'+i+'">▾</span> <b>'+esc(st.name||'(無名)')+'</b> <span class="qsu-sum">合格'+okN+'・未合格'+ngN+'・未実施'+missN+'</span></div><table class="qsu-tbl qsbody-'+i+'"><tbody>'+hd+body+'</tbody></table></div>';
+    return '<div class="qsu-block"><div class="qsu-h" onclick="qsToggle('+i+')"><span class="qs-caret" id="qsc'+i+'">▾</span> <b>'+esc(st.name||'(無名)')+'</b> <span class="qsu-sum">合格'+okN+'・未合格'+ngN+'・未受験'+missN+'</span></div><table class="qsu-tbl qsbody-'+i+'"><tbody>'+hd+body+'</tbody></table></div>';
   }).join('');
 }
 function qsSerToggle(cls,el){var rows=document.querySelectorAll('.'+cls);if(!rows.length)return;var open=rows[0].style.display==='none';rows.forEach(function(r){r.style.display=open?'':'none';});var c=el.querySelector('.cr');if(c)c.textContent=open?'▾':'▸';}
@@ -2569,10 +2574,10 @@ function renderQuizAtt(){
   order.forEach(function(k){var g=groups[k];var kk=(g.skey!=null&&g.skey!=='')?g.skey:(function(){var s=_mSeries(g.mat);return s?s.k:'';})();var lab=kk?(g.slabel||(function(){var s=_mSeries(g.mat);return s?s.label:g.mat;})()):g.mat;var key=kk?('S:'+kk):('M:'+g.mat);var rank=kk?({sci:2,hist:3,goi:4,nh1eng:5,nh2eng:6,nh3eng:7}[kk.replace(/_(e2j|j2e)$/,'')]||8):8;/* nh?eng_e2j/j2e も学年でランク・2026-07-29 */if(!_sg[key]){_sg[key]={label:lab,rank:rank,parts:[]};_so.push(key);}_sg[key].parts.push(g);});/* GASのseries_key優先→無ければ_mSeries 2026-07-29 */
   var missHtml=_so.length? _so.map(function(key,si){var sg=_sg[key];var gid='qamg'+si;
       var inner=sg.parts.map(function(g,pi){var nid=gid+'n'+pi;
-        return '<div class="qa-missrow" style="margin-left:16px;"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(_chapShort(g.mat))+'〕'+esc(g.title)+' <small>未実施 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';
+        return '<div class="qa-missrow" style="margin-left:16px;"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(_chapShort(g.mat))+'〕'+esc(g.title)+' <small>未受験 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';
       }).join('');
       return '<div class="qa-srow" style="margin:6px 0;"><span class="qachip qa-miss" style="cursor:pointer;font-weight:800;" onclick="qGroupToggle(\''+gid+'\',this)">'+esc(sg.label)+' <small>'+sg.parts.length+'テスト ▾ 展開</small></span><div id="'+gid+'" style="display:none;margin-top:2px;">'+inner+'</div></div>';
-    }).join('') : '<span class="chip-none">未実施はありません 🎉</span>';
+    }).join('') : '<span class="chip-none">未受験はありません 🎉</span>';
   el.innerHTML=''
     +'<div class="qa-h">まだ受けていないテスト（シリーズごとにまとめ）・のべ '+miss.length+'名分</div>'+missHtml;
 }
@@ -2667,29 +2672,37 @@ function renderQuizBoard(){
   var cellOf={};perMat.forEach(function(pm){pm.ents.forEach(function(e){cellOf[e.student_id+'|'+e.part_id]=e;});});
   var thead;
   var thStu='<th class="stu" style="cursor:default;">生徒</th>';
+  var thKey='<th class="qkey"><span class="qkey-h">上：✅テスト<br>下：📘単元別</span></th>';
   var thDel='<th class="qdel qsortable" onclick="qbSortBy(\'del\')" title="クリックで最終配信日順（もう一度で逆順→名前順）">最終配信日'+_qbSortAr('del')+'</th>';
   if(multi){
-    thead='<tr>'+thStu.replace('<th class="stu"','<th class="stu" rowspan="2"')+thDel.replace('<th class="qdel qsortable"','<th class="qdel qsortable" rowspan="2"')
+    thead='<tr>'+thStu.replace('<th class="stu"','<th class="stu" rowspan="2"')+thKey.replace('<th class="qkey"','<th class="qkey" rowspan="2"')+thDel.replace('<th class="qdel qsortable"','<th class="qdel qsortable" rowspan="2"')
       +perMat.map(function(pm){return '<th class="qgrp" colspan="'+Math.max(1,pm.parts.length)+'">'+esc(pm.title)+'</th>';}).join('')+'</tr>'
       +'<tr>'+perMat.map(function(pm){return pm.parts.length?pm.parts.map(function(p){return '<th>'+esc(p.title)+'</th>';}).join(''):'<th class="q-miss" style="color:var(--text-light);">（未配信）</th>';}).join('')+'</tr>';
   } else {
-    thead='<tr>'+thStu+thDel+perMat[0].parts.map(function(p){return '<th>'+esc(p.title)+'</th>';}).join('')+'</tr>';
+    thead='<tr>'+thStu+thKey+thDel+perMat[0].parts.map(function(p){return '<th>'+esc(p.title)+'</th>';}).join('')+'</tr>';
   }
   var PIDX=_practiceIndex(); // 単元別（練習）の進みをセルに添える＝練習→確認テストの流れを追える 2026-08-07
   var cellFor=function(sid,p,mid){
     var e=cellOf[sid+'|'+p.id];var cell;
-    if(!e||e.status==='miss'){cell=(e&&e.latest_rate!=null&&(e.attempt_count||0)>0)?'<span class="q-un" title="未実施（前回 '+e.latest_rate+'%）"><b>未</b><i>前'+e.latest_rate+'%</i></span>':'<span class="qcell q-miss">—</span>';}
+    // 上段＝確認テスト：記録なし＝未配信（薄い・）／status=miss＝未受験（—、再配信で前○%）／ok＝合格／ng＝未合格
+    if(!e){cell='<span class="q-nosend" title="未配信（この生徒に送っていません）">・</span>';}
+    else if(e.status==='miss'){cell=(e.latest_rate!=null&&(e.attempt_count||0)>0)?'<span class="q-un" title="未受験（再配信・前回 '+e.latest_rate+'%）"><b>未受験</b><i>前'+e.latest_rate+'%</i></span>':'<span class="qcell q-miss" title="未受験（まだ受けていません）">—</span>';}
     else if(e.status==='ok')cell='<span class="qcell q-ok">'+e.latest_rate+'%</span>';
     else cell='<span class="qcell q-ng">'+e.latest_rate+'%</span>';
     var dt=(e&&e.status!=='miss')?_qDate(e.last_date):''; var dstr=dt?'<i class="qb-date">'+dt+'</i>':'';
+    // 下段＝単元別：割当なし＝未割当／割当あり練習まだ＝📘未練習／練習済み＝📗(完走)or📘(途中)+%
     var pr=(PIDX[String(sid)]||{})[String(mid)],prac='';
-    if(pr){var pp=pr.parts[p.title]; prac=(pp&&pp.acc!=null)?'<i class="qb-prac">📘'+pp.acc+'%'+(pp.last?' '+_qDate(pp.last):'')+'</i>':'<i class="qb-prac0">📘未</i>';}
+    if(pr){var pp=pr.parts[p.title];
+      if(pp&&pp.acc!=null){var ic=pr.done?'📗':'📘'; prac='<i class="qb-prac">'+ic+pp.acc+'%'+(pp.last?' '+_qDate(pp.last):'')+'</i>';}
+      else prac='<i class="qb-prac0" title="単元別は割当済み・まだ練習していません">📘未練習</i>';
+    }else{prac='<i class="qb-none" title="この教材の単元別は割り当てていません">未割当</i>';}
     return '<td onclick="openQuizCell(\''+esc(sid)+'\',\''+esc(p.id)+'\')">'+cell+dstr+prac+'</td>';
   };
+  var keyCell='<td class="qkey"><span class="qkey-c"><span class="kt">✅ 確認テスト</span><span class="km">📘 単元別</span></span></td>';
   var h='<table class="qtable"><thead>'+thead+'</thead><tbody>';
   stuOrder.forEach(function(sid){
-    h+='<tr><td class="stu">'+esc(stuMap[sid])+'</td><td class="qdel">'+quizDelBadge_(lastOf[sid])+'</td>'+perMat.map(function(pm){
-      return pm.parts.length?pm.parts.map(function(p){return cellFor(sid,p,pm.mid);}).join(''):'<td><span class="qcell q-miss">—</span></td>';
+    h+='<tr><td class="stu" title="'+esc(stuMap[sid])+'">'+esc(stuMap[sid])+'</td>'+keyCell+'<td class="qdel">'+quizDelBadge_(lastOf[sid])+'</td>'+perMat.map(function(pm){
+      return pm.parts.length?pm.parts.map(function(p){return cellFor(sid,p,pm.mid);}).join(''):'<td><span class="q-nosend">・</span></td>';
     }).join('')+'</tr>';
   });
   el.innerHTML=h+'</tbody></table>';
@@ -2704,7 +2717,7 @@ function openQuizCell(sid,pid){
   var e=null;_qEntries().forEach(function(x){if(x.student_id===sid&&x.part_id===pid)e=x;});
   if(!e){toast('データがありません');return;}
   var body;
-  if(e.status==='miss'){body='<div class="qm-sub">'+esc(e.part_title)+'</div><div style="text-align:center;color:var(--text-light);padding:16px;">まだ受けていません（未実施）</div>';}
+  if(e.status==='miss'){body='<div class="qm-sub">'+esc(e.part_title)+'</div><div style="text-align:center;color:var(--text-light);padding:16px;">まだ受けていません（未受験）</div>';}
   else{
     var dv=(e.prev_rate==null)?'<span class="qdelta" style="background:#eef1f5;color:#8a97a6;">初回</span>':((e.latest_rate-e.prev_rate)>=0?'<span class="qdelta d-up">前回より ＋'+(e.latest_rate-e.prev_rate)+'%</span>':'<span class="qdelta d-dn">前回より '+(e.latest_rate-e.prev_rate)+'%</span>');
     var miss=(e.missed_words&&e.missed_words.length)?('<div style="margin-top:12px"><div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:4px;">まちがえた単語（'+e.missed_words.length+'）</div>'+e.missed_words.map(function(w){return '<div class="qmw"><b>'+esc(w.en||'')+'</b> <span class="t-sub">'+esc(w.ja||'')+'</span></div>';}).join('')+'</div>'):'<div style="margin-top:12px;color:#1f9d57;font-weight:700;font-size:13px;">全部正解！</div>';
@@ -2737,7 +2750,7 @@ function doQuizAssign(){
     btn.disabled=false;btn.textContent='配信開始';
     if(!d.ok){$('qdErr').textContent=d.error||'配信に失敗しました';return;}
     closeModal('quizDeliverModal');
-    toast(ids.length+'名に配信しました（未実施スタート・過去の点数は保持）');
+    toast(ids.length+'名に配信しました（未受験スタート・過去の点数は保持）');
   });
 }
 var _rosterMid=null,_rosterInit=[],_rosterSel={};
@@ -2869,7 +2882,7 @@ function saveRosterTest(){
   var rem=before.filter(function(id){return _rtSelA[id]!==1;});
   if(rem.length){ if(!confirm('この教材から '+rem.length+'名 を外します。進捗・間違いノートは残ります（もう一度割り当てれば続きから）。よろしいですか？'))return; }
   if(bIds.length){ var again=bIds.filter(function(id){return _rtDates[id];}).length;
-    if(!confirm(bIds.length+'名に確認テストを配信します（未実施スタート・過去の点数は保持）。うち再配信 '+again+'件。よろしいですか？'))return; }
+    if(!confirm(bIds.length+'名に確認テストを配信します（未受験スタート・過去の点数は保持）。うち再配信 '+again+'件。よろしいですか？'))return; }
   var btn=$('rtSave');btn.disabled=true;btn.textContent='⏳ 保存中…';
   $('rtErr').textContent='';
   call({action:'material_roster_set',material_id:_rtMid,student_ids:aIds}).then(function(d){
@@ -2884,7 +2897,7 @@ function saveRosterTest(){
 function rtSaveDone(d,d2){
   var dd=d.data||{};
   var msg='割り当て：追加'+((dd.added||0)+(dd.activated||0))+'／外す'+(dd.removed||0)+'名';
-  if(d2){var d2d=d2.data||{};msg+=' ／ 確認テスト配信 '+(d2d.students||0)+'名（未実施スタート）';}
+  if(d2){var d2d=d2.data||{};msg+=' ／ 確認テスト配信 '+(d2d.students||0)+'名（未受験スタート）';}
   $('rtSave').disabled=false;$('rtSave').textContent='保存する';
   toast(msg);
   closeModal('rtModal');
@@ -3704,20 +3717,20 @@ function renderAsgAllq(){
 }
 function asgDeliverOne(mid){
   mid=String(mid);var has=!!_asgQuizDates[mid];
-  if(!confirm((has?'もう一度 ':'')+'この生徒に確認テストを配信します（未実施スタート・過去の点数は保持）。よろしいですか？'))return;
+  if(!confirm((has?'もう一度 ':'')+'この生徒に確認テストを配信します（未受験スタート・過去の点数は保持）。よろしいですか？'))return;
   showLoading('配信中…');
   call({action:'quiz_assign',material_id:mid,student_ids:[_asgSid]}).then(function(d){
     hideLoading();
     if(!d||!d.ok){$('asgErr').textContent=(d&&d.error)||'配信に失敗しました';return;}
     _asgQuizDates[mid]=_asgTodayJST_();
-    toast('確認テストを配信しました（未実施スタート）');
+    toast('確認テストを配信しました（未受験スタート）');
     renderAssignList();
   });
 }
 function asgDeliverAll(){
   var un=_asgList.filter(function(a){return a.content_type==='test' && !_asgQuizDates[String(a.material_id)];});
   if(!un.length)return;
-  if(!confirm(un.length+'件の単元別対策で確認テストを配信します（未実施スタート・過去の点数は保持）。よろしいですか？'))return;
+  if(!confirm(un.length+'件の単元別対策で確認テストを配信します（未受験スタート・過去の点数は保持）。よろしいですか？'))return;
   showLoading('配信中…');
   var i=0;
   function next(){
