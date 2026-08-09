@@ -434,6 +434,23 @@
 .alert-cardK.good{border-left-color:#1faa6b}
 .pchipK{display:inline-block;background:rgba(31,170,107,.12);color:#12805a;border:1px solid rgba(31,170,107,.35);border-radius:999px;padding:3px 9px;font-size:11.5px;margin:2px 3px 0 0;cursor:pointer}
 .pchipK:hover{background:rgba(31,170,107,.2)}
+/* 学習アラートを教室で色分け（北久里浜=水色／久里浜=オレンジ・クラスボード模倣）2026-08-09 */
+.acRooms{margin-top:7px}
+.acRoomRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:560px){.acRoomRow{grid-template-columns:1fr}}
+.acRoom{border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#fafafa}
+.acRoom.kita{background:#e8f4fd;border-color:#aed6f1}
+.acRoom.kuri{background:#fff4e8;border-color:#f5cba7}
+.acRoom.other{background:#f3f4f6;border-color:#e2e8f0;margin-top:8px}
+.acRoomHead{font-weight:700;font-size:11px;color:#fff;padding:3px 9px;display:flex;align-items:center;gap:5px}
+.acRoomHead .rc-n{font-weight:800}
+.acRoom.kita .acRoomHead{background:#2a8bbf}
+.acRoom.kuri .acRoomHead{background:#d4813a}
+.acRoom.other .acRoomHead{background:#94a3b8}
+.acRoomBody{display:flex;flex-wrap:wrap;gap:5px;padding:7px}
+.acRoom .chipK{background:#fff}
+.acRoom .chipK:hover{background:#fff7ed}
+.acRoomNone{font-size:11px;color:#94a3b8;padding:1px 2px}
 /* 通知について（毎朝メールの一覧）2026-07-23 */
 .notif-panel{background:#f7f9fc;border:1px solid #dde3ec;border-radius:10px;padding:0 14px;margin-bottom:12px;font-size:12.5px;color:#33404f}
 .notif-panel>summary{cursor:pointer;padding:10px 2px;font-weight:700;color:#5a6a7e;list-style:none;display:flex;align-items:center;gap:6px}
@@ -2019,20 +2036,39 @@ function renderAlertsK(){
   (_students||[]).forEach(function(st){
     if(_cheerCfg&&_cheerCfg.exclude_alert&&st.is_teacher_account)return; // 先生応援：要注意から除外 2026-07-07
     if(!(st.assignments&&st.assignments.length))return; // 割当なしは対象外（メール通知と同じ）
-    var a=st.next_actions||[],nm=st.name||st.nickname||'',sid=String(st.student_id);
-    if(a.indexOf('idle')>=0){var da=daysAgo(st.last_studied_at);idle.push({id:sid,n:nm,d:(da===null?'未学習':'あき'+da+'日')});}
-    if(a.indexOf('half')>=0)half.push({id:sid,n:nm});
-    if(a.indexOf('test_idle')>=0)tidle.push({id:sid,n:nm});
-    if(a.indexOf('test_half')>=0)thalf.push({id:sid,n:nm});
-    if(a.indexOf('stuck')>=0)teach.push({id:sid,n:nm,r:st.teach_rate});
+    var a=st.next_actions||[],nm=st.name||st.nickname||'',sid=String(st.student_id),cn=st.class_name||''; // cn＝教室（色分け用）2026-08-09
+    if(a.indexOf('idle')>=0){var da=daysAgo(st.last_studied_at);idle.push({id:sid,n:nm,c:cn,d:(da===null?'未学習':'あき'+da+'日')});}
+    if(a.indexOf('half')>=0)half.push({id:sid,n:nm,c:cn});
+    if(a.indexOf('test_idle')>=0)tidle.push({id:sid,n:nm,c:cn});
+    if(a.indexOf('test_half')>=0)thalf.push({id:sid,n:nm,c:cn});
+    if(a.indexOf('stuck')>=0)teach.push({id:sid,n:nm,c:cn,r:st.teach_rate});
   });
   idle.sort(function(a,b){return (b.d==='未学習'?1e9:parseInt(b.d.replace(/\D/g,''),10))-(a.d==='未学習'?1e9:parseInt(a.d.replace(/\D/g,''),10));});
   teach.sort(function(a,b){return a.r-b.r;});
   $('alIdleN').textContent=idle.length;$('alHalfN').textContent=half.length;$('alTIdleN').textContent=tidle.length;$('alTHalfN').textContent=thalf.length;$('alTeachN').textContent=teach.length;
-  var mk=function(host,arr,fmt){
-    var el=$(host);if(!el)return;el.innerHTML=arr.length?'':'<span class="chip-none">なし 🎉</span>';
-    arr.forEach(function(x){var b=document.createElement('span');b.className='chipK';b.textContent=fmt(x);b.title='クリックで検索';b.onclick=function(){_alertFilter=null;$('searchInput').value=x.n;renderTable();};el.appendChild(b);});
+  // 教室で色分け（北久里浜=水色／久里浜=オレンジ／その他）＝クラスボードの2列を模倣 2026-08-09
+  var _alChip=function(x,fmt,cls){var b=document.createElement('span');b.className=cls||'chipK';b.textContent=fmt(x);b.title='クリックで検索';b.onclick=function(){_alertFilter=null;$('searchInput').value=x.n;renderTable();};return b;};
+  var _alRoomCol=function(kind,label,list,fmt,cls){
+    var col=document.createElement('div');col.className='acRoom '+kind;
+    var h=document.createElement('div');h.className='acRoomHead';h.innerHTML=esc(label)+' <span class="rc-n">'+list.length+'</span>';col.appendChild(h);
+    var body=document.createElement('div');body.className='acRoomBody';
+    if(!list.length){var n=document.createElement('span');n.className='acRoomNone';n.textContent='なし';body.appendChild(n);}
+    else list.forEach(function(x){body.appendChild(_alChip(x,fmt,cls));});
+    col.appendChild(body);return col;
   };
+  var mkRooms=function(host,arr,fmt,cls,emptyMsg){
+    var el=$(host);if(!el)return;
+    if(!arr.length){el.className='chipsK';el.innerHTML='<span class="chip-none">'+esc(emptyMsg||'なし 🎉')+'</span>';return;}
+    var kita=[],kuri=[],other=[];
+    arr.forEach(function(x){var c=x.c||'';if(c==='北久里浜')kita.push(x);else if(c==='久里浜')kuri.push(x);else other.push(x);});
+    el.className='acRooms';el.innerHTML='';
+    var row=document.createElement('div');row.className='acRoomRow';
+    row.appendChild(_alRoomCol('kita','北久里浜',kita,fmt,cls));
+    row.appendChild(_alRoomCol('kuri','久里浜',kuri,fmt,cls));
+    el.appendChild(row);
+    if(other.length)el.appendChild(_alRoomCol('other','その他',other,fmt,cls));
+  };
+  var mk=function(host,arr,fmt){mkRooms(host,arr,fmt,'chipK');};
   mk('alIdleChips',idle,function(x){return x.n+'（'+x.d+'）';});
   mk('alHalfChips',half,function(x){return x.n;});
   mk('alTIdleChips',tidle,function(x){return x.n;});
@@ -2054,12 +2090,10 @@ function renderAlertsK(){
   (_students||[]).forEach(function(st){
     if(_cheerCfg&&_cheerCfg.exclude_alert&&st.is_teacher_account)return;
     var pr=st.praise||[]; if(!pr.length)return;
-    praise.push({n:(st.name||st.nickname||''),r:pr.map(_praiseLabel).join('・')});
+    praise.push({n:(st.name||st.nickname||''),c:(st.class_name||''),r:pr.map(_praiseLabel).join('・')});
   });
   var _pN=$('alPraiseN'); if(_pN)_pN.textContent=praise.length;
-  var _pc=$('alPraiseChips');
-  if(_pc){ _pc.innerHTML=praise.length?'':'<span class="chip-none">きのうは まだ いません</span>';
-    praise.forEach(function(x){var b=document.createElement('span');b.className='pchipK';b.textContent=x.n+'（'+x.r+'）';b.title='クリックで検索';b.onclick=function(){_alertFilter=null;$('searchInput').value=x.n;renderTable();};_pc.appendChild(b);}); }
+  mkRooms('alPraiseChips',praise,function(x){return x.n+'（'+x.r+'）';},'pchipK','きのうは まだ いません'); // 教室で色分け（緑チップは維持）2026-08-09
   // カテゴリ絞り込みの見た目：選択中カードのハイライトと絞り込みバー 2026-08-07
   [['idle','alCardIdle'],['half','alCardHalf'],['test_idle','alCardTIdle'],['test_half','alCardTHalf'],['stuck','alCardStuck'],['praise','alCardPraise']].forEach(function(p){var c=$(p[1]);if(c)c.classList.toggle('afon',_alertFilter===p[0]);});
   var bar=$('alFilterBar');
@@ -2405,17 +2439,35 @@ function rtBtnState_(on){
 }
 /* ===== 確認テストタブ（閲覧：注目リスト＋点数表＋詳細）2026-07-10 ===== */
 var _quizBoard=null,_quizCurMat=null,_quizSelMats=[];
-function renderQuizTab(){
-  var att=$('qtAtt'),board=$('qtBoard');
-  if(att)att.innerHTML='<div style="padding:10px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
-  if(board)board.innerHTML='';
+// 単元別・確認テストタブ：回転スピナー＋一度取ったら即表示・裏で最新に更新（読み込み地獄／反応なし解消）2026-08-09
+var _quizLoading=false;
+var _QT_SPIN_='<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:44px 10px;color:#64748b;font-size:13px;"><div class="loading-spinner"></div><div style="text-align:center;">読み込み中…<br><span style="font-size:11px;color:#94a3b8;">全生徒ぶんを集計しています</span></div></div>';
+function _syncQuizSel_(data){
+  var mats=data.materials||[];
+  if(_quizCurMat&&!mats.some(function(m){return m.material_id===_quizCurMat;}))_quizCurMat=null; // 既定で先頭教材を選ばない（川上さん指摘 2026-08-08）
+  _quizSelMats=_quizSelMats.filter(function(id){return mats.some(function(m){return m.material_id===id;});});
+}
+function _renderQuizAll_(){renderQuizAtt();renderQuizMatSel();renderQBFilters();renderQuizBoard();renderQuizNg();renderQSFilters();renderQuizStu();renderQFStrip();}
+function _bgRefreshQuiz_(){ // 裏で最新取得。変化があるときだけ描き直す（無ければ画面はそのまま＝ちらつかない）
+  if(_quizLoading)return; _quizLoading=true;
   call({action:'quiz_board'}).then(function(d){
-    if(!d.ok){if(att)att.innerHTML='<div style="color:var(--crimson);font-size:12px;">取得に失敗しました'+(d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
-    _quizBoard=d.data;var mats=d.data.materials||[];
-    if(_quizCurMat&&!mats.some(function(m){return m.material_id===_quizCurMat;}))_quizCurMat=null; // 既定で先頭教材を選ばない（川上さん指摘 2026-08-08）
-    _quizSelMats=_quizSelMats.filter(function(id){return mats.some(function(m){return m.material_id===id;});});
-    renderQuizAtt();renderQuizMatSel();renderQBFilters();renderQuizBoard();renderQuizNg();renderQSFilters();renderQuizStu();renderQFStrip();
-  });
+    _quizLoading=false;
+    if(!d.ok||!d.data)return; // 失敗はキャッシュ表示を維持
+    try{ if(JSON.stringify(d.data)===JSON.stringify(_quizBoard))return; }catch(e){}
+    _quizBoard=d.data; _syncQuizSel_(d.data); _renderQuizAll_();
+  }).catch(function(){_quizLoading=false;});
+}
+function renderQuizTab(force){
+  var att=$('qtAtt'),board=$('qtBoard');
+  if(_quizBoard&&!force){ _renderQuizAll_(); _bgRefreshQuiz_(); return; } // 2回目以降のタブ切替は即表示＋裏で更新
+  if(att)att.innerHTML='';
+  if(board)board.innerHTML=_QT_SPIN_; // 初回・強制更新は回転スピナー
+  if(_quizLoading)return; _quizLoading=true;
+  call({action:'quiz_board'}).then(function(d){
+    _quizLoading=false;
+    if(!d.ok){if(board)board.innerHTML='';if(att)att.innerHTML='<div style="color:var(--crimson);font-size:12px;">取得に失敗しました'+(d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
+    _quizBoard=d.data; _syncQuizSel_(d.data); _renderQuizAll_();
+  }).catch(function(){_quizLoading=false;if(board)board.innerHTML='';if(att)att.innerHTML='<div style="color:var(--crimson);font-size:12px;">取得に失敗しました</div>';});
 }
 /* ===== 単元別・確認テスト：生徒ごと⇄教材ごと（2026-08-07 大規模UPDATE スライス1）===== */
 function quizMode(m){
@@ -2915,7 +2967,7 @@ function rtSaveDone(d,d2){
   $('rtSave').disabled=false;$('rtSave').textContent='保存する';
   toast(msg);
   closeModal('rtModal');
-  call({action:'dashboard'}).then(function(r){if(r&&r.ok&&r.data){_students=r.data.students||_students;renderTable();renderMatTab();if(typeof renderQuizTab==='function')renderQuizTab();}});
+  call({action:'dashboard'}).then(function(r){if(r&&r.ok&&r.data){_students=r.data.students||_students;renderTable();renderMatTab();if(typeof renderQuizTab==='function')renderQuizTab(true);}}); // 割当・配信後は確認テスト盤も最新に（force）2026-08-09
 }
 
 
