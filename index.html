@@ -2923,7 +2923,8 @@ function _actSes(){return _quizSes;}
 function _wIsEng(s,w){ if(!s)return true; if(s.mode==='srs')return ((w&&w.subject)||s.subject)==='english'; if(s.isEnglish!==undefined)return s.isEnglish!==false; return (s.subject||'english')==='english'; }
 function _startStepFor(s,w){ return _wIsEng(s,w) ? (s.mode==='daily'?1:2) : 3; } // 英語=毎日は発音1/復習は意味2、用語=英語3から
 function qPresentE2J(w){ $('e2j-label').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';$('e2j-en').textContent=w.english;var _er=$('e2j-reading');if(_er){_er.textContent=w.reading_hint||'';_er.style.display=w.reading_hint?'':'none';} }
-function qPresentJ2E(w,isEng){ $('j2e-label').innerHTML=(!isEng)?'<ruby>用語<rt class="uf">ようご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう':'<ruby>英語<rt class="uf">えいご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';$('j2e-ja').innerHTML=renderQ(w,furiQ);renderFuriBar(w); }
+function _promptLabel_(w){ /* 問題タイプでラベルを出し分け（記述→4択/あてはまらない型）。用語・英語は空を返し既定ラベル 2026-08-09 */ var q=(tfParse(w).ask)||w.japanese||''; if(/あてはまらない/.test(q)) return 'あてはまらないものを<ruby>選<rt class="uf">えら</rt></ruby>ぼう'; var a=String(w.english||''); if(/[、。]/.test(a)||(a.length>=12&&/(ため|防ぐ|から|こと)$/.test(a))) return '<ruby>正<rt class="uf">ただ</rt></ruby>しいものを<ruby>選<rt class="uf">えら</rt></ruby>ぼう'; return ''; }
+function qPresentJ2E(w,isEng){ var _pl=isEng?'':_promptLabel_(w); $('j2e-label').innerHTML=_pl||((!isEng)?'<ruby>用語<rt class="uf">ようご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう':'<ruby>英語<rt class="uf">えいご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう');$('j2e-ja').innerHTML=renderQ(w,furiQ);renderFuriBar(w); }
 function _quizAns(s,w,ok,_el,which){ measAns_(_el,ok); if(s.mode==='daily'){ if(ok){ if(which==='e2j')s.meaningCorrect++; else s.reverseCorrect++; } else { pushMiss(w.id); } } else { if(!ok)s.wordOK=false; } }
 function renderStep(){renderQz_(session);}
 function renderSrsStep(){renderQz_(srsSes);}
