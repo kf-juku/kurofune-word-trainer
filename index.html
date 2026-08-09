@@ -126,6 +126,7 @@
   .ph i{font-size:20px;}
   .psub{font-size:12px;color:var(--sub);margin:0 2px 14px;line-height:1.6;}
   .focus{border-radius:20px;padding:15px 15px 14px;color:#fff;background:linear-gradient(135deg,#1c74ff,#0a4fd0);box-shadow:0 10px 26px rgba(10,79,208,.3);margin-bottom:12px;cursor:pointer;}
+  .focus.done{background:linear-gradient(135deg,#22b07a,#159463);box-shadow:0 10px 26px rgba(21,148,99,.28);} /* 完了＝緑 2026-08-08 */
   .f-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.92;display:flex;align-items:center;gap:6px;}
   .f-main{display:flex;align-items:center;gap:14px;margin:11px 0 13px;}
   .f-day{width:54px;height:54px;border-radius:17px;background:rgba(255,255,255,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:0 0 0 6px rgba(255,255,255,.08);}
@@ -795,6 +796,17 @@
   .dtile.gold{background:rgba(202,162,74,.12);border-color:rgba(202,162,74,.4);} .dtile.gold .dtl{background:var(--gold);} .dtile.gold .dtv{color:var(--gold);}
   .dtile.ok{background:rgba(31,170,107,.12);border-color:rgba(31,170,107,.4);} .dtile.ok .dtl{background:var(--ok);} .dtile.ok .dtv{color:var(--ok);}
   .dtile.blue{background:rgba(10,108,255,.10);border-color:rgba(10,108,255,.34);} .dtile.blue .dtl{background:var(--accent);} .dtile.blue .dtv{color:var(--accent);}
+  /* 完了バッジ 3層＝役割色で背景も連動（途中=青/完了=緑/大きな達成=金）2026-08-08 */
+  .done-ic.dib-gold{background:rgba(202,162,74,.14);} .done-ic.dib-ok{background:rgba(31,170,107,.14);} .done-ic.dib-accent{background:rgba(10,108,255,.12);}
+  /* 完了画面の「次の一手」共通カード＋ボタン（塗り青=主役／薄い青=副）2026-08-08 */
+  .guide-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;}
+  .guide-h{font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;margin-bottom:9px;}
+  .guide-h i{color:var(--gold);}
+  .gstack{display:flex;flex-direction:column;gap:8px;}
+  .gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:11px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;border:none;}
+  .gbtn.solid{background:var(--accent);color:#fff;}
+  .gbtn.soft{background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);padding:10px;font-size:13px;}
+  .gsub{font-size:11.5px;color:var(--sub);text-align:center;margin-top:7px;}
   /* 連続記録カード（記録タブ常設＆お祝い共通）2026-07-24 */
   .stk-rec{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:14px 12px 12px;margin-bottom:14px;}
   .stk-card{text-align:center;padding:4px 4px 2px;}
@@ -1837,6 +1849,11 @@ function flash(){var f=$('flash');f.classList.remove('show');void f.offsetWidth;
 function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
 /* ===== モチベ演出（完了3タイル・連続記録カード・ホーム復帰お祝い）2026-07-24 ===== */
 function _fmtDur_(ms){var s=Math.max(0,Math.round((ms||0)/1000));var m=Math.floor(s/60);var ss=s%60;return m+':'+('0'+ss).slice(-2);}
+/* 完了バッジ 3層（途中=青スマイル/個別完了=緑チェック/大きな達成=金トロフィー）＝背景色も役割色に連動 2026-08-08 */
+function setDoneBadge_(tier){var b=$('done-badge');if(!b)return;b.style.display='';
+  var m={gold:['ti-trophy','var(--gold)','dib-gold'],ok:['ti-circle-check','var(--ok)','dib-ok'],accent:['ti-mood-smile','var(--accent)','dib-accent']};
+  var c=m[tier]||m.gold;b.classList.remove('dib-gold','dib-ok','dib-accent');b.classList.add(c[2]);
+  b.innerHTML='<i class="ti '+c[0]+'" style="color:'+c[1]+'"></i>';}
 function renderDoneTiles_(score,mc,ac,ms){
   var host=$('done-tiles');if(!host)return;
   var perfect=(ac>0&&mc>=ac); /* ノーミス＝最大コンボが総回答数に到達 */
@@ -2096,9 +2113,10 @@ function _osaraiFocus_(){
 function _dailyFocus_(m){
   var el=document.createElement('div');el.className='focus';
   var po=(m.part_order||1)|0,pc=(m.part_count!==undefined?m.part_count:0)|0,cleared=!!m.cleared_today;
+  if(cleared)el.classList.add('done'); // 完了＝緑にそろえる 2026-08-08
   var road='';if(!cleared&&pc>po){var arr=[];for(var d=po+1;d<=pc&&arr.length<3;d++)arr.push('DAY'+d);road=' ・ この<ruby>先<rt class="uf">さき</rt></ruby> '+arr.join('・')+(pc>po+3?(' … DAY'+pc+'まで'):'');}
   var subj=m.subject?esc(subjLabel(m.subject)):'';
-  var label=cleared?'<i class="ti ti-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> <ruby>完了<rt class="uf">かんりょう</rt></ruby>！':'つぎは これ';
+  var label=cleared?'<i class="ti ti-circle-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> <ruby>完了<rt class="uf">かんりょう</rt></ruby>！':'つぎは これ';
   // 教材のどこまで進んだか（DAY po / 全pc）＝全体像。複数DAYの教材だけ出す 2026-07-24
   var prog='';if(pc>1){var pct=Math.max(0,Math.min(100,Math.round(po/pc*100)));prog='<div class="f-prog"><div class="f-prog-t"><span>DAY '+po+' / '+pc+'</span><span>'+pct+'%</span></div><div class="f-prog-bar"><i style="width:'+pct+'%"></i></div></div>';}
   el.innerHTML='<div class="f-label"><span>'+label+'</span></div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+esc(mtLabelMt(m))+'</div><div class="f-sub">'+subj+road+'</div></div></div>'+prog+'<button class="f-btn">'+(cleared?'つづける':'はじめる')+' <i class="ti ti-arrow-right"></i></button>';
@@ -3428,24 +3446,34 @@ function doneUnitAllTtl_(){return '<div style="font-weight:800;font-size:20px;le
  +'<div style="margin-top:5px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(202,162,74,.06));color:var(--gold);border:1px solid rgba(202,162,74,.35);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;"><i class="ti ti-trophy"></i> わりあての<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>を ぜんぶ<ruby>合格<rt class="uf">ごうかく</rt></ruby></div>';}
 /* 単元別で1教材(章)クリア＝中お祝い（緑チェック）2026-08-01 */
 function doneMatClearTtl_(){return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;">この<ruby>教材<rt class="uf">きょうざい</rt></ruby>クリア！</div>'
- +'<div style="margin-top:5px;display:inline-flex;align-items:center;gap:6px;background:rgba(31,170,107,.12);color:var(--ok);border:1px solid rgba(31,170,107,.3);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;"><i class="ti ti-circle-check"></i> 1つ<ruby>合格<rt class="uf">ごうかく</rt></ruby>したよ</div>';}
+ +'<div style="margin-top:5px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(202,162,74,.06));color:var(--gold);border:1px solid rgba(202,162,74,.35);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;"><i class="ti ti-trophy"></i> この<ruby>教材<rt class="uf">きょうざい</rt></ruby>ぜんぶ<ruby>合格<rt class="uf">ごうかく</rt></ruby></div>';}
 /* 教材クリアの案内＝学習マップで何度でも復習できる（軽い誘導）2026-08-01 */
 function doneMatClearGuide_(){return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;">'
  +'<div style="font-size:12.8px;color:var(--sub);margin-bottom:10px;"><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>何度<rt class="uf">なんど</rt></ruby>でも <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ。</div>'
  +'<button onclick="goMapSub_()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;"><i class="ti ti-map-2"></i> <span><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップを ひらく</span></button>'
  +'</div>';}
 /* 完了画面の「次の一手」＝やる気しだいの自主消化を促す。優先＝おさらい残(期限が来た全語)＞間違いノート残。数字つき。0/不明なら出さない（先取りbtn-nextに任せる）。確定方針＝要件定義書§4-3b。2026-08-05 */
+/* 今日のぶん完了の「次の一手」＝主ボタン1つ（塗り青）。おさらい残＞間違いノート残。共通クラス .guide-card/.gbtn を使用 2026-08-08 */
 function nextStepGuide_(preferNote){
   var due=(typeof _osaraiDue==='number'?_osaraiDue:0);
   var note=(_revNum&&_revNum.note)||0;
-  var bstyle='width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer;font-family:inherit;';
-  var osaraiBtn='<button onclick="openHome();showSub(\'review\');" style="'+bstyle+'"><i class="ti ti-clock-bolt"></i> <span>おさらいを やる（'+due+rb('語','ご')+'）</span></button><div style="font-size:11.5px;color:var(--sub);text-align:center;margin-top:7px;">'+rb('今','いま')+'やっておくほど '+rb('忘','わす')+'れにくいよ</div>';
-  var noteBtn='<button onclick="openHome();showSub(\'note\');" style="'+bstyle+'"><i class="ti ti-notebook"></i> <span>'+rb('間違','まちが')+'いノートを '+rb('直','なお')+'す（'+note+rb('語','ご')+'）</span></button><div style="font-size:11.5px;color:var(--sub);text-align:center;margin-top:7px;">'+rb('直','なお')+'すと '+rb('点','てん')+'が のびるよ</div>';
+  var osaraiBtn='<button class="gbtn solid" onclick="openHome();showSub(\'review\');"><i class="ti ti-clock-bolt"></i> <span>おさらいを やる（'+due+rb('語','ご')+'）</span></button><div class="gsub">'+rb('今','いま')+'やっておくほど '+rb('忘','わす')+'れにくいよ</div>';
+  var noteBtn='<button class="gbtn solid" onclick="openHome();showSub(\'note\');"><i class="ti ti-notebook"></i> <span>'+rb('間違','まちが')+'いノートを '+rb('直','なお')+'す（'+note+rb('語','ご')+'）</span></button><div class="gsub">'+rb('直','なお')+'すと '+rb('点','てん')+'が のびるよ</div>';
   var body='';
   if(preferNote){ if(note>0)body=noteBtn; else if(due>0)body=osaraiBtn; }
   else { if(due>0)body=osaraiBtn; else if(note>0)body=noteBtn; }
   if(!body)return '';
-  return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;"><div style="font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;margin-bottom:9px;"><i class="ti ti-sparkles" style="color:var(--gold)"></i> <span>この'+rb('調子','ちょうし')+'で もう'+rb('少','すこ')+'し のばそう</span></div>'+body+'</div>';
+  return '<div class="guide-card"><div class="guide-h"><i class="ti ti-sparkles"></i> <span>この'+rb('調子','ちょうし')+'で もう'+rb('少','すこ')+'し のばそう</span></div>'+body+'</div>';
+}
+/* 完走（教材/章/全部）の共通ガイド＝「つぎは？」＋主ボタン（次の一手）＋副ボタン（学習マップで復習）＋補足。3種の旧ガイド（doneGuideHtml_/doneMatClearGuide_）を統一 2026-08-08 */
+function doneClearGuide_(){
+  var due=(typeof _osaraiDue==='number'?_osaraiDue:0);
+  var note=(_revNum&&_revNum.note)||0;
+  var solid='';
+  if(due>0)solid='<button class="gbtn solid" onclick="openHome();showSub(\'review\');"><i class="ti ti-clock-bolt"></i> <span>おさらいを やる（'+due+rb('語','ご')+'）</span></button>';
+  else if(note>0)solid='<button class="gbtn solid" onclick="openHome();showSub(\'note\');"><i class="ti ti-notebook"></i> <span>'+rb('間違','まちが')+'いノートを '+rb('直','なお')+'す（'+note+rb('語','ご')+'）</span></button>';
+  var mapBtn='<button class="gbtn soft" onclick="goMapSub_();"><i class="ti ti-map-2"></i> <span>'+rb('学習','がくしゅう')+'マップで '+rb('復習','ふくしゅう')+'する</span></button>';
+  return '<div class="guide-card"><div class="guide-h"><i class="ti ti-sparkles"></i> <span>つぎは？</span></div><div class="gstack">'+solid+mapBtn+'</div><div class="gsub">'+rb('次','つぎ')+'の'+rb('教材','きょうざい')+'は'+rb('先生','せんせい')+'が'+rb('用意','ようい')+'するよ</div></div>';
 }
 function doneTodayDoneTtl_(){return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;"><ruby>今日<rt class="uf">きょう</rt></ruby>のぶん、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div><div class="done-guide" style="margin-top:3px;">●ぜんぶ<ruby>消<rt class="uf">き</rt></ruby>えた！よく がんばったね。</div>';}
 function doneGuideHtml_(){return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;">'
@@ -3463,6 +3491,7 @@ function finishQuizSubmit_(){
   var score=termOnly?rr:(e2jOnly?mr:Math.round((mr+rr)/2));
   $('done-rate').innerHTML=termOnly?('<ruby>正答<rt class="uf">せいとう</rt></ruby> <b>'+rr+'</b>％'):(e2jOnly?('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％'):('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> '+rr+'％'));
   animNum($('score-anim'),score,900);
+  try{renderDoneTiles_(score,maxCombo,ansCount,(s.startedMs?(Date.now()-s.startedMs):0));}catch(e){} // 完了3タイル（確認テストにも）2026-08-08
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
   $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(38)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>';
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
@@ -3478,8 +3507,8 @@ function finishQuizSubmit_(){
     if(!d.ok){$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>結果<rt class="uf">けっか</rt></ruby>の<ruby>保存<rt class="uf">ほぞん</rt></ruby>に<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました。もう<ruby>一回<rt class="uf">いっかい</rt></ruby>ためしてね';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}
     homeCacheClear_(); // 点数表を次に開くとき最新に
     var r=d.data;
-    if(r.passed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+r.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';sndWin();flash();confetti(120);var _dgq2=$('done-guide-area');if(_dgq2)_dgq2.innerHTML=nextStepGuide_(true);}
-    else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='あと <b>'+Math.max(0,r.pass_line-r.latest_rate)+'</b>％で<ruby>合格<rt class="uf">ごうかく</rt></ruby>！ もう<ruby>一回<rt class="uf">いっかい</rt></ruby>うけてみよう';}
+    if(r.passed){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+r.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';sndWin();flash();confetti(120);var _dgq2=$('done-guide-area');if(_dgq2)_dgq2.innerHTML=nextStepGuide_(true);}
+    else{setDoneBadge_('accent');$('done-result').innerHTML='あと <b>'+Math.max(0,r.pass_line-r.latest_rate)+'</b>％で<ruby>合格<rt class="uf">ごうかく</rt></ruby>！ もう<ruby>一回<rt class="uf">いっかい</rt></ruby>うけてみよう';}
     var delta=(r.delta==null)?'<span style="background:#eef1f5;color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;">はじめての<ruby>受験<rt class="uf">じゅけん</rt></ruby></span>'
       :(r.delta>0?'<span style="background:rgba(31,170,107,.15);color:var(--ok);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>より ＋'+r.delta+'％</span>'
       :(r.delta<0?'<span style="background:rgba(224,83,60,.13);color:var(--ng);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>より '+r.delta+'％</span>'
@@ -3531,9 +3560,9 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     if(s.fromReview){
       /* テスト配信おさらい（卒業方式）の完了画面。機能仕様書_テスト配信 0章§5。2026-07-08 スライス3 */
       $('btn-next').style.display='none';
-      if(d.data.review_graduated){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML='<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓 このパートは もう<ruby>出<rt class="uf">で</rt></ruby>てこないよ';sndWin();flash();confetti(140);}
-      else if(d.data.review_full){$('done-badge').innerHTML='<i class="ti ti-star" style="color:var(--gold)"></i>';$('done-result').innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>は 100%！ でも<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>は、あした もう<ruby>一度<rt class="uf">いちど</rt></ruby> 100%を とれたら だよ';sndWin();flash();}
-      else{var _rem=termOnly?(s.total-s.reverseCorrect):((s.total-s.meaningCorrect)+(s.total-s.reverseCorrect));$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='あと <b>'+_rem+'</b><ruby>問<rt class="uf">もん</rt></ruby>で 100%！<br><span class="done-guide"><ruby>今日<rt class="uf">きょう</rt></ruby>は「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で<ruby>練習<rt class="uf">れんしゅう</rt></ruby>できるよ。あした 100%で <ruby>卒業<rt class="uf">そつぎょう</rt></ruby>（もう<ruby>出<rt class="uf">で</rt></ruby>てこない）だよ</span>';}
+      if(d.data.review_graduated){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓 このパートは もう<ruby>出<rt class="uf">で</rt></ruby>てこないよ';sndWin();flash();confetti(140);}
+      else if(d.data.review_full){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>は 100%！ でも<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>は、あした もう<ruby>一度<rt class="uf">いちど</rt></ruby> 100%を とれたら だよ';sndWin();flash();}
+      else{var _rem=termOnly?(s.total-s.reverseCorrect):((s.total-s.meaningCorrect)+(s.total-s.reverseCorrect));setDoneBadge_('accent');$('done-result').innerHTML='あと <b>'+_rem+'</b><ruby>問<rt class="uf">もん</rt></ruby>で 100%！<br><span class="done-guide"><ruby>今日<rt class="uf">きょう</rt></ruby>は「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で<ruby>練習<rt class="uf">れんしゅう</rt></ruby>できるよ。あした 100%で <ruby>卒業<rt class="uf">そつぎょう</rt></ruby>（もう<ruby>出<rt class="uf">で</rt></ruby>てこない）だよ</span>';}
       /* 点数は保存前に表示済み（2026-07-08）*/
       if(s.miss.length){$('done-miss').innerHTML='まちがえた<ruby>単語<rt class="uf">たんご</rt></ruby>：'+s.miss.length+'<ruby>個<rt class="uf">こ</rt></ruby>（<ruby>間違<rt class="uf">まちが</rt></ruby>いノートに <ruby>入<rt class="uf">い</rt></ruby>れたよ）';}else{$('done-miss').textContent='';}
       loadStar();return;
@@ -3541,16 +3570,16 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     if(d.data.is_test){
       // 2026-07-07 grill確定：テスト配信も毎日学習と同じ80%で前進（満点前進は廃止）。おさらいの100%卒業案内はスライス3で追加。正＝機能仕様書_テスト配信 0章。
       if(d.data.passed){sndWin();flash();confetti(120);
-        if(d.data.completed_material&&d.data.test_all_completed){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML=doneUnitAllTtl_();confetti(180);$('done-guide-area').innerHTML=doneGuideHtml_();} /* 単元別タブ全消え＝grand 2026-08-01 */
-        else if(d.data.completed_material){$('done-badge').innerHTML='<i class="ti ti-circle-check" style="color:var(--ok)"></i>';$('done-result').innerHTML=doneMatClearTtl_();$('done-guide-area').innerHTML=doneMatClearGuide_();} /* 1章クリア＝中お祝い（緑）2026-08-01 */
-        else{$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML=doneTodayDoneTtl_();$('done-guide-area').innerHTML=nextStepGuide_();
+        if(d.data.completed_material&&d.data.test_all_completed){setDoneBadge_('gold');$('done-result').innerHTML=doneUnitAllTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();} /* 単元別タブ全完走＝金トロフィー＋クラッカー 2026-08-08 */
+        else if(d.data.completed_material){setDoneBadge_('gold');confetti(180);$('done-result').innerHTML=doneMatClearTtl_();$('done-guide-area').innerHTML=doneClearGuide_();} /* 1章まるごと完走＝金にそろえる（全部完了＝金）2026-08-08 */
+        else{setDoneBadge_('ok');$('done-result').innerHTML=doneTodayDoneTtl_();$('done-guide-area').innerHTML=nextStepGuide_(); /* 今日のぶん完了＝緑 2026-08-08 */
           if(d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span>つづけて<ruby>先取<rt class="uf">さきど</rt></ruby>り（つぎのパート）</span>';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}}
-      else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='今日のぶんは <b>まだ終わっていない</b>よ（<span style=\"color:#e0574b;\">●</span>がのこってるよ）。<br><span class=\"done-guide\">「もう一回やる」で <b>80%</b> とれたら、今日のぶん完了！</span>';}
+      else{setDoneBadge_('accent');$('done-result').innerHTML='今日のぶんは <b>まだ終わっていない</b>よ（<span style=\"color:#e0574b;\">●</span>がのこってるよ）。<br><span class=\"done-guide\">「もう一回やる」で <b>80%</b> とれたら、今日のぶん完了！</span>';}
     }else if(d.data.passed){sndWin();flash();confetti(120);
-      if(d.data.completed_material){$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML=doneClearTtl_();confetti(180);$('done-guide-area').innerHTML=doneGuideHtml_();}
-      else{$('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';$('done-result').innerHTML=doneTodayDoneTtl_();$('done-guide-area').innerHTML=nextStepGuide_();
+      if(d.data.completed_material){setDoneBadge_('gold');$('done-result').innerHTML=doneClearTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();}
+      else{setDoneBadge_('ok');$('done-result').innerHTML=doneTodayDoneTtl_();$('done-guide-area').innerHTML=nextStepGuide_(); /* 今日のぶん完了＝緑 2026-08-08 */
         if(d.data.advanced&&d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span>つづけて<ruby>先取<rt class="uf">さきど</rt></ruby>り（つぎのDAY）</span>';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}
-    }else{$('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';$('done-result').innerHTML='今日のぶんは <b>まだ終わっていない</b>よ（<span style=\"color:#e0574b;\">●</span>がのこってるよ）。<br><span class=\"done-guide\">「もう一回やる」で <b>80%</b> とれたら、今日のぶん完了！</span>';}
+    }else{setDoneBadge_('accent');$('done-result').innerHTML='今日のぶんは <b>まだ終わっていない</b>よ（<span style=\"color:#e0574b;\">●</span>がのこってるよ）。<br><span class=\"done-guide\">「もう一回やる」で <b>80%</b> とれたら、今日のぶん完了！</span>';}
     /* 点数は保存前に表示済み（2026-07-08）*/
     if(s.miss.length){$('done-miss').innerHTML='まちがえた<ruby>単語<rt class="uf">たんご</rt></ruby>：'+s.miss.length+'<ruby>個<rt class="uf">こ</rt></ruby>（<ruby>間違<rt class="uf">まちが</rt></ruby>いノートに <ruby>入<rt class="uf">い</rt></ruby>れたよ）';}else{$('done-miss').textContent='';}
     loadStar();
@@ -3637,9 +3666,9 @@ function openNote(subject){
 function startNote(subject,words,assets){
   srsSes=null;session=null; // 出題エンジンの活性セッションを間違いノートに切替（共通レンダラーが正しい語を参照）2026-07-26
   if(!words||!words.length){toastH('<ruby>直<rt class="uf">なお</rt></ruby>す<ruby>単語<rt class="uf">たんご</rt></ruby>は ないよ');return;}
-  show('scr-practice');combo=0;
+  show('scr-practice');combo=0;maxCombo=0;ansCount=0; // 完了3タイルのコンボ用にリセット 2026-08-08
   gradeReset_(); // 採点キュー初期化 2026-07-05
-  noteSes={mode:'note',subject:subject,words:words,idx:0,step:(subject==='english'?2:3),wordOK:true,cleared:0,clearedWords:[],total:words.length,assets:(assets||{}),miss:[],onNext:function(){submitNoteWord();}};
+  noteSes={mode:'note',subject:subject,words:words,idx:0,step:(subject==='english'?2:3),wordOK:true,cleared:0,clearedWords:[],total:words.length,assets:(assets||{}),miss:[],startedMs:Date.now(),onNext:function(){submitNoteWord();}};
   _readingMap={};(words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;}); // 国語の選択肢ふりがな用 2026-07-26
   renderNoteStep(); // ＝renderQuiz(noteSes)。表・図・国語ふりがな・音声すべて毎日学習と同じ描画
 }
@@ -3685,10 +3714,11 @@ function finishNote(){
   var s=noteSes;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();var _dgn0=$('done-guide-area');if(_dgn0)_dgn0.innerHTML='';
   $('btn-next').style.display='none';$('btn-retry').style.display='none';
   var _db=$('done-badge');if(_db)_db.style.display='';
-  $('done-badge').innerHTML='<i class="ti ti-notebook" style="color:var(--ng)"></i>';
+  $('done-badge').style.display='';$('done-badge').classList.remove('dib-gold','dib-ok','dib-accent');$('done-badge').innerHTML='<i class="ti ti-notebook" style="color:var(--sub)"></i>';
   $('done-result').innerHTML='<ruby>間違<rt class="uf">まちが</rt></ruby>いノート、おつかれさま！';
   $('done-rate').textContent='';
   $('done-score-wrap').style.display='none';var _dtn=$('done-tiles');if(_dtn)_dtn.innerHTML='';
+  try{var _nt=(s.total||(s.words&&s.words.length)||0),_nc=Math.max(0,_nt-((s.miss||[]).length)),_nr=_nt?Math.round(_nc/_nt*100):0;renderDoneTiles_(_nr,maxCombo,ansCount,(s.startedMs?(Date.now()-s.startedMs):0));}catch(e){} // 完了3タイル（間違いノートにも）2026-08-08
   // 採点（保存）中：スピナー＋Tips（成功と偽らない・待ちを価値に）2026-07-13
   $('done-miss').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
   $('star-area').innerHTML='<div class="note-saving"><div class="sw-load">'+kwtSpin(30)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby>しています…</span></div>'+tipHtml_()+'</div>';
@@ -3700,14 +3730,14 @@ function finishNote(){
       homeCacheClear_();/* ノート完了でホームキャッシュ無効化（案A 2026-07-08）*/
       var n=s.cleared||0;
       if(n>0){
-        $('done-badge').innerHTML='<i class="ti ti-trophy" style="color:var(--gold)"></i>';
+        setDoneBadge_('gold');
         $('done-result').innerHTML='<span class="num" id="note-gnum">0</span><ruby>語<rt class="uf">ご</rt></ruby> <ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓';
         $('done-miss').innerHTML='2<ruby>回<rt class="uf">かい</rt></ruby><ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby>でクリアした<ruby>単語<rt class="uf">たんご</rt></ruby>だよ。よくがんばった！';
         $('star-area').innerHTML=noteGradCardHtml_(s.clearedWords||[])+nextStepGuide_();
         var gn=$('note-gnum');if(gn)animNum(gn,n,900);
         sndWin();flash();confetti(120);
       }else{
-        $('done-badge').innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';
+        setDoneBadge_('accent');
         $('done-result').innerHTML='<ruby>間違<rt class="uf">まちが</rt></ruby>いノート、おつかれさま！';
         $('done-miss').innerHTML='<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>はあと<ruby>一歩<rt class="uf">いっぽ</rt></ruby>。<b style="color:var(--ink)">2<ruby>回<rt class="uf">かい</rt></ruby><ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby></b>でクリアだよ。もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やってみよう！';
         $('star-area').innerHTML='<div class="note-none"><i class="ti ti-seedling"></i><ruby>今日<rt class="uf">きょう</rt></ruby> <ruby>直<rt class="uf">なお</rt></ruby>した<ruby>分<rt class="uf">ぶん</rt></ruby>は、<ruby>記憶<rt class="uf">きおく</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>りはじめてる。くり<ruby>返<rt class="uf">かえ</rt></ruby>すほど「<ruby>思<rt class="uf">おも</rt></ruby>い<ruby>出<rt class="uf">だ</rt></ruby>せる」に<ruby>変<rt class="uf">か</rt></ruby>わっていくよ。</div>'+nextStepGuide_();
@@ -3860,9 +3890,9 @@ function openOsaraiSubject(subject){
 function startReviewSrs(words,assets,osSubject){
   noteSes=null;session=null; // 出題エンジンの活性セッションをおさらいに切替 2026-07-26
   if(!words||!words.length){toast('おさらいはありません');return;}
-  show('scr-practice');combo=0;
+  show('scr-practice');combo=0;maxCombo=0;ansCount=0; // 完了3タイルのコンボ用にリセット 2026-08-08
   gradeReset_(); // 採点キュー初期化 2026-07-05
-  srsSes={mode:'srs',osSubject:(osSubject||''),words:words,idx:0,step:2,wordOK:true,graduated:0,total:words.length,doneWords:[],nextDays:null,assets:(assets||{}),miss:[],onNext:function(){submitSrsWord();}};
+  srsSes={mode:'srs',osSubject:(osSubject||''),words:words,idx:0,step:2,wordOK:true,graduated:0,total:words.length,doneWords:[],nextDays:null,assets:(assets||{}),miss:[],startedMs:Date.now(),onNext:function(){submitSrsWord();}};
   srsSes.step=_startStepFor(srsSes,words[0]); // 語ごとに開始ステップ（英語=意味2 / 用語=英語3）＝元と同じ流れ
   _readingMap={};(words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;}); // 国語の選択肢ふりがな用 2026-07-26
   renderSrsStep(); // ＝renderQuiz(srsSes)。表・図・国語ふりがな・音声すべて毎日学習と同じ描画
@@ -3887,9 +3917,10 @@ function submitSrsWord(){
 function finishSrs(){
   var s=srsSes;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();var _dgs=$('done-guide-area');if(_dgs)_dgs.innerHTML='';
   var _sa=$('star-area');if(_sa)_sa.innerHTML=missWordsHtml(s.miss,s.words);
-  $('done-badge').innerHTML='<i class="ti ti-clock-check" style="color:var(--gold)"></i>';
+  setDoneBadge_('ok'); // おさらい本日分＝個別完了＝緑チェック 2026-08-08
   $('done-result').innerHTML='おさらい <ruby>完了<rt class="uf">かんりょう</rt></ruby>！'; // 表記は漢字（川上さん指示 2026-07-05）
   $('done-score-wrap').style.display='none';var _dtn=$('done-tiles');if(_dtn)_dtn.innerHTML='';
+  try{var _st=((s.doneWords||[]).length||s.total||0),_sc=Math.max(0,_st-((s.miss||[]).length)),_sr=_st?Math.round(_sc/_st*100):0;renderDoneTiles_(_sr,maxCombo,ansCount,(s.startedMs?(Date.now()-s.startedMs):0));}catch(e){} // 完了3タイル（おさらいにも）2026-08-08
   var _osS=s.osSubject||'';
   // 何をおさらいしたか：3語まで列挙＋ほか◯語（おさらいは教科混在なので「英語」とは言わない）2026-07-26
   var _dw=s.doneWords||[];
@@ -3917,7 +3948,7 @@ function finishSrs(){
 }
 /* 全消化（おさらいが空）＝王冠フィナーレに格上げ（1回分の花火はすでに出ている）2026-07-26 */
 function srsUpgradeEmpty_(s){
-  $('done-badge').innerHTML='<i class="ti ti-crown" style="color:var(--gold)"></i>';
+  setDoneBadge_('gold'); // おさらい全消化＝大きな達成＝金トロフィー 2026-08-08
   $('done-result').innerHTML='おさらい ぜんぶクリア！';
   $('btn-next').style.display='none'; // 空の日は「もっとやる」を出さない
   var _ls=['<ruby>今日<rt class="uf">きょう</rt></ruby>おさらいする<ruby>単語<rt class="uf">たんご</rt></ruby>は もう<ruby>無<rt class="uf">な</rt></ruby>いよ。<ruby>完<rt class="uf">かん</rt></ruby>ぺき！'];
