@@ -1717,6 +1717,7 @@ function _mSeries(t){t=String(t||'');
   if(/中学歴史/.test(t))return {k:'hist',label:'メキメキ合格ノート 中学歴史'};
   if(/語彙力アップ/.test(t))return {k:'goi',label:'語彙力アップ'};
   var _nh=t.match(/教科書英単語 New Horizon 中([123])/);if(_nh){var _g=_nh[1],_j=/（日→英）|\(日→英\)/.test(t);return {k:'nh'+_g+'eng_'+(_j?'j2e':'e2j'),label:'教科書英単語 New Horizon 中'+_g+'（'+(_j?'日→英':'英→日')+'）'};} /* 英→日/日→英でシリーズを分ける 2026-07-29 */
+  var _fd=t.match(/^FD 中学地理 中([123])/);if(_fd){return {k:'fd_chiri_j'+_fd[1],label:'FD 中学地理 中'+_fd[1]};} /* FD 中学地理：数字は学年。中1の教材が何冊でも同じシリーズ 2026-08-14 */
   return null;
 }
 function _mWorst(list){var lo=false,mi=false,hi=false,allNa=true;list.forEach(function(m){var a=m.acc;if(a===''||a==null)return;allNa=false;if(a<_needHelpRate)lo=true;else if(a<80)mi=true;else hi=true;});return allNa?'m-na':(lo?'m-low':(mi?'m-mid':'m-hi'));}
@@ -2142,7 +2143,7 @@ function _holdersMap(){
   return h;
 }
 function _bookPrefix(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>0)return t.slice(0,i).replace(/\s+$/,'');}return '';}
-function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;if(s&&/^nh/.test(s.k)){var _mp=t.match(/^教科書英単語 New Horizon 中[123]\s*/);return (_mp?t.slice(_mp[0].length):t)||t;}return t;}
+function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&/^fd_chiri_j/.test(s.k)){var _fp=t.match(/^FD 中学地理 中[123]\s*/);return (_fp?t.slice(_fp[0].length):t)||t;}if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;if(s&&/^nh/.test(s.k)){var _mp=t.match(/^教科書英単語 New Horizon 中[123]\s*/);return (_mp?t.slice(_mp[0].length):t)||t;}return t;}
 function _chapNum(t){t=String(t||'');var m=t.match(/([0-9０-９]+)\s*章/);if(!m)return 99999;var n=m[1].replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});return parseInt(n,10);}
 function _bookKey(m){var k=mtSeriesKey(m);return k?('S:'+k):('M:'+String(m.title||''));}
 function _bookLabel(m){return mtSeriesLabel(m);}
