@@ -1211,6 +1211,7 @@
         .rp-dmat{font-weight:700;white-space:nowrap;}
         .rp-dbook{display:block;font-size:9.5px;color:var(--text-light);font-weight:600;}
         .rp-dc{white-space:nowrap;}
+        .rp-try{font-size:10px;font-weight:800;color:#1b4f9c;background:#e6f0ff;border-radius:5px;padding:1px 5px;margin-left:6px;white-space:nowrap;}
         .rp-dmiss{color:#c98a12;font-weight:700;font-size:10.5px;}
         .rp-dna{cursor:pointer;}
         .rp-dna:hover td{background:#fdf0f0;}
@@ -1312,7 +1313,8 @@
           <span>1日◯パート必要＝残りのパート数÷期限までの残り日数（期限を入れたときだけ出ます）</span>
           <span><b style="color:#c98a12;">⚠ 割当 2/3教材</b>＝割り当て漏れの疑い。<b>その学年の半数以上の子が持っている教材</b>（＝配り終えている教材）と比べて少ない子に出ます。選んだ教材ぜんぶとは比べません（まだ誰にも配っていない先の教材で全員に印が付いてしまうため）</span>
           <span>直近5日の学習日＝選んだ教材をやった日（新しい順・青がいちばん新しい日）</span>
-          <span><b style="color:#d64545;">● 14日 うごいていません</b>＝選んだ教材を14日以上さわっていない子（学習日は直近14日ぶんを見ています）</span>
+          <span><b style="color:#1b4f9c;">練習中 2</b>＝練習はしたが、まだ合格していないパートの数。<b>未着手＝1回も練習せず、テストも受けていない教材だけ</b>です</span>
+          <span><b style="color:#d64545;">● 9日 うごいていません</b>＝選んだ教材を7日以上さわっていない子（学習日は直近14日ぶんを見ているので、それより前は「14日以上」と出ます）</span>
           <span>「詰めて表示」＝1人1行にして、たくさんの生徒を一画面で見ます（この端末に覚えます）</span>
           <span>🖨 まちがいプリント＝いま出ている生徒の「選んだ教材のまちがい」を1人1枚で。<b>教室で絞ってから押すと その教室ぶんだけ</b>になります（両面でも表裏に別の子は出ません）</span>
           <span style="width:100%;">行をクリックすると教材ごとの内訳が開きます。右の「詳細」でその子のまちがいまで見られます。未着手の教材は1行にまとめています（クリックで開きます）。</span>
@@ -4112,7 +4114,8 @@ if(token){openDash();}
 var RP_SEL=[], RP_F={cls:'all',grade:'all',sch:'all'}, RP_SORT={key:'prog',dir:1};
 var RP_ONLY_SHORT=false, RP_ONLY_NG=false, RP_ONLY_MISS=false, RP_OPEN={}, RP_MOPEN={}, RP_OPENNA={};
 var RP_MISS_MIN=10;   /* 未受験が「たまっている」とみなす件数 */
-var RP_STALE_DAYS=14; /* この日数うごいていない子は赤で示す */
+var RP_STALE_DAYS=7;   /* この日数うごいていない子は赤で示す（川上さん 2026-08-17：14日→7日）*/
+var RP_SD_WINDOW=14;   /* GASが返す study_days の日数。ここに1日も無い＝「14日以上」と読む */
 var RP_COMPACT=false; /* 詰めて表示（1人1行） */
 var RP_SETS=[], RP_CUR=-1, RP_LAST=-1, RP_DIRTY=false, RP_DL='';
 var RP_LOADING=false, RP_SETS_LOADED=false, _rpStdCache={};
@@ -4276,9 +4279,11 @@ function _rpAssign(){   /* sid → mid → {done,total,acc,type} 割当（active
   (_students||[]).forEach(function(s){
     var sid=String(s.student_id); idx[sid]={};
     var add=function(m){
-      var ps=m.parts||[], done=0;
-      ps.forEach(function(p){ if(p.status==='pass')done++; });
-      idx[sid][String(m.material_id)]={done:done,total:ps.length,acc:(m.acc===''||m.acc==null)?null:Number(m.acc),type:m.type};
+      var ps=m.parts||[], done=0, st=0;
+      /* status＝none（1回もやっていない）／try（練習したが未合格）／pass（合格）。
+         st＝1回でも練習したパート数。「未着手」を合格0だけで決めると、練習中の子が未着手に入ってしまう（川上さん指摘 2026-08-17）*/
+      ps.forEach(function(p){ if(p.status==='pass')done++; if(p.status&&p.status!=='none')st++; });
+      idx[sid][String(m.material_id)]={done:done,total:ps.length,st:st,acc:(m.acc===''||m.acc==null)?null:Number(m.acc),type:m.type};
     };
     (s.materials_view||[]).forEach(add);
     (s.completed_view||[]).forEach(add);
@@ -4302,10 +4307,10 @@ function _rpYmd(d){ var m=String(d.getMonth()+1),dd=String(d.getDate()); return 
 function _rpToday(){ return _rpYmd(new Date()); }
 function rpAgg(s,AS,QZ){
   var sid=String(s.student_id), a=AS[sid]||{}, q=QZ[sid]||{};
-  var pd=0,pt=0,ok=0,ng=0,miss=0,ps=0,pn=0,ts=0,tn=0,asg=0;
+  var pd=0,pt=0,ok=0,ng=0,miss=0,ps=0,pn=0,ts=0,tn=0,asg=0,stn=0;
   RP_SEL.forEach(function(mid){
     var r=a[mid]; if(!r)return; asg++;
-    pd+=r.done; pt+=r.total;
+    pd+=r.done; pt+=r.total; stn+=(r.st||0);
     if(r.acc!=null){ps+=r.acc;pn++;}
     var e=q[mid]; if(e){ ok+=e.ok; ng+=e.ng; miss+=e.miss; ts+=e.rs; tn+=e.rn; }
   });
@@ -4316,7 +4321,7 @@ function rpAgg(s,AS,QZ){
     sd.forEach(function(x){ if(RP_SEL.indexOf(String(x.m))<0)return; dset[x.d]=1; if(x.d>=wf)w7+=(parseInt(x.p,10)||0); });
     days=Object.keys(dset).sort().reverse();
   }
-  var touched=(pd>0||ok>0||ng>0||pn>0);
+  var touched=(pd>0||stn>0||ok>0||ng>0||pn>0);
   var done=(asg>0&&pt>0&&pd>=pt&&ng===0&&miss===0);
   return {assigned:asg,pd:pd,pt:pt,ok:ok,ng:ng,miss:miss,
           prate:pn?Math.round(ps/pn):null, trate:tn?Math.round(ts/tn):null,
@@ -4381,17 +4386,17 @@ function rpW7Html(a,cp){
 function rpIdleDays_(a){
   if(!a||!a.assigned)return null;
   if(a.days==null)return null;
-  if(!a.days.length)return RP_STALE_DAYS;   /* 直近14日ぶんに1日も無い＝14日以上うごいていない */
+  if(!a.days.length)return RP_SD_WINDOW;    /* 直近14日ぶんに1日も無い＝14日以上うごいていない */
   var t=new Date(_rpToday()+'T00:00:00'), b=new Date(String(a.days[0])+'T00:00:00');
   var d=Math.round((t-b)/86400000); return d<0?0:d;
 }
 function rpStale_(a){ var d=rpIdleDays_(a); return (d!=null&&d>=RP_STALE_DAYS)?d:0; }
 function rpStaleTxt_(a,short){ var d=rpStale_(a); if(!d)return '';
-  var h=(a.days&&a.days.length)?(d+'日'):(RP_STALE_DAYS+'日以上');
+  var h=(a.days&&a.days.length)?(d+'日'):(RP_SD_WINDOW+'日以上');
   return short?(h+' 動きなし'):(h+' うごいていません'); }
 function rpStaleHtml_(a,cp){ var t=cp?rpStaleShort_(a):rpStaleTxt_(a); return t?('<div class="rp-stale-t">\u25CF '+t+'</div>'):''; }
 function rpStaleShort_(a){ var d=rpStale_(a); if(!d)return '';
-  return (a.days&&a.days.length)?(d+'日'):(RP_STALE_DAYS+'日以上'); }
+  return (a.days&&a.days.length)?(d+'日'):(RP_SD_WINDOW+'日以上'); }
 /* 詰めて表示（1人1行）。この端末に覚えさせる */
 function rpToggleCompact(){
   RP_COMPACT=!RP_COMPACT;
@@ -4565,7 +4570,8 @@ function rpDetailRow(x){
     if(s.study_days&&s.study_days.length!=null){ s.study_days.forEach(function(d){ if(String(d.m)===String(mid)&&(!last||d.d>last))last=d.d; }); }
     return '<tr class="rp-dtr"><td class="rp-dmat">'+esc(m?mtShort(m):mid)+'<span class="rp-dbook">'+esc(m?_bookLabel(m):'')+'</span></td>'
       +'<td><span class="rp-bar mini"><i class="'+(r.total?cls:'zero')+'" style="width:'+pct+'%"></i></span>'
-        +'<span class="rp-pr">'+r.done+' / '+r.total+'</span> <span class="rp-pct">'+pct+'%</span></td>'
+        +'<span class="rp-pr">'+r.done+' / '+r.total+'</span> <span class="rp-pct">'+pct+'%</span>'
+        +(((r.st||0)>r.done)?'<span class="rp-try">練習中 '+((r.st||0)-r.done)+'</span>':'')+'</td>'
       +'<td class="rp-dc">'+(r.acc==null?'<span class="rp-na">–</span>':'<span class="'+rpRateCls(r.acc)+'">'+r.acc+'%</span>')+'</td>'
       +'<td class="rp-dc"><span class="rp-tst"><b class="rp-ok">'+e.ok+'</b>・<b class="rp-ng">'+e.ng+'</b>・<b class="rp-ms">'+e.miss+'</b></span></td>'
       +'<td class="rp-dc">'+(e.rn?('<span class="'+rpRateCls(Math.round(e.rs/e.rn))+'">'+Math.round(e.rs/e.rn)+'%</span>'):'<span class="rp-na">–</span>')+'</td>'
@@ -4573,7 +4579,8 @@ function rpDetailRow(x){
   };
   /* 未着手（練習0＋テストも受けていない）の教材は1行に畳む＝やった教材が埋もれるのを防ぐ（川上さん 2026-08-17）*/
   var mine=RP_SEL.filter(function(mid){return !!a[mid];}), done=[], na=[];
-  mine.forEach(function(mid){ var r=a[mid], e=q[mid]||{ok:0,ng:0}; if(r.done===0&&e.ok===0&&e.ng===0)na.push(mid); else done.push(mid); });
+  mine.forEach(function(mid){ var r=a[mid], e=q[mid]||{ok:0,ng:0};
+    if(r.done===0&&(r.st||0)===0&&r.acc==null&&e.ok===0&&e.ng===0)na.push(mid); else done.push(mid); });
   var rows=done.map(mkRow).join('');
   if(na.length){
     var np=0,nm=0; na.forEach(function(mid){ np+=a[mid].total; nm+=((q[mid]||{}).miss||0); });
@@ -4652,6 +4659,7 @@ function rpBuildPrint(list,fs){
     +'.rp-pa .stale{color:#d64545;font-weight:800;display:block;}'
     +'.rp-pa .day{display:inline-block;font-weight:700;color:#5a6a7e;background:#edf0f5;border-radius:3px;padding:0 '+Math.round(fs*0.35)+'px;margin-right:2px;white-space:nowrap;}'
     +'.rp-pa .day.new{background:#e6f0ff;color:#1b4f9c;}'
+    +'.rp-pa .try{color:#1b4f9c;font-weight:800;}'
     +'.rp-pa .warn{color:#8a6100;font-weight:800;}'
     +'.rp-pa .na{color:#94a3b8;}'
     +'.rp-pa .bk{color:#7b8794;font-size:'+f(0.8)+'px;}'
@@ -4690,11 +4698,11 @@ function rpBuildPrint(list,fs){
       var na=[], sub='';
       mine.forEach(function(mid){
         var r=as[mid], e=q[mid]||{ok:0,ng:0,miss:0,rs:0,rn:0}, m=_rpMat(mid), last='';
-        if(r.done===0&&e.ok===0&&e.ng===0){ na.push({mid:mid,r:r,e:e,m:m}); return; }
+        if(r.done===0&&(r.st||0)===0&&r.acc==null&&e.ok===0&&e.ng===0){ na.push({mid:mid,r:r,e:e,m:m}); return; }
         if(x.s.study_days&&x.s.study_days.length!=null){ x.s.study_days.forEach(function(d){ if(String(d.m)===String(mid)&&(!last||d.d>last))last=d.d; }); }
         var p2=r.total?Math.round(r.done/r.total*100):0, bc=(p2>=80?'':(p2>=40?'mid':'low'));
         sub+='<tr class="sub" style="page-break-inside:avoid;"><td style="padding-left:'+Math.round(fs*1.6)+'px;">・'+esc(m?mtShort(m):mid)+'<span class="bk"> '+esc(m?_bookLabel(m):'')+'</span></td>'
-          +'<td><span class="bar"><i class="'+(r.total?bc:'zero')+'" style="width:'+p2+'%"></i></span><span class="pr">'+r.done+' / '+r.total+'</span> <span class="pct">'+p2+'%</span>　'+rate(r.acc,'正答率')+'</td>'
+          +'<td><span class="bar"><i class="'+(r.total?bc:'zero')+'" style="width:'+p2+'%"></i></span><span class="pr">'+r.done+' / '+r.total+'</span> <span class="pct">'+p2+'%</span>'+(((r.st||0)>r.done)?'<span class="try"> 練習中'+((r.st||0)-r.done)+'</span>':'')+'　'+rate(r.acc,'正答率')+'</td>'
           +'<td class="c"><span class="ok">合格'+e.ok+'</span>・<span class="ng">未合格'+e.ng+'</span>・<span class="ms">未受験'+e.miss+'</span>　'+rate(e.rn?Math.round(e.rs/e.rn):null,'平均点')+'</td>'
           +((dlv!==null&&RP_DL)?'<td></td>':'')+'<td></td><td>'+(last?'<span class="day">'+esc(rpMd_(last))+'</span>':'')+'</td></tr>';
       });
