@@ -338,6 +338,9 @@
   .pick-item .pi-grade{margin-left:auto;font-size:11px;color:var(--text-muted);}
   .pick-item.assigned-other{opacity:0.55;}
   .pick-item .pi-warn{font-size:10px;color:var(--amber-dark);margin-left:auto;}
+  .sd-closebar{position:sticky;top:-8px;height:0;z-index:20;text-align:right;pointer-events:none;}
+  .sd-closefix{pointer-events:auto;position:relative;top:-6px;right:-6px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:18px;line-height:1;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,.14);}
+  .sd-closefix:hover{border-color:var(--crimson);color:var(--crimson);}
   .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;}
   .asg-btn{font-size:11px;color:var(--crimson);border:1px solid var(--crimson-mid);background:#fff;border-radius:7px;padding:3px 7px;font-weight:700;cursor:pointer;white-space:nowrap;}
   .asg-btn:hover{background:var(--crimson-light);}
@@ -973,6 +976,11 @@
           <label class="cheer-sw"><input type="checkbox" id="cheerT4" checked onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
         </div>
         <div class="cheer-trow">
+          <div class="cheer-tmain"><div class="cheer-tlbl">⑥ レポートの対象から外す</div><div class="cheer-tdesc">「レポート」タブの一覧・まとめ・印刷・PDFから先生アカウントを外す。</div></div>
+          <span class="cheer-state on" id="cheerS6">ON</span>
+          <label class="cheer-sw"><input type="checkbox" id="cheerT6" checked onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
+        </div>
+        <div class="cheer-trow">
           <div class="cheer-tmain"><div class="cheer-tlbl">⑤ 流れ星に先生を出す<span class="cheer-prep">準備中</span></div><div class="cheer-tdesc">チーム外合格者がいないとき流れ星に先生を出す。※機能は今後実装。ONにしても今は動きません。</div></div>
           <span class="cheer-state off" id="cheerS5">OFF</span>
           <label class="cheer-sw"><input type="checkbox" id="cheerT5" onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
@@ -1215,6 +1223,12 @@
           <button class="rp-setadd" onclick="rpSaveSet(this)">＋ いまの条件を保存</button>
           <span class="rp-mute">（先生全員で共有されます）</span>
         </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);">
+          <span class="rp-mute" style="font-weight:800;">このセットの期限：</span>
+          <input type="date" id="rpDl" onchange="rpSetDL(this.value)" style="border:1.5px solid var(--border);border-radius:8px;padding:4px 8px;font-family:inherit;font-size:12px;">
+          <span id="rpDlNote" class="rp-mute"></span>
+          <span class="rp-mute">入れると「1日◯パート必要」を出します。</span>
+        </div>
       </div>
 
       <div class="qcard">
@@ -1225,10 +1239,6 @@
           <input class="filter-search" id="rpName" placeholder="🔍 名前で検索" oninput="rpRender()" style="width:180px;">
           <label style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-muted);cursor:pointer;">
             <input type="checkbox" id="rpShowNA" onchange="rpRender()"> 未割当の子も出す
-          </label>
-          <label style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-muted);">
-            このセットの期限<input type="date" id="rpDl" onchange="rpSetDL(this.value)" style="border:1.5px solid var(--border);border-radius:8px;padding:4px 8px;font-family:inherit;font-size:12px;">
-            <span id="rpDlNote" class="rp-mute"></span>
           </label>
           <span class="filter-count" id="rpCnt"></span>
         </div>
@@ -1247,9 +1257,10 @@
           <span class="rp-mute">並び替え：</span>
           <span class="qseg">
             <button id="rpSg-prog" class="on" onclick="rpSort('prog')">進みが遅い順</button>
-            <button id="rpSg-name" onclick="rpSort('name')">名前順</button>
+            <button id="rpSg-grade" onclick="rpSort('grade')">学年が低い順</button>
             <button id="rpSg-last" onclick="rpSort('last')">最終学習が古い順</button>
           </span>
+          <span class="rp-mute">同じボタンをもう一度押すと逆順</span>
           <span style="margin-left:auto;display:inline-flex;gap:8px;align-items:center;">
             <span class="rp-mute" id="rpFitNote"></span>
             <button class="btn-teach-print rp-pbtn" id="rpNgPrint" style="display:none;" onclick="rpPrintMistakes()">🖨 まちがいを印刷</button>
@@ -1274,7 +1285,7 @@
           <span>📘 正答率＝単元別の練習の正答率（直近3回の平均）</span>
           <span>✅ 平均点＝確認テストで受けたぶんの平均点（未受験は入れない・配信したぶんだけ数えます）</span>
           <span>1日◯パート必要＝残りのパート数÷期限までの残り日数（期限を入れたときだけ出ます）</span>
-          <span><b style="color:#c98a12;">⚠ 割当 2/3教材</b>＝同じ学年のほかの子より割り当てが少ない（割り当て漏れの疑い）</span>
+          <span><b style="color:#c98a12;">⚠ 割当 2/3教材</b>＝割り当て漏れの疑い。<b>その学年の半数以上の子が持っている教材</b>（＝配り終えている教材）と比べて少ない子に出ます。選んだ教材ぜんぶとは比べません（まだ誰にも配っていない先の教材で全員に印が付いてしまうため）</span>
           <span>直近5日の学習日＝選んだ教材をやった日（新しい順・青がいちばん新しい日）</span>
           <span style="width:100%;">行をクリックすると教材ごとの内訳が開きます。右の「詳細」でその子のまちがいまで見られます。</span>
         </div>
@@ -1459,8 +1470,10 @@
 </div>
 
 <!-- 生徒 個人詳細モーダル（item5・2026-07-07） -->
-<div class="modal-back" id="studentModal">
-  <div class="modal" style="max-width:min(1200px,96vw);width:min(1200px,96vw);max-height:92vh;overflow-y:auto;">
+<div class="modal-back" id="studentModal" onclick="if(event.target===this)closeModal('studentModal');">
+  <div class="modal" style="max-width:min(1200px,96vw);width:min(1200px,96vw);max-height:92vh;overflow-y:auto;position:relative;">
+    <!-- 閉じる×は常に右上に出す（下までスクロールすると閉じられない問題・川上さん 2026-08-17）。背景クリック・Escでも閉じる -->
+    <div class="sd-closebar"><button class="sd-closefix" onclick="closeModal('studentModal')" title="閉じる（Escでも閉じます）">×</button></div>
     <div id="sdBody"></div>
   </div>
 </div>
@@ -2158,7 +2171,7 @@ function saveAlertConfig(){
   });
 }
 /* --- 先生応援の設定（先生アカウントの特別仕様・全項目ON/OFF）2026-07-07 --- */
-var _cheerCfg={enabled:false,senders:[],exclude_alert:true,exclude_print:true,star_teacher:false};
+var _cheerCfg={enabled:false,senders:[],exclude_alert:true,exclude_print:true,exclude_report:true,star_teacher:false};
 function loadCheerConfig(){
   call({action:'cheer_config_get'}).then(function(d){ if(d&&d.ok){_cheerCfg=d.data;renderCheerPanel();renderAlertsK();} });
 }
@@ -2169,6 +2182,7 @@ function renderCheerPanel(){
   $('cheerT3').checked=!!_cheerCfg.exclude_alert;_cheerState('cheerS3',_cheerCfg.exclude_alert);
   $('cheerT4').checked=!!_cheerCfg.exclude_print;_cheerState('cheerS4',_cheerCfg.exclude_print);
   $('cheerT5').checked=!!_cheerCfg.star_teacher;_cheerState('cheerS5',_cheerCfg.star_teacher);
+  if($('cheerT6')){ $('cheerT6').checked=!!_cheerCfg.exclude_report;_cheerState('cheerS6',_cheerCfg.exclude_report); }
   var host=$('cheerSenders');host.innerHTML='';
   (_cheerCfg.senders||[]).forEach(function(sd){
     var row=document.createElement('div');row.className='cheer-senderit';
@@ -2184,9 +2198,9 @@ function saveCheerConfig(){
   var senders=[];
   document.querySelectorAll('#cheerSenders input[data-login]').forEach(function(cb){if(cb.checked)senders.push(cb.getAttribute('data-login'));});
   toast('⏳ 保存中…');
-  call({action:'cheer_config_set',enabled:$('cheerT1').checked,exclude_alert:$('cheerT3').checked,exclude_print:$('cheerT4').checked,star_teacher:$('cheerT5').checked,senders:senders}).then(function(d){
+  call({action:'cheer_config_set',enabled:$('cheerT1').checked,exclude_alert:$('cheerT3').checked,exclude_print:$('cheerT4').checked,exclude_report:($('cheerT6')?$('cheerT6').checked:true),star_teacher:$('cheerT5').checked,senders:senders}).then(function(d){
     if(!d||!d.ok){toast('⚠ '+((d&&d.error)||'保存に失敗しました'));return;}
-    _cheerCfg=d.data;renderCheerPanel();renderAlertsK();toast('先生応援の設定を保存しました');
+    _cheerCfg=d.data;renderCheerPanel();renderAlertsK();try{if(typeof rpRender==='function'&&$('rpRows'))rpRender();}catch(e){}toast('先生応援の設定を保存しました');
   });
 }
 /* 印刷モーダルの候補プール（exclude_print ON時は先生アカウントを候補から外す）2026-07-07 */
@@ -2829,7 +2843,7 @@ function renderQuizMatSel(){
   mats.forEach(function(m){var k=_bookKey(m);if(!gm[k]){gm[k]={key:k,lab:_bookLabel(m),items:[]};grps.push(gm[k]);}gm[k].items.push(m);});
   var chip=function(m,label){var on=_quizSelMats.indexOf(String(m.material_id))>=0;return '<div class="qmtab'+(on?' on':'')+'" onclick="qmtPick(\''+esc(m.material_id)+'\')">'+(on?'✓ ':'')+esc(label)+'</div>';};
   el.innerHTML='<div class="qmt-hint">教材をクリックで選択（複数OK）。同じ本のUnitなどをまとめて点数表にできます。</div>'+grps.map(function(g){
-    if(g.items.length===1){ return '<div class="qmt-group"><div class="qmt-tabs">'+chip(g.items[0],mtLabel(g.items[0]),true)+'</div></div>'; }
+    if(g.items.length===1){ return '<div class="qmt-group"><div class="qmt-tabs">'+chip(g.items[0],mtLabel(g.items[0]))+'</div></div>'; }
     var hasSel=g.items.some(function(m){return _quizSelMats.indexOf(String(m.material_id))>=0;});
     var allSel=g.items.every(function(m){return _quizSelMats.indexOf(String(m.material_id))>=0;});
     var open=(g.key in _qmtOpen)?_qmtOpen[g.key]:hasSel; _qmtOpen[g.key]=open;
@@ -3314,6 +3328,12 @@ function saveMembers(){
   }).finally(function(){hideLoading();});
 }
 
+/* Esc で開いているモーダルを閉じる 2026-08-17 */
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Escape')return;
+  var open=document.querySelectorAll('.modal-back.show');
+  if(open.length)open[open.length-1].classList.remove('show');
+});
 function closeModal(id){$(id).classList.remove('show');}
 
 /* ===== バグ報告ビューア（原因究明用）2026-07-29 ===== */
@@ -4061,7 +4081,7 @@ if(token){openDash();}
    ・学習日・今週の伸びは dashboard の study_days（直近14日）から。GAS未反映のときは「–」で出す（画面は壊さない）
    ・保存セット（教材・絞り込み・期限）は report_sets_get/set で先生全員で共有
    ============================================================ */
-var RP_SEL=[], RP_F={cls:'all',grade:'all',sch:'all'}, RP_SORT='prog';
+var RP_SEL=[], RP_F={cls:'all',grade:'all',sch:'all'}, RP_SORT={key:'prog',dir:1};
 var RP_ONLY_SHORT=false, RP_ONLY_NG=false, RP_OPEN={}, RP_MOPEN={};
 var RP_SETS=[], RP_CUR=-1, RP_LAST=-1, RP_DIRTY=false, RP_DL='';
 var RP_LOADING=false, RP_SETS_LOADED=false, _rpStdCache={};
@@ -4096,6 +4116,8 @@ function renderReportTab(){
   rpRenderMat(); rpRenderFilters(); rpRender();
 }
 /* ---- 教材えらび（点数表と同じ部品：本ごとに折りたたみ＋この本をまとめて選ぶ）---- */
+/* 先生アカウントをレポートから外すか（先生設定⑥）。GAS未再デプロイで値が返らないときは既定ON＝外す */
+function _rpExT_(){ return !(_cheerCfg&&_cheerCfg.exclude_report===false); }
 function _rpMats(){
   return (bulkMaterials||[]).slice().sort(function(a,b){return (parseInt(a.display_order,10)||0)-(parseInt(b.display_order,10)||0);});
 }
@@ -4114,7 +4136,7 @@ function rpRenderMat(){
   var chip=function(m,label,withTag){var on=RP_SEL.indexOf(String(m.id))>=0;
     return '<div class="qmtab'+(on?' on':'')+'" onclick="rpPick(\''+esc(String(m.id))+'\')">'+(on?'✓ ':'')+(withTag?tag(m):'')+esc(label)+'</div>';};
   el.innerHTML=grps.map(function(g){
-    if(g.items.length===1){ return '<div class="qmt-group"><div class="qmt-tabs">'+chip(g.items[0],mtLabel(g.items[0]))+'</div></div>'; }
+    if(g.items.length===1){ return '<div class="qmt-group"><div class="qmt-tabs">'+chip(g.items[0],mtLabel(g.items[0]),true)+'</div></div>'; }
     var has=g.items.some(function(m){return RP_SEL.indexOf(String(m.id))>=0;});
     var all=g.items.every(function(m){return RP_SEL.indexOf(String(m.id))>=0;});
     var open=(g.key in RP_MOPEN)?RP_MOPEN[g.key]:has; RP_MOPEN[g.key]=open;
@@ -4185,7 +4207,12 @@ function rpDelSet(i){
 /* ---- 絞り込み（生徒一覧タブと同じ順・同じ部品：教室→学年→中学校）---- */
 function rpRenderFilters(){
   var el=$('rpFilters'); if(!el)return;
-  var cls=_qbDistinct(function(s){return s.class_name;}), grades=_qbDistinct(function(s){return s.grade;}), sch=_qbDistinct(function(s){return s.school;});
+  var _d=function(f){var o={},a=[];(_students||[]).forEach(function(s){
+      if(s.is_active===false)return;
+      if(_rpExT_()&&s.is_teacher_account)return;
+      var v=f(s); if(v&&!o[v]){o[v]=1;a.push(v);} }); return a;};
+  var cls=_d(function(s){return s.class_name;}), grades=_d(function(s){return s.grade;}), sch=_d(function(s){return s.school;});
+  grades.sort(function(a,b){return _rpGradeRank(a)-_rpGradeRank(b);});
   var h='';
   if(cls.length)h+='<div class="filter-grp"><span class="filter-label">教室</span>'+_rpChips('cls',RP_F.cls,cls)+'</div>';
   h+='<div class="filter-grp"><span class="filter-label">学年</span>'+_rpChips('grade',RP_F.grade,grades)+'</div>';
@@ -4265,7 +4292,10 @@ function rpAgg(s,AS,QZ){
 }
 /* 学年ごとの標準セット＝その学年の半数以上に割り当てられている選択教材（割り当て漏れの検出） */
 function _rpGradeStd(g,AS){
-  var kids=(_students||[]).filter(function(s){return String(s.grade||'')===String(g);});
+  var kids=(_students||[]).filter(function(s){
+    if(s.is_active===false)return false;
+    if(_rpExT_()&&s.is_teacher_account)return false;
+    return String(s.grade||'')===String(g);});
   if(!kids.length)return [];
   return RP_SEL.filter(function(mid){
     var n=kids.filter(function(s){return !!(AS[String(s.student_id)]||{})[mid];}).length;
@@ -4312,7 +4342,23 @@ function rpW7Html(a){
   if(a.w7==null)return '<div class="rp-w7">今週 –</div>';
   return a.w7>0?'<div class="rp-w7 up">今週 +'+a.w7+'パート</div>':'<div class="rp-w7">今週の伸びなし</div>';
 }
-function rpSort(k){ RP_SORT=k; ['prog','name','last'].forEach(function(x){var b=$('rpSg-'+x);if(b)b.classList.toggle('on',x===k);}); rpRender(); }
+/* 並び替え＝同じボタンをもう一度押すと昇順⇄降順。ラベルもその向きに変える（川上さん 2026-08-17）*/
+var RP_SORT_LBL={prog:['進みが遅い順','進みが速い順'],grade:['学年が低い順','学年が高い順'],last:['最終学習が古い順','最終学習が新しい順']};
+function rpSort(k){
+  if(RP_SORT.key===k)RP_SORT.dir=-RP_SORT.dir; else RP_SORT={key:k,dir:1};
+  ['prog','grade','last'].forEach(function(x){
+    var b=$('rpSg-'+x); if(!b)return;
+    b.classList.toggle('on',x===RP_SORT.key);
+    b.textContent=RP_SORT_LBL[x][(x===RP_SORT.key&&RP_SORT.dir<0)?1:0]+((x===RP_SORT.key)?(RP_SORT.dir>0?' ▲':' ▼'):'');
+  });
+  rpRender();
+}
+/* 学年の並び（小1…小6→中1…中3→高1…高3→その他）*/
+function _rpGradeRank(g){
+  g=String(g||''); var m=g.match(/^(小|中|高)(\d+)/);
+  if(m){ var base={'小':0,'中':10,'高':20}[m[1]]; return base+(parseInt(m[2],10)||0); }
+  return 99;
+}
 function rpRowToggle(id){ RP_OPEN[id]=!RP_OPEN[id]; rpRender(); }
 function rpOpenAll(v){ RP_OPEN={}; if(v)rpTargets().forEach(function(x){RP_OPEN[String(x.s.student_id)]=true;}); rpRender(); }
 function rpToggleShort(){ RP_ONLY_SHORT=!RP_ONLY_SHORT; if(RP_ONLY_SHORT)RP_ONLY_NG=false; rpRender(); }
@@ -4324,6 +4370,7 @@ function rpTargets(){
   var AS=_rpAssign(), QZ=_rpQuiz();
   return (_students||[]).filter(function(s){
     if(s.is_active===false)return false;
+    if(_rpExT_()&&s.is_teacher_account)return false;   // 先生アカウントを外す（先生設定⑥）2026-08-17
     if(RP_F.cls!=='all'&&String(s.class_name||'')!==RP_F.cls)return false;
     if(RP_F.grade!=='all'&&String(s.grade||'')!==RP_F.grade)return false;
     if(RP_F.sch!=='all'&&String(s.school||'')!==RP_F.sch)return false;
@@ -4349,11 +4396,14 @@ function rpRender(){
     return;
   }
   var list=rpTargets();
+  var _nm=function(x,y){return String(x.s.name||'').localeCompare(String(y.s.name||''),'ja');};
   list.sort(function(x,y){
-    if(RP_SORT==='name')return String(x.s.name||'').localeCompare(String(y.s.name||''),'ja');
-    if(RP_SORT==='last'){var lx=(x.a.days&&x.a.days[0])||'0000-00-00',ly=(y.a.days&&y.a.days[0])||'0000-00-00';
-      return lx===ly?String(x.s.name||'').localeCompare(String(y.s.name||''),'ja'):(lx<ly?-1:1);}
-    return x.a.ratio===y.a.ratio?String(x.s.name||'').localeCompare(String(y.s.name||''),'ja'):x.a.ratio-y.a.ratio;
+    var d=RP_SORT.dir;
+    if(RP_SORT.key==='grade'){ var gx=_rpGradeRank(x.s.grade),gy=_rpGradeRank(y.s.grade);
+      return gx===gy?_nm(x,y):(gx-gy)*d; }
+    if(RP_SORT.key==='last'){ var lx=(x.a.days&&x.a.days[0])||'0000-00-00',ly=(y.a.days&&y.a.days[0])||'0000-00-00';
+      return lx===ly?_nm(x,y):((lx<ly?-1:1)*d); }
+    return x.a.ratio===y.a.ratio?_nm(x,y):(x.a.ratio-y.a.ratio)*d;
   });
   var c=$('rpCnt'); if(c)c.textContent=list.length+'名';
   var dl=rpDaysLeft_(), dn=$('rpDlNote');
@@ -4368,6 +4418,7 @@ function rpRender(){
   var AS=_rpAssign();
   var shortN=(_students||[]).filter(function(s){
     if(s.is_active===false)return false;
+    if(_rpExT_()&&s.is_teacher_account)return false;
     if(RP_F.cls!=='all'&&String(s.class_name||'')!==RP_F.cls)return false;
     if(RP_F.grade!=='all'&&String(s.grade||'')!==RP_F.grade)return false;
     if(RP_F.sch!=='all'&&String(s.school||'')!==RP_F.sch)return false;
@@ -4390,7 +4441,7 @@ function rpRender(){
   /* 行 */
   rows.innerHTML=list.map(function(x){
     var s=x.s,a=x.a,sh=x.sh,sid=String(s.student_id);
-    var shHtml=sh?'<div class="rp-short-t" title="この学年のほかの子は '+sh.need+'教材 持っています（不足：'+esc(sh.miss.map(function(mid){var m=_rpMat(mid);return m?mtShort(m):mid;}).join('・'))+'）">⚠ 割当 '+sh.have+'/'+sh.need+'教材</div>':'';
+    var shHtml=sh?'<div class="rp-short-t" title="'+esc((s.grade||'')+'の半数以上の子が持っている教材＝'+sh.need+'個。この子はそのうち'+sh.have+'個。足りない：'+sh.miss.map(function(mid){var m=_rpMat(mid);return m?mtShort(m):mid;}).join('・')+'　※選んだ教材ぜんぶではなく「その学年で配り終えている教材」と比べます')+'">⚠ 割当 '+sh.have+'/'+sh.need+'教材</div>':'';
     var nameCell='<td><div class="rp-name">'+esc(s.name||s.nickname||'(無名)')+'</div><div class="rp-attr">'+esc((s.grade||'')+'・'+(s.class_name||''))+'</div>'+shHtml+'</td>';
     if(a.assigned===0){
       return '<tr>'+nameCell+'<td colspan="4" class="rp-na">'+(sh?'この学年の教材が1つも割り当てられていません':'選んだ教材は割り当てられていません')+'</td></tr>';
@@ -4430,7 +4481,16 @@ function rpDetailRow(x){
     +rows+missHtml+'</table></td></tr>';
 }
 /* ---- 印刷 / PDF（A4たて。2ページに収まるときだけ文字を小さくする）---- */
-function rpPrintList_(){ var l=rpTargets(); l.sort(function(x,y){return x.a.ratio===y.a.ratio?String(x.s.name||'').localeCompare(String(y.s.name||''),'ja'):x.a.ratio-y.a.ratio;}); return l; }
+/* 印刷・PDFは画面と同じ並び順で出す */
+function rpPrintList_(){
+  var l=rpTargets(), d=RP_SORT.dir, nm=function(x,y){return String(x.s.name||'').localeCompare(String(y.s.name||''),'ja');};
+  l.sort(function(x,y){
+    if(RP_SORT.key==='grade'){var gx=_rpGradeRank(x.s.grade),gy=_rpGradeRank(y.s.grade);return gx===gy?nm(x,y):(gx-gy)*d;}
+    if(RP_SORT.key==='last'){var lx=(x.a.days&&x.a.days[0])||'0000-00-00',ly=(y.a.days&&y.a.days[0])||'0000-00-00';return lx===ly?nm(x,y):((lx<ly?-1:1)*d);}
+    return x.a.ratio===y.a.ratio?nm(x,y):(x.a.ratio-y.a.ratio)*d;
+  });
+  return l;
+}
 function rpCondText_(){
   var c=[]; if(RP_F.cls!=='all')c.push('教室 '+RP_F.cls); if(RP_F.grade!=='all')c.push('学年 '+RP_F.grade); if(RP_F.sch!=='all')c.push('中学校 '+RP_F.sch);
   var q=((($('rpName')||{}).value)||'').trim(); if(q)c.push('名前「'+q+'」');
