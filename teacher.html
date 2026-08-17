@@ -1316,7 +1316,7 @@
           <span><b style="color:#1b4f9c;">練習中 2</b>＝練習はしたが、まだ合格していないパートの数。<b>未着手＝1回も練習せず、テストも受けていない教材だけ</b>です</span>
           <span><b style="color:#d64545;">● 9日 うごいていません</b>＝選んだ教材を7日以上さわっていない子（学習日は直近14日ぶんを見ているので、それより前は「14日以上」と出ます）</span>
           <span>「詰めて表示」＝1人1行にして、たくさんの生徒を一画面で見ます（この端末に覚えます）</span>
-          <span>🖨 まちがいプリント＝いま出ている生徒の「選んだ教材のまちがい」を1人1枚で。<b>教室で絞ってから押すと その教室ぶんだけ</b>になります（両面でも表裏に別の子は出ません）</span>
+          <span>🖨 まちがいプリント＝いま出ている生徒の「選んだ教材のまちがい」を1人1枚で。<b>教室で絞ってから押すと その教室ぶんだけ</b>になります（両面でも表裏に別の子は出ません）。<b>まちがいが0問の子は印刷しません</b></span>
           <span style="width:100%;">行をクリックすると教材ごとの内訳が開きます。右の「詳細」でその子のまちがいまで見られます。未着手の教材は1行にまとめています（クリックで開きます）。</span>
         </div>
       </div>
@@ -4446,17 +4446,24 @@ function rpPrintMistakes(){
     var order={}; ids.forEach(function(i,n){order[i]=n;});
     sts.sort(function(a,b){return (order[String(a.student_id)]||0)-(order[String(b.student_id)]||0);});
     var setLbl=(RP_CUR>=0&&RP_SETS[RP_CUR])?RP_SETS[RP_CUR].name:'選んだ教材';
-    var html=sts.map(function(st){
+    /* まちがいが1問も無い子は紙を作らない（紙のむだ＝川上さん 2026-08-17）*/
+    var all=sts.length;
+    sts=sts.filter(function(st){
       var seen={}; st.items=(st.items||[]).filter(function(it){
         var k=String(it.english||'')+'|~|'+String(it.japanese||'')+'|~|'+String(it.subject||'');
         if(seen[k])return false; seen[k]=true; return true;
       });
+      return st.items.length>0;
+    });
+    var skipped=all-sts.length;
+    if(!sts.length){toast('まちがえている問題がある生徒がいません（'+all+'名ぜんぶ0問）');return;}
+    var html=sts.map(function(st){
       var sid=String(st.student_id);
       var ttl=setLbl+' のまちがい'+(clsOf[sid]?('　【'+clsOf[sid]+'】'):'')+(gradeOf[sid]?('　'+gradeOf[sid]):'');
       return '<div class="p-unit">'+unifiedStudentHtml_(st,{wrapClass:'print-student',docTitle:ttl,showSubmit:false,missLabel:'まちがえた問題',emptyLabel:'いまはまちがえている問題はありません。'})+'</div>';
     }).join('');
     $('printArea').innerHTML=html;
-    var note=$('rpFitNote'); if(note)note.textContent='まちがいプリント '+sts.length+'名'+(clsLbl?('（'+clsLbl+'）'):'')+'・1人1枚';
+    var note=$('rpFitNote'); if(note)note.textContent='まちがいプリント '+sts.length+'名'+(clsLbl?('（'+clsLbl+'）'):'')+'・1人1枚'+(skipped?('（まちがいなし '+skipped+'名は省略）'):'');
     printWhenImagesReady_($('printArea'));   // 図を読み込んでから → 仕切りを入れて → 印刷
   }).finally(function(){hideLoading();});
 }
