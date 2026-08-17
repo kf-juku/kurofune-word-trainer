@@ -1191,11 +1191,11 @@
         /* 2週間うごいていない子を赤で示す（川上さん 2026-08-17）*/
         .rp-stale-t{font-size:10.5px;font-weight:800;color:#d64545;white-space:nowrap;margin-bottom:3px;}
         /* 詰めて表示＝1人1行。中身は消さずに横に並べる（川上さん 2026-08-17）*/
-        #view-report tr.rp-crow>td{padding-top:5px;padding-bottom:5px;vertical-align:middle;white-space:nowrap;}
+        #view-report tr.rp-crow>td{padding-top:5px;padding-bottom:5px;vertical-align:middle;}
         .rp-crow .rp-name,.rp-crow .rp-attr,.rp-crow .rp-short-t,.rp-crow .rp-stale-t,.rp-crow .rp-pace,.rp-crow .rp-w7{display:inline;margin:0 0 0 6px;}
         .rp-crow .rp-name{margin-left:0;}
         .rp-crow .rp-bar{display:inline-block;width:64px;min-width:64px;height:6px;margin:0 6px 0 0;vertical-align:middle;}
-        .rp-crow .rp-days{display:inline-flex;}
+        .rp-crow .rp-days,.rp-crow .rp-na{display:inline-flex;margin-left:6px;}
         .rp-allbtn.on{background:var(--crimson-light);border-color:var(--crimson);color:var(--crimson-dark);}
         .rp-caret{color:var(--text-light);font-size:10.5px;font-weight:700;margin-right:8px;}
         .rp-caret.on{color:var(--crimson);}
@@ -4345,12 +4345,13 @@ function _rpShortOf(s,AS){
 function rpDaysLeft_(){ if(!RP_DL)return null;
   var a=new Date(_rpToday()+'T00:00:00'), b=new Date(RP_DL+'T00:00:00');
   return Math.round((b-a)/86400000); }
-function rpPaceHtml(a){
+function rpPaceHtml(a,cp){
   var dl=rpDaysLeft_(); if(dl===null||!a.assigned)return '';
   if(a.rest<=0)return '<div class="rp-pace done">終わっている</div>';
-  if(dl<=0)return '<div class="rp-pace ng">期限すぎ・残り'+a.rest+'パート</div>';
+  if(dl<=0)return '<div class="rp-pace ng">期限すぎ'+(cp?'':'・残り'+a.rest+'パート')+'</div>';
   var per=Math.round(a.rest/dl*10)/10, cls=(per>2?'ng':(per>1?'mid':''));
-  return '<div class="rp-pace '+cls+'">1日 '+per+'パート 必要<span class="lb">（残り'+a.rest+'／'+dl+'日）</span></div>';
+  return cp?('<div class="rp-pace '+cls+'">1日 '+per+'<span class="lb">（残'+a.rest+'）</span></div>')
+           :('<div class="rp-pace '+cls+'">1日 '+per+'パート 必要<span class="lb">（残り'+a.rest+'／'+dl+'日）</span></div>');
 }
 function rpPaceText_(a){
   var dl=rpDaysLeft_(); if(dl===null||!a.assigned)return '–';
@@ -4370,10 +4371,11 @@ function rpDaysHtml(ds){
   return '<span class="rp-days">'+five.map(function(d,i){return '<span class="rp-day'+(i?'':' new')+'">'+esc(rpMd_(d))+'</span>';}).join('')+'</span>'
     +(ds.length>5?'<span class="rp-daysmore">ほか'+(ds.length-5)+'日</span>':'');
 }
-function rpW7Html(a){
+function rpW7Html(a,cp){
   if(!a.assigned)return '';
   if(a.w7==null)return '<div class="rp-w7">今週 –</div>';
-  return a.w7>0?'<div class="rp-w7 up">今週 +'+a.w7+'パート</div>':'<div class="rp-w7">今週の伸びなし</div>';
+  if(a.w7>0)return '<div class="rp-w7 up">今週 +'+a.w7+(cp?'':'パート')+'</div>';
+  return '<div class="rp-w7">'+(cp?'今週 0':'今週の伸びなし')+'</div>';
 }
 /* 何日うごいていないか（選んだ教材で）。study_days が無いとき（GAS未反映）は null＝判定しない */
 function rpIdleDays_(a){
@@ -4387,7 +4389,9 @@ function rpStale_(a){ var d=rpIdleDays_(a); return (d!=null&&d>=RP_STALE_DAYS)?d
 function rpStaleTxt_(a,short){ var d=rpStale_(a); if(!d)return '';
   var h=(a.days&&a.days.length)?(d+'日'):(RP_STALE_DAYS+'日以上');
   return short?(h+' 動きなし'):(h+' うごいていません'); }
-function rpStaleHtml_(a){ var t=rpStaleTxt_(a); return t?('<div class="rp-stale-t">\u25CF '+t+'</div>'):''; }
+function rpStaleHtml_(a,cp){ var t=cp?rpStaleShort_(a):rpStaleTxt_(a); return t?('<div class="rp-stale-t">\u25CF '+t+'</div>'):''; }
+function rpStaleShort_(a){ var d=rpStale_(a); if(!d)return '';
+  return (a.days&&a.days.length)?(d+'日'):(RP_STALE_DAYS+'日以上'); }
 /* 詰めて表示（1人1行）。この端末に覚えさせる */
 function rpToggleCompact(){
   RP_COMPACT=!RP_COMPACT;
@@ -4532,7 +4536,7 @@ function rpRender(){
   /* 行 */
   rows.innerHTML=list.map(function(x){
     var s=x.s,a=x.a,sh=x.sh,sid=String(s.student_id);
-    var shHtml=sh?'<div class="rp-short-t" title="'+esc((s.grade||'')+'の半数以上の子が持っている教材＝'+sh.need+'個。この子はそのうち'+sh.have+'個。足りない：'+sh.miss.map(function(mid){var m=_rpMat(mid);return m?mtShort(m):mid;}).join('・')+'　※選んだ教材ぜんぶではなく「その学年で配り終えている教材」と比べます')+'">⚠ 割当 '+sh.have+'/'+sh.need+'教材</div>':'';
+    var shHtml=sh?'<div class="rp-short-t" data-short="1" title="'+esc((s.grade||'')+'の半数以上の子が持っている教材＝'+sh.need+'個。この子はそのうち'+sh.have+'個。足りない：'+sh.miss.map(function(mid){var m=_rpMat(mid);return m?mtShort(m):mid;}).join('・')+'　※選んだ教材ぜんぶではなく「その学年で配り終えている教材」と比べます')+'">⚠ 割当 '+sh.have+'/'+sh.need+(RP_COMPACT?'':'教材')+'</div>':'';
     var nameCell='<td><div class="rp-name">'+esc(s.name||s.nickname||'(無名)')+'</div><div class="rp-attr">'+esc((s.grade||'')+'・'+(s.class_name||''))+'</div>'+shHtml+'</td>';
     if(a.assigned===0){
       return '<tr>'+nameCell+'<td colspan="4" class="rp-na">'+(sh?'この学年の教材が1つも割り当てられていません':'選んだ教材は割り当てられていません')+'</td></tr>';
@@ -4542,10 +4546,10 @@ function rpRender(){
     return '<tr class="rp-row'+(op?' on':'')+(cp?' rp-crow':'')+'" onclick="rpRowToggle(\''+esc(sid)+'\')">'+nameCell
       +'<td><span class="rp-bar"><i class="'+rpBarCls(a)+'" style="width:'+pct+'%"></i></span>'
         +'<span class="rp-pr">'+a.pd+' / '+a.pt+(cp?'':' パート')+'</span> <span class="rp-pct">'+pct+'%</span>'
-        +wrap(rpRateHtml('正答率',a.prate))+rpPaceHtml(a)+'</td>'
+        +wrap(rpRateHtml(cp?'正答':'正答率',a.prate))+rpPaceHtml(a,cp)+'</td>'
       +'<td><span class="rp-tst"><b class="rp-ok">合格'+a.ok+'</b>・<b class="rp-ng">未合格'+a.ng+'</b>・<b class="rp-ms">未受験'+a.miss+'</b></span>'
-        +wrap(rpRateHtml('平均点',a.trate))+'</td>'
-      +'<td>'+rpStaleHtml_(a)+rpW7Html(a)+rpDaysHtml(cp?((a.days==null)?null:a.days.slice(0,2)):a.days)+'</td>'
+        +wrap(rpRateHtml(cp?'平均':'平均点',a.trate))+'</td>'
+      +'<td>'+rpStaleHtml_(a,cp)+rpW7Html(a,cp)+rpDaysHtml(cp?((a.days==null)?null:a.days.slice(0,1)):a.days)+'</td>'
       +'<td style="text-align:right;white-space:nowrap;"><span class="rp-caret'+(op?' on':'')+'">'+(op?'▾ 閉じる':'▸ 内訳')+'</span>'
         +'<button class="rp-detail" onclick="event.stopPropagation();openStudentDetail(\''+esc(sid)+'\')" title="この子の詳細（いま何を間違えているか）">詳細</button></td></tr>'
       +(op?rpDetailRow(x):'');
@@ -4612,7 +4616,8 @@ function rpSumText_(list){
     +'　✅テスト平均'+(tn?Math.round(ts/tn):'–')+'%・未合格'+ng+'件';
 }
 function rpBuildPrint(list,fs){
-  var dlv=rpDaysLeft_(), QZ=_rpQuiz();
+  var dlv=rpDaysLeft_(), QZ=_rpQuiz(), cp=RP_COMPACT;   /* 詰めて表示は紙にもそのまま出す（川上さん 2026-08-17）*/
+  var br=cp?'　':'<br>';
   var f=function(r){return (fs*r).toFixed(1);};
   var pad=Math.max(1,Math.round(fs*0.32))+'px '+Math.max(2,Math.round(fs*0.55))+'px';
   var cols=(dlv!==null&&RP_DL)?8:7;
@@ -4633,6 +4638,7 @@ function rpBuildPrint(list,fs){
     +'.rp-pa .nm{font-weight:800;}'
     +'.rp-pa .at{color:#5a6a7e;font-size:'+f(0.82)+'px;font-weight:600;}'
     +'.rp-pa .bar{display:block;width:100%;min-width:'+Math.round(fs*2.2)+'px;height:'+Math.max(4,Math.round(fs*0.6))+'px;border-radius:3px;background:#edf0f5;overflow:hidden;margin-bottom:2px;}'
+    +'.rp-pa .bar.inl{display:inline-block;width:'+Math.round(fs*3.2)+'px;min-width:'+Math.round(fs*3.2)+'px;vertical-align:middle;margin:0 '+Math.round(fs*0.4)+'px 0 0;}'
     +'.rp-pa .bar i{display:block;height:100%;border-radius:3px;background:#1f9d57;}'
     +'.rp-pa .bar i.mid{background:#e0a400;}.rp-pa .bar i.low{background:#d64545;}.rp-pa .bar i.zero{background:transparent;}'
     +'.rp-pa .pr{font-weight:800;white-space:nowrap;}'
@@ -4656,8 +4662,7 @@ function rpBuildPrint(list,fs){
     var c=(v>=80?'hi':(v>=60?'mid':'low')); return '<span class="lb">'+lbl+'</span> <span class="'+c+'">'+v+'%</span>'; };
   var h='<div class="rp-pa" style="width:'+RP_PRINT_W_MM+'mm;font-size:'+fs+'px;line-height:1.35;">'+css
     +'<div style="font-size:'+f(1.5)+'px;font-weight:800;">学習状況レポート'+((RP_CUR>=0&&RP_SETS[RP_CUR])?'（'+esc(RP_SETS[RP_CUR].name)+'）':'')+'</div>'
-    +'<div style="font-size:'+f(0.92)+'px;color:#444;margin-top:2px;">教材：'+esc(rpSelText_())+'</div>'
-    +'<div style="font-size:'+f(0.92)+'px;color:#444;">絞り込み：'+esc(rpCondText_())+((RP_DL&&dlv!==null)?('　／　期限 '+esc(RP_DL)+'（残り'+dlv+'日）'):'')+'　／　出力日 '+esc(_rpToday())+'</div>'
+    +'<div style="font-size:'+f(0.92)+'px;color:#444;margin-top:2px;">教材 '+RP_SEL.length+'件　／　絞り込み：'+esc(rpCondText_())+((RP_DL&&dlv!==null)?('　／　期限 '+esc(RP_DL)+'（残り'+dlv+'日）'):'')+'　／　出力日 '+esc(_rpToday())+'</div>'
     +'<div class="sum" style="font-size:'+f(0.92)+'px;margin:3px 0 5px;">'+esc(rpSumText_(list))+'</div>'
     +'<table><thead><tr>'
     +'<th class="l">生徒</th><th>📘 単元別の練習</th><th>✅ 確認テスト</th>'
@@ -4668,7 +4673,7 @@ function rpBuildPrint(list,fs){
       var pct=a.pt?Math.round(a.pd/a.pt*100):0;
       var barc=(a.pt===0?'zero':(a.ratio>=0.8?'':(a.ratio>=0.4?'mid':'low')));
       var days=(a.days==null)?'<span class="na">–</span>'
-        :((a.days||[]).length?(a.days.slice(0,5).map(function(d,i){return '<span class="day'+(i?'':' new')+'">'+esc(rpMd_(d))+'</span>';}).join('')):'<span class="na">まだ学習なし</span>');
+        :((a.days||[]).length?(a.days.slice(0,cp?1:5).map(function(d,i){return '<span class="day'+(i?'':' new')+'">'+esc(rpMd_(d))+'</span>';}).join('')):'<span class="na">まだ学習なし</span>');
       var w7=(!a.assigned)?'<span class="na">–</span>':(a.w7==null?'<span class="na">–</span>':(a.w7>0?'<span class="w7 up">+'+a.w7+'</span>':'<span class="w7">0</span>'));
       var paceCell='';
       if(dlv!==null&&RP_DL){
@@ -4681,7 +4686,7 @@ function rpBuildPrint(list,fs){
         paceCell='<td class="c">'+pt2+'</td>';
       }
       /* 教材ごとの内訳。未着手（練習0＋テスト未受験だけ）は1行に畳む（川上さん 2026-08-17）*/
-      var mine=RP_SEL.filter(function(mid){return !!as[mid];});
+      var mine=cp?[]:RP_SEL.filter(function(mid){return !!as[mid];});
       var na=[], sub='';
       mine.forEach(function(mid){
         var r=as[mid], e=q[mid]||{ok:0,ng:0,miss:0,rs:0,rn:0}, m=_rpMat(mid), last='';
@@ -4699,12 +4704,12 @@ function rpBuildPrint(list,fs){
           +'<span class="ms">・未着手 '+na.length+'教材</span>　<span class="bk">'+esc(na.map(function(o){return o.m?mtShort(o.m):o.mid;}).join('・'))+'</span>'
           +'　<span class="lb">練習 0/'+np+'・未受験 '+nm+'</span></td></tr>';
       }
-      if(sh)sub+='<tr class="sub" style="page-break-inside:avoid;"><td colspan="'+cols+'" style="padding-left:'+Math.round(fs*1.6)+'px;"><span class="warn">⚠ 割り当てられていない：'+esc(sh.miss.map(function(mid){var m=_rpMat(mid);return m?mtShort(m):mid;}).join('・'))+'</span></td></tr>';
+      if(sh&&!cp)sub+='<tr class="sub" style="page-break-inside:avoid;"><td colspan="'+cols+'" style="padding-left:'+Math.round(fs*1.6)+'px;"><span class="warn">⚠ 割り当てられていない：'+esc(sh.miss.map(function(mid){var m=_rpMat(mid);return m?mtShort(m):mid;}).join('・'))+'</span></td></tr>';
       return '<tr style="page-break-inside:avoid;">'
-        +'<td><span class="nm">'+esc(x.s.name||x.s.nickname||'(無名)')+'</span><br><span class="at">'+esc((x.s.grade||'')+'・'+(x.s.class_name||''))+'</span>'
-          +(sh?('<br><span class="warn" style="font-size:'+f(0.82)+'px;">⚠ 割当'+sh.have+'/'+sh.need+'</span>'):'')+'</td>'
-        +'<td>'+(a.assigned?('<span class="bar"><i class="'+barc+'" style="width:'+pct+'%"></i></span><span class="pr">'+a.pd+' / '+a.pt+' パート</span> <span class="pct">'+pct+'%</span><br>'+rate(a.prate,'正答率')):'<span class="na">割り当てなし</span>')+'</td>'
-        +'<td class="c">'+(a.assigned?('<span class="ok">合格'+a.ok+'</span>・<span class="ng">未合格'+a.ng+'</span>・<span class="ms">未受験'+a.miss+'</span><br>'+rate(a.trate,'平均点')):'<span class="na">–</span>')+'</td>'
+        +'<td><span class="nm">'+esc(x.s.name||x.s.nickname||'(無名)')+'</span>'+br+'<span class="at">'+esc((x.s.grade||'')+'・'+(x.s.class_name||''))+'</span>'
+          +(sh?(br+'<span class="warn" style="font-size:'+f(0.82)+'px;">⚠ 割当'+sh.have+'/'+sh.need+'</span>'):'')+'</td>'
+        +'<td>'+(a.assigned?('<span class="bar'+(cp?' inl':'')+'"><i class="'+barc+'" style="width:'+pct+'%"></i></span><span class="pr">'+a.pd+' / '+a.pt+(cp?'':' パート')+'</span> <span class="pct">'+pct+'%</span>'+br+rate(a.prate,cp?'正答':'正答率')):'<span class="na">割り当てなし</span>')+'</td>'
+        +'<td class="c">'+(a.assigned?('<span class="ok">合格'+a.ok+'</span>・<span class="ng">未合格'+a.ng+'</span>・<span class="ms">未受験'+a.miss+'</span>'+br+rate(a.trate,cp?'平均':'平均点')):'<span class="na">–</span>')+'</td>'
         +paceCell
         +'<td class="c">'+w7+'</td>'
         +'<td>'+(rpStaleTxt_(a,1)?('<span class="stale">\u25CF '+esc(rpStaleTxt_(a,1))+'</span>'):'')+days+'</td></tr>'+sub;
