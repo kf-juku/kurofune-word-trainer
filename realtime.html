@@ -617,9 +617,13 @@ function openPrint(){
   call({action:'rt_print', student_ids:ids.join(','), date:pdate}).then(function(r){
     if(!r||!r.ok){ $sheets.innerHTML='<div style="padding:40px;color:#c0121e;">取得に失敗しました：'+esc_((r&&r.error)||'')+'</div>'; $n.textContent=''; return; }
     var byId={}; (r.data.students||[]).forEach(function(s){ byId[s.student_id]=s; });
-    var html=ids.map(function(id){ var s=byId[id]; return s?('<div class="p-unit">'+unifiedStudentHtml_(s,{docTitle:'確認テスト リアルタイム記録',date:(r.data.date||pdate),showSubmit:true})+'</div>'):''; }).join('');
-    $sheets.innerHTML=html||'<div style="padding:40px;color:#64748b;">印刷できる記録がありません。</div>';
-    $n.textContent=ids.length+'名分（両面でも1人1枚に分けます）';
+    /* まちがいが0問の子は紙を作らない（紙のむだ＝川上さん 2026-08-17。teacher.html のまちがい印刷と同じルール）*/
+    var shown=ids.filter(function(id){ var s=byId[id]; return s && (s.items||[]).length>0; });
+    var skipped=ids.length-shown.length;
+    var html=shown.map(function(id){ var s=byId[id]; return '<div class="p-unit">'+unifiedStudentHtml_(s,{docTitle:'確認テスト リアルタイム記録',date:(r.data.date||pdate),showSubmit:true})+'</div>'; }).join('');
+    $sheets.innerHTML=html||'<div style="padding:40px;color:#64748b;">まちがえた問題がある生徒がいません（'+ids.length+'名ぜんぶ0問）。</div>';
+    $n.textContent=shown.length?(shown.length+'名分（両面でも1人1枚に分けます）'+(skipped?('　／　まちがいなし '+skipped+'名は省略'):''))
+                               :('0名分（'+ids.length+'名ぜんぶ まちがいなし）');
   }).catch(function(){ $sheets.innerHTML='<div style="padding:40px;color:#c0121e;">通信エラーで取得できませんでした。</div>'; $n.textContent=''; });
 }
 function closePrint(){ document.getElementById('printOv').classList.remove('show'); }

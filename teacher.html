@@ -1807,12 +1807,19 @@ function runPrint_(ids,scope,days,limit,types){
   call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit,types:(types||'daily,unit,quiz')}).then(function(d){
     if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
     var sts=d.data.students||[];
-    var html=sts.map(function(s){
-      // 表示が同じ問題は1件に（GAS teacher_mistakes は word_id で統合済み。別パートの同一用語など"見た目の重複"を画面側でも除去）2026-07-28
+    // 表示が同じ問題は1件に（GAS teacher_mistakes は word_id で統合済み。別パートの同一用語など"見た目の重複"を画面側でも除去）2026-07-28
+    var all=sts.length;
+    sts=sts.filter(function(s){
       var seen={}; s.items=(s.items||[]).filter(function(it){
         var k=String(it.english||'')+'|~|'+String(it.japanese||'')+'|~|'+String(it.subject||'');
         if(seen[k]) return false; seen[k]=true; return true;
       });
+      return s.items.length>0;   // 0問の子は紙を作らない（紙のむだ＝川上さん 2026-08-17）
+    });
+    var skipped=all-sts.length;
+    if(!sts.length){toast((scope==='graduated')?('克服した語がある生徒がいません（'+all+'名ぜんぶ0語）'):('まちがえている問題がある生徒がいません（'+all+'名ぜんぶ0問）'));return;}
+    if(skipped)toast((scope==='graduated'?'克服した語なし ':'まちがいなし ')+skipped+'名は印刷しません');
+    var html=sts.map(function(s){
       return '<div class="p-unit">'+unifiedStudentHtml_(s,{wrapClass:'print-student',docTitle:subLbl,showSubmit:false,missLabel:missLbl,emptyLabel:emptyLbl})+'</div>';
     }).join('');
     $('printArea').innerHTML=html;
