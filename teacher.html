@@ -1244,7 +1244,7 @@
           <span class="rp-setsub">このセットの期限</span>
           <input type="date" id="rpDl" onchange="rpSetDL(this.value)">
           <span id="rpDlNote" class="rp-mute"></span>
-          <span class="rp-mute">入れると「1日◯パート必要」を出します。</span>
+          <span class="rp-mute">入れると📘「1日◯パート必要」と✅「1日◯回必要」を出します。</span>
         </div>
       </div>
 
@@ -1310,7 +1310,9 @@
           <span>📘 進み＝合格したパート数／割り当てたパート数（％はその割合）</span>
           <span>📘 正答率＝単元別の練習の正答率（直近3回の平均）</span>
           <span>✅ 平均点＝確認テストで受けたぶんの平均点（未受験は入れない・配信したぶんだけ数えます）</span>
-          <span>1日◯パート必要＝残りのパート数÷期限までの残り日数（期限を入れたときだけ出ます）</span>
+          <span>📘 <b>1日◯パート必要</b>＝<b>単元別の</b>残りパート数÷期限までの残り日数（1パート以下＝青／1〜2＝黄／2超＝赤）。<b>毎日学習は入れません</b>（1日1DAYずつ進むもので、期限で割る意味がないため。対象教材に選んでいてもペースには入りません）</span>
+          <span>✅ <b>1日◯回必要</b>＝（未受験＋不合格）÷期限までの残り日数（0.5回以下＝青／0.5〜1＝黄／1超＝赤）。<b>まだ配信していないテストは数に入りません</b></span>
+          <span>どちらも期限を入れたときだけ出ます</span>
           <span><b style="color:#c98a12;">⚠ 割当 2/3教材</b>＝割り当て漏れの疑い。<b>その学年の半数以上の子が持っている教材</b>（＝配り終えている教材）と比べて少ない子に出ます。選んだ教材ぜんぶとは比べません（まだ誰にも配っていない先の教材で全員に印が付いてしまうため）</span>
           <span>直近5日の学習日＝選んだ教材をやった日（新しい順・青がいちばん新しい日）</span>
           <span><b style="color:#1b4f9c;">練習中 2</b>＝練習はしたが、まだ合格していないパートの数。<b>未着手＝1回も練習せず、テストも受けていない教材だけ</b>です</span>
@@ -4165,6 +4167,18 @@ function _rpMats(){
   return (bulkMaterials||[]).slice().sort(function(a,b){return (parseInt(a.display_order,10)||0)-(parseInt(b.display_order,10)||0);});
 }
 function _rpMat(mid){ var ms=_rpMats(); for(var i=0;i<ms.length;i++){ if(String(ms[i].id)===String(mid)) return ms[i]; } return null; }
+/* 単元別対策＝content_type==='test'（教材ごとタブ・_matType と同じ判定）。それ以外は毎日学習。
+   生徒1人ごとに全教材を線形探索すると 45名×37教材ぶん走るので、mid ごとに覚える。
+   教材リストを読み直したとき（rpRenderMat）に捨てる。 */
+var _rpUnitC={};
+function _rpIsUnit(mid,r){
+  var k=String(mid);
+  if(k in _rpUnitC)return _rpUnitC[k];
+  var m=_rpMat(k), ct=m?String(m.content_type||''):'';
+  /* materials_list に無いとき（削除済みなど）は割当側が持っている type で判定する */
+  if(!m&&r&&r.type!=null)ct=String(r.type||'');
+  return (_rpUnitC[k]=(ct==='test'));
+}
 function rpPick(mid){ mid=String(mid); var i=RP_SEL.indexOf(mid); if(i>=0)RP_SEL.splice(i,1); else RP_SEL.push(mid); rpDirty_(); _rpStdCache={}; rpRenderMat(); rpRender(); }
 function rpPickBook(ids){ ids=ids.split('|');
   var all=ids.every(function(x){return RP_SEL.indexOf(x)>=0;});
@@ -4173,6 +4187,7 @@ function rpPickBook(ids){ ids=ids.split('|');
 function rpFold(k){ RP_MOPEN[k]=!RP_MOPEN[k]; rpRenderMat(); }
 function rpRenderMat(){
   var el=$('rpMatSel'); if(!el)return;
+  _rpUnitC={};   /* 教材リストを描き直すタイミングで教材タイプの記憶を捨てる */
   var mats=_rpMats(), grps=[], gm={};
   mats.forEach(function(m){var k=_bookKey(m);if(!gm[k]){gm[k]={key:k,lab:_bookLabel(m),items:[]};grps.push(gm[k]);}gm[k].items.push(m);});
   var tag=function(m){var d=(String(m.content_type||'')==='test');return '<span class="rp-tag '+(d?'unit':'daily')+'">'+(d?'単元別':'毎日')+'</span>';};
@@ -4309,15 +4324,24 @@ function _rpQuiz(){     /* sid → mid → {ok,ng,miss,rs,rn} 確認テスト（
   });
   return idx;
 }
-function _rpWeekFrom(){ var d=new Date(); d.setDate(d.getDate()-6); return _rpYmd(d); }
+/* 日付はぜんぶ日本時間（JST・UTC+9固定）で数える。2026-08-18
+   GASが返す study_days は Utilities.formatDate(...,'Asia/Tokyo',...) なので必ずJSTの日付。
+   ここを端末のタイムゾーン任せ（new Date() のローカル日付）にすると、
+   端末の時計や地域設定がずれている先生の画面だけ「残り日数」「今週の伸び」「うごいていません」が1日ずれる。
+   端末設定に関係なくJSTで揃える（既存の _asgTodayJST_ / daysAgo と同じ方式）。 */
+function _rpJstNow(){ return new Date(Date.now()+9*3600*1000); }   /* getUTC* で読むとJSTの壁時計になる */
+function _rpYmdU(d){ return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2); }
+function _rpWeekFrom(){ var d=_rpJstNow(); d.setUTCDate(d.getUTCDate()-6); return _rpYmdU(d); }
 function _rpYmd(d){ var m=String(d.getMonth()+1),dd=String(d.getDate()); return d.getFullYear()+'-'+(m.length<2?'0'+m:m)+'-'+(dd.length<2?'0'+dd:dd); }
-function _rpToday(){ return _rpYmd(new Date()); }
+function _rpToday(){ return _rpYmdU(_rpJstNow()); }
 function rpAgg(s,AS,QZ){
   var sid=String(s.student_id), a=AS[sid]||{}, q=QZ[sid]||{};
-  var pd=0,pt=0,ok=0,ng=0,miss=0,ps=0,pn=0,ts=0,tn=0,asg=0,stn=0;
+  var pd=0,pt=0,ok=0,ng=0,miss=0,ps=0,pn=0,ts=0,tn=0,asg=0,stn=0,upd=0,upt=0,uas=0;
   RP_SEL.forEach(function(mid){
     var r=a[mid]; if(!r)return; asg++;
     pd+=r.done; pt+=r.total; stn+=(r.st||0);
+    /* 必要ペースの分母は単元別だけ。毎日学習は1日1DAYずつ自動で進むので、期限で割る意味がない（川上さん 2026-08-18）*/
+    if(_rpIsUnit(mid,r)){ uas++; upd+=r.done; upt+=r.total; }
     if(r.acc!=null){ps+=r.acc;pn++;}
     var e=q[mid]; if(e){ ok+=e.ok; ng+=e.ng; miss+=e.miss; ts+=e.rs; tn+=e.rn; }
   });
@@ -4333,6 +4357,9 @@ function rpAgg(s,AS,QZ){
   return {assigned:asg,pd:pd,pt:pt,ok:ok,ng:ng,miss:miss,
           prate:pn?Math.round(ps/pn):null, trate:tn?Math.round(ts/tn):null,
           days:days, w7:w7, rest:Math.max(0,pt-pd), ratio:pt?pd/pt:0,
+          /* 必要ペース用。restP＝単元別だけの残りパート（毎日学習は入れない）・restQ＝確認テストの残り回数（未受験＋不合格）
+             uAsg＝単元別が1つでも割り当てられているか（0なら📘のペースは出さない） */
+          uAsg:uas, restP:Math.max(0,upt-upd), restQ:(ng+miss),
           state:(asg===0?'na':(done?'done':(touched?'half':'idle')))};
 }
 /* 学年ごとの標準セット＝その学年の半数以上に割り当てられている選択教材（割り当て漏れの検出） */
@@ -4357,19 +4384,31 @@ function _rpShortOf(s,AS){
 function rpDaysLeft_(){ if(!RP_DL)return null;
   var a=new Date(_rpToday()+'T00:00:00'), b=new Date(RP_DL+'T00:00:00');
   return Math.round((b-a)/86400000); }
+/* 📘 単元別の練習の必要ペース。分子は restP（毎日学習を抜いた残りパート）2026-08-18 */
 function rpPaceHtml(a,cp){
+  var dl=rpDaysLeft_(); if(dl===null||!a.assigned||!a.uAsg)return '';
+  if(a.restP<=0)return '<div class="rp-pace done">終わっている</div>';
+  if(dl<=0)return '<div class="rp-pace ng">期限すぎ'+(cp?'':'・残り'+a.restP+'パート')+'</div>';
+  var per=Math.round(a.restP/dl*10)/10, cls=(per>2?'ng':(per>1?'mid':''));
+  return cp?('<div class="rp-pace '+cls+'">1日 '+per+'<span class="lb">（残'+a.restP+'）</span></div>')
+           :('<div class="rp-pace '+cls+'">1日 '+per+'パート 必要<span class="lb">（残り'+a.restP+'／'+dl+'日）</span></div>');
+}
+/* ✅ 確認テストの必要ペース。分子は restQ＝未受験＋不合格（配信したぶんだけ）2026-08-18 */
+function rpPaceQHtml(a,cp){
   var dl=rpDaysLeft_(); if(dl===null||!a.assigned)return '';
-  if(a.rest<=0)return '<div class="rp-pace done">終わっている</div>';
-  if(dl<=0)return '<div class="rp-pace ng">期限すぎ'+(cp?'':'・残り'+a.rest+'パート')+'</div>';
-  var per=Math.round(a.rest/dl*10)/10, cls=(per>2?'ng':(per>1?'mid':''));
-  return cp?('<div class="rp-pace '+cls+'">1日 '+per+'<span class="lb">（残'+a.rest+'）</span></div>')
-           :('<div class="rp-pace '+cls+'">1日 '+per+'パート 必要<span class="lb">（残り'+a.rest+'／'+dl+'日）</span></div>');
+  /* テストが1件も配信されていない子に「ぜんぶ合格」と出すと嘘になるので、何も出さない */
+  if((a.ok+a.ng+a.miss)===0)return '';
+  if(a.restQ<=0)return '<div class="rp-pace done">'+(cp?'合格':'ぜんぶ合格')+'</div>';
+  if(dl<=0)return '<div class="rp-pace ng">期限すぎ'+(cp?'':'・残り'+a.restQ+'回')+'</div>';
+  var per=Math.round(a.restQ/dl*10)/10, cls=(per>1?'ng':(per>0.5?'mid':''));
+  return cp?('<div class="rp-pace '+cls+'">1日 '+per+'<span class="lb">（残'+a.restQ+'）</span></div>')
+           :('<div class="rp-pace '+cls+'">1日 '+per+'回 必要<span class="lb">（残り'+a.restQ+'／'+dl+'日）</span></div>');
 }
 function rpPaceText_(a){
   var dl=rpDaysLeft_(); if(dl===null||!a.assigned)return '–';
-  if(a.rest<=0)return '終わり';
-  if(dl<=0)return '期限すぎ 残'+a.rest;
-  return '1日 '+(Math.round(a.rest/dl*10)/10)+'（残'+a.rest+'）';
+  if(a.restP<=0)return '終わり';
+  if(dl<=0)return '期限すぎ 残'+a.restP;
+  return '1日 '+(Math.round(a.restP/dl*10)/10)+'（残'+a.restP+'）';
 }
 function rpRateCls(r){return r==null?'':(r>=80?'acc-hi':(r>=60?'acc-mid':'acc-low'));}
 function rpRateHtml(lbl,r){return r==null?'<span class="rp-prsub"><span class="lb">'+lbl+'</span> <span class="rp-na">–</span></span>'
@@ -4567,7 +4606,7 @@ function rpRender(){
         +'<span class="rp-pr">'+a.pd+' / '+a.pt+(cp?'':' パート')+'</span> <span class="rp-pct">'+pct+'%</span>'
         +wrap(rpRateHtml(cp?'正答':'正答率',a.prate))+rpPaceHtml(a,cp)+'</td>'
       +'<td><span class="rp-tst"><b class="rp-ok">合格'+a.ok+'</b>・<b class="rp-ng">未合格'+a.ng+'</b>・<b class="rp-ms">未受験'+a.miss+'</b></span>'
-        +wrap(rpRateHtml(cp?'平均':'平均点',a.trate))+'</td>'
+        +wrap(rpRateHtml(cp?'平均':'平均点',a.trate))+rpPaceQHtml(a,cp)+'</td>'
       +'<td>'+rpStaleHtml_(a,cp)+rpW7Html(a,cp)+rpDaysHtml(cp?((a.days==null)?null:a.days.slice(0,1)):a.days)+'</td>'
       +'<td style="text-align:right;white-space:nowrap;"><span class="rp-caret'+(op?' on':'')+'">'+(op?'▾ 閉じる':'▸ 内訳')+'</span>'
         +'<button class="rp-detail" onclick="event.stopPropagation();openStudentDetail(\''+esc(sid)+'\')" title="この子の詳細（いま何を間違えているか）">詳細</button></td></tr>'
@@ -4697,15 +4736,22 @@ function rpBuildPrint(list,fs){
       var days=(a.days==null)?'<span class="na">–</span>'
         :((a.days||[]).length?(a.days.slice(0,cp?1:5).map(function(d,i){return '<span class="day'+(i?'':' new')+'">'+esc(rpMd_(d))+'</span>';}).join('')):'<span class="na">まだ学習なし</span>');
       var w7=(!a.assigned)?'<span class="na">–</span>':(a.w7==null?'<span class="na">–</span>':(a.w7>0?'<span class="w7 up">+'+a.w7+'</span>':'<span class="w7">0</span>'));
+      /* 必要ペースは列を増やさず1列のまま、上＝📘単元別の練習／下＝✅確認テスト の2段にする（川上さん 2026-08-18）。
+         「詰めて表示」のときは行を1行に保つため横に並べる。 */
       var paceCell='';
       if(dlv!==null&&RP_DL){
-        var pt2='<span class="na">–</span>';
-        if(a.assigned){
-          if(a.rest<=0)pt2='<span class="pace done">終わり</span>';
-          else if(dlv<=0)pt2='<span class="pace ng">期限すぎ 残'+a.rest+'</span>';
-          else { var per=Math.round(a.rest/dlv*10)/10, pc=(per>2?'ng':(per>1?'mid':'')); pt2='<span class="pace '+pc+'">1日 '+per+'</span> <span class="lb">（残'+a.rest+'）</span>'; }
+        var pt2='<span class="na">–</span>', pq2='<span class="na">–</span>';
+        if(a.assigned&&a.uAsg){
+          if(a.restP<=0)pt2='<span class="pace done">終わり</span>';
+          else if(dlv<=0)pt2='<span class="pace ng">期限すぎ 残'+a.restP+'</span>';
+          else { var per=Math.round(a.restP/dlv*10)/10, pc=(per>2?'ng':(per>1?'mid':'')); pt2='<span class="pace '+pc+'">1日 '+per+'</span> <span class="lb">（残'+a.restP+'）</span>'; }
         }
-        paceCell='<td class="c">'+pt2+'</td>';
+        if(a.assigned&&(a.ok+a.ng+a.miss)>0){
+          if(a.restQ<=0)pq2='<span class="pace done">合格</span>';
+          else if(dlv<=0)pq2='<span class="pace ng">期限すぎ 残'+a.restQ+'</span>';
+          else { var pex=Math.round(a.restQ/dlv*10)/10, pcx=(pex>1?'ng':(pex>0.5?'mid':'')); pq2='<span class="pace '+pcx+'">1日 '+pex+'</span> <span class="lb">（残'+a.restQ+'）</span>'; }
+        }
+        paceCell='<td class="c"><span class="lb">📘</span> '+pt2+(cp?'　':'<br>')+'<span class="lb">✅</span> '+pq2+'</td>';
       }
       /* 教材ごとの内訳。未着手（練習0＋テスト未受験だけ）は1行に畳む（川上さん 2026-08-17）*/
       var mine=cp?[]:RP_SEL.filter(function(mid){return !!as[mid];});
