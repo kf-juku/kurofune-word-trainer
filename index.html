@@ -3308,6 +3308,25 @@ $('btn-skip').onclick=function(){ // スキップ：結果前は お手本を1�
 }; // スキップ
 /* 4択を作る。timeLimitSec>0 なら制限時間バーを回し、時間切れは不正解扱いで自動的にcb(false)（2026-07-04）。
    選択時・時間切れ時とも answered で1回だけ確定。既存の演出（コンボ・紙吹雪・正解ハイライト）は維持。 */
+/* 選択肢を比べるときのキー。2026-08-18（新谷さんのバグ報告）
+   【踏んだ地雷】答えが数字だけの問題（例：震度は0〜7のいくつの階級か → 10）で、
+   スプレッドシートの english セルは数値の 10 として保存され、GAS は english:w.english と
+   そのまま返すのでアプリには「数値の10」が届く。いっぽう qdata.choices は JSON なので "10"＝文字列。
+   これを x!==correct / opt===correct の厳密比較で扱うと、
+     ① 正解と同じ "10" が誤答候補に残る＝選択肢に10が2つ並ぶ（4個から3個選ぶので4回に3回）
+     ② 文字列側の "10" を押すと不正解になる＝正解を選んでバツ
+   の2つが同時に起きる。型をそろえ、全角数字と空白も無視して「見た目が同じなら同じ」とみなす。 */
+function _choiceKey(v){
+  return String(v==null?'':v)
+    .replace(/[０-９Ａ-Ｚａ-ｚ]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}) /* 全角の数字・英字を半角に */
+    .replace(/[\s　]+/g,'');                                                                                            /* 半角/全角スペース・改行は無視 */
+}
+/* 見た目が同じ選択肢を1つに畳む（先に出たほうを残す） */
+function _dedupChoices(arr){
+  var seen={},out=[];
+  (arr||[]).forEach(function(x){var k=_choiceKey(x);if(k===''||seen[k])return;seen[k]=1;out.push(x);});
+  return out;
+}
 /* 4択。onResult(ok)＝集計だけ。進行は opts.next。正解は自動で次へ、
    不正解は 正解＋解説（opts.kaisetsu）を出してタップで次へ（2026-07-04・川上さん確定）。
    opts.timeLimit>0 なら制限時間バー（時間切れ＝不正解）。 */
@@ -3316,9 +3335,10 @@ function buildChoices(containerId,correct,pool,onResult,opts){
   var box=$(containerId);box.innerHTML='';
   var _pt=String(opts.promptText||''); // 問題文（この語はダミー選択肢に出さない）川上さん指示 2026-07-10
   function _notInPrompt(x){ return !_pt || _pt.indexOf(String(x))===-1; }
-  var _base;
-  if(opts.fixedChoices){ _base=opts.fixedChoices.filter(function(x){return x!==correct;}); } // 専用選択肢(qdata.choices/表穴埋め)は作成者が選んだものなので問題文除外は効かせない 2026-07-10
-  else { _base=pool.filter(function(x){return x!==correct;}).filter(_notInPrompt); } // ランダムpoolのときだけ問題文の語を除外
+  var _base, _ck=_choiceKey(correct);   /* 型ちがい（数値10 と 文字列"10"）で正解が誤答に混ざるのを防ぐ 2026-08-18 */
+  if(opts.fixedChoices){ _base=opts.fixedChoices.filter(function(x){return _choiceKey(x)!==_ck;}); } // 専用選択肢(qdata.choices/表穴埋め)は作成者が選んだものなので問題文除外は効かせない 2026-07-10
+  else { _base=pool.filter(function(x){return _choiceKey(x)!==_ck;}).filter(_notInPrompt); } // ランダムpoolのときだけ問題文の語を除外
+  _base=_dedupChoices(_base);   /* 誤答どうしが見た目で重なるのも1つに畳む 2026-08-18 */
   var others=shuffle(_base).slice(0,3);
   var choices=shuffle([correct].concat(others));
   var answered=false;
@@ -3327,13 +3347,13 @@ function buildChoices(containerId,correct,pool,onResult,opts){
     Array.prototype.forEach.call(box.children,function(c){c.disabled=true;});
     if(picked)picked.classList.add(ok?'correct':'wrong');
     if(ok){combo++;if(combo>maxCombo)maxCombo=combo;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
-    else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(c.getAttribute('data-val')===correct)c.classList.add('correct');});}
+    else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(_choiceKey(c.getAttribute('data-val'))===_ck)c.classList.add('correct');});} /* data-val は必ず文字列・correct は数値のことがある 2026-08-18 */
     ansCount++;onResult(ok,(Date.now()-_t0));
     afterAnswer(ok,correct,opts.kaisetsu,opts.reading,opts.next);
   }
   applyChoiceCols(box,choices); // 2列/1列 自動分岐 2026-07-05
   choices.forEach(function(opt){var b=document.createElement('button');b.className='choice';b.setAttribute('data-val',opt);b.innerHTML=_choiceHtml(opt);
-    b.onclick=function(){finish(opt===correct,b);};box.appendChild(b);});
+    b.onclick=function(){finish(_choiceKey(opt)===_ck,b);};box.appendChild(b);});   /* 2026-08-18 型ちがいで正解がバツになるのを防ぐ */
   if(opts.timeLimit>0){startQTimer(opts.timeLimit,function(){finish(false,null);});}else{hideQTimer();}
 }
 
@@ -3681,7 +3701,12 @@ function buildNoteChoices(containerId,correct,wrongs,onResult,opts){
   opts=opts||{};
   var box=$(containerId);box.innerHTML='';
   var _pt=String(opts.promptText||''); // 問題文の語はダミーから除外（川上さん指示 2026-07-10）
-  var others=shuffle((wrongs||[]).filter(function(x){return !_pt||_pt.indexOf(String(x))===-1;})).slice(0,3);
+  var _ck=_choiceKey(correct);
+  /* 2026-08-18：正解と同じものを誤答から外す（もともと外していなかった）＋見た目が同じ誤答を1つに畳む。
+     buildChoices と同じ理由＝数値10 と 文字列"10" が別物になり、選択肢が2つ並んで正解がバツになる。 */
+  var others=shuffle(_dedupChoices((wrongs||[])
+    .filter(function(x){return _choiceKey(x)!==_ck;})
+    .filter(function(x){return !_pt||_pt.indexOf(String(x))===-1;}))).slice(0,3);
   var choices=shuffle([correct].concat(others));
   var answered=false;
   function finish(ok,picked){
@@ -3689,14 +3714,14 @@ function buildNoteChoices(containerId,correct,wrongs,onResult,opts){
     Array.prototype.forEach.call(box.children,function(c){c.disabled=true;});
     if(picked)picked.classList.add(ok?'correct':'wrong');
     if(ok){combo++;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0)confetti(20);}
-    else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(c.textContent===correct)c.classList.add('correct');});}
+    else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(_choiceKey(c.textContent)===_ck)c.classList.add('correct');});} /* textContent は文字列・correct は数値のことがある 2026-08-18 */
     onResult(ok);
     afterAnswer(ok,correct,opts.kaisetsu,opts.reading,opts.next);
   }
   applyChoiceCols(box,choices); // 2列/1列 自動分岐 2026-07-05
   choices.forEach(function(opt){
     var b=document.createElement('button');b.className='choice';b.textContent=opt;
-    b.onclick=function(){finish(opt===correct,b);};
+    b.onclick=function(){finish(_choiceKey(opt)===_ck,b);};   /* 2026-08-18 */
     box.appendChild(b);
   });
 }
