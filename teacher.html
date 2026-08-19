@@ -2463,7 +2463,7 @@ function openMatPreview(mid){
     var totalQ=parts.reduce(function(a,b){return a+(b.count||0);},0);
     var _jb=parts.map(function(pt,pi){return '<button class="mp-jump" title="'+esc(pt.title||'')+'" onclick="mpJump('+pi+')">'+(pi+1)+'</button>';}).join('');
     $('mpToolbar').innerHTML='<span class="mp-count">'+parts.length+'パート・全'+totalQ+'問</span><div class="mp-jumps">'+_jb+'</div>';
-    var h='<div class="mp-edit-hint">✏️ テキストをクリックすると直せます。入力後にほかの場所をクリックすると自動で保存します（✓＝保存済み）。図・番号方式の設問は編集対象外です。</div>';
+    var h='<div class="mp-edit-hint">✏️ テキストをクリックすると直せます。入力後にほかの場所をクリックすると自動で保存します（✓＝保存済み）。選択肢は1行に1つ・正解を含めて4つ書いてください。図・番号方式の設問は編集対象外です。</div>';
     parts.forEach(function(pt,pi){
       h+='<div class="mp-part" id="mp-part-'+pi+'">'+esc(pt.title||'(無題パート)')+'<span class="c">'+(pt.count||0)+'問</span></div>';
       (pt.words||[]).forEach(function(w,i){
@@ -2494,8 +2494,9 @@ function openMatPreview(mid){
           var url=mpAssetUrl_(w.asset);
           if(url){h+='<div class="mp-fig"><img src="'+esc(url)+'" alt="図" loading="lazy" onclick="mpZoom_(this.src)" onerror="this.style.opacity=.25;this.style.cursor=\'default\';this.alt=\'画像が見つかりません（未pushの可能性）\';">'+'<div class="zoomhint">クリックで拡大</div></div>';}
         }
-        // 選択肢（図・表のみ・1行1つ）
-        if((w.qtype==='image_fill'||w.qtype==='table_fill')&&w.choices&&w.choices.length){
+        // 選択肢（1行1つ・4つ）＝図・表に加えて理社/国語の文字4択でも出す。2026-08-19
+        //   英→日の文4択だけは上の「誤答3つ（choices_ja）」が担当なので、ここでは出さない（二重表示を避ける）。
+        if(w.choices&&w.choices.length&&!(_isEng&&w.qtype!=='image_fill'&&w.qtype!=='table_fill')){
           h+=mpEdRow_(w.id,'choices','選択肢',w.choices,'multiline');
         }
         // 解説
@@ -2609,7 +2610,7 @@ function mpValidate_(el,field,val){
   var qtext=(c.ask!=null&&c.ask!==''?c.ask:'')||(c.japanese!=null?c.japanese:''); // 生徒に出る問題文（図ask方式=ask／文4択=japanese）
   // ③ 答えバレ：問題文に答えの語がそのまま含まれる（2文字以上・両方あるとき）
   if(ans&&ans.length>=2&&qtext&&String(qtext).indexOf(ans)>=0){w.push('・問題文に答えの語「'+ans+'」が含まれています（答えバレ）');}
-  // ② 選択肢の整合（choices欄がある＝図・表問題のみ）
+  // ② 選択肢の整合（choices欄がある問題＝図・表＋理社/国語の文字4択。2026-08-19に文字4択へ拡大）
   var chEl=c.word?c.word.querySelector('.mp-ed[data-wf="choices"]'):null;
   if(chEl){
     var raw=(field==='choices')?val:(c.choices||'');
