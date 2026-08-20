@@ -2404,8 +2404,8 @@ function renderMatTab(){
   box.innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
   var draw=function(mats){
     var holders=_holdersMap();
-    var arr=(mats||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');})
-      .sort(function(a,b){var fa=(a.content_type==='test')?1:0,fb=(b.content_type==='test')?1:0;if(fa!==fb)return fa-fb;var sa=_subjOrder(a.subject),sb=_subjOrder(b.subject);if(sa!==sb)return sa-sb;var ka=_bookKey(a),kb=_bookKey(b);if(ka!==kb)return ka<kb?-1:1;var na=_ordNum(a.display_order),nb=_ordNum(b.display_order);if(na!==nb)return na-nb;return String(a.title||'').localeCompare(String(b.title||''),'ja');});
+    /* 並び順は sortMaterials_ 1本に集約（まとめて割り当て・教材を追加と同じ）2026-08-20 */
+    var arr=sortMaterials_((mats||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}));
     box.innerHTML='';
     if(!arr.length){box.innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">教材がありません</div>';return;}
     var _curg=null;
@@ -3712,19 +3712,35 @@ function tmPrint(){
   closeModal('bulkModal');
   runPrint_(ids,scope,days,limit,types.join(','));
 }
-/* 教材の表示順：毎日学習→テスト配信、各グループ内はタイトル五十音順（川上さん承認 2026-07-05）
+/* 教材の表示順：毎日学習→単元別対策、その中は 教科→本→display_order
    ※シートの行順に依存しない。教材が増えても探しやすさを保つ */
+/* 本ごとの代表 display_order＝その本の中でいちばん小さい番号。
+   以前は本どうしの並びを内部キー(series_key)の文字列順で決めていたため、
+   メキメキ歴史(40〜55)がFD地理(201〜)より後に出ていた（2026-08-20 川上さん指摘）。
+   本の並びも番号で決める＝「display_order が唯一の基準」（2026-07-22 確定）にそろえる。 */
+function _bookOrdMap_(arr){
+  var m={};
+  (arr||[]).forEach(function(x){
+    var k=_bookKey(x),n=_ordNum(x.display_order);
+    if(m[k]==null||n<m[k])m[k]=n;
+  });
+  return m;
+}
 function sortMaterials_(arr){
-  // 並び順は display_order が唯一の基準（2026-07-22 川上さん確定）。
-  // 「教材ごと」タブ(renderMatTab)と同じ比較＝形式(毎日→単元別)→教科→本→display_order→タイトル。
-  // 旧実装はタイトル文字列順で display_order を無視し、まとめて割り当て/教材を追加で単元順に並ばなかった（2026-07-25修正）。
+  // 比較＝形式(毎日→単元別)→教科→本(その本の最小display_order)→display_order→タイトル。
+  // 「教材ごと」タブ(renderMatTab)・まとめて割り当て・教材を追加 が同じこの1本を使う。
+  var bo=_bookOrdMap_(arr);
   return (arr||[]).slice().sort(function(a,b){
     var ta=(a.content_type==='test')?1:0, tb=(b.content_type==='test')?1:0;
     if(ta!==tb)return ta-tb;
     var sa=_subjOrder(a.subject),sb=_subjOrder(b.subject);
     if(sa!==sb)return sa-sb;
     var ka=_bookKey(a),kb=_bookKey(b);
-    if(ka!==kb)return ka<kb?-1:1;
+    if(ka!==kb){
+      var oa=_ordNum(bo[ka]),ob=_ordNum(bo[kb]);
+      if(oa!==ob)return oa-ob;
+      return ka<kb?-1:1;   // 番号が同じ本どうしだけキー文字列で決める
+    }
     var na=_ordNum(a.display_order),nb=_ordNum(b.display_order);
     if(na!==nb)return na-nb;
     return String(a.title||'').localeCompare(String(b.title||''),'ja');
