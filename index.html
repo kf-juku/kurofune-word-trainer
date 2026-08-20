@@ -205,6 +205,15 @@
   .f-prog-bar{height:6px;border-radius:4px;background:rgba(255,255,255,.25);overflow:hidden;}
   .f-prog-bar i{display:block;height:100%;background:#fff;border-radius:4px;}
   .dcard{display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:9px;cursor:pointer;}
+  /* 途中の学習カード（中断からの再開）2026-08-20：毎日タブの先頭に1枚だけ。どのタブを中断していてもここに出る */
+  .rz-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--accent);border-left:4px solid var(--accent);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:11px;}
+  .rz-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--accent-soft);color:var(--accent);flex:none;}
+  .rz-b{flex:1;min-width:0;}
+  .rz-t{font-size:13.5px;font-weight:800;}
+  .rz-s{font-size:11.5px;color:var(--sub);margin-top:2px;line-height:1.6;}
+  .rz-go{display:flex;align-items:center;gap:4px;background:var(--accent);color:#fff;font-size:12px;font-weight:800;padding:8px 12px;border-radius:11px;flex:none;border:none;font-family:inherit;cursor:pointer;}
+  .rz-go:active{transform:scale(.97);}
+  .rz-x{background:none;border:none;color:var(--sub);font-size:15px;padding:4px;flex:none;cursor:pointer;font-family:inherit;line-height:1;min-width:24px;text-align:center;}
   .dcard-l{width:46px;height:46px;border-radius:50%;background:rgba(31,170,107,.13);color:var(--ok);display:flex;align-items:center;justify-content:center;font-size:27px;flex:none;box-shadow:0 0 0 5px rgba(31,170,107,.07);}
   .dcard-r{flex:1;min-width:0;}
   .dcard-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;}
@@ -1151,6 +1160,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <div class="ph"><i class="ti ti-anchor" style="color:var(--gold)"></i> <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></div>
           <div class="psub" id="daily-sub2"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>学習<rt class="uf">がくしゅう</rt></ruby>と おさらい</div>
           <div id="daily-fin"></div>
+          <div id="resume-slot"></div>
           <div id="daily-list"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
           <span id="nz-daily-sub" style="display:none;"></span>
           <!-- おさらい（毎日学習の間隔反復）＝デイリーの一部（2026-07-25 ふくしゅうから移設） -->
@@ -2142,6 +2152,7 @@ function _unitOpenToggle_(key,isOpen){_openToggle_('kwt_unit_open',key,isOpen);}
 function renderDailyList_(main){
   var host=$('daily-list');if(!host)return;host.innerHTML='';
   _dailyMain=main||[]; // おさらい取得後に描き直すため保持
+  try{_renderResumeCard_();}catch(e){} // 途中の学習（中断）は毎日タブの一番上・毎日学習が無くても出す 2026-08-20
   var sub=$('daily-sub2');
   if(!main||!main.length){
     // 完走した毎日学習が残っているなら「ぜんぶ完走・次の教材を待つ」に。まだ何も割当が無い子だけ従来の「ありません」2026-08-08
@@ -2438,6 +2449,7 @@ function loadHomeData_(showSkel){
     try{renderUnitZone_((d&&d.ok&&d.data&&d.data.materials)||[]);}catch(e){} // 単元別ゾーン（新ホーム 2026-07-24）
     try{ // 完走した毎日学習(main・sm_status=completed)を毎日タブに残す 2026-08-08。studentHome.main は active限定なので material_parts から拾う
       var _mpAll=(d&&d.ok&&d.data&&d.data.materials)||[];
+      try{_buildPartIdx_(_mpAll);}catch(e){} // 中断カード・確認モーダルに出す「教科 パート名」の索引 2026-08-20
       _dailyCompletedMains=_mpAll.filter(function(c){return c.content_type!=='test'&&String(c.sm_status)==='completed';});
       if(_dailyMain)renderDailyList_(_dailyMain); // studentHome先着でも後着でも完走セクションを反映
     }catch(e){}
@@ -3220,7 +3232,7 @@ try{var _pmk=$('pause-mask');if(_pmk)_pmk.onclick=function(e){if(e.target===this
    毎日学習・単元別・確認テスト（session を使うもの）だけが対象。おさらい・間違いノートは1問ずつ記録済みなので再開は要らない。
    保存するのは「答え終わった時点の、次にやる位置」＝答えた問題をやり直せない（＝更新やリロードでの答え直し・逃げも塞ぐ）。
    問題そのものは保存せず、出題順のIDだけ持って開くときに取り直す。教材の問題数が変わっていたら再開しない。 */
-var RESUME_MAX_MS=24*60*60*1000; // 前の日の続きは出さない
+/* 中断が残るのは「その日のうち」だけ＝日付が変わったら消す（川上さん確定 2026-08-20）*/
 var _pendingResume=null,_resumeSkip_=false,_resumeCb_=null;
 function _resumeKey_(){return 'kwt_resume_'+((typeof nickname!=='undefined'&&nickname)?nickname:'');}
 function _resumeClear_(){try{localStorage.removeItem(_resumeKey_());}catch(e){}}
@@ -3233,7 +3245,7 @@ function _resumeSave_(s,idx,step){
       ids:s.words.map(function(w){return String(w.id);}),
       idx:idx,step:step,mc:s.meaningCorrect||0,rc:s.reverseCorrect||0,miss:(s.miss||[]).slice(),
       am:Math.round(s.activeMs||0),el:_elapsedMs_(s),at:s.startedAtIso,
-      pa:s.pronAttempts||0,ps:s.pronSuccesses||0,ts:Date.now()}));
+      pa:s.pronAttempts||0,ps:s.pronSuccesses||0,ts:Date.now(),day:todayStr_()}));
   }catch(e){}
 }
 function _saveResumeNext_(s,which){
@@ -3245,15 +3257,19 @@ function _saveResumeNext_(s,which){
   else{ni=s.idx+1;nst=(s.words[ni]?_startStepFor(s,s.words[ni]):3);}          // 次の語の最初のステップへ
   _resumeSave_(s,ni,nst);
 }
-function _resumeGet_(part,quiz){
+function _resumeAny_(){
   try{
     var r=JSON.parse(localStorage.getItem(_resumeKey_())||'null');
     if(!r||r.v!==1)return null;
-    if(String(r.part)!==String(part)||(!!r.quiz)!==(!!quiz))return null;
-    if(!r.ids||!r.ids.length||!(r.idx>0)||r.idx>=r.ids.length)return null;    // 1問も終えていない/全部終えた＝再開しない
-    if((Date.now()-(r.ts||0))>RESUME_MAX_MS){_resumeClear_();return null;}
+    if(!r.ids||!r.ids.length||!(r.idx>0)||r.idx>=r.ids.length)return null;   // 1問も終えていない/全部終えた＝中断ではない
+    if(String(r.day||'')!==todayStr_()){_resumeClear_();return null;}        // 中断はその日のうちだけ（川上さん確定 2026-08-20）
     return r;
   }catch(e){return null;}
+}
+function _resumeGet_(part,quiz){
+  var r=_resumeAny_();if(!r)return null;
+  if(String(r.part)!==String(part)||(!!r.quiz)!==(!!quiz))return null;
+  return r;
 }
 function _resumeOrder_(words,rs){
   if(!rs||!words||words.length!==rs.ids.length)return null;
@@ -3261,26 +3277,91 @@ function _resumeOrder_(words,rs){
   var out=[];for(var i=0;i<rs.ids.length;i++){var w=by[rs.ids[i]];if(!w)return null;out.push(w);}
   return out;
 }
-function askResume_(rs,cb){
-  _resumeCb_=cb;
-  var _ri=$('resume-info');
-  if(_ri)_ri.innerHTML='<ruby>前回<rt class="uf">ぜんかい</rt></ruby>は '+(rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby>まで<ruby>進<rt class="uf">すす</rt></ruby>んだよ。<ruby>答<rt class="uf">こた</rt></ruby>えたところまでの<ruby>点数<rt class="uf">てんすう</rt></ruby>は<ruby>残<rt class="uf">のこ</rt></ruby>っているよ。';
-  var _rm=$('resume-mask');if(_rm)_rm.classList.add('show');
+/* パートID→「教科 パート名」の索引。material_parts / quiz_list の返りから作る（中断カード・確認モーダルの表示用）2026-08-20 */
+var _partIdx={};
+function _buildPartIdx_(mats){
+  try{(mats||[]).forEach(function(c){
+    var sj='';try{sj=_subjGuess_(c)||'';}catch(e){}
+    (c.parts||[]).forEach(function(pt){
+      var pid=String(pt.part_id||pt.id||'');if(!pid)return;
+      _partIdx[pid]={subj:sj,part:String(pt.title||pt.name||''),mat:String(mtShortMt(c)||c.material_title||c.title||'')};
+    });});}catch(e){}
+}
+function _resumeLabel_(rs){
+  var e=_partIdx[String(rs&&rs.part)];
+  if(!e)return '<ruby>前<rt class="uf">まえ</rt></ruby>の<ruby>学習<rt class="uf">がくしゅう</rt></ruby>';
+  var sj='';try{sj=e.subj?(subjLabel(e.subj)+' '):'';}catch(e2){}
+  return esc(sj+(e.part||e.mat||''));
+}
+/* 続きから／消えるけど の2つは同じモーダルを使い回す（部品を増やさない）*/
+function _resumeModal_(title,info,leftLabel,rightLabel,cb){
+  var t=$('resume-title'),i=$('resume-info'),L=$('resume-restart'),R=$('resume-go'),M=$('resume-mask');
+  if(!t||!i||!L||!R||!M)return;
+  t.innerHTML=title;i.innerHTML=info;L.innerHTML=leftLabel;R.innerHTML=rightLabel;
+  L.onclick=function(){M.classList.remove('show');cb(false);};
+  R.onclick=function(){M.classList.remove('show');cb(true);};
+  M.classList.add('show');
+}
+function askResume_(rs,cb){   // 中断したのと同じパートを開いたとき
+  _resumeModal_(
+    '<ruby>続<rt class="uf">つづ</rt></ruby>きからやる？',
+    '<ruby>前回<rt class="uf">ぜんかい</rt></ruby>は '+(rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby>まで<ruby>進<rt class="uf">すす</rt></ruby>んだよ。<ruby>答<rt class="uf">こた</rt></ruby>えたところまでの<ruby>点数<rt class="uf">てんすう</rt></ruby>は<ruby>残<rt class="uf">のこ</rt></ruby>っているよ。',
+    '<ruby>最初<rt class="uf">さいしょ</rt></ruby>から',
+    '<i class="ti ti-arrow-right"></i> <span><ruby>続<rt class="uf">つづ</rt></ruby>きから</span>',
+    function(right){
+      if(!right){ /* 誤タップ防止＋「間違えた分を消すために最初から」の抑止 */
+        if(!confirm('最初からやり直す？\n答えたところまでの点数は消えます。')){ $('resume-mask').classList.add('show'); return; }
+      }
+      cb(right);
+    });
+}
+function askDiscard_(rs,cb){  // 中断を残したまま別のパートを始めようとしたとき（案1・川上さん確定 2026-08-20）
+  _resumeModal_(
+    '<ruby>途中<rt class="uf">とちゅう</rt></ruby>の<ruby>学習<rt class="uf">がくしゅう</rt></ruby>が<ruby>消<rt class="uf">き</rt></ruby>えるけど いい？',
+    '「'+_resumeLabel_(rs)+'（'+(rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby>）」の<ruby>途中<rt class="uf">とちゅう</rt></ruby>が<ruby>残<rt class="uf">のこ</rt></ruby>っているよ。<ruby>別<rt class="uf">べつ</rt></ruby>の<ruby>学習<rt class="uf">がくしゅう</rt></ruby>を<ruby>始<rt class="uf">はじ</rt></ruby>めると、この<ruby>途中<rt class="uf">とちゅう</rt></ruby>は<ruby>消<rt class="uf">き</rt></ruby>えて<ruby>最初<rt class="uf">さいしょ</rt></ruby>からになる。',
+    'やめる',
+    'このまま<ruby>始<rt class="uf">はじ</rt></ruby>める',
+    cb);
+}
+/* 毎日タブの先頭に出す「途中の学習があるよ」カード（案B・川上さん確定 2026-08-20）。
+   中断は1件だけなので最大1枚。つづき＝確認なしでそのまま再開／×＝確認して捨てる。 */
+function _renderResumeCard_(){
+  var host=$('resume-slot');if(!host)return;host.innerHTML='';
+  var rs=_resumeAny_();if(!rs)return;
+  var el=document.createElement('div');el.className='rz-card';
+  el.innerHTML='<div class="rz-ic"><i class="ti ti-player-pause"></i></div>'
+   +'<div class="rz-b"><div class="rz-t"><ruby>途中<rt class="uf">とちゅう</rt></ruby>の<ruby>学習<rt class="uf">がくしゅう</rt></ruby>があるよ</div>'
+   +'<div class="rz-s">'+_resumeLabel_(rs)+' ・ '+(rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby></div></div>'
+   +'<button type="button" class="rz-go"><span>つづき</span> <i class="ti ti-arrow-right"></i></button>'
+   +'<button type="button" class="rz-x" aria-label="消す"><i class="ti ti-x"></i></button>';
+  host.appendChild(el);
+  el.querySelector('.rz-go').onclick=function(){_resumeGoNow_(rs);};
+  el.querySelector('.rz-x').onclick=function(){
+    if(!confirm('途中の学習を消す？\n答えたところまでの点数は消えます。'))return;
+    _resumeClear_();try{_renderResumeCard_();}catch(e){}
+  };
+}
+function _resumeGoNow_(rs){   // カードから再開＝「続きから？」は聞かずにそのまま続きへ
+  _pendingResume=rs;_resumeSkip_=true;
+  try{ if(rs.quiz)startQuiz(rs.part); else startPractice(rs.part); }finally{ _resumeSkip_=false; }
 }
 function _resumeAskIfAny_(part,quiz,again){
   if(_resumeSkip_)return false;
-  var rs=_resumeGet_(part,quiz);if(!rs)return false;
-  askResume_(rs,function(use){
-    _pendingResume=use?rs:null;if(!use)_resumeClear_();
-    _resumeSkip_=true;try{again();}finally{_resumeSkip_=false;}
-  });
+  var any=_resumeAny_();if(!any)return false;
+  if(String(any.part)===String(part)&&(!!any.quiz)===(!!quiz)){
+    askResume_(any,function(use){
+      _pendingResume=use?any:null;if(!use)_resumeClear_();
+      _resumeSkip_=true;try{again();}finally{_resumeSkip_=false;}
+    });
+  }else{
+    askDiscard_(any,function(go){
+      if(!go)return;                                   // やめる＝新しい学習を始めない（中断はそのまま残る）
+      _resumeClear_();_pendingResume=null;
+      _resumeSkip_=true;try{again();}finally{_resumeSkip_=false;}
+    });
+  }
   return true;
 }
-try{var _rg=$('resume-go');if(_rg)_rg.onclick=function(){$('resume-mask').classList.remove('show');var f=_resumeCb_;_resumeCb_=null;if(f)f(true);};}catch(e){}
-try{var _rr=$('resume-restart');if(_rr)_rr.onclick=function(){
-  /* 誤タップ防止＋「間違えた分を消すために最初から」を思いとどまらせる 2026-08-20 */
-  if(!confirm('最初からやり直す？\n答えたところまでの点数は消えます。'))return;
-  $('resume-mask').classList.remove('show');var f=_resumeCb_;_resumeCb_=null;if(f)f(false);};}catch(e){}
 function speak(w){try{if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(w.tts_text||w.english);u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}}catch(e){}}
 /* どの画面でも発音を聞けるボタン 2026-07-08：選択問題中でも現在の単語を再生 */
 var _playWord=null;
