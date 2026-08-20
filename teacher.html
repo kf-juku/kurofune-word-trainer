@@ -1131,43 +1131,34 @@
         .rp-tag{display:inline-block;font-size:9.5px;font-weight:800;border-radius:5px;padding:1px 5px;margin-right:5px;vertical-align:1px;}
         .rp-tag.unit{background:#e7f0fd;color:#1b4f9c;}
         .rp-tag.daily{background:#fff4e0;color:#9a6100;}
-        .rp-setcard{background:linear-gradient(180deg,#fffaf9 0%,#fff 70%);border:1px solid var(--crimson-mid);border-left:5px solid var(--crimson);}
+        /* 保存セット（ui-standards §0/§8 準拠・2026-08-20 川上さん指摘「全部赤くて見づらい」）
+           ＝カードは白・文字はふつうの色。赤(crimson)は「いま押すべき主要ボタン1つ」だけに使う。 */
+        .rp-setcard{background:#fff;border:1px solid var(--border);}
         .rp-setline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-        .rp-setttl{font-size:13px;font-weight:800;color:var(--crimson-dark);white-space:nowrap;margin-right:2px;}
-        .rp-setsub{font-size:11.5px;font-weight:800;color:var(--text-muted);white-space:nowrap;}
-        .rp-setnote{font-size:11px;color:var(--text-muted);margin:6px 0 0 2px;}
-        .rp-setdlline{margin-top:8px;padding-top:8px;border-top:1px dashed var(--crimson-mid);}
+        .rp-setttl{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;margin-right:2px;}
+        .rp-setsub{font-size:11.5px;font-weight:700;color:var(--text-muted);white-space:nowrap;}
+        .rp-setnote{font-size:11px;color:var(--text-muted);margin:7px 0 0 2px;line-height:1.7;}
+        .rp-setdlline{margin-top:9px;padding-top:9px;border-top:1px solid var(--border);}
         .rp-setdlline input[type=date]{border:1.5px solid var(--border);border-radius:8px;padding:4px 8px;font-family:inherit;font-size:12px;background:#fff;}
-        .rp-sets{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-        .rp-set{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--crimson-mid);background:#fff;border-radius:99px;padding:5px 6px 5px 14px;font-size:12.5px;font-weight:800;color:var(--crimson-dark);cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(198,0,11,.10);}
-        .rp-set:hover{border-color:var(--crimson-mid);color:var(--crimson-dark);}
-        .rp-set.on{background:var(--crimson);border-color:var(--crimson);color:#fff;box-shadow:0 2px 6px rgba(198,0,11,.28);}
-        .rp-set.on .rp-set-x{background:rgba(255,255,255,.25);color:#fff;}
-        .rp-set-x{border:none;background:var(--surface2);color:var(--text-muted);border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;font-family:inherit;line-height:1;padding:0;}
-        .rp-set-x:hover{background:#f6c9c9;color:var(--crimson-dark);}
-        .rp-setdl{font-size:10.5px;font-weight:700;color:var(--text-light);margin-left:6px;}
-        .rp-set.on .rp-setdl{color:rgba(255,255,255,.85);}
-        .rp-setupd{border:1.5px solid var(--crimson);background:var(--crimson);color:#fff;border-radius:99px;padding:4px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
-        .rp-setupd:hover{background:var(--crimson-dark);}
-        .rp-setadd{border:1px dashed var(--border);background:#fff;color:var(--text-muted);border-radius:99px;padding:4px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
-        .rp-setadd:hover{border-color:var(--crimson);color:var(--crimson);}
-        /* 保存セット＝プルダウンで選ぶ＋「上書き」と「新規」をボタンで分ける（川上さん 2026-08-20）*/
-        .rp-sel{border:1.5px solid var(--crimson-mid);background:#fff;color:var(--crimson-dark);border-radius:99px;padding:6px 12px;font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;max-width:340px;}
-        .rp-sel:disabled{color:var(--text-light);border-color:var(--border);cursor:not-allowed;}
-        .rp-state{font-size:11.5px;font-weight:800;border-radius:99px;padding:3px 10px;white-space:nowrap;}
+        .rp-sel{border:1.5px solid var(--border);background:#fff;color:var(--text);border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;max-width:340px;}
+        .rp-sel:focus{outline:none;border-color:var(--crimson);box-shadow:0 0 0 3px rgba(198,0,11,0.1);}
+        .rp-sel:disabled{color:var(--text-light);background:var(--surface2);cursor:not-allowed;}
+        .rp-state{font-size:11px;font-weight:700;border-radius:20px;padding:2px 9px;white-space:nowrap;}
         .rp-state.none{background:var(--surface2);color:var(--text-muted);}
-        .rp-state.clean{background:#e7f6ee;color:#12805a;}
-        .rp-state.dirty{background:#fff3d6;color:#8a5a00;border:1px solid #f0c674;}
+        .rp-state.clean{background:#d1fae5;color:#065f46;}
+        .rp-state.dirty{background:#fef3c7;color:#92400e;}
         .rp-setspacer{flex:1;min-width:8px;}
         .rp-acts{display:inline-flex;align-items:center;gap:8px;flex-wrap:nowrap;}
-        .rp-btn-upd{border:1.5px solid var(--crimson);background:#fff;color:var(--crimson-dark);border-radius:99px;padding:6px 15px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
-        .rp-btn-upd.hot{background:var(--crimson);color:#fff;box-shadow:0 2px 6px rgba(198,0,11,.28);}
-        .rp-btn-upd:disabled{background:#fff;border-color:var(--border);color:var(--text-light);cursor:not-allowed;box-shadow:none;}
-        .rp-btn-new{border:1.5px dashed var(--crimson-mid);background:#fff;color:var(--crimson-dark);border-radius:99px;padding:6px 15px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
-        .rp-btn-new:hover{border-style:solid;border-color:var(--crimson);}
-        .rp-btn-ico{border:1.5px solid var(--border);background:#fff;color:var(--text-muted);border-radius:99px;padding:5px 11px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
-        .rp-btn-ico:hover:not(:disabled){border-color:var(--crimson);color:var(--crimson-dark);}
-        .rp-btn-ico:disabled{opacity:.4;cursor:not-allowed;}
+        /* 上書き＝主要ボタン。押す意味があるとき（セット選択中＋変更あり）だけ赤くなる。それ以外はグレーで押せない */
+        .rp-btn-upd{background:var(--crimson);color:#fff;border:none;border-radius:8px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+        .rp-btn-upd:hover:not(:disabled){background:var(--crimson-dark);}
+        .rp-btn-upd:disabled{background:var(--surface2);color:var(--text-light);cursor:not-allowed;}
+        /* 新しく保存＝ふつうのボタン（btn-ghost と同じ） */
+        .rp-btn-new{background:#fff;color:var(--text-muted);border:1.5px solid var(--border);border-radius:8px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+        .rp-btn-new:hover{background:var(--surface2);border-color:#94a3b8;color:var(--text);}
+        .rp-btn-ico{background:none;border:none;color:var(--text-muted);border-radius:6px;padding:5px 8px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
+        .rp-btn-ico:hover:not(:disabled){background:var(--surface2);color:var(--text);}
+        .rp-btn-ico:disabled{opacity:.35;cursor:not-allowed;}
         .rp-allbtn{border:1px solid var(--border);background:#fff;color:var(--text-muted);border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
         .rp-allbtn:hover{border-color:var(--crimson);color:var(--crimson);}
         .rp-sum{display:flex;gap:10px;flex-wrap:wrap;}
@@ -4265,8 +4256,9 @@ function rpRenderSets(){
     else { st.className='rp-state clean'; st.textContent='保存ずみ'; }
   }
   var u=$('rpSetUpd');
-  if(u){ u.disabled=(cur<0); u.classList.toggle('hot',cur>=0&&RP_DIRTY);
-    u.textContent=(cur>=0)?('💾「'+RP_SETS[cur].name+'」に上書き'):'💾 上書き保存'; }
+  /* 赤くするのは「押す意味があるとき」だけ＝セット選択中かつ変更あり。それ以外はグレーで押せない（ui-standards＝赤は主要ボタン1つ）*/
+  if(u){ u.disabled=(cur<0||!RP_DIRTY);
+    u.textContent=(cur>=0)?('「'+RP_SETS[cur].name+'」に上書き'):'上書き保存'; }
   var rn=$('rpSetRen'), dl=$('rpSetDel');
   if(rn)rn.disabled=(cur<0); if(dl)dl.disabled=(cur<0);
   var nt=$('rpSetNote');
