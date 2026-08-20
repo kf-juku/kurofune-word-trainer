@@ -14,11 +14,17 @@
     --bg:#f4f5f8;--surface:#fff;--ink:#15161a;--sub:#8a8f99;--line:rgba(0,0,0,.06);
     --accent:#0a6cff;--accent-soft:#e8f0ff;--gold:#caa24a;--ring-track:#e9ecf2;
     --ok:#1faa6b;--ng:#e0533c;--shadow:0 2px 20px rgba(20,24,40,.06);--glass:rgba(255,255,255,.65);--neutral-bg:rgba(0,0,0,.05);--neutral-ic:rgba(0,0,0,.045);
+    /* 種類の識別色（川上さん確定 2026-08-20）：毎日学習・単元別＝金／確認テスト＝紫。
+       青は「やる・進める」の操作色として空けておく＝タブの識別には使わない。
+       使う場所は 帯・本の左線・アイコン・バー・切り替えの番号・「そろそろテスト」タグ だけ。
+       合否（緑・赤）と操作ボタン（青）には広げない。 */
+    --quiz:#7b5cf0;--quiz-soft:rgba(123,92,240,.13);
   }
   [data-theme="dark"]{
     --bg:#0d1017;--surface:#161a23;--ink:#eef1f6;--sub:#8b93a3;--line:rgba(255,255,255,.08);
     --accent:#4f8cff;--accent-soft:#15233f;--gold:#e3c477;--ring-track:#252b37;
     --ok:#3ad08a;--ng:#ff6b54;--shadow:0 2px 24px rgba(0,0,0,.4);--glass:rgba(22,26,35,.6);--neutral-bg:rgba(255,255,255,.08);--neutral-ic:rgba(255,255,255,.06);
+    --quiz:#a48bff;--quiz-soft:rgba(164,139,255,.16); /* ダークは明るめの紫 2026-08-20 */
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   body{font-family:"Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink);transition:background .4s,color .4s;overflow-x:hidden;}
@@ -116,9 +122,10 @@
   .nqp{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer;}
   .nqp-nm{flex:1;font-size:13px;font-weight:600;line-height:1.3;min-width:0;}
   .nqp-nm small{font-weight:500;font-size:10.5px;color:var(--sub);}
-  /* 【確定・2026-08-20 川上さん「案B」】単元別と確認テストは"本のとじ方は同じ・見分けは色と名前"。
-     単元別＝金（教科アイコン・金のバー）／確認テスト＝青（チェックリストのアイコン・青のバー・左の青帯）。
-     色は §12 の役割色のまま（青＝やる/進み・金＝ここぞ）＝新しい色は足さない。 */
+  /* 【確定・2026-08-20 川上さん】単元別と確認テストは"本のとじ方は同じ・見分けは色と名前"。
+     単元別＝金（教科アイコン・金のバー）／確認テスト＝紫（チェックリストのアイコン・紫のバー・左の紫帯）。
+     ※以前は確認テスト＝青にしていたが、確認テストの画面で「左線・アイコン・バー・受けるボタン」が全部青になり、
+       青が"種類"を指すのか"押すところ"を指すのか読めなかった。青は操作色に空けて、識別色は紫にした（川上さん確定 2026-08-20）。 */
   .zhead{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:16px;margin:2px 0 12px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);}
   .zhead .zic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 auto;}
   .zhead .zb{flex:1;min-width:0;}
@@ -126,12 +133,44 @@
   .zhead .zs{font-size:11.5px;color:var(--sub);margin-top:2px;}
   .zhead.unit{border-left:4px solid var(--gold);}
   .zhead.unit .zic{background:var(--n-goldsoft);color:var(--gold);}
-  .zhead.quiz{border-left:4px solid var(--accent);}
-  .zhead.quiz .zic{background:var(--accent-soft);color:var(--accent);}
-  .nbook.qbook{border-left:4px solid var(--accent);}
-  .nbook.qbook .nbk-ic{background:var(--accent-soft);color:var(--accent);}
-  .nbook.qbook .nbk-bar i{background:var(--accent);}
+  .zhead.quiz{border-left:4px solid var(--quiz);}
+  .zhead.quiz .zic{background:var(--quiz-soft);color:var(--quiz);}
+  .nbook.qbook{border-left:4px solid var(--quiz);}
+  .nbook.qbook .nbk-ic{background:var(--quiz-soft);color:var(--quiz);}
+  .nbook.qbook .nbk-bar i{background:var(--quiz);}
   .nbook.unitbook{border-left:4px solid var(--gold);}
+  /* 見出しはカードにしない（背景・枠・影なし）＝タブの先頭に置く"名前"。カードと並列に見えていたのを直す 2026-08-20 */
+  .shead{display:flex;align-items:center;gap:9px;margin:2px 0 12px;padding:0 2px;}
+  .shead .sic{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;background:var(--n-goldsoft);color:var(--gold);}
+  .shead .sb{flex:1;min-width:0;}
+  .shead .st{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.2;}
+  .shead .ss{font-size:11.5px;color:var(--sub);margin-top:2px;}
+  /* ①練習／②確認テスト の切り替え（単元別タブの中）2026-08-20 */
+  .useg{display:flex;background:var(--n-track);border-radius:12px;padding:3px;margin:0 0 10px;}
+  .useg button{flex:1;min-width:0;font-family:inherit;font-size:12.5px;font-weight:800;padding:9px 4px;border:none;border-radius:9px;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;}
+  .useg button .no{width:18px;height:18px;border-radius:50%;background:var(--sub);color:var(--surface);font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;flex:0 0 auto;}
+  .useg button.on{background:var(--surface);box-shadow:var(--shadow);color:var(--ink);}
+  .useg button.on.us1 .no{background:var(--gold);color:#fff;}
+  .useg button.on.us2 .no{background:var(--quiz);color:#fff;}
+  .useg .ucnt{font-size:10.5px;font-weight:800;color:var(--quiz);background:var(--quiz-soft);border-radius:6px;padding:1px 6px;flex:0 0 auto;}
+  .usegnote{font-size:11.5px;color:var(--sub);line-height:1.65;margin:0 2px 12px;}
+  .usegnote b{color:var(--quiz);}
+  /* 確認テストのパート行：練習の状態は名前の下の小さいタグ（テストが主役のまま）2026-08-20 */
+  .utag{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--sub);margin-top:3px;white-space:nowrap;}
+  .utag i{font-size:11px;flex:0 0 auto;}
+  .utag.done i{color:var(--ok);}
+  .utag.warn{color:var(--gold);}
+  .utag.warn i{color:var(--gold);}
+  /* まだ練習していない・途中のときだけ出す小さいボタン（押すとそのパートの練習が始まる） */
+  .ubtn{flex:0 0 auto;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:7px 9px;border-radius:9px;border:1px solid var(--gold);background:var(--n-goldsoft);color:var(--gold);cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .ubtn i{font-size:13px;}
+  .ubtn:active{transform:scale(.97);}
+  /* 章の行に出す「そろそろテスト N」＝単元別に合格して3日以上たったパート数 */
+  .qrdy{font-size:10px;font-weight:800;color:var(--quiz);background:var(--quiz-soft);border-radius:6px;padding:1px 7px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px;vertical-align:middle;}
+  .qrdy i{font-size:11px;}
+  /* 学習マップの種類タグ（毎日学習＝錨・単元別＝旗）2026-08-20 */
+  .mkind{font-size:10px;font-weight:700;color:var(--sub);background:rgba(148,163,184,.16);border-radius:6px;padding:1px 7px;vertical-align:middle;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
+  .mkind i{font-size:11px;color:var(--gold);}
   /* 確認テスト ひとまとめ */
   .nquiz{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:11px 12px;display:flex;align-items:center;gap:11px;cursor:pointer;margin-top:4px;position:relative;}
   .nqc-ic{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;}
@@ -1181,10 +1220,23 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         </div>
         <!-- 単元別（やる所から） -->
         <div class="tabpanel" id="tp-unit">
-          <!-- 案B（2026-08-20 川上さん確定）＝画面の先頭に「いまどっちの画面か」の帯。単元別＝金・確認テスト＝青 -->
-          <div class="zhead unit"><div class="zic"><i class="ti ti-flag"></i></div><div class="zb"><div class="zt"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></div><div class="zs">テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を<ruby>進<rt class="uf">すす</rt></ruby>める。どの<ruby>単元<rt class="uf">たんげん</rt></ruby>からでも<ruby>始<rt class="uf">はじ</rt></ruby>められる。</div></div></div>
-          <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;"><ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>割<rt class="uf">わ</rt></ruby>り<ruby>当<rt class="uf">あ</rt></ruby>てたテスト<ruby>範囲<rt class="uf">はんい</rt></ruby>がここに<ruby>出<rt class="uf">で</rt></ruby>る</p></div>
-          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>確認<rt class="uf">かくにん</rt></ruby>テスト</div><div class="nqc-s"><ruby>覚<rt class="uf">おぼ</rt></ruby>えたかを<ruby>確認<rt class="uf">かくにん</rt></ruby>する。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でも<ruby>行<rt class="uf">おこな</rt></ruby>う</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div><div class="rc-go" style="margin-left:9px"><i class="ti ti-arrow-right"></i></div></div>
+          <!-- 見出しはカードにしない（2026-08-20 川上さん）＝帯にすると教材カードと並列に見えていた -->
+          <div class="shead"><div class="sic"><i class="ti ti-flag"></i></div><div class="sb"><div class="st"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></div><div class="ss"><ruby>練習<rt class="uf">れんしゅう</rt></ruby>して、<ruby>数日<rt class="uf">すうじつ</rt></ruby>おいてから<ruby>確認<rt class="uf">かくにん</rt></ruby>テスト。</div></div></div>
+          <!-- ①練習／②確認テスト の切り替え（2026-08-20 川上さん確定）。確認テストの別ページ(sv-quiz)は廃止してここに一本化した -->
+          <div class="useg" id="unit-seg">
+            <button type="button" class="us1 on" id="useg1"><span class="no">1</span><ruby>練習<rt class="uf">れんしゅう</rt></ruby></button>
+            <button type="button" class="us2" id="useg2"><span class="no">2</span><ruby>確認<rt class="uf">かくにん</rt></ruby>テスト<span class="ucnt" id="useg-cnt" style="display:none;">0</span></button>
+          </div>
+          <div id="upane1">
+            <div class="usegnote">テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を<ruby>単元<rt class="uf">たんげん</rt></ruby>ごとに<ruby>覚<rt class="uf">おぼ</rt></ruby>える。どの<ruby>単元<rt class="uf">たんげん</rt></ruby>からでも<ruby>始<rt class="uf">はじ</rt></ruby>められる。</div>
+            <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;"><ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>割<rt class="uf">わ</rt></ruby>り<ruby>当<rt class="uf">あ</rt></ruby>てたテスト<ruby>範囲<rt class="uf">はんい</rt></ruby>がここに<ruby>出<rt class="uf">で</rt></ruby>る</p></div>
+          </div>
+          <div id="upane2" style="display:none;">
+            <div class="usegnote"><ruby>覚<rt class="uf">おぼ</rt></ruby>えたかを<ruby>確認<rt class="uf">かくにん</rt></ruby>する。80%<ruby>以上<rt class="uf">いじょう</rt></ruby>で<ruby>合格<rt class="uf">ごうかく</rt></ruby>。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でも<ruby>行<rt class="uf">おこな</rt></ruby>う。</div>
+            <div id="quiz-area"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
+          </div>
+          <!-- 旧UIの参照先（残置ガード用・非表示）＝入口カード tile-quiz は廃止。quizRenderHome_ が参照する -->
+          <span id="cnt-quiz" style="display:none;"></span><span id="dot-quiz" style="display:none;"></span>
         </div>
       </div>
 
@@ -1226,10 +1278,8 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <div id="star-recv-area"></div>
           <div id="team-area"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
         </div>
-        <div class="subview" id="sv-quiz">
-          <div class="zhead quiz"><div class="zic"><i class="ti ti-checkup-list"></i></div><div class="zb"><div class="zt"><ruby>確認<rt class="uf">かくにん</rt></ruby>テスト</div><div class="zs"><ruby>覚<rt class="uf">おぼ</rt></ruby>えたかを<ruby>確認<rt class="uf">かくにん</rt></ruby>する。80%<ruby>以上<rt class="uf">いじょう</rt></ruby>で<ruby>合格<rt class="uf">ごうかく</rt></ruby>。</div></div></div>
-          <div id="quiz-area"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
-        </div>
+        <!-- 確認テストの別ページ(sv-quiz)は廃止（2026-08-20）＝単元別タブの②に一本化。
+             同じ一覧が2か所にあると、直すときに片方だけ直す事故が起きるため。入口は openQuizPane_()。 -->
         <div class="subview" id="sv-overall">
           <div class="overall-card" id="overall-card"><div class="oc-ic"><i class="ti ti-world"></i></div><div class="oc-nm">クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby></div><div class="oc-stats"><div class="oc-st"><div class="v"><span class="num" id="cnt-people">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> <ruby>人<rt class="uf">にん</rt></ruby></small></div><div class="k"><ruby>今日<rt class="uf">きょう</rt></ruby></div></div><div class="oc-st"><div class="v"><span class="num" id="cnt-words">–</span><small style="font-size:10px;color:var(--sub);font-weight:500;"> <ruby>語<rt class="uf">ご</rt></ruby></small></div><div class="k"><ruby>今週<rt class="uf">こんしゅう</rt></ruby></div></div></div></div>
         </div>
@@ -1610,7 +1660,9 @@ function buildMapRow(l,isTest,inFold){
   return row;
 }
 /* ===== タイル型ホームのビュー切替（2026-06-24）===== */
-var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でも復習',team:'チームのなかま',overall:'クロフネ全体',records:'じぶんの記録',quiz:'確認テスト'};
+/* quiz は 2026-08-20 に単元別タブの②へ一本化（sv-quiz 廃止）。ここから外すことで、
+   古い sessionStorage('kwt_view'='quiz') が残っていても復元は「タブ」側に落ちる。 */
+var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でも復習',team:'チームのなかま',overall:'クロフネ全体',records:'じぶんの記録'};
 /* 「もどる」用の画面履歴（1つ前に戻る）2026-07-24。従来のbtn-backは必ずホームへ戻っていたのを、1つ前の画面に戻す。 */
 var _navStack=[],_navBack=false;
 function _curViewKey_(){var v='';try{v=sessionStorage.getItem('kwt_view')||'';}catch(e){}return (v&&SUB_TITLES[v])?('sub:'+v):('tab:'+(_homeTab||'daily'));}
@@ -1626,7 +1678,6 @@ function showSub(name){
   var sv=$('sv-'+name);if(sv)sv.classList.add('active');
   if(name==='team'){try{localStorage.setItem(recvAckKey_(),String(_recvCount));}catch(e){}_recvUnseen=false;teamDotUpdate_();} // なかまを開いたら受信を既読化 2026-07-14
   if(name==='records'||name==='badge'){try{markRecordSeen_();}catch(e){}} // 記録/バッジを見たら 新バッジ・新アイコンを既読化＝記録タブの赤●を消す 2026-07-26
-  if(name==='quiz'&&typeof renderQuiz==='function')renderQuiz(); // 更新復元・直接表示でも点数表を読み込む（読み込み中で固まる修正 2026-07-10）
   if(name==='review'&&typeof loadReviewSrs==='function')loadReviewSrs(); // おさらい：開くたびに最新の期限（教科別）を描き直す 2026-07-26
   window.scrollTo(0,0);
 }
@@ -1686,11 +1737,11 @@ var _quizData=null;
 function quizRenderHome_(d){
   if(!d||!d.ok)return;
   var mats=(d.data&&d.data.materials)||[];_quizData=d.data;
-  var tile=$('tile-quiz');if(!tile)return;
-  if(!mats.length){tile.style.display='none';syncTestZone_();return;}
   var miss=0;mats.forEach(function(g){(g.parts||[]).forEach(function(p){if(p.status==='miss'||p.status==='ng')miss++;});});
-  tile.style.display='';
-  $('cnt-quiz').textContent=miss>0?('のこり '+miss):'全部合格';
+  /* 入口カード(tile-quiz)は廃止（2026-08-20）。件数は ②確認テスト の切り替えボタンに出す。 */
+  var cnt=$('useg-cnt');
+  if(cnt){ if(mats.length&&miss>0){cnt.textContent=String(miss);cnt.style.display='';}else{cnt.style.display='none';} }
+  var c2=$('cnt-quiz');if(c2)c2.textContent=miss>0?('のこり '+miss):'全部合格'; // 残置ガード（他から参照されても壊れないように）
   var dq=$('dot-quiz');if(dq)dq.style.display='none'; // 確認テストの直しは間違いノートに出る＝確認テスト自体に赤●は出さない（自主ペース）2026-07-26
   _quizMiss=miss;syncTestZone_();
 }
@@ -1712,6 +1763,27 @@ function quizStatus2_(p){
   var prev='';
   if(pr!=null && lr!=null){ var up=(lr-pr)>=0; prev='<span class="qprev">前 '+pr+'% <span class="'+(up?'qup':'qdn')+'">'+(up?'↑':'↓')+'</span></span>'; }
   return '<span class="qst"><span class="qp '+cls+'">'+lbl+'</span>'+prev+'</span>';
+}
+/* 確認テストのパート行に足す2つ（2026-08-20 川上さん確定）
+   ・_unitTag_＝名前の下の小さいタグ（練習ずみ N日前／練習が途中／まだ練習していない）
+   ・_unitBtn_＝まだ練習していない・途中のときだけ出す小さいボタン。押すと startPractice(part_id) でその場で練習が始まる
+   合格ずみの行には出さない（用が済んでいるので邪魔になる）。material_parts が未着なら何も出さない。 */
+function _unitTag_(p){
+  if(!p||p.status==='ok')return '';
+  var u=_unitStateOf_(p.part_id);if(!u)return '';
+  if(u.s==='pass'){
+    var d=u.d;
+    var when=(d==null)?'':((d===0)?'<ruby>今日<rt class="uf">きょう</rt></ruby>':(d+'<ruby>日前<rt class="uf">にちまえ</rt></ruby>'));
+    return '<span class="utag done"><i class="ti ti-check"></i><ruby>練習<rt class="uf">れんしゅう</rt></ruby>ずみ'+(when?(' '+when):'')+'</span>';
+  }
+  if(u.s==='try')return '<span class="utag warn"><i class="ti ti-player-play"></i><ruby>練習<rt class="uf">れんしゅう</rt></ruby>が<ruby>途中<rt class="uf">とちゅう</rt></ruby></span>';
+  return '<span class="utag warn"><i class="ti ti-alert-circle"></i>まだ<ruby>練習<rt class="uf">れんしゅう</rt></ruby>していない</span>';
+}
+function _unitBtn_(p){
+  if(!p||p.status==='ok')return '';
+  var u=_unitStateOf_(p.part_id);if(!u||u.s==='pass')return '';
+  var lbl=(u.s==='try')?'つづき':'<ruby>練習<rt class="uf">れんしゅう</rt></ruby>';
+  return '<button type="button" class="ubtn" data-upid="'+esc(String(p.part_id))+'"><i class="ti ti-flag"></i>'+lbl+'</button>';
 }
 var quizOpen_={};
 /* 確認テスト一覧の開閉＝単元別・学習マップと同じ sessionStorage 方式（リロードしても開いたままにする）2026-08-20 */
@@ -1761,9 +1833,11 @@ function renderQuiz(){
         var np=ps.filter(function(p){return p.status==='ok';}).length;
         var ngc=ps.filter(function(p){return p.status==='ng';}).length;
         var unc=ps.filter(function(p){return _qIsUnfinished_(p);}).length; // 未実施（再配信後）2026-07-28
+        var rdy=ps.filter(_quizReady_).length; // そろそろテスト＝単元別に合格して3日以上たった 2026-08-20
         var ck='C:'+String(g.material_id||g.title||'');
         html+='<div class="qchw'+(_co.indexOf(ck)>=0?' open':'')+'" data-ck="'+esc(ck)+'">'
           +'<div class="nchap qchap"><div class="ncf-nm">'+esc(mtShort(g)||'教材')
+          +(rdy>0?(' <span class="qrdy"><i class="ti ti-checkup-list"></i>そろそろテスト '+rdy+'</span>'):'')
           +'<small><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+np+'/'+ps.length
           +(ngc>0?('　もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+ngc):'')
           +(unc>0?('　<ruby>未実施<rt class="uf">みじっし</rt></ruby> '+unc):'')+'</small></div>'
@@ -1771,9 +1845,11 @@ function renderQuiz(){
           +'<i class="ti ti-chevron-down ncf-arw"></i></div>'
           +'<div class="nqparts">';
         ps.forEach(function(p){
+          /* 練習の状態は「名前の下の小さいタグ」＝テストが主役のまま（川上さん確定 2026-08-20）。
+             まだ練習していない／途中のときだけ、小さい「練習」ボタンを1つ足す。押すとそのパートの練習がその場で始まる。 */
           html+='<div class="nqp" data-pid="'+esc(String(p.part_id))+'">'
-            +'<div class="nqp-nm">'+esc(p.title||'パート')+(p.attempt_count>0?('<small> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></small>'):'')+'</div>'
-            +quizStatus2_(p)+'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span></div>'; /* テストを始める＝→（§12-2）2026-08-08 */
+            +'<div class="nqp-nm">'+esc(p.title||'パート')+(p.attempt_count>0?('<small> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></small>'):'')+_unitTag_(p)+'</div>'
+            +_unitBtn_(p)+quizStatus2_(p)+'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span></div>'; /* テストを始める＝→（§12-2）2026-08-08 */
         });
         html+='</div></div>';
       });
@@ -1788,6 +1864,10 @@ function renderQuiz(){
       var ck=w.getAttribute('data-ck');
       w.querySelector('.qchap').onclick=function(){w.classList.toggle('open');_openToggle_('kwt_quizchap_open',ck,w.classList.contains('open'));};
       w.querySelectorAll('.nqp').forEach(function(row){var pid=row.getAttribute('data-pid');row.onclick=function(){if(pid)startQuiz(pid);};});
+      /* 「練習」ボタン＝行のテスト開始より先に拾う。そのパートの練習をその場で始める（学習マップのパート行と同じ startPractice） 2026-08-20 */
+      w.querySelectorAll('.ubtn').forEach(function(btn){
+        btn.onclick=function(ev){ev.stopPropagation();var up=btn.getAttribute('data-upid');if(up)startPractice(up);};
+      });
     });
     try{var _qids=[];mats.forEach(function(g){(g.parts||[]).forEach(function(p){if(p.part_id)_qids.push(p.part_id);});});prefetchQuizSeq_(_qids);}catch(e){} // 一覧を開いたら裏で問題＋解説を先読み（一気にやっても軽い）2026-07-24
   });
@@ -1815,7 +1895,7 @@ function startQuiz(partId){
   var _c=_qprefetch[partId];
   var _p=(_c&&_c.then)?_c:(_c?Promise.resolve(_c):call({action:'quiz_words',part_id:partId})); // 先読み済み/取得中があれば使う
   _p.then(function(d){
-    if(!d.ok||!d.data||!d.data.words||!d.data.words.length){toast((d&&d.error)||'単語がありません');openHome();showSub('quiz');renderQuiz();return;}
+    if(!d.ok||!d.data||!d.data.words||!d.data.words.length){toast((d&&d.error)||'単語がありません');openHome();openQuizPane_();return;}
     var words=quizShuffle_(d.data.words.slice()); // 毎回シャッフル
     _fromReviewTest=false;
     _startPracticeWith_(partId,{ok:true,data:{words:words,subject:(d.data.subject||'english'),assets:(d.data.assets||{}),content_type:'test',direction:(d.data.direction||'')}});
@@ -2092,6 +2172,21 @@ function setNavDot_(tab,on){var e=$('bdg-'+tab);if(!e)return;e.classList.add('do
 var _revNum={osarai:0,note:0};var _osaraiDue=0; // 期限が来たおさらいの総数（完了画面の「次の一手」用）2026-08-05
 var _srsReady={words:[],assets:{},loaded:false}; // おさらいの今日分を先読みしておき、タイル/フォーカスから直接開始＝中間ページを挟まない 2026-07-26
 function startOsaraiDirect_(){ showSub('review'); } // おさらいは教科タブ・おまかせを見せる画面へ（中身が見える＝氷山感を減らす）2026-07-26
+/* ===== 単元別タブの ①練習／②確認テスト 切り替え（2026-08-20 川上さん確定）=====
+   確認テストは別ページ(sv-quiz)をやめてこのタブの②に一本化した。
+   どこから来ても openQuizPane_() で②に着地する（中断カード・完了画面・出題の失敗時）。 */
+var _unitSeg=1;
+function unitSeg_(n){
+  _unitSeg=(n===2)?2:1;
+  var b1=$('useg1'),b2=$('useg2'),p1=$('upane1'),p2=$('upane2');
+  if(b1)b1.classList.toggle('on',_unitSeg===1);
+  if(b2)b2.classList.toggle('on',_unitSeg===2);
+  if(p1)p1.style.display=(_unitSeg===1)?'block':'none';
+  if(p2)p2.style.display=(_unitSeg===2)?'block':'none';
+  try{sessionStorage.setItem('kwt_useg',String(_unitSeg));}catch(e){} // リロードしても同じ側を開く（本の開閉と同じ方式）
+  if(_unitSeg===2&&typeof renderQuiz==='function')renderQuiz(); // 開いたときに読み込む（読み込み中で固まるのを防ぐ・旧 showSub('quiz') と同じ役割）
+}
+function openQuizPane_(){ try{showHomeTab('unit');}catch(e){} unitSeg_(2); } // 確認テストを開く唯一の入口
 var _dailyUndone=0;
 var _dailyMain=null; // デイリー進捗をおさらい取得後に描き直すため、直近のmainを保持 2026-07-26
 var _dailyCompletedMains=[]; // 完走した毎日学習(main・sm_status=completed)。毎日タブに「学習マップで復習」バナーを出す判定に使う 2026-08-08。material_parts から供給
@@ -2100,7 +2195,9 @@ function setDailyNavNum_(){var osDone=(dailyState.review===true);setBadge_('dail
 // 間違いノートタブ＝間違いノート残りのみ（2026-07-25 おさらいは毎日タブへ）
 function setReviewNavNum_(){setNavDot_('review',(_revNum.note||0)>0);} // 間違いノート＝自主ペースの復習なので数字(9+)ではなく赤●で「たまってるよ」。実数は中の教科カードで見える 2026-07-26
 var _homeTab='daily',_quizMiss=0;
-function showHomeTab(name){if(!_navBack)_navStack.length=0;_homeTab=name;try{_renderResumeCard_();}catch(e){}$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);sessionStorage.removeItem('kwt_view');}catch(e){}window.scrollTo(0,0);} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
+function showHomeTab(name){if(!_navBack)_navStack.length=0;_homeTab=name;try{_renderResumeCard_();}catch(e){}$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);sessionStorage.removeItem('kwt_view');}catch(e){}
+  if(name==='unit'){var _s=1;try{_s=parseInt(sessionStorage.getItem('kwt_useg'),10)||1;}catch(e){}try{unitSeg_(_s);}catch(e){}} // ①練習／②確認テスト は最後に見ていた側を開く 2026-08-20
+  window.scrollTo(0,0);} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
 function syncTestZone_(){setNavDot_('unit',false);} // 単元別のナビ赤●は出さない＝自主ペースで「今日やる必須」ではない。確認テストの直しは間違いノートに出る（川上さん 2026-07-26）
 /* スケルトン（読み込み中の形だけ先に見せる）2026-07-24 */
 function skelDaily_(){return '<div class="skel skel-focus"></div><div class="skel skel-row"></div><div class="skel skel-row"></div>';}
@@ -2353,7 +2450,8 @@ function openHome(){
   _bind('hdr-ava',openIconModal);
   _bind('set-theme',toggleTheme_);
   syncSettings_();
-  _bind('tile-quiz',function(){showSub('quiz');renderQuiz();});
+  _bind('useg1',function(){unitSeg_(1);});
+  _bind('useg2',function(){unitSeg_(2);});
   // 下部メニュー（毎日／ふくしゅう／単元別／なかま／記録）2026-07-24
   _bind('ntab5-daily',function(){showHomeTab('daily');});
   _bind('ntab5-review',function(){showHomeTab('review');});
@@ -2451,6 +2549,8 @@ function loadHomeData_(showSkel){
     try{ // 完走した毎日学習(main・sm_status=completed)を毎日タブに残す 2026-08-08。studentHome.main は active限定なので material_parts から拾う
       var _mpAll=(d&&d.ok&&d.data&&d.data.materials)||[];
       try{_buildPartIdx_(_mpAll);}catch(e){} // 中断カード・確認モーダルに出す「教科 パート名」の索引 2026-08-20
+      /* 確認テスト一覧の「練習ずみ／まだ練習していない」はこの索引が要る。quiz_list が先に描き終わっていたら描き直す 2026-08-20 */
+      try{if(_unitSeg===2&&typeof renderQuiz==='function')renderQuiz();}catch(e){}
       _dailyCompletedMains=_mpAll.filter(function(c){return c.content_type!=='test'&&String(c.sm_status)==='completed';});
       if(_dailyMain)renderDailyList_(_dailyMain); // studentHome先着でも後着でも完走セクションを反映
     }catch(e){}
@@ -2470,8 +2570,10 @@ function loadHomeData_(showSkel){
       var bpct=btot?Math.round(bpas/btot*100):0;var subjB=_subjGuess_(g.items[0]);
       // 本(シリーズ)は種類が混ざらないので、種類タグは一番外側の見出しに1個だけ出す 2026-07-26
       var _allTest=g.items.every(function(c){return c.content_type==='test';});var _allDaily=g.items.every(function(c){return c.content_type!=='test';});
+      /* 種類タグはタブと同じアイコンを付ける（毎日学習＝錨・単元別＝旗）。文字だけだと下メニューと結びつかない 2026-08-20 川上さん */
       var bookKind=_allTest?'<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>':(_allDaily?'<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>':'');
-      var kindPill=bookKind?(' <span style="font-size:10px;font-weight:700;color:var(--sub);background:rgba(148,163,184,.16);border-radius:6px;padding:1px 7px;vertical-align:middle;white-space:nowrap;">'+bookKind+'</span>'):'';
+      var kindIc=_allTest?'ti-flag':(_allDaily?'ti-anchor':'');
+      var kindPill=bookKind?(' <span class="mkind"><i class="ti '+kindIc+'"></i>'+bookKind+'</span>'):'';
       var book=document.createElement('div');book.className='nbook';
       book.innerHTML='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subjB)+'"></i></div><div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+kindPill+'</div><div class="nbk-meta">'+(subjB?'<span class="nbk-subj">'+esc(subjLabel(subjB))+'</span> ':'')+'できた '+bpct+'%</div><div class="nbk-bar"><i style="width:'+bpct+'%"></i></div></div><i class="ti ti-chevron-down nbk-arw"></i></div>';
       var bdetail=document.createElement('div');bdetail.className='nbk-detail';book.appendChild(bdetail);
@@ -3279,14 +3381,42 @@ function _resumeOrder_(words,rs){
   return out;
 }
 /* パートID→「教科 パート名」の索引。material_parts / quiz_list の返りから作る（中断カード・確認モーダルの表示用）2026-08-20 */
-var _partIdx={};
+var _partIdx={},_partIdxReady=false;
 function _buildPartIdx_(mats){
   try{(mats||[]).forEach(function(c){
     var sj='';try{sj=_subjGuess_(c)||'';}catch(e){}
     (c.parts||[]).forEach(function(pt){
       var pid=String(pt.part_id||pt.id||'');if(!pid)return;
-      _partIdx[pid]={subj:sj,part:String(pt.title||pt.name||''),mat:String(mtShortMt(c)||c.material_title||c.title||'')};
-    });});}catch(e){}
+      _partIdx[pid]={subj:sj,part:String(pt.title||pt.name||''),mat:String(mtShortMt(c)||c.material_title||c.title||''),
+        /* 単元別の練習状況（確認テスト一覧に「練習ずみ 4日前／まだ練習していない」を出すため）2026-08-20。
+           material_parts は content_type=test のパートに passed（80%合格）と last_pass_date を返す＝GAS改修は不要。 */
+        isTest:(c.content_type==='test'),passed:!!pt.passed,attempted:!!pt.attempted,lastPass:String(pt.last_pass_date||'')};
+    });});_partIdxReady=true;}catch(e){}
+}
+/* 何日前か（JST。todayStr_ と同じ基準） */
+function _daysAgo_(ymd){
+  if(!ymd)return null;
+  try{
+    var a=String(ymd).substring(0,10).split('-'),b=todayStr_().split('-');
+    var d=Math.round((Date.UTC(+b[0],+b[1]-1,+b[2])-Date.UTC(+a[0],+a[1]-1,+a[2]))/86400000);
+    return (d<0)?0:d;
+  }catch(e){return null;}
+}
+/* 確認テストのパート行に出す「単元別をやったか」。material_parts がまだ届いていないときは null＝何も出さない（嘘を出さない） */
+function _unitStateOf_(pid){
+  if(!_partIdxReady)return null;
+  var e=_partIdx[String(pid)];
+  if(!e||!e.isTest)return null;
+  if(e.passed)return {s:'pass',d:_daysAgo_(e.lastPass)};
+  if(e.attempted)return {s:'try'};
+  return {s:'none'};
+}
+/* 「そろそろテスト」＝単元別に合格して QUIZ_READY_DAYS 日以上たった／確認テストにまだ合格していない（川上さん確定 3日・2026-08-20）*/
+var QUIZ_READY_DAYS=3;
+function _quizReady_(p){
+  if(!p||p.status==='ok')return false;
+  var u=_unitStateOf_(p.part_id);
+  return !!(u&&u.s==='pass'&&u.d!=null&&u.d>=QUIZ_READY_DAYS);
 }
 function _resumeLabel_(rs){
   var e=_partIdx[String(rs&&rs.part)];
@@ -3818,7 +3948,7 @@ function finishQuizSubmit_(){
   $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> <span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby>うける</span>';
   $('btn-retry').onclick=function(){startQuiz(s.quizPartId);};
   $('btn-home').innerHTML='<ruby>点数表<rt class="uf">てんすうひょう</rt></ruby>にもどる';
-  $('btn-home').onclick=function(){openHome();showSub('quiz');renderQuiz();};
+  $('btn-home').onclick=function(){openHome();openQuizPane_();};
   var _g=setTimeout(function(){lockBtns(false);},12000);
   var missU=(s.miss||[]).filter(function(v,i){return s.miss.indexOf(v)===i;}); // 重複除去（意味と日英で二重に入るため）
   call({action:'quiz_submit',part_id:s.quizPartId,total:s.total,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,miss_word_ids:missU}).then(function(d){
