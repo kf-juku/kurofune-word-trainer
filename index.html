@@ -116,6 +116,22 @@
   .nqp{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer;}
   .nqp-nm{flex:1;font-size:13px;font-weight:600;line-height:1.3;min-width:0;}
   .nqp-nm small{font-weight:500;font-size:10.5px;color:var(--sub);}
+  /* 【確定・2026-08-20 川上さん「案B」】単元別と確認テストは"本のとじ方は同じ・見分けは色と名前"。
+     単元別＝金（教科アイコン・金のバー）／確認テスト＝青（チェックリストのアイコン・青のバー・左の青帯）。
+     色は §12 の役割色のまま（青＝やる/進み・金＝ここぞ）＝新しい色は足さない。 */
+  .zhead{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:16px;margin:2px 0 12px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);}
+  .zhead .zic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 auto;}
+  .zhead .zb{flex:1;min-width:0;}
+  .zhead .zt{font-size:16px;font-weight:700;letter-spacing:-.01em;}
+  .zhead .zs{font-size:11.5px;color:var(--sub);margin-top:2px;}
+  .zhead.unit{border-left:4px solid var(--gold);}
+  .zhead.unit .zic{background:var(--n-goldsoft);color:var(--gold);}
+  .zhead.quiz{border-left:4px solid var(--accent);}
+  .zhead.quiz .zic{background:var(--accent-soft);color:var(--accent);}
+  .nbook.qbook{border-left:4px solid var(--accent);}
+  .nbook.qbook .nbk-ic{background:var(--accent-soft);color:var(--accent);}
+  .nbook.qbook .nbk-bar i{background:var(--accent);}
+  .nbook.unitbook{border-left:4px solid var(--gold);}
   /* 確認テスト ひとまとめ */
   .nquiz{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:11px 12px;display:flex;align-items:center;gap:11px;cursor:pointer;margin-top:4px;position:relative;}
   .nqc-ic{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;}
@@ -1143,10 +1159,10 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         </div>
         <!-- 単元別（やる所から） -->
         <div class="tabpanel" id="tp-unit">
-          <div class="ph"><i class="ti ti-flag" style="color:var(--accent)"></i> <ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></div>
-          <div class="psub">テストまでに やりきろう。どこからでも <ruby>進<rt class="uf">すす</rt></ruby>められるよ。</div>
-          <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;"><ruby>先生<rt class="uf">せんせい</rt></ruby>が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに<ruby>出<rt class="uf">で</rt></ruby>るよ</p></div>
-          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>確認<rt class="uf">かくにん</rt></ruby>テスト</div><div class="nqc-s">おぼえたら ここで <ruby>確認<rt class="uf">かくにん</rt></ruby>テスト。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div><div class="rc-go" style="margin-left:9px"><i class="ti ti-arrow-right"></i></div></div>
+          <!-- 案B（2026-08-20 川上さん確定）＝画面の先頭に「いまどっちの画面か」の帯。単元別＝金・確認テスト＝青 -->
+          <div class="zhead unit"><div class="zic"><i class="ti ti-flag"></i></div><div class="zb"><div class="zt"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></div><div class="zs">テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を<ruby>進<rt class="uf">すす</rt></ruby>める。どの<ruby>単元<rt class="uf">たんげん</rt></ruby>からでも<ruby>始<rt class="uf">はじ</rt></ruby>められる。</div></div></div>
+          <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;"><ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>割<rt class="uf">わ</rt></ruby>り<ruby>当<rt class="uf">あ</rt></ruby>てたテスト<ruby>範囲<rt class="uf">はんい</rt></ruby>がここに<ruby>出<rt class="uf">で</rt></ruby>る</p></div>
+          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>確認<rt class="uf">かくにん</rt></ruby>テスト</div><div class="nqc-s"><ruby>覚<rt class="uf">おぼ</rt></ruby>えたかを<ruby>確認<rt class="uf">かくにん</rt></ruby>する。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でも<ruby>行<rt class="uf">おこな</rt></ruby>う</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div><div class="rc-go" style="margin-left:9px"><i class="ti ti-arrow-right"></i></div></div>
         </div>
       </div>
 
@@ -1189,6 +1205,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <div id="team-area"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
         </div>
         <div class="subview" id="sv-quiz">
+          <div class="zhead quiz"><div class="zic"><i class="ti ti-checkup-list"></i></div><div class="zb"><div class="zt"><ruby>確認<rt class="uf">かくにん</rt></ruby>テスト</div><div class="zs"><ruby>覚<rt class="uf">おぼ</rt></ruby>えたかを<ruby>確認<rt class="uf">かくにん</rt></ruby>する。80%<ruby>以上<rt class="uf">いじょう</rt></ruby>で<ruby>合格<rt class="uf">ごうかく</rt></ruby>。</div></div></div>
           <div id="quiz-area"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
         </div>
         <div class="subview" id="sv-overall">
@@ -1633,7 +1650,7 @@ function quizRenderHome_(d){
   if(!mats.length){tile.style.display='none';syncTestZone_();return;}
   var miss=0;mats.forEach(function(g){(g.parts||[]).forEach(function(p){if(p.status==='miss'||p.status==='ng')miss++;});});
   tile.style.display='';
-  $('cnt-quiz').textContent=miss>0?(miss+'こ のこり'):'ぜんぶOK';
+  $('cnt-quiz').textContent=miss>0?('のこり '+miss):'全部合格';
   var dq=$('dot-quiz');if(dq)dq.style.display='none'; // 確認テストの直しは間違いノートに出る＝確認テスト自体に赤●は出さない（自主ペース）2026-07-26
   _quizMiss=miss;syncTestZone_();
 }
@@ -1670,7 +1687,7 @@ function renderQuiz(){
     quizRenderHome_(d);
     if(!d.ok){el.innerHTML='<p class="muted"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>みに<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました。もう<ruby>一度<rt class="uf">いちど</rt></ruby>ひらいてね。</p>';return;}
     var mats=(d.data&&d.data.materials)||[];
-    if(!mats.length){el.innerHTML='<div class="empty-note"><i class="ti ti-clipboard-list"></i><div>まだ<ruby>確認<rt class="uf">かくにん</rt></ruby>テストは<ruby>配信<rt class="uf">はいしん</rt></ruby>されていません。<ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>配信<rt class="uf">はいしん</rt></ruby>すると ここに<ruby>出<rt class="uf">で</rt></ruby>るよ。</div></div>';return;}
+    if(!mats.length){el.innerHTML='<div class="empty-note"><i class="ti ti-clipboard-list"></i><div>まだ<ruby>確認<rt class="uf">かくにん</rt></ruby>テストは<ruby>配信<rt class="uf">はいしん</rt></ruby>されていない。<ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>配信<rt class="uf">はいしん</rt></ruby>するとここに<ruby>出<rt class="uf">で</rt></ruby>る。</div></div>';return;}
     // 本ごとにまとめる＋シリーズ内は表示順（display_order）2026-07-22
     var _bk=function(g){var k=mtSeriesKey(g);return k?('S:'+k):('M:'+String(g.title||''));};/* GASのseries_key優先→無ければ_mSeries。新シリーズはGAS _seriesOf_ 1箇所でまとまる 2026-07-29 */
     var _bl=function(g){var k=mtSeriesKey(g);var bp=_bookPrefix(g.title);return k?(bp||mtSeriesLabel(g)):(bp||String(g.title||''));};
@@ -1692,8 +1709,8 @@ function renderQuiz(){
       var metaMid=bookDone
         ? '<span class="nbk-tag"><i class="ti ti-check"></i> ぜんぶ <ruby>合格<rt class="uf">ごうかく</rt></ruby></span> ・ <ruby>合格<rt class="uf">ごうかく</rt></ruby> 100%'
         : ('のこり '+(tot-pas)+(ngb>0?(' ・ もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+ngb):'')+(unb>0?(' ・ <ruby>未実施<rt class="uf">みじっし</rt></ruby> '+unb):'')+' ・ <span class="nbk-rate"><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+pct+'%</span>'); /* 単元別の「のこり N ・ できた X%」と同じ並び 2026-08-20 */
-      html+='<div class="nbook'+(bookDone?' done':'')+(_bo.indexOf(gp.key)>=0?' open':'')+'" data-bk="'+esc(gp.key)+'">'
-        +'<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subj)+'"></i></div>'
+      html+='<div class="nbook qbook'+(bookDone?' done':'')+(_bo.indexOf(gp.key)>=0?' open':'')+'" data-bk="'+esc(gp.key)+'">'
+        +'<div class="nbook-head"><div class="nbk-ic"><i class="ti ti-checkup-list"></i></div>' /* 確認テストの本＝チェックリストのアイコン（青）。教科は下の教科タグで分かる 2026-08-20 */
         +'<div class="nbk-body"><div class="nbk-nm">'+esc(gp.lab)+'</div>'
         +'<div class="nbk-meta">'+subjTag+metaMid+'</div>'
         +'<div class="nbk-bar"><i style="width:'+pct+'%"></i></div></div>'
@@ -2216,7 +2233,7 @@ function renderUnitZone_(materials){
   tests=tests.slice().sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // 教材の並び順(display_order)で・ホーム/確認テストと統一 2026-07-29
   host.innerHTML='';_unitCount=tests.length;
   if(tests.length){
-    var uhint=document.createElement('div');uhint.setAttribute('role','button');uhint.tabIndex=0;uhint.style.cssText='display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--sub);padding:12px;margin-top:2px;cursor:pointer;';uhint.innerHTML='<i class="ti ti-map-2" style="color:var(--gold);font-size:16px;"></i> <span><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>何度<rt class="uf">なんど</rt></ruby>でも <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ</span> <i class="ti ti-chevron-right"></i>';uhint.onclick=function(){showSub('lists');};host.appendChild(uhint); // 学習マップへの誘導（毎日タブ daily-maplink とアイコン・矢印を統一）2026-08-01
+    var uhint=document.createElement('div');uhint.setAttribute('role','button');uhint.tabIndex=0;uhint.style.cssText='display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--sub);padding:12px;margin-top:2px;cursor:pointer;';uhint.innerHTML='<i class="ti ti-map-2" style="color:var(--gold);font-size:16px;"></i> <span><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は<ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで<ruby>何度<rt class="uf">なんど</rt></ruby>でも<ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できる</span> <i class="ti ti-chevron-right"></i>';uhint.onclick=function(){showSub('lists');}; // 学習マップへの誘導（毎日タブ daily-maplink とアイコン・矢印を統一）2026-08-01。※上に見出しの帯を置いたので、この導線は本の一覧の"下"に出す（2026-08-20）
     var groups=[],gm={};
     tests.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!gm[k]){gm[k]={lab:mtSeriesLabelMt(c),items:[],key:k};groups.push(gm[k]);}gm[k].items.push(c);});
     var _open=_unitOpenGet_();
@@ -2227,7 +2244,7 @@ function renderUnitZone_(materials){
       var bookDone=(tot>0&&pas===tot);if(!bookDone)_allClear=false; // 100%の本＝緑・ぜんぶできた 2026-07-24
       var subjTag=subj?('<span class="nbk-subj">'+esc(subjLabel(subj))+'</span> '):'';
       var metaMid=bookDone?('<span class="nbk-tag"><i class="ti ti-check"></i> ぜんぶ できた</span> ・ できた 100%'):('のこり '+(tot-pas)+' ・ <span class="nbk-rate">できた '+pct+'%</span>');
-      var book=document.createElement('div');book.className=bookDone?'nbook done':'nbook';
+      var book=document.createElement('div');book.className=bookDone?'nbook unitbook done':'nbook unitbook'; /* 単元別＝金の左帯（確認テストは qbook＝青）2026-08-20 */
       var head='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subj)+'"></i></div>'
         +'<div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+'</div>'
         +'<div class="nbk-meta">'+subjTag+metaMid+'</div>'
@@ -2243,7 +2260,7 @@ function renderUnitZone_(materials){
         var allPass=(t2>0&&p2===t2);
         var isDone=(String(c.sm_status)==='completed')||allPass; // 完走＝全パート合格 or 割当が完了状態 2026-08-08
         detail+='<div class="nchap'+(isDone?' done':'')+'" data-pid="'+esc(String(target))+'"'+(isDone?' data-map="1"':'')+'><div class="ncf-nm">'+esc(mtShortMt(c))
-          +(isDone?'<small class="chap-done">🎉 <ruby>完走<rt class="uf">かんそう</rt></ruby> ・ <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できる</small>':'<small>できた '+p2+'/'+t2+'</small>')+'</div>'
+          +(isDone?'<small class="chap-done">🎉 <ruby>完走<rt class="uf">かんそう</rt></ruby> ・ <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで<ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できる</small>':'<small>できた '+p2+'/'+t2+'</small>')+'</div>'
           +(isDone?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
       });
       detail+='</div>';
@@ -2253,9 +2270,10 @@ function renderUnitZone_(materials){
       book.querySelectorAll('.nchap').forEach(function(row){var pid=row.getAttribute('data-pid');var isMap=row.getAttribute('data-map')==='1';row.onclick=function(){ if(isMap){showSub('lists');} else if(pid){startPractice(pid);} };}); // 完走章は学習マップ(復習)へ・未完走は練習へ 2026-08-08
       host.appendChild(book);
     });
+    host.appendChild(uhint); // 本の一覧の下に置く（帯→本→学習マップ導線 の順）2026-08-20
     if(_allClear&&groups.length){var fc=document.createElement('div');fc.className='fin-card mini';fc.innerHTML='<div class="dc-ic"><i class="ti ti-circle-check"></i></div><div class="dc-t"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>、ぜんぶ クリア！</div><div class="dc-s">わりあての テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を <ruby>全部<rt class="uf">ぜんぶ</rt></ruby> 100%に したよ。すごい！</div>';host.insertBefore(fc,host.firstChild);} // 全クリアの祝い 2026-07-24
   }else{
-    host.innerHTML='<div class="empty-note"><i class="ti ti-flag"></i><div><ruby>先生<rt class="uf">せんせい</rt></ruby>が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに <ruby>出<rt class="uf">で</rt></ruby>るよ。<br>いまは <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>を すすめよう。</div></div>';
+    host.innerHTML='<div class="empty-note"><i class="ti ti-flag"></i><div><ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>割<rt class="uf">わ</rt></ruby>り<ruby>当<rt class="uf">あ</rt></ruby>てたテスト<ruby>範囲<rt class="uf">はんい</rt></ruby>がここに<ruby>出<rt class="uf">で</rt></ruby>る。<br>いまは<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>を<ruby>進<rt class="uf">すす</rt></ruby>めよう。</div></div>';
     var uhint2=document.createElement('div');uhint2.setAttribute('role','button');uhint2.tabIndex=0;uhint2.style.cssText='display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--sub);padding:12px;margin-top:8px;cursor:pointer;';uhint2.innerHTML='<i class="ti ti-map-2" style="color:var(--gold);font-size:16px;"></i> <span><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ</span> <i class="ti ti-chevron-right"></i>';uhint2.onclick=function(){showSub('lists');};host.appendChild(uhint2); // 学習マップへの誘導（統一）2026-08-01
   }
   syncTestZone_();
@@ -3521,7 +3539,7 @@ function doneMatClearTtl_(){return '<div style="font-weight:800;font-size:19px;l
  +'<div style="margin-top:5px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(202,162,74,.06));color:var(--gold);border:1px solid rgba(202,162,74,.35);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;"><i class="ti ti-trophy"></i> この<ruby>教材<rt class="uf">きょうざい</rt></ruby>ぜんぶ<ruby>合格<rt class="uf">ごうかく</rt></ruby></div>';}
 /* 教材クリアの案内＝学習マップで何度でも復習できる（軽い誘導）2026-08-01 */
 function doneMatClearGuide_(){return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;">'
- +'<div style="font-size:12.8px;color:var(--sub);margin-bottom:10px;"><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで <ruby>何度<rt class="uf">なんど</rt></ruby>でも <ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できるよ。</div>'
+ +'<div style="font-size:12.8px;color:var(--sub);margin-bottom:10px;"><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は<ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで<ruby>何度<rt class="uf">なんど</rt></ruby>でも<ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できる。</div>'
  +'<button onclick="goMapSub_()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;"><i class="ti ti-map-2"></i> <span><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップを ひらく</span></button>'
  +'</div>';}
 /* 完了画面の「次の一手」＝やる気しだいの自主消化を促す。優先＝おさらい残(期限が来た全語)＞間違いノート残。数字つき。0/不明なら出さない（先取りbtn-nextに任せる）。確定方針＝要件定義書§4-3b。2026-08-05 */

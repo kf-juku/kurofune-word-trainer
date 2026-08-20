@@ -1137,7 +1137,6 @@
         .rp-setline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
         .rp-setttl{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;margin-right:2px;}
         .rp-setsub{font-size:11.5px;font-weight:700;color:var(--text-muted);white-space:nowrap;}
-        .rp-setnote{font-size:11px;color:var(--text-muted);margin:7px 0 0 2px;line-height:1.7;}
         .rp-setdlline{margin-top:9px;padding-top:9px;border-top:1px solid var(--border);}
         .rp-setdlline input[type=date]{border:1.5px solid var(--border);border-radius:8px;padding:4px 8px;font-family:inherit;font-size:12px;background:#fff;}
         .rp-sel{border:1.5px solid var(--border);background:#fff;color:var(--text);border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;max-width:340px;}
@@ -1245,12 +1244,11 @@
           <span class="rp-setttl" id="rpSetTtl">🔖 保存したセット</span>
           <select class="rp-sel" id="rpSetSel" onchange="rpSetPick(this.value)"></select>
           <span class="rp-state none" id="rpSetState"></span>
-          <button class="rp-btn-ico" id="rpSetRen" onclick="rpRenameSet(this)" title="このセットの名前を変える" disabled>✏️ 名前</button>
-          <button class="rp-btn-ico" id="rpSetDel" onclick="rpDelSet()" title="このセットを消す" disabled>🗑 消す</button>
+          <button class="rp-btn-ico" id="rpSetRen" onclick="rpRenameSet(this)" title="このセットの名前を変える" disabled>✏️ セット名変更</button>
+          <button class="rp-btn-ico" id="rpSetDel" onclick="rpDelSet()" title="このセットを削除する" disabled>🗑 削除</button>
           <span class="rp-setspacer"></span>
           <span class="rp-acts"><button class="rp-btn-upd" id="rpSetUpd" onclick="rpUpdateSet(this)" disabled>💾 上書き保存</button><button class="rp-btn-new" id="rpSetAdd" onclick="rpSaveSet(this)">＋ 新しいセットとして保存</button></span>
         </div>
-        <div class="rp-setnote" id="rpSetNote"></div>
         <div class="rp-setline rp-setdlline">
           <span class="rp-setsub">このセットの期限</span>
           <input type="date" id="rpDl" onchange="rpSetDL(this.value)">
@@ -4261,10 +4259,7 @@ function rpRenderSets(){
     u.textContent=(cur>=0)?('「'+RP_SETS[cur].name+'」に上書き'):'上書き保存'; }
   var rn=$('rpSetRen'), dl=$('rpSetDel');
   if(rn)rn.disabled=(cur<0); if(dl)dl.disabled=(cur<0);
-  var nt=$('rpSetNote');
-  if(nt){ nt.innerHTML=(cur<0)
-    ? 'セットを選ぶと「教材・絞り込み・期限」をまとめて呼び出します。<b>セットは30個まで、いくつでも作れます</b>（例：中1英単語／中2英単語／夏休み課題）。いまの条件を残すなら「＋ 新しいセットとして保存」。先生全員で共有されます。'
-    : '<b>「'+esc(RP_SETS[cur].name)+'」を表示中。</b>条件を変えたら → <b>このセット自体を直す＝「上書き」</b>／<b>別のセットを増やす＝「＋ 新しいセットとして保存」</b>（いまのセットは消えません）。先生全員で共有されます。'; }
+  /* 説明書きは置かない（川上さん 2026-08-20）。ボタン名と状態バッジだけで分かる形にする。*/
 }
 function rpSetPick(v){
   var i=parseInt(v,10);
@@ -4292,7 +4287,7 @@ function rpSaveSets_(next,msg,btn){    /* 保存はGAS完了後にトースト�
 function _rpCurSet_(){ var i=(RP_CUR>=0)?RP_CUR:RP_LAST; return (i>=0&&RP_SETS[i])?i:-1; }
 function rpSaveSet(btn){   /* ＝いつでも「増える」。いま選んでいるセットは絶対に書き換えない */
   if(!RP_SEL.length){ toast('先に教材を選んでください'); return; }
-  if(RP_SETS.length>=30){ toast('セットは30個までです。いらないものを「🗑 消す」で消してください'); return; }
+  if(RP_SETS.length>=30){ toast('セットは30個までです。いらないものを「🗑 削除」で消してください'); return; }
   var n=prompt('新しいセットの名前（例：中1英単語／夏休み課題）\n※ 新しく追加します。いま選んでいるセットは書き換えません。',''); if(!n)return;
   n=String(n).trim(); if(!n)return;
   var next=RP_SETS.concat([{name:n,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL}]);
