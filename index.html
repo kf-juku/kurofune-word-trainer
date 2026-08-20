@@ -1741,13 +1741,20 @@ function showPracticeLoading_(){
 
 /* ===== 確認テスト（生徒）2026-07-10：点数表。受験は startQuiz（スライス3b）===== */
 var _quizData=null;
+/* ②のバッジ＝「いま押すところ」の総数（章の そろそろテスト N の合計）。青く塗られる行の数と必ず一致する。 */
+function _setQuizSegCnt_(mats){
+  var c=$('useg-cnt');if(!c)return;
+  var n=0;(mats||[]).forEach(function(g){(g.parts||[]).forEach(function(p){if(_quizReady_(p))n++;});});
+  if(n>0){c.textContent=String(n);c.style.display='';}else{c.style.display='none';}
+}
 function quizRenderHome_(d){
   if(!d||!d.ok)return;
   var mats=(d.data&&d.data.materials)||[];_quizData=d.data;
   var miss=0;mats.forEach(function(g){(g.parts||[]).forEach(function(p){if(p.status==='miss'||p.status==='ng')miss++;});});
-  /* 入口カード(tile-quiz)は廃止（2026-08-20）。件数は ②確認テスト の切り替えボタンに出す。 */
-  var cnt=$('useg-cnt');
-  if(cnt){ if(mats.length&&miss>0){cnt.textContent=String(miss);cnt.style.display='';}else{cnt.style.display='none';} }
+  /* 入口カード(tile-quiz)は廃止（2026-08-20）。件数は ②確認テスト の切り替えボタンに出す。
+     出す数は「いま押すところ（青く塗られる行）＝章の そろそろテスト N の合計」。
+     以前は"合格していない数"を出していて、②に 6・章に 3 と別の数が並んで分かりにくかった（川上さん指摘）。 */
+  _setQuizSegCnt_(mats);
   var c2=$('cnt-quiz');if(c2)c2.textContent=miss>0?('のこり '+miss):'全部合格'; // 残置ガード（他から参照されても壊れないように）
   var dq=$('dot-quiz');if(dq)dq.style.display='none'; // 確認テストの直しは間違いノートに出る＝確認テスト自体に赤●は出さない（自主ペース）2026-07-26
   _quizMiss=miss;syncTestZone_();
@@ -1765,22 +1772,25 @@ function _qIsUnfinished_(p){ return p.status==='miss' && (p.attempt_count||0)>0 
      ・練習ずみだが日が浅い          ＝青の枠 「受ける」＝押せるが今ではない
      ・まだ練習していない／不明       ＝いままでどおり グレーの「まだ」（押せる）
    行の中で塗りは常に1つになる（未練習の行は左の「練習」ボタンだけが色を持つ）。 */
+/* 【2026-08-20 川上さん】「もう一歩 68%」が終わりに見える。不合格なんだからもう1回やる話。
+   受けるのか受けないのか・終わっているのかいないのかを、この2つだけで見せる：
+     ① 終わった  ＝ 緑の「合格 92%」（＋前回との比較）。押す先はない。
+     ② 終わってない＝ 青系の「受ける →」／一度でも受けていれば「もう一度 →」＋小さく「前 68%」。
+   ②の濃さで順番を出す：塗り＝いま押すところ／枠＝押せるが今ではない／点線＝先に練習。
+   「もう一歩」「まだ」「未実施」という言い方はやめた（言葉で状態を覚えさせない）。 */
 function quizStatus2_(p){
   var lr=p.latest_rate, pr=p.prev_rate;
-  if(p.status==='miss'){
-    /* まだ受けていない行は「受ける →」で統一し、濃さで順番を出す（塗り＝いま／枠＝押せる／点線＝練習が先）。
-       行の右端にあった青丸の → は廃止＝矢印が2つ並んでいた（2026-08-20 川上さん）。
-       「まだ」「未実施」という言葉もやめた＝受けたかどうかは 合格／もう一歩 のピルで分かる。 */
-    var u=_unitStateOf_(p.part_id), ready=_quizReady_(p);
-    var cls=ready?'qp-go':((u&&u.s==='pass')?'qp-can':'qp-late');
-    if(_qIsUnfinished_(p)) return '<span class="qst"><span class="qp '+cls+'">もう<ruby>一度<rt class="uf">いちど</rt></ruby> <i class="ti ti-arrow-right"></i></span><span class="qprev">前 '+lr+'%</span></span>';
-    return '<span class="qst"><span class="qp '+cls+'"><ruby>受<rt class="uf">う</rt></ruby>ける <i class="ti ti-arrow-right"></i></span></span>';
+  if(p.status==='ok'){
+    var prev='';
+    if(pr!=null && lr!=null){ var up=(lr-pr)>=0; prev='<span class="qprev">前 '+pr+'% <span class="'+(up?'qup':'qdn')+'">'+(up?'↑':'↓')+'</span></span>'; }
+    return '<span class="qst"><span class="qp qp-ok"><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+lr+'%</span>'+prev+'</span>';
   }
-  var cls=(p.status==='ok')?'qp-ok':'qp-ng';
-  var lbl=(p.status==='ok')?'<ruby>合格<rt class="uf">ごうかく</rt></ruby> '+lr+'%':'もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+lr+'%';
-  var prev='';
-  if(pr!=null && lr!=null){ var up=(lr-pr)>=0; prev='<span class="qprev">前 '+pr+'% <span class="'+(up?'qup':'qdn')+'">'+(up?'↑':'↓')+'</span></span>'; }
-  return '<span class="qst"><span class="qp '+cls+'">'+lbl+'</span>'+prev+'</span>';
+  var u=_unitStateOf_(p.part_id), ready=_quizReady_(p);
+  var cls=ready?'qp-go':((u&&u.s==='pass')?'qp-can':'qp-late');
+  var again=(lr!=null); // 一度でも受けている＝不合格 or 再配信後
+  var lbl=again?('もう<ruby>一度<rt class="uf">いちど</rt></ruby>'):('<ruby>受<rt class="uf">う</rt></ruby>ける');
+  var sub=again?('<span class="qprev">前 '+lr+'%</span>'):'';
+  return '<span class="qst"><span class="qp '+cls+'">'+lbl+' <i class="ti ti-arrow-right"></i></span>'+sub+'</span>';
 }
 /* 確認テストのパート行に足す2つ（2026-08-20 川上さん確定）
    ・_unitTag_＝名前の下の小さいタグ（練習ずみ N日前／練習が途中／まだ練習していない）
@@ -1834,9 +1844,11 @@ function renderQuiz(){
       var subj=_subjGuess_(gp.items[0]);
       var bookDone=(tot>0&&pas===tot);
       var subjTag=subj?('<span class="nbk-subj">'+esc(subjLabel(subj))+'</span> '):'';
+      /* 【2026-08-20 川上さん】「のこり101・もう一歩3・もう一度1・合格3%」はごちゃごちゃで見ない。
+         見出しは「合格 何個/何個」だけにする。内訳は下の行を見れば分かる。 */
       var metaMid=bookDone
-        ? '<span class="nbk-tag"><i class="ti ti-check"></i> ぜんぶ <ruby>合格<rt class="uf">ごうかく</rt></ruby></span> ・ <ruby>合格<rt class="uf">ごうかく</rt></ruby> 100%'
-        : ('のこり '+(tot-pas)+(ngb>0?(' ・ もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+ngb):'')+(unb>0?(' ・ もう<ruby>一度<rt class="uf">いちど</rt></ruby> '+unb):'')+' ・ <span class="nbk-rate"><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+pct+'%</span>'); /* 単元別の「のこり N ・ できた X%」と同じ並び 2026-08-20 */
+        ? '<span class="nbk-tag"><i class="ti ti-check"></i> ぜんぶ <ruby>合格<rt class="uf">ごうかく</rt></ruby></span>'
+        : ('<span class="nbk-rate"><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+pas+'/'+tot+'</span>');
       html+='<div class="nbook qbook'+(bookDone?' done':'')+(_bo.indexOf(gp.key)>=0?' open':'')+'" data-bk="'+esc(gp.key)+'">'
         +'<div class="nbook-head"><div class="nbk-ic"><i class="ti ti-checkup-list"></i></div>' /* 確認テストの本＝チェックリストのアイコン（青）。教科は下の教科タグで分かる 2026-08-20 */
         +'<div class="nbk-body"><div class="nbk-nm">'+esc(gp.lab)+'</div>'
@@ -1854,9 +1866,7 @@ function renderQuiz(){
         html+='<div class="qchw'+(_co.indexOf(ck)>=0?' open':'')+'" data-ck="'+esc(ck)+'">'
           +'<div class="nchap qchap"><div class="ncf-nm">'+esc(mtShort(g)||'教材')
           +(rdy>0?(' <span class="qrdy"><i class="ti ti-checkup-list"></i>そろそろテスト '+rdy+'</span>'):'')
-          +'<small><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+np+'/'+ps.length
-          +(ngc>0?('　もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+ngc):'')
-          +(unc>0?('　もう<ruby>一度<rt class="uf">いちど</rt></ruby> '+unc):'')+'</small></div>'
+          +'<small><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+np+'/'+ps.length+'</small></div>'
           +(g.all_pass?'<span class="nbk-tag qch-gold"><ruby>全<rt class="uf">ぜん</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby></span>':'')
           +'<i class="ti ti-chevron-down ncf-arw"></i></div>'
           +'<div class="nqparts">';
@@ -2398,7 +2408,8 @@ function renderUnitZone_(materials){
       var pct=tot?Math.round(pas/tot*100):0;var subj=_subjGuess_(g.items[0]);
       var bookDone=(tot>0&&pas===tot);if(!bookDone)_allClear=false; // 100%の本＝緑・ぜんぶできた 2026-07-24
       var subjTag=subj?('<span class="nbk-subj">'+esc(subjLabel(subj))+'</span> '):'';
-      var metaMid=bookDone?('<span class="nbk-tag"><i class="ti ti-check"></i> ぜんぶ できた</span> ・ できた 100%'):('のこり '+(tot-pas)+' ・ <span class="nbk-rate">できた '+pct+'%</span>');
+      /* 見出しは「できた 何個/何個」だけ（確認テストの「合格 N/M」と対にする）2026-08-20 川上さん */
+      var metaMid=bookDone?('<span class="nbk-tag"><i class="ti ti-check"></i> ぜんぶ できた</span>'):('<span class="nbk-rate">できた '+pas+'/'+tot+'</span>');
       var book=document.createElement('div');book.className=bookDone?'nbook unitbook done':'nbook unitbook'; /* 単元別＝金の左帯（確認テストは qbook＝青）2026-08-20 */
       var head='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subj)+'"></i></div>'
         +'<div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+'</div>'
@@ -3408,6 +3419,8 @@ function _buildPartIdx_(mats){
            material_parts は content_type=test のパートに passed（80%合格）と last_pass_date を返す＝GAS改修は不要。 */
         isTest:(c.content_type==='test'),passed:!!pt.passed,attempted:!!pt.attempted,lastPass:String(pt.last_pass_date||'')};
     });});_partIdxReady=true;}catch(e){}
+  /* 単元別の練習状況が後から届いた場合でも②のバッジを正しくする（quiz_list が先に返っていることがある） */
+  try{ if(_quizData&&_quizData.materials)_setQuizSegCnt_(_quizData.materials); }catch(e){}
 }
 /* 何日前か（JST。todayStr_ と同じ基準） */
 function _daysAgo_(ymd){
@@ -3430,13 +3443,17 @@ function _unitStateOf_(pid){
 /* 「そろそろテスト」＝単元別に合格して QUIZ_READY_DAYS 日以上たった／確認テストにまだ合格していない（川上さん確定 3日・2026-08-20）*/
 var QUIZ_READY_DAYS=3;
 function _quizReady_(p){
-  /* status==='miss' だけを対象にする（まだ受けていない／再配信後の未実施）。
-     「もう一歩(ng)」は赤で自分の合図を持っているので数に入れない。
-     ＝章の「そろそろテスト N」の N と、開いたときに青く塗られる行の数が必ず一致する。
-     （2026-08-20 川上さん「そろそろテストを見て開いたら『まだ』が並んでてどこを押せばいいのかわからん」） */
-  if(!p||p.status!=='miss')return false;
+  /* 「いま押すところ（青の塗り）」の判定。章の「そろそろテスト N」の N と必ず一致させる。
+     前提＝単元別に合格していること（練習していないパートは、まず練習が先）。
+       ・まだ受けていない → 練習から3日以上たったら true（日をあけてからテストする）
+       ・一度受けて合格していない（不合格・再配信後） → 日数を待たずに true
+         ＝不合格は「終わり」ではなく「もう1回やる」もの（2026-08-20 川上さん）。
+     合格ずみは常に false（終わっているので押す先はない）。 */
+  if(!p||p.status==='ok')return false;
   var u=_unitStateOf_(p.part_id);
-  return !!(u&&u.s==='pass'&&u.d!=null&&u.d>=QUIZ_READY_DAYS);
+  if(!u||u.s!=='pass')return false;
+  if(p.latest_rate!=null)return true;                 // 一度でも受けている＝すぐ受け直す
+  return !!(u.d!=null&&u.d>=QUIZ_READY_DAYS);
 }
 function _resumeLabel_(rs){
   var e=_partIdx[String(rs&&rs.part)];
