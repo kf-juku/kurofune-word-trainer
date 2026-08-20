@@ -660,11 +660,13 @@
   .qp-ok{background:rgba(31,157,87,.14);color:var(--ok);}
   .qp-ng{background:rgba(214,69,69,.13);color:var(--ng);}
   .qp-mada{background:rgba(148,163,184,.18);color:var(--sub);font-weight:700;}
-  /* まだ受けていない行の3段階（2026-08-20）＝塗り＝いま押すところ／枠＝押せるが今ではない／qp-mada＝練習がまだ */
+  /* まだ受けていない行の3段階（2026-08-20）＝塗り(qp-go)＝いま押すところ／枠(qp-can)＝押せるが今ではない／点線(qp-late)＝練習が先。
+     旧 .qp-mada（まだ）・.qp-un（未実施）は使わなくなったが、CSSは残置（他から参照されても崩れないように） */
   .qp-go{background:var(--accent);color:#fff;display:inline-flex;align-items:center;gap:4px;}
-  .qp-go i.ti{font-size:13px;}
-  .qp-go .qpsub{display:block;font-size:9.5px;font-style:normal;font-weight:700;opacity:.85;margin-left:2px;}
-  .qp-can{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+  .qp-can{background:transparent;color:var(--accent);border:1px solid var(--accent);display:inline-flex;align-items:center;gap:4px;}
+  .qp-late{background:transparent;color:var(--sub);border:1px dashed #c3ccd8;display:inline-flex;align-items:center;gap:4px;font-weight:700;}
+  [data-theme="dark"] .qp-late{border-color:#3a4459;}
+  .qp-go i.ti,.qp-can i.ti,.qp-late i.ti{font-size:13px;}
   .qp-un{background:var(--surface);border:1.5px dashed #c3ccd8;color:#5b6675;display:inline-flex;flex-direction:column;align-items:center;line-height:1.12;padding:4px 11px;} /* 再配信後の未実施＝点線で"やり直す"合図 */
   .qp-un b{font-size:12px;font-weight:900;}
   .qp-un i{font-size:9.5px;color:#9aa6b3;font-style:normal;margin-top:1px;}
@@ -1766,11 +1768,13 @@ function _qIsUnfinished_(p){ return p.status==='miss' && (p.attempt_count||0)>0 
 function quizStatus2_(p){
   var lr=p.latest_rate, pr=p.prev_rate;
   if(p.status==='miss'){
+    /* まだ受けていない行は「受ける →」で統一し、濃さで順番を出す（塗り＝いま／枠＝押せる／点線＝練習が先）。
+       行の右端にあった青丸の → は廃止＝矢印が2つ並んでいた（2026-08-20 川上さん）。
+       「まだ」「未実施」という言葉もやめた＝受けたかどうかは 合格／もう一歩 のピルで分かる。 */
     var u=_unitStateOf_(p.part_id), ready=_quizReady_(p);
-    if(_qIsUnfinished_(p)) return '<span class="qst"><span class="qp '+(ready?'qp-go':'qp-un')+'">'+(ready?('もう<ruby>一度<rt class="uf">いちど</rt></ruby> <i class="ti ti-arrow-right"></i><i class="qpsub">前 '+lr+'%</i>'):('<b>未実施</b><i>前 '+lr+'%</i>'))+'</span></span>';
-    if(ready) return '<span class="qst"><span class="qp qp-go"><ruby>受<rt class="uf">う</rt></ruby>ける <i class="ti ti-arrow-right"></i></span></span>';
-    if(u&&u.s==='pass') return '<span class="qst"><span class="qp qp-can"><ruby>受<rt class="uf">う</rt></ruby>ける</span></span>';
-    return '<span class="qst"><span class="qp qp-mada">まだ</span></span>';
+    var cls=ready?'qp-go':((u&&u.s==='pass')?'qp-can':'qp-late');
+    if(_qIsUnfinished_(p)) return '<span class="qst"><span class="qp '+cls+'">もう<ruby>一度<rt class="uf">いちど</rt></ruby> <i class="ti ti-arrow-right"></i></span><span class="qprev">前 '+lr+'%</span></span>';
+    return '<span class="qst"><span class="qp '+cls+'"><ruby>受<rt class="uf">う</rt></ruby>ける <i class="ti ti-arrow-right"></i></span></span>';
   }
   var cls=(p.status==='ok')?'qp-ok':'qp-ng';
   var lbl=(p.status==='ok')?'<ruby>合格<rt class="uf">ごうかく</rt></ruby> '+lr+'%':'もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+lr+'%';
@@ -1782,21 +1786,19 @@ function quizStatus2_(p){
    ・_unitTag_＝名前の下の小さいタグ（練習ずみ N日前／練習が途中／まだ練習していない）
    ・_unitBtn_＝まだ練習していない・途中のときだけ出す小さいボタン。押すと startPractice(part_id) でその場で練習が始まる
    合格ずみの行には出さない（用が済んでいるので邪魔になる）。material_parts が未着なら何も出さない。 */
+/* 【2026-08-20 川上さん】未練習・途中の行はタグを出さない。ボタンの「先に練習／練習のつづき」が同じことを言っていて、
+   「まだ練習していない」＋「練習」が並ぶと二度言いになって読みにくかった。タグは練習ずみの行だけ。 */
 function _unitTag_(p){
   if(!p||p.status==='ok')return '';
-  var u=_unitStateOf_(p.part_id);if(!u)return '';
-  if(u.s==='pass'){
-    var d=u.d;
-    var when=(d==null)?'':((d===0)?'<ruby>今日<rt class="uf">きょう</rt></ruby>':(d+'<ruby>日前<rt class="uf">にちまえ</rt></ruby>'));
-    return '<span class="utag done"><i class="ti ti-check"></i><ruby>練習<rt class="uf">れんしゅう</rt></ruby>ずみ'+(when?(' '+when):'')+'</span>';
-  }
-  if(u.s==='try')return '<span class="utag warn"><i class="ti ti-player-play"></i><ruby>練習<rt class="uf">れんしゅう</rt></ruby>が<ruby>途中<rt class="uf">とちゅう</rt></ruby></span>';
-  return '<span class="utag warn"><i class="ti ti-alert-circle"></i>まだ<ruby>練習<rt class="uf">れんしゅう</rt></ruby>していない</span>';
+  var u=_unitStateOf_(p.part_id);if(!u||u.s!=='pass')return '';
+  var d=u.d;
+  var when=(d==null)?'':((d===0)?'<ruby>今日<rt class="uf">きょう</rt></ruby>':(d+'<ruby>日前<rt class="uf">にちまえ</rt></ruby>'));
+  return '<span class="utag done"><i class="ti ti-check"></i><ruby>練習<rt class="uf">れんしゅう</rt></ruby>ずみ'+(when?(' '+when):'')+'</span>';
 }
 function _unitBtn_(p){
   if(!p||p.status==='ok')return '';
   var u=_unitStateOf_(p.part_id);if(!u||u.s==='pass')return '';
-  var lbl=(u.s==='try')?'つづき':'<ruby>練習<rt class="uf">れんしゅう</rt></ruby>';
+  var lbl=(u.s==='try')?'<ruby>練習<rt class="uf">れんしゅう</rt></ruby>のつづき':('<ruby>先<rt class="uf">さき</rt></ruby>に<ruby>練習<rt class="uf">れんしゅう</rt></ruby>');
   return '<button type="button" class="ubtn" data-upid="'+esc(String(p.part_id))+'"><i class="ti ti-flag"></i>'+lbl+'</button>';
 }
 var quizOpen_={};
@@ -1834,7 +1836,7 @@ function renderQuiz(){
       var subjTag=subj?('<span class="nbk-subj">'+esc(subjLabel(subj))+'</span> '):'';
       var metaMid=bookDone
         ? '<span class="nbk-tag"><i class="ti ti-check"></i> ぜんぶ <ruby>合格<rt class="uf">ごうかく</rt></ruby></span> ・ <ruby>合格<rt class="uf">ごうかく</rt></ruby> 100%'
-        : ('のこり '+(tot-pas)+(ngb>0?(' ・ もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+ngb):'')+(unb>0?(' ・ <ruby>未実施<rt class="uf">みじっし</rt></ruby> '+unb):'')+' ・ <span class="nbk-rate"><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+pct+'%</span>'); /* 単元別の「のこり N ・ できた X%」と同じ並び 2026-08-20 */
+        : ('のこり '+(tot-pas)+(ngb>0?(' ・ もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+ngb):'')+(unb>0?(' ・ もう<ruby>一度<rt class="uf">いちど</rt></ruby> '+unb):'')+' ・ <span class="nbk-rate"><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+pct+'%</span>'); /* 単元別の「のこり N ・ できた X%」と同じ並び 2026-08-20 */
       html+='<div class="nbook qbook'+(bookDone?' done':'')+(_bo.indexOf(gp.key)>=0?' open':'')+'" data-bk="'+esc(gp.key)+'">'
         +'<div class="nbook-head"><div class="nbk-ic"><i class="ti ti-checkup-list"></i></div>' /* 確認テストの本＝チェックリストのアイコン（青）。教科は下の教科タグで分かる 2026-08-20 */
         +'<div class="nbk-body"><div class="nbk-nm">'+esc(gp.lab)+'</div>'
@@ -1854,7 +1856,7 @@ function renderQuiz(){
           +(rdy>0?(' <span class="qrdy"><i class="ti ti-checkup-list"></i>そろそろテスト '+rdy+'</span>'):'')
           +'<small><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+np+'/'+ps.length
           +(ngc>0?('　もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+ngc):'')
-          +(unc>0?('　<ruby>未実施<rt class="uf">みじっし</rt></ruby> '+unc):'')+'</small></div>'
+          +(unc>0?('　もう<ruby>一度<rt class="uf">いちど</rt></ruby> '+unc):'')+'</small></div>'
           +(g.all_pass?'<span class="nbk-tag qch-gold"><ruby>全<rt class="uf">ぜん</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby></span>':'')
           +'<i class="ti ti-chevron-down ncf-arw"></i></div>'
           +'<div class="nqparts">';
@@ -1863,7 +1865,7 @@ function renderQuiz(){
              まだ練習していない／途中のときだけ、小さい「練習」ボタンを1つ足す。押すとそのパートの練習がその場で始まる。 */
           html+='<div class="nqp" data-pid="'+esc(String(p.part_id))+'">'
             +'<div class="nqp-nm">'+esc(p.title||'パート')+(p.attempt_count>0?('<small> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></small>'):'')+_unitTag_(p)+'</div>'
-            +_unitBtn_(p)+quizStatus2_(p)+'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span></div>'; /* テストを始める＝→（§12-2）2026-08-08 */
+            +_unitBtn_(p)+quizStatus2_(p)+'</div>'; /* 右端の青丸→は廃止＝「受ける →」と矢印が2つ並んでいた 2026-08-20 川上さん */
         });
         html+='</div></div>';
       });
