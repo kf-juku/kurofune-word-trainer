@@ -104,6 +104,18 @@
   .ncf-go{width:30px;height:30px;border-radius:9px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto;}
   .ncf-done{color:var(--ok);font-size:17px;}
   .nchap.done .ncf-nm small.chap-done{color:var(--ok);font-weight:700;} /* 完走章＝おめでとう＋学習マップ復習 2026-08-08 */
+  /* 確認テストの章（本カードの中）＝単元別の .nchap をそのまま使い、その下にパート行を開く 2026-08-20 */
+  .qchw{border-bottom:1px solid var(--line);}
+  .qchw:last-child{border-bottom:none;}
+  .qchw .nchap{border-bottom:none;}
+  .ncf-arw{color:var(--sub);font-size:19px;transition:transform .2s;flex:0 0 auto;}
+  .qchw.open .ncf-arw{transform:rotate(180deg);}
+  .nbk-tag.qch-gold{color:var(--gold);background:var(--n-goldsoft);}
+  .nqparts{display:none;padding:0 0 4px 10px;}
+  .qchw.open .nqparts{display:block;}
+  .nqp{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer;}
+  .nqp-nm{flex:1;font-size:13px;font-weight:600;line-height:1.3;min-width:0;}
+  .nqp-nm small{font-weight:500;font-size:10.5px;color:var(--sub);}
   /* 確認テスト ひとまとめ */
   .nquiz{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:11px 12px;display:flex;align-items:center;gap:11px;cursor:pointer;margin-top:4px;position:relative;}
   .nqc-ic{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;}
@@ -1134,7 +1146,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <div class="ph"><i class="ti ti-flag" style="color:var(--accent)"></i> <ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></div>
           <div class="psub">テストまでに やりきろう。どこからでも <ruby>進<rt class="uf">すす</rt></ruby>められるよ。</div>
           <div id="unit-list"><p class="muted" style="text-align:center;padding:18px 8px;"><ruby>先生<rt class="uf">せんせい</rt></ruby>が わりあてた テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>が ここに<ruby>出<rt class="uf">で</rt></ruby>るよ</p></div>
-          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>力<rt class="uf">ちから</rt></ruby>だめし（<ruby>確認<rt class="uf">かくにん</rt></ruby>テスト）</div><div class="nqc-s">おぼえたら ここで テスト。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div><div class="rc-go" style="margin-left:9px"><i class="ti ti-arrow-right"></i></div></div>
+          <div class="nquiz" id="tile-quiz" style="display:none;"><span class="reddot" id="dot-quiz" style="display:none;"></span><div class="nqc-ic"><i class="ti ti-checkup-list"></i></div><div class="nqc-b"><div class="nqc-t"><ruby>確認<rt class="uf">かくにん</rt></ruby>テスト</div><div class="nqc-s">おぼえたら ここで <ruby>確認<rt class="uf">かくにん</rt></ruby>テスト。<ruby>授業<rt class="uf">じゅぎょう</rt></ruby>でもやるよ</div></div><div class="nqc-cnt"><span id="cnt-quiz">–</span></div><div class="rc-go" style="margin-left:9px"><i class="ti ti-arrow-right"></i></div></div>
         </div>
       </div>
 
@@ -1645,6 +1657,13 @@ function quizStatus2_(p){
   return '<span class="qst"><span class="qp '+cls+'">'+lbl+'</span>'+prev+'</span>';
 }
 var quizOpen_={};
+/* 確認テスト一覧の開閉＝単元別・学習マップと同じ sessionStorage 方式（リロードしても開いたままにする）2026-08-20 */
+function _quizBookOpen_(){return _openGet_('kwt_quiz_open');}
+function _quizChapOpen_(){return _openGet_('kwt_quizchap_open');}
+/* 【確定・2026-08-20 川上さん】確認テストの「本のとじ方」は単元別(renderUnitZone_)とそろえる。
+   本カード(.nbook＝教科アイコン＋シリーズ名＋合格数・％・バー) → 章(.nchap) → パート行(.nqp) の3階層。
+   以前はここだけ独自のインラインカード（シリーズ名はただの見出しテキスト・章が独立カード）で、
+   単元別と見た目も開き方も違い、生徒が同じ教材だと分からなかった。中身・点数・合否の出し方は不変。 */
 function renderQuiz(){
   var el=$('quiz-area');if(!el)return;
   callCached({action:'quiz_list'},function(d){
@@ -1652,38 +1671,67 @@ function renderQuiz(){
     if(!d.ok){el.innerHTML='<p class="muted"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>みに<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました。もう<ruby>一度<rt class="uf">いちど</rt></ruby>ひらいてね。</p>';return;}
     var mats=(d.data&&d.data.materials)||[];
     if(!mats.length){el.innerHTML='<div class="empty-note"><i class="ti ti-clipboard-list"></i><div>まだ<ruby>確認<rt class="uf">かくにん</rt></ruby>テストは<ruby>配信<rt class="uf">はいしん</rt></ruby>されていません。<ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>配信<rt class="uf">はいしん</rt></ruby>すると ここに<ruby>出<rt class="uf">で</rt></ruby>るよ。</div></div>';return;}
-    // 本ごとにまとめる＋シリーズ内は章番号順（ホームと同じ考え方）2026-07-22
+    // 本ごとにまとめる＋シリーズ内は表示順（display_order）2026-07-22
     var _bk=function(g){var k=mtSeriesKey(g);return k?('S:'+k):('M:'+String(g.title||''));};/* GASのseries_key優先→無ければ_mSeries。新シリーズはGAS _seriesOf_ 1箇所でまとまる 2026-07-29 */
     var _bl=function(g){var k=mtSeriesKey(g);var bp=_bookPrefix(g.title);return k?(bp||mtSeriesLabel(g)):(bp||String(g.title||''));};
     mats=mats.slice().sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // シートの番号順・川上さん 2026-07-22
     var _grps=[],_gm={};
-    mats.forEach(function(g){var k=_bk(g);if(!_gm[k]){_gm[k]={lab:_bl(g),items:[]};_grps.push(_gm[k]);}_gm[k].items.push(g);});
-    var html='';var _qgi=0;
+    mats.forEach(function(g){var k=_bk(g);if(!_gm[k]){_gm[k]={lab:_bl(g),items:[],key:k};_grps.push(_gm[k]);}_gm[k].items.push(g);});
+    var _bo=_quizBookOpen_(),_co=_quizChapOpen_();
+    var html='';
     _grps.forEach(function(gp){
-      html+='<div class="shead" style="margin:16px 2px 8px;"><div class="snm">'+esc(gp.lab)+'</div></div>';
-      gp.items.forEach(function(g){var gi=_qgi++;
-      var ps=g.parts||[];
-      var np=ps.filter(function(p){return p.status==='ok';}).length;
-      var ngc=ps.filter(function(p){return p.status==='ng';}).length;
-      var unc=ps.filter(function(p){return _qIsUnfinished_(p);}).length; // 未実施（再配信後）2026-07-28
-      var yt=ps.length-np-ngc-unc; // まだ（一度も）
-      var gid='qzg'+gi;
-      html+='<div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;box-shadow:var(--shadow);overflow:hidden;">';
-      html+='<div onclick="quizToggle_(\''+gid+'\')" style="display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;">'
-        +'<div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:14px;line-height:1.35;">'+esc(_chapShort(g.title)||'教材')+'</div>'
-        +'<div style="font-size:12px;color:var(--sub);margin-top:3px;"><ruby>合格<rt class="uf">ごうかく</rt></ruby> <b style="color:var(--ok);">'+np+'</b> / '+ps.length+(ngc>0?('　もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> <b style="color:var(--ng);">'+ngc+'</b>'):'')+(unc>0?('　<ruby>未実施<rt class="uf">みじっし</rt></ruby> <b style="color:#b45309;">'+unc+'</b>'):'')+(yt>0?('　まだ '+yt):'')+'</div></div>'
-        +(g.all_pass?'<span style="background:rgba(202,162,74,.15);color:var(--gold);font-weight:800;font-size:11px;padding:3px 9px;border-radius:12px;white-space:nowrap;"><ruby>全<rt class="uf">ぜん</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby>🎉</span>':'')
-        +'<i id="'+gid+'-a" class="ti '+(quizOpen_[gid]?'ti-chevron-up':'ti-chevron-down')+'" style="color:var(--sub);font-size:20px;"></i></div>';
-      html+='<div id="'+gid+'" style="display:'+(quizOpen_[gid]?'block':'none')+';padding:0 14px 6px;">';
-      ps.forEach(function(p){
-        html+='<div onclick="startQuiz(\''+esc(p.part_id)+'\')" style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-top:1px solid var(--line);cursor:pointer;">'
-          +'<div style="flex:1;font-weight:700;font-size:14px;min-width:0;">'+esc(p.title||'パート')+(p.attempt_count>0?'<span style="font-size:11px;color:var(--sub);font-weight:500;"> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></span>':'')+'</div>'
-          +quizStatus2_(p)+'<i class="ti ti-arrow-right" style="color:var(--sub)"></i></div>'; /* テストを始める＝→（§12-2）2026-08-08 */
+      var tot=0,pas=0,ngb=0,unb=0;
+      gp.items.forEach(function(g){var ps=g.parts||[];tot+=ps.length;
+        pas+=ps.filter(function(p){return p.status==='ok';}).length;
+        ngb+=ps.filter(function(p){return p.status==='ng';}).length;
+        unb+=ps.filter(function(p){return _qIsUnfinished_(p);}).length;});
+      var pct=tot?Math.round(pas/tot*100):0;
+      var subj=_subjGuess_(gp.items[0]);
+      var bookDone=(tot>0&&pas===tot);
+      var subjTag=subj?('<span class="nbk-subj">'+esc(subjLabel(subj))+'</span> '):'';
+      var metaMid=bookDone
+        ? '<span class="nbk-tag"><i class="ti ti-check"></i> ぜんぶ <ruby>合格<rt class="uf">ごうかく</rt></ruby></span> ・ <ruby>合格<rt class="uf">ごうかく</rt></ruby> 100%'
+        : ('のこり '+(tot-pas)+(ngb>0?(' ・ もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+ngb):'')+(unb>0?(' ・ <ruby>未実施<rt class="uf">みじっし</rt></ruby> '+unb):'')+' ・ <span class="nbk-rate"><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+pct+'%</span>'); /* 単元別の「のこり N ・ できた X%」と同じ並び 2026-08-20 */
+      html+='<div class="nbook'+(bookDone?' done':'')+(_bo.indexOf(gp.key)>=0?' open':'')+'" data-bk="'+esc(gp.key)+'">'
+        +'<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subj)+'"></i></div>'
+        +'<div class="nbk-body"><div class="nbk-nm">'+esc(gp.lab)+'</div>'
+        +'<div class="nbk-meta">'+subjTag+metaMid+'</div>'
+        +'<div class="nbk-bar"><i style="width:'+pct+'%"></i></div></div>'
+        +'<i class="ti ti-chevron-down nbk-arw"></i></div>'
+        +'<div class="nbk-detail">';
+      gp.items.forEach(function(g){
+        var ps=g.parts||[];
+        var np=ps.filter(function(p){return p.status==='ok';}).length;
+        var ngc=ps.filter(function(p){return p.status==='ng';}).length;
+        var unc=ps.filter(function(p){return _qIsUnfinished_(p);}).length; // 未実施（再配信後）2026-07-28
+        var ck='C:'+String(g.material_id||g.title||'');
+        html+='<div class="qchw'+(_co.indexOf(ck)>=0?' open':'')+'" data-ck="'+esc(ck)+'">'
+          +'<div class="nchap qchap"><div class="ncf-nm">'+esc(mtShort(g)||'教材')
+          +'<small><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+np+'/'+ps.length
+          +(ngc>0?('　もう<ruby>一歩<rt class="uf">いっぽ</rt></ruby> '+ngc):'')
+          +(unc>0?('　<ruby>未実施<rt class="uf">みじっし</rt></ruby> '+unc):'')+'</small></div>'
+          +(g.all_pass?'<span class="nbk-tag qch-gold"><ruby>全<rt class="uf">ぜん</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby></span>':'')
+          +'<i class="ti ti-chevron-down ncf-arw"></i></div>'
+          +'<div class="nqparts">';
+        ps.forEach(function(p){
+          html+='<div class="nqp" data-pid="'+esc(String(p.part_id))+'">'
+            +'<div class="nqp-nm">'+esc(p.title||'パート')+(p.attempt_count>0?('<small> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></small>'):'')+'</div>'
+            +quizStatus2_(p)+'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span></div>'; /* テストを始める＝→（§12-2）2026-08-08 */
+        });
+        html+='</div></div>';
       });
       html+='</div></div>';
-      });
     });
     el.innerHTML=html;
+    el.querySelectorAll('.nbook').forEach(function(book){
+      var bk=book.getAttribute('data-bk');
+      book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_openToggle_('kwt_quiz_open',bk,book.classList.contains('open'));};
+    });
+    el.querySelectorAll('.qchw').forEach(function(w){
+      var ck=w.getAttribute('data-ck');
+      w.querySelector('.qchap').onclick=function(){w.classList.toggle('open');_openToggle_('kwt_quizchap_open',ck,w.classList.contains('open'));};
+      w.querySelectorAll('.nqp').forEach(function(row){var pid=row.getAttribute('data-pid');row.onclick=function(){if(pid)startQuiz(pid);};});
+    });
     try{var _qids=[];mats.forEach(function(g){(g.parts||[]).forEach(function(p){if(p.part_id)_qids.push(p.part_id);});});prefetchQuizSeq_(_qids);}catch(e){} // 一覧を開いたら裏で問題＋解説を先読み（一気にやっても軽い）2026-07-24
   });
 }

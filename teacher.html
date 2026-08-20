@@ -1234,12 +1234,12 @@
       <!-- 保存セットは独立カード＝教材えらびと見た目を分ける（並んでいて紛らわしい・川上さん 2026-08-17）-->
       <div class="qcard rp-setcard">
         <div class="rp-setline">
-          <span class="rp-setttl">🔖 保存したセット</span>
+          <span class="rp-setttl" id="rpSetTtl">🔖 保存したセット</span>
           <span id="rpSetChips"></span>
           <button class="rp-setupd" id="rpSetUpd" style="display:none;" onclick="rpUpdateSet(this)">更新</button>
-          <button class="rp-setadd" onclick="rpSaveSet(this)">＋ いまの条件を保存</button>
+          <button class="rp-setadd" onclick="rpSaveSet(this)">＋ 新しいセットとして保存</button>
         </div>
-        <div class="rp-setnote">クリックすると「教材・絞り込み・期限」をまとめて呼び出します。先生全員で共有されます。</div>
+        <div class="rp-setnote">クリックすると「教材・絞り込み・期限」をまとめて呼び出します。先生全員で共有されます。<b>セットは30個まで、いくつでも作れます</b>（例：中1英単語／中2英単語／夏休み課題）。いま選んでいる条件を別の名前で残すときは「＋ 新しいセットとして保存」、選んでいるセット自体を直すときは「◯◯を更新」。</div>
         <div class="rp-setline rp-setdlline">
           <span class="rp-setsub">このセットの期限</span>
           <input type="date" id="rpDl" onchange="rpSetDL(this.value)">
@@ -2682,17 +2682,28 @@ function _bgRefreshQuiz_(){ // 裏で最新取得。変化があるときだけ�
     _quizBoard=d.data; _syncQuizSel_(d.data); _renderQuizAll_();
   }).catch(function(){_quizLoading=false;});
 }
+/* 【地雷・2026-08-20】スピナーの置き場所は「いま見えているペイン」に出す。
+   タブを開いた直後に見えているのは qpaneStu（生徒ごと）で、qtBoard は qpaneMat（display:none）の中。
+   qtBoard だけに出すと、開いた人には何も出ない＝「反応がない／読み込み中か分からない」になる（川上さん報告 2026-08-20）。
+   → 生徒ごと(qtNgList/qtStu)・教材ごと(qtAtt/qtBoard) の4か所すべてに出す。件数も「…」にして待ちが分かるようにする。 */
+var _QT_SPIN_S_='<div style="display:flex;align-items:center;gap:10px;padding:26px 10px;color:#64748b;font-size:13px;"><div class="loading-spinner" style="width:26px;height:26px;border-width:3px;"></div><span>読み込み中…<span style="font-size:11px;color:#94a3b8;margin-left:6px;">全生徒ぶんを集計しています</span></span></div>';
+function _qtSpin_(on,errMsg){
+  var set=function(id,html){var e=$(id);if(e)e.innerHTML=html;};
+  set('qtNgList',on?_QT_SPIN_S_:(errMsg||''));   // 生徒ごとペインの上（開いた直後に見える所）
+  set('qtStu',   on?_QT_SPIN_S_:'');
+  set('qtAtt',   on?_QT_SPIN_S_:(errMsg||''));   // 教材ごとペインの上
+  set('qtBoard', on?_QT_SPIN_:'');
+  ['qtNgCnt','qtAttCnt','qStuCnt'].forEach(function(id){var c=$(id);if(c&&(on||errMsg))c.textContent=on?'…':'–';});
+}
 function renderQuizTab(force){
-  var att=$('qtAtt'),board=$('qtBoard');
   if(_quizBoard&&!force){ _renderQuizAll_(); _bgRefreshQuiz_(); return; } // 2回目以降のタブ切替は即表示＋裏で更新
-  if(att)att.innerHTML='';
-  if(board)board.innerHTML=_QT_SPIN_; // 初回・強制更新は回転スピナー
+  _qtSpin_(true); // 初回・強制更新は回転スピナー（見えているペインにも必ず出す）
   if(_quizLoading)return; _quizLoading=true;
   call({action:'quiz_board'}).then(function(d){
     _quizLoading=false;
-    if(!d.ok){if(board)board.innerHTML='';if(att)att.innerHTML='<div style="color:var(--crimson);font-size:12px;">取得に失敗しました'+(d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
+    if(!d.ok){_qtSpin_(false,'<div style="color:var(--crimson);font-size:12px;padding:10px 2px;">取得に失敗しました'+(d.error?'（'+esc(d.error)+'）':'')+'</div>');return;}
     _quizBoard=d.data; _syncQuizSel_(d.data); _renderQuizAll_();
-  }).catch(function(){_quizLoading=false;if(board)board.innerHTML='';if(att)att.innerHTML='<div style="color:var(--crimson);font-size:12px;">取得に失敗しました</div>';});
+  }).catch(function(){_quizLoading=false;_qtSpin_(false,'<div style="color:var(--crimson);font-size:12px;padding:10px 2px;">取得に失敗しました</div>');});
 }
 /* ===== 単元別・確認テスト：生徒ごと⇄教材ごと（2026-08-07 大規模UPDATE スライス1）===== */
 function quizMode(m){
@@ -4220,7 +4231,8 @@ function rpRenderSets(){
   el.innerHTML=RP_SETS.map(function(s,i){
     var d=s.dl?('<span class="rp-setdl">〜'+esc(String(s.dl).replace(/^\d{4}-/,'').replace('-','/'))+'</span>'):'';
     return '<span class="rp-set'+(RP_CUR===i?' on':'')+'" onclick="rpLoadSet('+i+')">'+esc(s.name)+d+' <button class="rp-set-x" onclick="event.stopPropagation();rpDelSet('+i+')" title="このセットを消す">✕</button></span>';
-  }).join('')||'<span class="rp-mute">まだありません。教材と絞り込みを決めて「＋ いまの条件を保存」で作れます。</span>';
+  }).join('')||'<span class="rp-mute">まだありません。教材と絞り込みを決めて「＋ 新しいセットとして保存」で作れます。</span>';
+  var tt=$('rpSetTtl'); if(tt)tt.textContent='🔖 保存したセット'+(RP_SETS.length?('（'+RP_SETS.length+'/30）'):''); // いくつ作れるかが見て分かるように 2026-08-20
   var u=$('rpSetUpd');
   if(u){ var on=(RP_DIRTY&&RP_LAST>=0&&RP_SETS[RP_LAST]);
     u.style.display=on?'':'none';
@@ -4245,10 +4257,11 @@ function rpSaveSets_(next,msg,btn){    /* 保存はGAS完了後にトースト�
 }
 function rpSaveSet(btn){
   if(!RP_SEL.length){ toast('先に教材を選んでください'); return; }
-  var n=prompt('セットの名前（例：夏休み課題）',''); if(!n)return;
+  if(RP_SETS.length>=30){ toast('セットは30個までです。いらないものを✕で消してください'); return; }
+  var n=prompt('新しいセットの名前（例：中1英単語／夏休み課題）\n※ いまあるセットは消えません。いくつでも作れます。',''); if(!n)return;
   var next=RP_SETS.concat([{name:n,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL}]);
   RP_SETS=next; RP_CUR=RP_SETS.length-1; RP_LAST=RP_CUR; RP_DIRTY=false; rpRenderSets();
-  rpSaveSets_(next,'セットを保存しました（先生全員に反映）',btn);
+  rpSaveSets_(next,'「'+n+'」を保存しました（全'+next.length+'セット・先生全員に反映）',btn);
 }
 function rpUpdateSet(btn){
   if(RP_LAST<0||!RP_SETS[RP_LAST])return;
