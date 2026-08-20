@@ -3184,9 +3184,10 @@ function refreshCurrentView_(){
   try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
   var s=(typeof _actSes==='function'?_actSes():null)||session;
   if(s&&s.words&&s.words[s.idx]){
-    /* 答えた問題は出しなおさない（更新での答え直し防止）2026-08-20。画像ビューアの復帰・スクロール解除は上で済ませているので、更新の本来の役目は果たす */
-    if(_ansDone_(s,_ansWhichNow_(s))){ try{if(typeof toastH==='function')toastH('<ruby>画面<rt class="uf">がめん</rt></ruby>を<ruby>直<rt class="uf">なお</rt></ruby>したよ（<ruby>答<rt class="uf">こた</rt></ruby>えた<ruby>問題<rt class="uf">もんだい</rt></ruby>は<ruby>出<rt class="uf">だ</rt></ruby>しなおさないよ）');}catch(e){} return; }
-    try{renderQz_(s);}catch(e){} try{if(typeof toastH==='function')toastH('<ruby>画面<rt class="uf">がめん</rt></ruby>を<ruby>更新<rt class="uf">こうしん</rt></ruby>したよ');}catch(e){} }
+    /* 答えた問題は描き直さない（更新での答え直し防止）2026-08-20。画像ビューアの復帰・スクロール解除は上で済ませているので、更新の本来の役目は果たす。
+       生徒に見せるのは「更新したよ」だけ＝内部の都合（答え直せない理由）は画面に書かない */
+    if(!_ansDone_(s,_ansWhichNow_(s))){ try{renderQz_(s);}catch(e){} }
+    try{if(typeof toastH==='function')toastH('<ruby>画面<rt class="uf">がめん</rt></ruby>を<ruby>更新<rt class="uf">こうしん</rt></ruby>したよ');}catch(e){} }
 }
 try{var _brf=$('btn-refresh');if(_brf)_brf.onclick=refreshCurrentView_;}catch(e){}
 /* ===== 一時停止（2026-08-20 川上さん要望：教室で先生が話しかける・中断したいときに使う） =====
