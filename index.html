@@ -1154,13 +1154,14 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <div class="undername"><div id="chill-area"></div></div>
     <div class="body">
       <!-- ===== タイル一覧ビュー（ホーム既定）===== -->
+      <!-- 途中の学習（中断）＝どのタブでも最上部に出す。中断は毎日学習とは限らない（単元別・確認テストもある）2026-08-20 -->
+      <div id="resume-slot"></div>
       <div id="home-tiles">
         <!-- 毎日学習（1本道） -->
         <div class="tabpanel on" id="tp-daily">
           <div class="ph"><i class="ti ti-anchor" style="color:var(--gold)"></i> <ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></div>
           <div class="psub" id="daily-sub2"><ruby>今日<rt class="uf">きょう</rt></ruby>の <ruby>学習<rt class="uf">がくしゅう</rt></ruby>と おさらい</div>
           <div id="daily-fin"></div>
-          <div id="resume-slot"></div>
           <div id="daily-list"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
           <span id="nz-daily-sub" style="display:none;"></span>
           <!-- おさらい（毎日学習の間隔反復）＝デイリーの一部（2026-07-25 ふくしゅうから移設） -->
@@ -2099,7 +2100,7 @@ function setDailyNavNum_(){var osDone=(dailyState.review===true);setBadge_('dail
 // 間違いノートタブ＝間違いノート残りのみ（2026-07-25 おさらいは毎日タブへ）
 function setReviewNavNum_(){setNavDot_('review',(_revNum.note||0)>0);} // 間違いノート＝自主ペースの復習なので数字(9+)ではなく赤●で「たまってるよ」。実数は中の教科カードで見える 2026-07-26
 var _homeTab='daily',_quizMiss=0;
-function showHomeTab(name){if(!_navBack)_navStack.length=0;_homeTab=name;$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);sessionStorage.removeItem('kwt_view');}catch(e){}window.scrollTo(0,0);} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
+function showHomeTab(name){if(!_navBack)_navStack.length=0;_homeTab=name;try{_renderResumeCard_();}catch(e){}$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);sessionStorage.removeItem('kwt_view');}catch(e){}window.scrollTo(0,0);} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
 function syncTestZone_(){setNavDot_('unit',false);} // 単元別のナビ赤●は出さない＝自主ペースで「今日やる必須」ではない。確認テストの直しは間違いノートに出る（川上さん 2026-07-26）
 /* スケルトン（読み込み中の形だけ先に見せる）2026-07-24 */
 function skelDaily_(){return '<div class="skel skel-focus"></div><div class="skel skel-row"></div><div class="skel skel-row"></div>';}
