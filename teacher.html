@@ -1151,6 +1151,23 @@
         .rp-setupd:hover{background:var(--crimson-dark);}
         .rp-setadd{border:1px dashed var(--border);background:#fff;color:var(--text-muted);border-radius:99px;padding:4px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
         .rp-setadd:hover{border-color:var(--crimson);color:var(--crimson);}
+        /* 保存セット＝プルダウンで選ぶ＋「上書き」と「新規」をボタンで分ける（川上さん 2026-08-20）*/
+        .rp-sel{border:1.5px solid var(--crimson-mid);background:#fff;color:var(--crimson-dark);border-radius:99px;padding:6px 12px;font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;max-width:340px;}
+        .rp-sel:disabled{color:var(--text-light);border-color:var(--border);cursor:not-allowed;}
+        .rp-state{font-size:11.5px;font-weight:800;border-radius:99px;padding:3px 10px;white-space:nowrap;}
+        .rp-state.none{background:var(--surface2);color:var(--text-muted);}
+        .rp-state.clean{background:#e7f6ee;color:#12805a;}
+        .rp-state.dirty{background:#fff3d6;color:#8a5a00;border:1px solid #f0c674;}
+        .rp-setspacer{flex:1;min-width:8px;}
+        .rp-acts{display:inline-flex;align-items:center;gap:8px;flex-wrap:nowrap;}
+        .rp-btn-upd{border:1.5px solid var(--crimson);background:#fff;color:var(--crimson-dark);border-radius:99px;padding:6px 15px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
+        .rp-btn-upd.hot{background:var(--crimson);color:#fff;box-shadow:0 2px 6px rgba(198,0,11,.28);}
+        .rp-btn-upd:disabled{background:#fff;border-color:var(--border);color:var(--text-light);cursor:not-allowed;box-shadow:none;}
+        .rp-btn-new{border:1.5px dashed var(--crimson-mid);background:#fff;color:var(--crimson-dark);border-radius:99px;padding:6px 15px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
+        .rp-btn-new:hover{border-style:solid;border-color:var(--crimson);}
+        .rp-btn-ico{border:1.5px solid var(--border);background:#fff;color:var(--text-muted);border-radius:99px;padding:5px 11px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+        .rp-btn-ico:hover:not(:disabled){border-color:var(--crimson);color:var(--crimson-dark);}
+        .rp-btn-ico:disabled{opacity:.4;cursor:not-allowed;}
         .rp-allbtn{border:1px solid var(--border);background:#fff;color:var(--text-muted);border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
         .rp-allbtn:hover{border-color:var(--crimson);color:var(--crimson);}
         .rp-sum{display:flex;gap:10px;flex-wrap:wrap;}
@@ -1235,11 +1252,14 @@
       <div class="qcard rp-setcard">
         <div class="rp-setline">
           <span class="rp-setttl" id="rpSetTtl">🔖 保存したセット</span>
-          <span id="rpSetChips"></span>
-          <button class="rp-setupd" id="rpSetUpd" style="display:none;" onclick="rpUpdateSet(this)">更新</button>
-          <button class="rp-setadd" onclick="rpSaveSet(this)">＋ 新しいセットとして保存</button>
+          <select class="rp-sel" id="rpSetSel" onchange="rpSetPick(this.value)"></select>
+          <span class="rp-state none" id="rpSetState"></span>
+          <button class="rp-btn-ico" id="rpSetRen" onclick="rpRenameSet(this)" title="このセットの名前を変える" disabled>✏️ 名前</button>
+          <button class="rp-btn-ico" id="rpSetDel" onclick="rpDelSet()" title="このセットを消す" disabled>🗑 消す</button>
+          <span class="rp-setspacer"></span>
+          <span class="rp-acts"><button class="rp-btn-upd" id="rpSetUpd" onclick="rpUpdateSet(this)" disabled>💾 上書き保存</button><button class="rp-btn-new" id="rpSetAdd" onclick="rpSaveSet(this)">＋ 新しいセットとして保存</button></span>
         </div>
-        <div class="rp-setnote">クリックすると「教材・絞り込み・期限」をまとめて呼び出します。先生全員で共有されます。<b>セットは30個まで、いくつでも作れます</b>（例：中1英単語／中2英単語／夏休み課題）。いま選んでいる条件を別の名前で残すときは「＋ 新しいセットとして保存」、選んでいるセット自体を直すときは「◯◯を更新」。</div>
+        <div class="rp-setnote" id="rpSetNote"></div>
         <div class="rp-setline rp-setdlline">
           <span class="rp-setsub">このセットの期限</span>
           <input type="date" id="rpDl" onchange="rpSetDL(this.value)">
@@ -4226,17 +4246,38 @@ function rpSelText_(){   /* 教材は本ごとにまとめて書く（Unit1 だ�
 }
 /* ---- 保存セット（サーバー保存・全先生で共有）---- */
 function rpDirty_(){ if(RP_CUR>=0){RP_LAST=RP_CUR;} RP_CUR=-1; RP_DIRTY=(RP_LAST>=0); rpRenderSets(); }
+/* 【確定・2026-08-20 川上さん】セットの選択はプルダウン。「新しく保存」と「上書き」をボタンで完全に分ける。
+   旧＝チップを横に並べて選び、変更すると「◯◯を更新」ボタンが出たり消えたりする作りで、
+   どれが選ばれているのか・押すと増えるのか上書きなのかが分からなかった。 */
+function _rpDlShort_(dl){ return dl?('〜'+String(dl).replace(/^\d{4}-/,'').replace('-','/')):''; }
 function rpRenderSets(){
-  var el=$('rpSetChips'); if(!el)return;
-  el.innerHTML=RP_SETS.map(function(s,i){
-    var d=s.dl?('<span class="rp-setdl">〜'+esc(String(s.dl).replace(/^\d{4}-/,'').replace('-','/'))+'</span>'):'';
-    return '<span class="rp-set'+(RP_CUR===i?' on':'')+'" onclick="rpLoadSet('+i+')">'+esc(s.name)+d+' <button class="rp-set-x" onclick="event.stopPropagation();rpDelSet('+i+')" title="このセットを消す">✕</button></span>';
-  }).join('')||'<span class="rp-mute">まだありません。教材と絞り込みを決めて「＋ 新しいセットとして保存」で作れます。</span>';
-  var tt=$('rpSetTtl'); if(tt)tt.textContent='🔖 保存したセット'+(RP_SETS.length?('（'+RP_SETS.length+'/30）'):''); // いくつ作れるかが見て分かるように 2026-08-20
+  var sel=$('rpSetSel'); if(!sel)return;
+  var cur=(RP_CUR>=0)?RP_CUR:RP_LAST;                       // 変更中でも「どのセットを見ているか」は出したままにする
+  if(!(cur>=0&&RP_SETS[cur]))cur=-1;
+  sel.innerHTML='<option value="-1">'+(RP_SETS.length?'— セットを選ぶ —':'— まだセットがありません —')+'</option>'
+    +RP_SETS.map(function(s,i){return '<option value="'+i+'"'+(cur===i?' selected':'')+'>'+esc(s.name)+esc(_rpDlShort_(s.dl))+'</option>';}).join('');
+  sel.value=String(cur); sel.disabled=!RP_SETS.length;
+  var tt=$('rpSetTtl'); if(tt)tt.textContent='🔖 保存したセット'+(RP_SETS.length?('（'+RP_SETS.length+'/30）'):'');
+  var st=$('rpSetState');
+  if(st){
+    if(cur<0){ st.className='rp-state none'; st.textContent='セット未選択（いまの画面の条件）'; }
+    else if(RP_DIRTY){ st.className='rp-state dirty'; st.textContent='変更あり（まだ保存していません）'; }
+    else { st.className='rp-state clean'; st.textContent='保存ずみ'; }
+  }
   var u=$('rpSetUpd');
-  if(u){ var on=(RP_DIRTY&&RP_LAST>=0&&RP_SETS[RP_LAST]);
-    u.style.display=on?'':'none';
-    if(on)u.textContent='「'+RP_SETS[RP_LAST].name+'」を更新'; }
+  if(u){ u.disabled=(cur<0); u.classList.toggle('hot',cur>=0&&RP_DIRTY);
+    u.textContent=(cur>=0)?('💾「'+RP_SETS[cur].name+'」に上書き'):'💾 上書き保存'; }
+  var rn=$('rpSetRen'), dl=$('rpSetDel');
+  if(rn)rn.disabled=(cur<0); if(dl)dl.disabled=(cur<0);
+  var nt=$('rpSetNote');
+  if(nt){ nt.innerHTML=(cur<0)
+    ? 'セットを選ぶと「教材・絞り込み・期限」をまとめて呼び出します。<b>セットは30個まで、いくつでも作れます</b>（例：中1英単語／中2英単語／夏休み課題）。いまの条件を残すなら「＋ 新しいセットとして保存」。先生全員で共有されます。'
+    : '<b>「'+esc(RP_SETS[cur].name)+'」を表示中。</b>条件を変えたら → <b>このセット自体を直す＝「上書き」</b>／<b>別のセットを増やす＝「＋ 新しいセットとして保存」</b>（いまのセットは消えません）。先生全員で共有されます。'; }
+}
+function rpSetPick(v){
+  var i=parseInt(v,10);
+  if(!(i>=0)){ RP_CUR=-1; RP_LAST=-1; RP_DIRTY=false; rpRenderSets(); return; } // 選択を外すだけ（画面の条件は変えない）
+  rpLoadSet(i);
 }
 function rpLoadSet(i){
   var s=RP_SETS[i]; if(!s)return;
@@ -4244,6 +4285,7 @@ function rpLoadSet(i){
   RP_F={cls:(s.f&&s.f.cls)||'all',grade:(s.f&&s.f.grade)||'all',sch:(s.f&&s.f.sch)||'all'};
   RP_DL=s.dl||''; var d=$('rpDl'); if(d)d.value=RP_DL;
   RP_CUR=i; RP_LAST=i; RP_DIRTY=false;
+  rpRenderSets(); // 【2026-08-20】旧実装はここを呼んでおらず、選んでも見た目が変わらなかった（＝どれを見ているか分からない主因）
   rpRenderMat(); rpRenderFilters(); rpRender();
 }
 function rpSaveSets_(next,msg,btn){    /* 保存はGAS完了後にトースト（原則3）*/
@@ -4255,26 +4297,38 @@ function rpSaveSets_(next,msg,btn){    /* 保存はGAS完了後にトースト�
     else { RP_SETS=old; rpRenderSets(); toast((d&&d.error)||'保存に失敗しました'); }
   });
 }
-function rpSaveSet(btn){
+function _rpCurSet_(){ var i=(RP_CUR>=0)?RP_CUR:RP_LAST; return (i>=0&&RP_SETS[i])?i:-1; }
+function rpSaveSet(btn){   /* ＝いつでも「増える」。いま選んでいるセットは絶対に書き換えない */
   if(!RP_SEL.length){ toast('先に教材を選んでください'); return; }
-  if(RP_SETS.length>=30){ toast('セットは30個までです。いらないものを✕で消してください'); return; }
-  var n=prompt('新しいセットの名前（例：中1英単語／夏休み課題）\n※ いまあるセットは消えません。いくつでも作れます。',''); if(!n)return;
+  if(RP_SETS.length>=30){ toast('セットは30個までです。いらないものを「🗑 消す」で消してください'); return; }
+  var n=prompt('新しいセットの名前（例：中1英単語／夏休み課題）\n※ 新しく追加します。いま選んでいるセットは書き換えません。',''); if(!n)return;
+  n=String(n).trim(); if(!n)return;
   var next=RP_SETS.concat([{name:n,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL}]);
   RP_SETS=next; RP_CUR=RP_SETS.length-1; RP_LAST=RP_CUR; RP_DIRTY=false; rpRenderSets();
-  rpSaveSets_(next,'「'+n+'」を保存しました（全'+next.length+'セット・先生全員に反映）',btn);
+  rpSaveSets_(next,'「'+n+'」を新しく保存しました（全'+next.length+'セット・先生全員に反映）',btn);
 }
-function rpUpdateSet(btn){
-  if(RP_LAST<0||!RP_SETS[RP_LAST])return;
+function rpRenameSet(btn){
+  var i=_rpCurSet_(); if(i<0)return;
+  var n=prompt('セットの名前を変える',RP_SETS[i].name); if(n===null)return;
+  n=String(n).trim(); if(!n)return;
+  var next=RP_SETS.slice(); next[i]=Object.assign({},RP_SETS[i],{name:n});
+  RP_SETS=next; rpRenderSets();
+  rpSaveSets_(next,'名前を「'+n+'」に変えました（先生全員に反映）',btn);
+}
+function rpUpdateSet(btn){   /* ＝いま選んでいるセットを書き換える（増えない）。消える内容があるので確認を出す */
+  var i=_rpCurSet_(); if(i<0)return;
+  if(!confirm('「'+RP_SETS[i].name+'」を いまの内容（教材・絞り込み・期限）で上書きします。\n前の内容は元に戻せません。よろしいですか？\n※ 増やしたいときは「＋ 新しいセットとして保存」。'))return;
   var next=RP_SETS.slice();
-  next[RP_LAST]={name:RP_SETS[RP_LAST].name,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL};
-  RP_SETS=next; RP_CUR=RP_LAST; RP_DIRTY=false; rpRenderSets();
-  rpSaveSets_(next,'セットを更新しました（先生全員に反映）',btn);
+  next[i]={name:RP_SETS[i].name,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL};
+  RP_SETS=next; RP_CUR=i; RP_LAST=i; RP_DIRTY=false; rpRenderSets();
+  rpSaveSets_(next,'「'+RP_SETS[i].name+'」を上書きしました（先生全員に反映）',btn);
 }
 function rpDelSet(i){
+  if(!(i>=0))i=_rpCurSet_(); if(i<0)return;
   var nm=(RP_SETS[i]&&RP_SETS[i].name)||''; if(!confirm('セット「'+nm+'」を消します。よろしいですか？（先生全員から消えます）'))return;
   var next=RP_SETS.slice(); next.splice(i,1);
-  RP_SETS=next; if(RP_CUR===i)RP_CUR=-1; if(RP_LAST===i){RP_LAST=-1;RP_DIRTY=false;} rpRenderSets();
-  rpSaveSets_(next,'セットを消しました');
+  RP_SETS=next; RP_CUR=-1; RP_LAST=-1; RP_DIRTY=false; rpRenderSets();
+  rpSaveSets_(next,'「'+nm+'」を消しました');
 }
 /* ---- 絞り込み（生徒一覧タブと同じ順・同じ部品：教室→学年→中学校）---- */
 function rpRenderFilters(){
