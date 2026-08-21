@@ -1909,7 +1909,7 @@ function prefetchQuizSeq_(ids){
     if(i>=ids.length||i>=MAXQ)return;
     var pid=ids[i++];
     if(_qprefetch[pid]){return next();}
-    var pr=call({action:'quiz_words',part_id:pid,prefetch:1}).then(function(d){ if(d&&d.ok&&d.data&&d.data.words&&d.data.words.length){_qprefetch[pid]=d;}else{delete _qprefetch[pid];} return d; }).catch(function(){delete _qprefetch[pid];}).then(function(){ setTimeout(next,50); }); // 1件ずつ・裏で連続取得（バースト回避）。prefetch:1＝先読み印（開始は記録しない）2026-07-28
+    var pr=call({action:'quiz_words',part_id:pid,prefetch:1}).then(function(d){ if(d&&d.ok&&d.data&&d.data.words&&d.data.words.length){_qprefetch[pid]=d;}else{delete _qprefetch[pid];} return d; }).catch(function(){delete _qprefetch[pid];return null;}).then(function(d){ setTimeout(next,50); return d; });/* 【2026-08-21】最後の .then で d を返す。返さないと「取得中Promise」が undefined に解決し、先読み中のパートをタップした生徒が「読み込み中…」で止まる */ // 1件ずつ・裏で連続取得（バースト回避）。prefetch:1＝先読み印（開始は記録しない）2026-07-28
     _qprefetch[pid]=pr;
   })();
 }
@@ -1918,10 +1918,10 @@ function startQuiz(partId){
   srsSes=null;noteSes=null;showPracticeLoading_();
   try{ call({action:'quiz_start',part_id:partId}); }catch(e){} /* リアルタイム：確認テストの「実際の開始」を専用pingで飛ばす（先読みでは飛ばさない＝一覧を開いただけで全パートが解き中になる不具合の対策）2026-07-28 */
   $('btn-next').style.display='none';$('btn-retry').style.display='flex';combo=0;maxCombo=0;ansCount=0;
-  var _c=_qprefetch[partId];
+  var _c=_qprefetch[partId];try{delete _qprefetch[partId];}catch(e){} // 使ったら捨てる（持ち続けると教材を直したあとも古い問題が出る）2026-08-21
   var _p=(_c&&_c.then)?_c:(_c?Promise.resolve(_c):call({action:'quiz_words',part_id:partId})); // 先読み済み/取得中があれば使う
-  _p.then(function(d){
-    if(!d.ok||!d.data||!d.data.words||!d.data.words.length){toast((d&&d.error)||'単語がありません');openHome();openQuizPane_();return;}
+  _p.then(function(d){ return (d&&d.ok)?d:call({action:'quiz_words',part_id:partId}); }).then(function(d){ // 先読みが空振り/失敗でも取り直す 2026-08-21
+    if(!d||!d.ok||!d.data||!d.data.words||!d.data.words.length){toast((d&&d.error)||'単語がありません');openHome();openQuizPane_();return;}
     var words=quizShuffle_(d.data.words.slice()); // 毎回シャッフル
     _fromReviewTest=false;
     _startPracticeWith_(partId,{ok:true,data:{words:words,subject:(d.data.subject||'english'),assets:(d.data.assets||{}),content_type:'test',direction:(d.data.direction||'')}});
@@ -3969,8 +3969,15 @@ function doneGuideHtml_(){return '<div style="background:var(--surface);border:1
  +'<button onclick="openHome();showSub(\'note\');" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;"><i class="ti ti-notebook"></i> <span><ruby>間違<rt class="uf">まちが</rt></ruby>いノート</span></button>'
  +'<button onclick="openHome();showSub(\'review\');" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;"><i class="ti ti-clock-bolt"></i> <span>おさらい</span></button>'
  +'</div></div>';}
+/* 完了画面(scr-done)は毎日学習・単元別・確認テスト・間違いノート・おさらいで使い回すので、
+   前のモードの表示が残らないよう共通で消す。今日のがんばりチップ・周目バッジ・ホームボタンの3つ。2026-08-21 */
+function _doneResetCommon_(){
+  var a=$('today-did-area');if(a)a.innerHTML='';
+  var l=$('done-lap');if(l)l.style.display='none';
+  var b=$('btn-home');if(b){b.textContent='ホームへもどる';b.onclick=function(){openHome();};}
+}
 function finishQuizSubmit_(){
-  var s=session;try{_resumeClear_();}catch(e){}show('scr-done');var _dgq=document.getElementById('done-guide-area');if(_dgq)_dgq.innerHTML='';hideQTimer();hideExplain();$('done-score-wrap').style.display='';var _dtq=$('done-tiles');if(_dtq)_dtq.innerHTML='';
+  var s=session;try{_resumeClear_();}catch(e){}show('scr-done');_doneResetCommon_();var _dgq=document.getElementById('done-guide-area');if(_dgq)_dgq.innerHTML='';hideQTimer();hideExplain();$('done-score-wrap').style.display='';var _dtq=$('done-tiles');if(_dtq)_dtq.innerHTML='';
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
   var e2jOnly=(s.dir==='e2j'); // 方向固定 2026-07-28
@@ -4019,7 +4026,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   animNum($('score-anim'),score,900); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル 2026-07-24
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=missWordsHtml(s.miss,s.words);
-  var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
+  _doneResetCommon_();var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
   $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(38)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>'+tipHtml_();
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
   $('btn-retry').style.display='flex';$('btn-next').style.display='none';$('btn-next').className='btn gold';lockBtns(true);
@@ -4202,7 +4209,7 @@ function submitNoteWord(){
 }
 function finishNote(){
   try{localStorage.setItem('kwt_note_done',todayStr_());}catch(e){} dailyState.note=true;renderDaily(); // デイリー：間違いノート本日分 完了 2026-07-04
-  var s=noteSes;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();var _dgn0=$('done-guide-area');if(_dgn0)_dgn0.innerHTML='';
+  var s=noteSes;$('prog').style.width='100%';show('scr-done');_doneResetCommon_();hideQTimer();hideExplain();var _dgn0=$('done-guide-area');if(_dgn0)_dgn0.innerHTML='';
   $('btn-next').style.display='none';$('btn-retry').style.display='none';
   var _db=$('done-badge');if(_db)_db.style.display='';
   $('done-badge').style.display='';$('done-badge').classList.remove('dib-gold','dib-ok','dib-accent');$('done-badge').innerHTML='<i class="ti ti-notebook" style="color:var(--sub)"></i>';
@@ -4214,6 +4221,7 @@ function finishNote(){
   $('done-miss').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
   $('star-area').innerHTML='<div class="note-saving"><div class="sw-load">'+kwtSpin(30)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby>しています…</span></div>'+tipHtml_()+'</div>';
   whenGradesFlushed(function(){
+    homeCacheClear_();/* 保存に失敗した回でも次のホームで最新を取り直す（おさらい finishSrs と同じ）2026-08-21 */
     if(gradeFailed>0){
       $('star-area').innerHTML='';
       $('done-miss').innerHTML='⚠ <ruby>一部<rt class="uf">いちぶ</rt></ruby>の<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby>できませんでした。<ruby>電波<rt class="uf">でんぱ</rt></ruby>の<ruby>良<rt class="uf">よ</rt></ruby>いところで もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やってね';
@@ -4406,7 +4414,7 @@ function submitSrsWord(){
   if(willGrad){setTimeout(adv,750);}else{adv();} // 卒業時だけ一拍おいて次へ（読み込みではなく演出を見せるため）
 }
 function finishSrs(){
-  var s=srsSes;$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();var _dgs=$('done-guide-area');if(_dgs)_dgs.innerHTML='';
+  var s=srsSes;$('prog').style.width='100%';show('scr-done');_doneResetCommon_();hideQTimer();hideExplain();var _dgs=$('done-guide-area');if(_dgs)_dgs.innerHTML='';
   var _sa=$('star-area');if(_sa)_sa.innerHTML=missWordsHtml(s.miss,s.words);
   setDoneBadge_('ok'); // おさらい本日分＝個別完了＝緑チェック 2026-08-08
   $('done-result').innerHTML='おさらい <ruby>完了<rt class="uf">かんりょう</rt></ruby>！'; // 表記は漢字（川上さん指示 2026-07-05）
