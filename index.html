@@ -1440,6 +1440,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <div class="done-miss" id="done-miss"></div>
         </div>
       </div>
+      <div id="done-daily-area"></div><!-- 今日のデイリーの進み（ホームと同じバー）2026-08-22 -->
       <div id="done-tiles"></div>
       <div id="today-did-area"></div>
       <div id="star-area"></div>
@@ -1584,7 +1585,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
-var APP_VERSION="kwt-2026-08-22"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-08-22b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4159,25 +4160,81 @@ function doneClearGuide_(){
    完了画面はセッションの直後で _dailyMain がまだ古いので、いま終えた教材を除いて数える。
    ＝ホームの「今日のデイリー ◯/◯」（renderDailyList_ の dprog）と同じ数え方。数える場所を1つにする（2026-07-26の決まり）。
    ホームを開いていない（_dailyMain が無い）ときは -1＝「分からない」を返す。分からないときに「完了」と言わないため。 */
-function dailyLeftAfter_(justPartId){
-  if(!_dailyMain) return -1;
-  var left=0;
+/* 【2026-08-22】いま合格した毎日学習の教材を、手元の _dailyMain でも「今日クリア」に倒す。
+   _dailyMain はホームを描いたときの状態なので、ホームに戻らず続けて別の教材をやると前の教材が「まだ」に見えてしまう。
+   ホームを開き直せば renderDailyList_ が入れ替えるので、これはその間だけのつじつま合わせ。 */
+function dailyMarkCleared_(partId){
+  if(!_dailyMain||!partId)return;
+  for(var i=0;i<_dailyMain.length;i++){
+    if(String(_dailyMain[i].part_id)===String(partId)){_dailyMain[i].cleared_today=true;return;}
+  }
+}
+function dailyProgAfter_(justPartId){
+  if(!_dailyMain) return null; // ホームを開いていない＝分からない
+  var segs='',done=0,total=0;
   for(var i=0;i<_dailyMain.length;i++){
     var m=_dailyMain[i];
-    if(m.cleared_today) continue;
-    if(justPartId && String(m.part_id)===String(justPartId)) continue; // いま終えたぶん
-    left++;
+    var ok=!!m.cleared_today||(justPartId&&String(m.part_id)===String(justPartId)); // いま終えたぶんも「できた」に倒す
+    segs+='<i class="'+(ok?'on':'')+'"></i>';total++;if(ok)done++;
   }
-  if(dailyState.review!==true) left++; // おさらい枠（未取得のときも「まだ」扱い＝ホームと同じ）
-  return left;
+  var os=(dailyState.review===true); // おさらい枠（未取得のときも「まだ」扱い＝ホームと同じ）
+  segs+='<i class="'+(os?'on':'')+'" title="おさらい"></i>';total++;if(os)done++;
+  return {done:done,total:total,segs:segs};
+}
+function dailyLeftAfter_(justPartId){
+  var pg=dailyProgAfter_(justPartId);
+  if(!pg) return -1;
+  return pg.total-pg.done;
+}
+/* 完了画面に出す「今日のデイリー」の進みバー。ホーム（renderDailyList_ の dprog）と同じ部品・同じ数え方。
+   川上さん確定 2026-08-22＝完了画面の残数が小さいグレー文字で見落とされていたので、ホームと同じ見た目にする。
+   分からないとき（ホーム未取得）は何も出さない。 */
+function dailyProgHtml_(justPartId){
+  var pg=dailyProgAfter_(justPartId);if(!pg)return '';
+  return '<div class="dprog" style="margin-top:12px;margin-bottom:0;"><div class="dprog-t"><span><ruby>今日<rt class="uf">きょう</rt></ruby>のデイリー</span><b>'+pg.done+'<span class="tot"> / '+pg.total+' できた</span></b></div><div class="dprog-dots">'+pg.segs+'</div></div>';
+}
+function renderDoneDaily_(justPartId){
+  var a=$('done-daily-area');if(!a)return;
+  a.innerHTML=dailyProgHtml_(justPartId);
+}
+/* 【2026-08-22】「君の今日のがんばり」チップ。数字の出どころは2つ（保存の返り値＝速い／complete_extras＝付与後の確定値）だが、
+   描くのはこの1か所だけにする。空のときは消さない＝先に出た速い方を残す。中身が同じなら書き換えない＝ちらつかせない。 */
+function effortChipsHtml_(d2){
+  if(!d2)return '';
+  var chips='';
+  if((d2.today_streak||0)>=2)chips+='<span class="chip streak"><i class="ti ti-flame"></i> <ruby>連続<rt class="uf">れんぞく</rt></ruby>'+d2.today_streak+'<ruby>日<rt class="uf">にち</rt></ruby></span>';
+  if((d2.week_words||0)>0)chips+='<span class="chip week"><i class="ti ti-book"></i> <ruby>今週<rt class="uf">こんしゅう</rt></ruby>'+d2.week_words+'<ruby>語<rt class="uf">ご</rt></ruby></span>';
+  if(d2.today_top_badge){var tb=d2.today_top_badge;var bic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[tb.axis])||'ti-award';chips+='<span class="chip badge"><i class="ti '+bic+'"></i> '+tb.label+'</span>';}
+  if(!chips)return '';
+  return '<div class="today-did"><div class="h"><i class="ti ti-flame"></i> <span><ruby>君<rt class="uf">きみ</rt></ruby>の<ruby>今日<rt class="uf">きょう</rt></ruby>のがんばり</span></div><div class="row">'+chips+'</div></div>';
+}
+function renderEffort_(d2){
+  var ar=$('today-did-area');if(!ar)return;
+  var html=effortChipsHtml_(d2);
+  if(html&&ar.innerHTML!==html)ar.innerHTML=html;
+}
+/* 【2026-08-22】完了画面の待ち時間の実測。推測で直さないための材料。
+   読み方＝ブラウザのコンソールで JSON.parse(localStorage.getItem('kwt_perf'))
+   k: save=保存の往復／extras=がんばり集計の往復／chip=最後の答えからチップが出るまで（体感そのもの） */
+var _finT0=0;
+function _perfNow_(){try{return (window.performance&&performance.now)?performance.now():Date.now();}catch(e){return Date.now();}}
+function _perfPush_(k,ms){
+  try{
+    var o={k:k,ms:Math.round(ms),t:new Date().toISOString(),v:(typeof APP_VERSION!=='undefined'?APP_VERSION:'')};
+    window._x=window._x||[];window._x.push(o);
+    var a=[];try{a=JSON.parse(localStorage.getItem('kwt_perf')||'[]');}catch(e){a=[];}
+    a.push(o);while(a.length>30)a.shift();
+    localStorage.setItem('kwt_perf',JSON.stringify(a));
+  }catch(e){}
 }
 /* 毎日学習の1教材を終えたときの見出し。デイリー全部が終わったときだけ「デイリー完了」と言う。
    【地雷】ここを「1教材クリア＝今日の分完了・●全部消えた」に戻さない。
    2026-08-22 に川上さんから「英語を1つやっただけで全部完了の通知が出るのに、ホームは1/4」と指摘された箇所。 */
+/* 【2026-08-22 更新】残りの数はここでは言わない。すぐ下に出る「今日のデイリー ◯/◯」のバーが言う（同じことを2回書かない・川上さん確定）。
+   デイリーが全部おわったときだけ、お祝いの一言を足す。 */
 function doneDailyTtl_(left){
   if(left===0) return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;"><ruby>今日<rt class="uf">きょう</rt></ruby>のデイリー、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div><div class="done-guide" style="margin-top:3px;">●が<ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>消<rt class="uf">き</rt></ruby>えた。よくがんばったね。</div>';
-  var sub=(left>0)?('<div class="done-guide" style="margin-top:3px;"><ruby>今日<rt class="uf">きょう</rt></ruby>のデイリーはあと '+left+' <ruby>個<rt class="uf">こ</rt></ruby>。</div>'):'';
-  return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;">この<ruby>教材<rt class="uf">きょうざい</rt></ruby>の<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div>'+sub;
+  return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;">この<ruby>教材<rt class="uf">きょうざい</rt></ruby>の<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div>';
 }
 /* 【2026-08-22】単元別の1パートを終えたときの見出し。単元別は自分のペースで進めるので「今日の分」という枠がない。
    【地雷】ここを「今日の分完了・●全部消えた」に戻さない（毎日学習の doneDailyTtl_ と同じ理由・川上さん確定 2026-08-22）。
@@ -4198,6 +4255,7 @@ function doneGuideHtml_(){return '<div style="background:var(--surface);border:1
    前のモードの表示が残らないよう共通で消す。今日のがんばりチップ・周目バッジ・ホームボタンの3つ。2026-08-21 */
 function _doneResetCommon_(){
   var a=$('today-did-area');if(a)a.innerHTML='';
+  var dd=$('done-daily-area');if(dd)dd.innerHTML=''; // 前のモードのデイリーバーを残さない 2026-08-22
   var l=$('done-lap');if(l)l.style.display='none';
   var b=$('btn-home');if(b){b.innerHTML='<span>ホームへ<ruby>戻<rt class="uf">もど</rt></ruby>る</span>';b.onclick=function(){openHome();};}
 }
@@ -4239,7 +4297,7 @@ function finishQuizSubmit_(){
     $('star-area').innerHTML='<div style="text-align:center;margin:6px 0 2px;">'+delta+'</div>'+missHtml;
   });
 }
-function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit_();}try{_resumeClear_();}catch(e){}$('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';
+function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit_();}try{_resumeClear_();}catch(e){}_finT0=_perfNow_(); /* 最後の答え→チップまでを測る 2026-08-22 */ $('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';
   _starPre=call({action:'shooting_star',exclude:starRecent_().join(',')}).catch(function(){return {ok:false};}); // 流れ星を採点と並行取得（体感改善 2026-07-08）／直近に出た子はexcludeで避ける 2026-07-21
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
@@ -4257,21 +4315,24 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   $('btn-retry').style.display='flex';$('btn-next').style.display='none';$('btn-next').className='btn gold';lockBtns(true);
   var _dg0=$('done-guide-area');if(_dg0)_dg0.innerHTML='';var _bh=$('btn-home');if(_bh){_bh.innerHTML='<span>ホームへ<ruby>戻<rt class="uf">もど</rt></ruby>る</span>';_bh.onclick=function(){openHome();};}
   var _saveGuard=setTimeout(function(){lockBtns(false);},12000); // 保存が返らなくてもボタンは戻す（詰み防止）
+  var _svT0=_perfNow_(); // 保存の往復を測る 2026-08-22
   call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,word_ids:(s.words||[]).map(function(w){return w.id;}),mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:_elapsedMs_(s),rush_wrong_count:Object.keys(s._rushWords||{}).length}).then(function(d){
-    clearTimeout(_saveGuard);lockBtns(false);var _db2=$('done-badge');if(_db2)_db2.style.display='';
+    clearTimeout(_saveGuard);lockBtns(false);_perfPush_('save',_perfNow_()-_svT0);var _db2=$('done-badge');if(_db2)_db2.style.display='';
     if(!d.ok){$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>結果<rt class="uf">けっか</rt></ruby>の<ruby>保存<rt class="uf">ほぞん</rt></ruby>に<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました。もう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>試<rt class="uf">ため</rt></ruby>そう';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
     /* 高速化 2026-07-15：今日のがんばり集計＋word_statsは保存(session_complete)の待ちから外し、
        完了後に complete_extras を裏で取得してチップを出す。保存本体はこの前に確定済み＝失敗しても学習データは無事。 */
-    (function(){var ar=$('today-did-area');if(!ar)return;ar.innerHTML='';
+    (function(){var ar=$('today-did-area');if(!ar)return;
+      /* 【2026-08-22】まず保存の返り値でチップを出す。旧＝complete_extras の返りを待っていたので往復2回ぶん（4秒以上）おくれていた。
+         complete_extras はフリーズの付与を含む確定値を返すので、返ってきたら静かに差し替える。 */
+      try{renderEffort_(d.data&&d.data.effort);_perfPush_('chip',_perfNow_()-_finT0);}catch(e){}
+      var _tx0=_perfNow_();
       call({action:'complete_extras',part_id:s.listId,word_ids:(s.words||[]).map(function(w){return w.id;}),miss_word_ids:s.miss}).then(function(ex){
-        if(!ex||!ex.ok||!ex.data)return;var d2=ex.data;var chips='';
+        _perfPush_('extras',_perfNow_()-_tx0);
+        if(!ex||!ex.ok||!ex.data)return;var d2=ex.data;
         try{var _tk=(d2.today_streak||0),_td=todayStr_();if(_tk>=1&&localStorage.getItem('kwt_cele_shown')!==_td){localStorage.setItem('kwt_streak_pending',JSON.stringify({date:_td,streak:_tk}));}}catch(e){} // ホーム復帰お祝いの予約（その日はじめて）2026-07-24
         try{if(typeof d2.freeze_count!=='undefined'){_freezeCount=d2.freeze_count||0;renderStreakCard_();}}catch(e){} // ストリークフリーズ手持ちを反映 2026-07-25
         try{if(d2.froze_today&&d2.froze_today.length){toast('❄️ フリーズで<ruby>連続<rt class="uf">れんぞく</rt></ruby>を<ruby>守<rt class="uf">まも</rt></ruby>った！');}}catch(e){} // 休んだ日をフリーズで守ったとき 2026-07-25
-        if((d2.today_streak||0)>=2)chips+='<span class="chip streak"><i class="ti ti-flame"></i> <ruby>連続<rt class="uf">れんぞく</rt></ruby>'+d2.today_streak+'<ruby>日<rt class="uf">にち</rt></ruby></span>';
-        if((d2.week_words||0)>0)chips+='<span class="chip week"><i class="ti ti-book"></i> <ruby>今週<rt class="uf">こんしゅう</rt></ruby>'+d2.week_words+'<ruby>語<rt class="uf">ご</rt></ruby></span>';
-        if(d2.today_top_badge){var tb=d2.today_top_badge;var bic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[tb.axis])||'ti-award';chips+='<span class="chip badge"><i class="ti '+bic+'"></i> '+tb.label+'</span>';}
-        if(chips)ar.innerHTML='<div class="today-did"><div class="h"><i class="ti ti-flame"></i> <span><ruby>君<rt class="uf">きみ</rt></ruby>の<ruby>今日<rt class="uf">きょう</rt></ruby>のがんばり</span></div><div class="row">'+chips+'</div></div>';
+        try{renderEffort_(d2);}catch(e){} // 付与のあとの確定値で差し替え（同じ内容なら書き換えない＝ちらつかせない）
       });
     })();
     var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').innerHTML=d.data.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby>';}else{dl.style.display='none';}}
@@ -4294,6 +4355,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
           if(d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span><ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のパート）</span>';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}}
       else{setDoneBadge_('accent');$('done-result').innerHTML='このパートは <b>まだ<ruby>合格<rt class="uf">ごうかく</rt></ruby>していない</b>。<br><span class=\"done-guide\">「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で <b>80%</b> とれたら、このパート<ruby>合格<rt class="uf">ごうかく</rt></ruby>！</span>';} /* 単元別は自分のペース＝「今日の分」の枠が無いのでパート単位の文言に 2026-08-22 */
     }else if(d.data.passed){sndWin();flash();confetti(120);
+      dailyMarkCleared_(s.listId);renderDoneDaily_(s.listId); /* 今日のデイリーの進みをホームと同じバーで出す（教材クリアでも同じ）2026-08-22 川上さん確定 */
       if(d.data.completed_material){setDoneBadge_('gold');$('done-result').innerHTML=doneClearTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();}
       else{setDoneBadge_('ok');$('done-result').innerHTML=doneDailyTtl_(dailyLeftAfter_(s.listId));$('done-guide-area').innerHTML=nextStepGuide_(); /* 今日のぶん完了＝緑 2026-08-08／デイリー全部かどうかで文言を出し分け 2026-08-22 */
         if(d.data.advanced&&d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span><ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のDAY）</span>';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}
