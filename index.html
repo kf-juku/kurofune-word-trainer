@@ -832,6 +832,19 @@
 
   /* 練習 */
   .prac-top{display:flex;justify-content:space-between;align-items:center;margin:-4px 0 2px;}
+  /* 学習中の帯＝いま何をやっているか（A-1・川上さん確定 2026-08-21）。色は識別色そのまま＝student-ui-design §18-1。押す対象ではない（カードにしない） */
+  .nowbar{display:flex;align-items:center;gap:10px;margin:6px 0 2px;padding:0 2px;}
+  .nowbar .nb-ic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto;}
+  .nowbar .nb-b{flex:1;min-width:0;}
+  .nowbar .nb-k{font-size:11px;font-weight:800;letter-spacing:.02em;}
+  .nowbar .nb-p{font-size:13px;font-weight:700;margin-top:1px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .nowbar .nb-p small{font-weight:500;color:var(--sub);font-size:11px;}
+  .nowbar.k-gold .nb-ic{background:var(--n-goldsoft);color:var(--gold);}
+  .nowbar.k-gold .nb-k{color:var(--gold);}
+  .nowbar.k-quiz .nb-ic{background:var(--quiz-soft);color:var(--quiz);}
+  .nowbar.k-quiz .nb-k{color:var(--quiz);}
+  .nowbar.k-accent .nb-ic{background:var(--accent-soft);color:var(--accent);}
+  .nowbar.k-accent .nb-k{color:var(--accent);}
   .prac-quit{background:none;border:none;color:var(--sub);font-size:13px;font-family:inherit;cursor:pointer;padding:6px 8px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;}
   .prac-quit:hover{background:var(--ring-track);color:var(--ink);}
   .prac-refresh{background:none;border:none;color:var(--sub);font-size:13px;font-family:inherit;cursor:pointer;padding:6px 8px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;}
@@ -1367,6 +1380,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   <section id="scr-practice" class="screen">
     <div class="body">
       <div class="prac-top"><button class="prac-quit" id="btn-quit" type="button"><i class="ti ti-x"></i> <span>やめる</span></button><div class="prac-acts"><button class="prac-refresh" id="btn-pause" type="button"><i class="ti ti-player-pause"></i> <span class="pr-t"><ruby>一時停止<rt class="uf">いちじていし</rt></ruby></span></button><button class="prac-refresh" id="btn-refresh" type="button"><i class="ti ti-refresh"></i> <span class="pr-t"><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div></div>
+      <div class="nowbar" id="now-bar" style="display:none;"></div>
       <div class="prog"><i id="prog"></i></div>
       <div class="muted center" id="step-label"></div>
       <div class="furi-bar" id="furi-bar"></div>
@@ -1743,6 +1757,7 @@ var _navStack=[],_navBack=false;
 function _curViewKey_(){var v='';try{v=sessionStorage.getItem('kwt_view')||'';}catch(e){}return (v&&SUB_TITLES[v])?('sub:'+v):('tab:'+(_homeTab||'daily'));}
 function goBack_(){var prev=_navStack.pop();if(!prev){backToTiles();return;}_navBack=true;try{if(prev.indexOf('sub:')===0){showSub(prev.slice(4));}else{showHomeTab(prev.slice(4));}}finally{_navBack=false;}}
 function showSub(name){
+  if(name!=='lists'){_mapFocusMid=null;} /* 学習マップ以外に移ったらピンポイント指定を捨てる 2026-08-21 */
   if(!_navBack){try{var cur=_curViewKey_();if(cur!==('sub:'+name))_navStack.push(cur);}catch(e){}} // 今の画面を履歴に積む（戻る用）
   try{sessionStorage.setItem('kwt_view',name);}catch(e){} // スマホ更新で最後の画面を復元（川上さん確定2026-07-06）
   try{if(name==='team')setTab5_('team');else if(name==='records'||name==='overall'||name==='badge'||name==='lists')setTab5_('record');}catch(e){}
@@ -2512,7 +2527,7 @@ function renderUnitZone_(materials){
         var target=cur?cur.part_id:(firstUnpassed?firstUnpassed.part_id:(ps[0]?ps[0].part_id:''));
         var allPass=(t2>0&&p2===t2);
         var isDone=(String(c.sm_status)==='completed')||allPass; // 完走＝全パート合格 or 割当が完了状態 2026-08-08
-        detail+='<div class="nchap'+(isDone?' done':'')+'" data-pid="'+esc(String(target))+'"'+(isDone?' data-map="1"':'')+'><div class="ncf-nm">'+esc(mtShortMt(c))
+        detail+='<div class="nchap'+(isDone?' done':'')+'" data-pid="'+esc(String(target))+'"'+(isDone?(' data-map="1" data-mid="'+esc(String(c.material_id||''))+'"'):'')+'><div class="ncf-nm">'+esc(mtShortMt(c))
           +(isDone?'<small class="chap-done">🎉 <ruby>完走<rt class="uf">かんそう</rt></ruby> ・ <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで<ruby>復習<rt class="uf">ふくしゅう</rt></ruby>できる</small>':'<small>できた '+p2+'/'+t2+'</small>')+'</div>'
           +(isDone?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
       });
@@ -2520,7 +2535,7 @@ function renderUnitZone_(materials){
       book.innerHTML=head+detail;
       if(_open.indexOf(g.key)>=0)book.classList.add('open'); // リロード後も開いた本を保持
       book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_unitOpenToggle_(g.key,book.classList.contains('open'));};
-      book.querySelectorAll('.nchap').forEach(function(row){var pid=row.getAttribute('data-pid');var isMap=row.getAttribute('data-map')==='1';row.onclick=function(){ if(isMap){showSub('lists');} else if(pid){startPractice(pid);} };}); // 完走章は学習マップ(復習)へ・未完走は練習へ 2026-08-08
+      book.querySelectorAll('.nchap').forEach(function(row){var pid=row.getAttribute('data-pid');var isMap=row.getAttribute('data-map')==='1';row.onclick=function(){ if(isMap){goMapSub_(row.getAttribute('data-mid'));} else if(pid){startPractice(pid);} };}); // 完走章は学習マップ(復習)へ・未完走は練習へ 2026-08-08
       host.appendChild(book);
     });
     host.appendChild(uhint); // 本の一覧の下に置く（帯→本→学習マップ導線 の順）2026-08-20
@@ -2688,7 +2703,7 @@ function loadHomeData_(showSkel){
       var bookKind=_allTest?'<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>':(_allDaily?'<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>':'');
       var kindIc=_allTest?'ti-flag':(_allDaily?'ti-anchor':'');
       var kindPill=bookKind?(' <span class="mkind"><i class="ti '+kindIc+'"></i>'+bookKind+'</span>'):'';
-      var book=document.createElement('div');book.className='nbook';
+      var book=document.createElement('div');book.className='nbook';book.setAttribute('data-bk',String(g.key||'')); /* ピンポイント遷移で開いた状態を記憶するため 2026-08-21 */
       book.innerHTML='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subjB)+'"></i></div><div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+kindPill+'</div><div class="nbk-meta">'+(subjB?'<span class="nbk-subj">'+esc(subjLabel(subjB))+'</span> ':'')+'できた '+bpct+'%</div><div class="nbk-bar"><i style="width:'+bpct+'%"></i></div></div><i class="ti ti-chevron-down nbk-arw"></i></div>';
       var bdetail=document.createElement('div');bdetail.className='nbk-detail';book.appendChild(bdetail);
       if(_mapOpen.indexOf(g.key)>=0)book.classList.add('open'); // 学習マップも開いた本を保持（単元別と統一）2026-07-24
@@ -2700,7 +2715,7 @@ function loadHomeData_(showSkel){
         var passedN=parts.filter(function(l){return l.passed;}).length;
         var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
         var curLbl=curPart?(isTest?esc(curPart.l.title):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
-        var ov=document.createElement('div');ov.className='ov-card';
+        var ov=document.createElement('div');ov.className='ov-card';ov.setAttribute('data-mid',String(c.material_id||'')); /* ピンポイント遷移の宛先 2026-08-21 */
         var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'');
         var right=curPart?(curLbl+' <small>/ <ruby>全<rt class="uf">ぜん</rt></ruby>'+total+'</small>'):('クリア '+passedN+' <small>/ <ruby>全<rt class="uf">ぜん</rt></ruby>'+total+'</small>');
         var pct=total?Math.round(passedN/total*100):0;
@@ -2714,7 +2729,11 @@ function loadHomeData_(showSkel){
         var detail=document.createElement('div');detail.className='macc-detail';
         var cleared=parts.filter(function(l){return l.passed&&!l.is_current;});
         var rest=parts.filter(function(l){return !(l.passed&&!l.is_current);});
-        if(cleared.length){
+        /* 【案B・2026-08-21】全部合格した教材は「クリア済み（N）」に畳まない。
+           畳むと、開いてもその1行しか出てこない（完走教材は全部クリア済みなので畳む意味がない）＝川上さん指摘。 */
+        var _allDone=(total>0&&passedN===total);
+        if(_allDone){ parts.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,true));}); }
+        else if(cleared.length){
           var contig=!isTest&&cleared.every(function(l,i){return (l.part_order||0)===i+1;});
           var lbl='クリア<ruby>済<rt class="uf">ず</rt></ruby>み '+(contig?('DAY 1〜'+cleared[cleared.length-1].part_order+'　'):'')+'（'+cleared.length+'）';
           var fold=document.createElement('div');fold.className='done-fold';
@@ -2724,12 +2743,13 @@ function loadHomeData_(showSkel){
           fold.onclick=function(e){e.stopPropagation();fold.classList.toggle('open');farea.classList.toggle('open');};
           detail.appendChild(fold);detail.appendChild(farea);
         }
-        rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false));});
+        if(!_allDone)rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false));});
         ov.onclick=function(){ov.classList.toggle('open');detail.classList.toggle('open');};
         bdetail.appendChild(ov);bdetail.appendChild(detail);
       });
       macc.appendChild(book);
     });
+    try{_mapApplyFocus_(macc);}catch(e){} /* 完了画面・単元別から指定された教材を開いて見せる 2026-08-21 */
   });
   // 間違いノート：教科ごとにカードを出す（理社対応・機能仕様書_テスト配信 §3-5・2026-07-04）。0件の教科はカードを出さない。
   loadNotes();
@@ -3268,8 +3288,43 @@ function _quizAns(s,w,ok,_el,which){ measAns_(_el,ok); s._answered=s._answered||
 function renderStep(){renderQz_(session);}
 function renderSrsStep(){renderQz_(srsSes);}
 function renderNoteStep(){renderQz_(noteSes);}
+/* 学習中の帯（A-1・川上さん確定 2026-08-21）＝いま何をやっているかを常時出す。
+   種別は renderQz_ が受け取る活性セッションだけで決まる（session/srsSes/noteSes を外から見に行かない）。
+   教材名は _partIdx（mtShortMt 経由で作った索引）から取る＝生タイトルを描かない（教材名_描画ガード）。
+   押す対象ではない＝カードにしない・タップしても何も起きない（student-ui-design §18-2）。 */
+var _nowBarKey='';
+function _nowBarSync_(s){
+  var el=$('now-bar'); if(!el)return;
+  if(!s){el.style.display='none';_nowBarKey='';return;}
+  var kind='daily';
+  if(s.mode==='srs')kind='srs';
+  else if(s.mode==='note')kind='note';
+  else if(s.quizMode)kind='quiz';
+  else if(String(s.content_type||'')==='test')kind='unit';
+  var K={
+    daily:{ic:'ti-anchor',       c:'gold'  ,nm:rb('毎日','まいにち')+rb('学習','がくしゅう')},
+    unit :{ic:'ti-flag',         c:'gold'  ,nm:rb('単元別','たんげんべつ')+'の'+rb('練習','れんしゅう')},
+    quiz :{ic:'ti-checkup-list', c:'quiz'  ,nm:rb('確認','かくにん')+'テスト'},
+    srs  :{ic:'ti-clock-bolt',   c:'accent',nm:'おさらい'},
+    note :{ic:'ti-notebook',     c:'accent',nm:rb('間違','まちが')+'いノート'}
+  }[kind];
+  var mat='',part='';
+  try{
+    if(kind==='srs'){ var _os=String(s.osSubject||''); mat=_os?subjLabel(_os):'おまかせ'; part=(s.total||(s.words||[]).length)+'語'; }
+    else if(kind==='note'){ mat=subjLabel(s.subject||''); part=(s.total||(s.words||[]).length)+'語'; }
+    else{ var e=_partIdx[String(s.listId||'')]; if(e){mat=e.mat||'';part=e.part||'';} }
+  }catch(e){}
+  var key=kind+'|'+mat+'|'+part;
+  if(key===_nowBarKey&&el.style.display!=='none')return;   /* 毎問の再描画で作り直さない */
+  _nowBarKey=key;
+  el.className='nowbar k-'+K.c;
+  el.style.display='';
+  el.innerHTML='<div class="nb-ic"><i class="ti '+K.ic+'"></i></div><div class="nb-b"><div class="nb-k">'+K.nm+'</div>'
+    +((mat||part)?('<div class="nb-p">'+(mat?'<small>'+esc(mat)+' ・ </small>':'')+esc(part)+'</div>'):'')+'</div>';
+}
 function renderQz_(s){
   if(!s||!s.words||!s.words[s.idx])return; _quizSes=s;
+  try{_nowBarSync_(s);}catch(e){}
   var w=s.words[s.idx],tot=s.words.length;
   $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
   $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
@@ -3517,7 +3572,7 @@ function _buildPartIdx_(mats){
     var sj='';try{sj=_subjGuess_(c)||'';}catch(e){}
     (c.parts||[]).forEach(function(pt){
       var pid=String(pt.part_id||pt.id||'');if(!pid)return;
-      _partIdx[pid]={subj:sj,part:String(pt.title||pt.name||''),mat:String(mtShortMt(c)||c.material_title||c.title||''),
+      _partIdx[pid]={subj:sj,part:String(pt.title||pt.name||''),mat:String(mtShortMt(c)||c.material_title||c.title||''),mid:String(c.material_id||''),
         /* 単元別の練習状況（確認テスト一覧に「練習ずみ 4日前／まだ練習していない」を出すため）2026-08-20。
            material_parts は content_type=test のパートに passed（80%合格）と last_pass_date を返す＝GAS改修は不要。 */
         isTest:(c.content_type==='test'),passed:!!pt.passed,attempted:!!pt.attempted,lastPass:String(pt.last_pass_date||'')};
@@ -4029,7 +4084,39 @@ function tipHtml_(){var tp=TIPS[Math.floor(Math.random()*TIPS.length)];return '<
    採点・合格判定はGAS側(quizSubmit)が sessionComplete と同一ロジックで実施。ここは表示のみ。 */
 function doneClearTtl_(){return '<div style="font-weight:800;font-size:20px;letter-spacing:-.01em;"><ruby>全部<rt class="uf">ぜんぶ</rt></ruby>クリア！おめでとう</div>'
  +'<div style="margin-top:5px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(202,162,74,.06));color:var(--gold);border:1px solid rgba(202,162,74,.35);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;"><i class="ti ti-anchor"></i> <span>この<ruby>教材<rt class="uf">きょうざい</rt></ruby><ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby></span></div>';}
-function goMapSub_(){openHome();showSub('lists');} // 学習マップを開く（完了画面・単元別の誘導から）2026-08-01
+/* 学習マップを開く（完了画面・単元別の誘導から）2026-08-01。
+   2026-08-21：教材を指定すると、その本と教材カードを開いた状態にして、そこまでスクロールして一瞬光らせる（案A）。
+   完走したのに『本→教材→クリア済み』と3回開かないとDAYに届かなかったため（川上さん指摘）。
+   引数なしで呼ばれたときは、いま終えた学習のパートから教材を引く（完了画面の副ボタン）。指定が無ければ従来どおり全部畳んだ状態。 */
+var _mapFocusMid=null,_mapFocusDone=false;
+function goMapSub_(mid){
+  try{ if(!mid&&session&&session.listId){var e=_partIdx[String(session.listId)];if(e&&e.mid)mid=e.mid;} }catch(e){}
+  _mapFocusMid=mid?String(mid):null;_mapFocusDone=false;
+  var _onHome=false;try{_onHome=$('scr-home').classList.contains('active');}catch(e){}
+  if(!_onHome)openHome();   /* 完了画面からはホームに戻す。単元別タブからは既にホームなので再取得しない */
+  showSub('lists');
+  /* 学習マップが既に描かれているとき（再取得しない経路）は、ここで開いて見せる。まだなら描画側の _mapApplyFocus_ が拾う */
+  setTimeout(function(){try{_mapApplyFocus_();}catch(e){}},60);
+}
+/* 指定された教材を開いて見せる。学習マップは callCached の二段描画で2回描かれるので、描画のたびに呼ぶ（開くのは毎回・スクロールと光らせるのは1回だけ）*/
+function _mapApplyFocus_(macc){
+  macc=macc||document.querySelector('#review-area .macc');
+  if(!_mapFocusMid||!macc)return;
+  var ov=macc.querySelector('.ov-card[data-mid="'+String(_mapFocusMid).replace(/"/g,'')+'"]');
+  if(!ov)return;
+  var book=ov.closest('.nbook');
+  if(book&&!book.classList.contains('open')){book.classList.add('open');try{_openToggle_('kwt_map_open',book.getAttribute('data-bk')||'',true);}catch(e){}}
+  var dt=ov.nextElementSibling;
+  if(!ov.classList.contains('open')){ov.classList.add('open');if(dt&&dt.classList.contains('macc-detail'))dt.classList.add('open');}
+  if(_mapFocusDone)return;
+  _mapFocusDone=true;
+  setTimeout(function(){
+    try{ov.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+    /* 光らせ方は記録タブの連続記録カードへ飛ぶ処理(gotoStreakCard_)と同じ。色だけ現在地の青にする */
+    var _o=ov.style.boxShadow;ov.style.transition='box-shadow .3s';ov.style.boxShadow='0 0 0 3px var(--accent)';
+    setTimeout(function(){ov.style.boxShadow=_o||'';},1400);
+  },140);
+}
 /* 単元別タブ全クリア＝grand（金トロフィー）2026-08-01 */
 function doneUnitAllTtl_(){return '<div style="font-weight:800;font-size:20px;letter-spacing:-.01em;"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>、<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>クリア！おめでとう</div>'
  +'<div style="margin-top:5px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(202,162,74,.16),rgba(202,162,74,.06));color:var(--gold);border:1px solid rgba(202,162,74,.35);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;"><i class="ti ti-trophy"></i> <span><ruby>割<rt class="uf">わ</rt></ruby>り<ruby>当<rt class="uf">あ</rt></ruby>ての<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>を<ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby></span></div>';}
