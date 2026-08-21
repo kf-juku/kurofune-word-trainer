@@ -1585,7 +1585,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
-var APP_VERSION="kwt-2026-08-22b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-08-22c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4736,6 +4736,17 @@ function finishSrs(){
     $('done-miss').innerHTML=_mkLines().join('　'); // 保存確定後に卒業/次回を確定表示（無ければ空）
     // 空チェック（花火はもう出ている）→ 全消化なら王冠に格上げ。ピークが遅くても演出済みなので害なし。2026-07-26
     call({action:'review_due'}).then(function(d){
+      /* 【2026-08-22】おさらいもデイリー4枠のうちの1つ（毎日学習の各教材＋おさらい枠1）。
+         おさらいを終えた時点でも「今日のデイリー ◯/◯」を出す（毎日学習の完了画面とそろえる・川上さん確定）。
+         枠が終わったかどうかは推測せず、サーバーの osarai_today_done を使う。
+         すでに呼んでいる review_due の返り値なので、往復は増えない。 */
+      try{
+        if(d&&d.ok&&d.data&&typeof d.data.osarai_today_done!=='undefined'){
+          dailyState.review=!!d.data.osarai_today_done;
+          if(_dailyMain)renderDailyList_(_dailyMain); // ホームの数字も合わせておく
+        }
+        renderDoneDaily_(''); // 毎日学習は終えていないので justPartId は空
+      }catch(eDB){}
       if(d&&d.ok&&d.data&&typeof d.data.due_total==='number'&&d.data.due_total<=0){srsUpgradeEmpty_(s);}
     }).catch(function(){});
   });
