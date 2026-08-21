@@ -4155,7 +4155,38 @@ function doneClearGuide_(){
   var mapBtn='<button class="gbtn soft" onclick="goMapSub_();"><i class="ti ti-map-2"></i> <span>'+rb('学習','がくしゅう')+'マップで '+rb('復習','ふくしゅう')+'する</span></button>';
   return '<div class="guide-card"><div class="guide-h"><i class="ti ti-sparkles"></i> <span><ruby>次<rt class="uf">つぎ</rt></ruby>は？</span></div><div class="gstack">'+solid+mapBtn+'</div><div class="gsub">'+rb('次','つぎ')+'の'+rb('教材','きょうざい')+'は'+rb('先生','せんせい')+'が'+rb('用意','ようい')+'する</div></div>';
 }
-function doneTodayDoneTtl_(){return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div><div class="done-guide" style="margin-top:3px;">●<ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>消<rt class="uf">き</rt></ruby>えた！よくがんばったね。</div>';}
+/* 【2026-08-22】デイリーの残りを数える。定義＝毎日学習の今日の分（全教材）＋おさらい枠(1)。※要件定義書_学習フロー再定義 §4-2
+   完了画面はセッションの直後で _dailyMain がまだ古いので、いま終えた教材を除いて数える。
+   ＝ホームの「今日のデイリー ◯/◯」（renderDailyList_ の dprog）と同じ数え方。数える場所を1つにする（2026-07-26の決まり）。
+   ホームを開いていない（_dailyMain が無い）ときは -1＝「分からない」を返す。分からないときに「完了」と言わないため。 */
+function dailyLeftAfter_(justPartId){
+  if(!_dailyMain) return -1;
+  var left=0;
+  for(var i=0;i<_dailyMain.length;i++){
+    var m=_dailyMain[i];
+    if(m.cleared_today) continue;
+    if(justPartId && String(m.part_id)===String(justPartId)) continue; // いま終えたぶん
+    left++;
+  }
+  if(dailyState.review!==true) left++; // おさらい枠（未取得のときも「まだ」扱い＝ホームと同じ）
+  return left;
+}
+/* 毎日学習の1教材を終えたときの見出し。デイリー全部が終わったときだけ「デイリー完了」と言う。
+   【地雷】ここを「1教材クリア＝今日の分完了・●全部消えた」に戻さない。
+   2026-08-22 に川上さんから「英語を1つやっただけで全部完了の通知が出るのに、ホームは1/4」と指摘された箇所。 */
+function doneDailyTtl_(left){
+  if(left===0) return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;"><ruby>今日<rt class="uf">きょう</rt></ruby>のデイリー、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div><div class="done-guide" style="margin-top:3px;">●が<ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>消<rt class="uf">き</rt></ruby>えた。よくがんばったね。</div>';
+  var sub=(left>0)?('<div class="done-guide" style="margin-top:3px;"><ruby>今日<rt class="uf">きょう</rt></ruby>のデイリーはあと '+left+' <ruby>個<rt class="uf">こ</rt></ruby>。</div>'):'';
+  return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;">この<ruby>教材<rt class="uf">きょうざい</rt></ruby>の<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div>'+sub;
+}
+/* 【2026-08-22】単元別の1パートを終えたときの見出し。単元別は自分のペースで進めるので「今日の分」という枠がない。
+   【地雷】ここを「今日の分完了・●全部消えた」に戻さない（毎日学習の doneDailyTtl_ と同じ理由・川上さん確定 2026-08-22）。
+   残りパート数はサーバーの remaining_parts（いま合格したぶんを引いた数）。分からないときは数を出さない。 */
+function doneUnitPartTtl_(remain){
+  var n=parseInt(remain,10);
+  var sub=(isFinite(n)&&n>0)?('<div class="done-guide" style="margin-top:3px;">この<ruby>教材<rt class="uf">きょうざい</rt></ruby>はあと '+n+' パート。</div>'):'';
+  return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;">このパート、<ruby>合格<rt class="uf">ごうかく</rt></ruby>！</div>'+sub;
+}
 function doneGuideHtml_(){return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;">'
  +'<div style="font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;"><i class="ti ti-sparkles" style="color:var(--gold)"></i> <span><ruby>次<rt class="uf">つぎ</rt></ruby>は？</span></div>'
  +'<div style="font-size:12.8px;color:var(--sub);margin:6px 0 10px;"><ruby>次<rt class="uf">つぎ</rt></ruby>の<ruby>教材<rt class="uf">きょうざい</rt></ruby>は<ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>用意<rt class="uf">ようい</rt></ruby>する。それまで、<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>単語<rt class="uf">たんご</rt></ruby>で<ruby>腕試<rt class="uf">うでだめ</rt></ruby>ししよう。</div>'
@@ -4259,12 +4290,12 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
       if(d.data.passed){sndWin();flash();confetti(120);
         if(d.data.completed_material&&d.data.test_all_completed){setDoneBadge_('gold');$('done-result').innerHTML=doneUnitAllTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();} /* 単元別タブ全完走＝金トロフィー＋クラッカー 2026-08-08 */
         else if(d.data.completed_material){setDoneBadge_('gold');confetti(180);$('done-result').innerHTML=doneMatClearTtl_();$('done-guide-area').innerHTML=doneClearGuide_();} /* 1章まるごと完走＝金にそろえる（全部完了＝金）2026-08-08 */
-        else{setDoneBadge_('ok');$('done-result').innerHTML=doneTodayDoneTtl_();$('done-guide-area').innerHTML=nextStepGuide_(); /* 今日のぶん完了＝緑 2026-08-08 */
+        else{setDoneBadge_('ok');$('done-result').innerHTML=doneUnitPartTtl_(d.data.remaining_parts);$('done-guide-area').innerHTML=nextStepGuide_(); /* 今日のぶん完了＝緑 2026-08-08／単元別は「今日の分」ではなくパート単位の文言に 2026-08-22 */
           if(d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span><ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のパート）</span>';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}}
-      else{setDoneBadge_('accent');$('done-result').innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>は <b>まだ<ruby>終<rt class="uf">お</rt></ruby>わっていない</b>（<span style=\"color:#e0574b;\">●</span>が<ruby>残<rt class="uf">のこ</rt></ruby>っている）。<br><span class=\"done-guide\">「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で <b>80%</b> とれたら、<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby><ruby>完了<rt class="uf">かんりょう</rt></ruby>！</span>';}
+      else{setDoneBadge_('accent');$('done-result').innerHTML='このパートは <b>まだ<ruby>合格<rt class="uf">ごうかく</rt></ruby>していない</b>。<br><span class=\"done-guide\">「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で <b>80%</b> とれたら、このパート<ruby>合格<rt class="uf">ごうかく</rt></ruby>！</span>';} /* 単元別は自分のペース＝「今日の分」の枠が無いのでパート単位の文言に 2026-08-22 */
     }else if(d.data.passed){sndWin();flash();confetti(120);
       if(d.data.completed_material){setDoneBadge_('gold');$('done-result').innerHTML=doneClearTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();}
-      else{setDoneBadge_('ok');$('done-result').innerHTML=doneTodayDoneTtl_();$('done-guide-area').innerHTML=nextStepGuide_(); /* 今日のぶん完了＝緑 2026-08-08 */
+      else{setDoneBadge_('ok');$('done-result').innerHTML=doneDailyTtl_(dailyLeftAfter_(s.listId));$('done-guide-area').innerHTML=nextStepGuide_(); /* 今日のぶん完了＝緑 2026-08-08／デイリー全部かどうかで文言を出し分け 2026-08-22 */
         if(d.data.advanced&&d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span><ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のDAY）</span>';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}
     }else{setDoneBadge_('accent');$('done-result').innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>は <b>まだ<ruby>終<rt class="uf">お</rt></ruby>わっていない</b>（<span style=\"color:#e0574b;\">●</span>が<ruby>残<rt class="uf">のこ</rt></ruby>っている）。<br><span class=\"done-guide\">「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で <b>80%</b> とれたら、<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby><ruby>完了<rt class="uf">かんりょう</rt></ruby>！</span>';}
     /* 点数は保存前に表示済み（2026-07-08）*/
