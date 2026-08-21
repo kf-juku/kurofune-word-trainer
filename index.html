@@ -4348,11 +4348,12 @@ function _netNG_(d){return !d||!d.ok;}
 var _NET_NG_MSG_='<ruby>通信<rt class="uf">つうしん</rt></ruby>できなかった。もう<ruby>一度<rt class="uf">いちど</rt></ruby>おそう';
 /* 間違いノートを開く：クリック時に単語を取得してから開始（2026-07-04） */
 function openNote(subject){
-  toastH('<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…');
+  showPracticeLoading_(); /* 【2026-08-21⑯】トーストは数秒で消えるのに通信は10秒以上かかる＝無反応に見えて、
+                             消えた数秒後に突然問題が始まっていた（川上さん報告）。学習画面のスピナーを先に出す。 */
   call({action:'mistake_set',subject:subject}).then(function(d){
-    if(_netNG_(d)){toastH(_NET_NG_MSG_);return;}                       /* 通信失敗＝「無い」と言わない */
+    if(_netNG_(d)){openHome();showSub('note');toastH(_NET_NG_MSG_);return;}   /* 通信失敗＝「無い」と言わない・スピナーで固めない */
     if(d.data&&d.data.words&&d.data.words.length){startNote(subject,d.data.words,d.data.assets);return;}
-    toastH('<ruby>直<rt class="uf">なお</rt></ruby>す<ruby>単語<rt class="uf">たんご</rt></ruby>はない');loadNotes();
+    openHome();showSub('note');toastH('<ruby>直<rt class="uf">なお</rt></ruby>す<ruby>単語<rt class="uf">たんご</rt></ruby>はない');loadNotes();
   });
 }
 function startNote(subject,words,assets){
@@ -4578,11 +4579,11 @@ function osaraiDebug_(){
 }
 /* 教科を選んでおさらい：期限の来た分を上限を超えて出す（自主・期限語は箱前進の対象）2026-07-26 */
 function openOsaraiSubject(subject){
-  toastH('<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…');
+  showPracticeLoading_(); /* 待っている間もスピナーを出す（トーストは数秒で消える）2026-08-21⑯ */
   whenGradesFlushed(function(){
     call({action:'review_due',subject:subject}).then(function(d){
-      if(_netNG_(d)){toastH(_NET_NG_MSG_);return;}                     /* 通信失敗＝「ありません」と言わない */
-      if(!d.data||!d.data.words||!d.data.words.length){toastH('この<ruby>教科<rt class="uf">きょうか</rt></ruby>のおさらいはありません');loadReviewSrs();return;}
+      if(_netNG_(d)){openHome();showSub('review');toastH(_NET_NG_MSG_);return;}   /* 通信失敗＝「ありません」と言わない・スピナーで固めない */
+      if(!d.data||!d.data.words||!d.data.words.length){openHome();showSub('review');toastH('この<ruby>教科<rt class="uf">きょうか</rt></ruby>のおさらいはありません');loadReviewSrs();return;}
       startReviewSrs(d.data.words,d.data.assets,subject);
     });
   });
