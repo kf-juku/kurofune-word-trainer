@@ -1638,7 +1638,11 @@ function kwtSpin(px){px=px||64;return '<svg class="kwtld" viewBox="0 0 120 120" 
   +'<g class="o" style="transform-origin:60px 60px"><rect x="36" y="36" width="48" height="48" rx="3" fill="none" stroke="#caa24a" stroke-width="2" opacity=".55" transform="rotate(45 60 60)"/></g>'
   +'<g class="i" style="transform-origin:60px 60px"><rect x="48" y="48" width="24" height="24" rx="2" fill="none" stroke="#0a6cff" stroke-width="2.6" opacity=".85"/></g>'
   +'<circle cx="60" cy="60" r="4" fill="#0a6cff"/></svg>';}
-function show(scr){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}}
+var _prevScr='';
+/* 画面を切り替えるところ。アプリの自動更新のフックを2つだけ足している（2026-08-21 川上さん指摘）
+   ・学習を始めた瞬間＝解いている数分のあいだに裏で新しい版がないか見ておく（入れ替えはしない）
+   ・完了画面からホームに戻った直後＝1つ終わって画面が切り替わる瞬間なので、ここで入れ替えるのが一番ストレスが小さい */
+function show(scr){var _p=_prevScr;_prevScr=scr;document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
 /* 学習マップのパート行のメタ：前回合格日・正答率・おさらいの進み（GAS material_parts が per-part で返す）2026-07-26 */
 function _mapMetaHtml_(l){
   if(!l||!l.last_pass_date)return ''; // 合格していないパートは出さない
@@ -4554,27 +4558,59 @@ function loadBadges(){
   });
 }
 
-/* ===== アプリの自動更新（開きっぱなしの生徒に新しい版を届ける）2026-08-21 =====
+/* ===== アプリの自動更新（開きっぱなしの生徒に新しい版を届ける）2026-08-21 川上さん確定 =====
    クロトレは1枚のHTMLなので、ページを読み直さないと画面も動きも古いままになる。
-   プルダウン更新は学習データを取り直すだけで、アプリ本体は入れ替わらない。
-   → 自分のHTMLの更新印（ETag／Last-Modified）をHEADで見に行き、変わっていたら
-     「ホームにいて・出題も送信もしていない・少し手が止まっている」ときだけ黙って読み直す。
-   確認する頃合い＝画面に戻ったとき（1分に1回まで）／生徒が何か操作したとき（5分に1回まで）。
-   1回の確認は数百バイト（本体は落とし直さない）。問題を解いている最中は絶対に読み直さない。
+   プルダウン更新は学習データを取り直すだけで、アプリ本体は入れ替わらない。Service Worker も無い。
+   → 自分のHTMLの更新印（ETag／Last-Modified）を HEAD で見に行き、変わっていたら読み直す。
+
+   【入れ替えるのは「タブに戻ってきた瞬間」だけ】川上さん確定 2026-08-21
+   読んでいる最中に画面が消えるのが一番のストレスなので、操作中・放置中には絶対に入れ替えない。
+   スマホの画面ロック・アプリ切替から戻ると visibilitychange が出るので、
+   生徒が次にクロトレを使い始めるときに新しくなる。
+   そのとき出題中などで安全でなければ入れ替えず、次に戻ってきたときにやり直す。
+
+   通信＝確認はHEADなので1回1KB弱（本体は落とし直さない）。
    読み直す直前に cache:'reload' で取り直す＝GitHub Pages の10分キャッシュで古いHTMLをつかまないため。
+   【リロードのループ防止】新旧のキャッシュが混ざって配られている間に印が行き来しても
+   暴走しないよう、自動の読み直しは1時間に1回まで（localStorage で記録）。
    読み直したあとは既存の復元（kwt_view／kwt_htab）で同じ画面に戻る。 */
-var _verTag='',_verNew=false,_verLast=0,_verBusy=false,_verTouch=0;
-var VER_MIN_MS=300000;  /* 操作きっかけの確認は5分に1回まで */
-var VER_BACK_MS=60000;  /* 画面に戻ったときは1分に1回まで */
-var VER_IDLE_MS=4000;   /* 手が止まってから入れ替える（操作の途中で消えないように） */
+var _verTag='',_verNew=false,_verBusy=false;
+var VER_MIN_MS=60000;       /* 前面に戻ったときの確認は1分に1回まで */
+var VER_RELOAD_MIN_MS=3600000; /* 自動の読み直しは1時間に1回まで（ループ防止） */
+var _verLast=0;
 function _verTagOf_(r){try{return r.headers.get('etag')||r.headers.get('last-modified')||'';}catch(e){return '';}}
 function _verOn_(){return location.protocol==='http:'||location.protocol==='https:';}
+function _verCanReload_(){
+  try{var t=parseInt(localStorage.getItem('kwt_ver_reload')||'0',10)||0;return (Date.now()-t)>VER_RELOAD_MIN_MS;}catch(e){return true;}
+}
 function verInit_(){
   if(!_verOn_())return;
   try{if(sessionStorage.getItem('kwt_updated')){sessionStorage.removeItem('kwt_updated');setTimeout(function(){try{toastH('アプリを'+rb('新','あたら')+'しくした');}catch(e){}},900);}}catch(e){}
   fetch(location.pathname,{method:'HEAD',cache:'no-store'}).then(function(r){_verTag=_verTagOf_(r);_verLast=Date.now();}).catch(function(){});
 }
-function verCheck_(minMs){
+/* 安全に読み直せるか。1つでも欠けたら入れ替えない。 */
+function verSafe_(){
+  try{
+    if(document.hidden)return false;
+    if(!isHomeScreen_())return false;                            /* 学習画面・完了画面ではやらない */
+    if(session||_quizSes||srsSes||noteSes)return false;          /* 出題中 */
+    if(gradeBusy||(gradeQueue&&gradeQueue.length))return false;  /* 採点の送信待ち */
+    if(document.querySelector('.modal-back.show'))return false;  /* モーダルが開いている */
+  }catch(e){return false;}
+  return true;
+}
+function verApply_(){
+  if(!_verNew||!verSafe_()||!_verCanReload_())return;
+  _verNew=false;
+  try{localStorage.setItem('kwt_ver_reload',String(Date.now()));}catch(e){}
+  try{sessionStorage.setItem('kwt_updated','1');}catch(e){}
+  var go=function(){try{location.reload();}catch(e){}};
+  fetch(location.pathname,{cache:'reload'}).then(go,go);
+}
+/* 新しい版が出ていないか見に行くだけ（入れ替えは verApply_ の安全条件しだい）。
+   学習を始めた瞬間にも呼ぶ＝解いている数分のあいだに裏で調べておく（画面には何も出ない・出題中は絶対に入れ替わらない）
+   川上さん指摘 2026-08-21 */
+function verLook_(minMs){
   if(!_verOn_()||_verNew||_verBusy||!_verTag)return;
   if(navigator.onLine===false)return;
   if(Date.now()-_verLast<minMs)return;
@@ -4582,36 +4618,19 @@ function verCheck_(minMs){
   fetch(location.pathname,{method:'HEAD',cache:'no-store'}).then(function(r){
     _verBusy=false;_verLast=Date.now();
     var t=_verTagOf_(r);
-    if(t&&t!==_verTag)_verNew=true;
+    if(t&&t!==_verTag){_verNew=true;verApply_();}   /* 安全でなければ verApply_ は何もしない */
   }).catch(function(){_verBusy=false;_verLast=Date.now();});
 }
-function verSafe_(){
-  try{
-    if(document.hidden)return false;
-    if(!isHomeScreen_())return false;                                  /* 学習画面・完了画面では入れ替えない */
-    if(session||_quizSes||srsSes||noteSes)return false;                /* 出題中 */
-    if(gradeBusy||(gradeQueue&&gradeQueue.length))return false;        /* 採点の送信待ち */
-    if(document.querySelector('.modal-back.show'))return false;        /* モーダルが開いている */
-    if(Date.now()-_verTouch<VER_IDLE_MS)return false;                  /* 触った直後は避ける */
-  }catch(e){return false;}
-  return true;
-}
-function verApply_(){
-  if(!_verNew||!verSafe_())return;
-  _verNew=false;
-  try{sessionStorage.setItem('kwt_updated','1');}catch(e){}
-  var go=function(){try{location.reload();}catch(e){}};
-  fetch(location.pathname,{cache:'reload'}).then(go,go);
+/* タブに戻ってきたとき＝これから使い始めるとき */
+function verOnReturn_(){
+  if(!_verOn_())return;
+  if(_verNew){verApply_();return;}                 /* すでに見つけている分をここで適用 */
+  verLook_(VER_MIN_MS);
 }
 (function(){
   if(!_verOn_())return;
-  var touch=function(){_verTouch=Date.now();verCheck_(VER_MIN_MS);};
-  document.addEventListener('click',touch,true);
-  document.addEventListener('touchstart',touch,{passive:true,capture:true});
-  document.addEventListener('scroll',function(){_verTouch=Date.now();},{passive:true});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden){_verTouch=Date.now();verCheck_(VER_BACK_MS);}});
-  window.addEventListener('pageshow',function(){verCheck_(VER_BACK_MS);});
-  setInterval(verApply_,5000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)verOnReturn_();});
+  window.addEventListener('pageshow',function(){verOnReturn_();});
 })();
 verInit_();
 if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}try{_ht=sessionStorage.getItem('kwt_htab');}catch(e){}openHome();try{if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}else if(_ht&&['daily','review','unit'].indexOf(_ht)>=0){showHomeTab(_ht);}}catch(e){}} // 更新後は今の画面を復元：サブ画面(kwt_view)優先、なければホームのタブ(kwt_htab)。openHome内のbackToTiles()が復元キーを消すので必ず先に読む（川上さん 2026-07-06/24）
