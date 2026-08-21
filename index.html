@@ -941,6 +941,7 @@
   .note-none i{font-size:24px;color:var(--gold);display:block;margin-bottom:5px;}
   .err{color:var(--ng);font-size:14px;margin-bottom:8px;min-height:18px;}
   .loading{text-align:center;color:var(--sub);padding:30px;}
+  .loading.sm{padding:4px 0 10px;font-size:11.5px;} /* スケルトンの上に添える小さい版 2026-08-21⑭ */
 
   /* 完了画面の縦圧縮（川上さん承認モック 2026-07-05）：トロフィー・文言・点数・率を1枚に横組み */
   .done-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);}
@@ -2058,7 +2059,7 @@ function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
    ログインの「確認中…」や一覧の「読み込み中…」が永久に固まる（2026-08-12 の不具合報告の形）。
    タイムアウトしたときは再送しない＝サーバ側が処理済みの可能性があり、二重書き込みを避けるため。
    タイムアウト/通信断は _netRec に残す（次の不具合報告の診断情報に出る）。2026-08-21 */
-var CALL_TIMEOUT_MS=20000;
+var CALL_TIMEOUT_MS=35000; /* 【2026-08-21⑮】20秒だと間違いノート(mistake_set 11〜21秒)が打ち切られて「直す単語はない」と嘘が出ていた。GAS側も軽くしたが保険として伸ばす */
 function call(b,_try){
   b.token=token;_try=_try||1;
   var ac=null,tid=null,timedOut=false;
@@ -2328,8 +2329,11 @@ function showHomeTab(name){if(!_navBack)_navStack.length=0;_homeTab=name;try{_re
   window.scrollTo(0,0);} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
 function syncTestZone_(){setNavDot_('unit',false);} // 単元別のナビ赤●は出さない＝自主ペースで「今日やる必須」ではない。確認テストの直しは間違いノートに出る（川上さん 2026-07-26）
 /* スケルトン（読み込み中の形だけ先に見せる）2026-07-24 */
-function skelDaily_(){return '<div class="skel skel-focus"></div><div class="skel skel-row"></div><div class="skel skel-row"></div>';}
-function skelUnit_(){return '<div class="skel skel-book"></div><div class="skel skel-book"></div>';}
+/* 読み込み中は灰色の枠だけだと「空っぽ＝教材が消えた」に見える（2026-08-21 川上さんが実際に誤解した）。
+   既存の読み込み表示（.loading）を小さくして枠の上に添える。 */
+var _SKEL_LOADING_='<div class="loading sm"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div>';
+function skelDaily_(){return _SKEL_LOADING_+'<div class="skel skel-focus"></div><div class="skel skel-row"></div><div class="skel skel-row"></div>';}
+function skelUnit_(){return _SKEL_LOADING_+'<div class="skel skel-book"></div><div class="skel skel-book"></div>';}
 /* 通信エラー時：毎日タブにキャッシュ表示が無ければ再試行カードを出す（あればトーストだけ＝既存表示を壊さない）2026-07-24 */
 function renderHomeError_(){
   var host=$('daily-list');
@@ -4338,12 +4342,17 @@ function loadNotes(){
     subs.forEach(function(c){ host.appendChild(subjCard_(c.subject,c.count,function(){openNote(c.subject);})); });
   });
 }
+/* 【2026-08-21⑮】通信が失敗したときに「無い」と嘘を出さないための共通判定。
+   データは残っているのに「直す単語はない」「おさらいはありません」と出ると、生徒は消えたと思う（川上さん報告）。 */
+function _netNG_(d){return !d||!d.ok;}
+var _NET_NG_MSG_='<ruby>通信<rt class="uf">つうしん</rt></ruby>できなかった。もう<ruby>一度<rt class="uf">いちど</rt></ruby>おそう';
 /* 間違いノートを開く：クリック時に単語を取得してから開始（2026-07-04） */
 function openNote(subject){
   toastH('<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…');
   call({action:'mistake_set',subject:subject}).then(function(d){
-    if(d&&d.ok&&d.data.words&&d.data.words.length){startNote(subject,d.data.words,d.data.assets);}
-    else{toastH('<ruby>直<rt class="uf">なお</rt></ruby>す<ruby>単語<rt class="uf">たんご</rt></ruby>はない');loadNotes();}
+    if(_netNG_(d)){toastH(_NET_NG_MSG_);return;}                       /* 通信失敗＝「無い」と言わない */
+    if(d.data&&d.data.words&&d.data.words.length){startNote(subject,d.data.words,d.data.assets);return;}
+    toastH('<ruby>直<rt class="uf">なお</rt></ruby>す<ruby>単語<rt class="uf">たんご</rt></ruby>はない');loadNotes();
   });
 }
 function startNote(subject,words,assets){
@@ -4446,7 +4455,8 @@ function noteRetry(subject){
   showPracticeLoading_();
   whenGradesFlushed(function(){ // 裏送信が残ったまま取り直すと卒業済みが混ざる 2026-07-05
   call({action:'mistake_set',subject:subject}).then(function(d){
-    if(!d.ok||!d.data.words.length){toastH('<ruby>間違<rt class="uf">まちが</rt></ruby>いはもうありません！');openHome();return;}
+    if(_netNG_(d)){toastH(_NET_NG_MSG_);openHome();return;}            /* 通信失敗＝「もうありません」と言わない */
+    if(!d.data||!d.data.words||!d.data.words.length){toastH('<ruby>間違<rt class="uf">まちが</rt></ruby>いはもうありません！');openHome();return;}
     startNote(subject,d.data.words,d.data.assets);
   });
   });
@@ -4571,7 +4581,8 @@ function openOsaraiSubject(subject){
   toastH('<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…');
   whenGradesFlushed(function(){
     call({action:'review_due',subject:subject}).then(function(d){
-      if(!d.ok||!d.data.words||!d.data.words.length){toastH('この<ruby>教科<rt class="uf">きょうか</rt></ruby>のおさらいはありません');loadReviewSrs();return;}
+      if(_netNG_(d)){toastH(_NET_NG_MSG_);return;}                     /* 通信失敗＝「ありません」と言わない */
+      if(!d.data||!d.data.words||!d.data.words.length){toastH('この<ruby>教科<rt class="uf">きょうか</rt></ruby>のおさらいはありません');loadReviewSrs();return;}
       startReviewSrs(d.data.words,d.data.assets,subject);
     });
   });
