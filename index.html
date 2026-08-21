@@ -1507,7 +1507,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
-var APP_VERSION="kwt-2026-07-31"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-08-21"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4554,6 +4554,66 @@ function loadBadges(){
   });
 }
 
+/* ===== アプリの自動更新（開きっぱなしの生徒に新しい版を届ける）2026-08-21 =====
+   クロトレは1枚のHTMLなので、ページを読み直さないと画面も動きも古いままになる。
+   プルダウン更新は学習データを取り直すだけで、アプリ本体は入れ替わらない。
+   → 自分のHTMLの更新印（ETag／Last-Modified）をHEADで見に行き、変わっていたら
+     「ホームにいて・出題も送信もしていない・少し手が止まっている」ときだけ黙って読み直す。
+   確認する頃合い＝画面に戻ったとき（1分に1回まで）／生徒が何か操作したとき（5分に1回まで）。
+   1回の確認は数百バイト（本体は落とし直さない）。問題を解いている最中は絶対に読み直さない。
+   読み直す直前に cache:'reload' で取り直す＝GitHub Pages の10分キャッシュで古いHTMLをつかまないため。
+   読み直したあとは既存の復元（kwt_view／kwt_htab）で同じ画面に戻る。 */
+var _verTag='',_verNew=false,_verLast=0,_verBusy=false,_verTouch=0;
+var VER_MIN_MS=300000;  /* 操作きっかけの確認は5分に1回まで */
+var VER_BACK_MS=60000;  /* 画面に戻ったときは1分に1回まで */
+var VER_IDLE_MS=4000;   /* 手が止まってから入れ替える（操作の途中で消えないように） */
+function _verTagOf_(r){try{return r.headers.get('etag')||r.headers.get('last-modified')||'';}catch(e){return '';}}
+function _verOn_(){return location.protocol==='http:'||location.protocol==='https:';}
+function verInit_(){
+  if(!_verOn_())return;
+  try{if(sessionStorage.getItem('kwt_updated')){sessionStorage.removeItem('kwt_updated');setTimeout(function(){try{toastH('アプリを'+rb('新','あたら')+'しくした');}catch(e){}},900);}}catch(e){}
+  fetch(location.pathname,{method:'HEAD',cache:'no-store'}).then(function(r){_verTag=_verTagOf_(r);_verLast=Date.now();}).catch(function(){});
+}
+function verCheck_(minMs){
+  if(!_verOn_()||_verNew||_verBusy||!_verTag)return;
+  if(navigator.onLine===false)return;
+  if(Date.now()-_verLast<minMs)return;
+  _verBusy=true;
+  fetch(location.pathname,{method:'HEAD',cache:'no-store'}).then(function(r){
+    _verBusy=false;_verLast=Date.now();
+    var t=_verTagOf_(r);
+    if(t&&t!==_verTag)_verNew=true;
+  }).catch(function(){_verBusy=false;_verLast=Date.now();});
+}
+function verSafe_(){
+  try{
+    if(document.hidden)return false;
+    if(!isHomeScreen_())return false;                                  /* 学習画面・完了画面では入れ替えない */
+    if(session||_quizSes||srsSes||noteSes)return false;                /* 出題中 */
+    if(gradeBusy||(gradeQueue&&gradeQueue.length))return false;        /* 採点の送信待ち */
+    if(document.querySelector('.modal-back.show'))return false;        /* モーダルが開いている */
+    if(Date.now()-_verTouch<VER_IDLE_MS)return false;                  /* 触った直後は避ける */
+  }catch(e){return false;}
+  return true;
+}
+function verApply_(){
+  if(!_verNew||!verSafe_())return;
+  _verNew=false;
+  try{sessionStorage.setItem('kwt_updated','1');}catch(e){}
+  var go=function(){try{location.reload();}catch(e){}};
+  fetch(location.pathname,{cache:'reload'}).then(go,go);
+}
+(function(){
+  if(!_verOn_())return;
+  var touch=function(){_verTouch=Date.now();verCheck_(VER_MIN_MS);};
+  document.addEventListener('click',touch,true);
+  document.addEventListener('touchstart',touch,{passive:true,capture:true});
+  document.addEventListener('scroll',function(){_verTouch=Date.now();},{passive:true});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){_verTouch=Date.now();verCheck_(VER_BACK_MS);}});
+  window.addEventListener('pageshow',function(){verCheck_(VER_BACK_MS);});
+  setInterval(verApply_,5000);
+})();
+verInit_();
 if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}try{_ht=sessionStorage.getItem('kwt_htab');}catch(e){}openHome();try{if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}else if(_ht&&['daily','review','unit'].indexOf(_ht)>=0){showHomeTab(_ht);}}catch(e){}} // 更新後は今の画面を復元：サブ画面(kwt_view)優先、なければホームのタブ(kwt_htab)。openHome内のbackToTiles()が復元キーを消すので必ず先に読む（川上さん 2026-07-06/24）
 
 /* ===== 生徒バグ報告（各画面から押せる・記録のみ＝メールは朝まとめ）2026-07-11 ===== */
