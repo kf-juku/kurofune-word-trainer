@@ -1921,7 +1921,7 @@ function startQuiz(partId){
   var _c=_qprefetch[partId];try{delete _qprefetch[partId];}catch(e){} // 使ったら捨てる（持ち続けると教材を直したあとも古い問題が出る）2026-08-21
   var _p=(_c&&_c.then)?_c:(_c?Promise.resolve(_c):call({action:'quiz_words',part_id:partId})); // 先読み済み/取得中があれば使う
   _p.then(function(d){ return (d&&d.ok)?d:call({action:'quiz_words',part_id:partId}); }).then(function(d){ // 先読みが空振り/失敗でも取り直す 2026-08-21
-    if(!d||!d.ok||!d.data||!d.data.words||!d.data.words.length){toast((d&&d.error)||'単語がありません');openHome();openQuizPane_();return;}
+    if(!d||!d.ok||!d.data||!d.data.words||!d.data.words.length){_pendingResume=null;/* 失敗時に持ち越さない 2026-08-21 */toast((d&&d.error)||'単語がありません');openHome();openQuizPane_();return;}
     var words=quizShuffle_(d.data.words.slice()); // 毎回シャッフル
     _fromReviewTest=false;
     _startPracticeWith_(partId,{ok:true,data:{words:words,subject:(d.data.subject||'english'),assets:(d.data.assets||{}),content_type:'test',direction:(d.data.direction||'')}});
@@ -3153,7 +3153,7 @@ function startPractice(listId){
     });
     return;}
   call({action:'student_today',part_id:listId,start:1}).then(function(d){_startPracticeWith_(listId,d);});}
-function _startPracticeWith_(listId,d){if(!d.ok){toastH(d.error?esc(d.error):'<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>失敗<rt class="uf">しっぱい</rt></ruby>');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
+function _startPracticeWith_(listId,d){if(!d.ok){_pendingResume=null;/* 【2026-08-21】失敗時に消さないと、次に別のパートを始めたとき古い中断が適用され、_resumeOrder_ が不一致→本物の中断記録が消える */toastH(d.error?esc(d.error):'<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>失敗<rt class="uf">しっぱい</rt></ruby>');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
 /* 中断からの再開：出題順を前回と同じに戻す。問題が増減していたら再開せず最初から（教材が差し替わった場合）2026-08-20 */
 var _rs=_pendingResume;_pendingResume=null;
 if(_rs){var _ord=_resumeOrder_(d.data.words,_rs);if(_ord){d.data.words=_ord;}else{_rs=null;_resumeClear_();toastH('<ruby>教材<rt class="uf">きょうざい</rt></ruby>が<ruby>変<rt class="uf">か</rt></ruby>わったので<ruby>最初<rt class="uf">さいしょ</rt></ruby>から やるよ');}}
@@ -3364,7 +3364,22 @@ try{var _pmk=$('pause-mask');if(_pmk)_pmk.onclick=function(e){if(e.target===this
    問題そのものは保存せず、出題順のIDだけ持って開くときに取り直す。教材の問題数が変わっていたら再開しない。 */
 /* 中断が残るのは「その日のうち」だけ＝日付が変わったら消す（川上さん確定 2026-08-20）*/
 var _pendingResume=null,_resumeSkip_=false,_resumeCb_=null;
-function _resumeKey_(){return 'kwt_resume_'+((typeof nickname!=='undefined'&&nickname)?nickname:'');}
+/* 【2026-08-21 修正】中断の保存キーを「ニックネーム」から「そのログイン（トークン）」に変えた。
+   旧＝kwt_resume_<ニックネーム>。ニックネームを変えると別のキーになって中断が消え、
+   共有タブレットで同じ動物ネームの子が続くと、他人の中断を「つづき」で拾えてしまった。
+   トークンはログインのたびに新しく発行され（180日有効・途中で変わらない）、ログアウトでは _resumeClear_ が走るので
+   「1回のログインに1つの中断」で正しく分かれる。 */
+function _hash32_(x){var h=5381;x=String(x||'');for(var i=0;i<x.length;i++){h=((h*33)^x.charCodeAt(i))>>>0;}return h.toString(36);}
+function _resumeKey_(){return 'kwt_resume_'+((typeof token!=='undefined'&&token)?_hash32_(token):'anon');}
+/* 旧キー（ニックネーム）に今日の中断が残っていたら新しいキーへ移す。移行が済むまでの1回だけ効く。 */
+function _resumeMigrate_(){
+  try{
+    if(localStorage.getItem(_resumeKey_()))return;
+    if(typeof nickname==='undefined'||!nickname)return;
+    var oldK='kwt_resume_'+nickname, v=localStorage.getItem(oldK);
+    if(v){localStorage.setItem(_resumeKey_(),v);localStorage.removeItem(oldK);}
+  }catch(e){}
+}
 function _resumeClear_(){try{localStorage.removeItem(_resumeKey_());}catch(e){}}
 function _resumeSave_(s,idx,step){
   if(!s||s.mode!=='daily')return;
@@ -3389,6 +3404,7 @@ function _saveResumeNext_(s,which){
 }
 function _resumeAny_(){
   try{
+    _resumeMigrate_(); // 旧キー（ニックネーム）からの引き継ぎ 2026-08-21
     var r=JSON.parse(localStorage.getItem(_resumeKey_())||'null');
     if(!r||r.v!==1)return null;
     if(!r.ids||!r.ids.length||!(r.idx>0)||r.idx>=r.ids.length)return null;   // 1問も終えていない/全部終えた＝中断ではない
