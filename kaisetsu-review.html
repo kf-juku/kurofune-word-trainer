@@ -107,6 +107,9 @@ select,input[type=search]{width:100%;font-family:inherit;font-size:13.5px;paddin
 .card.v-高::before{background:var(--hi)} .card.v-中::before{background:var(--mid)}
 .card.hasans::before{background:var(--ans)}
 .card.alldone{opacity:.62}
+.card.leaving{opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s}
+.left{font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;white-space:nowrap;
+  background:var(--mid-soft);color:var(--mid)}
 .card.alldone:hover{opacity:1}
 .chead{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:12px 16px 10px 20px;border-bottom:1px solid var(--line)}
 .ans{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;font-size:18px;letter-spacing:.01em}
@@ -353,7 +356,7 @@ textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;font-size
           <button class="btn primary" id="btn-export">直すものを書き出す</button>
         </div>
       </div>
-      <p class="barhint">1枚のカードに、その問題で見つかったものを<b>解答</b>と<b>解説</b>の順に並べています。片方だけのカードもあります。押したものは「未処理」から消えます。取り消すときは上の <b>直さない・保留・直す</b> で絞って、同じボタンをもう一度押してください。</p>
+      <p class="barhint">1枚のカードに、その問題で見つかったものを<b>解答</b>と<b>解説</b>の順に並べています。片方だけのカードもあります。<b>両方に印を付けるとカードが消えます</b>（片方だけのときは「解説チェックがまだ」と出ます）。取り消すときは上の <b>直さない・保留・直す</b> で絞って、同じボタンをもう一度押してください。</p>
     </div>
     <div id="cards"></div>
     <button class="btn more" id="btn-more" hidden>つづきを表示</button>
@@ -801,6 +804,7 @@ function card(it){
     +   (it.ans?'<span class="pill p-ans">解答</span>':'')
     +   (it.kai?'<span class="tag">解説</span>':'')+both+fig
     +   '<span class="ans">'+esc(it.a)+(it.r?'<span class="rd">'+esc(it.r)+'</span>':'')+'</span>'
+    +   '<span class="left" data-role="left" hidden></span>'
     +   '<span class="where">'+esc(it.m)+'<br>'+esc(it.p)+'</span>'
     + '</div>'
     + '<div class="cbody">'+q+ch
@@ -869,8 +873,55 @@ function refreshInPlace(){
   });
   $('cards').querySelectorAll('.card').forEach(c=>{
     const rs=rowsOf(BYID[c.dataset.id]);
-    c.classList.toggle('alldone', rs.every(r=>{ const d=SRV[r.key]; return d && d.v; }));
+    const rest = rs.filter(r=>{ const d=SRV[r.key]; return !(d && d.v); });
+    c.classList.toggle('alldone', rest.length===0);
+    const lb=c.querySelector('[data-role="left"]');
+    if(lb){
+      // 片方だけ押したときに「なぜこのカードがまだ残っているのか」を出す
+      if(rs.length===2 && rest.length===1){
+        lb.hidden=false;
+        lb.textContent = (rest[0].kind==='ans'?'解答チェック':'解説チェック')+'がまだ';
+      } else { lb.hidden=true; }
+    }
   });
+  drawProgress();
+}
+
+/* 判断を押したあと、そのカードがいまの絞り込みから外れたら一覧から消す。
+   ★押した瞬間には消さない（ボタンが変わったのを見てから消える）。
+   ★入力中・書きかけのカードは消さない。 */
+let _sweepT;
+function sweepDone(){
+  clearTimeout(_sweepT);
+  _sweepT = setTimeout(()=>{
+    let pending = 0;
+    $('cards').querySelectorAll('.card').forEach(c=>{
+      const it = BYID[c.dataset.id]; if(!it) return;
+      if(match(it)) return;                                      // まだ条件に合う＝残す
+      // ★入力欄にカーソルがあるときだけ守る。
+      //   ボタンを押すとフォーカスがカードの中に入るので、カード全体で見ると必ず「入力中」になってしまう。
+      const ae = document.activeElement;
+      if(ae && c.contains(ae) && (ae.tagName==='TEXTAREA' || ae.tagName==='INPUT')) return;
+      if(c.querySelector('textarea.edit[data-dirty]')) return;   // 書きかけは消さない
+      c.classList.add('leaving');
+      pending++;
+      setTimeout(()=>{ c.remove(); if(!--pending) afterSweep(); }, 320);
+    });
+    if(!pending) afterSweep();
+  }, 700);
+}
+function afterSweep(){
+  filtered = ITEMS.filter(match);
+  const shown = $('cards').querySelectorAll('.card').length;
+  $('shown').textContent = filtered.length.toLocaleString();
+  const more = $('btn-more');
+  if(more){
+    more.hidden = shown >= filtered.length;
+    more.textContent = 'つづきを表示（あと '+Math.max(0, filtered.length-shown).toLocaleString()+' 件）';
+  }
+  if(!shown) $('cards').innerHTML = filtered.length
+    ? '<div class="empty-note">この画面のぶんは片づきました。「つづきを表示」を押してください。</div>'
+    : '<div class="empty-note">条件に合うものはありません。</div>';
   drawProgress();
 }
 
@@ -940,6 +991,7 @@ async function save(key, value, opt){
   savePendLS();
   SRV[key] = {v:res.data.v, text:res.data.text, edit:res.data.edit, why:res.data.why, by:res.data.by, at:res.data.at};
   refreshInPlace();
+  sweepDone();                          // ★片づいたカードを一覧から消す
   verifySaved(key, {v:res.data.v, text:res.data.text, edit:res.data.edit, why:res.data.why, _seq:my});
 }
 
