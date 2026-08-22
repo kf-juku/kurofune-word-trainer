@@ -588,8 +588,10 @@ function refreshInPlace(){
 }
 
 /* ---------------- 保存 ---------------- */
+const _seq = {};          // id ごとの保存の通し番号。古い返事で新しい状態を上書きしないための番号
 async function save(id, value, opt){
   const it = BYID[id]; if(!it) return;
+  const my = (_seq[id] = (_seq[id] || 0) + 1);
   const c = $('cards').querySelector('.card[data-id="'+CSS.escape(id)+'"]');
   const ta = c && c.querySelector('[data-role="edit"]');
   // 直した文はいつでも残す（採用を押していなくても消さない）
@@ -602,6 +604,7 @@ async function save(id, value, opt){
   refreshInPlace();
 
   const r = await call({action:'set', id:id, value:value, text:text, edited:edited, why:SRV[id].why, name:ME});
+  if(_seq[id] !== my) return;          // ★あとから別の保存が始まっている＝この返事は古いので捨てる
   if(!r.ok){
     if(before) SRV[id]=before; else delete SRV[id];
     refreshInPlace();
@@ -612,12 +615,20 @@ async function save(id, value, opt){
   refreshInPlace();
 }
 
+/* 枠に入力したまま判断ボタンを押すと、blur（枠から出た）と click の2回保存が走り、
+   遅れて届いたほうで上書きされていた。ボタンを押した瞬間に印を立てて blur 側を止める。 */
+let _btnDown = null;
+$('cards').addEventListener('pointerdown', e=>{
+  const a = e.target.closest('.act') || e.target.closest('.whychip');
+  _btnDown = a ? a.closest('.card').dataset.id : null;
+});
 $('cards').addEventListener('click', e=>{
   const a = e.target.closest('.act');
   if(a){
     const c=a.closest('.card'), id=c.dataset.id, val=a.dataset.a;
     const cur = SRV[id] && SRV[id].v;
-    save(id, cur===val ? '' : val);            // もう一度押すと取り消し
+    save(id, cur===val ? '' : val);            // もう一度押すと取り消し（枠の中の文もいっしょに保存される）
+    _btnDown = null;
     return;
   }
   const w = e.target.closest('.whychip');
@@ -625,6 +636,7 @@ $('cards').addEventListener('click', e=>{
     const c=w.closest('.card'), id=c.dataset.id;
     const cur = SRV[id] && SRV[id].why;
     save(id, 'no', {why: cur===w.dataset.w ? '' : w.dataset.w});
+    _btnDown = null;
   }
 });
 $('cards').addEventListener('input', e=>{ if(e.target.classList.contains('edit')) autosize(e.target); });
@@ -633,6 +645,7 @@ $('cards').addEventListener('input', e=>{ if(e.target.classList.contains('edit')
 $('cards').addEventListener('focusout', async e=>{
   if(!e.target.classList.contains('edit')) return;
   const c=e.target.closest('.card'), id=c.dataset.id, it=BYID[id], d=SRV[id];
+  if(_btnDown === id) return;          // ★判断ボタンを押した＝そちらが文もまとめて保存する
   const now = e.target.value.trim();
   const prev = (d && d.text) ? d.text : (it.n||'');
   if(now === prev) return;
