@@ -110,6 +110,26 @@ select,input[type=search]{width:100%;font-family:inherit;font-size:13.5px;paddin
 .card.leaving{opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s}
 .left{font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;white-space:nowrap;
   background:var(--mid-soft);color:var(--mid)}
+/* いまこのカードがどうなっているか。ここだけ見れば分かるようにする */
+.state{font-size:12px;font-weight:700;padding:4px 11px;border-radius:6px;white-space:nowrap;letter-spacing:.02em}
+.state.s-none{background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
+.state.s-yes{background:var(--ok);color:#fff}
+.state.s-hold{background:var(--mid);color:#fff}
+.state.s-no{background:var(--lo);color:#fff}
+.state.s-mix{background:var(--hi);color:#fff}
+.fixlist{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fixlist b{font-size:11px;letter-spacing:.1em;color:var(--faint);font-weight:700}
+.fixlist span{background:var(--hi-soft);color:var(--hi);font-weight:700;padding:2px 8px;border-radius:5px;font-size:11.5px}
+/* カードの下の操作。判断ずみのときはボタンを消して1行にする＝押した状態が一目で分かる */
+.foot-act{border-top:1px solid var(--line);padding:12px 16px 14px 20px;background:var(--surface2)}
+.donebar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:13.5px}
+.donebar .mark{font-weight:700}
+.donebar.d-yes .mark{color:var(--ok)} .donebar.d-hold .mark{color:var(--mid)} .donebar.d-no .mark{color:var(--lo)}
+.donebar .who{color:var(--faint);font-size:12px}
+.undo{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--muted);
+  border-radius:8px;padding:5px 12px;font-size:12.5px;font-family:inherit;cursor:pointer;margin-left:auto}
+.undo:hover{border-color:var(--hi);color:var(--hi)}
+.asklabel{font-size:12px;color:var(--muted);margin:0 0 8px}
 .card.alldone:hover{opacity:1}
 .chead{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:12px 16px 10px 20px;border-bottom:1px solid var(--line)}
 .ans{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;font-size:18px;letter-spacing:.01em}
@@ -356,7 +376,7 @@ textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;font-size
           <button class="btn primary" id="btn-export">直すものを書き出す</button>
         </div>
       </div>
-      <p class="barhint">1枚のカードに、その問題で見つかったものを<b>解答</b>と<b>解説</b>の順に並べています。片方だけのカードもあります。<b>両方に印を付けるとカードが消えます</b>（片方だけのときは「解説チェックがまだ」と出ます）。取り消すときは上の <b>直さない・保留・直す</b> で絞って、同じボタンをもう一度押してください。</p>
+      <p class="barhint"><b>1枚のカード＝1つの判断</b>です。カードの上に <b>未処理／直した／保留／直さなくていい</b> と出ています。枠を直してからカードの下のボタンを1回押すと、そのカードは一覧から消えます。<b>やり直すときは、上の「直した」などで絞ってから「取り消す」</b>を押してください（同じボタンを2回押しても取り消しにはなりません）。</p>
     </div>
     <div id="cards"></div>
     <button class="btn more" id="btn-more" hidden>つづきを表示</button>
@@ -534,8 +554,8 @@ function buildUI(){
     + '別のエージェントによる反証で '+M.ansDropped+' 件を落としました。図（image_fill・table_fill）の問題は図がデータに無いため解答チェックの対象外です。'
     + '　解説チェックはこれまでどおりの点検結果です。'
     + '　解答の判断はシートに ANS- 付きの id で入るので、いま進めている解説の仕分けとはぶつかりません。'
-    + '　解答チェックの枠は words シートの列と1対1です。「修正する」を押すと、そのとき枠に入っている中身がそのまま記録されます（初期値はいまのシートの中身のまま）。'
-    + '　押したものはもう一度押すと取り消せます。';
+    + '　解答チェックの枠は words シートの列と1対1です。カードの下のボタンを押すと、そのとき枠に入っている中身がそのまま記録されます（初期値はいまのシートの中身のまま）。'
+    + '　1枚のカードに解答と解説の両方があるときも、判断は1回で両方に入ります。やり直すときは「取り消す」。';
   const stat=(n,l,c)=>'<div class="stat '+(c||'')+'"><b>'+n.toLocaleString()+'</b><span>'+l+'</span></div>';
   $('stats').innerHTML = stat(M.nCards,'カード') + stat(M.nAns,'解答の指摘','ansc') + stat(M.nKai,'解説の指摘')
     + SEVS.map(v=>stat(sevCount(v),'重要度 '+v, v==='高'?'hi':v==='中'?'mid':'lo')).join('');
@@ -555,11 +575,11 @@ function buildUI(){
 }
 function sevCount(v){ let n=0; ROWS.forEach(r=>{ if(r.d.v===v) n++; }); return n; }
 
-const SEGS = [['undecided','未処理',''],['yes','直す','s-yes'],['hold','保留','s-hold'],['no','直さない','s-no'],['all','すべて','']];
+const SEGS = [['undecided','未処理',''],['yes','直した','s-yes'],['hold','保留','s-hold'],['no','直さなくていい','s-no'],['all','すべて','']];
 function segCounts(){
-  const c={undecided:0,yes:0,hold:0,no:0,all:ROWS.length};
-  ROWS.forEach(r=>{ const d=SRV[r.key], v=d&&d.v?d.v:'';
-    if(!v) c.undecided++; else if(c[v]!==undefined) c[v]++; });
+  const c={undecided:0,yes:0,hold:0,no:0,all:ITEMS.length};
+  ITEMS.forEach(it=>{ const v=cardState(it);
+    if(!v || v==='mix') c.undecided++; else if(c[v]!==undefined) c[v]++; });
   return c;
 }
 function drawSeg(){
@@ -569,25 +589,26 @@ function drawSeg(){
 }
 function drawProgress(){
   let y=0,h=0,n=0,ed=0; const per={};
-  ROWS.forEach(r=>{
-    const d=SRV[r.key]; if(!d||!d.v) return;
-    if(d.v==='yes'){ y++; if(d.edit) ed++; } else if(d.v==='hold') h++; else if(d.v==='no') n++;
-    if(d.by){ per[d.by]=(per[d.by]||0)+1; }
+  ITEMS.forEach(it=>{
+    const v=cardState(it); if(!v||v==='mix') return;
+    if(v==='yes'){ y++; if(rowsOf(it).some(r=>SRV[r.key]&&SRV[r.key].edit)) ed++; }
+    else if(v==='hold') h++; else if(v==='no') n++;
+    const d=cardBy(it); if(d&&d.by){ per[d.by]=(per[d.by]||0)+1; }
   });
-  const tot=ROWS.length, done=y+h+n, pct=v=>(v/tot*100).toFixed(2)+'%';
+  const tot=ITEMS.length, done=y+h+n, pct=v=>(v/tot*100).toFixed(2)+'%';
   $('prog-bar').innerHTML = '<i class="b-yes" style="width:'+pct(y)+'"></i>'
     + '<i class="b-hold" style="width:'+pct(h)+'"></i><i class="b-no" style="width:'+pct(n)+'"></i>';
   const names = Object.keys(per).sort((a,b)=>per[b]-per[a]).map(k=>esc(k)+' <b>'+per[k]+'</b>').join('　');
   const np = pendCount();
   $('prog-lg').innerHTML =
-      '<span><i style="background:var(--ok)"></i>直す <b>'+y+'</b>'+(ed?'（うち書き直し <b>'+ed+'</b>）':'')+'</span>'
+      '<span><i style="background:var(--ok)"></i>直した <b>'+y+'</b>'+(ed?'（うち書き直し <b>'+ed+'</b>）':'')+'</span>'
     + '<span><i style="background:var(--mid)"></i>保留 <b>'+h+'</b></span>'
-    + '<span><i style="background:var(--lo)"></i>直さない <b>'+n+'</b></span>'
+    + '<span><i style="background:var(--lo)"></i>直さなくていい <b>'+n+'</b></span>'
     + '<span>まだ <b>'+(tot-done)+'</b> ／ '+tot+'</span>'
     + (names?'<span>'+names+'</span>':'')
     + (np?'<span style="color:var(--hi);font-weight:700">未送信 <b style="color:var(--hi)">'+np+'</b>　<button class="btn" id="btn-retry" style="padding:2px 9px;font-size:11.5px">送り直す</button></span>':'');
   const rb=$('btn-retry'); if(rb) rb.onclick=()=>{ retryPending(true); toast('送り直しています…'); };
-  const bar=$('decided'); if(bar) bar.textContent = '（仕分けずみ '+done+' ／ '+tot+' 枠）';
+  const bar=$('decided'); if(bar) bar.textContent = '（仕分けずみ '+done+' ／ '+tot+' 枚）';
   drawSeg();
 }
 
@@ -657,14 +678,14 @@ function match(it){
     if(st.sev.size && !st.sev.has(r.d.v)) return false;
     if(st.acls.size && !(r.kind==='ans' && st.acls.has(r.d.c))) return false;
     if(st.kcls.size && !(r.kind==='kai' && st.kcls.has(r.d.c))) return false;
-    const d=SRV[r.key], v=d&&d.v?d.v:'';
-    if(st.done==='undecided' && v) return false;
-    if(st.done==='yes' && v!=='yes') return false;
-    if(st.done==='no'  && v!=='no')  return false;
-    if(st.done==='hold'&& v!=='hold')return false;
     return true;
   });
   if(!use.length) return false;
+  const v = cardState(it);                     // 判断はカード1枚で1つ
+  if(st.done==='undecided' && v && v!=='mix') return false;
+  if(st.done==='yes'  && v!=='yes')  return false;
+  if(st.done==='no'   && v!=='no')   return false;
+  if(st.done==='hold' && v!=='hold') return false;
   if(st.subj.size && !st.subj.has(it.s)) return false;
   if(st.mat && it.m!==st.mat) return false;
   if(st.q){ const q=st.q.toLowerCase();
@@ -731,7 +752,7 @@ function secAns(it, r){
       '<div class="finding"><div class="fhead">ジョブスの指摘</div><ol class="fsteps">'
     + step(1,'s1','何が問題か', r.d.p1)
     + step(2,'s2','なぜそう言えるか', r.d.p2)
-    + step(3,'s3','どう直すか', r.d.p3, '<div class="fdown">↓ 下の枠を直して「修正する」を押す</div>')
+    + step(3,'s3','どう直すか', r.d.p3, '<div class="fdown">↓ 下の枠を直す</div>')
     + '</ol></div>';
   const ck = r.d.ck ? '<div class="check">要確認：'+esc(r.d.ck)+'</div>' : '';
   return '<section class="sec s-ans v-'+r.d.v+(v?' done d-'+v:'')+'" data-key="'+esc(r.key)+'" data-kind="ans">'
@@ -744,8 +765,7 @@ function secAns(it, r){
     +   fld(it.eng?'正解の訳':'問題文', 'japanese', 'japanese', val.japanese, F==='japanese')
     +   chBlock
     + '</div>'
-    + acts(v,'問題なし','保留','修正する')
-    + pendbar(d) + metarow(d, r.key) + whyrow(d, v)
+    + pendbar(d)
     + '</section>';
 }
 function secKai(it, r){
@@ -764,62 +784,93 @@ function secKai(it, r){
     + '<div class="why">'+esc(r.d.w)+'</div>'
     + '<div class="cmp"><div class="box"><h4>いまの解説</h4><p>'+esc(r.d.k)+'</p></div>'+nb+'</div>'
     + ck
-    + acts(v,'このまま','保留','採用')
-    + pendbar(d) + metarow(d, r.key) + whyrow(d, v)
+    + pendbar(d)
     + '</section>';
-}
-function acts(v,no,hold,yes){
-  return '<div class="acts">'
-    + '<button class="act no"   data-a="no"   aria-pressed="'+(v==='no')+'">'+no+'</button>'
-    + '<button class="act hold" data-a="hold" aria-pressed="'+(v==='hold')+'">'+hold+'</button>'
-    + '<button class="act yes"  data-a="yes"  aria-pressed="'+(v==='yes')+'">'+yes+'</button>'
-    + '</div>';
 }
 function pendbar(d){
   return '<div class="pendbar" data-role="pend" '+(d._pend?'':'hidden')+'>'
     + '<span data-role="pendmsg">'+esc(d._err||'')+'</span>'
     + '<button class="btn" data-role="pendgo">もう一度送る</button></div>';
 }
-function metarow(d, key){
-  return '<div class="meta"><span class="by" data-role="by">'+byText(d)+'</span>'
-    + '<span class="idm">'+esc(key)+'</span></div>';
-}
 function whyrow(d, v){
-  return '<div class="whyrow" data-role="whyrow" '+(v==='no'?'':'hidden')+'>'
+  return '<div class="whyrow" data-role="whyrow" '+(v==='no'?'':'hidden')+' style="margin-top:10px">'
     + '<span>そう決めた理由：</span>'
-    + WHYS.map(w=>'<button class="whychip" data-w="'+esc(w)+'" aria-pressed="'+(d.why===w)+'">'+esc(w)+'</button>').join('')
+    + WHYS.map(w=>'<button class="whychip" data-w="'+esc(w)+'" aria-pressed="'+(d&&d.why===w)+'">'+esc(w)+'</button>').join('')
     + '</div>';
+}
+/* このカードの判断。枠が2つあっても、押すときは両方まとめて同じ判断にする。
+   （枠ごとに押させると「どっちを押したか分からない」になるため 2026-08-22 に1組へ変更） */
+function cardState(it){
+  const rs = rowsOf(it);
+  const vs = rs.map(r=>{ const d=SRV[r.key]; return d && d.v ? d.v : ''; });
+  if(vs.every(v=>v===vs[0])) return vs[0];      // '' なら未処理
+  return 'mix';                                  // 前に枠ごとに押したぶんが残っている
+}
+function cardBy(it){
+  const rs = rowsOf(it);
+  for(const r of rs){ const d=SRV[r.key]; if(d && d.by) return d; }
+  return null;
+}
+const STATE_LABEL = {'':'未処理', yes:'直した', hold:'保留', no:'直さなくていい', mix:'ちぐはぐ'};
+/* このカードで直すところ（私が印を付けた場所） */
+function fixSpots(it){
+  const a=[];
+  if(it.ans){ a.push({choices:'誤答選択肢', english:(it.eng?'英単語':'正解の語'), japanese:(it.eng?'正解の訳':'問題文')}[it.ans.focus] || '解答'); }
+  if(it.kai){ a.push('解説'); }
+  return a;
 }
 function card(it){
   const rs = rowsOf(it);
-  const alldone = rs.every(r=>{ const d=SRV[r.key]; return d && d.v; });
+  const cv = cardState(it);
+  const alldone = cv!=='' && cv!=='mix';
   const worst = rs.map(r=>r.d.v).sort((a,b)=>SEVS.indexOf(a)-SEVS.indexOf(b))[0];
   const ch=(it.ch&&it.ch.length)
     ? '<div class="choices">選択肢：'+it.ch.map(c=>c===(it.eng?it.q:it.a)?'<em>'+esc(c)+'</em>':esc(c)).join(' ／ ')+'</div>' : '';
   const q = it.q ? '<div class="qline"><span class="lb">'+(it.eng?'意味':'問題文')+'</span>'+esc(it.q)+'</div>' : '';
   const fig = it.fig ? '<span class="tag">図あり</span>' : '';
   const both = (it.ans && it.kai) ? '<span class="pill p-ans">解答と解説の両方</span>' : '';
+  const spots = fixSpots(it);
   return '<article class="card v-'+worst+(it.ans?' hasans':'')+(alldone?' alldone':'')+'" data-id="'+esc(it.id)+'">'
     + '<div class="chead">'
+    +   '<span class="state s-'+(cv||'none')+'" data-role="state">'+STATE_LABEL[cv]+'</span>'
     +   (it.ans?'<span class="pill p-ans">解答</span>':'')
     +   (it.kai?'<span class="tag">解説</span>':'')+both+fig
     +   '<span class="ans">'+esc(it.a)+(it.r?'<span class="rd">'+esc(it.r)+'</span>':'')+'</span>'
-    +   '<span class="left" data-role="left" hidden></span>'
     +   '<span class="where">'+esc(it.m)+'<br>'+esc(it.p)+'</span>'
     + '</div>'
-    + '<div class="cbody">'+q+ch
+    + '<div class="cbody">'
+    +   '<div class="fixlist"><b>直すところ</b>'+spots.map(x=>'<span>'+esc(x)+'</span>').join('')+'</div>'
+    +   q+ch
     +   (it.ans?secAns(it, BYKEY['ANS-'+it.id]):'')
     +   (it.kai?secKai(it, BYKEY[it.id]):'')
-    + '</div></article>';
+    + '</div>'
+    + '<div class="foot-act" data-role="foot">'+footAct(it)+'</div>'
+    + '<div class="meta" style="padding:0 16px 10px 20px"><span class="idm">'+esc(it.id)+'</span></div>'
+    + '</article>';
 }
-function byText(d){
-  if(!d || !d.by) return '';
-  if(d._pend) return esc(d.by)+'　保存できていません';
-  if(d.v) return esc(d.by)+'　'+esc(d.at||'');
-  if(d.edit) return esc(d.by)+' が書き直した（まだ未処理）　'+esc(d.at||'');
-  return '';
+/* 下の操作。まだ押していなければボタン3つ、押していれば「いま何になっているか」1行 */
+function footAct(it){
+  const cv = cardState(it);
+  if(cv==='' ){
+    return '<p class="asklabel">上の枠を直してから押してください。押すとこのカードは一覧から消えます。</p>'
+      + '<div class="acts">'
+      + '<button class="act no"   data-a="no"   aria-pressed="false">直さなくていい</button>'
+      + '<button class="act hold" data-a="hold" aria-pressed="false">保留</button>'
+      + '<button class="act yes"  data-a="yes"  aria-pressed="false">直した</button>'
+      + '</div>'
+      + whyrow({}, '');
+  }
+  if(cv==='mix'){
+    return '<div class="donebar"><span class="mark" style="color:var(--hi)">⚠ 解答と解説で判断がちぐはぐです</span>'
+      + '<button class="undo" data-a="undo">まとめて取り消す</button></div>';
+  }
+  const d = cardBy(it) || {};
+  const mark = {yes:'✓ 直した', hold:'— 保留', no:'— 直さなくていい'}[cv];
+  return '<div class="donebar d-'+cv+'"><span class="mark">'+mark+'</span>'
+    + '<span class="who">'+esc(d.by||'')+'　'+esc(d.at||'')+'</span>'
+    + '<button class="undo" data-a="undo">取り消す</button></div>'
+    + (cv==='no' ? whyrow(d, 'no') : '');
 }
-
 function autosize(t){ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
 
 let filtered=[];
@@ -843,12 +894,8 @@ $('btn-more').addEventListener('click',()=>{ st.page++; render(); });
 function refreshInPlace(){
   $('cards').querySelectorAll('.sec').forEach(s=>{
     const key=s.dataset.key, r=BYKEY[key]; if(!r) return;
-    const d=SRV[key]||{}, v=d.v||'';
-    s.className = 'sec s-'+r.kind+' v-'+r.d.v+(v?' done d-'+v:'')+(d._pend?' pend':'');
-    s.querySelectorAll('.act').forEach(b=>b.setAttribute('aria-pressed', v===b.dataset.a ? 'true':'false'));
-    const by=s.querySelector('[data-role="by"]'); if(by) by.innerHTML = byText(d);
-    const wr=s.querySelector('[data-role="whyrow"]'); if(wr) wr.hidden = (v!=='no');
-    wr && wr.querySelectorAll('.whychip').forEach(b=>b.setAttribute('aria-pressed', d.why===b.dataset.w ? 'true':'false'));
+    const d=SRV[key]||{};
+    s.className = 'sec s-'+r.kind+' v-'+r.d.v+(d._pend?' pend':'');
     const tg=s.querySelector('[data-role="edtag"]'); if(tg) tg.hidden = !d.edit;
     const pb=s.querySelector('[data-role="pend"]');
     if(pb){ pb.hidden = !d._pend; const pm=pb.querySelector('[data-role="pendmsg"]'); if(pm) pm.textContent = d._err||'保存できていません'; }
@@ -872,17 +919,14 @@ function refreshInPlace(){
     }
   });
   $('cards').querySelectorAll('.card').forEach(c=>{
-    const rs=rowsOf(BYID[c.dataset.id]);
-    const rest = rs.filter(r=>{ const d=SRV[r.key]; return !(d && d.v); });
-    c.classList.toggle('alldone', rest.length===0);
-    const lb=c.querySelector('[data-role="left"]');
-    if(lb){
-      // 片方だけ押したときに「なぜこのカードがまだ残っているのか」を出す
-      if(rs.length===2 && rest.length===1){
-        lb.hidden=false;
-        lb.textContent = (rest[0].kind==='ans'?'解答チェック':'解説チェック')+'がまだ';
-      } else { lb.hidden=true; }
-    }
+    const it = BYID[c.dataset.id]; if(!it) return;
+    const cv = cardState(it);
+    c.classList.toggle('alldone', cv!=='' && cv!=='mix');
+    const st2 = c.querySelector('[data-role="state"]');
+    if(st2){ st2.className='state s-'+(cv||'none'); st2.textContent=STATE_LABEL[cv]; }
+    const ft = c.querySelector('[data-role="foot"]');
+    // 下の操作は、いまの状態に合わせて作り直す（理由チップを触っている最中は触らない）
+    if(ft && !ft.contains(document.activeElement)) ft.innerHTML = footAct(it);
   });
   drawProgress();
 }
@@ -1080,27 +1124,35 @@ function backToGate(msg){
 
 /* 枠に入力したまま判断ボタンを押すと、blur（枠から出た）と click の2回保存が走り、
    遅れて届いたほうで上書きされていた。ボタンを押した瞬間に印を立てて blur 側を止める。 */
-let _btnDown = null;
+let _btnDown = null;   // 押した瞬間のカードid。枠から出た側の保存を止めるため
 $('cards').addEventListener('pointerdown', e=>{
-  const a = e.target.closest('.act') || e.target.closest('.whychip');
-  _btnDown = a ? a.closest('.sec').dataset.key : null;
+  const a = e.target.closest('.act') || e.target.closest('.whychip') || e.target.closest('.undo');
+  const c = a && a.closest('.card');
+  _btnDown = c ? c.dataset.id : null;
 });
+/* カードの枠を全部まとめて同じ判断にする。1枚＝1つの判断にそろえるため */
+let _saving = {};
+async function saveCard(qid, value, opt){
+  if(_saving[qid]) return;
+  _saving[qid] = 1;
+  try{
+    for(const r of rowsOf(BYID[qid])) await save(r.key, value, opt);
+  } finally { delete _saving[qid]; }
+}
 $('cards').addEventListener('click', e=>{
+  const c = e.target.closest('.card'); if(!c) return;
+  const qid = c.dataset.id;
   const a = e.target.closest('.act');
-  if(a){
-    const s=a.closest('.sec'), key=s.dataset.key, val=a.dataset.a;
-    const cur = SRV[key] && SRV[key].v;
-    save(key, cur===val ? '' : val);            // もう一度押すと取り消し（枠の中の文もいっしょに保存される）
-    _btnDown = null;
-    return;
-  }
+  if(a){ saveCard(qid, a.dataset.a); _btnDown = null; return; }
+  const u = e.target.closest('.undo');
+  if(u){ saveCard(qid, ''); _btnDown = null; return; }
   const pg = e.target.closest('[data-role="pendgo"]');
   if(pg){ retryPending(true); toast('送り直しています…'); return; }
   const w = e.target.closest('.whychip');
   if(w){
-    const s=w.closest('.sec'), key=s.dataset.key;
-    const cur = SRV[key] && SRV[key].why;
-    save(key, 'no', {why: cur===w.dataset.w ? '' : w.dataset.w});
+    const first = rowsOf(BYID[qid])[0];
+    const cur = SRV[first.key] && SRV[first.key].why;
+    saveCard(qid, 'no', {why: cur===w.dataset.w ? '' : w.dataset.w});
     _btnDown = null;
   }
 });
@@ -1129,7 +1181,7 @@ $('cards').addEventListener('focusout', async e=>{
   if(!e.target.classList.contains('edit')) return;
   const s=e.target.closest('.sec'), key=s.dataset.key, r=BYKEY[key], d=SRV[key];
   delete e.target.dataset.dirty;
-  if(_btnDown === key) return;          // ★判断ボタンを押した＝そちらが中身もまとめて保存する
+  if(_btnDown === r.qid) return;        // ★判断ボタンを押した＝そちらが中身もまとめて保存する
   // 同じ枠の中で隣の入力へ移っただけなら、まだ保存しない（3つ直す途中で毎回投げない）
   if(s.contains(e.relatedTarget)) { if(e.relatedTarget && e.relatedTarget.classList.contains('edit')) e.target.dataset.dirty='1'; return; }
   const now = secPayload(s, r);
