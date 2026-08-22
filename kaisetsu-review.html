@@ -477,7 +477,9 @@ async function enter(silent){
   try{ localStorage.setItem(NKEY,n); localStorage.setItem(PKEY,p); }catch(e){}
   err.hidden=true;
   $('gate').hidden = true; $('app').hidden = false;
+  const revived = loadPendLS();          // ★前回送れなかったぶんを拾う（送りはしない）
   await load(true);
+  if(revived) toast('前に開いたときに送れなかった判断が '+revived+' 件あります。上の「送り直す」を押してください。', true);
   setInterval(()=>load(false), 30000);
   window.addEventListener('focus', ()=>load(false));
 }
@@ -581,7 +583,7 @@ function drawProgress(){
     + '<span>まだ <b>'+(tot-done)+'</b> ／ '+tot+'</span>'
     + (names?'<span>'+names+'</span>':'')
     + (np?'<span style="color:var(--hi);font-weight:700">未送信 <b style="color:var(--hi)">'+np+'</b>　<button class="btn" id="btn-retry" style="padding:2px 9px;font-size:11.5px">送り直す</button></span>':'');
-  const rb=$('btn-retry'); if(rb) rb.onclick=()=>{ retryPending(); toast('送り直しています…'); };
+  const rb=$('btn-retry'); if(rb) rb.onclick=()=>{ retryPending(true); toast('送り直しています…'); };
   const bar=$('decided'); if(bar) bar.textContent = '（仕分けずみ '+done+' ／ '+tot+' 枠）';
   drawSeg();
 }
@@ -876,6 +878,39 @@ function refreshInPlace(){
 const _seq = {};          // key ごとの保存の通し番号。古い返事で新しい状態を上書きしないための番号
 const PEND = {};          // 送れなかったぶん。key -> {payload, seq}。消さずに持ち続けて送り直す
 function pendCount(){ return Object.keys(PEND).length; }
+
+/* ★未送信ぶんはこの端末にも残す。
+   閉じるときは確認ダイアログで止めているが、電池切れ・強制終了・タブのクラッシュでは
+   メモリ上のPENDごと消える＝押した判断が黙って無くなる。それを防ぐ。 */
+const QKEY = 'kwt_rev_pend_v1';
+function savePendLS(){
+  try{
+    const o = {};
+    Object.keys(PEND).forEach(k=>{ o[k] = {payload: PEND[k].payload}; });
+    if(Object.keys(o).length) localStorage.setItem(QKEY, JSON.stringify(o));
+    else localStorage.removeItem(QKEY);
+  }catch(e){}
+}
+/* 開き直したときに拾い直す。★勝手には送らない。
+   置きっぱなしの古い判断が、そのあとほかの人が入れた新しい判断を上書きすると困るので、
+   人が「送り直す」を押したときだけ送る。 */
+function loadPendLS(){
+  let o = null;
+  try{ o = JSON.parse(localStorage.getItem(QKEY) || 'null'); }catch(e){}
+  if(!o) return 0;
+  let n = 0;
+  Object.keys(o).forEach(k=>{
+    const e = o[k];
+    if(!BYKEY[k] || !e || !e.payload) return;
+    const my = (_seq[k] = (_seq[k] || 0) + 1);
+    PEND[k] = {payload: e.payload, seq: my, hold: true};   // hold＝人が押すまで送らない
+    const p = e.payload;
+    SRV[k] = {v:p.value, text:p.text, edit:!!p.edited, why:p.why, by:p.name, at:'',
+              _pend:true, _err:'前に開いたときに送れなかったぶんです。「送り直す」を押してください。'};
+    n++;
+  });
+  return n;
+}
 async function save(key, value, opt){
   const r = BYKEY[key]; if(!r) return;
   const my = (_seq[key] = (_seq[key] || 0) + 1);
@@ -895,12 +930,14 @@ async function save(key, value, opt){
     if(res.code==='bad_pass'){ backToGate(res.error); return; }
     // ★押した内容を消さない。未送信として持ち続け、あとで自動で送り直す
     PEND[key] = {payload:payload, seq:my};
+    savePendLS();
     SRV[key] = Object.assign({}, SRV[key], {at:'', _pend:true, _err:res.error||''});
     refreshInPlace();
     toast('保存できませんでした：'+(res.error||'')+'　あとで自動で送り直します。', true);
     return;
   }
   delete PEND[key];
+  savePendLS();
   SRV[key] = {v:res.data.v, text:res.data.text, edit:res.data.edit, why:res.data.why, by:res.data.by, at:res.data.at};
   refreshInPlace();
   verifySaved(key, {v:res.data.v, text:res.data.text, edit:res.data.edit, why:res.data.why, _seq:my});
@@ -953,14 +990,14 @@ function showSaveWarning(key, mine, srv){
     const b = e.target.closest('button'); if(!b && e.target!==mask) return;
     const a = b ? b.dataset.a : 'close';
     if(a==='resave'){ b.disabled=true; b.textContent='送っています…'; await save(key, mine.v); mask.remove(); return; }
-    if(a==='take'){ if(srv) SRV[key]=srv; else delete SRV[key]; delete PEND[key]; refreshInPlace(); drawProgress(); }
+    if(a==='take'){ if(srv) SRV[key]=srv; else delete SRV[key]; delete PEND[key]; savePendLS(); refreshInPlace(); drawProgress(); }
     mask.remove();
   });
 }
 
 /* 未送信ぶんを順番に送り直す（同時に投げるとロックを取り合うので直列） */
 let _retrying = false;
-async function retryPending(){
+async function retryPending(force){
   if(_retrying) return;
   const keys = Object.keys(PEND);
   if(!keys.length) return;
@@ -969,6 +1006,8 @@ async function retryPending(){
     for(const key of keys){
       const e = PEND[key];
       if(!e) continue;
+      if(e.hold && !force) continue;      // 開き直して拾ったぶん＝人が押すまで送らない
+      if(force) delete e.hold;
       if(_seq[key] !== e.seq){ delete PEND[key]; continue; }   // もっと新しい操作がある＝古い分は捨てる
       const r = await call(e.payload, 2);
       if(_seq[key] !== e.seq){ delete PEND[key]; continue; }
@@ -978,7 +1017,7 @@ async function retryPending(){
       }else if(r.code==='bad_pass'){ backToGate(r.error); return; }
       // それ以外は次の機会にまた送る
     }
-  } finally { _retrying = false; refreshInPlace(); drawProgress(); }
+  } finally { _retrying = false; savePendLS(); refreshInPlace(); drawProgress(); }
 }
 
 function backToGate(msg){
@@ -1004,7 +1043,7 @@ $('cards').addEventListener('click', e=>{
     return;
   }
   const pg = e.target.closest('[data-role="pendgo"]');
-  if(pg){ retryPending(); toast('送り直しています…'); return; }
+  if(pg){ retryPending(true); toast('送り直しています…'); return; }
   const w = e.target.closest('.whychip');
   if(w){
     const s=w.closest('.sec'), key=s.dataset.key;
