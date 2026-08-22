@@ -1585,7 +1585,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
-var APP_VERSION="kwt-2026-08-22c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-08-22d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -2679,6 +2679,19 @@ function loadHomeData_(showSkel){
   });
   callCached({action:'quiz_list'},quizRenderHome_); // 確認テストの入口表示（配信があれば出す）2026-07-10
   callCached({action:'material_parts'},function(d){
+    /* 【2026-08-22】通信に失敗したときに「先生が割り当てたテスト範囲がここに出る」（＝未割当と同じ画面）を出さない。
+       空配列を流すと 単元別が消え／確認テストの「練習ずみ」索引（_buildPartIdx_）も消え／毎日タブの完走バナーも消える。
+       失敗したら何も書き換えない。まだ何も出ていないとき（初回）だけ理由と やり直し を出す。
+       2026-08-21⑮ と同じ考え方＝通信失敗と0件を分ける。 */
+    if(_netNG_(d)){
+      var _uh=$('unit-list');
+      if(_uh&&!_uh.querySelector('.nbook')){
+        _uh.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'<br><button class="btn sub" style="margin-top:8px" onclick="try{homeCacheClear_();}catch(e){} loadHomeData_(true);">もう<ruby>一度<rt class="uf">いちど</rt></ruby>よみこむ</button></div></div>';
+      }
+      var _ra=$('review-area');
+      if(_ra&&!_ra.querySelector('.macc'))_ra.innerHTML='<p class="muted">'+_NET_NG_MSG_+'</p>';
+      return;
+    }
     try{renderUnitZone_((d&&d.ok&&d.data&&d.data.materials)||[]);}catch(e){} // 単元別ゾーン（新ホーム 2026-07-24）
     try{ // 完走した毎日学習(main・sm_status=completed)を毎日タブに残す 2026-08-08。studentHome.main は active限定なので material_parts から拾う
       var _mpAll=(d&&d.ok&&d.data&&d.data.materials)||[];
@@ -4418,6 +4431,16 @@ function loadNotes(){
   var order=['english','science','social','japanese','math'];
   var host=$('note-list')||$('note-area');if(host)host.innerHTML='<div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div>';
   callCached({action:'notes_summary'},function(d){
+    /* 【2026-08-22】通信に失敗したときに「全部直した！」（＝残り0語）と嘘を出さない。
+       2026-08-21⑮ で出題側（mistake_set）は直したが、残数を出すこちら側が残っていた。
+       失敗したら 数字・赤●・ナビのバッジ・「全部できた！」カード をどれも触らず、リストにだけ理由を出す。
+       0件（本当に全部直した）と 通信失敗 を同じ画面にしない。 */
+    if(_netNG_(d)){
+      var _cnE=$('cnt-note');if(_cnE)_cnE.textContent='—';
+      var _ntE=$('note-total');if(_ntE)_ntE.textContent='';
+      if(host)host.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(224,87,75,.12);color:var(--ng)"><i class="ti ti-wifi-off"></i></div><div class="t"><div class="ttl">'+_NET_NG_MSG_+'</div><div class="sub"><button class="btn sub" style="margin-top:8px" onclick="loadNotes();">もう<ruby>一度<rt class="uf">いちど</rt></ruby>よみこむ</button></div></div></div>';
+      return;
+    }
     var subs=(d&&d.ok&&d.data.subjects)?d.data.subjects.slice():[];
     subs=subs.filter(function(x){return (x.count||0)>0;});
     subs.sort(function(a,b){return order.indexOf(a.subject)-order.indexOf(b.subject);});
