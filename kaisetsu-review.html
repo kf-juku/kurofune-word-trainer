@@ -43,12 +43,18 @@ h1,h2,h3{font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif;margin:0;te
 
 /* ---- masthead ---- */
 .mast{background:var(--surface);border-bottom:1px solid var(--line)}
-.mast-in{max-width:1240px;margin:0 auto;padding:28px 22px 22px;display:flex;flex-direction:column;gap:18px}
+.mast-in{max-width:1240px;margin:0 auto;padding:18px 22px 16px;display:flex;flex-direction:column;gap:12px}
 .eyebrow{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700}
-h1{font-size:clamp(24px,3.4vw,34px);font-weight:900;letter-spacing:.01em;line-height:1.3}
-.sub{color:var(--muted);font-size:14px;max-width:70ch}
+h1{font-size:clamp(21px,2.6vw,27px);font-weight:900;letter-spacing:.01em;line-height:1.3}
+.sub{color:var(--muted);font-size:13.5px;max-width:78ch;margin:0}
+.note{max-width:78ch}
+.note summary{cursor:pointer;font-size:12.5px;color:var(--accent);font-weight:700;list-style:none}
+.note summary::-webkit-details-marker{display:none}
+.note summary::before{content:"▸ ";}
+.note[open] summary::before{content:"▾ ";}
+.note p{margin:7px 0 0;font-size:12.5px;color:var(--muted);line-height:1.75}
 .stats{display:flex;flex-wrap:wrap;gap:10px}
-.stat{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 14px;display:flex;align-items:baseline;gap:9px}
+.stat{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:7px 12px;display:flex;align-items:baseline;gap:8px}
 .stat b{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
 .stat span{font-size:12px;color:var(--muted)}
 .stat.hi b{color:var(--hi)} .stat.mid b{color:var(--mid)} .stat.lo b{color:var(--lo)}
@@ -56,8 +62,15 @@ h1{font-size:clamp(24px,3.4vw,34px);font-weight:900;letter-spacing:.01em;line-he
 /* ---- layout ---- */
 .wrap{max-width:1240px;margin:0 auto;padding:22px;display:grid;grid-template-columns:246px minmax(0,1fr);gap:24px;align-items:start}
 @media(max-width:940px){.wrap{grid-template-columns:1fr;padding:16px;gap:16px}}
-.rail{position:sticky;top:14px;display:flex;flex-direction:column;gap:16px}
-@media(max-width:940px){.rail{position:static}}
+.rail{position:sticky;top:14px;display:flex;flex-direction:column;gap:16px;
+  /* 【地雷】画面より高い sticky は、上に張りついたまま下端に永久に手が届かない。
+     max-height と overflow-y で「レールの中だけスクロールできる」逃げ道を必ず作る。 */
+  max-height:calc(100vh - 28px);overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:thin;padding-right:6px;margin-right:-6px}
+.rail::-webkit-scrollbar{width:8px}
+.rail::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+.rail::-webkit-scrollbar-track{background:transparent}
+@media(max-width:940px){.rail{position:static;max-height:none;overflow:visible;padding-right:0;margin-right:0}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
 .panel h3{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:700;margin-bottom:10px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -178,6 +191,23 @@ textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;font-size
 .toast.bad{background:var(--hi);color:#fff}
 .offline{background:var(--hi-soft);color:var(--hi);border:1px solid var(--hi);border-radius:10px;
   padding:10px 14px;font-size:13.5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+.bar.barcol{flex-direction:column;align-items:stretch;gap:11px}
+.barrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between}
+.barhint{margin:0;font-size:12px;color:var(--faint);line-height:1.6}
+.barhint b{color:var(--muted);font-weight:700}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg .segb{appearance:none;border:1px solid var(--line);background:var(--surface2);color:var(--muted);
+  border-radius:9px;padding:7px 13px;font-size:13.5px;font-family:inherit;cursor:pointer;
+  display:flex;align-items:baseline;gap:7px;line-height:1.4}
+.seg .segb:hover{border-color:var(--accent);color:var(--ink)}
+.seg .segb .n{font-family:"IBM Plex Mono",monospace;font-size:12px;font-variant-numeric:tabular-nums;opacity:.8}
+.seg .segb[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+:root[data-theme="dark"] .seg .segb[aria-pressed="true"],
+:root:not([data-theme="light"]) .seg .segb[aria-pressed="true"]{color:#0E141C}
+.seg .segb.s-yes[aria-pressed="true"]{background:var(--ok);border-color:var(--ok)}
+.seg .segb.s-hold[aria-pressed="true"]{background:var(--mid);border-color:var(--mid)}
+.seg .segb.s-no[aria-pressed="true"]{background:var(--lo);border-color:var(--lo)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -205,6 +235,7 @@ textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;font-size
       <h1 id="h1">解説チェック</h1>
     </div>
     <p class="sub" id="sub"></p>
+    <details class="note"><summary>この一覧について</summary><p id="note"></p></details>
     <div class="stats" id="stats"></div>
     <div class="prog">
       <div class="prog-bar" id="prog-bar"></div>
@@ -235,20 +266,20 @@ textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;font-size
       <h3>検索</h3>
       <input type="search" id="f-q" placeholder="答え・問題文・解説から探す">
     </div>
-    <div class="panel">
-      <h3>仕分けの状態</h3>
-      <div class="chips" id="f-done"></div>
-    </div>
   </aside>
 
   <main class="list">
-    <div class="bar">
-      <div class="cnt"><b id="shown">0</b> 件を表示　<span id="decided"></span></div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap">
-        <button class="btn" id="btn-refresh">最新にする</button>
-        <button class="btn" id="btn-reset">絞り込みを解除</button>
-        <button class="btn primary" id="btn-export">採用したものを書き出す</button>
+    <div class="bar barcol">
+      <div class="seg" id="f-done"></div>
+      <div class="barrow">
+        <div class="cnt"><b id="shown">0</b> 件を表示　<span id="decided"></span></div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <button class="btn" id="btn-refresh">最新にする</button>
+          <button class="btn" id="btn-reset">絞り込みを解除</button>
+          <button class="btn primary" id="btn-export">採用したものを書き出す</button>
+        </div>
       </div>
+      <p class="barhint">押したものは「未処理」から消えます。取り消すときは上の <b>採用・保留・直さなくてよい</b> で絞って、同じボタンをもう一度押してください。</p>
     </div>
     <div id="cards"></div>
     <button class="btn more" id="btn-more" hidden>つづきを表示</button>
@@ -282,7 +313,7 @@ const CLS = {A:'事実の誤り',B:'覚え方が誤り',C:'設問の焼き直し
 const SEVS = ['高','中','低'];
 const M = DATA.meta, ITEMS = DATA.items;
 const BYID = {}; ITEMS.forEach(it=>BYID[it.id]=it);
-const WHYS = ['指摘が的外れ','直さなくてよい','元のままが正しい','図を見れば分かる','あとで自分で直す'];
+const WHYS = ['指摘が的外れ','元のままが正しい','直すほどではない','図を見れば分かる','あとで自分で直す'];
 
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
@@ -370,10 +401,13 @@ function hideOffline(){ const el=$('offline'); if(el) el.remove(); }
 /* ---------------- ヘッダー ---------------- */
 function buildUI(){
   $('sub').textContent =
-    'words シート全 '+M.total.toLocaleString()+' 問の解説を1問ずつ読み、直したほうがよいものだけを '+M.found.toLocaleString()+' 件ならべています。'
-    + (M.dropped ? '別のエージェントによる再確認で '+M.dropped+' 件は「指摘が妥当でない」として落としています。' : '')
-    + ' 図（image_fill・table_fill）の中身はデータに無いため、図を見ないと判断できない内容は対象外です。'
-    + ' 判断はスプレッドシートに保存され、2人でどの端末からでも続きができます。';
+    'words シート全 '+M.total.toLocaleString()+' 問の解説を1問ずつ読み、直したほうがよい '+M.found.toLocaleString()+' 件を出しています。'
+    + '判断はスプレッドシートに保存され、2人でどの端末からでも続きができます。';
+  $('note').textContent =
+    (M.dropped ? '別のエージェントによる再確認で '+M.dropped+' 件は「指摘が妥当でない」として落としています。' : '')
+    + '図（image_fill・table_fill）の中身はデータに無いため、図を見ないと判断できない内容は対象外です。'
+    + '　保留＝まだ決めていない、あとでもう一度見る。直さなくてよい＝結論が出た、理由を1つ押してください。'
+    + '　押したものはもう一度押すと取り消せます。';
   const stat=(n,l,c)=>'<div class="stat '+(c||'')+'"><b>'+n.toLocaleString()+'</b><span>'+l+'</span></div>';
   $('stats').innerHTML = stat(M.total,'点検した問題') + stat(M.found,'要修正')
     + SEVS.map(v=>stat(M.sev[v]||0,'重要度 '+v, v==='高'?'hi':v==='中'?'mid':'lo')).join('');
@@ -384,12 +418,23 @@ function buildUI(){
   chipRow($('f-subj'), Object.keys(M.subj), st.subj, M.subj);
   sel.innerHTML = '<option value="">すべての教材</option>' +
     M.mat.map(a=>'<option value="'+esc(a[0])+'">'+esc(a[0])+'（'+a[1]+'／'+a[2]+'問）</option>').join('');
-  fd.innerHTML = [['undecided','まだ仕分けしていない'],['all','すべて'],['hold','保留'],['yes','採用'],['no','見送り']]
-    .map(a=>'<button class="chip" data-v="'+a[0]+'" aria-pressed="'+(a[0]===st.done)+'">'+a[1]+'</button>').join('');
+  drawSeg();
   $('foot').textContent = '作成 '+M.built+'　／　点検 '+M.chunks[0]+'ブロック・再確認 '+M.chunks[1]+'ブロック　／　'
     + 'ログイン中：'+ME+'　／　判断はスプレッドシート「クロトレ 解説チェック 仕分け」に残ります。';
 }
 
+const SEGS = [['undecided','未処理',''],['yes','採用','s-yes'],['hold','保留','s-hold'],['no','直さなくてよい','s-no'],['all','すべて','']];
+function segCounts(){
+  const c={undecided:0,yes:0,hold:0,no:0,all:ITEMS.length};
+  ITEMS.forEach(it=>{ const d=SRV[it.id], v=d&&d.v?d.v:'';
+    if(!v) c.undecided++; else if(c[v]!==undefined) c[v]++; });
+  return c;
+}
+function drawSeg(){
+  const c = segCounts();
+  fd.innerHTML = SEGS.map(a=>'<button class="segb '+a[2]+'" data-v="'+a[0]+'" aria-pressed="'+(a[0]===st.done)+'">'
+    + a[1] + '<span class="n">' + (c[a[0]]||0) + '</span></button>').join('');
+}
 function drawProgress(){
   let y=0,h=0,n=0,ed=0; const per={};
   ITEMS.forEach(it=>{
@@ -404,10 +449,11 @@ function drawProgress(){
   $('prog-lg').innerHTML =
       '<span><i style="background:var(--ok)"></i>採用 <b>'+y+'</b>'+(ed?'（うち書き直し <b>'+ed+'</b>）':'')+'</span>'
     + '<span><i style="background:var(--mid)"></i>保留 <b>'+h+'</b></span>'
-    + '<span><i style="background:var(--lo)"></i>見送り <b>'+n+'</b></span>'
+    + '<span><i style="background:var(--lo)"></i>直さなくてよい <b>'+n+'</b></span>'
     + '<span>まだ <b>'+(tot-done)+'</b> ／ '+tot+'</span>'
     + (names?'<span>'+names+'</span>':'');
   const bar=$('decided'); if(bar) bar.textContent = '（仕分けずみ '+done+' ／ '+tot+'）';
+  drawSeg();
 }
 
 /* ---------------- 絞り込み ---------------- */
@@ -428,15 +474,15 @@ function chipRow(el, values, set, counts, label){
 }
 sel.addEventListener('change',()=>{ st.mat=sel.value; st.page=1; render(); });
 let qt; qin.addEventListener('input',()=>{ clearTimeout(qt); qt=setTimeout(()=>{ st.q=qin.value.trim(); st.page=1; render(); },180); });
-fd.addEventListener('click',e=>{ const b=e.target.closest('.chip'); if(!b) return;
+fd.addEventListener('click',e=>{ const b=e.target.closest('.segb'); if(!b) return;
   st.done=b.dataset.v; st.page=1;
-  fd.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed', x===b?'true':'false'));
+  fd.querySelectorAll('.segb').forEach(x=>x.setAttribute('aria-pressed', x===b?'true':'false'));
   render(); });
 $('btn-reset').addEventListener('click',()=>{
   st.sev.clear(); st.cls.clear(); st.subj.clear(); st.mat=''; st.q=''; st.done='undecided'; st.page=1;
   sel.value=''; qin.value='';
   document.querySelectorAll('.rail .chip').forEach(b=>b.setAttribute('aria-pressed','false'));
-  fd.querySelector('[data-v="undecided"]').setAttribute('aria-pressed','true');
+  drawSeg();
   render();
 });
 $('btn-refresh').addEventListener('click', async ()=>{ await load(false); render(); toast('最新にしました'); });
@@ -483,12 +529,12 @@ function card(it){
     +   '<div class="acts">'
     +     '<button class="act yes"  data-a="yes"  aria-pressed="'+(v==='yes')+'">採用</button>'
     +     '<button class="act hold" data-a="hold" aria-pressed="'+(v==='hold')+'">保留</button>'
-    +     '<button class="act no"   data-a="no"   aria-pressed="'+(v==='no')+'">見送り</button>'
+    +     '<button class="act no"   data-a="no"   aria-pressed="'+(v==='no')+'">直さなくてよい</button>'
     +     '<span class="by" data-role="by">'+byText(d)+'</span>'
     +     '<span class="idm">'+esc(it.id)+'</span>'
     +   '</div>'
     +   '<div class="whyrow" data-role="whyrow" '+(v==='no'?'':'hidden')+'>'
-    +     '<span>見送りの理由：</span>'
+    +     '<span>そう決めた理由：</span>'
     +     WHYS.map(w=>'<button class="whychip" data-w="'+esc(w)+'" aria-pressed="'+(d.why===w)+'">'+esc(w)+'</button>').join('')
     +   '</div>'
     + '</div></article>';
