@@ -130,6 +130,11 @@ select,input[type=search]{width:100%;font-family:inherit;font-size:13.5px;paddin
   border-radius:8px;padding:5px 12px;font-size:12.5px;font-family:inherit;cursor:pointer;margin-left:auto}
 .undo:hover{border-color:var(--hi);color:var(--hi)}
 .asklabel{font-size:12px;color:var(--muted);margin:0 0 8px}
+.spin{width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--accent);
+  border-radius:50%;display:inline-block;animation:sp .7s linear infinite;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.card.busy{outline:2px solid var(--accent);outline-offset:-2px}
+.card.busy .acts,.card.busy .undo{pointer-events:none;opacity:.5}
 .card.alldone:hover{opacity:1}
 .chead{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:12px 16px 10px 20px;border-bottom:1px solid var(--line)}
 .ans{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;font-size:18px;letter-spacing:.01em}
@@ -798,6 +803,8 @@ function whyrow(d, v){
     + WHYS.map(w=>'<button class="whychip" data-w="'+esc(w)+'" aria-pressed="'+(d&&d.why===w)+'">'+esc(w)+'</button>').join('')
     + '</div>';
 }
+let _saving = {};   // いま保存中のカードid。押してから返事が来るまで「保存しています…」を出す
+
 /* このカードの判断。枠が2つあっても、押すときは両方まとめて同じ判断にする。
    （枠ごとに押させると「どっちを押したか分からない」になるため 2026-08-22 に1組へ変更） */
 function cardState(it){
@@ -850,6 +857,10 @@ function card(it){
 }
 /* 下の操作。まだ押していなければボタン3つ、押していれば「いま何になっているか」1行 */
 function footAct(it){
+  if(_saving[it.id]){
+    return '<div class="donebar"><span class="spin"></span>'
+      + '<span class="mark" style="color:var(--accent)">保存しています…</span></div>';
+  }
   const cv = cardState(it);
   if(cv==='' ){
     return '<p class="asklabel">上の枠を直してから押してください。押すとこのカードは一覧から消えます。</p>'
@@ -872,6 +883,15 @@ function footAct(it){
     + (cv==='no' ? whyrow(d, 'no') : '');
 }
 function autosize(t){ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
+
+/* ★「いま人が文字を打っているか」の判定はここ1か所に集める。
+   ボタンもフォーカスを取るので、要素が中にあるかで見ると
+   「押した本人のせいで画面が更新されない」という事故になる（2026-08-22 に2回やった）。
+   守るのは入力欄だけ。 */
+function isTyping(el){
+  const ae = document.activeElement;
+  return !!(ae && el.contains(ae) && (ae.tagName==='TEXTAREA' || ae.tagName==='INPUT'));
+}
 
 let filtered=[];
 function render(){
@@ -900,7 +920,7 @@ function refreshInPlace(){
     const pb=s.querySelector('[data-role="pend"]');
     if(pb){ pb.hidden = !d._pend; const pm=pb.querySelector('[data-role="pendmsg"]'); if(pm) pm.textContent = d._err||'保存できていません'; }
     // ★書きかけ（dirty）の枠は何があっても触らない。他の人の更新でも消さない
-    if(s.querySelector('.edit[data-dirty]') || s.contains(document.activeElement)) return;
+    if(s.querySelector('.edit[data-dirty]') || isTyping(s)) return;
     if(r.kind==='kai'){
       const ta=s.querySelector('[data-role="edit"]');
       if(ta){
@@ -922,11 +942,16 @@ function refreshInPlace(){
     const it = BYID[c.dataset.id]; if(!it) return;
     const cv = cardState(it);
     c.classList.toggle('alldone', cv!=='' && cv!=='mix');
+    c.classList.toggle('busy', !!_saving[it.id]);
     const st2 = c.querySelector('[data-role="state"]');
     if(st2){ st2.className='state s-'+(cv||'none'); st2.textContent=STATE_LABEL[cv]; }
     const ft = c.querySelector('[data-role="foot"]');
-    // 下の操作は、いまの状態に合わせて作り直す（理由チップを触っている最中は触らない）
-    if(ft && !ft.contains(document.activeElement)) ft.innerHTML = footAct(it);
+    // ★必ず作り直す。中にあるのはボタンだけなので、フォーカスを理由に止めてはいけない
+    //   （止めると、押した本人の画面だけ何も起きていないように見える）
+    if(ft){
+      const html = footAct(it);
+      if(ft.innerHTML !== html) ft.innerHTML = html;
+    }
   });
   drawProgress();
 }
@@ -942,10 +967,7 @@ function sweepDone(){
     $('cards').querySelectorAll('.card').forEach(c=>{
       const it = BYID[c.dataset.id]; if(!it) return;
       if(match(it)) return;                                      // まだ条件に合う＝残す
-      // ★入力欄にカーソルがあるときだけ守る。
-      //   ボタンを押すとフォーカスがカードの中に入るので、カード全体で見ると必ず「入力中」になってしまう。
-      const ae = document.activeElement;
-      if(ae && c.contains(ae) && (ae.tagName==='TEXTAREA' || ae.tagName==='INPUT')) return;
+      if(isTyping(c)) return;                                    // 入力中は消さない
       if(c.querySelector('textarea.edit[data-dirty]')) return;   // 書きかけは消さない
       c.classList.add('leaving');
       pending++;
@@ -1011,7 +1033,9 @@ async function save(key, value, opt){
   const my = (_seq[key] = (_seq[key] || 0) + 1);
   const s = $('cards').querySelector('.sec[data-key="'+CSS.escape(key)+'"]');
   // 直した中身はいつでも残す（判断を押していなくても消さない）
-  const text = s ? secPayload(s, r) : defText(r);
+  // opt.text が来ていれば、それは押した瞬間に読み取った中身。画面より優先する
+  const text = (opt && opt.text !== undefined) ? opt.text
+             : (s ? secPayload(s, r) : defText(r));
   const edited = !!text && text !== defText(r);
   const why = (opt && opt.why!==undefined) ? opt.why : ((SRV[key]&&SRV[key].why)||'');
 
@@ -1131,25 +1155,34 @@ $('cards').addEventListener('pointerdown', e=>{
   _btnDown = c ? c.dataset.id : null;
 });
 /* カードの枠を全部まとめて同じ判断にする。1枚＝1つの判断にそろえるため */
-let _saving = {};
 async function saveCard(qid, value, opt){
   if(_saving[qid]) return;
+  const rows = rowsOf(BYID[qid]);
+  // ★先に画面の中身を読み取ってから「保存しています…」を出す。
+  //   順番を逆にすると、再描画が枠を元の値に書き戻して、直したものが消える。
+  const texts = {};
+  rows.forEach(r=>{
+    const sec = $('cards').querySelector('.sec[data-key="'+CSS.escape(r.key)+'"]');
+    texts[r.key] = sec ? secPayload(sec, r) : defText(r);
+  });
   _saving[qid] = 1;
+  refreshInPlace();
   try{
-    for(const r of rowsOf(BYID[qid])) await save(r.key, value, opt);
-  } finally { delete _saving[qid]; }
+    for(const r of rows) await save(r.key, value, Object.assign({}, opt||{}, {text: texts[r.key]}));
+  } finally { delete _saving[qid]; refreshInPlace(); }
 }
 $('cards').addEventListener('click', e=>{
   const c = e.target.closest('.card'); if(!c) return;
   const qid = c.dataset.id;
   const a = e.target.closest('.act');
-  if(a){ saveCard(qid, a.dataset.a); _btnDown = null; return; }
+  if(a){ a.blur(); saveCard(qid, a.dataset.a); _btnDown = null; return; }
   const u = e.target.closest('.undo');
-  if(u){ saveCard(qid, ''); _btnDown = null; return; }
+  if(u){ u.blur(); saveCard(qid, ''); _btnDown = null; return; }
   const pg = e.target.closest('[data-role="pendgo"]');
   if(pg){ retryPending(true); toast('送り直しています…'); return; }
   const w = e.target.closest('.whychip');
   if(w){
+    w.blur();
     const first = rowsOf(BYID[qid])[0];
     const cur = SRV[first.key] && SRV[first.key].why;
     saveCard(qid, 'no', {why: cur===w.dataset.w ? '' : w.dataset.w});
