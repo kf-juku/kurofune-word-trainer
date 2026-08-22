@@ -3397,6 +3397,25 @@ document.addEventListener('keydown',function(e){
 function closeModal(id){$(id).classList.remove('show');}
 
 /* ===== バグ報告ビューア（原因究明用）2026-07-29 ===== */
+/* 対処済み/未対応の切り替え（2026-08-22）。生徒の報告も、アプリが自動で見つけた不具合も同じ扱い。
+   ジョブスが直したら done にする＝残っている「未対応」がそのまま宿題リストになる。 */
+var _bugStatus={};
+function bugStatusPaint_(i,st){
+  var done=(st==='done');
+  var sp=document.getElementById('bugst_'+i);
+  if(sp){sp.textContent=done?'対処済み':'未対応';sp.style.background=done?'#dcfce7':'#fef3c7';sp.style.color=done?'#166534':'#92400e';}
+  var b=document.getElementById('bugbtn_'+i);
+  if(b){b.textContent=done?'未対応にもどす':'対処済みにする';b.disabled=false;}
+}
+function bugToggleStatus_(id,i){
+  var cur=_bugStatus[i]||'new', next=(cur==='done')?'new':'done';
+  var b=document.getElementById('bugbtn_'+i);
+  if(b){b.disabled=true;b.textContent='変更中…';}
+  call({action:'bug_status_set',id:id,status:next}).then(function(d){
+    if(!d||!d.ok){bugStatusPaint_(i,cur);toast('変えられませんでした：'+((d&&d.error)||'通信エラー'));return;}
+    _bugStatus[i]=next;bugStatusPaint_(i,next);toast(next==='done'?'対処済みにしました':'未対応にもどしました');
+  });
+}
 function openBugReports(){$('bugReportsModal').classList.add('show');loadBugReports();}
 function loadBugReports(){
   var body=$('bugReportsBody');body.innerHTML='<div style="text-align:center;padding:20px;color:#64748b;">読み込み中…</div>';
@@ -3404,6 +3423,7 @@ function loadBugReports(){
     if(!d||!d.ok){body.innerHTML='<div style="padding:16px;color:#b91c1c;">読み込みに失敗しました：'+esc((d&&d.error)||'')+'</div>';return;}
     var rs=(d.data&&d.data.reports)||[];
     if(!rs.length){body.innerHTML='<div style="padding:20px;text-align:center;color:#64748b;">まだ報告はありません。</div>';return;}
+    _bugStatus={};rs.forEach(function(r,i){_bugStatus[i]=(String(r.status)==='done')?'done':'new';}); // 対処済み切り替え用 2026-08-22
     body.innerHTML=rs.map(bugCardHtml_).join('');
   });
 }
@@ -3440,12 +3460,16 @@ function bugCardHtml_(r,i){
   h+='<span style="font-size:12px;color:#64748b;">'+esc(r.created_at||'').replace('T',' ')+'</span>';
   if(r.screen)h+='<span style="font-size:11px;background:#eef2ff;color:#3730a3;border-radius:6px;padding:1px 7px;">画面：'+esc(r.screen)+'</span>';
   h+='<span style="font-size:11px;background:#f1f5f9;color:#334155;border-radius:6px;padding:1px 7px;">版 '+esc(r.app_version||'不明')+'</span>';
+  /* 対処済み/未対応のバッジ。ジョブスが直したら done にする運用（2026-08-22 川上さん確定） */
+  var _bdone=(String(r.status)==='done');
+  h+='<span id="bugst_'+i+'" style="font-size:11px;border-radius:6px;padding:1px 7px;background:'+(_bdone?'#dcfce7':'#fef3c7')+';color:'+(_bdone?'#166534':'#92400e')+';">'+(_bdone?'対処済み':'未対応')+'</span>';
   if(errN)h+='<span style="font-size:11px;background:#fee2e2;color:#b91c1c;border-radius:6px;padding:1px 7px;">JSエラー '+errN+'</span>';
   h+='</div>';
   if(r.category)h+='<div style="font-size:12px;color:#475569;margin-top:4px;">種類：'+esc(r.category)+'</div>';
   if(r.message)h+='<div style="font-size:13px;margin-top:5px;white-space:pre-wrap;background:#f8fafc;border-radius:6px;padding:6px 8px;">'+esc(r.message)+'</div>';
   if(srv)h+='<div style="font-size:12px;color:#334155;margin-top:6px;">🖥 報告時サーバー：'+srv+'</div>';
   h+='<div style="margin-top:6px;"><button class="btn-ghost" style="width:auto;font-size:12px;padding:3px 9px;" onclick="var e=document.getElementById(\''+id+'\');e.style.display=e.style.display===\'none\'?\'block\':\'none\';">診断JSONを見る ▾</button>';
+  h+='<button class="btn-ghost" id="bugbtn_'+i+'" style="width:auto;font-size:12px;padding:3px 9px;margin-left:6px;" onclick="bugToggleStatus_(\''+esc(r.id||'')+'\','+i+');">'+(_bdone?'未対応にもどす':'対処済みにする')+'</button>';
   h+='<div id="'+id+'" style="display:none;margin-top:6px;">';
   if(cli){
     h+='<div style="font-size:11px;color:#64748b;margin-bottom:3px;">クライアント状態</div>';
