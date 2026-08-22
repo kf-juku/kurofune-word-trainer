@@ -212,6 +212,19 @@ textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;font-size
 .act.no[aria-pressed="true"]{background:var(--lo);border-color:var(--lo);color:#fff}
 .act.hold[aria-pressed="true"]{background:var(--mid);border-color:var(--mid);color:#fff}
 .act.yes[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.warn-mask{position:fixed;inset:0;background:rgba(10,16,24,.62);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px}
+.warn-box{background:var(--surface);border:2px solid var(--hi);border-radius:14px;padding:20px;max-width:min(520px,94vw);
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:12px}
+.warn-box h3{font-size:18px;font-weight:700;color:var(--hi)}
+.warn-box p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.8}
+.warn-cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.warn-cmp div{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13px;line-height:1.7}
+.warn-cmp b{font-size:11px;letter-spacing:.1em;color:var(--faint)}
+.warn-act{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.pendbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--hi-soft);color:var(--hi);
+  border:1px solid var(--hi);border-radius:9px;padding:8px 12px;font-size:12.5px;font-weight:700}
+.pendbar .btn{font-weight:700}
+.card.pend::before{background:var(--hi)!important}
 .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:11.5px;color:var(--faint);margin-top:-2px}
 .meta .idm{margin-left:auto}
 @media(max-width:520px){.acts{grid-template-columns:1fr 1fr 1fr}}
@@ -282,6 +295,7 @@ textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;font-size
         <div class="cnt"><b id="shown">0</b> 件を表示　<span id="decided"></span></div>
         <div style="display:flex;gap:7px;flex-wrap:wrap">
           <button class="btn" id="btn-refresh">最新にする</button>
+          <button class="btn" id="btn-audit">サーバーと突き合わせる</button>
           <button class="btn" id="btn-reset">絞り込みを解除</button>
           <button class="btn primary" id="btn-export">採用したものを書き出す</button>
         </div>
@@ -330,17 +344,32 @@ let ME='', PASS='';
 let SRV = {};          // id -> {v,text,edit,why,by,at}
 let ONLINE = true;
 
-async function call(body){
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+/* GASは大きい応答のときや再デプロイ直後に、JSONでなくHTMLのエラーページを返すことがある。
+   ロック競合（locked:）も一時的な失敗なので、どちらも数回やり直す。 */
+async function call(body, tries){
   if(!GAS_URL || GAS_URL.indexOf('__GAS')===0)
     return {ok:false, error:'GAS_URL が空です。仕分け用GASの /exec URL をこのファイルに貼ってください。'};
-  const ctl = new AbortController();
-  const t = setTimeout(()=>ctl.abort(), 30000);
-  try{
-    const r = await fetch(GAS_URL, {method:'POST', body: JSON.stringify(Object.assign({pass:PASS}, body)), signal:ctl.signal});
-    return await r.json();
-  }catch(e){
-    return {ok:false, error:'サーバーにつながりませんでした（'+(e && e.name==='AbortError' ? '時間切れ' : '通信エラー')+'）'};
-  }finally{ clearTimeout(t); }
+  tries = tries || 3;
+  let lastErr = '';
+  for(let i=0;i<tries;i++){
+    const ctl = new AbortController();
+    const t = setTimeout(()=>ctl.abort(), 30000);
+    try{
+      const r = await fetch(GAS_URL, {method:'POST', body: JSON.stringify(Object.assign({pass:PASS}, body)), signal:ctl.signal});
+      const txt = await r.text();
+      let d;
+      try{ d = JSON.parse(txt); }
+      catch(e){ lastErr='サーバーの返事が読めませんでした'; if(i<tries-1){ await sleep(700*(i+1)); continue; } return {ok:false, error:lastErr}; }
+      if(!d.ok && d.code==='locked' && i<tries-1){ await sleep(700*(i+1)); continue; }
+      return d;
+    }catch(e){
+      lastErr = 'サーバーにつながりませんでした（'+(e && e.name==='AbortError' ? '時間切れ' : '通信エラー')+'）';
+      if(i<tries-1){ await sleep(700*(i+1)); continue; }
+      return {ok:false, error:lastErr};
+    }finally{ clearTimeout(t); }
+  }
+  return {ok:false, error:lastErr||'保存できませんでした'};
 }
 
 let toastT;
@@ -385,15 +414,22 @@ $('g-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') enter(false); }
 async function load(first){
   const r = await call({action:'list'});
   if(!r.ok){
-    ONLINE=false; showOffline(r.error);
+    if(r.code==='bad_pass'){ backToGate(r.error); return; }
+    ONLINE=false;
+    if(first){ buildUI(); render(); }         // ★失敗しても画面は作る（真っ白にしない）
+    showOffline(r.error);
     if(first) toast(r.error, true);
-    return;                                   // ★失敗しても表示は消さない
+    return;                                   // ★表示は消さない
   }
   ONLINE=true; hideOffline();
-  SRV = r.data.decisions || {};
+  const srv = r.data.decisions || {};
+  // ★まだ送れていない自分の操作は、サーバーの古い値で消さない
+  Object.keys(PEND).forEach(id=>{ if(SRV[id]) srv[id] = SRV[id]; });
+  SRV = srv;
   if(first){ buildUI(); render(); }
   else { refreshInPlace(); }
   drawProgress();
+  retryPending();
 }
 function showOffline(msg){
   let el = $('offline');
@@ -453,12 +489,15 @@ function drawProgress(){
   $('prog-bar').innerHTML = '<i class="b-yes" style="width:'+pct(y)+'"></i>'
     + '<i class="b-hold" style="width:'+pct(h)+'"></i><i class="b-no" style="width:'+pct(n)+'"></i>';
   const names = Object.keys(per).sort((a,b)=>per[b]-per[a]).map(k=>esc(k)+' <b>'+per[k]+'</b>').join('　');
+  const np = pendCount();
   $('prog-lg').innerHTML =
       '<span><i style="background:var(--ok)"></i>採用 <b>'+y+'</b>'+(ed?'（うち書き直し <b>'+ed+'</b>）':'')+'</span>'
     + '<span><i style="background:var(--mid)"></i>保留 <b>'+h+'</b></span>'
     + '<span><i style="background:var(--lo)"></i>このまま <b>'+n+'</b></span>'
     + '<span>まだ <b>'+(tot-done)+'</b> ／ '+tot+'</span>'
-    + (names?'<span>'+names+'</span>':'');
+    + (names?'<span>'+names+'</span>':'')
+    + (np?'<span style="color:var(--hi);font-weight:700">未送信 <b style="color:var(--hi)">'+np+'</b>　<button class="btn" id="btn-retry" style="padding:2px 9px;font-size:11.5px">送り直す</button></span>':'');
+  const rb=$('btn-retry'); if(rb) rb.onclick=()=>{ retryPending(); toast('送り直しています…'); };
   const bar=$('decided'); if(bar) bar.textContent = '（仕分けずみ '+done+' ／ '+tot+'）';
   drawSeg();
 }
@@ -494,6 +533,32 @@ $('btn-reset').addEventListener('click',()=>{
 });
 $('btn-refresh').addEventListener('click', async ()=>{ await load(false); render(); toast('最新にしました'); });
 
+/* この端末に出ている状態と、サーバーの中身を全件突き合わせる（会員管理の「サーバー確認一覧」と同じ役目） */
+$('btn-audit').addEventListener('click', async ()=>{
+  const b=$('btn-audit'); b.disabled=true; b.textContent='調べています…';
+  flushDirty();
+  const r = await call({action:'list'});
+  b.disabled=false; b.textContent='サーバーと突き合わせる';
+  if(!r.ok){ toast('サーバーを読めませんでした：'+(r.error||''), true); return; }
+  const srv = r.data.decisions || {};
+  const bad = [];
+  ITEMS.forEach(it=>{
+    const mine = SRV[it.id], theirs = srv[it.id];
+    const mineHas = mine && (mine.v || mine.text);
+    const theirsHas = theirs && (theirs.v || theirs.text);
+    if(!mineHas && !theirsHas) return;
+    if(!sameRow(mine||{}, theirs||{})) bad.push({id:it.id, a:it.a, mine:mine, srv:theirs});
+  });
+  if(!bad.length){ toast('ぜんぶ一致しました（'+ITEMS.length+'件）'); return; }
+  const lbl = v => v==='yes'?'採用':v==='hold'?'保留':v==='no'?'このまま':'まだ';
+  ta.value = '⚠ サーバーと食いちがっているもの '+bad.length+' 件\n'
+    + '（この画面 → サーバー の順。未送信は「送り直す」で解消できます）\n\n'
+    + bad.map(x=>x.a+'（'+x.id+'）　この画面：'+lbl(x.mine&&x.mine.v)+(x.mine&&x.mine.edit?'・書き直しあり':'')
+        +'　／　サーバー：'+(x.srv?lbl(x.srv.v)+(x.srv.edit?'・書き直しあり':''):'記録なし')).join('\n');
+  dlg.showModal();
+  toast(bad.length+' 件が食いちがっています', true);
+});
+
 function match(it){
   if(st.sev.size && !st.sev.has(it.v)) return false;
   if(st.cls.size && !st.cls.has(it.c)) return false;
@@ -513,7 +578,7 @@ function match(it){
 function card(it){
   const d = SRV[it.id] || {};
   const v = d.v || '';
-  const cur = (v==='yes' && d.text) ? d.text : it.n;
+  const cur = d.text ? d.text : it.n;      // 判断を押していなくても、直した文はそのまま出す
   const ch=(it.ch&&it.ch.length)?'<div class="choices">選択肢：'+it.ch.map(c=>c===it.a?'<em>'+esc(c)+'</em>':esc(c)).join(' ／ ')+'</div>':'';
   const q = it.q ? '<div class="qline"><span class="lb">問題文</span>'+esc(it.q)+'</div>' : '';
   const fig = it.fig ? '<span class="tag">図あり</span>' : '';
@@ -538,6 +603,9 @@ function card(it){
     +     '<button class="act hold" data-a="hold" aria-pressed="'+(v==='hold')+'">保留</button>'
     +     '<button class="act yes"  data-a="yes"  aria-pressed="'+(v==='yes')+'">採用</button>'
     +   '</div>'
+    +   '<div class="pendbar" data-role="pend" '+(d._pend?'':'hidden')+'>'
+    +     '<span data-role="pendmsg">'+esc(d._err||'')+'</span>'
+    +     '<button class="btn" data-role="pendgo">もう一度送る</button></div>'
     +   '<div class="meta"><span class="by" data-role="by">'+byText(d)+'</span>'
     +     '<span class="idm">'+esc(it.id)+'</span></div>'
     +   '<div class="whyrow" data-role="whyrow" '+(v==='no'?'':'hidden')+'>'
@@ -548,6 +616,7 @@ function card(it){
 }
 function byText(d){
   if(!d || !d.by) return '';
+  if(d._pend) return esc(d.by)+'　保存できていません';
   if(d.v) return esc(d.by)+'　'+esc(d.at||'');
   if(d.edit) return esc(d.by)+' が書き直した（まだ未処理）　'+esc(d.at||'');
   return '';
@@ -557,6 +626,7 @@ function autosize(t){ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'
 
 let filtered=[];
 function render(){
+  flushDirty();                        // ★作り直す前に書きかけを保存する
   filtered = ITEMS.filter(match);
   const n = Math.min(filtered.length, st.page*PAGE);
   $('cards').innerHTML = filtered.length ? filtered.slice(0,n).map(card).join('')
@@ -581,14 +651,23 @@ function refreshInPlace(){
     const wr=c.querySelector('[data-role="whyrow"]'); if(wr) wr.hidden = (v!=='no');
     wr && wr.querySelectorAll('.whychip').forEach(b=>b.setAttribute('aria-pressed', d.why===b.dataset.w ? 'true':'false'));
     const tg=c.querySelector('[data-role="edtag"]'); if(tg) tg.hidden = !d.edit;
+    c.classList.toggle('pend', !!d._pend);
+    const pb=c.querySelector('[data-role="pend"]');
+    if(pb){ pb.hidden = !d._pend; const pm=pb.querySelector('[data-role="pendmsg"]'); if(pm) pm.textContent = d._err||'保存できていません'; }
     const ta=c.querySelector('[data-role="edit"]');
-    if(ta && document.activeElement!==ta && v==='yes' && d.text && ta.value!==d.text){ ta.value=d.text; autosize(ta); }
+    // ★書きかけ（dirty）の枠は何があっても触らない。他の人の更新でも消さない
+    if(ta && !ta.dataset.dirty && document.activeElement!==ta){
+      const want = d.text ? d.text : (BYID[id] ? BYID[id].n : '');
+      if(want && ta.value!==want){ ta.value=want; autosize(ta); }
+    }
   });
   drawProgress();
 }
 
 /* ---------------- 保存 ---------------- */
 const _seq = {};          // id ごとの保存の通し番号。古い返事で新しい状態を上書きしないための番号
+const PEND = {};          // 送れなかったぶん。id -> {payload, seq}。消さずに持ち続けて送り直す
+function pendCount(){ return Object.keys(PEND).length; }
 async function save(id, value, opt){
   const it = BYID[id]; if(!it) return;
   const my = (_seq[id] = (_seq[id] || 0) + 1);
@@ -603,16 +682,104 @@ async function save(id, value, opt){
   SRV[id] = {v:value, text:text, edit:edited, why:(value==='no'?why:''), by:ME, at:'保存中…'};
   refreshInPlace();
 
-  const r = await call({action:'set', id:id, value:value, text:text, edited:edited, why:SRV[id].why, name:ME});
+  const payload = {action:'set', id:id, value:value, text:text, edited:edited, why:SRV[id].why, name:ME};
+  const r = await call(payload);
   if(_seq[id] !== my) return;          // ★あとから別の保存が始まっている＝この返事は古いので捨てる
   if(!r.ok){
-    if(before) SRV[id]=before; else delete SRV[id];
+    if(r.code==='bad_pass'){ backToGate(r.error); return; }
+    // ★押した内容を消さない。未送信として持ち続け、あとで自動で送り直す
+    PEND[id] = {payload:payload, seq:my};
+    SRV[id] = Object.assign({}, SRV[id], {at:'', _pend:true, _err:r.error||''});
     refreshInPlace();
-    toast('保存できませんでした：'+(r.error||'')+'　もう一度押してください。', true);
+    toast('保存できませんでした：'+(r.error||'')+'　あとで自動で送り直します。', true);
     return;
   }
+  delete PEND[id];
   SRV[id] = {v:r.data.v, text:r.data.text, edit:r.data.edit, why:r.data.why, by:r.data.by, at:r.data.at};
   refreshInPlace();
+  verifySaved(id, {v:r.data.v, text:r.data.text, edit:r.data.edit, why:r.data.why, _seq:my});
+}
+
+/* ★保存の直後にサーバーを読み直して、本当に入ったか確かめる。
+   「自分の画面では正しく見えるのに、実はサーバーに入っていない」を防ぐ。
+   会員管理システムの verifyMemberSaved と同じ考え方（1回ずれたらもう一度見て、2回ずれたら警告）。 */
+function sameRow(a, b){
+  if(!a || !b) return false;
+  const n = x => (x==null?'':String(x));
+  return n(a.v)===n(b.v) && n(a.text)===n(b.text) && !!a.edit===!!b.edit && n(a.why)===n(b.why);
+}
+async function verifySaved(id, expect){
+  // ★「読めなかった」と「行が無い」は別物。行が無い＝入っていない＝いちばん危ない状態
+  const look = async ()=>{
+    const r = await call({action:'get', id:id}, 2);
+    if(!r.ok) return {read:false};               // 通信できない＝判定しない
+    return {read:true, row:r.data.row || null};
+  };
+  await sleep(900);
+  if(_seq[id] !== expect._seq) return;           // もう次の操作が始まっている
+  let a = await look();
+  if(!a.read) return;
+  if(a.row && sameRow(a.row, expect)) return;    // 一致＝ふつうはここで終わる
+  await sleep(1200);
+  if(_seq[id] !== expect._seq) return;
+  a = await look();
+  if(!a.read) return;
+  if(a.row && sameRow(a.row, expect)) return;
+  showSaveWarning(id, expect, a.row);            // 2回続けてズレた＝本当に入っていない
+}
+
+/* トーストで流さない。赤いカードで残して、押せる直し方を出す */
+function showSaveWarning(id, mine, srv){
+  const it = BYID[id] || {};
+  const lbl = v => v==='yes'?'採用':v==='hold'?'保留':v==='no'?'このまま':'まだ';
+  const mask = document.createElement('div');
+  mask.className = 'warn-mask';
+  mask.innerHTML =
+    '<div class="warn-box"><h3>サーバーに入っていません</h3>'
+    + '<p>「'+esc(it.a||id)+'」の判断が、スプレッドシートと食いちがっています。'
+    + 'この画面では入ったように見えていても、もう一人の端末には古いままが見えています。</p>'
+    + '<div class="warn-cmp"><div><b>この画面</b><br>'+esc(lbl(mine.v))+(mine.edit?'（書き直しあり）':'')+'</div>'
+    + '<div><b>サーバー</b><br>'+esc(srv?lbl(srv.v):'記録なし')+(srv&&srv.edit?'（書き直しあり）':'')+'</div></div>'
+    + '<div class="warn-act"><button class="btn" data-a="close">閉じる</button>'
+    + '<button class="btn primary" data-a="resave">もう一度サーバーに送る</button>'
+    + '<button class="btn" data-a="take">サーバーに合わせる</button></div></div>';
+  document.body.appendChild(mask);
+  mask.addEventListener('click', async e=>{
+    const b = e.target.closest('button'); if(!b && e.target!==mask) return;
+    const a = b ? b.dataset.a : 'close';
+    if(a==='resave'){ b.disabled=true; b.textContent='送っています…'; await save(id, mine.v); mask.remove(); return; }
+    if(a==='take'){ if(srv) SRV[id]=srv; else delete SRV[id]; delete PEND[id]; refreshInPlace(); drawProgress(); }
+    mask.remove();
+  });
+}
+
+/* 未送信ぶんを順番に送り直す（同時に投げるとロックを取り合うので直列） */
+let _retrying = false;
+async function retryPending(){
+  if(_retrying) return;
+  const ids = Object.keys(PEND);
+  if(!ids.length) return;
+  _retrying = true;
+  try{
+    for(const id of ids){
+      const e = PEND[id];
+      if(!e) continue;
+      if(_seq[id] !== e.seq){ delete PEND[id]; continue; }   // もっと新しい操作がある＝古い分は捨てる
+      const r = await call(e.payload, 2);
+      if(_seq[id] !== e.seq){ delete PEND[id]; continue; }
+      if(r.ok){
+        delete PEND[id];
+        SRV[id] = {v:r.data.v, text:r.data.text, edit:r.data.edit, why:r.data.why, by:r.data.by, at:r.data.at};
+      }else if(r.code==='bad_pass'){ backToGate(r.error); return; }
+      // それ以外は次の機会にまた送る
+    }
+  } finally { _retrying = false; refreshInPlace(); drawProgress(); }
+}
+
+function backToGate(msg){
+  try{ localStorage.removeItem(PKEY); }catch(e){}
+  $('app').hidden = true; $('gate').hidden = false;
+  const err=$('g-err'); err.hidden=false; err.textContent = (msg||'入り直してください。');
 }
 
 /* 枠に入力したまま判断ボタンを押すと、blur（枠から出た）と click の2回保存が走り、
@@ -631,6 +798,8 @@ $('cards').addEventListener('click', e=>{
     _btnDown = null;
     return;
   }
+  const pg = e.target.closest('[data-role="pendgo"]');
+  if(pg){ retryPending(); toast('送り直しています…'); return; }
   const w = e.target.closest('.whychip');
   if(w){
     const c=w.closest('.card'), id=c.dataset.id;
@@ -639,12 +808,30 @@ $('cards').addEventListener('click', e=>{
     _btnDown = null;
   }
 });
-$('cards').addEventListener('input', e=>{ if(e.target.classList.contains('edit')) autosize(e.target); });
+$('cards').addEventListener('input', e=>{
+  if(!e.target.classList.contains('edit')) return;
+  autosize(e.target);
+  e.target.dataset.dirty = '1';        // 書きかけ＝再描画やポーリングで触らせない
+});
+
+/* 一覧を作り直す前に、書きかけを保存してしまう（作り直すと消えるため） */
+function flushDirty(){
+  $('cards').querySelectorAll('textarea.edit').forEach(ta=>{
+    if(!ta.dataset.dirty) return;
+    const c=ta.closest('.card'), id=c.dataset.id, it=BYID[id], d=SRV[id];
+    const now=ta.value.trim(), prev=(d&&d.text)?d.text:(it?it.n:'');
+    delete ta.dataset.dirty;
+    if(now===prev) return;
+    save(id, (d && d.v) || '');
+  });
+}
+function hasDirty(){ return !!$('cards').querySelector('textarea.edit[data-dirty]'); }
 /* 修正案を直して枠の外へ出たら、その場で保存する。
    ★採用を押していなくても保存する（押さないと消える、が分かりにくいため） */
 $('cards').addEventListener('focusout', async e=>{
   if(!e.target.classList.contains('edit')) return;
   const c=e.target.closest('.card'), id=c.dataset.id, it=BYID[id], d=SRV[id];
+  delete e.target.dataset.dirty;
   if(_btnDown === id) return;          // ★判断ボタンを押した＝そちらが文もまとめて保存する
   const now = e.target.value.trim();
   const prev = (d && d.text) ? d.text : (it.n||'');
@@ -666,6 +853,14 @@ $('btn-copy').addEventListener('click',async()=>{
   ta.select();
   try{ await navigator.clipboard.writeText(ta.value); }catch(e){ try{ document.execCommand('copy'); }catch(_){} }
   const b=$('btn-copy'); b.textContent='コピーしました'; setTimeout(()=>b.textContent='コピー',1600);
+});
+
+/* タブを裏に回した・別アプリに切り替えた時点で、書きかけを保存してしまう */
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) flushDirty(); });
+window.addEventListener('pagehide', ()=>{ flushDirty(); });
+/* それでも残っているものがあれば、閉じる前に止める */
+window.addEventListener('beforeunload', e=>{
+  if(hasDirty() || pendCount()){ e.preventDefault(); e.returnValue=''; return ''; }
 });
 
 boot();
