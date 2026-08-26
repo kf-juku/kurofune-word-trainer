@@ -2351,7 +2351,15 @@ function setBadge_(tab,n){var e=$('bdg-'+tab);if(!e)return;if((n||0)>0){e.classL
 function setNavDot_(tab,on){var e=$('bdg-'+tab);if(!e)return;e.classList.add('dot');e.textContent='';e.classList.toggle('on',!!on);} // 赤●（数字なし）
 var _revNum={osarai:0,note:0};var _osaraiDue=0; // 期限が来たおさらいの総数（完了画面の「次の一手」用）2026-08-05
 var _srsReady={words:[],assets:{},loaded:false}; // おさらいの今日分を先読みしておき、タイル/フォーカスから直接開始＝中間ページを挟まない 2026-07-26
-function startOsaraiDirect_(){ showSub('review'); } // おさらいは教科タブ・おまかせを見せる画面へ（中身が見える＝氷山感を減らす）2026-07-26
+/* 【2026-08-27 川上さん報告】完了画面の誘導ボタンから押しても効かなかった。
+   `showSub` は**ホーム画面の中のタブを切り替える**関数なので、ホーム以外（完了画面・学習画面）から呼ぶと
+   何も起きない＝「押せないボタン」に見える。ホームでなければ先に openHome() する（goMapSub_ と同じ作り）。
+   これを関数の中で吸収しておけば、どこから呼んでも安全になる。 */
+function startOsaraiDirect_(){
+  var _onHome=false;try{_onHome=$('scr-home').classList.contains('active');}catch(e){}
+  if(!_onHome)openHome();
+  showSub('review');
+} // おさらいは教科タブ・おまかせを見せる画面へ（中身が見える＝氷山感を減らす）2026-07-26
 /* ===== 単元別タブの ①練習／②確認テスト 切り替え（2026-08-20 川上さん確定）=====
    確認テストは別ページ(sv-quiz)をやめてこのタブの②に一本化した。
    どこから来ても openQuizPane_() で②に着地する（中断カード・完了画面・出題の失敗時）。 */
@@ -3572,7 +3580,10 @@ function renderIMG(ss){
   var holes=imgHoles(s.words,qd.asset);var myN=0;holes.forEach(function(hh,n){hh.n=n+1;if(hh.i===s.idx)myN=n+1;});
   var h='';
   /* 出題図はタイトル非表示＝答えバレ防止 2026-07-16（答えは解説で出す）。設問は図の上に大きく表示 */
-  var _askH=qd.num?('<b style="color:var(--accent)">'+esc(qd.num)+'</b> が<ruby>指<rt class="uf">さ</rt></ruby>す<ruby>部分<rt class="uf">ぶぶん</rt></ruby>の<ruby>名前<rt class="uf">なまえ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'):esc(qd.ask||'この<ruby>名前<rt class="uf">なまえ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう');
+  var _askH=qd.num?('<b style="color:var(--accent)">'+esc(qd.num)+'</b> が<ruby>指<rt class="uf">さ</rt></ruby>す<ruby>部分<rt class="uf">ぶぶん</rt></ruby>の<ruby>名前<rt class="uf">なまえ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'):(qd.ask?esc(qd.ask):'この<ruby>名前<rt class="uf">なまえ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう')
+  /* 【2026-08-27 川上さん報告】esc() の中にルビを入れると、画面に <ruby>…</ruby> がそのまま出る（文字化けに見える）。
+     esc は教材データ（qd.ask＝作成者が書いた文）を安全にするためのもの。既定の文言はこちらが書くのでエスケープ不要。
+     検査＝`20260827_ルビのエスケープ検査.py`（esc( の中に <ruby> が無いことを機械で確認する） */;
   h+='<div class="imgq-ask">'+_askH+'</div>';
   if(!qd.num){h+='<div class="imgq-askhint"><ruby>画像<rt class="uf">がぞう</rt></ruby>は<ruby>覚<rt class="uf">おぼ</rt></ruby>える<ruby>手<rt class="uf">て</rt></ruby>がかり。まず<ruby>問題文<rt class="uf">もんだいぶん</rt></ruby>を<ruby>読<rt class="uf">よ</rt></ruby>んで<ruby>答<rt class="uf">こた</rt></ruby>えよう</div>';}
   h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';
@@ -5205,7 +5216,7 @@ function rbState_(){return {
 /* 今日の1つの次アクション＝赤●の誘導順（毎日→おさらい→間違いノート→単元別）。タップで各ページへ送り出す */
 function rbNextAction_(s){
   if(s.dailyUndone>0)return {icon:'ti-anchor',lbl:'<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>',why:'<ruby>今日<rt class="uf">きょう</rt></ruby>のデイリーを<ruby>進<rt class="uf">すす</rt></ruby>めよう',go:function(){rbClose_();showHomeTab('daily');}};
-  if(!s.osaraiDone&&s.osaraiRem>0)return {icon:'ti-clock-bolt',lbl:'おさらい',why:'<ruby>忘<rt class="uf">わす</rt></ruby>れないうちにもう<ruby>一回<rt class="uf">いっかい</rt></ruby>',go:function(){rbClose_();showSub('review');}};
+  if(!s.osaraiDone&&s.osaraiRem>0)return {icon:'ti-clock-bolt',lbl:'おさらい',why:'<ruby>忘<rt class="uf">わす</rt></ruby>れないうちにもう<ruby>一回<rt class="uf">いっかい</rt></ruby>',go:function(){rbClose_();startOsaraiDirect_();}}; /* 直接 showSub を呼ばない＝ホーム以外から押しても効くように 2026-08-27 */
   if(s.noteRem>0)return {icon:'ti-notebook',lbl:'<ruby>間違<rt class="uf">まちが</rt></ruby>いノート',why:'<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>所<rt class="uf">ところ</rt></ruby>を<ruby>直<rt class="uf">なお</rt></ruby>そう',go:function(){rbClose_();showHomeTab('review');}};
   if(s.quizMiss>0||s.unit>0)return {icon:'ti-flag',lbl:'<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>',why:'テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を<ruby>進<rt class="uf">すす</rt></ruby>めよう',go:function(){rbClose_();showHomeTab('unit');}};
   return {icon:'ti-clock-bolt',lbl:'おさらいを<ruby>続<rt class="uf">つづ</rt></ruby>ける',why:'<ruby>続<rt class="uf">つづ</rt></ruby>けてどんどん<ruby>伸<rt class="uf">の</rt></ruby>ばそう',go:function(){rbClose_();showSub('review');}};
