@@ -1568,7 +1568,7 @@ var _alertFilter=null; /* カテゴリ絞り込み（アラート見出しクリ
 function alertBucketMatch(s,k){
   if(!s)return false;
   if(_cheerCfg&&_cheerCfg.exclude_alert&&s.is_teacher_account)return false;
-  if(k==='praise')return !!(s.praise&&s.praise.length);
+  if(k==='praise')return _isPraised(s);
   if(!(s.assignments&&s.assignments.length))return false;
   return (s.next_actions||[]).indexOf(k)>=0;
 }
@@ -2258,6 +2258,11 @@ function tmPool(){
   return arr;
 }
 function _praiseLabel(t){return ({senshu:'先取り',unit:'単元別合格',quiz:'確認テスト合格',review:'おさらい前進',note:'間違いノート卒業'})[t]||t;}
+/* ほめる対象か。GASの praised を見る。印(praise)が空でも対象のことがある（デイリークリアだけの子）2026-08-26
+   praised が来ない（GAS未反映）ときだけ、従来どおり印の有無で判定＝古いGASでも壊れない */
+function _isPraised(s){return (s&&typeof s.praised!=='undefined')?!!s.praised:!!(s&&s.praise&&s.praise.length);}
+/* チップの（）の中身。印が無ければ「デイリークリア」＝空の（）を出さない 2026-08-26 */
+function _praiseText(pr){return (pr&&pr.length)?pr.map(_praiseLabel).join('・'):'デイリークリア';}
 function renderAlertsK(){
   if(!$('alIdleChips'))return;
   var _il=$('alIdleDaysLbl');if(_il)_il.textContent=_alertCfg.idle_days;var _al=$('alAccLbl');if(_al)_al.textContent=_alertCfg.accuracy;
@@ -2319,8 +2324,8 @@ function renderAlertsK(){
   var praise=[];
   (_students||[]).forEach(function(st){
     if(_cheerCfg&&_cheerCfg.exclude_alert&&st.is_teacher_account)return;
-    var pr=st.praise||[]; if(!pr.length)return;
-    praise.push({n:(st.name||st.nickname||''),c:(st.class_name||''),r:pr.map(_praiseLabel).join('・')});
+    var pr=st.praise||[]; if(!_isPraised(st))return;
+    praise.push({n:(st.name||st.nickname||''),c:(st.class_name||''),r:_praiseText(pr)});
   });
   var _pN=$('alPraiseN'); if(_pN)_pN.textContent=praise.length;
   mkRooms('alPraiseChips',praise,function(x){return x.n+'（'+x.r+'）';},'pchipK','きのうは まだ いません'); // 教室で色分け（緑チップは維持）2026-08-09
