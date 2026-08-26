@@ -81,12 +81,16 @@
        使う場所は 帯・本の左線・アイコン・バー・切り替えの番号・「そろそろテスト」タグ だけ。
        合否（緑・赤）と操作ボタン（青）には広げない。 */
     --quiz:#7b5cf0;--quiz-soft:rgba(123,92,240,.13);
+    /* 直している最中の色（student-ui-design §19・川上さん確定 2026-08-26）。金＝ごほうびと分ける。
+       使うのは ミス問モードのバー と「あと◯問で全問正解」チップの2か所だけ。ライトで --fix を文字色に使わない。 */
+    --fix:#e8a317;--fix-soft:#fdf1d6;--fix-ink:#8a6410;
   }
   [data-theme="dark"]{
     --bg:#0d1017;--surface:#161a23;--ink:#eef1f6;--sub:#8b93a3;--line:rgba(255,255,255,.08);
     --accent:#4f8cff;--accent-soft:#15233f;--gold:#e3c477;--ring-track:#252b37;
     --ok:#3ad08a;--ng:#ff6b54;--shadow:0 2px 24px rgba(0,0,0,.4);--glass:rgba(22,26,35,.6);--neutral-bg:rgba(255,255,255,.08);--neutral-ic:rgba(255,255,255,.06);
     --quiz:#a48bff;--quiz-soft:rgba(164,139,255,.16); /* ダークは明るめの紫 2026-08-20 */
+    --fix:#ffc94a;--fix-soft:#3a2f14;--fix-ink:#ffc94a; /* 直している最中の黄色 2026-08-26 */
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   body{font-family:"Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink);transition:background .4s,color .4s;overflow-x:hidden;}
@@ -861,7 +865,12 @@
   /* 止まっていることが絵で分かるように、グレーで止めた制限時間バーを添える（数字・説明文は出さない）2026-08-20 */
   .pz-bar{width:120px;height:10px;border-radius:8px;background:var(--ring-track);margin:14px auto 2px;overflow:hidden;}
   .pz-bar i{display:block;height:100%;width:55%;border-radius:8px;background:var(--sub);opacity:.55;}
-  .prog{height:8px;background:var(--ring-track);border-radius:6px;overflow:hidden;margin:8px 0 6px;}
+  .progrow{display:flex;align-items:center;gap:8px;}
+  .prog{flex:1;min-width:0;height:8px;background:var(--ring-track);border-radius:6px;overflow:hidden;margin:8px 0 6px;}
+  /* ミス問モードのチップ「あと◯問で全問正解」2026-08-26。日本語は span で1つに包む（flex直下に裸で置かない） */
+  .fixchip{flex:none;display:flex;align-items:center;gap:5px;background:var(--fix-soft);color:var(--fix-ink);font-size:11.5px;font-weight:700;border-radius:999px;padding:4px 10px;white-space:nowrap;}
+  .fixchip i{font-size:13px;}
+  .fixchip b{font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;}
   /* 1問あたりの制限時間バー（案C・太バー＋残り秒数・色変化）2026-07-04 */
   .qtimer{display:flex;align-items:center;gap:10px;margin:10px 0 4px;}
   .qbar{flex:1;height:12px;background:var(--ring-track);border-radius:8px;overflow:hidden;}
@@ -886,6 +895,7 @@
   .ex-next.waiting{background:var(--ring-track);color:var(--sub);cursor:default;}
   .ex-report{flex:none;background:var(--surface);color:var(--ng);border:1.5px solid var(--ng);border-radius:13px;padding:0 13px;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;cursor:pointer;line-height:1.2;}
   .prog>i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s;}
+  .prog>i.fix{background:var(--fix);}
   .word-en{font-size:42px;font-weight:700;text-align:center;letter-spacing:-.01em;margin:14px 0 4px;}
   .reading{text-align:center;color:var(--sub);margin-bottom:14px;}
   /* 読み仮名（国語）＋四角空欄 2026-07-14 */
@@ -1382,7 +1392,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <div class="body">
       <div class="prac-top"><button class="prac-quit" id="btn-quit" type="button"><i class="ti ti-x"></i> <span>やめる</span></button><div class="prac-acts"><button class="prac-refresh" id="btn-pause" type="button"><i class="ti ti-player-pause"></i> <span class="pr-t"><ruby>一時停止<rt class="uf">いちじていし</rt></ruby></span></button><button class="prac-refresh" id="btn-refresh" type="button"><i class="ti ti-refresh"></i> <span class="pr-t"><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div></div>
       <div class="nowbar" id="now-bar" style="display:none;"></div>
-      <div class="prog"><i id="prog"></i></div>
+      <div class="progrow"><div class="prog"><i id="prog"></i></div><div class="fixchip" id="fix-chip" style="display:none;"></div></div>
       <div class="muted center" id="step-label"></div>
       <div class="furi-bar" id="furi-bar"></div>
       <div class="qtimer" id="qtimer" style="display:none;"><div class="qbar"><i id="qbar-fill"></i></div><span class="qsec num" id="qsec">10<ruby>秒<rt class="uf">びょう</rt></ruby></span></div>
@@ -3283,9 +3293,13 @@ function _startPracticeWith_(listId,d){if(!d.ok){_pendingResume=null;/* 【2026-
 var _rs=_pendingResume;_pendingResume=null;
 if(_rs){var _ord=_resumeOrder_(d.data.words,_rs);if(_ord){d.data.words=_ord;}else{_rs=null;_resumeClear_();toastH('<ruby>教材<rt class="uf">きょうざい</rt></ruby>が<ruby>変<rt class="uf">か</rt></ruby>わったので<ruby>最初<rt class="uf">さいしょ</rt></ruby>からやる');}}
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
-session={mode:'daily',onNext:function(){nextWord();},listId:listId,quizMode:!!(d.data&&d.data.quiz),/* 【2026-08-21⑬】確認テストは session を作る時点で確定させる。startQuiz が後から session.quizMode=true を立てる形だと、_startPracticeWith_ の中で走る1問目の描画に間に合わず、帯が「単元別の練習」と出た（川上さん報告） */words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),dir:(d.data.direction||''),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now()};session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});
-if(_rs){session.idx=_rs.idx;session.step=_rs.step;session.meaningCorrect=_rs.mc||0;session.reverseCorrect=_rs.rc||0;session.miss=(_rs.miss||[]).slice();session.activeMs=_rs.am||0;session.startedAtIso=_rs.at||session.startedAtIso;session.startedMs=Date.now()-(_rs.el||0);session.pronAttempts=_rs.pa||0;session.pronSuccesses=_rs.ps||0;}
-renderStep();}
+session={mode:'daily',onNext:function(){nextWord();},listId:listId,quizMode:!!(d.data&&d.data.quiz),/* 【2026-08-21⑬】確認テストは session を作る時点で確定させる。startQuiz が後から session.quizMode=true を立てる形だと、_startPracticeWith_ の中で走る1問目の描画に間に合わず、帯が「単元別の練習」と出た（川上さん報告） */words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),dir:(d.data.direction||''),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now(),fixMode:false,fixQ:[],fixNext:[],fixCur:null,fixTotal:0,retryRounds:1,_firstWrong:[]};session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});
+if(_rs){session.idx=_rs.idx;session.step=_rs.step;session.meaningCorrect=_rs.mc||0;session.reverseCorrect=_rs.rc||0;session.miss=(_rs.miss||[]).slice();session.activeMs=_rs.am||0;session.startedAtIso=_rs.at||session.startedAtIso;session.startedMs=Date.now()-(_rs.el||0);session.pronAttempts=_rs.pa||0;session.pronSuccesses=_rs.ps||0;
+  /* ミス問モードの続きから（川上さん確定 2026-08-26）。1周目の正答率は保存ずみなのでズルにならない */
+  session._firstWrong=_fixUnpack_(_rs.fw);session.retryRounds=_rs.rr||1;
+  if(_rs.fx){session.fixMode=true;session.fixQ=_fixUnpack_(_rs.fq);session.fixNext=_fixUnpack_(_rs.fn);session.fixTotal=_rs.ft||(session.fixQ.length+session.fixNext.length);session.fixCur=null;}
+}
+if(session.fixMode){_fixStep_(session);}else{renderStep();}}
 /* ===== 出題エンジン（毎日学習・おさらい・間違いノート 共通）2026-07-26 =====
    3フローで「元と全く同じ問題」を出すため描画を1本化。違いは、語の出どころ(session/srsSes/noteSes)・
    採点と次へ(s.onNext)・最初のステップ(英語=発音/意味, 用語=英語)だけ。表/図は renderTF/renderIMG を共用。 */
@@ -3301,8 +3315,58 @@ function qPresentJ2E(w,isEng){ var _pl=isEng?'':_promptLabel_(w); $('j2e-label')
    ミス(pushMiss)は最初の採点で入り、以後この関数を素通りするので間違いノート判定は従来どおり残る。 */
 function _ansKey_(s,which){return s.idx+'_'+which;}
 function _ansWhichNow_(s){var w=(s&&s.words)?s.words[s.idx]:null;var isFig=(w&&(w.qtype==='table_fill'||w.qtype==='image_fill'));return (!isFig&&s&&s.step===2)?'e2j':'j2e';}
-function _ansDone_(s,which){return !!(s&&s._answered&&s._answered[_ansKey_(s,which)]);}
-function _quizAns(s,w,ok,_el,which){ measAns_(_el,ok); s._answered=s._answered||{}; var _ak=_ansKey_(s,which); if(s._answered[_ak])return; s._answered[_ak]=true; if(s.mode==='daily'){ if(ok){ if(which==='e2j')s.meaningCorrect++; else s.reverseCorrect++; } else { pushMiss(w.id); } } else { if(!ok)s.wordOK=false; } try{_saveResumeNext_(s,which);}catch(e){} }
+/* ===== ミス問モード（その場で全問正解するまで繰り返す）2026-08-26 =====
+   正＝機能仕様書「おさらい改善と弱点集中」§1・§5-3。要件定義書 0.2版。
+   ・1周目に間違えた「問題」だけをランダム順で出し直し、全部正解するまで続ける
+   ・戻す単位は【間違えた向きだけ】（川上さん確定 2026-08-26）。英語で意味だけ間違えたら意味の1問だけ戻る
+   ・区切りの画面は出さない。1周目が終わった瞬間そのまま次の問題が出る（川上さん確定）
+   ・採点は1周目だけ＝ミス問での正解は meaningCorrect/reverseCorrect に足さない（先生画面の正答率を壊さない）
+   ・確認テストには入れない（テストなのでその場で答えを教えたら測れなくなる）*/
+function _fixPack_(a){return (a||[]).map(function(x){return [x.i,x.which];});}
+function _fixUnpack_(a){return (a||[]).map(function(x){return {i:x[0],which:x[1]};});}
+function _fixShuffle_(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function _fixRemain_(s){return (s&&s.fixMode?((s.fixCur?1:0)+((s.fixQ||[]).length)+((s.fixNext||[]).length)):0);}
+/* 1周目が終わった直後に呼ぶ。戻り＝ミス問モードに入ったか */
+function _fixStart_(s){
+  if(!s||s.quizMode)return false;                       // 確認テストは1周のみ
+  var q=(s._firstWrong||[]).slice();
+  if(!q.length)return false;
+  s.fixMode=true;s.fixNext=[];s.fixCur=null;s.fixQ=_fixShuffle_(q);s.fixTotal=q.length;
+  s.retryRounds=(s.retryRounds||1)+1;
+  return true;
+}
+/* 次のミス問を出す。のこりが0になったらそのまま完了画面へ（途中で止めない） */
+function _fixStep_(s){
+  if(!s.fixQ.length){
+    if(s.fixNext.length){s.fixQ=_fixShuffle_(s.fixNext);s.fixNext=[];s.retryRounds=(s.retryRounds||1)+1;}
+    else{s.fixCur=null;s.fixMode=false;finishSession();return;}
+  }
+  s.fixCur=s.fixQ.shift();s._fixAnswered=false;
+  s.idx=s.fixCur.i;s.step=(s.fixCur.which==='e2j')?2:3;
+  /* 中断しても戻れるように、いま出す1問を待ち行列に戻した形で保存する */
+  try{_resumeSave_(s,s.fixCur.i,3,{fq:[s.fixCur].concat(s.fixQ)});}catch(e){}
+  renderQz_(s);
+}
+/* 進捗バー・チップ・問題番号の出し分け（student-ui-design §19・§20-3b） */
+function _fixBarSync_(s){
+  var bar=$('prog'),chip=$('fix-chip'),lb=$('step-label');
+  var on=!!(s&&s.fixMode);
+  if(bar){if(on){bar.classList.add('fix');}else{bar.classList.remove('fix');}}
+  if(lb)lb.style.display=on?'none':'';        // 1周目とは数え方が別物なので問題番号は消す
+  if(!chip)return;
+  if(!on){chip.style.display='none';chip.innerHTML='';return;}
+  var rem=_fixRemain_(s),den=Math.max(s.fixTotal||1,rem);
+  if(bar)bar.style.width=Math.round((den-rem)/den*100)+'%';
+  chip.style.display='';
+  chip.innerHTML='<i class="ti ti-repeat"></i> <span>あと<b>'+rem+'</b><ruby>問<rt class="uf">もん</rt></ruby>で<ruby>全問正解<rt class="uf">ぜんもんせいかい</rt></ruby></span>';
+}
+function _ansDone_(s,which){if(s&&s.fixMode)return !!s._fixAnswered;return !!(s&&s._answered&&s._answered[_ansKey_(s,which)]);}
+function _quizAns(s,w,ok,_el,which){ measAns_(_el,ok);
+  if(s&&s.fixMode){ /* ミス問モード＝採点しない。間違えたらもう一度だけ待ち行列に戻す 2026-08-26 */
+    if(s._fixAnswered)return; s._fixAnswered=true;
+    if(!ok&&s.fixCur)s.fixNext.push(s.fixCur);
+    try{_saveResumeNext_(s,which);}catch(e){} return; }
+  s._answered=s._answered||{}; var _ak=_ansKey_(s,which); if(s._answered[_ak])return; s._answered[_ak]=true; if(s.mode==='daily'){ if(ok){ if(which==='e2j')s.meaningCorrect++; else s.reverseCorrect++; } else { pushMiss(w.id); (s._firstWrong||(s._firstWrong=[])).push({i:s.idx,which:which}); } } else { if(!ok)s.wordOK=false; } try{_saveResumeNext_(s,which);}catch(e){} }
 function renderStep(){renderQz_(session);}
 function renderSrsStep(){renderQz_(srsSes);}
 function renderNoteStep(){renderQz_(noteSes);}
@@ -3357,6 +3421,7 @@ function renderQz_(s){
   }else{
     $('step-label').innerHTML=(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
   }
+  try{_fixBarSync_(s);}catch(e){}   /* ミス問モードは黄色バー＋「あと◯問で全問正解」＋問題番号なし 2026-08-26 */
   // 表・図＝毎日学習と同じレンダラーをそのまま使う（元と同じ設問・表・図）
   if(w.qtype==='table_fill'){
     if(_tfRenderable_(w,s.assets)){renderTF(s);return;}
@@ -3378,7 +3443,7 @@ function renderQz_(s){
     qPresentE2J(w);
     var _qje=tfParse(w),_fxJa=(_qje&&_qje.choices_ja&&_qje.choices_ja.length)?_qje.choices_ja:null; // 教材が用意した同品詞の誤答(英→日)を優先 2026-07-28
     var poolJa=(s.mode==='daily')?s.words.map(function(x){return x.japanese;}):((w.wrong_choices_ja&&w.wrong_choices_ja.length)?w.wrong_choices_ja:s.words.map(function(x){return x.japanese;})); // 誤答：毎日=同セッション語、復習=同パート誤答(サーバー)優先。qdata.choices_jaがあればそちらを使う
-    buildChoices('e2j-choices',w.japanese,(_fxJa?[]:poolJa),function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},{timeLimit:_tl,kaisetsu:w.kaisetsu,fixedChoices:_fxJa,next:function(){ if(((w&&w.direction)||(s&&s.dir)||'')==='e2j'){ (s.onNext||nextWord)(); } else { s.step=3;renderQz_(s); } }});
+    buildChoices('e2j-choices',w.japanese,(_fxJa?[]:poolJa),function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},{timeLimit:_tl,kaisetsu:w.kaisetsu,fixedChoices:_fxJa,next:function(){ if(s.fixMode){ (s.onNext||nextWord)(); return; } /* ミス問は1問ずつ 2026-08-26 */ if(((w&&w.direction)||(s&&s.dir)||'')==='e2j'){ (s.onNext||nextWord)(); } else { s.step=3;renderQz_(s); } }});
     $('step-e2j').style.display='block';showListen_(w,isEng);
   }else if(s.step===3){
     qPresentJ2E(w,isEng);
@@ -3468,7 +3533,13 @@ function renderIMG(ss){
     {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,promptText:w.japanese,next:s.onNext});
   $('step-tf').style.display='block';showListen_(w,_wIsEng(s,w));
 }
-function nextWord(){var s=session;s.idx++;s.step=(s.isEnglish===false)?3:1;if(s.idx>=s.words.length){finishSession();}else renderStep();}
+function nextWord(){var s=session;
+  if(s.fixMode){_fixStep_(s);return;}                       /* ミス問モード中は待ち行列が次を決める 2026-08-26 */
+  s.idx++;s.step=(s.isEnglish===false)?3:1;
+  if(s.idx>=s.words.length){
+    if(_fixStart_(s)){_fixStep_(s);return;}                 /* 1周目に間違いがあれば、区切り画面を出さずそのまま出し直す */
+    finishSession();
+  }else renderStep();}
 /* 練習をやめてホームへ（まちがえて始めた時の中断・2026-07-04）。途中の記録は保存しない（session_complete前に抜けるだけ） */
 $('btn-quit').onclick=function(){
   if(confirm('学習をやめてホームにもどる？\nとちゅうまでの答えはのこるので、あとでつづきから再開できる。')){
@@ -3541,25 +3612,37 @@ function _resumeMigrate_(){
   }catch(e){}
 }
 function _resumeClear_(){try{localStorage.removeItem(_resumeKey_());}catch(e){}}
-function _resumeSave_(s,idx,step){
+function _resumeSave_(s,idx,step,ov){
   if(!s||s.mode!=='daily')return;
+  ov=ov||{};
   try{
-    if(!s.words||idx>=s.words.length){_resumeClear_();return;}
+    var _fx=(ov.fx!==undefined)?ov.fx:(s.fixMode?1:0);
+    if(!s.words||(!_fx&&idx>=s.words.length)){_resumeClear_();return;}
     localStorage.setItem(_resumeKey_(),JSON.stringify({v:1,quiz:!!s.quizMode,
       part:String(s.quizMode?s.quizPartId:s.listId),
       ids:s.words.map(function(w){return String(w.id);}),
       idx:idx,step:step,mc:s.meaningCorrect||0,rc:s.reverseCorrect||0,miss:(s.miss||[]).slice(),
       am:Math.round(s.activeMs||0),el:_elapsedMs_(s),at:s.startedAtIso,
-      pa:s.pronAttempts||0,ps:s.pronSuccesses||0,ts:Date.now(),day:todayStr_()}));
+      pa:s.pronAttempts||0,ps:s.pronSuccesses||0,
+      /* ミス問モード 2026-08-26：fw=1周目に間違えた問題／fx=ミス問モード中／fq=待ち行列／fn=次の周／rr=何周目／ft=最初のミス数 */
+      fw:_fixPack_(s._firstWrong),fx:_fx,fq:_fixPack_(ov.fq||s.fixQ),fn:_fixPack_(ov.fn||s.fixNext),
+      rr:(ov.rr||s.retryRounds||1),ft:(ov.ft||s.fixTotal||0),
+      ts:Date.now(),day:todayStr_()}));
   }catch(e){}
 }
 function _saveResumeNext_(s,which){
   if(!s||s.mode!=='daily'||!s.words)return;
+  if(s.fixMode){_resumeSave_(s,(s.fixCur?s.fixCur.i:s.idx),3);return;}   /* ミス問モードは待ち行列がそのまま状態 2026-08-26 */
   var w=s.words[s.idx];var isFig=(w&&(w.qtype==='table_fill'||w.qtype==='image_fill'));
   var dirE2J=(((w&&w.direction)||s.dir||'')==='e2j');
   var ni=s.idx,nst=s.step;
   if(which==='e2j'&&!dirE2J&&!isFig){nst=3;}                                  // 意味の次は 日本語→英語（同じ語）
   else{ni=s.idx+1;nst=(s.words[ni]?_startStepFor(s,s.words[ni]):3);}          // 次の語の最初のステップへ
+  if(ni>=s.words.length&&!s.quizMode&&(s._firstWrong||[]).length){
+    /* 1周目の最後を答え終えた＝このあとミス問モードに入る。ここで抜けても続きから戻れるよう、先にミス問の形で保存する 2026-08-26 */
+    var _q=(s._firstWrong||[]).slice();
+    _resumeSave_(s,_q[0].i,3,{fx:1,fq:_q,fn:[],rr:(s.retryRounds||1)+1,ft:_q.length});return;
+  }
   _resumeSave_(s,ni,nst);
 }
 function _resumeAny_(){
@@ -3567,7 +3650,9 @@ function _resumeAny_(){
     _resumeMigrate_(); // 旧キー（ニックネーム）からの引き継ぎ 2026-08-21
     var r=JSON.parse(localStorage.getItem(_resumeKey_())||'null');
     if(!r||r.v!==1)return null;
-    if(!r.ids||!r.ids.length||!(r.idx>0)||r.idx>=r.ids.length)return null;   // 1問も終えていない/全部終えた＝中断ではない
+    if(!r.ids||!r.ids.length)return null;
+    if(r.fx){ if(!((r.fq&&r.fq.length)||(r.fn&&r.fn.length)))return null; }   // ミス問モードは待ち行列が残っているか
+    else if(!(r.idx>0)||r.idx>=r.ids.length)return null;   // 1問も終えていない/全部終えた＝中断ではない
     if(String(r.day||'')!==todayStr_()){_resumeClear_();return null;}        // 中断はその日のうちだけ（川上さん確定 2026-08-20）
     return r;
   }catch(e){return null;}
@@ -3675,7 +3760,7 @@ function _renderResumeCard_(){
   var el=document.createElement('div');el.className='rz-card';
   el.innerHTML='<div class="rz-ic"><i class="ti ti-player-pause"></i></div>'
    +'<div class="rz-b"><div class="rz-t"><ruby>途中<rt class="uf">とちゅう</rt></ruby>の<ruby>学習<rt class="uf">がくしゅう</rt></ruby>がある</div>'
-   +'<div class="rz-s">'+_resumeLabel_(rs)+' ・ '+(rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby></div></div>'
+   +'<div class="rz-s">'+_resumeLabel_(rs)+' ・ '+(rs.fx?('あと'+(((rs.fq||[]).length)+((rs.fn||[]).length))+'<ruby>問<rt class="uf">もん</rt></ruby>で<ruby>全問正解<rt class="uf">ぜんもんせいかい</rt></ruby>'):((rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby>'))+'</div></div>'
    +'<button type="button" class="rz-go"><span><ruby>続<rt class="uf">つづ</rt></ruby>き</span> <i class="ti ti-arrow-right"></i></button>'
    +'<button type="button" class="rz-x" aria-label="消す"><i class="ti ti-x"></i></button>';
   host.appendChild(el);
@@ -4245,17 +4330,32 @@ function _perfPush_(k,ms){
    2026-08-22 に川上さんから「英語を1つやっただけで全部完了の通知が出るのに、ホームは1/4」と指摘された箇所。 */
 /* 【2026-08-22 更新】残りの数はここでは言わない。すぐ下に出る「今日のデイリー ◯/◯」のバーが言う（同じことを2回書かない・川上さん確定）。
    デイリーが全部おわったときだけ、お祝いの一言を足す。 */
+/* 【2026-08-26】その場で全問正解するまで繰り返す設計になったので、見出しは達成そのもの＝「全問正解！おめでとう」。
+   何が終わったか（今日の分・パート）は小さい行に落とす。採点の仕組みは書かない（student-ui-design §20-1）。 */
+function doneAllCorrectTtl_(sub){
+  return '<div style="font-weight:800;font-size:20px;letter-spacing:-.01em;"><ruby>全問正解<rt class="uf">ぜんもんせいかい</rt></ruby>！おめでとう</div>'
+    +(sub?('<div class="done-guide" style="margin-top:3px;">'+sub+'</div>'):'');
+}
+/* 完了画面のサブ＝生徒が自分で数えられる事実だけ（§20-4）。1周目の問題数と正解数。 */
+function doneFirstRoundSub_(s,termOnly,e2jOnly){
+  var per=(termOnly||e2jOnly)?1:2, tot=(s.total||0)*per;
+  if(!tot)return '';
+  var cor=termOnly?(s.reverseCorrect||0):(e2jOnly?(s.meaningCorrect||0):((s.meaningCorrect||0)+(s.reverseCorrect||0)));
+  return 'はじめの <b>'+tot+'</b><ruby>問<rt class="uf">もん</rt></ruby>で <b>'+cor+'</b><ruby>問<rt class="uf">もん</rt></ruby> <ruby>正解<rt class="uf">せいかい</rt></ruby>';
+}
 function doneDailyTtl_(left){
-  if(left===0) return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;"><ruby>今日<rt class="uf">きょう</rt></ruby>のデイリー、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div><div class="done-guide" style="margin-top:3px;">●が<ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>消<rt class="uf">き</rt></ruby>えた。よくがんばったね。</div>';
-  return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;">この<ruby>教材<rt class="uf">きょうざい</rt></ruby>の<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！</div>';
+  return doneAllCorrectTtl_((left===0)
+    ?'<ruby>今日<rt class="uf">きょう</rt></ruby>のデイリー、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！'
+    :'この<ruby>教材<rt class="uf">きょうざい</rt></ruby>の<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！');
 }
 /* 【2026-08-22】単元別の1パートを終えたときの見出し。単元別は自分のペースで進めるので「今日の分」という枠がない。
    【地雷】ここを「今日の分完了・●全部消えた」に戻さない（毎日学習の doneDailyTtl_ と同じ理由・川上さん確定 2026-08-22）。
    残りパート数はサーバーの remaining_parts（いま合格したぶんを引いた数）。分からないときは数を出さない。 */
 function doneUnitPartTtl_(remain){
   var n=parseInt(remain,10);
-  var sub=(isFinite(n)&&n>0)?('<div class="done-guide" style="margin-top:3px;">この<ruby>教材<rt class="uf">きょうざい</rt></ruby>はあと '+n+' パート。</div>'):'';
-  return '<div style="font-weight:800;font-size:19px;letter-spacing:-.01em;">このパート、<ruby>合格<rt class="uf">ごうかく</rt></ruby>！</div>'+sub;
+  /* 【2026-08-26】「合格」は使わない（全問正解して終わる設計なので合否が無くなった） */
+  return doneAllCorrectTtl_('このパート、<ruby>終<rt class="uf">お</rt></ruby>わり！'
+    +((isFinite(n)&&n>0)?('　この<ruby>教材<rt class="uf">きょうざい</rt></ruby>はあと '+n+' パート。'):''));
 }
 function doneGuideHtml_(){return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;">'
  +'<div style="font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;"><i class="ti ti-sparkles" style="color:var(--gold)"></i> <span><ruby>次<rt class="uf">つぎ</rt></ruby>は？</span></div>'
@@ -4321,7 +4421,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   else{$('done-rate').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr">'+mr+'</span>％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> <span id="done-rr">'+rr+'</span>％';}
   animNum($('score-anim'),score,900); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル 2026-07-24
-  $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=missWordsHtml(s.miss,s.words);
+  $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);
   _doneResetCommon_();var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
   $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(38)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>'+tipHtml_();
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
@@ -4329,7 +4429,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   var _dg0=$('done-guide-area');if(_dg0)_dg0.innerHTML='';var _bh=$('btn-home');if(_bh){_bh.innerHTML='<span>ホームへ<ruby>戻<rt class="uf">もど</rt></ruby>る</span>';_bh.onclick=function(){openHome();};}
   var _saveGuard=setTimeout(function(){lockBtns(false);},12000); // 保存が返らなくてもボタンは戻す（詰み防止）
   var _svT0=_perfNow_(); // 保存の往復を測る 2026-08-22
-  call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,miss_word_ids:s.miss,word_ids:(s.words||[]).map(function(w){return w.id;}),mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:_elapsedMs_(s),rush_wrong_count:Object.keys(s._rushWords||{}).length}).then(function(d){
+  call({action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,completed_all:true,retry_rounds:(s.retryRounds||1),/* 全問正解して終わった＝1周終えた。点は1周目の値 2026-08-26 */miss_word_ids:s.miss,word_ids:(s.words||[]).map(function(w){return w.id;}),mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:_elapsedMs_(s),rush_wrong_count:Object.keys(s._rushWords||{}).length}).then(function(d){
     clearTimeout(_saveGuard);lockBtns(false);_perfPush_('save',_perfNow_()-_svT0);var _db2=$('done-badge');if(_db2)_db2.style.display='';
     if(!d.ok){$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>結果<rt class="uf">けっか</rt></ruby>の<ruby>保存<rt class="uf">ほぞん</rt></ruby>に<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました。もう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>試<rt class="uf">ため</rt></ruby>そう';$('done-badge').innerHTML='<i class="ti ti-alert-triangle"></i>';return;}homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
     /* 高速化 2026-07-15：今日のがんばり集計＋word_statsは保存(session_complete)の待ちから外し、
@@ -4374,7 +4474,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
         if(d.data.advanced&&d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span><ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のDAY）</span>';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}
     }else{setDoneBadge_('accent');$('done-result').innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>は <b>まだ<ruby>終<rt class="uf">お</rt></ruby>わっていない</b>（<span style=\"color:#e0574b;\">●</span>が<ruby>残<rt class="uf">のこ</rt></ruby>っている）。<br><span class=\"done-guide\">「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で <b>80%</b> とれたら、<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby><ruby>完了<rt class="uf">かんりょう</rt></ruby>！</span>';}
     /* 点数は保存前に表示済み（2026-07-08）*/
-    if(s.miss.length){$('done-miss').innerHTML='<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>単語<rt class="uf">たんご</rt></ruby>：'+s.miss.length+'<ruby>個<rt class="uf">こ</rt></ruby>（<ruby>間違<rt class="uf">まちが</rt></ruby>いノートに<ruby>入<rt class="uf">い</rt></ruby>れた）';}else{$('done-miss').textContent='';}
+    $('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);   /* 1周目の事実だけ。どこへ入ったか（おさらい・間違いノート）は生徒に説明しない 2026-08-26 */
     loadStar();
   });}
 $('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromReview;startPractice(session.listId);}};
