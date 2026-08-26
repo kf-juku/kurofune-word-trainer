@@ -997,7 +997,8 @@
         <div style="padding:0 14px 12px;line-height:1.75;">
           <b>並び順</b>：形式（毎日学習→単元別）→ 教科 → 本（教材シリーズ）→ 章番号（この順で自動で並ぶ。理科も章番号順に表示。追加した順やdisplay_orderの数字より章番号を優先）<br>
           <b>スプレッドシートの列と意味</b><br>
-          ・subject（教科）：english=英語／science=理科／social=社会／japanese=国語<br>
+          ・subject（教科）：english=英語／science=理科／history=歴史／geography=地理／civics=公民／japanese=国語／math=数学<br>
+          　※ 2026-08-26 に社会を 歴史・地理・公民 に分けた。<b>新しい教材に social は使わない</b>（間違いノートの弱点集中が「社会」でひとまとめになるため）<br>
           ・grade（学年）：中1／中2／中3／全学年（空欄=学年未設定）<br>
           ・display_order（番号）：教科×学年の中の並び順。1,2,3…＝単元順<br>
           ・target（レベル）：beginner=基礎／junior_high=中学／entrance_exam=受験／eiken=英検／school_test=学校テスト<br>
@@ -2398,8 +2399,9 @@ function mtBookMt(o){return !o?'':(o.material_book||_bookPrefix(o.material_title
 function mtSeriesKeyMt(o){if(!o)return '';if(o.series_key!=null&&o.series_key!=='')return o.series_key;var s=_mSeries(o.material_title||'');return s?s.k:'';}
 function mtSeriesLabelMt(o){if(!o)return '';if(o.series_label)return o.series_label;var s=_mSeries(o.material_title||'');return s?s.label:mtBookMt(o);}
 function mtLabelMt(o){if(!o)return '';return mtSeriesKeyMt(o)?(mtSeriesLabelMt(o)+' '+mtShortMt(o)):mtBookMt(o);}
-function _subjOrder(s){var o={english:1,science:2,social:3,japanese:4,math:5};return o[s]||9;}
-function _subjLabel(s){var o={english:'英語',science:'理科',social:'社会',japanese:'国語',math:'数学'};return o[s]||(s||'その他');}
+/* 教科（2026-08-26 川上さん確定）：社会を 歴史／地理／公民 に分けた。social は移行前の行のための保険＝新しい教材には付けない。 */
+function _subjOrder(s){var o={english:1,science:2,history:3,geography:4,civics:5,japanese:6,math:7,social:8};return o[s]||9;}
+function _subjLabel(s){var o={english:'英語',science:'理科',history:'歴史',geography:'地理',civics:'公民',social:'社会',japanese:'国語',math:'数学'};return o[s]||(s||'その他');}
 function _gradeOrder(g){var o={'中1':1,'中2':2,'中3':3,'全学年':8};return o[g]||9;}
 function _gradeLabel(g){return g||'学年未設定';}
 function _levelLabel(t){var o={beginner:'基礎',junior_high:'中学',entrance_exam:'受験',eiken:'英検',school_test:'学校テスト'};return o[t]||'';}
