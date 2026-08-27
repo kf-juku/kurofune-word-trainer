@@ -1312,8 +1312,10 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
           <span id="nz-daily-sub" style="display:none;"></span>
           <!-- おさらい（毎日学習の間隔反復）＝デイリーの一部（2026-07-25 ふくしゅうから移設） -->
           <div class="rcard" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> ・ <span id="cnt-review">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
-          <!-- 間違いノート＝デイリーの一部（残0 or 今日10語）。入口は2つ・実体は1つ（機能仕様書 §5-2）2026-08-26 -->
-          <div class="rcard" id="tile-note-daily"><span class="reddot" id="dot-note-daily" style="display:none;"></span><div class="rc-ic"><i class="ti ti-notebook"></i></div><div class="rc-b"><div class="rc-t"><ruby>間違<rt class="uf">まちが</rt></ruby>いノート</div><div class="rc-s"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> ・ <span id="cnt-note-daily">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
+          <!-- 【2026-08-27 川上さん確定】間違いノートのタイルはここから外した。入口を1つにするため。
+               間違いノートは下メニューに専用タブ（赤●つき）があり、毎日タブ内のタイルは2つ目の入口だった。
+               毎日タブ側の入口は「次はこれ」（毎日学習→おさらい→集中攻略の順に切り替わる）に集約する。
+               おさらいは専用タブが無いので #tile-review は残す（消すと行き場が無くなる）。 -->
           <!-- 全体像への導線（行動カードと並べない・控えめリンク）2026-07-26 -->
           <div id="daily-maplink" role="button" tabindex="0" style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--sub);padding:12px;margin-top:2px;cursor:pointer;"><i class="ti ti-map-2" style="color:var(--gold);font-size:16px;"></i> <span><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>の<ruby>進<rt class="uf">すす</rt></ruby>みを<ruby>見<rt class="uf">み</rt></ruby>る</span> <i class="ti ti-chevron-right"></i></div>
         </div>
@@ -1727,7 +1729,8 @@ function saveIcon_(k){var _lk=null;for(var _i=0;_i<ICON_LIST.length;_i++){if(ICO
 function todayStr_(){var d=new Date(Date.now()+9*3600*1000);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}/* JST固定 2026-07-08 */
 var dailyState={main:null,review:null,note:null};
 function renderDaily(){
-  // デイリー＝毎日学習の今日の分（main）＋おさらいの今日の枠（review）。間違いノート(note)は含めない（2026-07-25 再定義）。
+  // デイリー＝毎日学習の今日の分（main）＋おさらいの今日の枠（review）＋間違いノート枠（note）。
+  // ※note は 2026-08-26 に枠として加わった（コードは st.note を見ている）。2026-07-25 の「含めない」は撤回ずみ。
   var st=dailyState;
   var host=$('daily-fin');if(!host)return;
   var known=(st.main!==null&&st.review!==null&&st.note!==null);
@@ -2350,6 +2353,8 @@ function setTab5_(name){['daily','review','unit','team','record'].forEach(functi
 function setBadge_(tab,n){var e=$('bdg-'+tab);if(!e)return;if((n||0)>0){e.classList.remove('dot');e.textContent=(n>9?'9+':String(n));e.classList.add('on');}else{e.classList.remove('on');}} // 数字（10以上は9+）
 function setNavDot_(tab,on){var e=$('bdg-'+tab);if(!e)return;e.classList.add('dot');e.textContent='';e.classList.toggle('on',!!on);} // 赤●（数字なし）
 var _revNum={osarai:0,note:0};var _osaraiDue=0; // 期限が来たおさらいの総数（完了画面の「次の一手」用）2026-08-05
+/* 【2026-08-27】弱点集中の的と残り語数。間違いノートタブだけでなく毎日タブの「次はこれ」でも使うので保持する。 */
+var _noteTgt=null,_noteRem=0;
 var _srsReady={words:[],assets:{},loaded:false}; // おさらいの今日分を先読みしておき、タイル/フォーカスから直接開始＝中間ページを挟まない 2026-07-26
 /* 【2026-08-27 川上さん報告】完了画面の誘導ボタンから押しても効かなかった。
    `showSub` は**ホーム画面の中のタブを切り替える**関数なので、ホーム以外（完了画面・学習画面）から呼ぶと
@@ -2490,9 +2495,15 @@ function renderDailyList_(main){
     host.appendChild(_dailyFocus_(main[fi]));
     var upNext=main.filter(function(m,i){return i!==fi&&!m.cleared_today;});
     if(upNext.length){var qh=document.createElement('div');qh.className='q-head';qh.innerHTML='この<ruby>後<rt class="uf">あと</rt></ruby>';host.appendChild(qh);var q=document.createElement('div');q.className='queue';upNext.forEach(function(m){q.appendChild(_dailyQueueRow_(m));});host.appendChild(q);}
-  }else{
-    // 毎日学習は全部おわり・おさらい枠だけ残り → つぎは おさらい 2026-07-26
+  }else if(!osDone){
+    // 毎日学習は全部おわり・おさらい枠が残り → つぎは おさらい 2026-07-26
     host.appendChild(_osaraiFocus_());
+  }else if(_noteRem>0){
+    /* 【2026-08-27】おさらいも終わって間違いノート枠だけ残っている状態。
+       以前は osDone を見ずに _osaraiFocus_() を出していたので、終わったおさらいが「次はこれ」で出続け、
+       間違いノートには一度も誘導していなかった（川上さん報告）。
+       間違いノートタブと同じ集中攻略カード（_noteTodayCard_）を流用する＝新しい部品を作らない。 */
+    host.appendChild(_noteTodayCard_(_noteTgt,_noteRem,ntDone));
   }
   // きょう できた＝終わった分を「がんばったね」の枠でまとめる 2026-07-24
   var doneItems=main.filter(function(m){return m.cleared_today;});
@@ -2635,7 +2646,6 @@ function openHome(){
   _bind('tile-records',function(){showSub('records');});
   _bind('tile-note',function(){showSub('note');});
   _bind('tile-review',function(){startOsaraiDirect_();}); // タイル→おさらいへ直行（中間ページを挟まない）2026-07-26
-  _bind('tile-note-daily',function(){openNoteToday_();});  // 間違いノートも同じく今日の10語へ直行 2026-08-26
   _bind('tile-badge',function(){showSub('badge');});
   _bind('tile-lists',function(){showSub('lists');});
   _bind('daily-maplink',function(){showSub('lists');}); // 毎日タブ→学習マップの導線 2026-07-26
@@ -2673,7 +2683,12 @@ function loadHomeData_(showSkel){
     dailyState.main=(main.length===0)?true:(main.filter(function(m){return !m.cleared_today;}).length===0);
     /* 【2026-08-26】間違いノート枠（残0 or 今日10語）はサーバーが判定して返す。
        ノートのタブを開いていなくても、ホームだけでデイリーの帯が正しく出るようにする。 */
-    try{ if(d.data.note&&d.data.note.today_done!==undefined){dailyState.note=!!d.data.note.today_done;_noteTileSync_(d.data.note.remaining|0,!!d.data.note.today_done);} }catch(eNt){}
+    try{ if(d.data.note&&d.data.note.today_done!==undefined){
+      dailyState.note=!!d.data.note.today_done;
+      /* 【2026-08-27】的と残りもここで受け取る。間違いノートタブを開いていない生徒でも
+         毎日タブの「次はこれ」に集中攻略カードを出せるようにする（loadNotes を待たない）。 */
+      _noteTgt=(d.data.note.target||null);_noteRem=(d.data.note.remaining|0);
+    } }catch(eNt){}
     renderDaily();
     prefetchParts_(cards); // 先読み：毎日学習＋単元別の現在パート
     renderDailyList_(main); // 毎日学習＝今のDAY大＋先プレビュー（新ホーム 2026-07-24）
@@ -4309,6 +4324,12 @@ function doneMatClearGuide_(){return '<div style="background:var(--surface);bord
  +'<div style="font-size:12.8px;color:var(--sub);margin-bottom:10px;"><ruby>終<rt class="uf">お</rt></ruby>わった<ruby>単元<rt class="uf">たんげん</rt></ruby>は<ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで<ruby>何度<rt class="uf">なんど</rt></ruby>でもやり<ruby>直<rt class="uf">なお</rt></ruby>せる。</div>'
  +'<button onclick="goMapSub_()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;"><i class="ti ti-map-2"></i> <span><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップを<ruby>開<rt class="uf">ひら</rt></ruby>く</span></button>'
  +'</div>';}
+/* 【2026-08-27】完了画面の「次の一手」に出す語数は、押した先の画面と同じ数にそろえる。
+   おさらい＝おさらい画面の「おまかせ」と同じ今日の枠（最大20語）。期限が来た全語数（_osaraiDue＝517など）を
+   出すと、押した先が20語で数字が変わり、量も多すぎて押す気が失せる（川上さん報告 2026-08-27）。
+   数える場所を1つにする（2026-07-26の決まり）。出すか出さないかの判定は従来どおり全体量（due>0 / note>0）で決める。 */
+function _osaraiBtnN_(){var d=(typeof _osaraiDue==='number'?_osaraiDue:0);var t=(_revNum&&_revNum.osarai)|0;return t>0?t:Math.min(20,d);}
+function _noteBtnN_(){return Math.min(10,(_revNum&&_revNum.note)||0);}
 /* 完了画面の「次の一手」＝やる気しだいの自主消化を促す。優先＝おさらい残(期限が来た全語)＞間違いノート残。数字つき。0/不明なら出さない（先取りbtn-nextに任せる）。確定方針＝要件定義書§4-3b。2026-08-05 */
 /* 今日のぶん完了の「次の一手」＝主ボタン1つ（塗り青）。おさらい残＞間違いノート残。共通クラス .guide-card/.gbtn を使用 2026-08-08 */
 /* 完了画面の「つぎは？」＝今日のデイリーでまだ埋まっていない枠へ誘導する（機能仕様書 §5-1b）2026-08-26。
@@ -4347,11 +4368,11 @@ function nextStepGuide_(preferNote,justPartId){
   };
   var mkOsarai=function(cls){
     if(osDone)return '';
-    return '<button class="gbtn '+cls+'" onclick="startOsaraiDirect_();"><i class="ti ti-clock-bolt"></i> <span>おさらいをやる（'+due+rb('語','ご')+'）</span></button>';
+    return '<button class="gbtn '+cls+'" onclick="startOsaraiDirect_();"><i class="ti ti-clock-bolt"></i> <span>おさらいをやる（'+_osaraiBtnN_()+rb('語','ご')+'）</span></button>';
   };
   var mkNote=function(cls){
     if(ntDone)return '';
-    return '<button class="gbtn '+cls+'" onclick="openNoteToday_();"><i class="ti ti-notebook"></i> <span>'+rb('間違','まちが')+'いノートを'+rb('直','なお')+'す（'+Math.min(10,note)+rb('語','ご')+'）</span></button>';
+    return '<button class="gbtn '+cls+'" onclick="openNoteToday_();"><i class="ti ti-notebook"></i> <span>'+rb('間違','まちが')+'いノートを'+rb('直','なお')+'す（'+_noteBtnN_()+rb('語','ご')+'）</span></button>';
   };
   var makers=preferNote?[mkNote,mkMain,mkOsarai]:[mkMain,mkOsarai,mkNote];
   var subs  =preferNote?[rb('直','なお')+'すと '+rb('点','てん')+'が<ruby>伸<rt class="uf">の</rt></ruby>びる','',rb('今','いま')+'やっておくほど '+rb('忘','わす')+'れにくい']
@@ -4368,7 +4389,7 @@ function nextStepGuide_(preferNote,justPartId){
       +body+(gsub?('<div class="gsub">'+gsub+'</div>'):'')+'</div>';
   }
   /* 全部埋まっている日＝まず達成を認めてから、先へ進む導線を出す */
-  var moreOs=(due>0)?('<div style="margin-top:8px"><button class="gbtn soft" onclick="startOsaraiDirect_();"><i class="ti ti-clock-bolt"></i> <span>おさらいをおかわり（'+due+rb('語','ご')+'）</span></button></div>'):'';
+  var moreOs=(due>0)?('<div style="margin-top:8px"><button class="gbtn soft" onclick="startOsaraiDirect_();"><i class="ti ti-clock-bolt"></i> <span>おさらいをおかわり（'+_osaraiBtnN_()+rb('語','ご')+'）</span></button></div>'):'';
   return '<div class="guide-card"><div class="guide-h"><i class="ti ti-circle-check" style="color:var(--ok)"></i> <span>'
     +rb('今日','きょう')+'のぶんは'+rb('全部','ぜんぶ')+rb('終','お')+'わった</span></div>'
     +'<button class="gbtn solid" onclick="goMapSub_();"><i class="ti ti-map-2"></i> <span>'+rb('次','つぎ')+'のパートへ'+rb('進','すす')+'む</span></button>'
@@ -4379,8 +4400,8 @@ function doneClearGuide_(){
   var due=(typeof _osaraiDue==='number'?_osaraiDue:0);
   var note=(_revNum&&_revNum.note)||0;
   var solid='';
-  if(due>0)solid='<button class="gbtn solid" onclick="openHome();showSub(\'review\');"><i class="ti ti-clock-bolt"></i> <span>おさらいをやる（'+due+rb('語','ご')+'）</span></button>';
-  else if(note>0)solid='<button class="gbtn solid" onclick="openHome();showSub(\'note\');"><i class="ti ti-notebook"></i> <span>'+rb('間違','まちが')+'いノートを '+rb('直','なお')+'す（'+note+rb('語','ご')+'）</span></button>';
+  if(due>0)solid='<button class="gbtn solid" onclick="openHome();showSub(\'review\');"><i class="ti ti-clock-bolt"></i> <span>おさらいをやる（'+_osaraiBtnN_()+rb('語','ご')+'）</span></button>';
+  else if(note>0)solid='<button class="gbtn solid" onclick="openHome();showSub(\'note\');"><i class="ti ti-notebook"></i> <span>'+rb('間違','まちが')+'いノートを '+rb('直','なお')+'す（'+_noteBtnN_()+rb('語','ご')+'）</span></button>';
   var mapBtn='<button class="gbtn soft" onclick="goMapSub_();"><i class="ti ti-map-2"></i> <span>'+rb('学習','がくしゅう')+'マップでやり'+rb('直','なお')+'す</span></button>';
   return '<div class="guide-card"><div class="guide-h"><i class="ti ti-sparkles"></i> <span><ruby>次<rt class="uf">つぎ</rt></ruby>は？</span></div><div class="gstack">'+solid+mapBtn+'</div><div class="gsub">'+rb('次','つぎ')+'の'+rb('教材','きょうざい')+'は'+rb('先生','せんせい')+'が'+rb('用意','ようい')+'する</div></div>';
 }
@@ -4649,18 +4670,6 @@ var noteSes=null;
 var _revDone={osarai:null,note:null};
 /* 毎日タブの間違いノート枠の表示を合わせる（残り語数・終わったか）。
    ノートのタブを開かなくても、ホームを見ただけで今日の枠が分かるようにする。2026-08-26 */
-function _noteTileSync_(remain,done){
-  try{
-    var c=$('cnt-note-daily');
-    if(c){
-      if(done)c.innerHTML='<ruby>終<rt class="uf">お</rt></ruby>わり！';
-      else if(!remain)c.innerHTML='もうありません';
-      else c.innerHTML='<b>'+Math.min(10,remain|0)+'</b>'+rb('語','ご');
-    }
-    var dt=$('dot-note-daily');if(dt)dt.style.display=(!done&&remain>0)?'block':'none';
-    _reviewTileDone_('tile-note-daily',!!done);
-  }catch(e){}
-}
 function _reviewTileDone_(id,done){
   var t=$(id);if(!t)return;
   t.classList.toggle('done',!!done);t.classList.remove('dim');
@@ -4695,8 +4704,10 @@ function loadNotes(){
     /* 【2026-08-26】「残り N語（教科ごと）」は消した。すぐ下の今日の10語カードが同じ数を出していて重複するため。
      教科ごとの内訳は その下の教科カードで見える。 */
   var nt=$('note-total');if(nt)nt.innerHTML='';
+    /* 【2026-08-27】的と残りを保持＝毎日タブの「次はこれ」でも同じ値を使う（数える場所を1つにする）。 */
+    _noteTgt=(d.data.target||null);_noteRem=(d.data.total_active!=null)?(d.data.total_active|0):totalN;
     dailyState.note=!!d.data.today_done;renderDaily(); /* 【2026-08-26】間違いノートもデイリーの枠になった（残0 or 今日10語）。判定はサーバー（§5-2）*/
-    try{_noteTileSync_((d.data.total_active!=null)?(d.data.total_active|0):totalN,!!d.data.today_done);}catch(eNs){}
+    if(_dailyMain)renderDailyList_(_dailyMain); /* 【2026-08-27】的が届いたら毎日タブも描き直す（loadReviewSrs と同じ形）*/
     var dn=$('dot-note');if(dn)dn.style.display=totalN>0?'block':'none';
     _reviewTileDone_('tile-note',totalN===0); // 存在すれば完了表示（今は非表示スタブ・ガードあり）
     _revDone.note=(totalN===0);renderReviewFin_();
@@ -4704,8 +4715,7 @@ function loadNotes(){
     if(!host)return;host.innerHTML='';
     if(!totalN){host.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl"><ruby>間違<rt class="uf">まちが</rt></ruby>いゼロ！</div><div class="sub"><ruby>今<rt class="uf">いま</rt></ruby>は<ruby>直<rt class="uf">なお</rt></ruby>す<ruby>単語<rt class="uf">たんご</rt></ruby>はありません</div></div></div>';return;}
     /* 弱点集中：今日の10語（§5-1）。**教科カードは消さずにこの下へ残す**＝別の入口として並べる。2026-08-26 */
-    var _rem=(d.data.total_active!=null)?(d.data.total_active|0):totalN;
-    host.appendChild(_noteTodayCard_(d.data.target||null,_rem,!!d.data.today_done));
+    host.appendChild(_noteTodayCard_(_noteTgt,_noteRem,!!d.data.today_done));
     // 教科ごとのカード（アイコン＋色＋教科名＋残り数）。「間違いノート」「2回連続正解で卒業」の繰り返しはやめる（タブ名とヘッダで文脈は分かる）2026-07-26
     var _qh=document.createElement('div');_qh.className='q-head';
     _qh.innerHTML=rb('教科','きょうか')+'で'+rb('選','えら')+'ぶ';host.appendChild(_qh);
@@ -4785,7 +4795,7 @@ function finishNote(){
   try{localStorage.setItem('kwt_note_done',todayStr_());}catch(e){}
   /* 【2026-08-26】デイリーの枠が埋まるのは「今日の10語」をやり切ったときだけ。
      教科カードから3語だけ直した回で枠を埋めたことにすると、画面とサーバーの判定が食い違う。 */
-  if(noteSes&&noteSes.today){dailyState.note=true;try{_noteTileSync_(0,true);}catch(eNf){}}
+  if(noteSes&&noteSes.today){dailyState.note=true;}
   renderDaily();
   var s=noteSes;$('prog').style.width='100%';show('scr-done');_doneResetCommon_();hideQTimer();hideExplain();var _dgn0=$('done-guide-area');if(_dgn0)_dgn0.innerHTML='';
   $('btn-next').style.display='none';$('btn-retry').style.display='none';
