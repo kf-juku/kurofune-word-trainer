@@ -1598,7 +1598,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     </div>
     <div id="bug-send-pane" style="display:none;text-align:center;">
       <div id="bug-spin" style="margin:12px 0 8px;"></div>
-      <div style="font-weight:700;font-size:15px;"><ruby>送<rt class="uf">おく</rt></ruby>っています…</div>
+      <div style="font-weight:700;font-size:15px;"><ruby>送信<rt class="uf">そうしん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</div>
       <div style="font-size:12.5px;color:var(--sub);margin-top:4px;"><ruby>少<rt class="uf">すこ</rt></ruby>し<ruby>待<rt class="uf">ま</rt></ruby>ってください</div>
     </div>
     <div id="bug-done-pane" style="display:none;text-align:center;">
@@ -3827,7 +3827,7 @@ function _resumeModal_(title,info,leftLabel,rightLabel,cb){
 function askResume_(rs,cb){   // 中断したのと同じパートを開いたとき
   _resumeModal_(
     '<ruby>続<rt class="uf">つづ</rt></ruby>きからやりますか？',
-    '<ruby>前回<rt class="uf">ぜんかい</rt></ruby>は '+(rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby>まで<ruby>進<rt class="uf">すす</rt></ruby>みました。<ruby>答<rt class="uf">こた</rt></ruby>えたところまでの<ruby>点数<rt class="uf">てんすう</rt></ruby>は<ruby>残<rt class="uf">のこ</rt></ruby>っています。',
+    '<ruby>前回<rt class="uf">ぜんかい</rt></ruby>は '+(rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby>まで<ruby>進<rt class="uf">すす</rt></ruby>んでいる。<ruby>答<rt class="uf">こた</rt></ruby>えたところまでの<ruby>点数<rt class="uf">てんすう</rt></ruby>は<ruby>残<rt class="uf">のこ</rt></ruby>る。',
     '<ruby>最初<rt class="uf">さいしょ</rt></ruby>から',
     '<i class="ti ti-arrow-right"></i> <span><ruby>続<rt class="uf">つづ</rt></ruby>きから</span>',
     function(right){
@@ -3840,7 +3840,7 @@ function askResume_(rs,cb){   // 中断したのと同じパートを開いた�
 function askDiscard_(rs,cb){  // 中断を残したまま別のパートを始めようとしたとき（案1・川上さん確定 2026-08-20）
   _resumeModal_(
     '<ruby>途中<rt class="uf">とちゅう</rt></ruby>の<ruby>学習<rt class="uf">がくしゅう</rt></ruby>が<ruby>消<rt class="uf">き</rt></ruby>えますが、いいですか？',
-    '「'+_resumeLabel_(rs)+'（'+(rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby>）」の<ruby>途中<rt class="uf">とちゅう</rt></ruby>が<ruby>残<rt class="uf">のこ</rt></ruby>っています。<ruby>別<rt class="uf">べつ</rt></ruby>の<ruby>学習<rt class="uf">がくしゅう</rt></ruby>を<ruby>始<rt class="uf">はじ</rt></ruby>めると、この<ruby>途中<rt class="uf">とちゅう</rt></ruby>は<ruby>消<rt class="uf">き</rt></ruby>えて<ruby>最初<rt class="uf">さいしょ</rt></ruby>からになります。',
+    '「'+_resumeLabel_(rs)+'（'+(rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby>）」の<ruby>途中<rt class="uf">とちゅう</rt></ruby>が<ruby>残<rt class="uf">のこ</rt></ruby>っている。<ruby>別<rt class="uf">べつ</rt></ruby>の<ruby>学習<rt class="uf">がくしゅう</rt></ruby>を<ruby>始<rt class="uf">はじ</rt></ruby>めると、この<ruby>途中<rt class="uf">とちゅう</rt></ruby>は<ruby>消<rt class="uf">き</rt></ruby>えて<ruby>最初<rt class="uf">さいしょ</rt></ruby>からになる。',
     'やめる',
     'このまま<ruby>始<rt class="uf">はじ</rt></ruby>める',
     cb);
@@ -4817,7 +4817,7 @@ function finishNote(){
   try{var _nt=(s.total||(s.words&&s.words.length)||0),_nc=Math.max(0,_nt-((s.miss||[]).length)),_nr=_nt?Math.round(_nc/_nt*100):0;renderDoneTiles_(_nr,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（間違いノートにも）2026-08-08
   // 採点（保存）中：スピナー＋Tips（成功と偽らない・待ちを価値に）2026-07-13
   $('done-miss').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
-  $('star-area').innerHTML='<div class="note-saving"><div class="sw-load">'+kwtSpin(30)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby>しています…</span></div>'+tipHtml_()+'</div>';
+  $('star-area').innerHTML='<div class="note-saving"><div class="sw-load">'+kwtSpin(30)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>'+tipHtml_()+'</div>';
   whenGradesFlushed(function(){
     homeCacheClear_();/* 保存に失敗した回でも次のホームで最新を取り直す（おさらい finishSrs と同じ）2026-08-21 */
     if(gradeFailed>0){
