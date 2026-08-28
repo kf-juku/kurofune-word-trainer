@@ -848,7 +848,7 @@
   .stat .k{font-size:11px;color:var(--sub);margin-top:3px;}
 
   /* 練習 */
-  .prac-top{display:flex;justify-content:space-between;align-items:center;margin:-4px 0 2px;}
+  .prac-top{display:flex;justify-content:space-between;align-items:center;min-height:44px;margin:-4px 0 6px;border-bottom:1px solid var(--line);}
   /* 学習中の帯＝いま何をやっているか（A-1・川上さん確定 2026-08-21）。色は識別色そのまま＝student-ui-design §18-1。押す対象ではない（カードにしない） */
   .nowbar{display:flex;align-items:center;gap:10px;margin:6px 0 2px;padding:0 2px;}
   .nowbar .nb-ic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto;}
@@ -862,12 +862,23 @@
   .nowbar.k-quiz .nb-k{color:var(--quiz);}
   .nowbar.k-accent .nb-ic{background:var(--accent-soft);color:var(--accent);}
   .nowbar.k-accent .nb-k{color:var(--accent);}
-  .prac-quit{background:none;border:none;color:var(--sub);font-size:13px;font-family:inherit;cursor:pointer;padding:6px 8px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;}
-  .prac-quit:hover{background:var(--ring-track);color:var(--ink);}
-  .prac-refresh{background:none;border:none;color:var(--sub);font-size:13px;font-family:inherit;cursor:pointer;padding:6px 8px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;}
-  .prac-refresh:hover{background:var(--ring-track);color:var(--ink);}
-  .prac-refresh:active{transform:scale(.97);}
-  .prac-acts{display:flex;align-items:center;gap:2px;}
+  /* 【確定・2026-08-28 川上さん＝案C-1】枠も面も作らない。文字を濃く・アイコンを大きく・高さ44px。
+     旧＝color:var(--sub) は背景とのコントラストが 3.0:1（読める最低ライン4.5:1を下回る）で、
+     枠も面も無いため「押せるもの」に見えず、生徒が気づけなかった。
+     ただし枠や面を足すと .card（問題）や .choice（選択肢）と同じ見た目になって野暮ったくなるので、
+     箱は作らず濃さと大きさだけで見せる。下の1本線で「ここは操作の帯」と示す。 */
+  .prac-quit,.prac-refresh{background:none;border:none;color:var(--ink);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;padding:10px 8px;min-height:44px;border-radius:10px;display:inline-flex;align-items:center;gap:6px;}
+  .prac-quit i,.prac-refresh i{font-size:18px;color:var(--ink);opacity:.5;}
+  .prac-quit:hover,.prac-refresh:hover{background:var(--ring-track);}
+  .prac-quit:active,.prac-refresh:active{opacity:.5;}
+  .prac-acts{display:flex;align-items:center;gap:14px;}
+  /* ラベルは途中で割らない（「やめ／る」と2行になると読みにくい）。狭い端末では余白と字を詰めて1行に収める */
+  .prac-quit span,.prac-refresh span{white-space:nowrap;}
+  @media (max-width:340px){
+    .prac-quit,.prac-refresh{padding:10px 6px;gap:4px;font-size:12.5px;}
+    .prac-quit i,.prac-refresh i{font-size:17px;}
+    .prac-acts{gap:8px;}
+  }
   /* 一時停止（2026-08-20）：問題を読ませないよう背景を濃くぼかす。中身は既存の .modal を流用 */
   .modal-mask.pausing{background:rgba(10,14,22,.94);align-items:center;}
   /* ふりがな表示（小学生）のとき、モーダルのルビが本文に重ならないよう行間を広げる。中学生の見た目は変えない 2026-08-20 */
