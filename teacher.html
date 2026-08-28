@@ -4785,7 +4785,19 @@ function rpBuildPrint(list,fs){
     +'.rp-pa td{border:1px solid #b9c0cc;padding:'+pad+';vertical-align:top;}'
     /* 教材名の並び（「Unit1（英→日）・Unit2（英→日）」など）は日本語の禁則で切れず、表が紙からはみ出すことがある。
        どこでも折り返してよいことにして、必ず紙の幅に収める（川上さん 2026-08-17）*/
-    +'.rp-pa td,.rp-pa th{overflow-wrap:anywhere;}'
+    +'.rp-pa td{white-space:normal;overflow-wrap:anywhere;}'
+    /* 見出し(th)だけは1行のまま＝「1日の必要ペース」が「1日の必要ペー／ス」と割れると読みにくい。
+       見出しの語はどれも短いので、1行に保っても紙幅には収まる（12通りで実測ずみ）。 */
+    +'.rp-pa th{white-space:nowrap;overflow-wrap:anywhere;}'
+    /* 【最重要・2026-08-28】画面ぜんぶにかかる td/th{white-space:nowrap}（このファイルの259〜260行）を、
+       画面の表は .table-wrap td{white-space:normal} で打ち消しているが、印刷用の表(.rp-pa)には打ち消しが無かった。
+       全セルが折り返さないまま横に伸びて紙(186mm)からはみ出し、右端が切れていた（教科・教材を問わず発生）。
+       overflow-wrap:anywhere は white-space:nowrap の下では効かないので、必ず white-space:normal とセットで書く。 */
+    /* 保険＝万一それでも紙幅を超えたら列幅を固定にして必ず収める（_rpNarrowGuard_ が .rp-narrow を付ける）*/
+    +'.rp-pa.rp-narrow table{table-layout:fixed;}'
+    +'.rp-pa.rp-narrow td,.rp-pa.rp-narrow th{white-space:normal;}'
+    +'.rp-pa.rp-narrow .pr,.rp-pa.rp-narrow .pace,.rp-pa.rp-narrow .w7,.rp-pa.rp-narrow .day{white-space:normal;}'
+    +'.rp-pa.rp-narrow .bar{min-width:0;}'
     +'.rp-pa td.c{text-align:center;}'
     +'.rp-pa tr.sub td{border:1px solid #d7dce4;background:#f7f9fc;font-size:'+f(0.9)+'px;}'
     +'.rp-pa .nm{font-weight:800;}'
@@ -4882,11 +4894,29 @@ function _rpPxPerMm(){
   var p=document.createElement('div'); p.style.cssText='position:absolute;left:-9999px;top:0;width:100mm;height:0;';
   document.body.appendChild(p); var v=p.getBoundingClientRect().width/100; document.body.removeChild(p); return v||3.78;
 }
+/* 保険＝作った印刷が紙幅(186mm)を超えていたら、列幅を固定にして必ず収める。2026-08-28
+   ふだんは何もしない（超えていなければ false を返して終わり）。教材名が今より長くなっても紙から切れないようにする止め板。 */
+function _rpNarrowGuard_(host){
+  var pa=host&&host.querySelector('.rp-pa'); if(!pa)return false;
+  var tb=pa.querySelector('table'); if(!tb)return false;
+  if(pa.classList.contains('rp-narrow'))return true;
+  if(tb.getBoundingClientRect().width<=pa.getBoundingClientRect().width+1)return false;
+  var n=tb.querySelectorAll('thead th').length; if(!n)return false;
+  /* 6列＝生徒/📘練習/✅テスト/必要ペース/今週/学習日、5列＝期限なし（必要ペースの列が無い） */
+  var w=(n===6)?[22,20,20,15,6,17]:(n===5?[26,23,23,7,21]:null);
+  if(!w){ w=[]; for(var i=0;i<n;i++)w.push(Math.floor(100/n)); }
+  var cg=document.createElement('colgroup');
+  cg.innerHTML=w.map(function(p){return '<col style="width:'+p+'%">';}).join('');
+  tb.insertBefore(cg,tb.firstChild);
+  pa.classList.add('rp-narrow');
+  return true;
+}
 function rpFit_(list){
   var host=$('printArea'), ppm=_rpPxPerMm(), res=null;
   host.style.cssText='display:block;position:absolute;left:-99999px;top:0;width:'+RP_PRINT_W_MM+'mm;';
   var measure=function(fs){
     host.innerHTML=rpBuildPrint(list,fs);
+    _rpNarrowGuard_(host);   /* 幅を確定させてから高さ＝ページ数を数える */
     var el=host.querySelector('.rp-pa'); var mm=(el?el.getBoundingClientRect().height:0)/ppm;
     return {fs:fs,pages:Math.max(1,Math.ceil(mm/RP_PAGE_MM))};
   };
@@ -4898,6 +4928,7 @@ function rpFit_(list){
   if(!res.ok){ var m0=measure(RP_FIT_SIZES[0]); res={fs:m0.fs,pages:m0.pages,ok:false}; }
   host.style.cssText='';
   host.innerHTML=rpBuildPrint(list,res.fs);
+  _rpNarrowGuard_(host);
   var note=$('rpFitNote');
   if(note)note.textContent=res.ok?('A4両面1枚（文字 '+res.fs+'px）'):('約'+res.pages+'ページ（内訳ぶん）');
   return res;
