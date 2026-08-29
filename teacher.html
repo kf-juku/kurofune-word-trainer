@@ -296,7 +296,7 @@
   .empty-state-title{font-size:14px;font-weight:700;color:var(--text-muted);margin-bottom:6px;}
 
   /* タブ（生徒一覧／チーム編成）2026-06-21 */
-  .tabs{display:flex;gap:6px;margin-bottom:14px;}
+  .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
   .tab{flex:0 0 auto;padding:8px 18px;border-radius:var(--radius);border:1.5px solid var(--border);background:white;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;font-family:inherit;box-shadow:var(--shadow-sm);}
   .tab:hover{border-color:var(--crimson-mid);color:var(--crimson-dark);}
   .tab.active{background:var(--crimson);color:white;border-color:var(--crimson);}
@@ -821,6 +821,7 @@
       <button class="tab" id="tab-mat" onclick="switchTab('mat')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>教材ごと</button>
       <button class="tab" id="tab-quiz" onclick="switchTab('quiz')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>単元別・確認テスト</button>
       <button class="tab" id="tab-report" onclick="switchTab('report')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M3 3v18h18"></path><rect x="7" y="12" width="3" height="6"></rect><rect x="12" y="8" width="3" height="10"></rect><rect x="17" y="4" width="3" height="14"></rect></svg>レポート</button>
+      <button class="tab" id="tab-notice" onclick="switchTab('notice')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M18 8a3 3 0 0 1 0 6"></path><path d="M10 8v11a1 1 0 0 1 -1 1h-1a1 1 0 0 1 -1 -1v-5"></path><path d="M12 8h0l4.524 -3.77a.9 .9 0 0 1 1.476 .692v12.156a.9 .9 0 0 1 -1.476 .692l-4.524 -3.77h-8a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h8"></path></svg>一斉指示</button>
       <button class="tab" id="tab-teams" onclick="switchTab('teams')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>チーム編成</button>
       <button class="tab" id="tab-settings" onclick="switchTab('settings')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>先生設定</button>
       <button class="tab" id="bugReportsBtn" onclick="openBugReports()" title="生徒からの不具合報告と診断情報（原因究明用）"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M8 2l1.88 1.88"></path><path d="M14.12 3.88L16 2"></path><path d="M9 7.13v-1a3.003 3.003 0 0 1 6 0v1"></path><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6z"></path><path d="M12 20v-9"></path><path d="M6.53 9C4.6 8.8 3 7.1 3 5"></path><path d="M6 13H2"></path><path d="M3 21c0-2.1 1.7-3.9 3.8-4"></path><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"></path><path d="M22 13h-4"></path><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"></path></svg>バグ報告</button>
@@ -1331,6 +1332,107 @@
     </div>
 
     <!-- ===== チーム編成ビュー 2026-06-21 ===== -->
+    <!-- ===== 一斉指示（生徒側の呼び名＝お知らせ）2026-08-28 ===== -->
+    <div id="view-notice" style="display:none;">
+      <style>
+        .nt-head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+        .nt-head h3{margin:0 0 3px;font-size:16px;color:var(--text)}
+        .nt-lead{color:var(--text-muted);font-size:11.5px;line-height:1.65;max-width:660px}
+        .nt-head .sp{flex:1}
+        .nt-head .btn-primary{width:auto;flex:none;padding:9px 20px;font-size:13px}
+        .nt-kpis{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+        .nt-kpi{background:var(--gray-light);border-radius:7px;padding:5px 11px;font-size:11.5px;color:var(--text-muted)}
+        .nt-kpi b{font-size:14px;color:var(--text);margin-right:3px;font-variant-numeric:tabular-nums}
+        .nt-kpi.warn{background:var(--amber-light);color:var(--amber-dark)}
+        .nt-kpi.warn b{color:var(--amber-dark)}
+        table.nt-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+        table.nt-tbl th{background:var(--gray-light);color:var(--text-muted);font-size:11px;font-weight:700;
+          text-align:left;padding:7px 9px;border-bottom:1px solid var(--border);white-space:nowrap}
+        table.nt-tbl td{padding:8px 9px;border-bottom:1px solid var(--border);vertical-align:middle}
+        tr.nt-row{cursor:pointer} tr.nt-row:hover,tr.nt-row.open{background:var(--crimson-light)}
+        .nt-dt{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--text-muted);font-size:11.5px}
+        .nt-dt b{display:block;color:var(--text);font-size:13px}
+        .nt-b1{color:var(--text);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .nt-num{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700}
+        .nt-bar{height:6px;border-radius:6px;background:var(--gray-light);overflow:hidden;margin-bottom:3px}
+        .nt-bar i{display:block;height:100%;background:var(--green);border-radius:6px}
+        .nt-barl{font-size:11px;color:var(--text-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+        .nt-badge{display:inline-block;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap}
+        .nt-badge.live{background:var(--green-light);color:var(--green-dark)}
+        .nt-badge.end{background:var(--gray-light);color:var(--gray)}
+        .nt-badge.cancel{background:var(--gray-light);color:var(--gray);text-decoration:line-through}
+        .nt-caret{color:var(--text-light)} tr.nt-row.open .nt-caret{display:inline-block;transform:rotate(180deg)}
+        tr.nt-det{display:none} tr.nt-det.open{display:table-row}
+        tr.nt-det>td{background:#fbfcfe;padding:14px 16px 16px}
+        .nt-full{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 14px;
+          font-size:13px;line-height:1.9;white-space:pre-wrap;color:var(--text);margin-bottom:12px}
+        .nt-cols{display:flex;gap:16px;flex-wrap:wrap}
+        .nt-col{flex:1;min-width:270px}
+        .nt-ch{font-size:11.5px;font-weight:700;margin-bottom:6px;color:var(--green-dark)}
+        .nt-ch.warn{color:var(--amber-dark)}
+        .nt-chips{display:flex;flex-wrap:wrap;gap:5px}
+        .nt-chip{border-radius:20px;padding:3px 10px;font-size:11.5px;background:var(--green-light);color:var(--green-dark)}
+        .nt-chip.no{background:var(--amber-light);color:var(--amber-dark)}
+        .nt-chip small{opacity:.7;margin-left:4px;font-variant-numeric:tabular-nums}
+        .nt-detact{margin-top:12px;display:flex;gap:8px;align-items:center}
+        .nt-note{margin-left:auto;font-size:12px;color:var(--text-muted)}
+        .nt-ta{width:100%;min-height:190px;resize:vertical;line-height:1.85;font-size:14px}
+        .nt-cnt{text-align:right;font-size:11.5px;color:var(--text-muted);margin-top:5px;font-variant-numeric:tabular-nums}
+        .nt-cnt.over{color:var(--crimson);font-weight:700}
+        .nt-two{display:flex;gap:18px;flex-wrap:wrap}
+        .nt-two .l{flex:1.4;min-width:320px} .nt-two .r{flex:1;min-width:260px}
+        .pv-wrap{background:#12161f;border-radius:16px;padding:16px;display:flex;justify-content:center}
+        .pv-card{width:100%;max-width:300px;background:#fff;border-radius:16px;padding:16px 14px 14px;
+          box-shadow:0 12px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;max-height:330px}
+        .pv-top{display:flex;align-items:center;justify-content:center;gap:7px;flex:none}
+        .pv-ic{width:27px;height:27px;border-radius:9px;background:#e8f0ff;color:#0a6cff;display:flex;
+          align-items:center;justify-content:center;flex:none}
+        .pv-ttl{font-size:11.5px;font-weight:700;color:#0a6cff}
+        .pv-body{flex:1;min-height:0;overflow-y:auto;margin:12px 0 0;font-size:14px;line-height:1.8;
+          color:#15161a;white-space:pre-wrap;word-break:break-word}
+        .pv-line{height:1px;background:rgba(0,0,0,.07);margin:10px 0}
+        .pv-btn{flex:none;background:#0a6cff;color:#fff;border-radius:11px;padding:11px;text-align:center;
+          font-weight:700;font-size:13px}
+        .pv-cap{color:var(--text-muted);font-size:11px;margin-bottom:6px}
+        #ntModal .modal-actions{display:flex;gap:8px;align-items:center}
+        #ntModal .modal-actions .btn-ghost{width:auto;white-space:nowrap;padding:9px 14px;font-size:12.5px}
+        #ntModal .modal-actions .btn-primary{width:auto;min-width:170px;margin-left:auto;padding:10px 22px;font-size:13.5px}
+      </style>
+      <div class="dash" style="margin-bottom:12px">
+        <div class="nt-head">
+          <div><h3>一斉指示</h3>
+            <div class="nt-lead">生徒をしぼって同じ指示をまとめて送る。生徒が次にクロトレを開いたとき、画面いっぱいのお知らせで出て、確認ボタンを押すまで閉じられない。個別の声かけではなく、学習の指示・期限とテスト前の告知に使う。</div>
+          </div>
+          <span class="sp"></span>
+          <button class="btn-primary" onclick="ntOpen()">＋ 新しい指示を送る</button>
+        </div>
+      </div>
+      <div class="dash">
+        <div class="nt-kpis" id="ntKpis"></div>
+        <div class="table-wrap"><table class="nt-tbl">
+          <thead><tr>
+            <th style="width:88px">送った日時</th><th>指示の内容</th><th style="width:58px">対象</th>
+            <th style="width:126px">確認のようす</th><th style="width:94px">状態</th><th style="width:34px"></th>
+          </tr></thead><tbody id="ntBody"><tr><td colspan="6" style="color:var(--text-muted);padding:14px">読み込み中…</td></tr></tbody>
+        </table></div>
+      </div>
+    </div><!-- /#view-notice -->
+
+    <div class="modal-back" id="ntModal"><div class="modal" style="max-width:min(96vw,1040px);max-height:95vh">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <h3 style="margin-bottom:0">一斉指示を送る</h3>
+        <div class="tm-steps" style="margin:0">
+          <span class="tm-step on" id="ntSt1">1 だれに</span><span class="tm-step" id="ntSt2">2 なにを</span></div>
+      </div>
+      <div id="ntMBody"></div>
+      <div class="err" id="ntErr"></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeModal('ntModal')">やめる</button>
+        <button class="btn-ghost" id="ntBack" onclick="ntGoStep(1)">← 対象にもどる</button>
+        <button class="btn-primary" id="ntGo" onclick="ntNext()">次へ</button>
+      </div>
+    </div></div>
+
     <div id="view-teams" style="display:none;">
       <div class="team-toolbar">
         <button class="btn-primary" style="width:auto;" onclick="openTeamCreate()">＋ チームを作る</button>
@@ -2341,6 +2443,144 @@ var _editTeamId=null;   // メンバー編集中のチームID
 var _editTeamObj=null;  // メンバー編集中のチーム
 var _modalMode='create';// 'create' | 'edit'（チーム情報モーダル）
 
+/* ===== 一斉指示（生徒側の呼び名＝お知らせ）2026-08-28 =====
+   正＝機能仕様書_一斉指示_Kurofune-Word-Trainer.md
+   ・生徒の選択は既存の Picker をそのまま使う（新しい部品を作らない）
+   ・送った先生の名前は出さない（先生アカウントは共有のため）  */
+var _ntSel={}, _ntStep=1, _ntList=[], _ntOpenRows={}, _ntBody='', NT_MAX=500;
+function renderNoticeTab(){
+  var b=$('ntBody'); if(!b)return;
+  b.innerHTML='<tr><td colspan="6" style="color:var(--text-muted);padding:14px">読み込み中…</td></tr>';
+  call({action:'notice_list'}).then(function(d){
+    if(!d||!d.ok){ b.innerHTML='<tr><td colspan="6" style="color:var(--crimson);padding:14px">'
+      +'読み込みに失敗しました。もう一度お試しください。 '
+      +'<button class="btn-ghost" style="width:auto;padding:4px 10px" onclick="renderNoticeTab()">もう一度</button></td></tr>';
+      var k=$('ntKpis'); if(k)k.innerHTML=''; return; }
+    _ntList=d.data.notices||[]; NT_MAX=d.data.max_len||500; ntRender();
+  });
+}
+function ntRender(){
+  var b=$('ntBody'), k=$('ntKpis'); if(!b)return;
+  var live=0, unread=0, recent=0;
+  _ntList.forEach(function(n){ if(n.live){live++; unread+=n.total-n.done;} if(n.days<14)recent++; });
+  if(k)k.innerHTML='<span class="nt-kpi"><b>'+live+'</b> 件 表示中</span>'
+    +'<span class="nt-kpi'+(unread?' warn':'')+'"><b>'+unread+'</b> 名 がまだ確認していない</span>'
+    +'<span class="nt-kpi"><b>'+recent+'</b> 件 過去14日</span>';
+  if(!_ntList.length){ b.innerHTML='<tr><td colspan="6" style="color:var(--text-muted);padding:14px">'
+    +'まだ指示を送っていません。右上の「＋ 新しい指示を送る」から送れます。</td></tr>'; return; }
+  var h='';
+  _ntList.forEach(function(n,i){
+    var d=String(n.created_at||''), md=d.slice(5,10).replace('-','/').replace(/^0/,''), hm=d.slice(11,16);
+    var pct=n.total?Math.round(n.done*100/n.total):0;
+    var st=(n.status==='canceled')?'<span class="nt-badge cancel">取り消し</span>'
+      :(n.done>=n.total&&n.total>0)?'<span class="nt-badge end">全員が確認</span>'
+      :(n.live?'<span class="nt-badge live">表示中</span>':'<span class="nt-badge end">終了</span>');
+    var op=_ntOpenRows[n.id]?' open':'';
+    h+='<tr class="nt-row'+op+'" id="ntr'+i+'" onclick="ntToggle('+i+')">'
+      +'<td class="nt-dt"><b>'+esc(md)+'</b>'+esc(hm)+'</td>'
+      +'<td class="nt-b1">'+esc(n.body||'')+'</td>'
+      +'<td class="nt-num">'+n.total+'名</td>'
+      +'<td><div class="nt-bar"><i style="width:'+pct+'%"></i></div>'
+      +'<span class="nt-barl">'+n.done+' / '+n.total+' が確認</span></td>'
+      +'<td>'+st+'</td><td style="text-align:right"><span class="nt-caret">▾</span></td></tr>'
+      +'<tr class="nt-det'+op+'" id="ntd'+i+'"><td colspan="6">'+ntDetail(n)+'</td></tr>';
+  });
+  b.innerHTML=h;
+}
+function ntDetail(n){
+  var rd=(n.read||[]).map(function(x){
+    return '<span class="nt-chip">'+esc(x.name)+'<small>'+esc(String(x.at||'').slice(11,16))+'</small></span>'; }).join('')
+    ||'<span style="color:var(--text-muted);font-size:11.5px">まだ誰も確認していません</span>';
+  var ur=(n.unread||[]).map(function(x){ return '<span class="nt-chip no">'+esc(x.name)+'</span>'; }).join('')
+    ||'<span style="color:var(--text-muted);font-size:11.5px">全員が確認しました</span>';
+  var act=(n.status==='canceled')?'':'<button class="btn-ghost" style="width:auto;padding:8px 14px;font-size:12.5px"'
+    +' onclick="event.stopPropagation();ntCancel(\''+esc(n.id)+'\')">この指示を取り消す</button>';
+  var note=(n.status==='canceled')?'この指示は取り消しました（記録は残ります）'
+    :(n.live?('この指示は あと'+Math.max(0,14-n.days)+'日でポップアップに出なくなります')
+            :'この指示は もうポップアップには出ません');
+  return '<div class="nt-full">'+esc(n.body||'')+'</div>'
+    +'<div class="nt-cols">'
+    +'<div class="nt-col"><div class="nt-ch">確認した '+(n.read||[]).length+'名</div><div class="nt-chips">'+rd+'</div></div>'
+    +'<div class="nt-col"><div class="nt-ch warn">まだ '+(n.unread||[]).length+'名</div><div class="nt-chips">'+ur+'</div></div>'
+    +'</div><div class="nt-detact">'+act+'<span class="nt-note">'+esc(note)+'</span></div>';
+}
+function ntToggle(i){
+  var n=_ntList[i]; if(!n)return;
+  _ntOpenRows[n.id]=!_ntOpenRows[n.id];
+  var r=$('ntr'+i), d=$('ntd'+i);
+  if(r)r.classList.toggle('open',!!_ntOpenRows[n.id]);
+  if(d)d.classList.toggle('open',!!_ntOpenRows[n.id]);
+}
+function ntCancel(id){
+  if(!confirm('この指示を取り消しますか？\n以後ポップアップには出なくなります。履歴と確認の記録は残ります。'))return;
+  showLoading('取り消し中…');
+  call({action:'notice_cancel',notice_id:id}).then(function(d){
+    hideLoading();
+    if(!d||!d.ok){ toast((d&&d.error)||'取り消せませんでした'); return; }
+    toast('取り消しました'); renderNoticeTab();
+  });
+}
+/* --- 送るモーダル（2ステップ） --- */
+function ntOpen(){ _ntSel={}; _ntStep=1; _ntBody=''; $('ntErr').textContent=''; $('ntModal').classList.add('show'); ntStepRender(); }
+function ntGoStep(s){ _ntStep=s; $('ntErr').textContent=''; ntStepRender(); }
+function ntStepRender(){
+  var box=$('ntMBody');
+  $('ntSt1').className='tm-step'+(_ntStep===1?' on':'');
+  $('ntSt2').className='tm-step'+(_ntStep===2?' on':'');
+  $('ntBack').style.display=(_ntStep===2)?'':'none';
+  var cnt=Object.keys(_ntSel).length;
+  $('ntGo').textContent=(_ntStep===1)?'次へ':(cnt+'名に送る');
+  $('ntGo').disabled=(_ntStep===1&&!cnt);
+  if(_ntStep===1){
+    box.innerHTML='';
+    Picker.open({container:box, sel:_ntSel, cand:function(){return _students||[];}, showStatus:false,
+      rightTitle:'指示を送る子', onChange:function(ids){
+        $('ntGo').disabled=!ids.length; $('ntGo').textContent='次へ'; }});
+    return;
+  }
+  box.innerHTML='<div class="nt-two"><div class="l">'
+    +'<label class="form-label">指示の内容</label>'
+    +'<textarea class="form-input nt-ta" id="ntTa" oninput="ntCount()"></textarea>'
+    +'<div class="nt-cnt" id="ntCnt">0 / '+NT_MAX+'字</div>'
+    +'<div class="nt-lead" style="margin-top:10px">改行はそのまま生徒の画面に出る。リンク・画像・教材へのボタンは付けられない。'
+    +'送ったあとに文章は直せない（取り消して送り直す）。</div></div>'
+    +'<div class="r"><div class="pv-cap">生徒にはこう見える</div>'
+    +'<div class="pv-wrap"><div class="pv-card">'
+    +'<div class="pv-top"><span class="pv-ic">'
+    +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+    +'<path d="M18 8a3 3 0 0 1 0 6"></path><path d="M10 8v11a1 1 0 0 1 -1 1h-1a1 1 0 0 1 -1 -1v-5"></path>'
+    +'<path d="M12 8h0l4.524 -3.77a.9 .9 0 0 1 1.476 .692v12.156a.9 .9 0 0 1 -1.476 .692l-4.524 -3.77h-8a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h8"></path></svg>'
+    +'</span><span class="pv-ttl">先生からのお知らせ</span></div>'
+    +'<div class="pv-body" id="ntPv"></div><div class="pv-line"></div>'
+    +'<div class="pv-btn">確認しました</div></div></div>'
+    +'<div class="nt-lead" style="margin-top:9px">確認ボタンを押すまで閉じられない。14日たつと出なくなる（記録は残る）。</div>'
+    +'</div></div>';
+  $('ntTa').value=_ntBody; ntCount(); $('ntTa').focus();
+}
+function ntCount(){
+  var v=$('ntTa').value; _ntBody=v;
+  var e=$('ntCnt'); e.textContent=v.length+' / '+NT_MAX+'字'; e.className='nt-cnt'+(v.length>NT_MAX?' over':'');
+  $('ntPv').textContent=v;
+  $('ntGo').disabled=(!v.replace(/\s/g,'').length||v.length>NT_MAX);
+}
+function ntNext(){
+  if(_ntStep===1){
+    if(!Object.keys(_ntSel).length){ $('ntErr').textContent='対象の生徒を選んでください'; return; }
+    ntGoStep(2); return;
+  }
+  var body=String(_ntBody||'').replace(/^\s+|\s+$/g,'');
+  if(!body){ $('ntErr').textContent='指示の内容を入力してください'; return; }
+  if(body.length>NT_MAX){ $('ntErr').textContent='指示は'+NT_MAX+'字までです'; return; }
+  var ids=Object.keys(_ntSel);
+  if(!confirm(ids.length+'名に送ります。\n生徒の画面いっぱいに出て、確認ボタンを押すまで閉じられません。\nよろしいですか？'))return;
+  $('ntGo').disabled=true; showLoading('送信中…');
+  call({action:'notice_send',student_ids:ids.join(','),body:body}).then(function(d){
+    hideLoading(); $('ntGo').disabled=false;
+    if(!d||!d.ok){ $('ntErr').textContent=(d&&d.error)||'送れませんでした。もう一度お試しください。'; return; }
+    closeModal('ntModal'); toast(d.data.count+'名に送りました'); renderNoticeTab();
+  });
+}
+
 function switchTab(t){
   document.getElementById('tab-dash').classList.toggle('active',t==='dash');
   var tm=document.getElementById('tab-mat'); if(tm) tm.classList.toggle('active',t==='mat');
@@ -2348,16 +2588,19 @@ function switchTab(t){
   var ts=document.getElementById('tab-settings'); if(ts) ts.classList.toggle('active',t==='settings');
   var tq=document.getElementById('tab-quiz'); if(tq) tq.classList.toggle('active',t==='quiz');
   var tr=document.getElementById('tab-report'); if(tr) tr.classList.toggle('active',t==='report');
+  var tn=document.getElementById('tab-notice'); if(tn) tn.classList.toggle('active',t==='notice');
   $('view-dash').style.display=(t==='dash')?'':'none';
   var vm=$('view-mat'); if(vm) vm.style.display=(t==='mat')?'':'none';
   $('view-teams').style.display=(t==='teams')?'':'none';
   var vs=$('view-settings'); if(vs) vs.style.display=(t==='settings')?'':'none';
   var vq=$('view-quiz'); if(vq) vq.style.display=(t==='quiz')?'':'none';
   var vr=$('view-report'); if(vr) vr.style.display=(t==='report')?'':'none';
+  var vn=$('view-notice'); if(vn) vn.style.display=(t==='notice')?'':'none';
   if(t==='teams') loadTeams();
   if(t==='mat') renderMatTab();
   if(t==='quiz') renderQuizTab();
   if(t==='report') renderReportTab();
+  if(t==='notice') renderNoticeTab(); // 開いたら最新を取り直す（原則6）2026-08-28
   if(t==='settings') renderCheerPanel(); // 設定タブを開いたら最新状態で描画（loadCheerConfigは起動時に実行済み）
 }
 
@@ -4323,6 +4566,20 @@ function rpSaveSets_(next,msg,btn){    /* 保存はGAS完了後にトースト�
   });
 }
 function _rpCurSet_(){ var i=(RP_CUR>=0)?RP_CUR:RP_LAST; return (i>=0&&RP_SETS[i])?i:-1; }
+/* PDFのファイル名。2026-08-28
+   絞り込みを変えると rpDirty_ が RP_CUR=-1 にするので、セット名は _rpCurSet_()（RP_LAST へのフォールバックつき）で引く。
+   ＝教室などで絞ってもファイル名からセット名が消えない。
+   あわせて絞り込み（教室・学年・中学校・名前）も名前に入れる＝教室ごとに落としたPDFが同じ名前でぶつからない。 */
+function _rpFnSafe_(x){ return String(x||'').replace(/[\\\/:*?"<>|]/g,'').replace(/\s+/g,'').slice(0,24); }
+function _rpPdfName_(){
+  var i=_rpCurSet_(), a=[_rpToday().replace(/-/g,''),'学習状況レポート'];
+  if(i>=0&&RP_SETS[i])a.push(_rpFnSafe_(RP_SETS[i].name));
+  if(RP_F.cls!=='all')a.push(_rpFnSafe_(RP_F.cls));
+  if(RP_F.grade!=='all')a.push(_rpFnSafe_(RP_F.grade));
+  if(RP_F.sch!=='all')a.push(_rpFnSafe_(RP_F.sch));
+  var q=((($('rpName')||{}).value)||'').trim(); if(q)a.push(_rpFnSafe_(q));
+  return a.filter(function(x){return !!x;}).join('_')+'.pdf';
+}
 function rpSaveSet(btn){   /* ＝いつでも「増える」。いま選んでいるセットは絶対に書き換えない */
   if(!RP_SEL.length){ toast('先に教材を選んでください'); return; }
   if(RP_SETS.length>=30){ toast('セットは30個までです。いらないものを「🗑 削除」で消してください'); return; }
@@ -4584,7 +4841,7 @@ function rpPrintMistakes(){
     var sts=d.data.students||[];
     var order={}; ids.forEach(function(i,n){order[i]=n;});
     sts.sort(function(a,b){return (order[String(a.student_id)]||0)-(order[String(b.student_id)]||0);});
-    var setLbl=(RP_CUR>=0&&RP_SETS[RP_CUR])?RP_SETS[RP_CUR].name:'選んだ教材';
+    var setLbl=(_rpCurSet_()>=0)?RP_SETS[_rpCurSet_()].name:'選んだ教材';
     /* まちがいが1問も無い子は紙を作らない（紙のむだ＝川上さん 2026-08-17）*/
     var all=sts.length;
     sts=sts.filter(function(st){
@@ -4827,7 +5084,7 @@ function rpBuildPrint(list,fs){
   var rate=function(v,lbl){ if(v==null)return '<span class="lb">'+lbl+'</span> <span class="na">–</span>';
     var c=(v>=80?'hi':(v>=60?'mid':'low')); return '<span class="lb">'+lbl+'</span> <span class="'+c+'">'+v+'%</span>'; };
   var h='<div class="rp-pa" style="width:'+RP_PRINT_W_MM+'mm;font-size:'+fs+'px;line-height:1.35;">'+css
-    +'<div style="font-size:'+f(1.5)+'px;font-weight:800;">学習状況レポート'+((RP_CUR>=0&&RP_SETS[RP_CUR])?'（'+esc(RP_SETS[RP_CUR].name)+'）':'')+'</div>'
+    +'<div style="font-size:'+f(1.5)+'px;font-weight:800;">学習状況レポート'+(_rpCurSet_()>=0?'（'+esc(RP_SETS[_rpCurSet_()].name)+'）':'')+'</div>'
     +'<div style="font-size:'+f(0.92)+'px;color:#444;margin-top:2px;">教材 '+RP_SEL.length+'件　／　絞り込み：'+esc(rpCondText_())+((RP_DL&&dlv!==null)?('　／　期限 '+esc(RP_DL)+'（残り'+dlv+'日）'):'')+'　／　出力日 '+esc(_rpToday())+'</div>'
     +'<div class="sum" style="font-size:'+f(0.92)+'px;margin:3px 0 5px;">'+esc(rpSumText_(list))+'</div>'
     +'<table><thead><tr>'
@@ -4957,7 +5214,7 @@ function rpPdf(){
        いちど一番上に戻してから作り、終わったらスクロール位置を戻す。*/
     var sx=window.pageXOffset||0, sy=window.pageYOffset||0; window.scrollTo(0,0);
     var fin=function(){ host.style.cssText=''; window.scrollTo(sx,sy); for(var j=0;j<btns.length;j++)btns[j].disabled=false; if(note)note.textContent=old; };
-    var nm=_rpToday().replace(/-/g,'')+'_学習状況レポート'+((RP_CUR>=0&&RP_SETS[RP_CUR])?('_'+RP_SETS[RP_CUR].name):'')+'.pdf';
+    var nm=_rpPdfName_();
     html2pdf().set({
       margin:[12,12,12,12], filename:nm,
       image:{type:'jpeg',quality:0.98},
