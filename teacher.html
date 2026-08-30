@@ -228,7 +228,14 @@
   .fs-score .fs-sc-box{display:inline-block;width:22mm;height:7mm;border-bottom:1.6px solid #1a1a1a;}
   .fs-score .fs-sc-t{font-size:12px;font-weight:700;white-space:nowrap;}
   .fs-figblk{display:flex;gap:9px;border:1px solid #c9c9c9;border-radius:5px;padding:6px;margin-bottom:6px;page-break-inside:avoid;}
-  .fs-figblk img{width:58mm;height:auto;border:1px solid #ddd;border-radius:3px;display:block;}
+  /* 図の大きさは「その図で解く問題の数」に見合わせる（2026-08-30 川上さん指摘「図が糞デカい」）。
+     1問しかぶら下がらない図に紙の1/4を使わせない。歴史は92%が1図1問なので、ここが効く。
+     width を固定すると max-height で縦だけ潰れて図がゆがむので、max-width/max-height で枠に収める。
+     高さの上限を付けないと、縦長の写真（銅鐸・肖像）が1ページぶん近くまで伸びる。 */
+  /* align-self を付けないと、flex の既定 stretch で横長の図が縦に引き伸ばされてゆがむ（承認モックからの持ち越し） */
+  .fs-figblk img{max-width:58mm;max-height:58mm;width:auto;height:auto;align-self:flex-start;border:1px solid #ddd;border-radius:3px;display:block;}
+  .fs-figblk[data-n="2"] img{max-height:48mm;}
+  .fs-figblk[data-n="1"] img{max-height:36mm;}
   .fs-figblk .fs-qs{flex:1;display:flex;flex-direction:column;justify-content:center;gap:5px;min-width:0;}
   .fs-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
   .fs-q{display:flex;gap:6px;padding:5px 0;border-bottom:1px dotted #c9c9c9;page-break-inside:avoid;}
@@ -2111,7 +2118,7 @@ function fsQBodyHtml_(it,no){
 function fsFigBlockHtml_(block,startNo){
   var inner='';
   block.items.forEach(function(it,i){ inner+=fsQBodyHtml_(it,startNo+i); });
-  return '<div class="fs-figblk"><img src="'+esc(block.fig)+'" alt="" onerror="this.style.visibility=\'hidden\'">'
+  return '<div class="fs-figblk" data-n="'+block.items.length+'"><img src="'+esc(block.fig)+'" alt="" onerror="this.style.visibility=\'hidden\'">'
     +'<div class="fs-qs">'+inner+'</div></div>';
 }
 function fsAnsBandHtml_(){
