@@ -1908,6 +1908,26 @@ function unifiedStudentHtml_(st, opts){
   return h;
 }
 /* 一括印刷の実行部（対象・内容はモーダルから渡す）2026-07-05 ／ 統一レイアウトに変更 2026-07-24 */
+/* 仕上げプリント（2026-08-30 段2＝ここまで）。
+   いまは「候補がちゃんと取れるか」を確かめるところまで。紙面の組み立ては段3で入れる。
+   取れた候補は window._finishCand に置く（段3の描画がそのまま使う）。 */
+var _finishCand=null;
+function runFinishSheet_(ids,mats,types){
+  toast('仕上げプリントの候補を集めています…');
+  call({action:'teacher_mistakes',student_ids:ids.join(','),material_ids:mats.join(','),types:types,mode:'mix',min_days:3,limit:50})
+  .then(function(d){
+    if(!d||!d.ok){ toast('候補が取れませんでした：'+((d&&d.error)||'通信に失敗しました')); return; }
+    _finishCand=d.data; window._finishCand=d.data;
+    var ss=d.data.students||[];
+    var zero=ss.filter(function(s){return !(s.items||[]).length;});
+    var lines=ss.filter(function(s){return (s.items||[]).length;}).map(function(s){
+      var it=s.items||[], g=it.filter(function(i){return i.type==='graduated';}).length;
+      return (s.name||'')+' '+it.length+'問(ミス'+(it.length-g)+'/克服'+g+')';
+    });
+    var head=lines.slice(0,4).join(' ／ ')+(lines.length>4?(' ／ ほか'+(lines.length-4)+'名'):'');
+    toast('候補：'+(lines.length?head:'0問')+(zero.length?('　※'+zero.length+'名は0問'):'')+'　（紙面は次の段で作ります）');
+  });
+}
 function runPrint_(ids,scope,days,limit,types){
   if(!ids.length){toast('印刷する生徒がいません');return;}
   var subLbl=(scope==='recent')?('直近'+days+'日にまちがえた問題'):(scope==='graduated')?'復習チェック（前にやって克服した語）':'まちがえた問題';
@@ -3860,9 +3880,16 @@ var Picker=(function(){
    クイックチップ＝学年・教室・中学校（07-04n実装→07-05gで消失→復活）。
    やってない子・指導必要チップは印刷のときだけ（川上さん指示 2026-07-05：割当に不要）。 */
 var bulkMat={}, bulkMaterials=[]; var bulkDeliver={}, bulkDelivDates={}, bulkDelivOpen={};
+/* 仕上げプリント（2026-08-30 段2）：テスト範囲＝印刷用の教材えらび。
+   割り当ての bulkMat とは別に持つ（同じモーダルだが選ぶ目的が違うので混ぜない）。
+   選ぶUIの部品は renderMatCand_ / renderMatSel_ をそのまま流用する＝新しく作らない。 */
+var printMat={}, _printMatOpen={};
+function _printStyle_(){ return (localStorage.getItem('kwt_print_style')==='finish')?'finish':'list'; }
 var tmMode='assign', tmStep=1, tmSel={}, tmSearch='';
 function openTargetModal(mode,presetIds){
   tmMode=mode;tmStep=1;tmSel={};tmSearch='';bulkMat={};bulkDeliver={};bulkDelivDates={};bulkDelivOpen={};_bulkOpen={};
+  printMat={};_printMatOpen={};
+  if(mode==='print'){ (localStorage.getItem('kwt_print_mats')||'').split(',').forEach(function(id){id=String(id).trim();if(id)printMat[id]=1;}); } // 前回のテスト範囲を覚えておく
   (presetIds||[]).forEach(function(id){tmSel[String(id)]=1;});
   $('bulkTitle').textContent=(mode==='assign')?'まとめて割り当てる':'まとめて印刷';
   $('bulkModal').classList.toggle('printmode',mode==='print');
@@ -3891,6 +3918,7 @@ function tmUpdateFoot(){
   var go=$('tmGo');
   if(tmStep===1){go.textContent='次へ';go.disabled=!Object.keys(tmSel).length;}
   else if(tmMode==='assign'){var _dc=0;bulkTestMids().forEach(function(mid){var dv=bulkDeliver[mid]||{};Object.keys(tmSel).forEach(function(sid){if(dv[sid])_dc++;});});go.textContent=Object.keys(tmSel).length+'名に割り当て'+(_dc?'＋テスト'+_dc+'件':'');go.disabled=!Object.keys(bulkMat).length;}
+  else if(_printStyle_()==='finish'){go.textContent='🖨 仕上げプリントを作る';go.disabled=(tmStep===2&&!Object.keys(printMat).length);}
   else{go.textContent='🖨 印刷する';go.disabled=false;}
 }
 function tmRender(){
@@ -3946,29 +3974,94 @@ function tmStepAssign_(body){
 }
 function tmStepPrint_(body){
   var scope=localStorage.getItem('kwt_print_scope')||'active';
+  if(scope==='graduated')scope='active';   // 「復習チェック」は廃止（2026-08-30）。古い設定が残っていても落ちないように
   var days=localStorage.getItem('kwt_print_days')||'7';
   var limit=localStorage.getItem('kwt_print_limit')||'20';
   var typesRaw=localStorage.getItem('kwt_print_types'); var types=(typesRaw==null?'daily,unit,quiz':typesRaw).split(',');
   var has=function(t){return types.indexOf(t)>=0;};
+  var style=_printStyle_();
   body.innerHTML=
-    '<div class="tm-qh">印刷する種別（複数えらべます）</div>'
+    '<div class="tm-qh">紙の形</div>'
+    +'<div style="display:flex;gap:16px;flex-wrap:wrap;margin:2px 0 2px;">'
+    +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="radio" name="tmStyle" id="tmStyle-list"'+(style==='list'?' checked':'')+'> 覚える一覧（問題と答えが左右に並ぶ）</label>'
+    +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="radio" name="tmStyle" id="tmStyle-finish"'+(style==='finish'?' checked':'')+'> 解く仕上げ（1枚目＝問題／2枚目＝答え）</label>'
+    +'</div>'
+    +'<div class="tm-qh" style="margin-top:10px;">印刷する種別（複数えらべます）</div>'
     +'<div style="display:flex;gap:16px;flex-wrap:wrap;margin:2px 0 2px;">'
     +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-daily"'+(has('daily')?' checked':'')+'> 毎日学習</label>'
     +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-unit"'+(has('unit')?' checked':'')+'> 単元別</label>'
     +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-quiz"'+(has('quiz')?' checked':'')+'> 確認テスト</label>'
     +'</div>'
+    +'<div id="tmListOpts">'
     +'<div class="tm-qh" style="margin-top:10px;">印刷する範囲</div>'
     +'<select id="tmScope" class="tm-sel">'
     +'<option value="active"'+(scope==='active'?' selected':'')+'>まちがえ中ぜんぶ（いまの間違い）</option>'
     +'<option value="recent"'+(scope==='recent'?' selected':'')+'>直近◯日のまちがえ</option>'
-    +'<option value="graduated"'+(scope==='graduated'?' selected':'')+'>復習チェック（克服した語・種別は無視）</option>'
     +'</select>'
     +'<div class="tm-qh" style="margin-top:10px;">直近 <input id="tmDays" type="number" min="1" max="99" value="'+esc(days)+'" class="tm-num"> 日（「直近◯日」のときだけ）　／　1人あたり上限 <input id="tmLimit" type="number" min="1" max="99" value="'+esc(limit)+'" class="tm-num"> 語</div>'
-    +'<div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">🖨 生徒ごとに<b>新しい紙の表（奇数ページ）から</b>印刷されます。両面印刷でも、前の子の裏面に次の子が入りません。</div>';
+    +'<div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">🖨 生徒ごとに<b>新しい紙の表（奇数ページ）から</b>印刷されます。両面印刷でも、前の子の裏面に次の子が入りません。</div>'
+    +'</div>'
+    /* 解く仕上げ＝テスト範囲（教材）をえらぶ。部品は割り当てと同じ2列トランスファーを流用 */
+    +'<div id="tmFinishOpts">'
+    +'<div class="tm-qh" style="margin-top:10px;">テスト範囲（教材をえらぶ・複数可）</div>'
+    +'<div class="pk-two">'
+    +'<div class="pk-col"><div class="pk-coltitle">候補（教材）</div>'
+    +'<input class="pk-search2" id="printMatSearch" placeholder="教材名で探す">'
+    +'<div class="pk-list" id="printMatCand"></div></div>'
+    +'<div class="pk-col"><div class="pk-coltitle"><span>テスト範囲</span><span class="pk-count" id="printMatCnt">0教材</span></div>'
+    +'<div class="pk-list sel" id="printMatSel"></div></div>'
+    +'</div>'
+    +'<div class="tm-note">まちがえてから<b>3日以上たった問題</b>から、ミス問8割＋克服した語2割で選びます。1人あたり最大50問。</div>'
+    +'<div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">🖨 <b>両面（長辺とじ）で印刷してください。</b>1枚目の表裏＝問題、2枚目の表裏＝答えです。</div>'
+    +'</div>';
+  var toggle=function(){
+    var st=_printStyle_();
+    $('tmListOpts').style.display=(st==='list')?'':'none';
+    $('tmFinishOpts').style.display=(st==='finish')?'':'none';
+    tmUpdateFoot();
+  };
+  ['list','finish'].forEach(function(k){
+    var r=$('tmStyle-'+k);
+    if(r)r.onchange=function(){ localStorage.setItem('kwt_print_style',k); toggle(); };
+  });
+  toggle();
+  var si=$('printMatSearch');if(si)si.oninput=function(){renderPrintMaterials();};
+  if(!bulkMaterials.length){
+    $('printMatCand').innerHTML='<div class="pk-empty">読み込み中…</div>';
+    call({action:'materials_list'}).then(function(d){
+      bulkMaterials=(d&&d.ok?(d.data.materials||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}):[]);
+      renderPrintMaterials();
+    });
+  }else renderPrintMaterials();
+}
+/* テスト範囲の教材えらび。renderBulkMaterials と同じ形（部品を流用・確認テストの配信欄は無し）2026-08-30 */
+function renderPrintMaterials(){
+  var candEl=$('printMatCand'),selEl=$('printMatSel');
+  if(!candEl||!selEl)return;
+  if(!bulkMaterials.length){candEl.innerHTML='<div class="pk-empty">教材がありません</div>';selEl.innerHTML='<div class="pk-empty">まだ選んでいません</div>';return;}
+  var q=(($('printMatSearch')||{}).value||'').trim();
+  renderMatCand_(candEl,{materials:bulkMaterials,assignedSet:null,pickedSet:printMat,openMap:_printMatOpen,search:q,keyPrefix:'print',
+    onOne:function(id){if(printMat[id])delete printMat[id];else printMat[id]=1;renderPrintMaterials();tmUpdateFoot();},
+    onSeries:function(ids,st){ids.forEach(function(id){if(st==='all')delete printMat[id];else printMat[id]=1;});renderPrintMaterials();tmUpdateFoot();},
+    onOpen:function(k){_printMatOpen[k]=!_printMatOpen[k];renderPrintMaterials();}
+  });
+  renderMatSel_(selEl,{materials:bulkMaterials,pickedSet:printMat,onRemove:function(id){delete printMat[id];renderPrintMaterials();tmUpdateFoot();}});
+  var cnt=$('printMatCnt');if(cnt)cnt.textContent=Object.keys(printMat).length+'教材';
 }
 function tmPrint(){
   var ids=Object.keys(tmSel);
-  var scope=$('tmScope').value;
+  var types0=[]; ['daily','unit','quiz'].forEach(function(t){ var c=$('tmT-'+t); if(c&&c.checked) types0.push(t); });
+  if(_printStyle_()==='finish'){
+    var mats=Object.keys(printMat);
+    if(!mats.length){ toast('テスト範囲の教材をえらんでください'); return; }
+    if(!types0.length){ toast('印刷する種別を1つ以上えらんでください'); return; }
+    localStorage.setItem('kwt_print_mats',mats.join(','));
+    localStorage.setItem('kwt_print_types',types0.join(','));
+    closeModal('bulkModal');
+    runFinishSheet_(ids,mats,types0.join(','));
+    return;
+  }
+  var scope=$('tmScope').value; if(scope==='graduated')scope='active';
   var days=parseInt($('tmDays').value,10);if(!(days>=1))days=7;
   var limit=parseInt($('tmLimit').value,10);if(!(limit>=1))limit=20;
   var types=[]; ['daily','unit','quiz'].forEach(function(t){ var c=$('tmT-'+t); if(c&&c.checked) types.push(t); });
