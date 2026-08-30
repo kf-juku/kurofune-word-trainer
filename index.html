@@ -1495,7 +1495,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="ex-kai" id="ex-kai"></div>
         <div class="ex-fig" id="ex-img" style="display:none;"></div>
         <div class="ex-actions">
-          <button type="button" class="ex-next" id="ex-next"><i class="ti ti-hand-finger"></i> <ruby>次<rt class="uf">つぎ</rt></ruby>へ</button>
+          <button type="button" class="ex-next" id="ex-next"><i class="ti ti-hand-finger"></i> <span><ruby>次<rt class="uf">つぎ</rt></ruby>へ</span></button>
           <button type="button" class="ex-report" id="ex-report" onclick="openBugFromExplain()"><i class="ti ti-message-report"></i> <span><ruby>間違<rt class="uf">まちが</rt></ruby>い<ruby>報告<rt class="uf">ほうこく</rt></ruby></span></button>
         </div>
       </div>
@@ -1770,7 +1770,7 @@ function openIconDetail_(k){
   openBdSheet_(h);
 }
 function bdPickIcon_(k){closeBdSheet_();saveIcon_(k);}
-function saveIcon_(k){var _lk=null;for(var _i=0;_i<ICON_LIST.length;_i++){if(ICON_LIST[_i].k===k)_lk=ICON_LIST[_i];}if(_lk&&_lk.locked&&unlockedIcons.indexOf(k)<0){return;}var prev=myIcon;myIcon=k;try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}renderIconGrid_();applyMyIcon_();call({action:'icon_update',icon:k}).then(function(d){if(!d||!d.ok){myIcon=prev;try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}renderIconGrid_();applyMyIcon_();var er=$('icon-err');if(er)er.innerHTML=(d&&d.error)?esc(d.error):'<ruby>保存<rt class="uf">ほぞん</rt></ruby>できませんでした。もう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>試<rt class="uf">ため</rt></ruby>してください';return;}toast('アイコンを<ruby>変<rt class="uf">か</rt></ruby>えました');closeIconModal();});}
+function saveIcon_(k){var _lk=null;for(var _i=0;_i<ICON_LIST.length;_i++){if(ICON_LIST[_i].k===k)_lk=ICON_LIST[_i];}if(_lk&&_lk.locked&&unlockedIcons.indexOf(k)<0){return;}var prev=myIcon;myIcon=k;try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}renderIconGrid_();applyMyIcon_();call({action:'icon_update',icon:k}).then(function(d){if(!d||!d.ok){myIcon=prev;try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}renderIconGrid_();applyMyIcon_();var er=$('icon-err');if(er)er.innerHTML=(d&&d.error)?esc(d.error):'<ruby>保存<rt class="uf">ほぞん</rt></ruby>できませんでした。もう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>試<rt class="uf">ため</rt></ruby>してください';return;}toastH('アイコンを<ruby>変<rt class="uf">か</rt></ruby>えました');closeIconModal();});}
 /* ===== デイリー未完了●（本日の学習/おさらい/間違いノート）2026-07-04 ===== */
 function todayStr_(){var d=new Date(Date.now()+9*3600*1000);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}/* JST固定 2026-07-08 */
 var dailyState={main:null,review:null,note:null};
@@ -2389,6 +2389,26 @@ function renderDoneTiles_(score,mc,ac,ms){
   var box=$('dtiles');if(box){void box.offsetWidth;box.classList.add('play');}
   setTimeout(function(){var r=$('dt-rate');if(r)animNum(r,score||0,700);var c=$('dt-combo');if(c)animNum(c,mc||0,700);},260);
 }
+/* 【2026-08-30】フリーズで守った日を、まだ知らせていないぶんだけトーストで出す。
+   出どころは badges の froze_days（直近7日ぶんの use 日付）。
+   朝のバッチ（freezeConsumeBatchKwt）が消費を確定させても、完了画面で確定しても、通知はこの1本だけ通る。
+   既読はこの端末の localStorage で持つ＝サーバーに列を足さない。共有タブレット対策でログアウト時に消す。
+   はじめて開いた端末では出さない（記録だけして黙る）＝機能を入れた日に一斉にトーストが出るのを防ぐ。 */
+var FROZE_SEEN_KEY_='kwt_froze_seen';
+function noticeFrozeDays_(days,streak){
+  if(!days||!days.length)return;
+  var raw=null;try{raw=localStorage.getItem(FROZE_SEEN_KEY_);}catch(e){}
+  var save=function(){try{localStorage.setItem(FROZE_SEEN_KEY_,JSON.stringify(days.slice(-30)));}catch(e){}};
+  if(raw===null){save();return;} // 初回は現状を既読に
+  var seen=[];try{var a=JSON.parse(raw);if(a instanceof Array)seen=a;}catch(e){}
+  var fresh=days.filter(function(d){return seen.indexOf(d)<0;});
+  save();
+  if(!fresh.length)return;
+  var n=Number(streak)||0;
+  var mid=(n>0)?('<ruby>連続<rt class="uf">れんぞく</rt></ruby>'+n+'<ruby>日<rt class="uf">にち</rt></ruby>')
+               :('<ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>記録<rt class="uf">きろく</rt></ruby>');
+  toastH('<i class="ti ti-snowflake"></i> フリーズを<ruby>使<rt class="uf">つか</rt></ruby>って'+mid+'を<ruby>守<rt class="uf">まも</rt></ruby>りました');
+}
 function renderStreakCard_(){
   var host=$('rec-streak-card');if(!host)return;var n=_streakDays||0;
   var msg=(n<=0)
@@ -2445,7 +2465,7 @@ $('nick-save').onclick=saveNick;
 $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};var _icx=$('icon-cancel');if(_icx)_icx.onclick=closeIconModal;var _icm=$('icon-mask');if(_icm)_icm.onclick=function(e){if(e.target===this)closeIconModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
 $('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
-function doLogout_(){homeCacheClear_();try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');}
+function doLogout_(){homeCacheClear_();try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');}
 $('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
 $('logout-cancel').onclick=function(){$('logout-mask').classList.remove('show');};
 $('logout-mask').onclick=function(e){if(e.target===this)$('logout-mask').classList.remove('show');};
@@ -3233,12 +3253,12 @@ function maybeShowTrio_(){
 /* 記録タブ→昨日の三連星をいつでも見返す（初ログイン1日1回の制限とは別・誤タップで見逃した人／自分が載って見直したい人向け）2026-07-28 */
 function openTrioReview_(){
   if(_trioData&&_trioData.trio&&_trioData.trio.length){ showTrioOverlay_(_trioData); return; } // キャッシュ済み＝即表示
-  var tt=null;try{tt=toast('<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…');}catch(e){} // 未キャッシュのときだけローディング（フリーズに見せない）
+  var tt=null;try{tt=toastH('<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…');}catch(e){} // 未キャッシュのときだけローディング（フリーズに見せない）
   call({action:'trio_stars'}).then(function(d){
     if(d&&d.ok&&d.data)_trioData=d.data;window._trioPrefetched=true;
-    if(!d||!d.ok||!d.data||!d.data.trio||!d.data.trio.length){try{toast('<ruby>昨日<rt class="uf">きのう</rt></ruby>の<ruby>三連星<rt class="uf">さんれんせい</rt></ruby>はありません');}catch(e){}return;}
+    if(!d||!d.ok||!d.data||!d.data.trio||!d.data.trio.length){try{toastH('<ruby>昨日<rt class="uf">きのう</rt></ruby>の<ruby>三連星<rt class="uf">さんれんせい</rt></ruby>はありません');}catch(e){}return;}
     showTrioOverlay_(d.data);
-  }).catch(function(){try{toast('うまく<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>めませんでした');}catch(e){}});
+  }).catch(function(){try{toastH('うまく<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>めませんでした');}catch(e){}});
 }
 // サブ情報（応援したくなる事実を最大2つ）：連続日数・いつもの何倍・昨日の問題数・ていねいさ
 function trioSub_(t){
@@ -4782,7 +4802,9 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
         if(!ex||!ex.ok||!ex.data)return;var d2=ex.data;
         try{var _tk=(d2.today_streak||0),_td=todayStr_();if(_tk>=1&&localStorage.getItem('kwt_cele_shown')!==_td){localStorage.setItem('kwt_streak_pending',JSON.stringify({date:_td,streak:_tk}));}}catch(e){} // ホーム復帰お祝いの予約（その日はじめて）2026-07-24
         try{if(typeof d2.freeze_count!=='undefined'){_freezeCount=d2.freeze_count||0;renderStreakCard_();}}catch(e){} // ストリークフリーズ手持ちを反映 2026-07-25
-        try{if(d2.froze_today&&d2.froze_today.length){toast('❄️ フリーズで<ruby>連続<rt class="uf">れんぞく</rt></ruby>を<ruby>守<rt class="uf">まも</rt></ruby>った！');}}catch(e){} // 休んだ日をフリーズで守ったとき 2026-07-25
+        /* 【2026-08-30】守ったときの通知は badges 経由（noticeFrozeDays_）に一本化した。
+           ここで出すと、朝のバッチ（freezeConsumeBatchKwt）が先に消費を確定させた日は froze_today が空になり、
+           学習を終えても二度と知らせられない。ホームに戻れば loadBadges が未読ぶんを出す。 */
         try{renderEffort_(d2);}catch(e){} // 付与のあとの確定値で差し替え（同じ内容なら書き換えない＝ちらつかせない）
       });
     })();
@@ -5284,6 +5306,7 @@ function loadBadges(){
     var _stk=(d.data.stats&&d.data.stats.streak)||0;
     _streakDays=_stk;
     if(typeof d.data.freeze_count!=='undefined'){_freezeCount=d.data.freeze_count||0;} if(d.data.freeze_max)_freezeMax=d.data.freeze_max; // ストリークフリーズ手持ち 2026-07-25
+    try{noticeFrozeDays_(d.data.froze_days||[],_stk);}catch(e){} // 守った日を未読ぶんだけ知らせる 2026-08-30
     try{renderStreakCard_();}catch(e){} // 連続記録カード（記録タブ）2026-07-24
     var _sw=document.querySelector('.head .streak');
     if(_sw){
@@ -5434,7 +5457,7 @@ function rbPraise_(s){
   if(s.streak>=2)pool.push('<b>'+s.streak+'<ruby>日<rt class="uf">にち</rt></ruby></b><ruby>続<rt class="uf">つづ</rt></ruby>けているのはすごいこと。<ruby>習慣<rt class="uf">しゅうかん</rt></ruby>になってきている。');
   if(s.dailyDone)pool.push('<ruby>今日<rt class="uf">きょう</rt></ruby>のデイリー、きちんとやり<ruby>切<rt class="uf">き</rt></ruby>った。この<ruby>積<rt class="uf">つ</rt></ruby>み<ruby>重<rt class="uf">かさ</rt></ruby>ねが<ruby>効<rt class="uf">き</rt></ruby>く。');
   if(s.newBadge)pool.push('<ruby>新<rt class="uf">あたら</rt></ruby>しいバッジ、おめでとう！がんばりが<ruby>形<rt class="uf">かたち</rt></ruby>になっている。');
-  if(s.freeze>0)pool.push('フリーズを <b>'+s.freeze+'<ruby>個<rt class="uf">こ</rt></ruby></b><ruby>持<rt class="uf">も</rt></ruby>っている。<ruby>休<rt class="uf">やす</rt></ruby>んだ<ruby>日<rt class="uf">ひ</rt></ruby>も<ruby>連続<rt class="uf">れんぞく</rt></ruby>を<ruby>守<rt class="uf">まも</rt></ruby>れる。');
+  if(s.freeze>0)pool.push('<i class="ti ti-snowflake"></i> フリーズを <b>'+s.freeze+'<ruby>個<rt class="uf">こ</rt></ruby></b><ruby>持<rt class="uf">も</rt></ruby>っている。<ruby>休<rt class="uf">やす</rt></ruby>んだ<ruby>日<rt class="uf">ひ</rt></ruby>も<ruby>連続<rt class="uf">れんぞく</rt></ruby>を<ruby>守<rt class="uf">まも</rt></ruby>れる。');
   if(s.noteRem===0)pool.push('<ruby>間違<rt class="uf">まちが</rt></ruby>いノートが<ruby>空<rt class="uf">から</rt></ruby>っぽ。ていねいに<ruby>直<rt class="uf">なお</rt></ruby>せている<ruby>証拠<rt class="uf">しょうこ</rt></ruby>。');
   if(!pool.length)pool.push('<ruby>今日<rt class="uf">きょう</rt></ruby>ここに<ruby>来<rt class="uf">こ</rt></ruby>られたのがえらい。まずは 1つやってみよう。');
   var start=day%pool.length;var picked=[pool[start]];if(pool.length>1)picked.push(pool[(start+1)%pool.length]);
@@ -5460,7 +5483,7 @@ function rbRenderStatus_(adv){
     rows+=rbAxis_('ti-target','<ruby>正答率<rt class="uf">せいとうりつ</rt></ruby>','<b>'+adv.rate.my+'%</b>'+(ex.length?'<br><span style="font-size:12px">'+ex.join(' ・ ')+'</span>':''));
   }
   if(adv&&adv.growth&&adv.growth.delta>0)rows+=rbAxis_('ti-trending-up','<ruby>成長<rt class="uf">せいちょう</rt></ruby>','<ruby>正答率<rt class="uf">せいとうりつ</rt></ruby>が<ruby>最近<rt class="uf">さいきん</rt></ruby> <b style="color:var(--ok)">+'+adv.growth.delta+'%</b>');
-  if(s.streak>0)rows+=rbAxis_('ti-flame','<ruby>継続<rt class="uf">けいぞく</rt></ruby>','<b>'+s.streak+'<ruby>日<rt class="uf">にち</rt></ruby></b> <ruby>連続<rt class="uf">れんぞく</rt></ruby>'+(s.freeze>0?('（フリーズ '+s.freeze+'）'):''));
+  if(s.streak>0)rows+=rbAxis_('ti-flame','<ruby>継続<rt class="uf">けいぞく</rt></ruby>','<b>'+s.streak+'<ruby>日<rt class="uf">にち</rt></ruby></b> <ruby>連続<rt class="uf">れんぞく</rt></ruby>'+(s.freeze>0?('（<i class="ti ti-snowflake"></i> フリーズ '+s.freeze+'）'):''));
   if(adv&&adv.volume&&adv.volume.today>0){var mul=(adv.volume.ratio>=1.4)?(' ・ いつもの <b><ruby>約<rt class="uf">やく</rt></ruby>'+adv.volume.ratio+'<ruby>倍<rt class="uf">ばい</rt></ruby></b>'):'';rows+=rbAxis_('ti-bolt','<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>量<rt class="uf">りょう</rt></ruby>','<b>'+adv.volume.today+'<ruby>問<rt class="uf">もん</rt></ruby></b>'+mul);}
   if(adv&&adv.base&&adv.base.words30>0)rows+=rbAxis_('ti-stack-2','<ruby>積<rt class="uf">つ</rt></ruby>み<ruby>上<rt class="uf">あ</rt></ruby>げ','この30<ruby>日<rt class="uf">にち</rt></ruby>で <b>'+adv.base.words30+'<ruby>問<rt class="uf">もん</rt></ruby></b>');
   if(!rows)rows=rbAxis_('ti-compass','<ruby>様子<rt class="uf">ようす</rt></ruby>','これから<ruby>記録<rt class="uf">きろく</rt></ruby>がたまっていく');
