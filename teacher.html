@@ -260,7 +260,9 @@
   .fs-atbl td.fs-mk{text-align:center;}
   .fs-mkbox{display:inline-block;width:9mm;height:5.5mm;border:1.2px solid #333;border-radius:2px;}
   .fs-back{margin-top:8px;border:1.4px solid #1f56b0;border-radius:6px;padding:7px 10px;display:flex;gap:11px;align-items:center;page-break-inside:avoid;}
-  .fs-back .fs-qr{width:19mm;height:19mm;border:1.4px dashed #1f56b0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#1f56b0;text-align:center;line-height:1.3;flex:none;}
+  /* QRは28mm角。うち33/41＝約22.5mmが実際のQRで、まわりの4マスは余白（クワイエットゾーン）2026-08-31 */
+  .fs-back .fs-qr{width:28mm;height:28mm;flex:none;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .fs-back .fs-qr-ng{border:1.4px dashed #1f56b0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#1f56b0;text-align:center;line-height:1.3;padding:2mm;box-sizing:border-box;}
   .fs-back .fs-bt{font-size:11.5px;line-height:1.6;}
   .fs-back .fs-code{font-size:17px;font-weight:800;letter-spacing:.12em;color:#1f56b0;}
   .fs-foot{margin-top:auto;padding-top:4px;display:flex;justify-content:space-between;font-size:9.5px;color:#999;}
@@ -1980,6 +1982,8 @@ function unifiedStudentHtml_(st, opts){
      ・「〜を選べ」「〜はどれか」は紙では成立しないので、紙に描くときだけ末尾を言い換える
        （教材データは1文字も触らない。教材の設問を中立形に直したら、この言い換えは当たらなくなって自然に消える） */
 var FS_LIMIT_=50;              /* 1人あたりの上限（サーバー側の limit と同じ） */
+var FS_CODE_TMP_='XX-9999';    /* 測るときだけ使う仮のセット番号。実物と同じ7文字にして幅をそろえる 2026-08-31 */
+var FS_SHEET_URL_='https://kf-juku.github.io/kurofune-word-trainer/?sheet=';  /* QRの中身（川上さん確定 2026-08-30）*/
 var FS_FIGBLK_PER_PAGE_=3;     /* 1ページに置ける図ブロック数 */
 var FS_FIG_PER_BLK_=3;         /* 1ブロックにぶら下げる問題数 */
 var FS_FIG_BLK_MAX_=6;         /* 2ページで最大6ブロック */
@@ -2139,8 +2143,197 @@ function fsAnsTableHtml_(rows){
     +'<thead><tr><th>No</th><th>答え</th><th>覚え方</th><th>○×</th></tr></thead>'
     +'<tbody>'+rows+'</tbody></table>';
 }
+/* ---- QRコード（バイトモード・誤り訂正M・バージョン1〜10）2026-08-31 段4c ------------
+   答えのページに刷るQRを teacher.html の中で作る（cdnjs から読まない＝印刷の直前に
+   外部読み込みが走ると、図の待ちと重なって印刷が遅れる）。
+   qrModules_(text) → 0/1 の2次元配列（黒=1）。作れないときは null。
+   検証＝zxing で128件（実URL120＋長さの境目8）をデコードして完全一致。
+   ※ OpenCV の QRCodeDetector は正しいQRでも読めないことがあるので合否の判定に使わない。 */
+var QR_TOTAL_CW_=[26,44,70,100,134,172,196,242,292,346];             /* 版ごとの総コード語数 */
+var QR_M_=[  /* 誤り訂正M：[1ブロックのECC語数, 群1のブロック数, 群1のデータ語数, 群2のブロック数, 群2のデータ語数] */
+  [10,1,16,0,0],[16,1,28,0,0],[26,1,44,0,0],[18,2,32,0,0],[24,2,43,0,0],
+  [16,4,27,0,0],[18,4,31,0,0],[22,2,38,2,39],[22,3,36,2,37],[26,4,43,1,44]];
+var QR_ALIGN_=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50]];
+var QR_VER_INFO_={7:'000111110010010100',8:'001000010110111100',9:'001001101010011001',10:'001010010011010011'};
+var QR_FMT_M_=['101010000010010','101000100100101','101111001111100','101101101001011',
+               '100010111111001','100000011001110','100111110010111','100101010100000'];
+var _qrExp=null,_qrLog=null;
+function qrGf_(){
+  if(_qrExp) return;
+  _qrExp=new Array(512); _qrLog=new Array(256);
+  var x=1;
+  for(var i=0;i<255;i++){ _qrExp[i]=x; _qrLog[x]=i; x<<=1; if(x&0x100) x^=0x11d; }
+  for(var j=255;j<512;j++) _qrExp[j]=_qrExp[j-255];
+}
+function qrMul_(a,b){ if(!a||!b) return 0; qrGf_(); return _qrExp[_qrLog[a]+_qrLog[b]]; }
+function qrGenPoly_(n){
+  qrGf_();
+  var g=[1];
+  for(var i=0;i<n;i++){
+    var ng=new Array(g.length+1); for(var k=0;k<ng.length;k++) ng[k]=0;
+    for(var j=0;j<g.length;j++){ ng[j]^=qrMul_(g[j],1); ng[j+1]^=qrMul_(g[j],_qrExp[i]); }
+    g=ng;
+  }
+  return g;
+}
+function qrEcc_(data,n){
+  var g=qrGenPoly_(n), res=data.slice(), i, j;
+  for(i=0;i<n;i++) res.push(0);
+  for(i=0;i<data.length;i++){
+    var c=res[i]; if(!c) continue;
+    for(j=0;j<g.length;j++) res[i+j]^=qrMul_(g[j],c);
+  }
+  return res.slice(data.length);
+}
+function qrBytes_(s){          /* 文字列 → UTF-8 のバイト列 */
+  var out=[];
+  for(var i=0;i<s.length;i++){
+    var c=s.charCodeAt(i);
+    if(c<0x80) out.push(c);
+    else if(c<0x800){ out.push(0xc0|(c>>6)); out.push(0x80|(c&63)); }
+    else { out.push(0xe0|(c>>12)); out.push(0x80|((c>>6)&63)); out.push(0x80|(c&63)); }
+  }
+  return out;
+}
+function qrModules_(text){
+  var bytes=qrBytes_(text), ver=0, v;
+  for(v=1;v<=10;v++){
+    var sp=QR_M_[v-1], dc=sp[1]*sp[2]+sp[3]*sp[4], cb=(v<10)?8:16;
+    if(4+cb+bytes.length*8<=dc*8){ ver=v; break; }
+  }
+  if(!ver) return null;                       /* 10版に入らない＝長すぎ。QRは作らない */
+  var spec=QR_M_[ver-1], ecPer=spec[0], g1=spec[1], d1=spec[2], g2=spec[3], d2=spec[4];
+  var dataCw=g1*d1+g2*d2, cntBits=(ver<10)?8:16, i, j, k, r, c;
+  /* --- ビット列を組む --- */
+  var bits=[];
+  var push=function(val,len){ for(var q=len-1;q>=0;q--) bits.push((val>>q)&1); };
+  push(4,4); push(bytes.length,cntBits);
+  for(i=0;i<bytes.length;i++) push(bytes[i],8);
+  var cap=dataCw*8;
+  for(i=0;i<4 && bits.length<cap;i++) bits.push(0);      /* 終端 */
+  while(bits.length%8) bits.push(0);
+  var pads=[0xec,0x11], pi=0;
+  while(bits.length<cap){ push(pads[pi%2],8); pi++; }
+  var cw=[];
+  for(i=0;i<bits.length;i+=8){ var byte=0; for(k=0;k<8;k++) byte=(byte<<1)|bits[i+k]; cw.push(byte); }
+  /* --- ブロックに分けて誤り訂正語を作り、交互に並べる --- */
+  var blocks=[],ecs=[],at=0;
+  for(i=0;i<g1;i++){ var b1=cw.slice(at,at+d1); at+=d1; blocks.push(b1); ecs.push(qrEcc_(b1,ecPer)); }
+  for(i=0;i<g2;i++){ var b2=cw.slice(at,at+d2); at+=d2; blocks.push(b2); ecs.push(qrEcc_(b2,ecPer)); }
+  var out=[], maxD=Math.max(d1,d2);
+  for(i=0;i<maxD;i++) for(j=0;j<blocks.length;j++) if(i<blocks[j].length) out.push(blocks[j][i]);
+  for(i=0;i<ecPer;i++) for(j=0;j<ecs.length;j++) out.push(ecs[j][i]);
+  /* --- 下地（機能パターン）を作る --- */
+  var n=17+4*ver, m=[], fn=[];
+  for(r=0;r<n;r++){ m.push(new Array(n)); fn.push(new Array(n)); for(c=0;c<n;c++){ m[r][c]=0; fn[r][c]=0; } }
+  var setF=function(rr,cc,v2){ if(rr<0||cc<0||rr>=n||cc>=n) return; m[rr][cc]=v2; fn[rr][cc]=1; };
+  var finder=function(r0,c0){
+    for(var a=-1;a<=7;a++) for(var b=-1;b<=7;b++){
+      var on=(a>=0&&a<=6&&(b===0||b===6))||(b>=0&&b<=6&&(a===0||a===6))||(a>=2&&a<=4&&b>=2&&b<=4);
+      setF(r0+a,c0+b,on?1:0);
+    }
+  };
+  finder(0,0); finder(0,n-7); finder(n-7,0);
+  for(i=8;i<n-8;i++){ setF(6,i,(i%2===0)?1:0); setF(i,6,(i%2===0)?1:0); }
+  var ac=QR_ALIGN_[ver-1];
+  for(i=0;i<ac.length;i++) for(j=0;j<ac.length;j++){
+    var ar=ac[i], acol=ac[j];
+    if((ar<=7&&acol<=7)||(ar<=7&&acol>=n-8)||(ar>=n-8&&acol<=7)) continue;
+    for(var dr=-2;dr<=2;dr++) for(var dc=-2;dc<=2;dc++) setF(ar+dr,acol+dc,(Math.max(Math.abs(dr),Math.abs(dc))!==1)?1:0);
+  }
+  setF(n-8,8,1);                                            /* 常に黒のマス */
+  for(i=0;i<9;i++){ if(i!==6){ setF(8,i,0); setF(i,8,0); } } /* 形式情報の場所（6はタイミングなので触らない） */
+  for(i=0;i<8;i++){ setF(8,n-1-i,0); setF(n-1-i,8,0); }
+  if(ver>=7){
+    var vi=QR_VER_INFO_[ver];
+    for(i=0;i<18;i++){
+      var vb=vi.charAt(17-i)==='1'?1:0;
+      setF(Math.floor(i/3), n-11+(i%3), vb);
+      setF(n-11+(i%3), Math.floor(i/3), vb);
+    }
+  }
+  /* --- データを置く（右下からジグザグ・6列目のタイミングは飛ばす） --- */
+  var idx=0, dir=-1; r=n-1;
+  for(var col=n-1;col>0;col-=2){
+    if(col===6) col--;
+    while(true){
+      for(var s2=0;s2<2;s2++){
+        var cc2=col-s2;
+        if(!fn[r][cc2]){
+          var bit=0;
+          if(idx<out.length*8) bit=(out[idx>>3]>>(7-(idx&7)))&1;
+          m[r][cc2]=bit; idx++;
+        }
+      }
+      r+=dir;
+      if(r<0||r>=n){ r-=dir; dir=-dir; break; }
+    }
+  }
+  /* --- マスクを8通り試して、いちばん減点の少ないものをえらぶ --- */
+  var maskFn=[
+    function(a,b){return (a+b)%2===0;}, function(a){return a%2===0;},
+    function(a,b){return b%3===0;},     function(a,b){return (a+b)%3===0;},
+    function(a,b){return (Math.floor(a/2)+Math.floor(b/3))%2===0;},
+    function(a,b){return ((a*b)%2)+((a*b)%3)===0;},
+    function(a,b){return (((a*b)%2)+((a*b)%3))%2===0;},
+    function(a,b){return (((a+b)%2)+((a*b)%3))%2===0;}];
+  var best=null,bestScore=Infinity;
+  for(var mk=0;mk<8;mk++){
+    var g4=[];
+    for(r=0;r<n;r++){ g4.push(new Array(n)); for(c=0;c<n;c++) g4[r][c]=fn[r][c]?m[r][c]:(maskFn[mk](r,c)?(m[r][c]^1):m[r][c]); }
+    var f=QR_FMT_M_[mk];
+    for(i=0;i<15;i++){
+      var fb=f.charAt(14-i)==='1'?1:0;                /* i=0 が下位ビット */
+      if(i<6)      g4[i][8]=fb;                        /* 縦（左上の列8 → 左下の列8） */
+      else if(i<8) g4[i+1][8]=fb;
+      else         g4[n-15+i][8]=fb;
+      if(i<8)      g4[8][n-1-i]=fb;                    /* 横（右上の行8 → 左上の行8） */
+      else if(i<9) g4[8][7]=fb;
+      else         g4[8][14-i]=fb;
+    }
+    g4[n-8][8]=1;
+    var sc=qrPenalty_(g4,n);
+    if(sc<bestScore){ bestScore=sc; best=g4; }
+  }
+  return best;
+}
+function qrPenalty_(g,n){
+  var p=0,r,c,i,run,last;
+  for(r=0;r<n;r++){ run=1; last=g[r][0]; for(c=1;c<n;c++){ if(g[r][c]===last) run++; else { if(run>=5)p+=3+(run-5); run=1; last=g[r][c]; } } if(run>=5)p+=3+(run-5); }
+  for(c=0;c<n;c++){ run=1; last=g[0][c]; for(r=1;r<n;r++){ if(g[r][c]===last) run++; else { if(run>=5)p+=3+(run-5); run=1; last=g[r][c]; } } if(run>=5)p+=3+(run-5); }
+  for(r=0;r<n-1;r++) for(c=0;c<n-1;c++){ var v=g[r][c]; if(v===g[r][c+1]&&v===g[r+1][c]&&v===g[r+1][c+1]) p+=3; }
+  var pat1=[1,0,1,1,1,0,1,0,0,0,0], pat2=[0,0,0,0,1,0,1,1,1,0,1];
+  var hit=function(arr){
+    var k,o1=true,o2=true;
+    for(k=0;k<11;k++){ if(arr[k]!==pat1[k]) o1=false; if(arr[k]!==pat2[k]) o2=false; }
+    return o1||o2;
+  };
+  for(r=0;r<n;r++) for(c=0;c+11<=n;c++){ var a=[]; for(i=0;i<11;i++) a.push(g[r][c+i]); if(hit(a)) p+=40; }
+  for(c=0;c<n;c++) for(r=0;r+11<=n;r++){ var b=[]; for(i=0;i<11;i++) b.push(g[r+i][c]); if(hit(b)) p+=40; }
+  var dark=0; for(r=0;r<n;r++) for(c=0;c<n;c++) dark+=g[r][c];
+  p+=Math.floor(Math.abs(dark*100/(n*n)-50)/5)*10;
+  return p;
+}
+/* 紙に刷るQR。まわりの4マスの余白（クワイエットゾーン）もSVGの中に入れる。
+   28mm角のうち 33/41 ＝ 約22.5mm が実際のQR（§3-5 の22〜25mm）。 */
+function fsQrHtml_(code){
+  var url=FS_SHEET_URL_+String(code||'');
+  var m=null; try{ m=qrModules_(url); }catch(e){ m=null; }
+  if(!m) return '<div class="fs-qr fs-qr-ng">QRを作れませんでした。<br>番号を入力してください</div>';
+  var n=m.length, q=4, side=n+q*2, d='', r, c;
+  for(r=0;r<n;r++){
+    c=0;
+    while(c<n){
+      if(!m[r][c]){ c++; continue; }
+      var st=c; while(c<n && m[r][c]) c++;            /* 横に続く黒はまとめて1つの長方形にする */
+      d+='M'+(st+q)+' '+(r+q)+'h'+(c-st)+'v1h-'+(c-st)+'z';
+    }
+  }
+  return '<svg class="fs-qr" viewBox="0 0 '+side+' '+side+'" shape-rendering="crispEdges" role="img" aria-label="'+esc(url)+'">'
+    +'<rect width="'+side+'" height="'+side+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';
+}
 function fsBackHtml_(ctx){
-  return '<div class="fs-back"><div class="fs-qr">QR</div><div class="fs-bt">'
+  return '<div class="fs-back">'+fsQrHtml_(ctx.code)+'<div class="fs-bt">'
     +'丸つけが終わったら、クロトレの「<b>紙の答え合わせ</b>」を開いて、○×をそのまま入力する。'
     +'QRを読み取るか、セット番号 <span class="fs-code">'+esc(ctx.code)+'</span> を入力する。<br>'
     +'入力すると、○がついた語は記録に入る。</div></div>';
@@ -2211,8 +2404,8 @@ function fsFillAPages_(flat,ctx,usable){
   if(probe.parentNode) document.body.removeChild(probe);
   return counts;
 }
-/* ---- 1人ぶんの紙（問題2ページ＋答え2ページ）を組む ---- */
-function finishSheetHtml_(st,base){
+/* ---- 1人ぶんの紙を「組む」（測って中身を決めるところまで。描かない）2026-08-31 段4 ---- */
+function fsBuildSheet_(st,base){
   var pick=fsPick_(st.items||[]);
   var units=fsUnits_(pick);
   if(!units.length) return null;
@@ -2242,7 +2435,17 @@ function finishSheetHtml_(st,base){
     ac=fsFillAPages_(flat,ctx,usable);
   }
   ctx.total=flat.length;
-  /* ---- 描く ---- */
+  /* 紙の1番＝flat の0番目。この並びをそのまま print_sets に保存する（あとから引き直さない＝
+     印刷から答え合わせまでのあいだに行の状態が変わっても、○×が別の語に入らない）2026-08-31 */
+  return {student_id:String(st.student_id||''),ctx:ctx,qp:qp,ac:ac,flat:flat,roomy:roomy,
+          tailOdd:(ac.length%2===1), total:flat.length, figs:pick.blocks.length,
+          word_ids:flat.map(function(f){return String(f.item.word_id||'');}),
+          review_ids:flat.map(function(f){return String(f.item.review_id||'');}),
+          progress_ids:flat.map(function(f){return String(f.item.progress_id||'');})};
+}
+/* ---- 組んだものを「描く」。セット番号（b.ctx.code）を差し込んでから呼ぶ ---- */
+function fsDrawSheet_(b){
+  var ctx=b.ctx, qp=b.qp, ac=b.ac, flat=b.flat, roomy=b.roomy;
   var h='', idx=0;
   qp.forEach(function(pg,i){
     var from=idx+1;
@@ -2265,8 +2468,12 @@ function finishSheetHtml_(st,base){
       +fsAnsTableHtml_(rows)+(last?fsBackHtml_(ctx):'')
       +fsFootHtml_(ctx,'2枚目 '+(i===0?'表':'裏')+'（答え'+from+'〜'+ai+'）')+'</div>';
   });
-  return {html:'<div class="fs-sheet'+(roomy?' fs-roomy':'')+'">'+h+'</div>',
-          tailOdd:(ac.length%2===1), total:flat.length, figs:pick.blocks.length};
+  return '<div class="fs-sheet'+(roomy?' fs-roomy':'')+'">'+h+'</div>';
+}
+/* 段3までの入口。組んで描くところまで一気にやる（既存のテストはここを呼ぶ） */
+function finishSheetHtml_(st,base){
+  var b=fsBuildSheet_(st,base); if(!b) return null;
+  return {html:fsDrawSheet_(b), tailOdd:b.tailOdd, total:b.total, figs:b.figs};
 }
 /* 範囲（教材名）のラベル。生タイトルは描かず mtLabel を通す（教材名_描画ガード 0件を保つ） */
 function fsScopeLabel_(mats){
@@ -2299,21 +2506,34 @@ function runFinishSheet_(ids,mats,types){
     var ss=d.data.students||[];
     var urls={}; ss.forEach(function(s){ (s.items||[]).forEach(function(it){ if(it.fig) urls[it.fig]=1; }); });
     fsPreload_(Object.keys(urls),function(){
-      var base={date:_rpToday(),code:'------',scope:fsScopeLabel_(mats)};
+      var base={date:_rpToday(),code:FS_CODE_TMP_,scope:fsScopeLabel_(mats)};
       var built=[];
-      ss.forEach(function(s){ var r=finishSheetHtml_(s,base); if(r) built.push(r); });
-      hideLoading();
+      ss.forEach(function(s){ var b0=fsBuildSheet_(s,base); if(b0) built.push(b0); });
       var skipped=ss.length-built.length;
-      if(!built.length){ toast('紙にできる問題がある生徒がいません（'+ss.length+'名ぜんぶ0問）'); return; }
+      if(!built.length){ hideLoading(); toast('紙にできる問題がある生徒がいません（'+ss.length+'名ぜんぶ0問）'); return; }
       if(skipped) toast('まちがいなし '+skipped+'名は印刷しません');
-      var html=built.map(function(r,i){
-        /* 答えのページ数が奇数なら、次の生徒が同じ紙の裏に来ないよう仕切りを1枚。最後の生徒は要らない */
-        var tail=(r.tailOdd && i<built.length-1)?'<div class="p-filler"></div>':'';
-        return '<div class="p-unit fs-unit">'+r.html+tail+'</div>';
-      }).join('');
-      $('printArea').innerHTML=html;
-      window._fsBuilt=built;   /* 検証用（問題数・図ブロック数） */
-      printWhenImagesReady_($('printArea'));
+      /* セット番号を発行してから描く。保存に失敗したら印刷しない
+         （番号のない紙を配ると、生徒が答え合わせできない）2026-08-31 段4 */
+      showLoading('セット番号を発行しています…');
+      call({action:'print_sets_issue',sets:JSON.stringify(built.map(function(b){
+        return {student_id:b.student_id,word_ids:b.word_ids,review_ids:b.review_ids,
+                progress_ids:b.progress_ids,material_ids:mats.join(',')};
+      }))}).then(function(d2){
+        hideLoading();
+        if(!d2||!d2.ok){ toast('セット番号を保存できませんでした：'+((d2&&d2.error)||'通信に失敗しました')+'。印刷は中止しました'); return; }
+        var codes=(d2.data&&d2.data.codes)||{};
+        var miss=built.filter(function(b){ return !codes[b.student_id]; });
+        if(miss.length){ toast('セット番号が返ってこない生徒がいます（'+miss.length+'名）。印刷は中止しました'); return; }
+        built.forEach(function(b){ b.ctx.code=codes[b.student_id]; });
+        var html=built.map(function(b,i){
+          /* 答えのページ数が奇数なら、次の生徒が同じ紙の裏に来ないよう仕切りを1枚。最後の生徒は要らない */
+          var tail=(b.tailOdd && i<built.length-1)?'<div class="p-filler"></div>':'';
+          return '<div class="p-unit fs-unit">'+fsDrawSheet_(b)+tail+'</div>';
+        }).join('');
+        $('printArea').innerHTML=html;
+        window._fsBuilt=built;   /* 検証用（問題数・図ブロック数・セット番号） */
+        printWhenImagesReady_($('printArea'));
+      }).catch(function(e){ hideLoading(); toast('セット番号を保存できませんでした：'+(e&&e.message||e)+'。印刷は中止しました'); });
     });
   }).catch(function(e){ hideLoading(); toast('仕上げプリントを作れませんでした：'+(e&&e.message||e)); });
 }
