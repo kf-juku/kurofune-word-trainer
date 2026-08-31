@@ -3805,9 +3805,18 @@ function renderIMG(ss){
      esc は教材データ（qd.ask＝作成者が書いた文）を安全にするためのもの。既定の文言はこちらが書くのでエスケープ不要。
      検査＝`20260827_ルビのエスケープ検査.py`（esc( の中に <ruby> が無いことを機械で確認する） */;
   h+='<div class="imgq-ask">'+_askH+'</div>';
-  if(!qd.num){h+='<div class="imgq-askhint"><ruby>画像<rt class="uf">がぞう</rt></ruby>は<ruby>覚<rt class="uf">おぼ</rt></ruby>える<ruby>手<rt class="uf">て</rt></ruby>がかり。まず<ruby>問題文<rt class="uf">もんだいぶん</rt></ruby>を<ruby>読<rt class="uf">よ</rt></ruby>んで<ruby>答<rt class="uf">こた</rt></ruby>えよう</div>';}
+  /* 【2026-08-31 生徒の不具合報告】旧文言「画像は覚える手がかり。まず問題文を読んで答えよう」は、
+     雨温図やグラフのように図を読まないと解けない問題では逆のことを言っていた（図はおまけ、と読める）。
+     肖像画のように図が手がかりでしかない問題と、どちらにも当てはまる言い方にする。 */
+  if(!qd.num){h+='<div class="imgq-askhint"><ruby>問題文<rt class="uf">もんだいぶん</rt></ruby>と<ruby>図<rt class="uf">ず</rt></ruby>の<b>りょうほう</b>を<ruby>見<rt class="uf">み</rt></ruby>て<ruby>答<rt class="uf">こた</rt></ruby>えよう</div>';}
   h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';
-  if(holes.length>1){h+='<div class="imgq-track">';holes.forEach(function(hh){var st=hh.i<s.idx?'done':(hh.i===s.idx?'cur':'');var lb=hh.q.num||(TF_CIRC[hh.n]||hh.n);h+='<span class="'+st+'">'+esc(lb)+'</span>';});h+='</div>';}
+  /* 【2026-08-31 生徒の不具合報告】図の下に出す記号の並びは、図に印刷されている記号だけを出す。
+     同じ図を ask方式（記号を使わず設問文で聞く）の問題と共有していると、記号のない問題に ①③ の
+     連番が入り、図のどこにも無い「① イ ③」のような並びが出て、生徒には何のことか分からなかった。
+     → 記号を使う問題（num方式）を解いているときだけ、その図の記号だけを並べる。
+     ask方式は設問文に記号が書いてあるので、この並びは要らない。 */
+  var numHoles=[];holes.forEach(function(hh){if(hh.q.num)numHoles.push(hh);});
+  if(qd.num&&numHoles.length>1){h+='<div class="imgq-track">';numHoles.forEach(function(hh){var st=hh.i<s.idx?'done':(hh.i===s.idx?'cur':'');h+='<span class="'+st+'">'+esc(hh.q.num)+'</span>';});h+='</div>';}
   $('tf-table').innerHTML=h;
   $('tf-ask').innerHTML='';$('tf-ask').style.display='none'; /* 設問は図の上に表示済み 2026-07-16 */
   var _tl=qSecFor('table_fill'); // 図も読む時間が要るので15秒。全画面共通 2026-08-20
@@ -4730,12 +4739,16 @@ function _doneResetCommon_(){
   var l=$('done-lap');if(l)l.style.display='none';
   var b=$('btn-home');if(b){b.innerHTML='<span>ホームへ<ruby>戻<rt class="uf">もど</rt></ruby>る</span>';b.onclick=function(){openHome();};}
 }
+/* 完了画面の点数＝教材の出題形式どおり（用語もの＝日英だけ／英→日＝意味だけ／英語 両方向＝平均）。
+   **ここが唯一の置き場。** 毎日学習・単元別（finishSession）と確認テスト（finishQuizSubmit_）が同じ式を使う。
+   サーバー側の sessionScorePair_ と同じ考え方。式を2か所に書かない 2026-08-31。 */
+function _doneScore_(s,mr,rr){var termOnly=(s.isEnglish===false)||s.tfOnly;return termOnly?rr:((s.dir==='e2j')?mr:Math.round((mr+rr)/2));}
 function finishQuizSubmit_(){
   var s=session;try{_resumeClear_();}catch(e){}show('scr-done');_doneResetCommon_();var _dgq=document.getElementById('done-guide-area');if(_dgq)_dgq.innerHTML='';hideQTimer();hideExplain();$('done-score-wrap').style.display='';var _dtq=$('done-tiles');if(_dtq)_dtq.innerHTML='';
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
   var e2jOnly=(s.dir==='e2j'); // 方向固定 2026-07-28
-  var score=termOnly?rr:(e2jOnly?mr:Math.round((mr+rr)/2));
+  var score=_doneScore_(s,mr,rr);
   $('done-rate').innerHTML=termOnly?('<ruby>正答<rt class="uf">せいとう</rt></ruby> <b>'+rr+'</b>％'):(e2jOnly?('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％'):('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> '+rr+'％'));
   animNum($('score-anim'),score,900);
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（確認テストにも）2026-08-08
@@ -4773,7 +4786,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
   var e2jOnly=(s.dir==='e2j'); // 方向固定：英→日だけ 2026-07-28
-  var score=termOnly?rr:(e2jOnly?mr:Math.round((mr+rr)/2));
+  var score=_doneScore_(s,mr,rr);
   if(termOnly){$('done-rate').innerHTML=(s.tfOnly?'<ruby>正答<rt class="uf">せいとう</rt></ruby>':'<ruby>用語<rt class="uf">ようご</rt></ruby>')+' <b>'+rr+'</b>％';}
   else if(e2jOnly){$('done-rate').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr">'+mr+'</span>％';}
   else{$('done-rate').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr">'+mr+'</span>％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> <span id="done-rr">'+rr+'</span>％';}
