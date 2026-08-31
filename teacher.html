@@ -555,6 +555,7 @@
   .pk-col{flex:1;min-width:0;}
   .pk-coltitle{font-size:11px;font-weight:800;color:var(--text-muted);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
   .pk-count{color:#1faa6b;font-weight:800;}
+  .pk-coltitle .pk-clr{margin-left:auto;padding:1px 8px;font-size:11px;line-height:1.7;}
   .pk-fgroup{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;}
   .pk-flabel{flex:0 0 44px;font-size:11px;font-weight:800;color:var(--text-light);padding-top:5px;}
   .pk-chips{display:flex;flex-wrap:wrap;gap:5px;}
@@ -1672,6 +1673,24 @@
   </div>
 </div>
 
+<!-- 仕上げプリント：できた紙を「印刷」か「PDFで保存」で出す（同じセット番号）2026-08-31 段4 -->
+<div class="modal-back" id="fsGoModal" onclick="if(event.target===this)closeModal('fsGoModal');">
+  <div class="modal" style="max-width:min(560px,96vw);">
+    <h3 style="margin-bottom:6px;">仕上げプリントができました</h3>
+    <div class="mhint" id="fsGoInfo"></div>
+    <div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">
+      🖨 <b>両面（長辺とじ）で印刷してください。</b>1枚目の表裏＝問題、2枚目の表裏＝答えです。<br>
+      ⬇ <b>PDFで保存</b>を押すと同じ印刷ダイアログが開きます。<b>送信先を「PDFに保存」に変えて</b>ください。
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('fsGoModal')">閉じる</button>
+      <span style="flex:1;"></span>
+      <button class="btn-ghost" onclick="fsGo_('pdf')">⬇ PDFで保存</button>
+      <button class="btn-primary" style="width:auto;" onclick="fsGo_('print')">🖨 印刷する</button>
+    </div>
+  </div>
+</div>
+
 <!-- 生徒 個人詳細モーダル（item5・2026-07-07） -->
 <div class="modal-back" id="studentModal" onclick="if(event.target===this)closeModal('studentModal');">
   <div class="modal" style="max-width:min(1200px,96vw);width:min(1200px,96vw);max-height:92vh;overflow-y:auto;position:relative;">
@@ -2532,10 +2551,38 @@ function runFinishSheet_(ids,mats,types){
         }).join('');
         $('printArea').innerHTML=html;
         window._fsBuilt=built;   /* 検証用（問題数・図ブロック数・セット番号） */
-        printWhenImagesReady_($('printArea'));
+        /* 番号の発行は1回だけ。同じ紙を「印刷」でも「PDFで保存」でも出せるようにここで選ばせる
+           （押すたびに作り直すと紙とPDFで番号が変わり、print_sets に無駄な行が増える）2026-08-31 */
+        fsShowGo_(built);
       }).catch(function(e){ hideLoading(); toast('セット番号を保存できませんでした：'+(e&&e.message||e)+'。印刷は中止しました'); });
     });
   }).catch(function(e){ hideLoading(); toast('仕上げプリントを作れませんでした：'+(e&&e.message||e)); });
+}
+/* ---- できた紙を「印刷」か「PDFで保存」で出す（同じセット番号の紙）2026-08-31 段4 ---- */
+var _fsGoInfo=null;
+function fsShowGo_(built){
+  _fsGoInfo={n:built.length, codes:built.map(function(b){return b.ctx.code;})};
+  var el=$('fsGoInfo');
+  if(el) el.innerHTML='<b>'+built.length+'名</b>ぶん・1人あたり両面2枚。セット番号は発行ずみです（'
+    +esc(_fsGoInfo.codes.slice(0,3).join('・'))+(built.length>3?('　ほか'+(built.length-3)+'名'):'')+'）。<br>'
+    +'印刷でもPDFでも<b>同じ番号の紙</b>が出ます。両方出しても番号は増えません。';
+  $('fsGoModal').classList.add('show');
+}
+function _fsPdfName_(){
+  return _rpToday().replace(/-/g,'')+'_仕上げプリント_'+((_fsGoInfo&&_fsGoInfo.n)||0)+'名';
+}
+function fsGo_(how){
+  closeModal('fsGoModal');
+  if(how==='pdf'){
+    /* Chrome は「PDFに保存」のファイル名にページのタイトルを使う。出したあと必ず元に戻す */
+    var old=document.title;
+    document.title=_fsPdfName_();
+    var back=function(){ document.title=old; window.removeEventListener('afterprint',back); };
+    window.addEventListener('afterprint',back);
+    setTimeout(back,60000);            /* afterprint が来ない端末の保険 */
+    toast('送信先を「PDFに保存」に変えてください');
+  }
+  printWhenImagesReady_($('printArea'));
 }
 function runPrint_(ids,scope,days,limit,types){
   if(!ids.length){toast('印刷する生徒がいません');return;}
@@ -4618,7 +4665,8 @@ function tmStepPrint_(body){
     +'<div class="pk-col"><div class="pk-coltitle">候補（教材）</div>'
     +'<input class="pk-search2" id="printMatSearch" placeholder="教材名で探す">'
     +'<div class="pk-list" id="printMatCand"></div></div>'
-    +'<div class="pk-col"><div class="pk-coltitle"><span>テスト範囲</span><span class="pk-count" id="printMatCnt">0教材</span></div>'
+    +'<div class="pk-col"><div class="pk-coltitle"><span>テスト範囲</span><span class="pk-count" id="printMatCnt">0教材</span>'
+    +'<button type="button" class="btn-ghost pk-clr" id="printMatClear" onclick="clearPrintMats()">クリア</button></div>'
     +'<div class="pk-list sel" id="printMatSel"></div></div>'
     +'</div>'
     +'<div class="tm-note">まちがえてから<b>3日以上たった問題</b>から、ミス問8割＋克服した語2割で選びます。1人あたり最大50問。<br>紙は<b>両面2枚（1枚目＝問題／2枚目＝答え）</b>。問題数は紙に入るだけ（教科によって変わります）。<br><b>選択肢は紙に出しません</b>（思い出して書く練習にするため）。選択肢が無いと解けない「あてはまらないものを選べ」型は紙から外します。</div>'
@@ -4657,6 +4705,15 @@ function renderPrintMaterials(){
   });
   renderMatSel_(selEl,{materials:bulkMaterials,pickedSet:printMat,onRemove:function(id){delete printMat[id];renderPrintMaterials();tmUpdateFoot();}});
   var cnt=$('printMatCnt');if(cnt)cnt.textContent=Object.keys(printMat).length+'教材';
+}
+/* テスト範囲の選択をぜんぶ外す。前回の選択は覚えたままにする仕様なので、
+   別の先生が続けて使うときに前の人の範囲をそのまま刷らないための逃げ道（川上さん 2026-08-31）*/
+function clearPrintMats(){
+  printMat={};
+  try{ localStorage.removeItem('kwt_print_mats'); }catch(e){}
+  renderPrintMaterials();
+  tmUpdateFoot();
+  toast('テスト範囲をクリアしました');
 }
 function tmPrint(){
   var ids=Object.keys(tmSel);
