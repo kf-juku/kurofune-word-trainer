@@ -125,6 +125,17 @@
   .tm-note{border:1px solid var(--border);background:var(--surface2);border-radius:10px;padding:9px 12px;font-size:11.5px;color:var(--text-muted);margin-top:10px;line-height:1.6;}
   .tm-sel{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;}
   .tm-num{width:56px;padding:4px 7px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;}
+  /* 紙の形＝どちらを刷るかは重要なので、小さいラジオでなく大きいカードで選ぶ 2026-08-31 */
+  .stycards{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 4px;}
+  .styc{flex:1 1 250px;display:flex;align-items:flex-start;gap:9px;padding:11px 13px;border:2px solid var(--border);border-radius:10px;background:white;cursor:pointer;font-family:inherit;text-align:left;transition:all .12s;}
+  .styc:hover{border-color:var(--crimson-mid);}
+  .styc.on{border-color:var(--crimson);background:var(--crimson-light);}
+  .styc .sy-mk{flex:0 0 auto;width:18px;height:18px;border:2px solid #cbd5e1;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#fff;background:#fff;margin-top:2px;}
+  .styc.on .sy-mk{background:var(--crimson);border-color:var(--crimson);}
+  .styc .sy-b{flex:1;min-width:0;}
+  .styc .sy-t{display:block;font-size:14px;font-weight:800;color:var(--text);line-height:1.4;}
+  .styc.on .sy-t{color:var(--crimson-dark);}
+  .styc .sy-s{display:block;font-size:11.5px;color:var(--text-muted);margin-top:3px;line-height:1.5;}
   .filter-chip{display:inline-flex;align-items:center;padding:3px 11px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:11.5px;cursor:pointer;font-family:inherit;color:var(--text-muted);transition:all 0.1s;white-space:nowrap;font-weight:500;}
   .filter-chip:hover{border-color:var(--crimson-mid);color:var(--crimson-dark);}
   .filter-chip.active{background:var(--crimson-light);color:var(--crimson-dark);border-color:var(--crimson);font-weight:700;}
@@ -1674,13 +1685,14 @@
 </div>
 
 <!-- 仕上げプリント：できた紙を「印刷」か「PDFで保存」で出す（同じセット番号）2026-08-31 段4 -->
-<div class="modal-back" id="fsGoModal" onclick="if(event.target===this)closeModal('fsGoModal');">
+<div class="modal-back" id="fsGoModal">
   <div class="modal" style="max-width:min(560px,96vw);">
     <h3 style="margin-bottom:6px;">仕上げプリントができました</h3>
     <div class="mhint" id="fsGoInfo"></div>
     <div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">
       🖨 <b>両面（長辺とじ）で印刷してください。</b>1枚目の表裏＝問題、2枚目の表裏＝答えです。<br>
-      ⬇ <b>PDFで保存</b>を押すと同じ印刷ダイアログが開きます。<b>送信先を「PDFに保存」に変えて</b>ください。
+      ⬇ <b>PDFで保存</b>を押すと同じ印刷ダイアログが開きます。<b>送信先を「PDFに保存」に変えて</b>ください。<br>
+      この画面は<b>「閉じる」を押すまで消えません。</b>印刷してから続けてPDFも保存できます。
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal('fsGoModal')">閉じる</button>
@@ -2572,7 +2584,8 @@ function _fsPdfName_(){
   return _rpToday().replace(/-/g,'')+'_仕上げプリント_'+((_fsGoInfo&&_fsGoInfo.n)||0)+'名';
 }
 function fsGo_(how){
-  closeModal('fsGoModal');
+  /* 画面は閉じない。印刷したあとに続けてPDFも保存できるようにする（閉じるのは「閉じる」だけ）
+     ＝作り直すとセット番号が変わるので、うっかり消えると困る。川上さん 2026-08-31 */
   if(how==='pdf'){
     /* Chrome は「PDFに保存」のファイル名にページのタイトルを使う。出したあと必ず元に戻す */
     var old=document.title;
@@ -4638,17 +4651,22 @@ function tmStepPrint_(body){
   var has=function(t){return types.indexOf(t)>=0;};
   var style=_printStyle_();
   body.innerHTML=
-    '<div class="tm-qh">紙の形</div>'
-    +'<div style="display:flex;gap:16px;flex-wrap:wrap;margin:2px 0 2px;">'
-    +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="radio" name="tmStyle" id="tmStyle-list"'+(style==='list'?' checked':'')+'> 覚える一覧（問題と答えが左右に並ぶ）</label>'
-    +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="radio" name="tmStyle" id="tmStyle-finish"'+(style==='finish'?' checked':'')+'> 仕上げプリント（1枚目＝問題／2枚目＝答え）</label>'
+    '<div class="tm-qh" style="font-size:12px;font-weight:800;color:var(--text);">紙の形（どちらを刷るか）</div>'
+    +'<div class="stycards">'
+    +'<button type="button" class="styc'+(style==='list'?' on':'')+'" id="tmStyle-list" onclick="setPrintStyle(\'list\')">'
+    +'<span class="sy-mk">✓</span><span class="sy-b"><span class="sy-t">覚える一覧</span>'
+    +'<span class="sy-s">問題と答えが左右に並ぶ。折って隠しながら覚え直す紙。</span></span></button>'
+    +'<button type="button" class="styc'+(style==='finish'?' on':'')+'" id="tmStyle-finish" onclick="setPrintStyle(\'finish\')">'
+    +'<span class="sy-mk">✓</span><span class="sy-b"><span class="sy-t">仕上げプリント</span>'
+    +'<span class="sy-s">1枚目＝問題／2枚目＝答え。テスト範囲を決めて、自分で解いて丸つけする紙。</span></span></button>'
     +'</div>'
+    +'<div id="tmTypeOpts">'
     +'<div class="tm-qh" style="margin-top:10px;">印刷する種別（複数えらべます）</div>'
     +'<div style="display:flex;gap:16px;flex-wrap:wrap;margin:2px 0 2px;">'
     +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-daily"'+(has('daily')?' checked':'')+'> 毎日学習</label>'
     +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-unit"'+(has('unit')?' checked':'')+'> 単元別</label>'
     +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-quiz"'+(has('quiz')?' checked':'')+'> 確認テスト</label>'
-    +'</div>'
+    +'</div></div>'
     +'<div id="tmListOpts">'
     +'<div class="tm-qh" style="margin-top:10px;">印刷する範囲</div>'
     +'<select id="tmScope" class="tm-sel">'
@@ -4669,20 +4687,10 @@ function tmStepPrint_(body){
     +'<button type="button" class="btn-ghost pk-clr" id="printMatClear" onclick="clearPrintMats()">クリア</button></div>'
     +'<div class="pk-list sel" id="printMatSel"></div></div>'
     +'</div>'
-    +'<div class="tm-note">まちがえてから<b>3日以上たった問題</b>から、ミス問8割＋克服した語2割で選びます。1人あたり最大50問。<br>紙は<b>両面2枚（1枚目＝問題／2枚目＝答え）</b>。問題数は紙に入るだけ（教科によって変わります）。<br><b>選択肢は紙に出しません</b>（思い出して書く練習にするため）。選択肢が無いと解けない「あてはまらないものを選べ」型は紙から外します。</div>'
+    +'<div class="tm-note">選んだ教材のまちがいを<b>毎日学習・単元別・確認テストのぜんぶから</b>集めます（範囲は教材で決めるので種別では絞りません）。<br>まちがえてから<b>3日以上たった問題</b>から、ミス問8割＋克服した語2割で選びます。1人あたり最大50問。<br>紙は<b>両面2枚（1枚目＝問題／2枚目＝答え）</b>。問題数は紙に入るだけ（教科によって変わります）。<br><b>選択肢は紙に出しません</b>（思い出して書く練習にするため）。選択肢が無いと解けない「あてはまらないものを選べ」型は紙から外します。</div>'
     +'<div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">🖨 <b>両面（長辺とじ）で印刷してください。</b>1枚目の表裏＝問題、2枚目の表裏＝答えです。</div>'
     +'</div>';
-  var toggle=function(){
-    var st=_printStyle_();
-    $('tmListOpts').style.display=(st==='list')?'':'none';
-    $('tmFinishOpts').style.display=(st==='finish')?'':'none';
-    tmUpdateFoot();
-  };
-  ['list','finish'].forEach(function(k){
-    var r=$('tmStyle-'+k);
-    if(r)r.onchange=function(){ localStorage.setItem('kwt_print_style',k); toggle(); };
-  });
-  toggle();
+  _tmToggleStyle_();
   var si=$('printMatSearch');if(si)si.oninput=function(){renderPrintMaterials();};
   if(!bulkMaterials.length){
     $('printMatCand').innerHTML='<div class="pk-empty">読み込み中…</div>';
@@ -4691,6 +4699,21 @@ function tmStepPrint_(body){
       renderPrintMaterials();
     });
   }else renderPrintMaterials();
+}
+/* 紙の形の切り替え。種別チェックは「覚える一覧」のときだけ出す
+   （仕上げプリントは範囲を教材で決めるので、種別で絞る意味がない＝川上さん確定 2026-08-31）*/
+function _tmToggleStyle_(){
+  var st=_printStyle_();
+  var a=$('tmListOpts'), b=$('tmFinishOpts'), c=$('tmTypeOpts');
+  if(a)a.style.display=(st==='list')?'':'none';
+  if(b)b.style.display=(st==='finish')?'':'none';
+  if(c)c.style.display=(st==='list')?'':'none';
+  tmUpdateFoot();
+}
+function setPrintStyle(k){
+  try{ localStorage.setItem('kwt_print_style',k); }catch(e){}
+  ['list','finish'].forEach(function(x){ var el=$('tmStyle-'+x); if(el) el.classList.toggle('on',x===k); });
+  _tmToggleStyle_();
 }
 /* テスト範囲の教材えらび。renderBulkMaterials と同じ形（部品を流用・確認テストの配信欄は無し）2026-08-30 */
 function renderPrintMaterials(){
@@ -4721,11 +4744,11 @@ function tmPrint(){
   if(_printStyle_()==='finish'){
     var mats=Object.keys(printMat);
     if(!mats.length){ toast('テスト範囲の教材をえらんでください'); return; }
-    if(!types0.length){ toast('印刷する種別を1つ以上えらんでください'); return; }
     localStorage.setItem('kwt_print_mats',mats.join(','));
-    localStorage.setItem('kwt_print_types',types0.join(','));
     closeModal('bulkModal');
-    runFinishSheet_(ids,mats,types0.join(','));
+    /* 範囲は教材で決めるので種別では絞らない（毎日学習・単元別・確認テストのぜんぶから集める）
+       ＝川上さん確定 2026-08-31。「覚える一覧」側の種別チェックはそのまま残す */
+    runFinishSheet_(ids,mats,'daily,unit,quiz');
     return;
   }
   var scope=$('tmScope').value; if(scope==='graduated')scope='active';
