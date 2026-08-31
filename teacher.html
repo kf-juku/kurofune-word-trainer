@@ -282,6 +282,15 @@
     .fs-page{page-break-before:always;}
     .fs-sheet > .fs-page:first-child{page-break-before:auto;}
   }
+  /* 「PDFで保存」（html2pdf）用 2026-08-31。html2canvas は画面メディアで描くので、
+     上の @media print に書いた改ページ・仕切りページの指定がそのままでは効かない。
+     PDFを作るあいだだけ body に fs-pdf を付けて、同じ指定を画面メディアにも当てる。
+     ・.p-unit{page-break-after:always} は付けない。生徒1人ずつ別々にPDFへ足すので、
+       付けると生徒ごとに末尾へ白紙が1枚入る。 */
+  body.fs-pdf .fs-page{page-break-before:always;}
+  body.fs-pdf .p-unit > .fs-sheet > .fs-page:first-child{page-break-before:auto;}
+  body.fs-pdf .p-filler{display:block;position:relative;page-break-before:always;min-height:258mm;}
+  body.fs-pdf .p-filler::after{content:"";position:absolute;right:0;bottom:0;width:30mm;height:1.4mm;background:#b4bac4;}
   .print-student{color:#000;} /* 生徒ごとに新しい紙の表＝仕切りページ方式（.p-unit＋.p-filler・ページ数が奇数なら仕切り1枚）で分ける 2026-07-30 */
   .print-h{font-size:18px;font-weight:800;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:6px;}
   .print-sub{font-size:12px;color:#333;margin-bottom:12px;}
@@ -1691,13 +1700,14 @@
     <div class="mhint" id="fsGoInfo"></div>
     <div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">
       🖨 <b>両面（長辺とじ）で印刷してください。</b>1枚目の表裏＝問題、2枚目の表裏＝答えです。<br>
-      ⬇ <b>PDFで保存</b>を押すと同じ印刷ダイアログが開きます。<b>送信先を「PDFに保存」に変えて</b>ください。<br>
+      ⬇ <b>PDFで保存</b>を押すと、PDFファイルがそのままダウンロードされます（印刷ダイアログは開きません）。<br>
       この画面は<b>「閉じる」を押すまで消えません。</b>印刷してから続けてPDFも保存できます。
     </div>
+    <div class="mhint" id="fsGoProg" style="display:none;color:var(--crimson);font-weight:700;"></div>
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal('fsGoModal')">閉じる</button>
       <span style="flex:1;"></span>
-      <button class="btn-ghost" onclick="fsGo_('pdf')">⬇ PDFで保存</button>
+      <button class="btn-ghost" id="fsPdfBtn" onclick="fsPdf_()">⬇ PDFで保存</button>
       <button class="btn-primary" style="width:auto;" onclick="fsGo_('print')">🖨 印刷する</button>
     </div>
   </div>
@@ -2360,7 +2370,8 @@ function fsQrHtml_(code){
       d+='M'+(st+q)+' '+(r+q)+'h'+(c-st)+'v1h-'+(c-st)+'z';
     }
   }
-  return '<svg class="fs-qr" viewBox="0 0 '+side+' '+side+'" shape-rendering="crispEdges" role="img" aria-label="'+esc(url)+'">'
+  /* width/height 属性は html2canvas（PDFで保存）用。画面・印刷では .fs-qr のCSSが勝つので見た目は変わらない */
+  return '<svg class="fs-qr" width="28mm" height="28mm" viewBox="0 0 '+side+' '+side+'" shape-rendering="crispEdges" role="img" aria-label="'+esc(url)+'">'
     +'<rect width="'+side+'" height="'+side+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';
 }
 function fsBackHtml_(ctx){
@@ -2586,16 +2597,58 @@ function _fsPdfName_(){
 function fsGo_(how){
   /* 画面は閉じない。印刷したあとに続けてPDFも保存できるようにする（閉じるのは「閉じる」だけ）
      ＝作り直すとセット番号が変わるので、うっかり消えると困る。川上さん 2026-08-31 */
-  if(how==='pdf'){
-    /* Chrome は「PDFに保存」のファイル名にページのタイトルを使う。出したあと必ず元に戻す */
-    var old=document.title;
-    document.title=_fsPdfName_();
-    var back=function(){ document.title=old; window.removeEventListener('afterprint',back); };
-    window.addEventListener('afterprint',back);
-    setTimeout(back,60000);            /* afterprint が来ない端末の保険 */
-    toast('送信先を「PDFに保存」に変えてください');
-  }
   printWhenImagesReady_($('printArea'));
+}
+/* ---- PDFファイルをそのまま落とす（印刷ダイアログを開かない）2026-08-31 ----
+   レポートタブの rpPdf と同じ html2pdf を使う。
+   【生徒1人ずつPDFに足す理由】全員を1枚の canvas に描くと、48名×4ページで縦が
+   十数万pxになりブラウザの canvas 上限を超えて白紙のPDFになる。1人＝2〜5ページなら安全。
+   html2pdf の Worker は prop.pdf を使い回すので、2人目からは pdf.addPage() を自分で足してから
+   toContainer→toCanvas→toPdf をつなぐ（html2pdf の複数要素の定石）。 */
+var _fsPdfBusy=false;
+function fsPdf_(){
+  if(_fsPdfBusy) return;
+  var host=$('printArea');
+  var units=Array.prototype.slice.call(host.querySelectorAll('.p-unit'));
+  if(!units.length){ toast('PDFにする紙がありません'); return; }
+  _fsPdfBusy=true;
+  var btns=$('fsGoModal').querySelectorAll('button');
+  var prog=$('fsGoProg');
+  var setP=function(t){ if(!prog)return; prog.textContent=t||''; prog.style.display=t?'block':'none'; };
+  for(var i=0;i<btns.length;i++) btns[i].disabled=true;
+  var sx=window.pageXOffset||0, sy=window.pageYOffset||0;
+  var fin=function(msg){
+    document.body.classList.remove('fs-pdf');
+    host.style.cssText=''; window.scrollTo(sx,sy);
+    for(var j=0;j<btns.length;j++) btns[j].disabled=false;
+    setP(''); _fsPdfBusy=false; window._fsPdfDone=(msg?'ng':'ok');
+    if(msg) toast(msg);
+  };
+  setP('PDFの部品を読み込んでいます…');
+  window._fsPdfDone='';
+  _rpEnsureH2P(function(){
+    document.body.classList.add('fs-pdf');
+    /* 紙の幅＝A4横210 − 左右余白12mm×2 ＝186mm。ここを@pageと合わせないとPDFのページ数がずれる */
+    host.style.cssText='display:block;position:absolute;left:-99999px;top:0;width:186mm;background:#fff;';
+    /* 【地雷】ページを下にスクロールした状態だと html2canvas が切り取る位置をまちがえて白紙になる（rpPdf と同じ） */
+    window.scrollTo(0,0);
+    /* 画質は実測で決めた（2026-08-31・生徒6名23ページ）。scale=2 のまま画質だけ落とす：
+       0.95→11.0MB / 0.85→8.0MB / 0.70→6.3MB。0.85 は 0.95 と見分けがつかず3割小さい。
+       scale を 1.5 まで下げると 4.9MB になるが、文字が眠くなるので下げない。
+       どの組み合わせでもQRは200dpiで6/6デコードできた。 */
+    var opt={ margin:[12,12,12,12], filename:_fsPdfName_()+'.pdf',
+      image:{type:'jpeg',quality:0.85},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy']} };
+    setP('PDFを作っています… 1/'+units.length+'名');
+    var w=html2pdf().set(opt).from(units[0]).toPdf();
+    units.slice(1).forEach(function(u,k){
+      w=w.get('pdf').then(function(pdf){ pdf.addPage(); setP('PDFを作っています… '+(k+2)+'/'+units.length+'名'); })
+         .set(opt).from(u).toContainer().toCanvas().toPdf();
+    });
+    w.save().then(function(){ fin(); })['catch'](function(e){ window._fsPdfErr=String(e&&e.stack||e); fin('PDFの作成に失敗しました。「印刷する」から「PDFに保存」を選んでください'); });
+  }, function(){ fin(); });
 }
 function runPrint_(ids,scope,days,limit,types){
   if(!ids.length){toast('印刷する生徒がいません');return;}
@@ -5977,12 +6030,12 @@ function rpPrint(){
   var list=rpPrintList_(); if(!list.length){toast('印刷する生徒がいません');return;}
   rpFit_(list); window.print();
 }
-function _rpEnsureH2P(cb){
+function _rpEnsureH2P(cb,ecb){
   if(window.html2pdf)return cb();
   var s=document.createElement('script');
   s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
   s.onload=function(){cb();};
-  s.onerror=function(){toast('PDFの部品を読み込めませんでした。「印刷」から「PDFに保存」を選んでください');};
+  s.onerror=function(){toast('PDFの部品を読み込めませんでした。「印刷」から「PDFに保存」を選んでください'); if(ecb)ecb();};
   document.head.appendChild(s);
 }
 function rpPdf(){
