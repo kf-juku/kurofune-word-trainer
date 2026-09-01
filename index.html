@@ -1105,13 +1105,19 @@
 .sh-m:active{transform:translateY(1px) scale(.98);}
 .sh-m.on.o{background:rgba(31,170,107,.14);border-color:var(--ok);color:var(--ok);}
 .sh-m.on.x{background:rgba(224,83,60,.13);border-color:var(--ng);color:var(--ng);}
+/* 未入力の問へ飛んだときの目印（青＝操作色。赤は誤りの色なので使わない）2026-09-01 */
+.sh-q.miss{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft);animation:shMiss .5s ease 2;}
+@keyframes shMiss{0%,100%{transform:none;}50%{transform:translateY(-3px);}}
+.sh-left.tap{cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
 .sh-foot{position:sticky;bottom:0;margin-top:14px;padding:12px 0 6px;background:linear-gradient(180deg,rgba(0,0,0,0),var(--bg) 30%);display:flex;align-items:center;gap:10px;}
 .sh-left{flex:none;font-size:12.5px;font-weight:700;color:var(--sub);}
 /* 紙の答え合わせで卒業した語（2026-09-01 川上さん）。言葉と🎓は間違いノート・おさらいの卒業と同じ */
 .sh-grad{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);}
 .sh-grad-h{font-size:13px;font-weight:800;color:var(--gold);margin-bottom:9px;}
-.sh-gw{display:inline-flex;align-items:baseline;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:5px 9px;margin:0 6px 6px 0;font-size:13.5px;font-weight:700;color:var(--ink);}
-.sh-gw .sh-gw-ja{font-size:11.5px;font-weight:600;color:var(--sub);}
+/* 語は絶対に折らない（flex の既定で縮むと「中／央」と割れる）。うしろの意味・設問文だけ1行で切る 2026-09-01 */
+.sh-gw{display:flex;align-items:baseline;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:6px 10px;margin:0 0 6px;font-size:13.5px;font-weight:700;color:var(--ink);}
+.sh-gw .sh-gw-en{flex:0 0 auto;white-space:nowrap;}
+.sh-gw .sh-gw-ja{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;font-weight:600;color:var(--sub);}
 .sh-foot .btn{flex:1;min-width:0;}
 @media (max-width:340px){
   .sh-grid{gap:6px;}
@@ -1997,6 +2003,7 @@ function noticeRenderList_(){
    ・送信は同期。失敗したらボタンを戻す＝「送れた」と偽らない */
 var _shSet = null;        // いま開いている紙 {code,total}
 var _shAns = [];          // 1..total の 'o' / 'x' / ''（画面を離れたら捨てる）
+var _shMissT = null;      // 未入力の問を光らせる時間切れ 2026-09-01
 var _shSending = false;
 function shPendGet_(){ try{ return sessionStorage.getItem('kwt_sheet_code')||''; }catch(e){ return ''; } }
 function shPendSet_(v){ try{ if(v)sessionStorage.setItem('kwt_sheet_code',v); else sessionStorage.removeItem('kwt_sheet_code'); }catch(e){} }
@@ -2060,7 +2067,7 @@ function shRenderMarks_(){
        +'<div class="sh-lead">'+rb('紙','かみ')+'の'+rb('丸','まる')+'つけのとおりに、'+rb('番号','ばんごう')+'ごとに○か×を'+rb('選','えら')+'ぼう。</div>'
        +'<div class="sh-grid" id="sheet-marks"></div>'
        +'<div class="sh-foot"><span class="sh-left" id="sheet-left"></span>'
-       +'<button class="btn" id="sheet-send" type="button" disabled><span>'+rb('送','おく')+'る</span></button></div>'
+       +'<button class="btn" id="sheet-send" type="button"><span>'+rb('送','おく')+'る</span></button></div>'
        +'<div class="sh-msg" id="sheet-msg2"></div>';
   host.innerHTML=h; host.style.display='block';
   var g=$('sheet-marks'), rows='';
@@ -2077,6 +2084,7 @@ function shRenderMarks_(){
     _shAns[i]=v; shSyncMarks_();
   });
   var sb=$('sheet-send'); if(sb)sb.onclick=shSend_;
+  var lf=$('sheet-left'); if(lf)lf.onclick=function(){ shGotoBlank_(); };   // 「あと◯問」を押しても未入力へ飛ぶ
   shSyncMarks_();
   window.scrollTo(0,0);
 }
@@ -2089,12 +2097,36 @@ function shSyncMarks_(){
   }
   var left=0; for(var j=0;j<_shAns.length;j++) if(!_shAns[j])left++;
   var el=$('sheet-left');
-  if(el)el.innerHTML = left>0 ? ('あと'+left+rb('問','もん')) : (rb('全部','ぜんぶ')+rb('入','はい')+'った');
-  var sb=$('sheet-send'); if(sb&&!_shSending)sb.disabled=(left>0);
+  if(el){
+    el.innerHTML = left>0 ? ('あと'+left+rb('問','もん')) : (rb('全部','ぜんぶ')+rb('入','はい')+'った');
+    el.className = 'sh-left' + (left>0 ? ' tap' : '');
+  }
+  /* 送るは止めない（2026-09-01 川上さん確定）。押せないと、どこが空いているか分からないまま手が止まる。
+     未入力があるときは送らずに、その問へ連れていく＝shSend_ の先頭で見る。 */
+  var sb=$('sheet-send'); if(sb&&!_shSending)sb.disabled=false;
+}
+/* 最初の未入力の問へスクロールして光らせる。無ければ false を返す 2026-09-01 */
+function shGotoBlank_(){
+  var i=-1;
+  for(var k=0;k<_shAns.length;k++) if(!_shAns[k]){ i=k; break; }
+  if(i<0)return false;
+  var g=$('sheet-marks'); if(!g)return true;
+  var q=g.children[i]; if(!q)return true;
+  try{ q.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){ q.scrollIntoView(); }
+  q.classList.remove('miss'); void q.offsetWidth; q.classList.add('miss');
+  if(_shMissT)clearTimeout(_shMissT);
+  _shMissT=setTimeout(function(){ q.classList.remove('miss'); },1600);
+  return true;
 }
 function shSend_(){
   if(_shSending||!_shSet)return;
-  for(var i=0;i<_shAns.length;i++) if(!_shAns[i])return;   // 全部入れないと送れない
+  /* 全部入れないと送らない。ただし黙って止めず、最初の未入力の問へ連れていく 2026-09-01 */
+  var blank=0; for(var i=0;i<_shAns.length;i++) if(!_shAns[i])blank++;
+  if(blank>0){
+    shGotoBlank_();
+    toastH('あと'+blank+rb('問','もん')+rb('入','はい')+'っていません');
+    return;
+  }
   var b=$('sheet-send'); if(!b)return;
   _shSending=true; b.disabled=true;
   b.innerHTML=kwtSpin(18)+'<span style="vertical-align:middle"> '+rb('送信中','そうしんちゅう')+'…</span>';
@@ -2126,7 +2158,8 @@ function shDone_(dt){
   var gh='';
   if(cl>0){
     var chips=gw.map(function(w){
-      return '<span class="sh-gw">'+esc(w&&w.en)+((w&&w.ja)?('<span class="sh-gw-ja">'+esc(w.ja)+'</span>'):'')+'</span>';
+      return '<span class="sh-gw"><span class="sh-gw-en">'+esc(w&&w.en)+'</span>'
+        +((w&&w.ja)?('<span class="sh-gw-ja">'+esc(w.ja)+'</span>'):'')+'</span>';
     }).join('');
     gh='<div class="sh-grad"><div class="sh-grad-h">🎓 '+rb('卒業','そつぎょう')+'した'+rb('語','ご')+' '+cl+'</div>'
       +(chips?('<div>'+chips+'</div>'):'')
