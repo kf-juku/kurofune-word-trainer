@@ -1107,6 +1107,11 @@
 .sh-m.on.x{background:rgba(224,83,60,.13);border-color:var(--ng);color:var(--ng);}
 .sh-foot{position:sticky;bottom:0;margin-top:14px;padding:12px 0 6px;background:linear-gradient(180deg,rgba(0,0,0,0),var(--bg) 30%);display:flex;align-items:center;gap:10px;}
 .sh-left{flex:none;font-size:12.5px;font-weight:700;color:var(--sub);}
+/* 紙の答え合わせで卒業した語（2026-09-01 川上さん）。言葉と🎓は間違いノート・おさらいの卒業と同じ */
+.sh-grad{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);}
+.sh-grad-h{font-size:13px;font-weight:800;color:var(--gold);margin-bottom:9px;}
+.sh-gw{display:inline-flex;align-items:baseline;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:5px 9px;margin:0 6px 6px 0;font-size:13.5px;font-weight:700;color:var(--ink);}
+.sh-gw .sh-gw-ja{font-size:11.5px;font-weight:600;color:var(--sub);}
 .sh-foot .btn{flex:1;min-width:0;}
 @media (max-width:340px){
   .sh-grid{gap:6px;}
@@ -2115,12 +2120,27 @@ function shDone_(dt){
     return;
   }
   var c=parseInt(dt&&dt.correct,10)||0, t=parseInt(dt&&dt.total,10)||0, g=parseInt(dt&&dt.graded,10)||0;
+  var cl=parseInt(dt&&dt.cleared,10)||0, gw=(dt&&dt.graduated)||[];
   var sub = g>0 ? (g+rb('語','ご')+'を'+rb('記録','きろく')+'に'+rb('入','い')+'れました') : (rb('記録','きろく')+'をおくりました');
+  /* 卒業した語を並べる（2026-09-01 川上さん）。名前が引けなかったときは数だけ出す＝黙って消さない */
+  var gh='';
+  if(cl>0){
+    var chips=gw.map(function(w){
+      return '<span class="sh-gw">'+esc(w&&w.en)+((w&&w.ja)?('<span class="sh-gw-ja">'+esc(w.ja)+'</span>'):'')+'</span>';
+    }).join('');
+    gh='<div class="sh-grad"><div class="sh-grad-h">🎓 '+rb('卒業','そつぎょう')+'した'+rb('語','ご')+' '+cl+'</div>'
+      +(chips?('<div>'+chips+'</div>'):'')
+      +(gw.length&&cl>gw.length?('<div class="sh-lead" style="margin:6px 0 0;">ほか '+(cl-gw.length)+rb('語','ご')+'</div>'):'')
+      +'</div>';
+  }
   host.innerHTML='<div class="fin-card"><div class="dc-ic"><i class="ti ti-circle-check"></i></div>'
     +'<div class="dc-t">'+t+rb('問中','もんちゅう')+' '+c+rb('問','もん')+rb('正解','せいかい')+'！</div>'
     +'<div class="dc-s">'+sub+'</div></div>'
+    +gh
     +'<div class="sh-lead">'+rb('間違','まちが')+'えた'+rb('問題','もんだい')+'は、また'+rb('間違','まちが')+'いノートに'+rb('出','で')+'てくる。</div>';
   window.scrollTo(0,0);
+  /* 卒業が1語でもあれば花火。おさらいの完了と同じ部品を使う（新しい演出を作らない） */
+  if(cl>0){ try{ fireworks_('grad'); }catch(e){} }
 }
 
 function loadNotices(){
