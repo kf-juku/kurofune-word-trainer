@@ -2186,10 +2186,21 @@ function fsQBodyHtml_(it,no){
   return '<div class="fs-q"><div class="fs-n">'+no+'</div><div class="fs-b">'
     +'<div class="fs-txt">'+esc(fsQuestionOf_(it))+'</div><div class="fs-ansline"></div></div></div>';
 }
+/* 図の高さは「読み込めているか」に左右されないよう、mmで直接指定する。
+   値は CSS の max-width:58mm / max-height（3問58・2問48・1問36mm）で決まる寸法をそのまま数値にしたものなので、
+   見た目は今までと変わらない。縦横比が分からない図（読めなかった図）は最大の高さを確保する＝詰め込みすぎない。 */
+var FS_FIG_W_MM_=58;
+function fsFigMaxH_(n){ return n>=3?58:(n===2?48:36); }
+function fsFigHMm_(url,n){
+  var mx=fsFigMaxH_(n), ar=_fsImgAR[url];
+  if(!(ar>0)) return mx;                      /* 読めていない図は最大の高さで場所を取る */
+  return Math.min(mx, FS_FIG_W_MM_*ar);       /* 幅58mmに収めたときの高さ。max-height を超えない */
+}
 function fsFigBlockHtml_(block,startNo){
   var inner='';
   block.items.forEach(function(it,i){ inner+=fsQBodyHtml_(it,startNo+i); });
-  return '<div class="fs-figblk" data-n="'+block.items.length+'"><img src="'+esc(block.fig)+'" alt="" onerror="this.style.visibility=\'hidden\'">'
+  var h=Math.round(fsFigHMm_(block.fig,block.items.length)*10)/10;
+  return '<div class="fs-figblk" data-n="'+block.items.length+'"><img src="'+esc(block.fig)+'" alt="" style="height:'+h+'mm" onerror="this.style.visibility=\'hidden\'">'
     +'<div class="fs-qs">'+inner+'</div></div>';
 }
 function fsAnsBandHtml_(){
@@ -2565,13 +2576,22 @@ function fsScopeLabel_(mats){
   return '範囲：'+head+(names.length>2?('　ほか'+(names.length-2)+'教材'):'');
 }
 /* 図を先に読み込んでから測る（未読込だと高さ0でページ数を誤る＝2026-07-30 の地雷） */
+/* 図を先に読み、そのときに縦横比を控える。
+   ★これをやらないと、読み込みが間に合わない環境で「図の高さ0」のまま測り、
+     1ページに問題を詰め込みすぎて紙からあふれる（川上さん報告 2026-09-01／原因特定 2026-09-02）。
+     実測＝待たずに測ると1ページが 261mm → 323.5mm になった。 */
+var _fsImgAR={};   /* url → 縦横比（高さ÷幅）。読めなかった図は入らない */
 function fsPreload_(urls,cb){
   if(!urls.length){cb();return;}
   var left=urls.length, fired=false;
   var go=function(){ if(fired)return; fired=true; cb(); };
   var on=function(){ left--; if(left<=0) go(); };
-  urls.forEach(function(u){ var im=new Image(); im.onload=on; im.onerror=on; im.src=u; });
-  setTimeout(go,6000);
+  urls.forEach(function(u){
+    var im=new Image();
+    im.onload=function(){ if(im.naturalWidth>0) _fsImgAR[u]=im.naturalHeight/im.naturalWidth; on(); };
+    im.onerror=on; im.src=u;
+  });
+  setTimeout(go,20000);   /* 図が多いと6秒では終わらない。読めなかったぶんは最大の高さで場所を取る＝あふれない側に倒れる */
 }
 var _finishCand=null;
 function runFinishSheet_(ids,mats,types){
