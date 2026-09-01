@@ -1088,6 +1088,35 @@
 .ntl-chk i{font-size:14px;}
 .ntl-chk em{font-style:normal;color:var(--sub);font-weight:400;}
 
+/* ===== 紙の答え合わせ（仕上げプリント 段5）2026-09-01 ===== */
+.sh-lead{font-size:13px;line-height:1.8;color:var(--sub);margin-bottom:12px;}
+.sh-in{display:flex;gap:8px;align-items:center;}
+.sh-in input{flex:1;min-width:0;font-family:'Manrope','Noto Sans JP',sans-serif;font-size:20px;font-weight:800;letter-spacing:.12em;text-align:center;text-transform:uppercase;padding:13px 8px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);}
+.sh-in .btn{width:auto;flex:none;padding:13px 16px;white-space:nowrap;}
+.sh-msg{margin-top:12px;font-size:13px;line-height:1.8;color:var(--ng);}
+.sh-msg:empty{margin:0;}
+.sh-head{display:flex;align-items:baseline;gap:9px;margin-bottom:8px;}
+.sh-code{font-family:'Manrope',sans-serif;font-size:19px;font-weight:800;letter-spacing:.08em;color:var(--ink);}
+.sh-tot{font-size:12.5px;color:var(--sub);}
+.sh-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.sh-q{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px;box-shadow:var(--shadow);}
+.sh-n{width:24px;flex:none;text-align:right;font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;color:var(--sub);font-variant-numeric:tabular-nums;}
+.sh-m{flex:1;min-width:0;min-height:40px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--sub);font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;transition:transform .12s,background .12s,color .12s,border-color .12s;}
+.sh-m:active{transform:translateY(1px) scale(.98);}
+.sh-m.on.o{background:rgba(31,170,107,.14);border-color:var(--ok);color:var(--ok);}
+.sh-m.on.x{background:rgba(224,83,60,.13);border-color:var(--ng);color:var(--ng);}
+.sh-foot{position:sticky;bottom:0;margin-top:14px;padding:12px 0 6px;background:linear-gradient(180deg,rgba(0,0,0,0),var(--bg) 30%);display:flex;align-items:center;gap:10px;}
+.sh-left{flex:none;font-size:12.5px;font-weight:700;color:var(--sub);}
+.sh-foot .btn{flex:1;min-width:0;}
+@media (max-width:340px){
+  .sh-grid{gap:6px;}
+  .sh-q{padding:7px 6px;gap:4px;}
+  .sh-n{width:20px;font-size:13px;}
+  .sh-m{min-height:38px;font-size:16px;}
+  .sh-in input{font-size:18px;letter-spacing:.08em;}
+}
+
+
   /* ニックネーム変更モーダル */
   .nick-edit{margin-left:8px;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--sub);font-size:13px;display:inline-grid;place-items:center;cursor:pointer;vertical-align:middle;transition:transform .15s,color .15s;}
   .nick-edit:active{transform:scale(.9);}
@@ -1405,6 +1434,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
             <div class="tile" id="tile-overall"><div class="tic"><i class="ti ti-world"></i></div><div class="tnm">クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby></div><div class="tcnt">みんなのがんばり</div></div>
             <div class="tile" id="tile-trio"><div class="tic"><i class="ti ti-star"></i></div><div class="tnm"><ruby>三連星<rt class="uf">さんれんせい</rt></ruby></div><div class="tcnt"><ruby>昨日<rt class="uf">きのう</rt></ruby>の<ruby>上位<rt class="uf">じょうい</rt></ruby>3<ruby>人<rt class="uf">にん</rt></ruby></div></div>
             <div class="tile" id="tile-notice"><div class="tic"><i class="ti ti-speakerphone"></i></div><div class="tnm">お<ruby>知<rt class="uf">し</rt></ruby>らせ</div><div class="tcnt" id="cnt-notice">–</div></div>
+            <div class="tile" id="tile-sheet"><div class="tic"><i class="ti ti-checkup-list"></i></div><div class="tnm"><ruby>紙<rt class="uf">かみ</rt></ruby>の<ruby>答<rt class="uf">こた</rt></ruby>え<ruby>合<rt class="uf">あ</rt></ruby>わせ</div><div class="tcnt"><ruby>番号<rt class="uf">ばんごう</rt></ruby>を<ruby>入<rt class="uf">い</rt></ruby>れて○×を<ruby>送<rt class="uf">おく</rt></ruby>る</div></div>
           </div>
           <div class="set-h"><ruby>設定<rt class="uf">せってい</rt></ruby></div>
           <div class="setgrp">
@@ -1438,6 +1468,14 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         </div>
         <div class="subview" id="sv-notice">
           <div id="notice-list"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
+        </div>
+        <div class="subview" id="sv-sheet">
+          <div id="sheet-step1">
+            <div class="sh-lead"><ruby>先生<rt class="uf">せんせい</rt></ruby>からもらった<ruby>紙<rt class="uf">かみ</rt></ruby>のうらにある<ruby>番号<rt class="uf">ばんごう</rt></ruby>を<ruby>入<rt class="uf">い</rt></ruby>れてください。</div>
+            <div class="sh-in"><input id="sheet-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="8" placeholder="E7-2208"><button class="btn" id="sheet-open" type="button"><span><ruby>開<rt class="uf">ひら</rt></ruby>く</span> <i class="ti ti-arrow-right"></i></button></div>
+            <div class="sh-msg" id="sheet-msg"></div>
+          </div>
+          <div id="sheet-step2" style="display:none;"></div>
         </div>
       </div>
     </div>
@@ -1826,9 +1864,9 @@ function buildMapRow(l,isTest,inFold){
 /* ===== タイル型ホームのビュー切替（2026-06-24）===== */
 /* quiz は 2026-08-20 に単元別タブの②へ一本化（sv-quiz 廃止）。ここから外すことで、
    古い sessionStorage('kwt_view'='quiz') が残っていても復元は「タブ」側に落ちる。 */
-var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でもやり直せる',team:'チームのなかま',overall:'クロフネ全体',records:'じぶんの記録',notice:'お知らせ'};
+var SUB_TITLES={note:'間違いノート',review:'おさらい',badge:'バッジ',lists:'学習マップ ・ 何回でもやり直せる',team:'チームのなかま',overall:'クロフネ全体',records:'じぶんの記録',notice:'お知らせ',sheet:'紙の答え合わせ'};
 /* 上の SUB_TITLES はプレーンなまま（不具合報告の画面名の照合に使う）。表示用はルビ付きのこちらを使う 2026-08-21 */
-var SUB_TITLES_H={note:'<ruby>間違<rt class="uf">まちが</rt></ruby>いノート',review:'おさらい',badge:'バッジ',lists:'<ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップ ・ <ruby>何回<rt class="uf">なんかい</rt></ruby>でもやり<ruby>直<rt class="uf">なお</rt></ruby>せる',team:'チームの<ruby>仲間<rt class="uf">なかま</rt></ruby>',overall:'クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby>',records:'<ruby>自分<rt class="uf">じぶん</rt></ruby>の<ruby>記録<rt class="uf">きろく</rt></ruby>',notice:'お<ruby>知<rt class="uf">し</rt></ruby>らせ'};
+var SUB_TITLES_H={note:'<ruby>間違<rt class="uf">まちが</rt></ruby>いノート',review:'おさらい',badge:'バッジ',lists:'<ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップ ・ <ruby>何回<rt class="uf">なんかい</rt></ruby>でもやり<ruby>直<rt class="uf">なお</rt></ruby>せる',team:'チームの<ruby>仲間<rt class="uf">なかま</rt></ruby>',overall:'クロフネ<ruby>全体<rt class="uf">ぜんたい</rt></ruby>',records:'<ruby>自分<rt class="uf">じぶん</rt></ruby>の<ruby>記録<rt class="uf">きろく</rt></ruby>',notice:'お<ruby>知<rt class="uf">し</rt></ruby>らせ',sheet:'<ruby>紙<rt class="uf">かみ</rt></ruby>の<ruby>答<rt class="uf">こた</rt></ruby>え<ruby>合<rt class="uf">あ</rt></ruby>わせ'};
 /* 「もどる」用の画面履歴（1つ前に戻る）2026-07-24。従来のbtn-backは必ずホームへ戻っていたのを、1つ前の画面に戻す。 */
 var _navStack=[],_navBack=false;
 function _curViewKey_(){var v='';try{v=sessionStorage.getItem('kwt_view')||'';}catch(e){}return (v&&SUB_TITLES[v])?('sub:'+v):('tab:'+(_homeTab||'daily'));}
@@ -1946,6 +1984,145 @@ function noticeRenderList_(){
   }).join('')+'</div>';
 }
 /* サブ画面を開いたとき。通信に失敗しても「0件」とは出さない（2026-08-22 の決まり）。 */
+/* ===== 紙の答え合わせ（仕上げプリント 段5）2026-09-01 =====
+   正＝機能仕様書_仕上げプリント_Kurofune-Word-Trainer.md §3-6。
+   ・入口は記録タブだけ（毎日タブには出さない＝2026-09-01 川上さん確定）
+   ・QRから来たら ?sheet=XXXX を読んで、ログイン後にこの画面へ直行する
+   ・端末に控えを残さない＝途中で画面を離れたら消える（紙が手元にあるので入れ直せる）
+   ・送信は同期。失敗したらボタンを戻す＝「送れた」と偽らない */
+var _shSet = null;        // いま開いている紙 {code,total}
+var _shAns = [];          // 1..total の 'o' / 'x' / ''（画面を離れたら捨てる）
+var _shSending = false;
+function shPendGet_(){ try{ return sessionStorage.getItem('kwt_sheet_code')||''; }catch(e){ return ''; } }
+function shPendSet_(v){ try{ if(v)sessionStorage.setItem('kwt_sheet_code',v); else sessionStorage.removeItem('kwt_sheet_code'); }catch(e){} }
+/* URL の ?sheet=XXXX を読んで覚え、アドレスからは消す（リロードのたびに開き直さないため） */
+function shReadUrl_(){
+  try{
+    var m=/[?&]sheet=([^&#]+)/.exec(location.search||'');
+    if(!m)return '';
+    var c=decodeURIComponent(m[1]||'').trim();
+    if(c)shPendSet_(c);
+    try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e2){}
+    return c;
+  }catch(e){ return ''; }
+}
+/* ログインの直後に呼ぶ＝QRから来ていたら答え合わせの画面へ直行する */
+function shGoIfPending_(){ if(!shPendGet_())return false; showSub('sheet'); return true; }
+
+function shMsg_(html){ var el=$('sheet-msg'); if(el)el.innerHTML=html||''; }
+function shStep1_(){
+  var s2=$('sheet-step2'); if(s2){ s2.style.display='none'; s2.innerHTML=''; }
+  var s1=$('sheet-step1'); if(s1)s1.style.display='block';
+  _shSet=null; _shAns=[]; _shSending=false;
+}
+/* 画面を開くたびに呼ぶ（showSub から）。QRの番号が残っていればそのまま開く */
+function loadSheet_(){
+  shStep1_(); shMsg_('');
+  /* この画面の中のボタンは、この画面を開くときに結ぶ（openHome に置くと、
+     openHome を通らない経路＝QRからの直行やテストで押せないボタンになる）。
+     onclick への代入なので何度開いても二重にならない。 */
+  var ob=$('sheet-open'); if(ob)ob.onclick=shOpen_;
+  var el=$('sheet-code');
+  if(el){ el.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); shOpen_(); } }; el.value=''; }
+  var c=shPendGet_();
+  if(c){ shPendSet_(''); if(el)el.value=c; shOpen_(); }
+}
+function shOpen_(){
+  var el=$('sheet-code'), btn=$('sheet-open');
+  var v=el?String(el.value||'').trim():'';
+  if(!v){ shMsg_(rb('番号','ばんごう')+'を'+rb('入力','にゅうりょく')+'してください'); return; }
+  if(!btn)return;
+  shMsg_('');
+  btn.disabled=true; btn.innerHTML=kwtSpin(18)+'<span style="vertical-align:middle"> '+rb('読','よ')+'み'+rb('込','こ')+'み'+rb('中','ちゅう')+'…</span>';
+  call({action:'sheet_open',code:v}).then(function(d){
+    btn.disabled=false; btn.innerHTML='<span>'+rb('開','ひら')+'く</span> <i class="ti ti-arrow-right"></i>';
+    if(_netNG_(d)){ shMsg_(d&&d.error?esc(d.error):_NET_NG_MSG_); return; }
+    if(String(d.data.status||'')==='done'){ shMsg_('この'+rb('紙','かみ')+'は'+rb('答','こた')+'え'+rb('合','あ')+'わせが'+rb('終','お')+'わっています。'); return; }
+    if(d.data.expired){ shMsg_('この'+rb('紙','かみ')+'は'+rb('古','ふる')+'いので'+rb('記録','きろく')+'できません。'+rb('新','あたら')+'しい'+rb('紙','かみ')+'を'+rb('先生','せんせい')+'にもらってください。'); return; }
+    var n=parseInt(d.data.total,10)||0;
+    if(n<=0){ shMsg_('この'+rb('紙','かみ')+'には'+rb('問題','もんだい')+'が'+rb('入','はい')+'っていません。'+rb('先生','せんせい')+'に'+rb('伝','つた')+'えてください。'); return; }
+    _shSet={code:String(d.data.code||v),total:n};
+    _shAns=[]; for(var i=0;i<n;i++)_shAns.push('');
+    shRenderMarks_();
+  });
+}
+/* 紙とまったく同じ並びで 1〜N を出す（並びは print_sets.word_ids の順＝サーバーが持っている） */
+function shRenderMarks_(){
+  if(!_shSet)return;
+  var s1=$('sheet-step1'); if(s1)s1.style.display='none';
+  var host=$('sheet-step2'); if(!host)return;
+  var h='<div class="sh-head"><span class="sh-code">'+esc(_shSet.code)+'</span><span class="sh-tot">'+rb('全','ぜん')+_shSet.total+rb('問','もん')+'</span></div>'
+       +'<div class="sh-lead">'+rb('紙','かみ')+'の'+rb('丸','まる')+'つけのとおりに、'+rb('番号','ばんごう')+'ごとに○か×を'+rb('選','えら')+'ぼう。</div>'
+       +'<div class="sh-grid" id="sheet-marks"></div>'
+       +'<div class="sh-foot"><span class="sh-left" id="sheet-left"></span>'
+       +'<button class="btn" id="sheet-send" type="button" disabled><span>'+rb('送','おく')+'る</span></button></div>'
+       +'<div class="sh-msg" id="sheet-msg2"></div>';
+  host.innerHTML=h; host.style.display='block';
+  var g=$('sheet-marks'), rows='';
+  for(var i=0;i<_shSet.total;i++){
+    rows+='<div class="sh-q"><span class="sh-n">'+(i+1)+'</span>'
+        +'<button class="sh-m o" type="button" data-i="'+i+'" data-v="o">○</button>'
+        +'<button class="sh-m x" type="button" data-i="'+i+'" data-v="x">×</button></div>';
+  }
+  g.innerHTML=rows;
+  g.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest?e.target.closest('.sh-m'):null; if(!b)return;
+    var i=parseInt(b.getAttribute('data-i'),10), v=b.getAttribute('data-v');
+    if(isNaN(i)||!v)return;
+    _shAns[i]=v; shSyncMarks_();
+  });
+  var sb=$('sheet-send'); if(sb)sb.onclick=shSend_;
+  shSyncMarks_();
+  window.scrollTo(0,0);
+}
+function shSyncMarks_(){
+  var g=$('sheet-marks'); if(!g)return;
+  var btns=g.querySelectorAll('.sh-m');
+  for(var k=0;k<btns.length;k++){
+    var b=btns[k], i=parseInt(b.getAttribute('data-i'),10), v=b.getAttribute('data-v');
+    if(_shAns[i]===v)b.classList.add('on'); else b.classList.remove('on');
+  }
+  var left=0; for(var j=0;j<_shAns.length;j++) if(!_shAns[j])left++;
+  var el=$('sheet-left');
+  if(el)el.innerHTML = left>0 ? ('あと'+left+rb('問','もん')) : (rb('全部','ぜんぶ')+rb('入','はい')+'った');
+  var sb=$('sheet-send'); if(sb&&!_shSending)sb.disabled=(left>0);
+}
+function shSend_(){
+  if(_shSending||!_shSet)return;
+  for(var i=0;i<_shAns.length;i++) if(!_shAns[i])return;   // 全部入れないと送れない
+  var b=$('sheet-send'); if(!b)return;
+  _shSending=true; b.disabled=true;
+  b.innerHTML=kwtSpin(18)+'<span style="vertical-align:middle"> '+rb('送信中','そうしんちゅう')+'…</span>';
+  var m2=$('sheet-msg2'); if(m2)m2.innerHTML='';
+  var ans={}; for(var j=0;j<_shAns.length;j++)ans[String(j+1)]=_shAns[j];
+  call({action:'sheet_grade',code:_shSet.code,answers:JSON.stringify(ans)}).then(function(d){
+    _shSending=false;
+    if(_netNG_(d)){
+      /* 「送れた」と偽らない。ボタンを戻して未送信のまま残す＝もう一度おくれる */
+      b.disabled=false; b.innerHTML='<span>'+rb('送','おく')+'る</span>';
+      if(m2)m2.innerHTML=(d&&d.error)?esc(d.error):(rb('送','おく')+'れませんでした。もう'+rb('一度','いちど')+rb('試','ため')+'してください。');
+      return;
+    }
+    try{ homeCacheClear_(); }catch(e1){}                       // 間違いノートの残りが変わったので取り直す
+    try{ if(typeof loadNotes==='function')loadNotes(); }catch(e2){}
+    shDone_(d.data||{});
+  });
+}
+function shDone_(dt){
+  var host=$('sheet-step2'); if(!host)return;
+  if(dt&&dt.already){
+    host.innerHTML='<div class="empty-note"><i class="ti ti-circle-check"></i><div>この'+rb('紙','かみ')+'は'+rb('答','こた')+'え'+rb('合','あ')+'わせが'+rb('終','お')+'わっています。</div></div>';
+    return;
+  }
+  var c=parseInt(dt&&dt.correct,10)||0, t=parseInt(dt&&dt.total,10)||0, g=parseInt(dt&&dt.graded,10)||0;
+  var sub = g>0 ? (g+rb('語','ご')+'を'+rb('記録','きろく')+'に'+rb('入','い')+'れました') : (rb('記録','きろく')+'をおくりました');
+  host.innerHTML='<div class="fin-card"><div class="dc-ic"><i class="ti ti-circle-check"></i></div>'
+    +'<div class="dc-t">'+t+rb('問中','もんちゅう')+' '+c+rb('問','もん')+rb('正解','せいかい')+'！</div>'
+    +'<div class="dc-s">'+sub+'</div></div>'
+    +'<div class="sh-lead">'+rb('間違','まちが')+'えた'+rb('問題','もんだい')+'は、また'+rb('間違','まちが')+'いノートに'+rb('出','で')+'てくる。</div>';
+  window.scrollTo(0,0);
+}
+
 function loadNotices(){
   var host=$('notice-list');if(!host)return;
   if(_ntMine)noticeRenderList_();
@@ -1967,7 +2144,7 @@ function showSub(name){
   if(name!=='lists'){_mapFocusMid=null;} /* 学習マップ以外に移ったらピンポイント指定を捨てる 2026-08-21 */
   if(!_navBack){try{var cur=_curViewKey_();if(cur!==('sub:'+name))_navStack.push(cur);}catch(e){}} // 今の画面を履歴に積む（戻る用）
   try{sessionStorage.setItem('kwt_view',name);}catch(e){} // スマホ更新で最後の画面を復元（川上さん確定2026-07-06）
-  try{if(name==='team')setTab5_('team');else if(name==='records'||name==='overall'||name==='badge'||name==='lists'||name==='notice')setTab5_('record');}catch(e){}
+  try{if(name==='team')setTab5_('team');else if(name==='records'||name==='overall'||name==='badge'||name==='lists'||name==='notice'||name==='sheet')setTab5_('record');}catch(e){}
   $('home-tiles').style.display='none';
   $('home-sub').style.display='block';
   $('sub-title').innerHTML=SUB_TITLES_H[name]||esc(SUB_TITLES[name]||'');
@@ -1977,6 +2154,7 @@ function showSub(name){
   if(name==='records'||name==='badge'){try{markRecordSeen_();}catch(e){}} // 記録/バッジを見たら 新バッジ・新アイコンを既読化＝記録タブの赤●を消す 2026-07-26
   if(name==='review'&&typeof loadReviewSrs==='function')loadReviewSrs(); // おさらい：開くたびに最新の期限（教科別）を描き直す 2026-07-26
   if(name==='notice')loadNotices(); // お知らせ：開くたびに最新を取り直す 2026-08-28
+  if(name==='sheet')loadSheet_();   // 紙の答え合わせ：開くたびに入力からやり直す（端末に控えを残さない）2026-09-01
   window.scrollTo(0,0);
 }
 function backToTiles(){
@@ -2464,8 +2642,8 @@ $('nick-cancel').onclick=closeNickModal;
 $('nick-save').onclick=saveNick;
 $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};var _icx=$('icon-cancel');if(_icx)_icx.onclick=closeIconModal;var _icm=$('icon-mask');if(_icm)_icm.onclick=function(e){if(e.target===this)closeIconModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
-$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();});};
-function doLogout_(){homeCacheClear_();try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}token='';show('scr-login');}
+$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();try{shGoIfPending_();}catch(e){}});};
+function doLogout_(){homeCacheClear_();try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');}catch(e){}token='';show('scr-login');}
 $('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
 $('logout-cancel').onclick=function(){$('logout-mask').classList.remove('show');};
 $('logout-mask').onclick=function(e){if(e.target===this)$('logout-mask').classList.remove('show');};
@@ -2850,6 +3028,7 @@ function openHome(){
   _bind('tile-overall',function(){showSub('overall');});
   _bind('tile-trio',function(){openTrioReview_();}); // 昨日の三連星をいつでも見返す 2026-07-28
   _bind('tile-notice',function(){showSub('notice');});
+  _bind('tile-sheet',function(){showSub('sheet');});   // 紙の答え合わせ（記録タブだけ・毎日タブには出さない）2026-09-01
   _bind('set-nick',openNickModal);
   _bind('set-icon',openIconModal);
   _bind('hdr-ava',openIconModal);
@@ -5427,7 +5606,8 @@ function verOnReturn_(){
   window.addEventListener('pageshow',function(){verOnReturn_();});
 })();
 verInit_();
-if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}try{_ht=sessionStorage.getItem('kwt_htab');}catch(e){}openHome();try{if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}else if(_ht&&['daily','review','unit'].indexOf(_ht)>=0){showHomeTab(_ht);}}catch(e){}} // 更新後は今の画面を復元：サブ画面(kwt_view)優先、なければホームのタブ(kwt_htab)。openHome内のbackToTiles()が復元キーを消すので必ず先に読む（川上さん 2026-07-06/24）
+try{shReadUrl_();}catch(e){} // QRの ?sheet=XXXX を覚えてURLから消す（ログイン前でも拾う）2026-09-01
+if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}try{_ht=sessionStorage.getItem('kwt_htab');}catch(e){}openHome();try{if(shPendGet_()){showSub('sheet');}else if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}else if(_ht&&['daily','review','unit'].indexOf(_ht)>=0){showHomeTab(_ht);}}catch(e){}} // 更新後は今の画面を復元：サブ画面(kwt_view)優先、なければホームのタブ(kwt_htab)。openHome内のbackToTiles()が復元キーを消すので必ず先に読む（川上さん 2026-07-06/24）
 
 /* ===== 生徒バグ報告（各画面から押せる・記録のみ＝メールは朝まとめ）2026-07-11 ===== */
 var _bugSending=false;
