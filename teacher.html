@@ -287,6 +287,17 @@
      PDFを作るあいだだけ body に fs-pdf を付けて、同じ指定を画面メディアにも当てる。
      ・.p-unit{page-break-after:always} は付けない。生徒1人ずつ別々にPDFへ足すので、
        付けると生徒ごとに末尾へ白紙が1枚入る。 */
+  /* 【地雷・2026-09-01】PDFにすると、紙の右はしのものが切れる。
+     実物（川上さんのWindows・游ゴシック）で「中2」の2・セット番号の末尾1文字・得点らんの右の枠線が消えた。
+     クラウド側のLinuxでは出ない＝フォントの幅がちがうと、html2canvas が描く文字がDOMの実測より広くなり、
+     はみ出したぶんが canvas の右はしで切り落とされる。window.print（紙）は自前で組み直すので出ない。
+     直し＝PDFを作るあいだだけ、右にそろえている部品（見出しの右・得点らん・フッタの右）だけを5mm内側へ寄せる。
+     **紙の幅も本文の折り返しも変えない**ので、ページ数は印刷したときと1ページも変わらない。
+     ★.p-unit ごと padding で内側に寄せる案は不可。捕まえる箱の幅が変わるとページの切れ目がずれて、
+       実測で 23ページ → 27ページ になった（2026-09-01 に試して取り下げた）。 */
+  body.fs-pdf .fs-hd-r{margin-right:5mm;}
+  body.fs-pdf .fs-lead .fs-score{margin-right:5mm;}
+  body.fs-pdf .fs-foot > span:last-child{margin-right:5mm;}
   body.fs-pdf .fs-page{page-break-before:always;}
   body.fs-pdf .p-unit > .fs-sheet > .fs-page:first-child{page-break-before:auto;}
   body.fs-pdf .p-filler{display:block;position:relative;page-break-before:always;min-height:258mm;}
