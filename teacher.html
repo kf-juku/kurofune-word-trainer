@@ -2683,6 +2683,11 @@ function fsPdf_(){
   setP('PDFの部品を読み込んでいます…');
   window._fsPdfDone='';
   _rpEnsureH2P(function(){
+    /* ★PDFも印刷とまったく同じ仕切り（白紙）にそろえる。2026-09-02
+       ここを通さないと、PDFだけ「計算で入れた仕切り」、印刷は「測って入れた仕切り」になり、
+       紙とPDFで生徒の表裏の分かれ方が食いちがう。 */
+    insertDuplexFillers_(host, function(){
+    units=Array.prototype.slice.call(host.querySelectorAll('.p-unit'));
     document.body.classList.add('fs-pdf');
     /* 紙の幅＝A4横210 − 左右余白12mm×2 ＝186mm。ここを@pageと合わせないとPDFのページ数がずれる */
     host.style.cssText='display:block;position:absolute;left:-99999px;top:0;width:186mm;background:#fff;';
@@ -2704,6 +2709,7 @@ function fsPdf_(){
          .set(opt).from(u).toContainer().toCanvas().toPdf();
     });
     w.save().then(function(){ fin(); })['catch'](function(e){ window._fsPdfErr=String(e&&e.stack||e); fin('PDFの作成に失敗しました。「印刷する」から「PDFに保存」を選んでください'); });
+    });
   }, function(){ fin(); });
 }
 function runPrint_(ids,scope,days,limit,types){
