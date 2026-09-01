@@ -225,7 +225,9 @@
      #printArea は画面で display:none なので、高さを測るときは同じ .fs-sheet を画面外に置いて測る＝
      セレクタを #printArea で始めない（測定用の器にもCSSを効かせるため）。 */
   .fs-sheet{color:#000;font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic','Noto Sans CJK JP',Meiryo,sans-serif;}
-  .fs-page{display:flex;flex-direction:column;min-height:272mm;}
+  .fs-page{display:flex;flex-direction:column;min-height:261mm;}   /* フッタを下端に置くための高さ。
+      必ず FS_PAGE_MM_ より小さくする。大きいと「空のページ枠」だけで上限を超えて、
+      詰めるループが1問目から弾き、全員0問（紙が1枚も出ない）になる。2026-09-02 */
   .fs-hd{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid #1a1a1a;padding-bottom:5px;}
   .fs-hd-l{display:flex;align-items:baseline;gap:10px;min-width:0;}
   /* 見出し（仕上げプリント／答え）は折り返さない。範囲の教材名が長いと flex の既定で見出しが縮んで
@@ -2035,13 +2037,19 @@ function unifiedStudentHtml_(st, opts){
      ・選択肢が無いと解けない否定型（あてはまらない／正しくない）は紙から落とす
      ・「〜を選べ」「〜はどれか」は紙では成立しないので、紙に描くときだけ末尾を言い換える
        （教材データは1文字も触らない。教材の設問を中立形に直したら、この言い換えは当たらなくなって自然に消える） */
-var FS_LIMIT_=50;              /* 1人あたりの上限（サーバー側の limit と同じ） */
+var FS_LIMIT_=100;             /* 1人あたりの上限（サーバー側の limit と同じ）。問題2枚＋答え2枚に増やしたので50→100 2026-09-02 */
 var FS_CODE_TMP_='XX-9999';    /* 測るときだけ使う仮のセット番号。実物と同じ7文字にして幅をそろえる 2026-08-31 */
 var FS_SHEET_URL_='https://kf-juku.github.io/kurofune-word-trainer/?sheet=';  /* QRの中身（川上さん確定 2026-08-30）*/
 var FS_FIGBLK_PER_PAGE_=3;     /* 1ページに置ける図ブロック数 */
 var FS_FIG_PER_BLK_=3;         /* 1ブロックにぶら下げる問題数 */
-var FS_FIG_BLK_MAX_=6;         /* 2ページで最大6ブロック */
-var FS_PAGE_MM_=273;           /* A4縦 297 − 上下余白12mm×2（@pageと一致） */
+var FS_FIG_BLK_MAX_=12;        /* 問題4ページ×1ページ3ブロック 2026-09-02 */
+var FS_QPAGE_MAX_=4;           /* 問題は最大4ページ＝両面2枚（川上さん確定 2026-09-02） */
+var FS_APAGE_MAX_=4;           /* 答えも最大4ページ＝両面2枚。1人ぶんは最大で用紙4枚 */
+var FS_PAGE_MM_=262;           /* 詰めるときの上限。紙の本文は273mm（A4縦297 − 上下余白12mm×2）だが、
+                                  11mm手前で止める＝フォントが違う環境（Windows・游ゴシック）で中身が
+                                  少し縦に伸びても紙からあふれないようにするため。2026-09-02
+                                  ★ここを273に戻さない。あふれるとフッタ1行だけが次のページに押し出され、
+                                    ほぼ空のページが1枚まぎれて、以降の表裏がぜんぶズレる（川上さん報告 2026-09-01）。 */
 /* 選択肢が無いと答えが決まらない型＝紙から落とす */
 var FS_NEG_=/あてはまらない|当てはまらない|誤って|正しくない|適切でない|ふさわしくない|でないもの|ではないもの|でないのはどれか|ではないのはどれか|あたらないもの|当たらないもの|関係のない|関係ない|られないもの|れないもの/;
 var FS_SEL_=/選べ|選ぼう|どれか/;
@@ -2168,7 +2176,7 @@ function fsHeadHtml_(ctx,ttl,scope){
 function fsLeadHtml_(ctx,from,to,withScore){
   var sc=withScore?('<div class="fs-score"><span class="fs-sc-l">得点</span><span class="fs-sc-box"></span>'
     +'<span class="fs-sc-t">／ '+ctx.total+'問</span></div>'):'';
-  return '<div class="fs-lead"><div class="fs-l">答えは2枚目。'+from+'〜'+to+'番をぜんぶ書いてから見る。</div>'+sc+'</div>';
+  return '<div class="fs-lead"><div class="fs-l">答えはうしろの紙。'+from+'〜'+to+'番をぜんぶ書いてから見る。</div>'+sc+'</div>';
 }
 function fsFootHtml_(ctx,label){
   return '<div class="fs-foot"><span>Kurofune Word Trainer ／ 仕上げプリント</span>'
@@ -2404,7 +2412,7 @@ function fsFillQPages_(units,ctx,roomy,usable){
   var figQ=[],txtQ=[];
   units.forEach(function(u){ (u.type==='fig'?figQ:txtQ).push(u); });
   var pages=[], no=1, fi=0, ti=0;
-  for(var p=0;p<2 && (fi<figQ.length||ti<txtQ.length);p++){
+  for(var p=0;p<FS_QPAGE_MAX_ && (fi<figQ.length||ti<txtQ.length);p++){
     var pg={figs:[],texts:[]};
     probe.innerHTML='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope)
       +fsLeadHtml_(ctx,no,no,p===0)+'<div class="fs-figs"></div><div class="fs-grid"></div>'
@@ -2453,13 +2461,20 @@ function fsFillAPages_(flat,ctx,usable){
     }
     return n;
   };
-  var n1=fill(0,true,'　');
-  var counts;
-  if(n1>=flat.length){ counts=[flat.length]; }
-  else{
-    var n1b=fill(0,false,'　');
-    var n2=fill(n1b,true,'　');
-    counts=[n1b,n2];
+  /* 前のページから順に詰める。残りが「QRを載せた1ページ」に収まったら、そこが最後のページ。
+     FS_APAGE_MAX_ ページで足りないぶんは fsBuildSheet_ が問題側もろとも後ろから落とす。2026-09-02 */
+  var counts=[], ai=0;
+  for(var ap=0; ap<FS_APAGE_MAX_ && ai<flat.length; ap++){
+    var withBack=fill(ai,true,'　');
+    if(ai+withBack>=flat.length){ counts.push(flat.length-ai); ai=flat.length; break; }
+    if(ap===FS_APAGE_MAX_-1){ counts.push(withBack); ai+=withBack; break; }
+    var nn=fill(ai,false,'　');
+    if(!(nn>0)) break;
+    /* ★このページで残りが尽きると、QRを測っていないページが最後のページになってしまう
+       （QRは最後のページにだけ載る＝fsDrawSheet_）。そうなると描いたときだけ紙からあふれる。
+       残りを1行以上あとへ回して、最後のページは必ず「QRつきで測ったページ」にする。2026-09-02 */
+    if(ai+nn>=flat.length) nn=Math.max(1,withBack);
+    counts.push(nn); ai+=nn;
   }
   if(probe.parentNode) document.body.removeChild(probe);
   return counts;
@@ -2504,8 +2519,11 @@ function fsBuildSheet_(st,base){
           progress_ids:flat.map(function(f){return String(f.item.progress_id||'');})};
 }
 /* ---- 組んだものを「描く」。セット番号（b.ctx.code）を差し込んでから呼ぶ ---- */
+/* 何枚目の表／裏か。問題は1枚目から、答えは問題が使った枚数の次から。2026-09-02 */
+function fsSheetLabel_(sheetFrom,i){ return (sheetFrom+Math.floor(i/2))+'枚目 '+(i%2?'裏':'表'); }
 function fsDrawSheet_(b){
   var ctx=b.ctx, qp=b.qp, ac=b.ac, flat=b.flat, roomy=b.roomy;
+  var qSheets=(qp.length+(qp.length%2))/2;   /* 問題が使う用紙の枚数（仕切りこみ） */
   var h='', idx=0;
   qp.forEach(function(pg,i){
     var from=idx+1;
@@ -2516,7 +2534,7 @@ function fsDrawSheet_(b){
     var to=idx;
     h+='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope)
       +fsLeadHtml_(ctx,from,to,i===0)+body+'<div class="fs-grid">'+g+'</div>'
-      +fsFootHtml_(ctx,'1枚目 '+(i===0?'表':'裏')+'（問題'+from+'〜'+to+'）')+'</div>';
+      +fsFootHtml_(ctx,fsSheetLabel_(1,i)+'（問題'+from+'〜'+to+'）')+'</div>';
   });
   if(qp.length%2===1) h+='<div class="p-filler"></div>';   /* 問題と答えを同じ紙の表裏にしない */
   var ai=0;
@@ -2526,7 +2544,7 @@ function fsDrawSheet_(b){
     var last=(i===ac.length-1);
     h+='<div class="fs-page">'+fsHeadHtml_(ctx,'答え',ctx.scope)+fsAnsBandHtml_()
       +fsAnsTableHtml_(rows)+(last?fsBackHtml_(ctx):'')
-      +fsFootHtml_(ctx,'2枚目 '+(i===0?'表':'裏')+'（答え'+from+'〜'+ai+'）')+'</div>';
+      +fsFootHtml_(ctx,fsSheetLabel_(qSheets+1,i)+'（答え'+from+'〜'+ai+'）')+'</div>';
   });
   return '<div class="fs-sheet'+(roomy?' fs-roomy':'')+'">'+h+'</div>';
 }
@@ -2730,15 +2748,35 @@ function countPages_(wrap, usablePx){
    各生徒のページ数を数え、奇数の生徒の裏に「仕切りページ(.p-filler)」を1枚足して偶数化する（旧：確実に1ページの子だけ→3ページ等の奇数の子が崩れていた）。
    両面でも各生徒が新しい紙のオモテから始まる。仕切りはほぼ余白（裏紙に使える・個人情報なし）で、隅の小さな印だけ＝白紙スキップでも消えない。
    done は仕切り確定後（図の画像を待ってから測る）に呼ばれる＝そのあと window.print()。2026-07-30 */
+/* 仕上げプリントのページ数。1ページ＝1コンテナ（.fs-page）と仕切り(.p-filler)だが、
+   中身が紙の本文より高いとブラウザが2ページに割るので、高さを測って数える。2026-09-02
+   ここを「子要素の数」で済ませると、1枚あふれた瞬間に以降の表裏がぜんぶズレる。 */
+function fsCountPages_(wrap, usablePx){
+  var n=0;
+  Array.prototype.slice.call((wrap&&wrap.children)||[]).forEach(function(c){
+    if(!c.classList) return;
+    if(c.classList.contains('p-filler')){ n+=1; return; }
+    if(c.classList.contains('fs-page')){
+      var h=c.getBoundingClientRect().height;
+      n+=Math.max(1, Math.ceil((h-1)/usablePx));   // 1pxの丸め誤差は無視
+    }
+  });
+  return n||1;
+}
 function insertDuplexFillers_(host, done){
   done = (typeof done==='function')?done:function(){};
   try{
     host = host || document.getElementById('printArea');
     if(!host){ done(); return; }
     var WRAP='print-student';
-    /* 仕上げプリント(.fs-unit)は1ページ=1コンテナでページ数が自明＝自分で仕切りを入れてあるので測らない 2026-08-30 */
-    var units=Array.prototype.slice.call(host.querySelectorAll('.p-unit')).filter(function(u){ return String(u.className||'').split(/\s+/).indexOf('fs-unit')<0; });
-    units.forEach(function(u){ var o=u.querySelector('.p-filler'); if(o&&o.parentNode) o.parentNode.removeChild(o); }); // 冪等（前回の仕切りを消す）
+    /* 仕上げプリント(.fs-unit)も対象にする。2026-08-30 は「1ページ=1コンテナでページ数は自明」として
+       外していたが、中身が紙より高いとブラウザが2ページに割るので自明ではない。実際に数える。2026-09-02 */
+    var units=Array.prototype.slice.call(host.querySelectorAll('.p-unit'));
+    units.forEach(function(u){                       // 冪等（前回の仕切りを消す）
+      Array.prototype.slice.call(u.children).forEach(function(c){   /* 直下だけ＝仕上げプリントの「問題と答えのあいだ」の仕切りは消さない */
+        if(c.classList && c.classList.contains('p-filler')) u.removeChild(c);
+      });
+    });
     if(units.length<2){ done(); return; } // 生徒0/1人は表裏の混ざりが起きない＝仕切り不要
     var probe=document.createElement('div');
     probe.style.cssText='position:absolute;left:-99999px;top:0;width:100mm;height:0;';
@@ -2752,11 +2790,17 @@ function insertDuplexFillers_(host, done){
     var reps=[];
     units.forEach(function(u,i){
       if(i===units.length-1){ reps.push(null); return; } // 最後の生徒の裏には仕切り不要（後ろに別生徒が来ない）
-      var sh=u.querySelector('.'+WRAP);
+      var isFs=String(u.className||'').split(/\s+/).indexOf('fs-unit')>=0;
       var box=document.createElement('div');
-      box.innerHTML='<div class="'+WRAP+'" style="position:relative;width:186mm;padding:0;margin:0;box-shadow:none;border-radius:0;max-width:none;">'+(sh?sh.innerHTML:'')+'</div>';
+      if(isFs){
+        var sheet=u.querySelector('.fs-sheet');
+        box.innerHTML='<div class="'+(sheet?sheet.className:'fs-sheet')+'" style="position:relative;width:186mm;padding:0;margin:0;max-width:none;">'+(sheet?sheet.innerHTML:'')+'</div>';
+      }else{
+        var sh=u.querySelector('.'+WRAP);
+        box.innerHTML='<div class="'+WRAP+'" style="position:relative;width:186mm;padding:0;margin:0;box-shadow:none;border-radius:0;max-width:none;">'+(sh?sh.innerHTML:'')+'</div>';
+      }
       meas.appendChild(box);
-      reps.push({unit:u, wrap:box.firstChild});
+      reps.push({unit:u, wrap:box.firstChild, fs:isFs});
     });
     var finished=false;
     var finish=function(){
@@ -2764,7 +2808,8 @@ function insertDuplexFillers_(host, done){
       try{
         reps.forEach(function(r){
           if(!r) return;
-          if(countPages_(r.wrap, usablePx)%2===1){ // ページ数が奇数＝裏が空く→仕切りを1枚足して偶数化
+          var np=r.fs?fsCountPages_(r.wrap, usablePx):countPages_(r.wrap, usablePx);
+          if(np%2===1){ // ページ数が奇数＝裏が空く→仕切りを1枚足して偶数化
             var f=document.createElement('div'); f.className='p-filler'; r.unit.appendChild(f);
           }
         });
