@@ -2874,8 +2874,12 @@ function _noteTodayCard_(t,remain,done){
   var ttl=nm?(esc(nm)+'を<span style="white-space:nowrap">'+rb('集中','しゅうちゅう')+rb('攻略','こうりゃく')+'</span>')
             :('<ruby>前<rt class="uf">まえ</rt></ruby>に まちがえた'+n+rb('語','ご'));
   if(done)el.classList.add('done'); // 終わったら緑（完了の見せ方は §15 で統一ずみ）
-  var label=done?('<i class="ti ti-circle-check"></i> '+rb('今日','きょう')+'の'+rb('分','ぶん')+'、'+rb('終','お')+'わり！')
-                :(rb('今日','きょう')+'の10'+rb('語','ご'));
+  /* 【2026-09-03】どの枠のカードかを必ず名乗る。
+     ホームでは毎日学習カードが「毎日学習 英語」、おさらいが「おさらい」と名乗っているのに、
+     このカードだけ「今日の10語」としか出ておらず、間違いノートだと分からなかった（川上さん報告）。 */
+  var _ntNm=rb('間違','まちが')+'いノート';
+  var label=done?('<i class="ti ti-circle-check"></i> '+_ntNm+' ・ '+rb('今日','きょう')+'の'+rb('分','ぶん')+'、'+rb('終','お')+'わり！')
+                :(_ntNm+' ・ '+rb('今日','きょう')+'の10'+rb('語','ご'));
   el.innerHTML='<div class="f-label"><span>'+label+'</span></div>'
     +'<div class="f-main"><div><div class="f-title">'+ttl+'</div>'
     +'<div class="f-sub">'+n+rb('語','ご')+' ・ のこり '+rem+rb('語','ご')+'</div></div></div>'
