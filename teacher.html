@@ -126,24 +126,30 @@
   .tm-sel{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;}
   .tm-num{width:56px;padding:4px 7px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;}
   /* 紙の形＝どちらを刷るかは重要なので、小さいラジオでなく大きいカードで選ぶ 2026-08-31 */
-  .stycards{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 4px;}
+  .stycards{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 4px;}
   /* ★2026-09-02⑬ 川上さん指摘：横長のプルダウンだと、そこが選ぶ所だと分からない。
      選択肢が数個しかないものは**全部出しておく**。見た目は「紙の形」と同じカードにそろえる。
      .sm＝紙の形より一回り小さい版（主役は紙の形なので、同じ大きさにしない）。 */
-  .stycards.sm{gap:8px;}
-  .stycards.sm .styc{flex:1 1 150px;padding:8px 10px;gap:7px;}
-  .stycards.sm .styc .sy-mk{width:16px;height:16px;font-size:10px;margin-top:1px;}
+  .stycards.sm{gap:6px;}
+  .stycards.sm .styc{flex:1 1 140px;padding:6px 9px;gap:6px;align-items:center;}
+  .stycards.sm .styc .sy-mk{width:15px;height:15px;font-size:9px;margin-top:0;}
   .stycards.sm .styc .sy-t{font-size:12.5px;}
-  .stycards.sm .styc .sy-s{font-size:10.5px;margin-top:2px;}
-  .styc{flex:1 1 250px;display:flex;align-items:flex-start;gap:9px;padding:11px 13px;border:2px solid var(--border);border-radius:10px;background:white;cursor:pointer;font-family:inherit;text-align:left;transition:all .12s;}
+  /* ★説明はタイトルの下に折らず、同じ行の右に小さく置く＝1枚1行に収める（縦を教材えらびに回す）。
+     狭い画面（<560px）では説明を隠す。タイトルだけで意味が通る言葉にしてある。 */
+  .stycards.sm .styc .sy-b{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
+  .stycards.sm .styc .sy-s{font-size:10px;margin-top:0;}
+  @media(max-width:560px){.stycards.sm .styc .sy-s{display:none;}}
+  /* ★2026-09-02⑬ 川上さん指摘「カードがデカすぎる。教材を指定するエリアが狭い」。
+     カードは残したまま、余白と字を詰めて縦を稼ぐ（教材えらびに高さを回す）。 */
+  .styc{flex:1 1 230px;display:flex;align-items:flex-start;gap:8px;padding:8px 11px;border:2px solid var(--border);border-radius:10px;background:white;cursor:pointer;font-family:inherit;text-align:left;transition:all .12s;}
   .styc:hover{border-color:var(--crimson-mid);}
   .styc.on{border-color:var(--crimson);background:var(--crimson-light);}
-  .styc .sy-mk{flex:0 0 auto;width:18px;height:18px;border:2px solid #cbd5e1;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#fff;background:#fff;margin-top:2px;}
+  .styc .sy-mk{flex:0 0 auto;width:16px;height:16px;border:2px solid #cbd5e1;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:#fff;margin-top:1px;}
   .styc.on .sy-mk{background:var(--crimson);border-color:var(--crimson);}
   .styc .sy-b{flex:1;min-width:0;}
-  .styc .sy-t{display:block;font-size:14px;font-weight:800;color:var(--text);line-height:1.4;}
+  .styc .sy-t{display:block;font-size:13px;font-weight:800;color:var(--text);line-height:1.35;}
   .styc.on .sy-t{color:var(--crimson-dark);}
-  .styc .sy-s{display:block;font-size:11.5px;color:var(--text-muted);margin-top:3px;line-height:1.5;}
+  .styc .sy-s{display:block;font-size:10.5px;color:var(--text-muted);margin-top:2px;line-height:1.45;}
   .filter-chip{display:inline-flex;align-items:center;padding:3px 11px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:11.5px;cursor:pointer;font-family:inherit;color:var(--text-muted);transition:all 0.1s;white-space:nowrap;font-weight:500;}
   .filter-chip:hover{border-color:var(--crimson-mid);color:var(--crimson-dark);}
   .filter-chip.active{background:var(--crimson-light);color:var(--crimson-dark);border-color:var(--crimson);font-weight:700;}
@@ -614,7 +620,8 @@
   .pk-chip.warn.on{background:var(--crimson);color:#fff;border-color:var(--crimson);}
   #bulkModal.printmode .pk-chip.on{background:var(--blue-dark);border-color:var(--blue-dark);box-shadow:none;}
   .pk-search2{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;margin:4px 0 7px;font-family:inherit;box-sizing:border-box;}
-  .pk-list{border:1px solid var(--border);border-radius:10px;max-height:260px;min-height:140px;overflow-y:auto;}
+  /* ★2026-09-02⑬：教材えらびに高さを回す。画面の高さに合わせて伸びる（低い画面では260pxのまま）。 */
+  .pk-list{border:1px solid var(--border);border-radius:10px;max-height:min(46vh,420px);min-height:180px;overflow-y:auto;}
   .pk-list.sel{border-color:#cfe8db;background:#f2faf6;}
   .pk-selall{display:flex;align-items:center;gap:9px;padding:8px 11px;border-bottom:2px solid var(--surface2);font-size:12.5px;cursor:pointer;font-weight:700;color:var(--crimson-dark);background:#fff;position:sticky;top:0;z-index:1;}
   .pk-row{display:flex;align-items:center;gap:9px;padding:7px 11px;border-bottom:1px solid var(--surface2);font-size:13px;cursor:pointer;}
@@ -2065,10 +2072,10 @@ function _fsMinDaysText_(){
 }
 /* 日数のカード（選択肢を全部出す）。押すと保存して、その場で塗り替える 2026-09-02⑬ */
 var FS_MINDAYS_OPTS_=[
-  {v:3,t:'3日以上前',s:'ふだんはこれ。まちがえた直後は覚えているので、少し寝かせてから出す。'},
-  {v:2,t:'2日以上前',s:'おとといのまちがいまで出す。'},
-  {v:1,t:'1日以上前',s:'きのうのまちがいまで出す。'},
-  {v:0,t:'ぜんぶ',s:'今日のぶんまで出す。テスト直前に進めた範囲を出すときはこれ。'}
+  {v:3,t:'3日以上前',s:'ふだんはこれ'},
+  {v:2,t:'2日以上前',s:'おとといまで'},
+  {v:1,t:'1日以上前',s:'きのうまで'},
+  {v:0,t:'ぜんぶ',s:'テスト直前はこれ'}
 ];
 function _fsMinDaysCards_(){
   var now=_fsMinDays_();
@@ -2080,8 +2087,8 @@ function _fsMinDaysCards_(){
 }
 /* 覚える一覧の範囲カード。値は隠し input(#tmScope) に入れる＝読む側は今までどおり */
 var TM_SCOPE_OPTS_=[
-  {v:'active',t:'まちがえ中ぜんぶ',s:'いま間違いノートに入っているものを全部。'},
-  {v:'recent',t:'直近◯日のまちがえ',s:'下の「直近◯日」で決めた日数のあいだに間違えたものだけ。'}
+  {v:'active',t:'まちがえ中ぜんぶ',s:'いま間違いノートにあるもの'},
+  {v:'recent',t:'直近◯日のまちがえ',s:'下の日数のあいだに間違えたもの'}
 ];
 function _tmScopeCards_(cur){
   return TM_SCOPE_OPTS_.map(function(o){
