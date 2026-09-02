@@ -2721,6 +2721,24 @@ function tmErr_(msg){
   el.innerHTML=msg;
   try{ el.scrollIntoView({block:'nearest'}); }catch(e){}
 }
+/* ★2026-09-02⑬：まちがいが足りなくて「範囲の語」で埋めた生徒を、印刷の前に先生へ知らせる。
+   紙には出さない（生徒には「これは間違えた語ではない」と分からせない）。
+   なぜこの子だけ問題が多いのか／少ないのかが分かるようにするため（川上さん確定）。 */
+function fsFilledNote_(ss){
+  var lines=(ss||[]).filter(function(s){ return (parseInt(s.filled_range,10)||0)>0; }).map(function(s){
+    var by=s.filled_by||{};
+    var inner=Object.keys(by).sort(function(a,b){return by[b]-by[a];})
+      .map(function(k){ return esc(k)+' '+by[k]; }).join('／');
+    return '<div style="margin-top:3px;">・<b>'+esc(s.name||s.nickname||'(無名)')+'</b>：まちがいが少ないので、'
+      +'<b>範囲の語から'+s.filled_range+'問</b>を足しました'+(inner?('（'+inner+'）'):'')+'</div>';
+  });
+  if(!lines.length) return '';
+  return '<div class="tm-note" style="background:#fff7e6;border-color:#f0d08a;color:#8a5a00;margin-top:8px;">'
+    +'📄 <b>まちがいだけでは紙が埋まらなかった生徒がいます。</b>'
+    +'その範囲の語（間違いノートに入っていない語）で足しました。<br>'
+    +'<span style="color:#6b4a00;">解けるかどうかで、その範囲が本当に身についているかを見られます。</span>'
+    +lines.join('')+'</div>';
+}
 function runFinishSheet_(ids,mats,types){
   if(!ids.length){tmErr_('印刷する生徒がえらばれていません。');return;}
   tmErr_('');
@@ -2770,19 +2788,20 @@ function runFinishSheet_(ids,mats,types){
         window._fsBuilt=built;   /* 検証用（問題数・図ブロック数・セット番号） */
         /* 番号の発行は1回だけ。同じ紙を「印刷」でも「PDFで保存」でも出せるようにここで選ばせる
            （押すたびに作り直すと紙とPDFで番号が変わり、print_sets に無駄な行が増える）2026-08-31 */
-        fsShowGo_(built);
+        fsShowGo_(built, ss);
       }).catch(function(e){ hideLoading(); toast('セット番号を保存できませんでした：'+(e&&e.message||e)+'。印刷は中止しました'); });
     });
   }).catch(function(e){ hideLoading(); toast('仕上げプリントを作れませんでした：'+(e&&e.message||e)); });
 }
 /* ---- できた紙を「印刷」か「PDFで保存」で出す（同じセット番号の紙）2026-08-31 段4 ---- */
 var _fsGoInfo=null;
-function fsShowGo_(built){
+function fsShowGo_(built,ss){
   _fsGoInfo={n:built.length, codes:built.map(function(b){return b.ctx.code;})};
   var el=$('fsGoInfo');
   if(el) el.innerHTML='<b>'+built.length+'名</b>ぶん・1人あたり両面2枚。セット番号は発行ずみです（'
     +esc(_fsGoInfo.codes.slice(0,3).join('・'))+(built.length>3?('　ほか'+(built.length-3)+'名'):'')+'）。<br>'
-    +'印刷でもPDFでも<b>同じ番号の紙</b>が出ます。両方出しても番号は増えません。';
+    +'印刷でもPDFでも<b>同じ番号の紙</b>が出ます。両方出しても番号は増えません。'
+    +fsFilledNote_(ss);   /* 範囲の語で埋めた生徒の注意書き 2026-09-02⑬ */
   $('fsGoModal').classList.add('show');
 }
 function _fsPdfName_(){
