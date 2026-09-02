@@ -228,19 +228,21 @@
   .fs-page{display:flex;flex-direction:column;min-height:261mm;}   /* フッタを下端に置くための高さ。
       必ず FS_PAGE_MM_ より小さくする。大きいと「空のページ枠」だけで上限を超えて、
       詰めるループが1問目から弾き、全員0問（紙が1枚も出ない）になる。2026-09-02 */
-  .fs-hd{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid #1a1a1a;padding-bottom:5px;}
-  .fs-hd-l{display:flex;align-items:baseline;gap:10px;min-width:0;}
+  .fs-hd{display:flex;align-items:stretch;border-bottom:2px solid #1a1a1a;padding-bottom:5px;}
+  .fs-hd-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px;}
+  .fs-hd-r1,.fs-hd-r2{display:flex;align-items:baseline;gap:10px;min-width:0;}
   /* 見出し（仕上げプリント／答え）は折り返さない。範囲の教材名が長いと flex の既定で見出しが縮んで
      「仕上げプリ／ント」「答／え」と割れる（2026-09-01 川上さん指摘）。縮むのは範囲のほうだけにする。 */
   .fs-ttl{font-size:19px;font-weight:800;letter-spacing:.04em;flex:0 0 auto;white-space:nowrap;}
   .fs-tag{flex:0 0 auto;white-space:nowrap;font-size:12px;font-weight:800;letter-spacing:.08em;
           border:1.5px solid #1a1a1a;border-radius:4px;padding:1px 8px 2px;}
-  .fs-scope{font-size:12px;color:#555;min-width:0;}
-  .fs-hd-r{text-align:right;font-size:11px;color:#555;line-height:1.5;flex:0 0 auto;white-space:nowrap;}
-  .fs-name{font-size:14px;color:#1a1a1a;font-weight:700;}
-  .fs-lead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:7px 0 9px;font-size:12px;}
-  .fs-lead .fs-l{font-weight:600;}
-  .fs-score{display:flex;align-items:center;gap:8px;border:1.6px solid #1a1a1a;border-radius:5px;padding:3px 10px;flex:none;}
+  /* 範囲は2行目の左。日付の行と同じ11pxにすると、実データ（2教材）が1行に収まる（2026-09-02 実測） */
+  .fs-scope{font-size:11px;color:#555;flex:1 1 auto;min-width:0;}
+  .fs-meta{font-size:11px;color:#555;flex:0 0 auto;white-space:nowrap;margin-left:auto;}
+  .fs-name{font-size:14px;color:#1a1a1a;font-weight:700;flex:0 0 auto;white-space:nowrap;margin-left:auto;}
+  /* 得点らんは見出し帯の中。短いので絶対に縮ませない＝縮むのは範囲（.fs-scope）だけ（2026-09-02） */
+  .fs-score{display:flex;align-items:center;gap:8px;border:1.6px solid #1a1a1a;border-radius:5px;padding:3px 10px;
+            flex:0 0 auto;white-space:nowrap;align-self:center;margin-left:12px;}
   .fs-score .fs-sc-l{font-size:11px;font-weight:700;letter-spacing:.06em;}
   .fs-score .fs-sc-box{display:inline-block;width:22mm;height:7mm;border-bottom:1.6px solid #1a1a1a;}
   .fs-score .fs-sc-t{font-size:12px;font-weight:700;white-space:nowrap;}
@@ -301,8 +303,9 @@
      **紙の幅も本文の折り返しも変えない**ので、ページ数は印刷したときと1ページも変わらない。
      ★.p-unit ごと padding で内側に寄せる案は不可。捕まえる箱の幅が変わるとページの切れ目がずれて、
        実測で 23ページ → 27ページ になった（2026-09-01 に試して取り下げた）。 */
-  body.fs-pdf .fs-hd-r{margin-right:5mm;}
-  body.fs-pdf .fs-lead .fs-score{margin-right:5mm;}
+  /* PDFで保存すると右はしが切れる（Windowsの游ゴシックで幅が変わる）。帯のいちばん右の部品を5mm内側へ。
+     1ページ目は得点らん、それ以外は名前の欄が右はしになるので :last-child でまとめて当てる。2026-09-02 */
+  body.fs-pdf .fs-hd > :last-child{margin-right:5mm;}
   body.fs-pdf .fs-foot > span:last-child{margin-right:5mm;}
   body.fs-pdf .fs-page{page-break-before:always;}
   body.fs-pdf .p-unit > .fs-sheet > .fs-page:first-child{page-break-before:auto;}
@@ -2196,23 +2199,28 @@ function fsProbe_(roomy){
 /* ---- 紙の部品（測るときと描くときで同じものを使う） ---- */
 /* tag＝「問題」か「解答と解説」。紙の束を見ただけでどちらか分かるようにする（川上さん確定 2026-09-02）。
    ★札は短いので必ず flex:0 0 auto;white-space:nowrap（.fs-tag）。長い範囲（.fs-scope）だけが縮む */
-function fsHeadHtml_(ctx,ttl,scope,tag){
+/* 見出し帯＝2行×2列の1段だけ（2026-09-02 川上さん指摘「得点の行は得点しかなくて無駄スペース」）。
+     1行目 左＝仕上げプリント＋札　　右＝生徒名・学年
+     2行目 左＝範囲　　　　　　　　右＝日付／全N問／セット番号
+     いちばん右＝得点らん（1ページ目だけ・2行ぶんの高さの中央）
+   ★左右とも「短いほうは縮ませない・長いほう（範囲）だけ縮む」。範囲を1行目に混ぜると、
+     題名と札のぶん幅が足りず、長い教材名で5行に折れる（2026-09-02 に実測）。
+   tag＝「問題」か「解答と解説」。score＝true のページだけ得点らんを出す。 */
+function fsHeadHtml_(ctx,ttl,scope,tag,score){
   var tg=tag?('<div class="fs-tag">'+esc(tag)+'</div>'):'';
-  return '<div class="fs-hd"><div class="fs-hd-l"><div class="fs-ttl">'+esc(ttl)+'</div>'+tg
-    +'<div class="fs-scope">'+esc(scope)+'</div></div>'
-    +'<div class="fs-hd-r"><div class="fs-name">'+esc(ctx.name)+(ctx.grade?('　'+esc(ctx.grade)):'')+'</div>'
-    +esc(ctx.date)+' ／ 全'+ctx.total+'問 ／ '+esc(ctx.code)+'</div></div>';
+  var sc=score?('<div class="fs-score"><span class="fs-sc-l">得点</span><span class="fs-sc-box"></span>'
+    +'<span class="fs-sc-t">／ '+ctx.total+'問</span></div>'):'';
+  return '<div class="fs-hd"><div class="fs-hd-main">'
+    +'<div class="fs-hd-r1"><div class="fs-ttl">'+esc(ttl)+'</div>'+tg
+    +'<div class="fs-name">'+esc(ctx.name)+(ctx.grade?('　'+esc(ctx.grade)):'')+'</div></div>'
+    +'<div class="fs-hd-r2"><div class="fs-scope">'+esc(scope)+'</div>'
+    +'<div class="fs-meta">'+esc(ctx.date)+' ／ 全'+ctx.total+'問 ／ '+esc(ctx.code)+'</div></div>'
+    +'</div>'+sc+'</div>';
 }
-/* 【2026-09-02 川上さん確定】「答えはうしろの紙。N〜M番をぜんぶ書いてから見る。」は廃止した。
-   問題か解答と解説かは見出しの札（fsHeadHtml_ の tag）で示す。
-   ★得点らんはこの行に同居しているので、1枚目だけ行ごと残す。得点らんが無いページは行を出さない
-   （空の行を残すと、そのぶん紙が縦に詰まらない）。from/to は呼び出し側を変えないために残してある。 */
-function fsLeadHtml_(ctx,from,to,withScore){
-  if(!withScore) return '';
-  return '<div class="fs-lead"><div class="fs-l"></div>'
-    +'<div class="fs-score"><span class="fs-sc-l">得点</span><span class="fs-sc-box"></span>'
-    +'<span class="fs-sc-t">／ '+ctx.total+'問</span></div></div>';
-}
+/* 【2026-09-02 廃止】リード行（「答えはうしろの紙。N〜M番を…」＋得点らん）はもう出さない。
+   ・文＝川上さん確定で廃止。問題か解答と解説かは見出しの札で示す
+   ・得点らん＝見出し帯の中へ移した
+   ★この関数はもう呼ばれていない。復活させない（1段で足りるものを2段にしない）。 */
 function fsFootHtml_(ctx,label){
   return '<div class="fs-foot"><span>Kurofune Word Trainer ／ 仕上げプリント</span>'
     +'<span>'+esc(ctx.code)+' ／ '+esc(label)+'</span></div>';
@@ -2460,8 +2468,8 @@ function fsFillQPages_(units,ctx,roomy,usable){
   var pages=[], no=1, fi=0, ti=0;
   for(var p=0;p<FS_QPAGE_MAX_ && (fi<figQ.length||ti<txtQ.length);p++){
     var pg={figs:[],texts:[]};
-    probe.innerHTML='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'問題')
-      +fsLeadHtml_(ctx,no,no,p===0)+'<div class="fs-figs"></div><div class="fs-grid"></div>'
+    probe.innerHTML='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'問題',p===0)
+      +'<div class="fs-figs"></div><div class="fs-grid"></div>'
       +fsFootHtml_(ctx,'　')+'</div>';
     var pageEl=probe.firstChild, figHost=probe.querySelector('.fs-figs'), grid=probe.querySelector('.fs-grid');
     var placed=0;
@@ -2587,8 +2595,8 @@ function fsDrawSheet_(b){
     var g='';
     pg.texts.forEach(function(t){ g+=fsQBodyHtml_(t.item,t.no); idx++; });
     var to=idx;
-    h+='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'問題')
-      +fsLeadHtml_(ctx,from,to,i===0)+body+'<div class="fs-grid">'+g+'</div>'
+    h+='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'問題',i===0)
+      +body+'<div class="fs-grid">'+g+'</div>'
       +fsFootHtml_(ctx,fsSheetLabel_(1,i)+'（問題'+from+'〜'+to+'）')+'</div>';
   });
   if(qp.length%2===1) h+='<div class="p-filler"></div>';   /* 問題と答えを同じ紙の表裏にしない */
