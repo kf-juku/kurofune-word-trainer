@@ -233,6 +233,8 @@
   /* 見出し（仕上げプリント／答え）は折り返さない。範囲の教材名が長いと flex の既定で見出しが縮んで
      「仕上げプリ／ント」「答／え」と割れる（2026-09-01 川上さん指摘）。縮むのは範囲のほうだけにする。 */
   .fs-ttl{font-size:19px;font-weight:800;letter-spacing:.04em;flex:0 0 auto;white-space:nowrap;}
+  .fs-tag{flex:0 0 auto;white-space:nowrap;font-size:12px;font-weight:800;letter-spacing:.08em;
+          border:1.5px solid #1a1a1a;border-radius:4px;padding:1px 8px 2px;}
   .fs-scope{font-size:12px;color:#555;min-width:0;}
   .fs-hd-r{text-align:right;font-size:11px;color:#555;line-height:1.5;flex:0 0 auto;white-space:nowrap;}
   .fs-name{font-size:14px;color:#1a1a1a;font-weight:700;}
@@ -2192,16 +2194,24 @@ function fsProbe_(roomy){
   return d;
 }
 /* ---- 紙の部品（測るときと描くときで同じものを使う） ---- */
-function fsHeadHtml_(ctx,ttl,scope){
-  return '<div class="fs-hd"><div class="fs-hd-l"><div class="fs-ttl">'+esc(ttl)+'</div>'
+/* tag＝「問題」か「解答と解説」。紙の束を見ただけでどちらか分かるようにする（川上さん確定 2026-09-02）。
+   ★札は短いので必ず flex:0 0 auto;white-space:nowrap（.fs-tag）。長い範囲（.fs-scope）だけが縮む */
+function fsHeadHtml_(ctx,ttl,scope,tag){
+  var tg=tag?('<div class="fs-tag">'+esc(tag)+'</div>'):'';
+  return '<div class="fs-hd"><div class="fs-hd-l"><div class="fs-ttl">'+esc(ttl)+'</div>'+tg
     +'<div class="fs-scope">'+esc(scope)+'</div></div>'
     +'<div class="fs-hd-r"><div class="fs-name">'+esc(ctx.name)+(ctx.grade?('　'+esc(ctx.grade)):'')+'</div>'
     +esc(ctx.date)+' ／ 全'+ctx.total+'問 ／ '+esc(ctx.code)+'</div></div>';
 }
+/* 【2026-09-02 川上さん確定】「答えはうしろの紙。N〜M番をぜんぶ書いてから見る。」は廃止した。
+   問題か解答と解説かは見出しの札（fsHeadHtml_ の tag）で示す。
+   ★得点らんはこの行に同居しているので、1枚目だけ行ごと残す。得点らんが無いページは行を出さない
+   （空の行を残すと、そのぶん紙が縦に詰まらない）。from/to は呼び出し側を変えないために残してある。 */
 function fsLeadHtml_(ctx,from,to,withScore){
-  var sc=withScore?('<div class="fs-score"><span class="fs-sc-l">得点</span><span class="fs-sc-box"></span>'
-    +'<span class="fs-sc-t">／ '+ctx.total+'問</span></div>'):'';
-  return '<div class="fs-lead"><div class="fs-l">答えはうしろの紙。'+from+'〜'+to+'番をぜんぶ書いてから見る。</div>'+sc+'</div>';
+  if(!withScore) return '';
+  return '<div class="fs-lead"><div class="fs-l"></div>'
+    +'<div class="fs-score"><span class="fs-sc-l">得点</span><span class="fs-sc-box"></span>'
+    +'<span class="fs-sc-t">／ '+ctx.total+'問</span></div></div>';
 }
 function fsFootHtml_(ctx,label){
   return '<div class="fs-foot"><span>Kurofune Word Trainer ／ 仕上げプリント</span>'
@@ -2450,7 +2460,7 @@ function fsFillQPages_(units,ctx,roomy,usable){
   var pages=[], no=1, fi=0, ti=0;
   for(var p=0;p<FS_QPAGE_MAX_ && (fi<figQ.length||ti<txtQ.length);p++){
     var pg={figs:[],texts:[]};
-    probe.innerHTML='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope)
+    probe.innerHTML='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'問題')
       +fsLeadHtml_(ctx,no,no,p===0)+'<div class="fs-figs"></div><div class="fs-grid"></div>'
       +fsFootHtml_(ctx,'　')+'</div>';
     var pageEl=probe.firstChild, figHost=probe.querySelector('.fs-figs'), grid=probe.querySelector('.fs-grid');
@@ -2495,7 +2505,7 @@ function fsFlat_(qpages){
 function fsFillAPages_(flat,ctx,usable){
   var probe=fsProbe_(false);
   var fill=function(startIdx,withBack,label){
-    probe.innerHTML='<div class="fs-page">'+fsHeadHtml_(ctx,'答え',ctx.scope)+fsAnsBandHtml_()
+    probe.innerHTML='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'解答と解説')+fsAnsBandHtml_()
       +fsAnsTableHtml_('')+(withBack?fsBackHtml_(ctx):'')+fsFootHtml_(ctx,label)+'</div>';
     var pageEl=probe.firstChild, tb=probe.querySelector('tbody'), n=0;
     for(var i=startIdx;i<flat.length;i++){
@@ -2577,7 +2587,7 @@ function fsDrawSheet_(b){
     var g='';
     pg.texts.forEach(function(t){ g+=fsQBodyHtml_(t.item,t.no); idx++; });
     var to=idx;
-    h+='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope)
+    h+='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'問題')
       +fsLeadHtml_(ctx,from,to,i===0)+body+'<div class="fs-grid">'+g+'</div>'
       +fsFootHtml_(ctx,fsSheetLabel_(1,i)+'（問題'+from+'〜'+to+'）')+'</div>';
   });
@@ -2587,7 +2597,7 @@ function fsDrawSheet_(b){
     var rows='',from=ai+1;
     for(var k=0;k<n;k++){ rows+=fsAnsRowHtml_(flat[ai].item,flat[ai].no); ai++; }
     var last=(i===ac.length-1);
-    h+='<div class="fs-page">'+fsHeadHtml_(ctx,'答え',ctx.scope)+fsAnsBandHtml_()
+    h+='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'解答と解説')+fsAnsBandHtml_()
       +fsAnsTableHtml_(rows)+(last?fsBackHtml_(ctx):'')
       +fsFootHtml_(ctx,fsSheetLabel_(qSheets+1,i)+'（答え'+from+'〜'+ai+'）')+'</div>';
   });
