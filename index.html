@@ -2543,6 +2543,39 @@ var HOME_CACHE_KEY='kwt_home_cache_v1';
 function homeCacheGet_(){try{return JSON.parse(localStorage.getItem(HOME_CACHE_KEY)||'{}');}catch(e){return {};}}
 function homeCachePut_(k,d){try{var c=homeCacheGet_();c[k]=d;c._day=todayStr_();/* JST日付を焼き込む（日付ガード用）川上さん報告2026-07-11 */localStorage.setItem(HOME_CACHE_KEY,JSON.stringify(c));}catch(e){}}
 function homeCacheClear_(){try{localStorage.removeItem(HOME_CACHE_KEY);}catch(e){}}
+/* ===== 今日終えたぶんを端末が覚える 2026-09-03 =====
+   川上さん報告「ホームに戻ってから今日の分完了になるまでラグがある」。
+   完了画面を保存より先に描くようにしたので、保存の返事が届く前にホームへ戻れる。
+   そのときサーバーはまだ古い状態を返すので、ホームは「まだ終わっていない」ように見える。
+   ★保存が成功した回だけ覚える＝サーバーに記録があるものしか出さないので、先に出しても嘘にならない。
+   教材(material_id)でも覚えるのは、DAYが進んで part_id が変わっても当てるため。日付が変われば捨てる。 */
+var CLEARED_KEY_='kwt_cleared_today_v1';
+function clearedTodayGet_(){
+  try{var o=JSON.parse(localStorage.getItem(CLEARED_KEY_)||'{}');
+      if(!o||o.d!==todayStr_())return {d:todayStr_(),parts:[],mats:[]};
+      return {d:o.d,parts:o.parts||[],mats:o.mats||[]};}catch(e){return {d:todayStr_(),parts:[],mats:[]};}
+}
+function clearedTodayAdd_(partId,nextPartId){
+  try{
+    var o=clearedTodayGet_();
+    var push=function(a,v){v=String(v||'');if(v&&a.indexOf(v)<0)a.push(v);};
+    push(o.parts,partId);push(o.parts,nextPartId);
+    if(_dailyMain){for(var i=0;i<_dailyMain.length;i++){
+      if(String(_dailyMain[i].part_id)===String(partId)){push(o.mats,_dailyMain[i].material_id);break;}
+    }}
+    localStorage.setItem(CLEARED_KEY_,JSON.stringify(o));
+  }catch(e){}
+}
+function clearedTodayApply_(main){
+  try{
+    var o=clearedTodayGet_();if(!o.parts.length&&!o.mats.length)return main;
+    for(var i=0;i<(main||[]).length;i++){var m=main[i];
+      if(m.cleared_today)continue;
+      if(o.parts.indexOf(String(m.part_id))>=0||(m.material_id&&o.mats.indexOf(String(m.material_id))>=0))m.cleared_today=true;
+    }
+  }catch(e){}
+  return main;
+}
 /* 【2026-09-03】同じ action の問い合わせが重なったら、あとから始めたぶんだけを採用する。
    完了画面を保存より先に描くようにしてから（2026-09-02）、保存の返事が届く前にホームへ戻れるようになった。
    そのときホームは「まだ保存が届いていないサーバー」を読む。GASは混むと返る順番が入れかわるので、
@@ -3180,6 +3213,7 @@ function loadHomeData_(showSkel){
   callCached({action:'student_home'},function(d,_cached){
     if(!d.ok){if(d.error&&d.error.indexOf('ログイン')>=0){homeCacheClear_();localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');show('scr-login');return;}renderHomeError_();return;} // 通信エラーは再試行カードを出す（ログイン切れ以外）2026-07-24
     var main=d.data.main||[];
+    try{clearedTodayApply_(main);}catch(eCt){} /* 端末が知っている「今日終えたぶん」を重ねる＝ホームに戻った瞬間から正しく見える 2026-09-03 */
     var tests=d.data.tests||[]; // テスト配信カード（GAS studentHome tests・2026-07-04）
     main.sort(function(a,b){return (a.display_order||0)-(b.display_order||0);});tests.sort(function(a,b){return (a.display_order||0)-(b.display_order||0);}); // シートの番号順・川上さん 2026-07-22
     var cards=main.concat(tests);
@@ -5393,6 +5427,8 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     /* つぎに開いたときの先読みが「終わったパート」を読まないよう、覚えているIDを差し替える。
        生徒が先に進んでいても実行する（画面ではなく端末の覚えを直すだけ）2026-09-02 */
     try{if(d.data&&d.data.next_part_id)bootPartsAdvance_(s.listId,d.data.next_part_id);}catch(eBa){}
+    /* 保存が届いた回だけ「今日終えた」と端末に覚えさせる。ホームに戻ったとき保存の返事を待たずに出せる 2026-09-03 */
+    try{if(s.content_type!=='test')clearedTodayAdd_(s.listId,(d.data&&d.data.next_part_id)||'');}catch(eCt){}
     homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
     /* 高速化 2026-07-15：今日のがんばり集計＋word_statsは保存(session_complete)の待ちから外し、
        完了後に complete_extras を裏で取得してチップを出す。保存本体はこの前に確定済み＝失敗しても学習データは無事。 */
