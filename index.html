@@ -1218,7 +1218,9 @@
   .listen-btn i{font-size:18px;}
   /* 採点中のTips＋保存中ローダー（2026-07-09） */
   .sw-load{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--sub);font-size:12px;font-weight:700;margin:2px 0 12px;}
-  .sw-load.sw-big{gap:11px;font-size:15px;color:var(--ink);margin:12px 0 18px;}
+  /* 採点（保存）中は、見てすぐ分かる大きさにする。閉じられると記録が残らないため 2026-09-02 川上さん指示 */
+  .sw-load.sw-big{flex-direction:column;gap:9px;font-size:16px;color:var(--ink);margin:14px 0 20px;}
+  .sw-load.sw-big .sw-sub{font-size:12.5px;font-weight:700;color:var(--ng);}
   .tip-card{display:flex;gap:11px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:left;}
   .tip-emb{width:66px;flex:none;border-radius:12px;padding:8px 5px;text-align:center;border:1px solid var(--line);background:var(--bg);}
   .tip-emb i{font-size:23px;display:block;margin:0 auto;}
@@ -3997,7 +3999,7 @@ function renderQz_(s){
     if(_tfRenderable_(w,s.assets)){renderTF(s);return;}
     // 表データが取れないときだけ文字版にフォールバック（描画不能で無表示にしない）
     var _qtf=tfParse(w);$('j2e-label').innerHTML='<ruby>正<rt class="uf">ただ</rt></ruby>しい<ruby>形<rt class="uf">かたち</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';$('j2e-ja').innerHTML=renderQ(w,furiQ);renderFuriBar(w);
-    buildChoices('j2e-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},{fixedChoices:(_qtf.choices||[]),timeLimit:(s.mode==='note'?0:qSecFor('table_fill')),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',promptText:w.japanese,next:s.onNext});
+    buildChoices('j2e-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},{fig:true,fixedChoices:(_qtf.choices||[]),timeLimit:(s.mode==='note'?0:qSecFor('table_fill')),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',promptText:w.japanese,next:s.onNext});
     $('step-j2e').style.display='block';showListen_(w,_wIsEng(s,w));return;
   }
   if(w.qtype==='image_fill'){renderIMG(s);return;}
@@ -4067,9 +4069,9 @@ function renderTF(ss){
   h+='</table>';
   $('tf-table').innerHTML=h;
   $('tf-ask').style.display='';$('tf-ask').innerHTML='<b style="color:var(--accent)">'+(TF_CIRC[myN]||myN)+'</b> に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>形<rt class="uf">かたち</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
-  var _tl=qSecFor('table_fill'); // 表は読む時間が要るので教科によらず理社と同じ秒数（15秒）。全画面共通 2026-08-20
+  var _tl=qSecFor('table_fill'); // 表は読む時間が要るので教科によらず理社と同じ秒数。全画面共通 2026-08-20／fig:true でさらに＋5秒 2026-09-02
   buildChoices('tf-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},
-    {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,next:s.onNext});
+    {fig:true,fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,next:s.onNext});
   $('step-tf').style.display='block';showListen_(w,_wIsEng(s,w));
 }
 /* ===== 図問題（image_fill・番号方式）レンダラー 2026-07-12 =====
@@ -4110,9 +4112,9 @@ function renderIMG(ss){
   if(qd.num&&numHoles.length>1){h+='<div class="imgq-track">';numHoles.forEach(function(hh){var st=hh.i<s.idx?'done':(hh.i===s.idx?'cur':'');h+='<span class="'+st+'">'+esc(hh.q.num)+'</span>';});h+='</div>';}
   $('tf-table').innerHTML=h;
   $('tf-ask').innerHTML='';$('tf-ask').style.display='none'; /* 設問は図の上に表示済み 2026-07-16 */
-  var _tl=qSecFor('table_fill'); // 図も読む時間が要るので15秒。全画面共通 2026-08-20
+  var _tl=qSecFor('table_fill'); // 図も読む時間が要るので理社と同じ秒数。全画面共通 2026-08-20／fig:true でさらに＋5秒 2026-09-02
   buildChoices('tf-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},
-    {fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,promptText:w.japanese,next:s.onNext});
+    {fig:true,fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,promptText:w.japanese,next:s.onNext});
   $('step-tf').style.display='block';showListen_(w,_wIsEng(s,w));
 }
 function nextWord(){var s=session;
@@ -4669,7 +4671,7 @@ function buildChoices(containerId,correct,pool,onResult,opts){
   applyChoiceCols(box,choices); // 2列/1列 自動分岐 2026-07-05
   choices.forEach(function(opt){var b=document.createElement('button');b.className='choice';b.setAttribute('data-val',opt);b.innerHTML=_choiceHtml(opt);
     b.onclick=function(){finish(_choiceKey(opt)===_ck,b);};box.appendChild(b);});   /* 2026-08-18 型ちがいで正解がバツになるのを防ぐ */
-  if(opts.timeLimit>0){startQTimer(opts.timeLimit,function(){finish(false,null);});}else{hideQTimer();}
+  if(opts.timeLimit>0){startQTimer(_qtSecFinal_(opts.timeLimit,choices,opts.fig),function(){finish(false,null);});}else{hideQTimer();} /* 秒数は「実際に出す4つ」が決まってから足す＝ランダムに選ばれた誤答の長さもちゃんと見る 2026-09-02 */
 }
 
 /* 4択の2列化：川上さん承認(2026-07-05 モック)。最長選択肢が10文字以内なら2×2、超えたら1列。
@@ -4756,6 +4758,17 @@ function stopQTimer(){if(_qtId){clearInterval(_qtId);_qtId=null;}_qtRem=0;}
 function hideQTimer(){stopQTimer();var w=$('qtimer');if(w)w.style.display='none';}
 /* 教科別の制限秒数（英語10・その他15。後で調整可）2026-07-04 */
 var QSEC={english:10};function qSecFor(subj){return QSEC[subj]||15;}
+/* 【2026-09-02 川上さん確定】ベースの秒数は据え置き（英語10・その他15）。読む量が多い問題だけ＋5秒。
+   足すのは (a)図・表の問題 (b)選択肢に長い文が混ざる問題。両方あてはまっても＋5秒（重ねない）。
+   計算は出題を描くときにJSが1回するだけ。すでに手元にある qtype と選択肢しか見ないのでサーバーには聞かない。
+   「長い選択肢」のしきい値は、2列⇔1列を切り替える CHOICE_COL_LIMIT と同じ10文字にそろえてある（11文字以上＝記述）。 */
+var QSEC_ADD_=5;
+function _qtSecFinal_(sec,choices,isFig){
+  if(!(sec>0))return sec;
+  if(isFig)return sec+QSEC_ADD_;
+  var mx=0;(choices||[]).forEach(function(c){var L=String(c==null?'':c).length;if(L>mx)mx=L;});
+  return (mx>CHOICE_COL_LIMIT)?(sec+QSEC_ADD_):sec;
+}
 /* ===== 採点中のTips（勉強法＋機能紹介・ランダム1つ）2026-07-09 川上さん承認。文＋エンブレム(任意)で拡張可 ===== */
 var TIPS=[
  {t:'<ruby>暗記<rt class="uf">あんき</rt></ruby>は「<ruby>覚<rt class="uf">おぼ</rt></ruby>える」より「<ruby>思<rt class="uf">おも</rt></ruby>い<ruby>出<rt class="uf">だ</rt></ruby>す」ほうが<ruby>力<rt class="uf">ちから</rt></ruby>になる。<ruby>答<rt class="uf">こた</rt></ruby>えを<ruby>見<rt class="uf">み</rt></ruby>る<ruby>前<rt class="uf">まえ</rt></ruby>に、まず<ruby>思<rt class="uf">おも</rt></ruby>い<ruby>出<rt class="uf">だ</rt></ruby>してみよう。'},
@@ -5044,7 +5057,7 @@ function finishQuizSubmit_(){
   animNum($('score-anim'),score,900);
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（確認テストにも）2026-08-08
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
-  $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(38)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>';
+  $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(76)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span><span class="sw-sub">とじないで<ruby>待<rt class="uf">ま</rt></ruby>ってね</span></div>';
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
   $('btn-retry').style.display='flex';$('btn-next').style.display='none';lockBtns(true);
   $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> <span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>受<rt class="uf">う</rt></ruby>ける</span>';
@@ -5085,7 +5098,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル 2026-07-24
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);
   _doneResetCommon_();var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
-  $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(38)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>'+tipHtml_();
+  $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(76)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span><span class="sw-sub">とじないで<ruby>待<rt class="uf">ま</rt></ruby>ってね</span></div>'+tipHtml_();
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
   $('btn-retry').style.display='flex';$('btn-next').style.display='none';$('btn-next').className='btn gold';lockBtns(true);
   var _dg0=$('done-guide-area');if(_dg0)_dg0.innerHTML='';var _bh=$('btn-home');if(_bh){_bh.innerHTML='<span>ホームへ<ruby>戻<rt class="uf">もど</rt></ruby>る</span>';_bh.onclick=function(){openHome();};}
@@ -5328,7 +5341,7 @@ function finishNote(){
   try{var _nt=(s.total||(s.words&&s.words.length)||0),_nc=Math.max(0,_nt-((s.miss||[]).length)),_nr=_nt?Math.round(_nc/_nt*100):0;renderDoneTiles_(_nr,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（間違いノートにも）2026-08-08
   // 採点（保存）中：スピナー＋Tips（成功と偽らない・待ちを価値に）2026-07-13
   $('done-miss').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
-  $('star-area').innerHTML='<div class="note-saving"><div class="sw-load">'+kwtSpin(30)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>'+tipHtml_()+'</div>';
+  $('star-area').innerHTML='<div class="note-saving"><div class="sw-load sw-big">'+kwtSpin(76)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span><span class="sw-sub">とじないで<ruby>待<rt class="uf">ま</rt></ruby>ってね</span></div>'+tipHtml_()+'</div>';
   whenGradesFlushed(function(){
     homeCacheClear_();/* 保存に失敗した回でも次のホームで最新を取り直す（おさらい finishSrs と同じ）2026-08-21 */
     if(gradeFailed>0){
