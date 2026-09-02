@@ -2551,6 +2551,41 @@ function callCached(body,render){
 }
 /* ===== 先読みD（川上さん承認 2026-07-05）：ホーム表示中に今日の単語を裏で取得 ===== */
 var _prefetch={}; /* 値は「取得済みデータ」または「取得中のPromise」。タップ時はどちらでも使える */
+/* ===== 起動と同時に先読みを始める 2026-09-02 =====
+   これまで＝先読みは student_home の返事が返ってから始まっていた。実測でホームが返るのが約5.5秒なので、
+   教材をタップして待たずに始められるのは起動から10.7秒後だった。
+   ★なぜホームキャッシュ(kwt_home_cache_v1)では代わりにならないか＝
+     学習を終えた保存のときに homeCacheClear_() で消しているから。
+     生徒はふつう「終わったら閉じる」ので、次に開いたときキャッシュは空。いちばん遅い形で毎回起動していた。
+   そこで、いま出ている教材のIDだけを別のキーに持っておく。ここは homeCacheClear_ で消さない。
+   IDは古くなることがある（DAY5を終えたのにDAY5のまま）ので、保存が返したつぎのパートで差し替える。
+   古いIDを1回むだに読んでも害はない（読むだけ・タップ時は正しいIDで取り直す）。 */
+var BOOT_PARTS_KEY_='kwt_boot_parts_v1';
+function bootPartsSave_(cards){
+  try{
+    var a=(cards||[]).slice(0,3).map(function(m){return {part_id:m.part_id,content_type:m.content_type,graduated:!!m.graduated};})
+                     .filter(function(m){return !!m.part_id;});
+    if(a.length)localStorage.setItem(BOOT_PARTS_KEY_,JSON.stringify(a));
+  }catch(e){}
+}
+/* 保存が「つぎのパート」を返したら、覚えているIDを差し替える＝次に開いたとき正しい方を先読みする */
+function bootPartsAdvance_(oldId,newId){
+  try{
+    if(!oldId||!newId)return;
+    var a=JSON.parse(localStorage.getItem(BOOT_PARTS_KEY_)||'[]');
+    var hit=false;
+    a.forEach(function(m){if(String(m.part_id)===String(oldId)){m.part_id=String(newId);hit=true;}});
+    if(hit)localStorage.setItem(BOOT_PARTS_KEY_,JSON.stringify(a));
+  }catch(e){}
+}
+var _bootPrefetched_=false;
+function bootPrefetch_(){
+  if(_bootPrefetched_)return;_bootPrefetched_=true;
+  try{
+    var a=JSON.parse(localStorage.getItem(BOOT_PARTS_KEY_)||'[]');
+    if(a&&a.length)prefetchParts_(a);
+  }catch(e){}
+}
 function prefetchParts_(cards){
   (cards||[]).slice(0,3).forEach(function(m){
     if(!m.part_id)return;
@@ -3118,6 +3153,7 @@ function openHome(){
   _bind('ntab5-unit',function(){showHomeTab('unit');});
   _bind('ntab5-record',function(){setTab5_('record');showSub('records');}); // showSub('records')側で新バッジ・新アイコンを既読化
   try{recomputeNewIcon_();}catch(e){} // 新しいアイコンの未読判定（記録タブ赤●）2026-07-26
+  try{bootPrefetch_();}catch(eBp){} // ホームの返事を待たずに先読みを始める 2026-09-02
   loadHomeData_(true);
   /* 【2026-08-28】先生からのお知らせを最初に見せる。確認し終わってから、お祝い（2026-07-24）と三連星（2026-07-25）へ進む。
      studentHome がまだ返っていないことが多いので、maybeShowNotice_ は印を立てるだけ。noticeThenCele_ が3秒で先へ逃がす。 */
@@ -3159,6 +3195,7 @@ function loadHomeData_(showSkel){
       try{loadHomeData_(false);}catch(e3){}
     });}catch(eSq){}}
     renderDaily();
+    bootPartsSave_(cards);  // つぎに開いたとき、ホームを待たずに先読みするためのIDを覚える 2026-09-02
     prefetchParts_(cards); // 先読み：毎日学習＋単元別の現在パート
     renderDailyList_(main); // 毎日学習＝今のDAY大＋先プレビュー（新ホーム 2026-07-24）
     if(false){$('main-list').innerHTML='';
@@ -4799,7 +4836,9 @@ function applyChoiceCols(box,choices){
   box.classList.toggle('g2',mx<=CHOICE_COL_LIMIT);
 }
 /* 解答後の進行：正解=自動360ms／不正解=解答＋解説を出してタップで次へ（2026-07-04） */
+var _ansT0=0; /* 最後の答えを選んだ時刻。「答えてから点数が出るまで」を測るために置く 2026-09-02 */
 function afterAnswer(ok,correct,kaisetsu,reading,next){
+  try{_ansT0=_perfNow_();}catch(eA0){}
   if(typeof reading==='function'){next=reading;reading='';} // 旧シグネチャ互換
   if(!next)next=function(){};
   showExplain(correct,kaisetsu,reading,ok);waitTap(next,ok);
@@ -5162,7 +5201,8 @@ function _doneResetCommon_(){
    サーバー側の sessionScorePair_ と同じ考え方。式を2か所に書かない 2026-08-31。 */
 function _doneScore_(s,mr,rr){var termOnly=(s.isEnglish===false)||s.tfOnly;return termOnly?rr:((s.dir==='e2j')?mr:Math.round((mr+rr)/2));}
 function finishQuizSubmit_(){
-  var s=session;try{_resumeClear_();}catch(e){}show('scr-done');_doneResetCommon_();var _dgq=document.getElementById('done-guide-area');if(_dgq)_dgq.innerHTML='';hideQTimer();hideExplain();$('done-score-wrap').style.display='';var _dtq=$('done-tiles');if(_dtq)_dtq.innerHTML='';
+  var s=session;try{if(_ansT0)_perfPush_('答え→点数',_perfNow_()-_ansT0);}catch(eAt){} // 2026-09-02
+  try{_resumeClear_();}catch(e){}show('scr-done');_doneResetCommon_();var _dgq=document.getElementById('done-guide-area');if(_dgq)_dgq.innerHTML='';hideQTimer();hideExplain();$('done-score-wrap').style.display='';var _dtq=$('done-tiles');if(_dtq)_dtq.innerHTML='';
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
   var e2jOnly=(s.dir==='e2j'); // 方向固定 2026-07-28
@@ -5208,7 +5248,10 @@ function finishQuizSubmit_(){
     $('star-area').innerHTML='<div style="text-align:center;margin:6px 0 2px;">'+delta+'</div>'+missHtml;
   });
 }
-function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit_();}try{_resumeClear_();}catch(e){}_finT0=_perfNow_(); /* 最後の答え→チップまでを測る 2026-08-22 */ $('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';
+function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit_();}try{_resumeClear_();}catch(e){}_finT0=_perfNow_();
+  /* 最後の答えを選んでから完了画面（点数）が出るまで。ここは通信をしないので速いはずだが、
+     川上さんから「点数が出るまで時間がかかる」と指摘があったので測る 2026-09-02 */
+  try{if(_ansT0)_perfPush_('答え→点数',_perfNow_()-_ansT0);}catch(eAt){} /* 最後の答え→チップまでを測る 2026-08-22 */ $('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';
   _starPre=call({action:'shooting_star',exclude:starRecent_().join(',')}).catch(function(){return {ok:false};}); // 流れ星を採点と並行取得（体感改善 2026-07-08）／直近に出た子はexcludeで避ける 2026-07-21
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
@@ -5237,6 +5280,9 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     if(_live){var _db2=$('done-badge');if(_db2)_db2.style.display='';}
     if(!d.ok){if(_sqGiveUp_(d))_sqDel_(_scSq);if(!_live)return;$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>はこの<ruby>端末<rt class="uf">たんまつ</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>してあります。つぎに<ruby>開<rt class="uf">ひら</rt></ruby>いたとき<ruby>自動<rt class="uf">じどう</rt></ruby>でおくります';$('done-badge').innerHTML='<i class="ti ti-clock"></i>';return;} // 2026-09-02
     _sqDel_(_scSq); // 届いた＝もう送り直さない 2026-09-02
+    /* つぎに開いたときの先読みが「終わったパート」を読まないよう、覚えているIDを差し替える。
+       生徒が先に進んでいても実行する（画面ではなく端末の覚えを直すだけ）2026-09-02 */
+    try{if(d.data&&d.data.next_part_id)bootPartsAdvance_(s.listId,d.data.next_part_id);}catch(eBa){}
     homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
     /* 高速化 2026-07-15：今日のがんばり集計＋word_statsは保存(session_complete)の待ちから外し、
        完了後に complete_extras を裏で取得してチップを出す。保存本体はこの前に確定済み＝失敗しても学習データは無事。 */
