@@ -4873,13 +4873,25 @@ function kaiTraceStart_(el,text,ms){
   },per);
 }
 function hideExplain(){kaiTraceStop_();var e=$('explain');if(e)e.style.display='none';try{refreshBugFab();}catch(_e){var _bf=$('bug-fab');if(_bf)_bf.style.display='';}}
+/* いま出しているのが最後の1問か。ミス問モード中は「まだ続く」ので false。
+   ここが true でも実際にはミス問が始まることがあるが、その場合でも
+   「正解した問題のボタンが0.6秒早く押せる」だけなので害はない。 2026-09-02 */
+function _isLastQ_(){
+  try{ var s=session; if(!s||s.fixMode)return false;
+    return (s.idx >= (((s.words||[]).length)-1)); }catch(e){ return false; }
+}
 /* 画面のどこかをタップで次へ（同じクリックで即進まないよう少し遅らせて登録）2026-07-04 */
 function waitTap(next,ok){
   var btn=$('ex-next');var done=false;
   function go(){if(done)return;done=true;hideExplain();next();}
   if(!btn){setTimeout(function(){var s=$('scr-practice');if(s)s.addEventListener('click',go,{once:true,capture:true});},80);return;}
   btn.onclick=function(){if(btn.disabled)return;go();};
-  var _wms=(ok===false)?(_kaiWaitMs||2500):1000; // 不正解＝解説のなぞり所要時間に合わせる（解説なしは2.5秒）／正解＝1秒。カウントメーターは廃止しグレーアウトのみ 2026-07-26
+  /* 【2026-09-02 川上さん確定】最後の1問に正解したら止めない＝答えたらすぐ押せて、すぐ点数が出る。
+     ★このロックは保存とは関係ない。2026-07-26 に「解説を読み飛ばさないように」で入れたもの。
+       最後の1問のあとは次の問題が無いので、止める理由がない。
+     途中の問題（1.0秒）と、不正解のとき（解説のなぞり所要時間）は変えない＝読み飛ばし防止はそのまま残す。 */
+  var _wms=(ok===false)?(_kaiWaitMs||2500):(_isLastQ_()?0:1000); // 不正解＝解説のなぞり所要時間に合わせる（解説なしは2.5秒）／正解＝1秒（最後の1問は止めない）。カウントメーターは廃止しグレーアウトのみ 2026-07-26
+  if(!(_wms>0))return; // 止めない＝グレーアウトもしない（一瞬グレーになってすぐ戻る、を出さない）
   btn.disabled=true;btn.classList.add('waiting');
   setTimeout(function(){btn.disabled=false;btn.classList.remove('waiting');},_wms);
 }
@@ -5208,7 +5220,7 @@ function finishQuizSubmit_(){
   var e2jOnly=(s.dir==='e2j'); // 方向固定 2026-07-28
   var score=_doneScore_(s,mr,rr);
   $('done-rate').innerHTML=termOnly?('<ruby>正答<rt class="uf">せいとう</rt></ruby> <b>'+rr+'</b>％'):(e2jOnly?('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％'):('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> '+rr+'％'));
-  animNum($('score-anim'),score,900);
+  animNum($('score-anim'),score,450); /* 数え上がりは残す（ただの演出で、これがあっても待たされない）。0.9秒→0.45秒 2026-09-02 川上さん確定 */
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（確認テストにも）2026-08-08
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
   $('star-area').innerHTML=_savingHtml_(); // 2026-09-02：待たせないので小さい表示にした
@@ -5260,7 +5272,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   if(termOnly){$('done-rate').innerHTML=(s.tfOnly?'<ruby>正答<rt class="uf">せいとう</rt></ruby>':'<ruby>用語<rt class="uf">ようご</rt></ruby>')+' <b>'+rr+'</b>％';}
   else if(e2jOnly){$('done-rate').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr">'+mr+'</span>％';}
   else{$('done-rate').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr">'+mr+'</span>％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> <span id="done-rr">'+rr+'</span>％';}
-  animNum($('score-anim'),score,900); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）
+  animNum($('score-anim'),score,450); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）。数え上がりは残す＝ただの演出で待たせない。0.9秒→0.45秒 2026-09-02 川上さん確定
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル 2026-07-24
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);
   _doneResetCommon_();var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
