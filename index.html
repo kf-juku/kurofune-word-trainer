@@ -2543,11 +2543,22 @@ var HOME_CACHE_KEY='kwt_home_cache_v1';
 function homeCacheGet_(){try{return JSON.parse(localStorage.getItem(HOME_CACHE_KEY)||'{}');}catch(e){return {};}}
 function homeCachePut_(k,d){try{var c=homeCacheGet_();c[k]=d;c._day=todayStr_();/* JST日付を焼き込む（日付ガード用）川上さん報告2026-07-11 */localStorage.setItem(HOME_CACHE_KEY,JSON.stringify(c));}catch(e){}}
 function homeCacheClear_(){try{localStorage.removeItem(HOME_CACHE_KEY);}catch(e){}}
+/* 【2026-09-03】同じ action の問い合わせが重なったら、あとから始めたぶんだけを採用する。
+   完了画面を保存より先に描くようにしてから（2026-09-02）、保存の返事が届く前にホームへ戻れるようになった。
+   そのときホームは「まだ保存が届いていないサーバー」を読む。GASは混むと返る順番が入れかわるので、
+   その古い返事が、保存後に取り直した新しい返事より後に届いて画面を巻き戻していた。
+   ＝解いた教材がホームで「今日クリア」にならないまま見えていた（川上さん報告 2026-09-03）。 */
+var _ccSeq_={};
 function callCached(body,render){
-  var _cache=homeCacheGet_();var c=_cache[body.action];
+  var _act=body.action;
+  var _cache=homeCacheGet_();var c=_cache[_act];
   var _fresh=(_cache._day===todayStr_()); /* 日付をまたいだら前日キャッシュは描画しない（赤●・デイリー・おさらいが前日の状態で一瞬出るのを防ぐ）川上さん報告 2026-07-11 */
   if(_fresh&&c&&c.ok){try{render(c,true);}catch(e){}}
-  call(body).then(function(d){if(d&&d.ok)homeCachePut_(body.action,d);render(d,false);});
+  var _mySeq=(_ccSeq_[_act]=(_ccSeq_[_act]||0)+1);
+  call(body).then(function(d){
+    if(_mySeq<_ccSeq_[_act])return; /* もっとあとに始めた取り直しがある＝この返事は古い。描かないしキャッシュにも入れない */
+    if(d&&d.ok)homeCachePut_(_act,d);render(d,false);
+  });
 }
 /* ===== 先読みD（川上さん承認 2026-07-05）：ホーム表示中に今日の単語を裏で取得 ===== */
 var _prefetch={}; /* 値は「取得済みデータ」または「取得中のPromise」。タップ時はどちらでも使える */
