@@ -2552,8 +2552,26 @@ function homeCacheClear_(){try{localStorage.removeItem(HOME_CACHE_KEY);}catch(e)
 var CLEARED_KEY_='kwt_cleared_today_v1';
 function clearedTodayGet_(){
   try{var o=JSON.parse(localStorage.getItem(CLEARED_KEY_)||'{}');
-      if(!o||o.d!==todayStr_())return {d:todayStr_(),parts:[],mats:[]};
-      return {d:o.d,parts:o.parts||[],mats:o.mats||[]};}catch(e){return {d:todayStr_(),parts:[],mats:[]};}
+      if(!o||o.d!==todayStr_())return {d:todayStr_(),parts:[],mats:[],os:false,nt:false};
+      return {d:o.d,parts:o.parts||[],mats:o.mats||[],os:!!o.os,nt:!!o.nt};}catch(e){return {d:todayStr_(),parts:[],mats:[],os:false,nt:false};}
+}
+/* おさらい枠・間違いノート枠が「今日の分を終えた」ことを覚える 2026-09-03 */
+function clearedTodayFlag_(key){
+  try{var o=clearedTodayGet_();o[key]=true;localStorage.setItem(CLEARED_KEY_,JSON.stringify(o));}catch(e){}
+}
+/* ★おさらい枠・間違いノート枠の「済／まだ」を決める場所を1つにする 2026-09-03
+   いったん「済」になった日は、あとからサーバーが「まだ」と言っても戻さない。
+   サーバーの集計が追いつく前にホームや review_due を取り直すと「まだ」が返ってきて、
+   終えたはずのおさらいが「次はこれ」に出続け、間違いノートに一度もたどり着けなかった（川上さん報告 2026-09-03）。
+   ★「済」にするのは、サーバーが済と言った回か、今日の枠をやり切った回だけ＝先に出しても嘘にならない。
+   日付が変われば clearedTodayGet_ が空を返すので、翌日は「まだ」から始まる。 */
+function dailySetReview_(v){
+  if(v){clearedTodayFlag_('os');dailyState.review=true;return;}
+  dailyState.review=(clearedTodayGet_().os===true);
+}
+function dailySetNote_(v){
+  if(v){clearedTodayFlag_('nt');dailyState.note=true;return;}
+  dailyState.note=(clearedTodayGet_().nt===true);
 }
 function clearedTodayAdd_(partId,nextPartId){
   try{
@@ -3198,6 +3216,9 @@ function openHome(){
   _bind('ntab5-record',function(){setTab5_('record');showSub('records');}); // showSub('records')側で新バッジ・新アイコンを既読化
   try{recomputeNewIcon_();}catch(e){} // 新しいアイコンの未読判定（記録タブ赤●）2026-07-26
   try{bootPrefetch_();}catch(eBp){} // ホームの返事を待たずに先読みを始める 2026-09-02
+  /* 【2026-09-03】今日おさらい・間違いノートを終えているなら、サーバーの返事を待たずに「済」から始める。
+     覚えは日付が変われば消えるので、翌日は「まだ」から始まる。 */
+  try{var _ct0=clearedTodayGet_();if(_ct0.os)dailyState.review=true;if(_ct0.nt)dailyState.note=true;}catch(eCt0){}
   loadHomeData_(true);
   /* 【2026-08-28】先生からのお知らせを最初に見せる。確認し終わってから、お祝い（2026-07-24）と三連星（2026-07-25）へ進む。
      studentHome がまだ返っていないことが多いので、maybeShowNotice_ は印を立てるだけ。noticeThenCele_ が3秒で先へ逃がす。 */
@@ -3222,7 +3243,7 @@ function loadHomeData_(showSkel){
     /* 【2026-08-26】間違いノート枠（残0 or 今日10語）はサーバーが判定して返す。
        ノートのタブを開いていなくても、ホームだけでデイリーの帯が正しく出るようにする。 */
     try{ if(d.data.note&&d.data.note.today_done!==undefined){
-      dailyState.note=!!d.data.note.today_done;
+      dailySetNote_(!!d.data.note.today_done);
       /* 【2026-08-27】的と残りもここで受け取る。間違いノートタブを開いていない生徒でも
          毎日タブの「次はこれ」に集中攻略カードを出せるようにする（loadNotes を待たない）。 */
       _noteTgt=(d.data.note.target||null);_noteRem=(d.data.note.remaining|0);
@@ -5568,7 +5589,7 @@ function loadNotes(){
   var nt=$('note-total');if(nt)nt.innerHTML='';
     /* 【2026-08-27】的と残りを保持＝毎日タブの「次はこれ」でも同じ値を使う（数える場所を1つにする）。 */
     _noteTgt=(d.data.target||null);_noteRem=(d.data.total_active!=null)?(d.data.total_active|0):totalN;
-    dailyState.note=!!d.data.today_done;renderDaily(); /* 【2026-08-26】間違いノートもデイリーの枠になった（残0 or 今日10語）。判定はサーバー（§5-2）*/
+    dailySetNote_(!!d.data.today_done);renderDaily(); /* 【2026-08-26】間違いノートもデイリーの枠になった（残0 or 今日10語）。判定はサーバー（§5-2）*/
     if(_dailyMain)renderDailyList_(_dailyMain); /* 【2026-08-27】的が届いたら毎日タブも描き直す（loadReviewSrs と同じ形）*/
     var dn=$('dot-note');if(dn)dn.style.display=totalN>0?'block':'none';
     _reviewTileDone_('tile-note',totalN===0); // 存在すれば完了表示（今は非表示スタブ・ガードあり）
@@ -5657,7 +5678,7 @@ function finishNote(){
   try{localStorage.setItem('kwt_note_done',todayStr_());}catch(e){}
   /* 【2026-08-26】デイリーの枠が埋まるのは「今日の10語」をやり切ったときだけ。
      教科カードから3語だけ直した回で枠を埋めたことにすると、画面とサーバーの判定が食い違う。 */
-  if(noteSes&&noteSes.today){dailyState.note=true;}
+  if(noteSes&&noteSes.today){dailySetNote_(true);}
   renderDaily();
   var s=noteSes;$('prog').style.width='100%';show('scr-done');_doneResetCommon_();hideQTimer();hideExplain();var _dgn0=$('done-guide-area');if(_dgn0)_dgn0.innerHTML='';
   $('btn-next').style.display='none';$('btn-retry').style.display='none';
@@ -5806,7 +5827,7 @@ function loadReviewSrs(){
     }
     _revNum.osarai=todayRemain;setDailyNavNum_();
     _revDone.osarai=todayDone;renderReviewFin_();
-    dailyState.review=todayDone;renderDaily();
+    dailySetReview_(todayDone);renderDaily();
     if(_dailyMain)renderDailyList_(_dailyMain);
     // ===== 画面：総量→おまかせ(今日の分)→教科でえらぶ（氷山の中身を見せる＋教科で選べる）2026-07-26 =====
     area.innerHTML='';
@@ -5936,7 +5957,7 @@ function finishSrs(){
          すでに呼んでいる review_due の返り値なので、往復は増えない。 */
       try{
         if(d&&d.ok&&d.data&&typeof d.data.osarai_today_done!=='undefined'){
-          dailyState.review=!!d.data.osarai_today_done;
+          dailySetReview_(!!d.data.osarai_today_done);
           if(_dailyMain)renderDailyList_(_dailyMain); // ホームの数字も合わせておく
         }
         renderDoneDaily_(''); // 毎日学習は終えていないので justPartId は空
