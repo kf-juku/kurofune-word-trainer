@@ -228,9 +228,9 @@
   .fs-page{display:flex;flex-direction:column;min-height:261mm;}   /* フッタを下端に置くための高さ。
       必ず FS_PAGE_MM_ より小さくする。大きいと「空のページ枠」だけで上限を超えて、
       詰めるループが1問目から弾き、全員0問（紙が1枚も出ない）になる。2026-09-02 */
-  .fs-hd{display:flex;align-items:stretch;border-bottom:2px solid #1a1a1a;padding-bottom:5px;}
-  .fs-hd-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px;}
-  .fs-hd-r1,.fs-hd-r2{display:flex;align-items:baseline;gap:10px;min-width:0;}
+  .fs-hd{display:flex;flex-direction:column;gap:2px;border-bottom:2px solid #1a1a1a;padding-bottom:5px;}
+  .fs-hd-r1{display:flex;align-items:center;gap:10px;min-width:0;}
+  .fs-hd-r2{display:flex;align-items:baseline;gap:10px;min-width:0;}
   /* 見出し（仕上げプリント／答え）は折り返さない。範囲の教材名が長いと flex の既定で見出しが縮んで
      「仕上げプリ／ント」「答／え」と割れる（2026-09-01 川上さん指摘）。縮むのは範囲のほうだけにする。 */
   .fs-ttl{font-size:19px;font-weight:800;letter-spacing:.04em;flex:0 0 auto;white-space:nowrap;}
@@ -241,8 +241,8 @@
   .fs-meta{font-size:11px;color:#555;flex:0 0 auto;white-space:nowrap;margin-left:auto;}
   .fs-name{font-size:14px;color:#1a1a1a;font-weight:700;flex:0 0 auto;white-space:nowrap;margin-left:auto;}
   /* 得点らんは見出し帯の中。短いので絶対に縮ませない＝縮むのは範囲（.fs-scope）だけ（2026-09-02） */
-  .fs-score{display:flex;align-items:center;gap:8px;border:1.6px solid #1a1a1a;border-radius:5px;padding:3px 10px;
-            flex:0 0 auto;white-space:nowrap;align-self:center;margin-left:12px;}
+  .fs-score{display:flex;align-items:center;gap:8px;border:1.6px solid #1a1a1a;border-radius:5px;padding:2px 10px;
+            flex:0 0 auto;white-space:nowrap;margin-left:12px;}
   .fs-score .fs-sc-l{font-size:11px;font-weight:700;letter-spacing:.06em;}
   .fs-score .fs-sc-box{display:inline-block;width:22mm;height:7mm;border-bottom:1.6px solid #1a1a1a;}
   .fs-score .fs-sc-t{font-size:12px;font-weight:700;white-space:nowrap;}
@@ -305,7 +305,7 @@
        実測で 23ページ → 27ページ になった（2026-09-01 に試して取り下げた）。 */
   /* PDFで保存すると右はしが切れる（Windowsの游ゴシックで幅が変わる）。帯のいちばん右の部品を5mm内側へ。
      1ページ目は得点らん、それ以外は名前の欄が右はしになるので :last-child でまとめて当てる。2026-09-02 */
-  body.fs-pdf .fs-hd > :last-child{margin-right:5mm;}
+  body.fs-pdf .fs-hd-r1 > :last-child,body.fs-pdf .fs-hd-r2 > :last-child{margin-right:5mm;}
   body.fs-pdf .fs-foot > span:last-child{margin-right:5mm;}
   body.fs-pdf .fs-page{page-break-before:always;}
   body.fs-pdf .p-unit > .fs-sheet > .fs-page:first-child{page-break-before:auto;}
@@ -2200,9 +2200,10 @@ function fsProbe_(roomy){
 /* tag＝「問題」か「解答と解説」。紙の束を見ただけでどちらか分かるようにする（川上さん確定 2026-09-02）。
    ★札は短いので必ず flex:0 0 auto;white-space:nowrap（.fs-tag）。長い範囲（.fs-scope）だけが縮む */
 /* 見出し帯＝2行×2列の1段だけ（2026-09-02 川上さん指摘「得点の行は得点しかなくて無駄スペース」）。
-     1行目 左＝仕上げプリント＋札　　右＝生徒名・学年
-     2行目 左＝範囲　　　　　　　　右＝日付／全N問／セット番号
-     いちばん右＝得点らん（1ページ目だけ・2行ぶんの高さの中央）
+     1行目＝仕上げプリント＋札　　　生徒名・学年　　得点らん（1ページ目だけ）
+     2行目＝範囲　　　　　　　　　　日付／全N問／セット番号
+   ★得点らんは1行目に置く。帯の右に2行ぶんで置くと、そのぶん範囲の幅が減り、
+     教材4つの範囲が2行に折れた（2026-09-02 の実機で発生）。1行目なら2行目は全幅使える。
    ★左右とも「短いほうは縮ませない・長いほう（範囲）だけ縮む」。範囲を1行目に混ぜると、
      題名と札のぶん幅が足りず、長い教材名で5行に折れる（2026-09-02 に実測）。
    tag＝「問題」か「解答と解説」。score＝true のページだけ得点らんを出す。 */
@@ -2210,12 +2211,12 @@ function fsHeadHtml_(ctx,ttl,scope,tag,score){
   var tg=tag?('<div class="fs-tag">'+esc(tag)+'</div>'):'';
   var sc=score?('<div class="fs-score"><span class="fs-sc-l">得点</span><span class="fs-sc-box"></span>'
     +'<span class="fs-sc-t">／ '+ctx.total+'問</span></div>'):'';
-  return '<div class="fs-hd"><div class="fs-hd-main">'
+  return '<div class="fs-hd">'
     +'<div class="fs-hd-r1"><div class="fs-ttl">'+esc(ttl)+'</div>'+tg
-    +'<div class="fs-name">'+esc(ctx.name)+(ctx.grade?('　'+esc(ctx.grade)):'')+'</div></div>'
+    +'<div class="fs-name">'+esc(ctx.name)+(ctx.grade?('　'+esc(ctx.grade)):'')+'</div>'+sc+'</div>'
     +'<div class="fs-hd-r2"><div class="fs-scope">'+esc(scope)+'</div>'
     +'<div class="fs-meta">'+esc(ctx.date)+' ／ 全'+ctx.total+'問 ／ '+esc(ctx.code)+'</div></div>'
-    +'</div>'+sc+'</div>';
+    +'</div>';
 }
 /* 【2026-09-02 廃止】リード行（「答えはうしろの紙。N〜M番を…」＋得点らん）はもう出さない。
    ・文＝川上さん確定で廃止。問題か解答と解説かは見出しの札で示す
@@ -2923,6 +2924,19 @@ function _mChipHtml(m, short){
   return '<span class="mchip '+cls+'" title="クリックで教材ごとの名簿へ" style="cursor:pointer;" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="mtop"><span class="mdot"></span>'+esc(disp)+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+(isNa?'未評価':acc+'%')+pron+'</span></span>';
 }
 /* 同じシリーズの教材はまとめて折りたたむ（2026-07-18 川上さん承認）。判定＝タイトルで分類。 */
+/* ===== 教材の並び順＝materials.display_order 昇順（KWTの並び順の唯一の基準・2026-09-02⑨）=====
+   サーバー（dashboard / assignment_list）が番号順で返すようになったが、画面側でも必ず並べ直す。
+   番号が無い／同じものは material_id で決めて、並びが毎回同じになるようにする。
+   ★教材を並べて描く関数を新しく作るときは、必ずこれを通す。自前で sort を書かない。 */
+function _dordMat_(m){ var n=parseInt((m&&(m.display_order!=null?m.display_order:m.order)),10); return isNaN(n)?99999:n; }
+function _sortByDord_(arr){
+  return (arr||[]).slice().sort(function(a,b){
+    var da=_dordMat_(a), db=_dordMat_(b);
+    if(da!==db) return da-db;
+    var ia=String((a&&(a.material_id||a.id))||''), ib=String((b&&(b.material_id||b.id))||'');
+    return ia<ib?-1:(ia>ib?1:0);
+  });
+}
 function _mSeries(t){t=String(t||'');
   if(/中学理科【生命・地球】/.test(t)||(/理科/.test(t)&&/【生命・地球】/.test(t)))return {k:'sci',label:'メキメキ合格ノート 中学理科【生命・地球】'};
   if(/中学歴史/.test(t))return {k:'hist',label:'メキメキ合格ノート 中学歴史'};
@@ -2934,7 +2948,7 @@ function _mSeries(t){t=String(t||'');
 function _mWorst(list){var lo=false,mi=false,hi=false,allNa=true;list.forEach(function(m){var a=m.acc;if(a===''||a==null)return;allNa=false;if(a<_needHelpRate)lo=true;else if(a<80)mi=true;else hi=true;});return allNa?'m-na':(lo?'m-low':(mi?'m-mid':'m-hi'));}
 /* 未評価の畳み＋同シリーズのまとめ折りたたみ（2026-07-18）：評価済み単独教材は全部出し、同シリーズ（2件以上）と未評価は見出しに畳む（クリックで展開＝内容は消えない） */
 function matViewCell(s){
-  var mv=s.materials_view||[];
+  var mv=_sortByDord_(s.materials_view||[]);   /* 番号順。旧＝割り当てた順 2026-09-02⑨ */
   if(!mv.length) return '<span class="dash">未割当</span>';
   var groups={},order=[],standalone=[],na=[];
   mv.forEach(function(m){
@@ -3051,7 +3065,8 @@ function trendStrip(s){var r=s.recent||[];if(r.length<2)return '';
   var d=r[r.length-1]-r[0];var ar=d>3?'<span style="color:#1f9d57;font-weight:800;">↑ 上向き</span>':(d<-3?'<span style="color:#d64545;font-weight:800;">↓ 下向き</span>':'<span style="color:var(--text-muted);font-weight:800;">→ 横ばい</span>');
   return '<div class="sd-trend"><span class="t-sub" style="line-height:1.3;">直近の推移<br>（正答率・古→新）</span><div class="sd-bars">'+bars+'</div>'+ar+'</div>';
 }
-function partsBlock(mv){if(!mv.length)return '<div style="font-size:12px;color:var(--text-light);">いま割り当てている教材はありません</div>';
+function partsBlock(mv){if(!mv||!mv.length)return '<div style="font-size:12px;color:var(--text-light);">いま割り当てている教材はありません</div>';
+  mv=_sortByDord_(mv);   /* 番号順 2026-09-02⑨ */
   var col=function(a){return (a==null||a===''?'#c3cbd6':(a<_needHelpRate?'#d64545':(a<80?'#c98a12':'#1f9d57')));};
   return mv.map(function(m){
     var ps=m.parts||[];var shown=ps.filter(function(p){return p.status!=='none';});var noneN=ps.length-shown.length;
@@ -3997,15 +4012,25 @@ function qsExpandAll(open){
 }
 function _qEntries(){return (_quizBoard&&_quizBoard.entries)||[];}
 function _matTitleOf(mid){var ms=(_quizBoard&&_quizBoard.materials)||[];for(var i=0;i<ms.length;i++){if(String(ms[i].material_id)===String(mid))return ms[i].title;}return '';}
+/* 教材の並び順（display_order）。quiz_board の materials が持っている。2026-09-02⑨ */
+function _matDordOf(mid){var ms=(_quizBoard&&_quizBoard.materials)||[];for(var i=0;i<ms.length;i++){if(String(ms[i].material_id)===String(mid))return _dordMat_(ms[i]);}return 99999;}
 /* 注目リストは「未実施（テストごとにまとめ）」だけ。未合格は生徒ごとの要対応に集約（重複＝壁を撤去）2026-08-07 */
 function renderQuizAtt(){
   var el=$('qtAtt');if(!el)return;
   var miss=_qEntries().filter(function(e){return e.status==='miss';});
   $('qtAttCnt').textContent=miss.length+'件';
   var groups={},order=[];
-  miss.forEach(function(e){var k=e.part_id;if(!groups[k]){groups[k]={title:e.part_title,mat:_matTitleOf(e.material_id)||e.material_title||'',skey:(e.series_key!=null?e.series_key:''),slabel:(e.series_label||''),names:[]};order.push(k);}groups[k].names.push(e.student_name);});
+  miss.forEach(function(e){var k=e.part_id;if(!groups[k]){groups[k]={title:e.part_title,mat:_matTitleOf(e.material_id)||e.material_title||'',mid:String(e.material_id||''),dord:_matDordOf(e.material_id),porder:(parseInt(e.part_order,10)||0),skey:(e.series_key!=null?e.series_key:''),slabel:(e.series_label||''),names:[]};order.push(k);}groups[k].names.push(e.student_name);});
+  /* 教材の番号(display_order)→パートの番号 の順に並べる。旧＝未受験が最初に出てきた順 2026-09-02⑨ */
+  order.sort(function(a,b){var ga=groups[a],gb=groups[b];
+    if(ga.dord!==gb.dord)return ga.dord-gb.dord;
+    if(ga.porder!==gb.porder)return ga.porder-gb.porder;
+    return String(ga.title||'')<String(gb.title||'')?-1:1;});
   var _sg={},_so=[];
   order.forEach(function(k){var g=groups[k];var kk=(g.skey!=null&&g.skey!=='')?g.skey:(function(){var s=_mSeries(g.mat);return s?s.k:'';})();var lab=kk?(g.slabel||(function(){var s=_mSeries(g.mat);return s?s.label:g.mat;})()):g.mat;var key=kk?('S:'+kk):('M:'+g.mat);var rank=kk?({sci:2,hist:3,goi:4,nh1eng:5,nh2eng:6,nh3eng:7}[kk.replace(/_(e2j|j2e)$/,'')]||8):8;/* nh?eng_e2j/j2e も学年でランク・2026-07-29 */if(!_sg[key]){_sg[key]={label:lab,rank:rank,parts:[]};_so.push(key);}_sg[key].parts.push(g);});/* GASのseries_key優先→無ければ_mSeries 2026-07-29 */
+  /* 本（シリーズ）の並びも、その本のいちばん小さい教材番号で決める。旧＝固定のランク表＋最初に出てきた順 2026-09-02⑨ */
+  _so.forEach(function(key){var sg=_sg[key];sg.dord=Math.min.apply(null,sg.parts.map(function(g){return g.dord;}));});
+  _so.sort(function(a,b){var d=_sg[a].dord-_sg[b].dord;return d?d:(a<b?-1:1);});
   var missHtml=_so.length? _so.map(function(key,si){var sg=_sg[key];var gid='qamg'+si;
       var inner=sg.parts.map(function(g,pi){var nid=gid+'n'+pi;
         return '<div class="qa-missrow" style="margin-left:16px;"><span class="qachip qa-miss" style="cursor:pointer;" onclick="var n=document.getElementById(\''+nid+'\');n.style.display=(n.style.display===\'none\'?\'inline\':\'none\');">〔'+esc(_chapShort(g.mat))+'〕'+esc(g.title)+' <small>未受験 '+g.names.length+'名 ▾</small></span> <span class="qa-names" id="'+nid+'" style="display:none;">'+g.names.map(esc).join('、')+'</span></div>';
@@ -5212,7 +5237,7 @@ function loadAssignList(){
   _asgDatesLoaded=false;_asgQuizDates={};
   call({action:'assignment_list',student_id:_asgSid}).then(function(d){
     if(!d.ok){$('asgList').innerHTML='<div class="err" style="display:block;">'+esc(d.error||'取得に失敗しました')+'</div>';return;}
-    _asgList=(d.data.assignments||[]).filter(function(a){return a.status!=='inactive';});
+    _asgList=_sortByDord_((d.data.assignments||[]).filter(function(a){return a.status!=='inactive';}));   /* 番号順 2026-09-02⑨ */
     renderAssignList();
     renderAddOptions();
   });
