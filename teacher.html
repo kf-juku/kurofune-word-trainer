@@ -4922,6 +4922,19 @@ function tmStepPrint_(body){
     +'</div>'
     /* 仕上げプリント＝テスト範囲（教材）をえらぶ。部品は割り当てと同じ2列トランスファーを流用 */
     +'<div id="tmFinishOpts">'
+    /* ★2026-09-02⑬ 川上さん確定：日数を先生が選べるようにする。
+       テスト直前にどかっと進めた子は、その範囲が「3日以上前」に当てはまらず紙に出てこなかった
+       （実測＝鈴木遥斗さんの九州は 8/31 に19問まちがえたのに、3日ルールで1問も出なかった）。
+       ★教材えらびの下に置いたら、スクロールしないと見えず川上さんが見つけられなかった（同日）。
+         **押す前に必ず目に入る位置＝テスト範囲をえらぶより前**に置く。 */
+    +'<div class="tm-qh" style="margin-top:10px;">いつのまちがいを出すか</div>'
+    +'<select id="tmMinDays" class="tm-sel" onchange="_fsSetMinDays_(this.value)">'
+    +'<option value="3"'+(_fsMinDays_()===3?' selected':'')+'>3日以上前のまちがい（ふだん）</option>'
+    +'<option value="2"'+(_fsMinDays_()===2?' selected':'')+'>2日以上前のまちがい</option>'
+    +'<option value="1"'+(_fsMinDays_()===1?' selected':'')+'>1日以上前のまちがい</option>'
+    +'<option value="0"'+(_fsMinDays_()===0?' selected':'')+'>ぜんぶ（テスト直前・直前に進めた範囲も出す）</option>'
+    +'</select>'
+    +'<div class="tm-note" style="background:#fff7e6;border-color:#f0d08a;color:#8a5a00;">📅 <b>テスト直前に進めた範囲を出すときは「ぜんぶ」にしてください。</b>ふだんは「3日以上前」のままでかまいません（まちがえた直後は覚えているので、少し寝かせてから出す）。</div>'
     +'<div class="tm-qh" style="margin-top:10px;">テスト範囲（教材をえらぶ・複数可）</div>'
     +'<div class="pk-two">'
     +'<div class="pk-col"><div class="pk-coltitle">候補（教材）</div>'
@@ -4931,17 +4944,6 @@ function tmStepPrint_(body){
     +'<button type="button" class="btn-ghost pk-clr" id="printMatClear" onclick="clearPrintMats()">クリア</button></div>'
     +'<div class="pk-list sel" id="printMatSel"></div></div>'
     +'</div>'
-    /* ★2026-09-02⑬ 川上さん確定：日数を先生が選べるようにする。
-       テスト直前にどかっと進めた子は、その範囲が「3日以上前」に当てはまらず紙に出てこなかった
-       （実測＝教羽健太さんは3日以上355問／ぜんぶ436問。差の81問が直前に進めたぶんで、永久に出ない）。
-       ふだんは3日、テスト前は「ぜんぶ」にする。選んだ値は端末に覚えさせる。 */
-    +'<div class="tm-qh" style="margin-top:10px;">いつのまちがいを出すか</div>'
-    +'<select id="tmMinDays" class="tm-sel" onchange="_fsSetMinDays_(this.value)">'
-    +'<option value="3"'+(_fsMinDays_()===3?' selected':'')+'>3日以上前のまちがい（ふだん）</option>'
-    +'<option value="2"'+(_fsMinDays_()===2?' selected':'')+'>2日以上前のまちがい</option>'
-    +'<option value="1"'+(_fsMinDays_()===1?' selected':'')+'>1日以上前のまちがい</option>'
-    +'<option value="0"'+(_fsMinDays_()===0?' selected':'')+'>ぜんぶ（テスト直前・直前に進めた範囲も出す）</option>'
-    +'</select>'
     +'<div class="tm-note">選んだ教材のまちがいを<b>毎日学習・単元別・確認テストのぜんぶから</b>集めます（範囲は教材で決めるので種別では絞りません）。<br><span id="fsMinDaysNote">'+_fsMinDaysText_()+'</span>から、ミス問8割＋克服した語2割で選びます（<b>ミス問が足りないぶんは克服した語で埋めます</b>）。1人あたり最大100問。<br>紙は<b>両面2枚（1枚目＝問題／2枚目＝答え）</b>。問題数は紙に入るだけ（教科によって変わります）。<br><b>選択肢は紙に出しません</b>（思い出して書く練習にするため）。選択肢が無いと解けない「あてはまらないものを選べ」型は紙から外します。</div>'
     +'<div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">🖨 <b>両面（長辺とじ）で印刷してください。</b>1枚目の表裏＝問題、2枚目の表裏＝答えです。</div>'
     +'</div>';
