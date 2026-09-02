@@ -5281,10 +5281,17 @@ function renderAssignList(){
       +'<span class="asg-del" onclick="removeAssign('+"'"+esc(a.id)+"'"+')">🗑 解除</span></div>'
       +dailyNote
       +(isTest?asgQuizRow_(a):'');
-    // 単元別で全パートが終わったら「もう一周」（2026-07-25「卒業」→「合格」／2026-08-27「合格」→「終わった」＝全問正解して終わる設計になり合否が無くなったため）
-    if(isTest && (a.graduated_parts||0)>=a.total_parts && a.total_parts>0){
+    /* 終わった教材に「もう一周」を出す（2026-07-25「卒業」→「合格」／2026-08-27「合格」→「終わった」＝全問正解して終わる設計になり合否が無くなったため）
+       ・単元別対策＝全パートが終わった
+       ・毎日学習＝割当が完了（status=completed）
+       ★2026-09-02：毎日学習には出していなかったので、**完走した子の英単語を2周目にする手段が画面に無かった**。
+         教材を割り当て直すだけだと status が active に戻るだけで lap は1のまま＝記録は1周目の続きになる。
+         GAS の assignment_restart_lap は main も test も受けるので、ボタンを出すだけで正しく回せる。 */
+    var _lapOk = isTest ? ((a.graduated_parts||0)>=a.total_parts && a.total_parts>0)
+                        : (String(a.status||'')==='completed');
+    if(_lapOk){
       var note=document.createElement('div');note.className='asg-note';
-      note.innerHTML='全パート終わりました。もう一周を始める（先生指定）';
+      note.innerHTML=(isTest?'全パート終わりました。':'完走ずみ。')+'もう一周を始める（先生指定）';
       note.onclick=function(){restartLap(a.material_id);};
       card.appendChild(note);
     }
@@ -5398,7 +5405,8 @@ function setStart(mid,pid){
   });
 }
 function restartLap(mid){
-  if(!confirm('もう一周を始めますか？先頭パートに戻ります。（今までの記録は残ります）'))return;
+  /* ★何が起きるかを全部書く。archived の話を書いていなかったので「記録が消える？」と迷わせていた 2026-09-02 */
+  if(!confirm('もう一周を始めますか？\n\n・先頭パート（毎日学習ならDAY1）に戻ります\n・いままでの学習の記録は残ります\n・前の周の「自動でくり返す」ぶんは片づけて、まっさらから貯め直します'))return;
   showLoading('もう一周を準備中…');
   call({action:'assignment_restart_lap',student_id:_asgSid,material_id:mid}).then(function(d){
     hideLoading();
