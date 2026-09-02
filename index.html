@@ -3426,11 +3426,17 @@ function yesterdayStr_(){var d=new Date(Date.now()+9*3600*1000-86400000);return 
 // 流れ星：学習完了後に「その日合格したチーム外の誰か1人」を出す（いなければ何も出さない）
 var _starPre=null; // 採点と並行取得した流れ星の結果（体感改善 2026-07-08）
 function loadStar(){
-  var area=$('star-area');area.innerHTML='';
+  var area=$('star-area');
+  /* 【2026-09-02】ここで先に空にしない。届くまでのあいだ、豆知識カードを出したままにする。
+     完了画面を保存より先に描くようにしたので、ここを空にすると画面に穴があく。 */
   var pre=_starPre;_starPre=null;
   (pre||call({action:'shooting_star',exclude:starRecent_().join(',')})).then(function(d){
-    if(!d||!d.ok||!d.data||!d.data.star)return;   // 相手がいなければ静かに何も出さない
+    /* 相手がいなければ静かに何も出さない。ただし豆知識が出ているならそれは残す
+       （完了画面を先に描くようにしたので、ここを空にすると画面に穴があく）。
+       「記録を保存中…」のぐるぐるが出ているときだけ消す。 2026-09-02 */
+    if(!d||!d.ok||!d.data||!d.data.star){if(/sw-load/.test(area.innerHTML))area.innerHTML='';return;}
     starRecentPush_(d.data.star.student_id);       // 直近に出した子を記録＝次回は避ける 2026-07-21
+    area.innerHTML='';
     area.appendChild(buildStarStage(d.data.star));  // B-2演出（川上さんモック選定 2026-07-03）
   });
 }
@@ -5142,7 +5148,14 @@ function effortChipsHtml_(d2){
   if(!chips)return '';
   return '<div class="today-did"><div class="h"><i class="ti ti-flame"></i> <span><ruby>君<rt class="uf">きみ</rt></ruby>の<ruby>今日<rt class="uf">きょう</rt></ruby>のがんばり</span></div><div class="row">'+chips+'</div></div>';
 }
+/* 【2026-09-02】「君の今日のがんばり」の前回の値を覚えておく。
+   完了画面は保存の返事（実測7〜10秒）を待たずに描くので、まずこの値で出して、
+   返事が来たら本物に静かに差し替える。ホームの前回データ先出しと同じ考え方。 */
+var EFFORT_CACHE_KEY_='kwt_effort_v1';
+function effortCachePut_(d2){try{if(d2&&(d2.today_streak!==undefined||d2.week_words!==undefined))localStorage.setItem(EFFORT_CACHE_KEY_,JSON.stringify(d2));}catch(e){}}
+function effortCacheGet_(){try{return JSON.parse(localStorage.getItem(EFFORT_CACHE_KEY_)||'null');}catch(e){return null;}}
 function renderEffort_(d2){
+  try{effortCachePut_(d2);}catch(eEc){}
   var ar=$('today-did-area');if(!ar)return;
   var html=effortChipsHtml_(d2);
   if(html&&ar.innerHTML!==html)ar.innerHTML=html;
@@ -5212,6 +5225,31 @@ function _doneResetCommon_(){
    **ここが唯一の置き場。** 毎日学習・単元別（finishSession）と確認テスト（finishQuizSubmit_）が同じ式を使う。
    サーバー側の sessionScorePair_ と同じ考え方。式を2か所に書かない 2026-08-31。 */
 function _doneScore_(s,mr,rr){var termOnly=(s.isEnglish===false)||s.tfOnly;return termOnly?rr:((s.dir==='e2j')?mr:Math.round((mr+rr)/2));}
+/* 【2026-09-02】確認テストの合否を端末で出す。
+   ★kwtGAS.gs の quizSubmit と同じ式にそろえてある（need・passed・rate の3つ）。
+     PASS_RATE は GAS の値と同じにすること。片方だけ直さない。ずれていないかはテストで見張る。
+   これで「合格！」を保存の返事（7〜10秒）を待たずに出せる。前回比だけはサーバーしか知らないので後から足す。 */
+var QUIZ_PASS_RATE_=0.8;
+function quizJudgeLocal_(s){
+  try{
+    var total=parseInt(s&&s.total,10)||0; if(total<=0)return null;
+    var mc=parseInt(s.meaningCorrect,10)||0, rc=parseInt(s.reverseCorrect,10)||0;
+    var termOnly=(s.isEnglish===false)||!!s.tfOnly, dir=s.dir||'';
+    var need=Math.ceil(total*QUIZ_PASS_RATE_);
+    var passed=termOnly?(rc>=need):(dir==='e2j'?(mc>=need):dir==='j2e'?(rc>=need):(mc>=need&&rc>=need));
+    var mr=Math.round(mc/total*100), rr=Math.round(rc/total*100);
+    var rate=termOnly?rr:(dir==='e2j'?mr:dir==='j2e'?rr:Math.round((mr+rr)/2));
+    return { passed:passed, rate:rate, pass_line:Math.round(QUIZ_PASS_RATE_*100) };
+  }catch(e){ return null; }
+}
+/* 間違えた単語の一覧。通信は要らないので保存を待たずに出せる。 */
+function quizMissHtml_(s,missU){
+  var byId={};(s.words||[]).forEach(function(w){byId[String(w.id)]=w;});
+  var missWords=(missU||[]).map(function(id){var w=byId[String(id)];return w?(esc(w.english)+'（'+esc(w.japanese)+'）'):'';}).filter(Boolean);
+  return missWords.length
+    ?('<div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;"><ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>単語<rt class="uf">たんご</rt></ruby>（'+missWords.length+'）— <ruby>見<rt class="uf">み</rt></ruby><ruby>直<rt class="uf">なお</rt></ruby>そう</div>'+missWords.map(function(x){return '<div style="font-size:14px;padding:4px 0;border-top:1px solid var(--line);">'+x+'</div>';}).join('')+'</div>')
+    :'<div style="margin-top:14px;color:var(--ok);font-weight:700;"><ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby>！ <ruby>完璧<rt class="uf">かんぺき</rt></ruby>⚓</div>';
+}
 function finishQuizSubmit_(){
   var s=session;try{if(_ansT0)_perfPush_('答え→点数',_perfNow_()-_ansT0);}catch(eAt){} // 2026-09-02
   try{_resumeClear_();}catch(e){}show('scr-done');_doneResetCommon_();var _dgq=document.getElementById('done-guide-area');if(_dgq)_dgq.innerHTML='';hideQTimer();hideExplain();$('done-score-wrap').style.display='';var _dtq=$('done-tiles');if(_dtq)_dtq.innerHTML='';
@@ -5223,21 +5261,34 @@ function finishQuizSubmit_(){
   animNum($('score-anim'),score,450); /* 数え上がりは残す（ただの演出で、これがあっても待たされない）。0.9秒→0.45秒 2026-09-02 川上さん確定 */
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（確認テストにも）2026-08-08
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
-  $('star-area').innerHTML=_savingHtml_(); // 2026-09-02：待たせないので小さい表示にした
-  var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
-  $('btn-retry').style.display='flex';$('btn-next').style.display='none';lockBtns(false); // 2026-09-02：保存を待たずに押せる
+  /* 2026-09-02：保存を待たずに押せる（閉じても送り直しが効く）。ボタンを止める処理は無くした。 */
+  $('btn-retry').style.display='flex';$('btn-next').style.display='none';
+  ['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=false;});
   var _mySeq=_doneMark_();
   $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> <span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>受<rt class="uf">う</rt></ruby>ける</span>';
   $('btn-retry').onclick=function(){startQuiz(s.quizPartId);};
   $('btn-home').innerHTML='<ruby>点数表<rt class="uf">てんすうひょう</rt></ruby>に<ruby>戻<rt class="uf">もど</rt></ruby>る';
   $('btn-home').onclick=function(){openHome();openQuizPane_();};
-  var _g=null; // 2026-09-02：はじめからロックしないので詰み防止のタイマーは要らない
   var _qzT0=_perfNow_();
   var missU=(s.miss||[]).filter(function(v,i){return s.miss.indexOf(v)===i;}); // 重複除去（意味と日英で二重に入るため）
   var _qzBody={action:'quiz_submit',part_id:s.quizPartId,total:s.total,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,miss_word_ids:missU};
   var _qzSq=_sqAdd_(_qzBody); /* 送る前に端末へ積む＝ここで閉じられても記録は消えない 2026-09-02 */
+  /* 【2026-09-02】合否・間違えた単語は端末で分かるので、保存の返事を待たずに出す。
+     前回比（delta）だけはサーバーしか知らないので、返ってきたら足す。 */
+  var _qzPre=false, _qzMiss=quizMissHtml_(s,missU);
+  try{
+    var _qj=quizJudgeLocal_(s);
+    if(_qj){
+      if(_qj.passed){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+_qj.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';sndWin();flash();confetti(120);var _dgq3=$('done-guide-area');if(_dgq3)_dgq3.innerHTML=nextStepGuide_(true);}
+      else{setDoneBadge_('accent');$('done-result').innerHTML='あと <b>'+Math.max(0,_qj.pass_line-_qj.rate)+'</b>％で<ruby>合格<rt class="uf">ごうかく</rt></ruby>！ もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>受<rt class="uf">う</rt></ruby>けてみよう';}
+      var _dbq=$('done-badge');if(_dbq)_dbq.style.display='';
+      $('star-area').innerHTML=_qzMiss;
+      _qzPre=true;
+    }
+  }catch(ePq){ _qzPre=false; }
+  if(!_qzPre)$('star-area').innerHTML=_savingHtml_();
   call(_qzBody).then(function(d){
-    clearTimeout(_g);lockBtns(false);_perfPush_('quiz_save',_perfNow_()-_qzT0);
+    _perfPush_('quiz_save',_perfNow_()-_qzT0);
     try{if(d&&d.data&&d.data._t)_srvT_('quiz_save',d.data._t);}catch(eSt){}
     var _live=_doneAlive_(_mySeq);
     if(_live){var _db2=$('done-badge');if(_db2)_db2.style.display='';}
@@ -5246,17 +5297,13 @@ function finishQuizSubmit_(){
     homeCacheClear_(); // 点数表を次に開くとき最新に
     if(!_live){_afterSaveSync_(_mySeq);return;} // 生徒が先に進んでいたら描かない 2026-09-02
     var r=d.data;
-    if(r.passed){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+r.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';sndWin();flash();confetti(120);var _dgq2=$('done-guide-area');if(_dgq2)_dgq2.innerHTML=nextStepGuide_(true);}
+    if(r.passed){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+r.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';if(!_qzPre){sndWin();flash();confetti(120);}var _dgq2=$('done-guide-area');if(_dgq2)_dgq2.innerHTML=nextStepGuide_(true);}
     else{setDoneBadge_('accent');$('done-result').innerHTML='あと <b>'+Math.max(0,r.pass_line-r.latest_rate)+'</b>％で<ruby>合格<rt class="uf">ごうかく</rt></ruby>！ もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>受<rt class="uf">う</rt></ruby>けてみよう';}
     var delta=(r.delta==null)?'<span style="background:#eef1f5;color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>初<rt class="uf">はじ</rt></ruby>めての<ruby>受験<rt class="uf">じゅけん</rt></ruby></span>'
       :(r.delta>0?'<span style="background:rgba(31,170,107,.15);color:var(--ok);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>より ＋'+r.delta+'％</span>'
       :(r.delta<0?'<span style="background:rgba(224,83,60,.13);color:var(--ng);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>より '+r.delta+'％</span>'
       :'<span style="background:#eef1f5;color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>と<ruby>同<rt class="uf">おな</rt></ruby>じ</span>'));
-    var byId={};(s.words||[]).forEach(function(w){byId[String(w.id)]=w;});
-    var missWords=missU.map(function(id){var w=byId[String(id)];return w?(esc(w.english)+'（'+esc(w.japanese)+'）'):'';}).filter(Boolean);
-    var missHtml=missWords.length
-      ?('<div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;"><ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>単語<rt class="uf">たんご</rt></ruby>（'+missWords.length+'）— <ruby>見<rt class="uf">み</rt></ruby><ruby>直<rt class="uf">なお</rt></ruby>そう</div>'+missWords.map(function(x){return '<div style="font-size:14px;padding:4px 0;border-top:1px solid var(--line);">'+x+'</div>';}).join('')+'</div>')
-      :'<div style="margin-top:14px;color:var(--ok);font-weight:700;"><ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby>！ <ruby>完璧<rt class="uf">かんぺき</rt></ruby>⚓</div>';
+    var missHtml=_qzMiss; // 保存の前に作ってある（同じものを2回作らない）2026-09-02
     $('star-area').innerHTML='<div style="text-align:center;margin:6px 0 2px;">'+delta+'</div>'+missHtml;
   });
 }
@@ -5276,21 +5323,61 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル 2026-07-24
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);
   _doneResetCommon_();var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
-  $('star-area').innerHTML=_savingHtml_()+tipHtml_(); // 2026-09-02：待たせないので小さい表示にした
-  var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
-  $('btn-retry').style.display='flex';$('btn-next').style.display='none';$('btn-next').className='btn gold';lockBtns(false); // 2026-09-02：保存を待たずに押せる（閉じても送り直しが効く）
+  var _isUnit_=(s.content_type==='test'); // 単元別（テスト配信）かどうかは端末で分かる
+  var _donePre=false;                      // 保存より先に描いたか
+  $('star-area').innerHTML=tipHtml_();     // 豆知識は先に出す。流れ星が届いたら入れかわる
+  /* 2026-09-02：保存を待たずに押せる（閉じても送り直しが効く）。ボタンを止める処理は無くした。 */
+  $('btn-retry').style.display='flex';$('btn-next').style.display='none';$('btn-next').className='btn gold';
+  ['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=false;});
   var _mySeq=_doneMark_(); // この完了画面の印。保存が返ったとき、まだ同じ画面かを確かめるのに使う
   var _dg0=$('done-guide-area');if(_dg0)_dg0.innerHTML='';var _bh=$('btn-home');if(_bh){_bh.innerHTML='<span>ホームへ<ruby>戻<rt class="uf">もど</rt></ruby>る</span>';_bh.onclick=function(){openHome();};}
-  var _saveGuard=null; // 2026-09-02：はじめからロックしないので詰み防止のタイマーは要らない
+  /* ===== 【2026-09-02 川上さん指摘】完了画面を保存の返事を待たずに描く =====
+     指摘＝「記録を保存中…のスピナーが消えて、画面がそろうまで体感10秒あるのがストレス」。
+     調べたら、見出し・今日のデイリー・今日のがんばり・流れ星の全部が保存の返事を待っていた。
+     保存はサーバー側で7〜10秒かかる（実測）。しかもそのあとに流れ星を出していた。
+     ★ここで出すものは全部この端末で分かる。通信は1回も要らない。
+     ★毎日学習で全問正解して終わったとき、サーバー側の合格判定は total>0 と同じ＝必ず合格になる
+       （kwtGAS.gs の sessionComplete「var passed = _completedAll ? (total > 0) : ...」）。
+       だから「今日の分、完了！」を先に出しても嘘にならない。
+     ★教材まるごとクリア（金・紙吹雪180）だけは端末では分からないので、返事が来てから上書きする。
+       これは「緑→金」の格上げなので、先に緑を出しておいても生徒を裏切らない。
+     ★単元別とおさらいは判定が複雑なので先に描かない（従来どおり返事を待つ）。そこだけスピナーを出す。
+     ★流れ星はすでに並行取得ずみ（_starPre）＝待つ理由がない。 */
+  if(!s.fromReview){
+    try{
+      setDoneBadge_('ok'); var _db0=$('done-badge'); if(_db0)_db0.style.display='';
+      if(_isUnit_){
+        /* 単元別＝「このパート、終わり！」だけ先に出す。「この教材はあと◯パート」の数は
+           サーバーしか知らないので、返ってきたら足す（数を空で渡すとその一文が出ない）。 */
+        $('done-result').innerHTML=doneUnitPartTtl_('');
+        $('done-guide-area').innerHTML=nextStepGuide_(false,s.listId);
+      }else{
+        dailyMarkCleared_(s.listId); renderDoneDaily_(s.listId);     // 今日のデイリーのバー
+        $('done-result').innerHTML=doneDailyTtl_(dailyLeftAfter_(s.listId));
+        $('done-guide-area').innerHTML=nextStepGuide_(false,s.listId);
+      }
+      try{renderEffort_(effortCacheGet_());}catch(eEf0){}          // 前回の値で先に出す
+      sndWin(); flash(); confetti(120);
+      loadStar();                                                   // 先読みずみの流れ星
+      _donePre=true;
+    }catch(ePre){ _donePre=false; }
+  }
+  if(!_donePre)$('star-area').innerHTML=_savingHtml_()+tipHtml_(); // 先に描けなかったときだけ「記録を保存中…」を出す
   var _svT0=_perfNow_(); // 保存の往復を測る 2026-08-22
   var _scBody={action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,completed_all:true,retry_rounds:(s.retryRounds||1),/* 全問正解して終わった＝1周終えた。点は1周目の値 2026-08-26 */miss_word_ids:s.miss,word_ids:(s.words||[]).map(function(w){return w.id;}),mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:_elapsedMs_(s),rush_wrong_count:Object.keys(s._rushWords||{}).length};
   var _scSq=_sqAdd_(_scBody); /* 送る前に端末へ積む＝ここで閉じられても記録は消えない 2026-09-02 */
   call(_scBody).then(function(d){
-    clearTimeout(_saveGuard);lockBtns(false);_perfPush_('save',_perfNow_()-_svT0);
+    _perfPush_('save',_perfNow_()-_svT0);
     try{if(d&&d.data&&d.data._t)_srvT_('save',d.data._t);}catch(eSt){} // サーバー側の内訳をためる（画面には出さない）2026-09-02
     var _live=_doneAlive_(_mySeq); // 生徒がまだこの完了画面を見ているか
     if(_live){var _db2=$('done-badge');if(_db2)_db2.style.display='';}
-    if(!d.ok){if(_sqGiveUp_(d))_sqDel_(_scSq);if(!_live)return;$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>はこの<ruby>端末<rt class="uf">たんまつ</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>してあります。つぎに<ruby>開<rt class="uf">ひら</rt></ruby>いたとき<ruby>自動<rt class="uf">じどう</rt></ruby>でおくります';$('done-badge').innerHTML='<i class="ti ti-clock"></i>';return;} // 2026-09-02
+    if(!d.ok){if(_sqGiveUp_(d))_sqDel_(_scSq);if(!_live)return;
+      /* 【2026-09-02】先に完了画面を描いてあるときは、その見出しを消さない。
+         記録は端末に残っていて自動で送り直すので、生徒に「終わった」ことは伝わってよい。
+         知らせは案内の行に静かに足すだけにする。 */
+      var _ngMsg='<div class="done-guide"><i class="ti ti-clock"></i> <ruby>記録<rt class="uf">きろく</rt></ruby>はこの<ruby>端末<rt class="uf">たんまつ</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>してあります。つぎに<ruby>開<rt class="uf">ひら</rt></ruby>いたとき<ruby>自動<rt class="uf">じどう</rt></ruby>でおくります</div>';
+      if(_donePre){var _dg=$('done-guide-area');if(_dg)_dg.innerHTML=_ngMsg;return;}
+      $('star-area').innerHTML='';$('done-result').innerHTML=_ngMsg;$('done-badge').innerHTML='<i class="ti ti-clock"></i>';return;} // 2026-09-02
     _sqDel_(_scSq); // 届いた＝もう送り直さない 2026-09-02
     /* つぎに開いたときの先読みが「終わったパート」を読まないよう、覚えているIDを差し替える。
        生徒が先に進んでいても実行する（画面ではなく端末の覚えを直すだけ）2026-09-02 */
@@ -5330,13 +5417,13 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     }
     if(d.data.is_test){
       // 2026-07-07 grill確定：テスト配信も毎日学習と同じ80%で前進（満点前進は廃止）。おさらいの100%卒業案内はスライス3で追加。正＝機能仕様書_テスト配信 0章。
-      if(d.data.passed){sndWin();flash();confetti(120);
+      if(d.data.passed){if(!_donePre){sndWin();flash();confetti(120);}
         if(d.data.completed_material&&d.data.test_all_completed){setDoneBadge_('gold');$('done-result').innerHTML=doneUnitAllTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();} /* 単元別タブ全完走＝金トロフィー＋クラッカー 2026-08-08 */
         else if(d.data.completed_material){setDoneBadge_('gold');confetti(180);$('done-result').innerHTML=doneMatClearTtl_();$('done-guide-area').innerHTML=doneClearGuide_();} /* 1章まるごと完走＝金にそろえる（全部完了＝金）2026-08-08 */
         else{setDoneBadge_('ok');$('done-result').innerHTML=doneUnitPartTtl_(d.data.remaining_parts);$('done-guide-area').innerHTML=nextStepGuide_(false,s.listId); /* 今日のぶん完了＝緑 2026-08-08／単元別は「今日の分」ではなくパート単位の文言に 2026-08-22 */
           if(d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span><ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のパート）</span>';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}}
       else{setDoneBadge_('accent');$('done-result').innerHTML='このパートは <b>まだ<ruby>合格<rt class="uf">ごうかく</rt></ruby>していない</b>。<br><span class=\"done-guide\">「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で <b>80%</b> とれたら、このパート<ruby>合格<rt class="uf">ごうかく</rt></ruby>！</span>';} /* 単元別は自分のペース＝「今日の分」の枠が無いのでパート単位の文言に 2026-08-22 */
-    }else if(d.data.passed){sndWin();flash();confetti(120);
+    }else if(d.data.passed){if(!_donePre){sndWin();flash();confetti(120);} // 先に描いていたら鳴らし直さない 2026-09-02
       dailyMarkCleared_(s.listId);renderDoneDaily_(s.listId); /* 今日のデイリーの進みをホームと同じバーで出す（教材クリアでも同じ）2026-08-22 川上さん確定 */
       if(d.data.completed_material){setDoneBadge_('gold');$('done-result').innerHTML=doneClearTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();}
       else{setDoneBadge_('ok');$('done-result').innerHTML=doneDailyTtl_(dailyLeftAfter_(s.listId));$('done-guide-area').innerHTML=nextStepGuide_(false,s.listId); /* 今日のぶん完了＝緑 2026-08-08／デイリー全部かどうかで文言を出し分け 2026-08-22 */
@@ -5344,7 +5431,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     }else{setDoneBadge_('accent');$('done-result').innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>は <b>まだ<ruby>終<rt class="uf">お</rt></ruby>わっていない</b>（<span style=\"color:#e0574b;\">●</span>が<ruby>残<rt class="uf">のこ</rt></ruby>っている）。<br><span class=\"done-guide\">「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で <b>80%</b> とれたら、<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby><ruby>完了<rt class="uf">かんりょう</rt></ruby>！</span>';}
     /* 点数は保存前に表示済み（2026-07-08）*/
     $('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);   /* 1周目の事実だけ。どこへ入ったか（おさらい・間違いノート）は生徒に説明しない 2026-08-26 */
-    loadStar();
+    if(!_donePre)loadStar(); // 先に描いていたらもう出ている 2026-09-02
   });}
 $('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromReview;startPractice(session.listId);}};
 
@@ -5363,16 +5450,28 @@ $('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromRevi
      二重加算する恐れがあるため（採点系は冪等キーがない）。キューは1語answering中に掃けるので実害は小さい */
 var gradeQueue=[],gradeBusy=false,gradeFailed=0,gradeWaiters=[];
 function gradeReset_(){gradeQueue=[];gradeBusy=false;gradeFailed=0;gradeWaiters=[];}
-function enqueueGrade(payload,onDone){gradeQueue.push({p:payload,cb:onDone,tries:0});pumpGrades_();}
+/* 【2026-09-02】1語ずつの採点（間違いノート review_complete／おさらい review_grade）も
+   送信キューに乗せる。ここは長いあいだ送り直しの仕組みに乗っていなくて、3回試して駄目なら
+   捨てていた＝閉じられると本当に記録が消えていた（⑮で指摘された問題が、この2つには残っていた）。
+   ★同じものを2回送ると数字が二重に進む（ノートは streak が+1されて1回で卒業／おさらいは box が
+     予定より先へ飛ぶ）ので、GAS側に送信IDの印を入れてある（review_words.last_send_id ／
+     word_progress.last_send_id）。片方だけ直さない。 */
+function enqueueGrade(payload,onDone){
+  var sq=null; try{ sq=_sqAdd_(payload); }catch(eSq){}   // 送る前に端末へ積む（payload に send_id が入る）
+  gradeQueue.push({p:payload,cb:onDone,tries:0,sq:sq});pumpGrades_();
+}
 function pumpGrades_(){
   if(gradeBusy)return;
   var job=gradeQueue[0];
   if(!job){gradeWaiters.splice(0).forEach(function(w){try{w();}catch(e){}});return;}
   gradeBusy=true;
   call(job.p).then(function(d){
-    if(d&&d.ok){gradeQueue.shift();gradeBusy=false;if(job.cb){try{job.cb(d);}catch(e){}}pumpGrades_();return;}
+    if(d&&d.ok){try{if(job.sq)_sqDel_(job.sq);}catch(eSd){} /* 届いた＝もう送り直さない 2026-09-02 */
+      gradeQueue.shift();gradeBusy=false;if(job.cb){try{job.cb(d);}catch(e){}}pumpGrades_();return;}
+    /* 直らない返事（再度ログイン等）は端末からも捨てる。通信の失敗なら残して次に開いたとき送り直す */
+    try{if(job.sq&&_sqGiveUp_(d))_sqDel_(job.sq);}catch(eSg){}
     job.tries++;
-    if(job.tries>=3){gradeQueue.shift();gradeFailed++;gradeBusy=false;toastH('<ruby>記録<rt class="uf">きろく</rt></ruby>の<ruby>保存<rt class="uf">ほぞん</rt></ruby>に<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました');pumpGrades_();return;}
+    if(job.tries>=3){gradeQueue.shift();gradeFailed++;gradeBusy=false;toastH('<ruby>記録<rt class="uf">きろく</rt></ruby>はこの<ruby>端末<rt class="uf">たんまつ</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>したよ。つぎに<ruby>開<rt class="uf">ひら</rt></ruby>いたとき<ruby>自動<rt class="uf">じどう</rt></ruby>でおくります'); /* 2026-09-02：送信キューに乗ったので「失敗」ではない */pumpGrades_();return;}
     setTimeout(function(){gradeBusy=false;pumpGrades_();},1200*job.tries);
   });
 }
@@ -5532,8 +5631,31 @@ function finishNote(){
   $('done-score-wrap').style.display='none';var _dtn=$('done-tiles');if(_dtn)_dtn.innerHTML='';
   try{var _nt=(s.total||(s.words&&s.words.length)||0),_nc=Math.max(0,_nt-((s.miss||[]).length)),_nr=_nt?Math.round(_nc/_nt*100):0;renderDoneTiles_(_nr,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（間違いノートにも）2026-08-08
   // 採点（保存）中：スピナー＋Tips（成功と偽らない・待ちを価値に）2026-07-13
-  $('done-miss').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
-  $('star-area').innerHTML='<div class="note-saving"><div class="sw-load sw-big">'+kwtSpin(76)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span><span class="sw-sub">とじないで<ruby>待<rt class="uf">ま</rt></ruby>ってね</span></div>'+tipHtml_()+'</div>';
+  var _noteSavingMsg='<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
+  /* 【2026-09-02】1語ずつの採点は解いているあいだに送りおわっているのがふつう。
+     いま分かっている卒業語数で先に描き、残りが流れ終わったら確定値に差し替える。
+     数はあとから増える方向にしか動かない（返事が届くたび s.cleared が増える）＝格上げなので裏切らない。 */
+  var _notePre=false;
+  try{
+    var _nc0=s.cleared||0;
+    if(_nc0>0){
+      setDoneBadge_('gold');
+      $('done-result').innerHTML='<span class="num" id="note-gnum">0</span><ruby>語<rt class="uf">ご</rt></ruby><ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓';
+      $('done-miss').innerHTML='この<ruby>単語<rt class="uf">たんご</rt></ruby>はもう<ruby>出<rt class="uf">で</rt></ruby>てこない';
+      $('star-area').innerHTML=noteGradCardHtml_(s.clearedWords||[])+nextStepGuide_();
+      var _gn0=$('note-gnum');if(_gn0)animNum(_gn0,_nc0,450);
+      sndWin();flash();confetti(120);
+    }else{
+      setDoneBadge_('accent');
+      $('done-result').innerHTML='<ruby>間違<rt class="uf">まちが</rt></ruby>いノート、おつかれさま！';
+      $('done-miss').innerHTML='あと<ruby>少<rt class="uf">すこ</rt></ruby>しで<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>。もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やってみよう！';
+      $('star-area').innerHTML=tipHtml_();
+    }
+    $('btn-retry').style.display='flex';
+    _notePre=true;
+  }catch(eNp){ _notePre=false; }
+  if(!_notePre)$('star-area').innerHTML='<div class="note-saving"><div class="sw-load sw-big">'+kwtSpin(76)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span><span class="sw-sub">とじないで<ruby>待<rt class="uf">ま</rt></ruby>ってね</span></div>'+tipHtml_()+'</div>';
+  if(!_notePre)$('done-miss').innerHTML=_noteSavingMsg;
   whenGradesFlushed(function(){
     homeCacheClear_();/* 保存に失敗した回でも次のホームで最新を取り直す（おさらい finishSrs と同じ）2026-08-21 */
     if(gradeFailed>0){
@@ -5547,8 +5669,8 @@ function finishNote(){
         $('done-result').innerHTML='<span class="num" id="note-gnum">0</span><ruby>語<rt class="uf">ご</rt></ruby><ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓';
         $('done-miss').innerHTML='この<ruby>単語<rt class="uf">たんご</rt></ruby>はもう<ruby>出<rt class="uf">で</rt></ruby>てこない';   /* 2回連続正解＝間隔反復の仕組みなので書かない（§20-1）。生徒に効くのは「もう出てこない」という予告 2026-08-26 */
         $('star-area').innerHTML=noteGradCardHtml_(s.clearedWords||[])+nextStepGuide_();
-        var gn=$('note-gnum');if(gn)animNum(gn,n,900);
-        sndWin();flash();confetti(120);
+        var gn=$('note-gnum');if(gn)animNum(gn,n,450);
+        if(!_notePre){sndWin();flash();confetti(120);}  // 先に描いていたら鳴らし直さない 2026-09-02
       }else{
         setDoneBadge_('accent');
         $('done-result').innerHTML='<ruby>間違<rt class="uf">まちが</rt></ruby>いノート、おつかれさま！';
@@ -5754,6 +5876,7 @@ function finishSrs(){
   var _mkLines=function(){var a=[];if(s.graduated)a.push('<ruby>今回<rt class="uf">こんかい</rt></ruby> '+s.graduated+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓');if(s.nextDays)a.push('<ruby>次<rt class="uf">つぎ</rt></ruby>は '+s.nextDays+'<ruby>日<rt class="uf">にち</rt></ruby><ruby>後<rt class="uf">ご</rt></ruby>にまた<ruby>出<rt class="uf">で</rt></ruby>てくる');return a;};
   var _init=_mkLines();
   $('done-miss').innerHTML=_init.length?_init.join('　'):'<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
+  try{renderDoneDaily_('');}catch(eDD0){} // 今日のデイリーのバーは端末で出せる＝review_due を待たない 2026-09-02
   whenGradesFlushed(function(){
     homeCacheClear_(); // 保存失敗でも次のホームで最新取得（キャッシュ無効化漏れ修正）2026-08-05
     if(gradeFailed>0){$('done-miss').innerHTML='⚠ <ruby>一部<rt class="uf">いちぶ</rt></ruby>の<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby>できませんでした。<ruby>電波<rt class="uf">でんぱ</rt></ruby>の<ruby>良<rt class="uf">よ</rt></ruby>い<ruby>所<rt class="uf">ところ</rt></ruby>でもう<ruby>一回<rt class="uf">いっかい</rt></ruby>やってみよう';return;}/* おさらい完了でホームキャッシュ無効化（案A 2026-07-08）*/
