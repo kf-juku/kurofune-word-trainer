@@ -4260,6 +4260,29 @@ function _sqGiveUp_(d){
   if(e.indexOf('通信')>=0||e.indexOf('混')>=0)return false;
   return true; // 「再度ログインしてください」「〜が必要です」「シートがありません」など、何度送っても通らないもの
 }
+/* ===== 保存を待たずに画面を進める 2026-09-02 =====
+   送り直しの仕組みが入って「閉じられても記録は消えない」ようになったので、
+   保存が返るのを待ってボタンを止めておく理由がなくなった（採点の待ちは実測10.8秒だった）。
+   ただし、生徒が先に進んだあとで保存が返ってくると、もう見ていない完了画面に書き込んでしまい、
+   次に完了画面を開いたとき前回の内容が残る。そこで「まだ同じ完了画面か」を印で確かめてから書く。
+   ★画面に書かない処理（記録の後始末・裏取りの complete_extras）は、生徒が先に進んでも必ず走らせる。
+     ここを止めると「学習した日」やフリーズの付与が抜ける。 */
+/* サーバーが返してきた「保存の中で何にどれだけかかったか」をためる。画面には出さない。
+   直したあとに効いたかを確かめるためだけのもの。20件まで。 2026-09-02 */
+function _srvT_(k,t){try{var a=[];try{a=JSON.parse(localStorage.getItem('kwt_perf_srv')||'[]');}catch(e){a=[];}
+  a.push({k:k,t:String(t),at:new Date().toISOString()});while(a.length>20)a.shift();
+  localStorage.setItem('kwt_perf_srv',JSON.stringify(a));}catch(e){}}
+var _doneSeq_=0;
+function _doneMark_(){var d=$('scr-done');_doneSeq_++;if(d)d.setAttribute('data-save-seq',String(_doneSeq_));return _doneSeq_;}
+function _doneAlive_(seq){var d=$('scr-done');return !!(d&&d.classList.contains('active')&&d.getAttribute('data-save-seq')===String(seq));}
+/* 保存が返ったとき、生徒がもうホームにいるなら取り直す＝いま終えた回がホームに出る */
+function _afterSaveSync_(seq){
+  try{homeCacheClear_();}catch(e1){}
+  if(_doneAlive_(seq))return;
+  try{var h=$('scr-home');if(h&&h.classList.contains('active'))loadHomeData_(false);}catch(e2){}
+}
+/* 保存中の小さい表示。閉じてよくなったので「とじないで待ってね」はもう出さない。 */
+function _savingHtml_(){return '<div class="sw-load"><span style="display:inline-block;vertical-align:middle">'+kwtSpin(30)+'</span><span style="vertical-align:middle"> <ruby>記録<rt class="uf">きろく</rt></ruby>をおくっています</span></div>';}
 var _sqBusy_=false, _sqFlushed_=false;
 /* 残っているものを1本ずつ送り直す。まとめて投げない＝GAS側のロックを取り合って共倒れしない。
    done(送れた件数) を呼ぶ。 */
@@ -5145,22 +5168,28 @@ function finishQuizSubmit_(){
   animNum($('score-anim'),score,900);
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（確認テストにも）2026-08-08
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
-  $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(76)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span><span class="sw-sub">とじないで<ruby>待<rt class="uf">ま</rt></ruby>ってね</span></div>';
+  $('star-area').innerHTML=_savingHtml_(); // 2026-09-02：待たせないので小さい表示にした
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
-  $('btn-retry').style.display='flex';$('btn-next').style.display='none';lockBtns(true);
+  $('btn-retry').style.display='flex';$('btn-next').style.display='none';lockBtns(false); // 2026-09-02：保存を待たずに押せる
+  var _mySeq=_doneMark_();
   $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> <span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>受<rt class="uf">う</rt></ruby>ける</span>';
   $('btn-retry').onclick=function(){startQuiz(s.quizPartId);};
   $('btn-home').innerHTML='<ruby>点数表<rt class="uf">てんすうひょう</rt></ruby>に<ruby>戻<rt class="uf">もど</rt></ruby>る';
   $('btn-home').onclick=function(){openHome();openQuizPane_();};
-  var _g=setTimeout(function(){lockBtns(false);},12000);
+  var _g=null; // 2026-09-02：はじめからロックしないので詰み防止のタイマーは要らない
+  var _qzT0=_perfNow_();
   var missU=(s.miss||[]).filter(function(v,i){return s.miss.indexOf(v)===i;}); // 重複除去（意味と日英で二重に入るため）
   var _qzBody={action:'quiz_submit',part_id:s.quizPartId,total:s.total,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,miss_word_ids:missU};
   var _qzSq=_sqAdd_(_qzBody); /* 送る前に端末へ積む＝ここで閉じられても記録は消えない 2026-09-02 */
   call(_qzBody).then(function(d){
-    clearTimeout(_g);lockBtns(false);var _db2=$('done-badge');if(_db2)_db2.style.display='';
-    if(!d.ok){if(_sqGiveUp_(d))_sqDel_(_qzSq);$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>はこの<ruby>端末<rt class="uf">たんまつ</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>してあります。つぎに<ruby>開<rt class="uf">ひら</rt></ruby>いたとき<ruby>自動<rt class="uf">じどう</rt></ruby>でおくります';$('done-badge').innerHTML='<i class="ti ti-clock"></i>';return;} // 2026-09-02
+    clearTimeout(_g);lockBtns(false);_perfPush_('quiz_save',_perfNow_()-_qzT0);
+    try{if(d&&d.data&&d.data._t)_srvT_('quiz_save',d.data._t);}catch(eSt){}
+    var _live=_doneAlive_(_mySeq);
+    if(_live){var _db2=$('done-badge');if(_db2)_db2.style.display='';}
+    if(!d.ok){if(_sqGiveUp_(d))_sqDel_(_qzSq);if(!_live)return;$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>はこの<ruby>端末<rt class="uf">たんまつ</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>してあります。つぎに<ruby>開<rt class="uf">ひら</rt></ruby>いたとき<ruby>自動<rt class="uf">じどう</rt></ruby>でおくります';$('done-badge').innerHTML='<i class="ti ti-clock"></i>';return;} // 2026-09-02
     _sqDel_(_qzSq); // 届いた＝もう送り直さない 2026-09-02
     homeCacheClear_(); // 点数表を次に開くとき最新に
+    if(!_live){_afterSaveSync_(_mySeq);return;} // 生徒が先に進んでいたら描かない 2026-09-02
     var r=d.data;
     if(r.passed){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+r.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';sndWin();flash();confetti(120);var _dgq2=$('done-guide-area');if(_dgq2)_dgq2.innerHTML=nextStepGuide_(true);}
     else{setDoneBadge_('accent');$('done-result').innerHTML='あと <b>'+Math.max(0,r.pass_line-r.latest_rate)+'</b>％で<ruby>合格<rt class="uf">ごうかく</rt></ruby>！ もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>受<rt class="uf">う</rt></ruby>けてみよう';}
@@ -5189,25 +5218,29 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル 2026-07-24
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);
   _doneResetCommon_();var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
-  $('star-area').innerHTML='<div class="sw-load sw-big">'+kwtSpin(76)+'<span><ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span><span class="sw-sub">とじないで<ruby>待<rt class="uf">ま</rt></ruby>ってね</span></div>'+tipHtml_();
+  $('star-area').innerHTML=_savingHtml_()+tipHtml_(); // 2026-09-02：待たせないので小さい表示にした
   var lockBtns=function(on){['btn-retry','btn-home','btn-next'].forEach(function(id){var b=$(id);if(b)b.disabled=on;});};
-  $('btn-retry').style.display='flex';$('btn-next').style.display='none';$('btn-next').className='btn gold';lockBtns(true);
+  $('btn-retry').style.display='flex';$('btn-next').style.display='none';$('btn-next').className='btn gold';lockBtns(false); // 2026-09-02：保存を待たずに押せる（閉じても送り直しが効く）
+  var _mySeq=_doneMark_(); // この完了画面の印。保存が返ったとき、まだ同じ画面かを確かめるのに使う
   var _dg0=$('done-guide-area');if(_dg0)_dg0.innerHTML='';var _bh=$('btn-home');if(_bh){_bh.innerHTML='<span>ホームへ<ruby>戻<rt class="uf">もど</rt></ruby>る</span>';_bh.onclick=function(){openHome();};}
-  var _saveGuard=setTimeout(function(){lockBtns(false);},12000); // 保存が返らなくてもボタンは戻す（詰み防止）
+  var _saveGuard=null; // 2026-09-02：はじめからロックしないので詰み防止のタイマーは要らない
   var _svT0=_perfNow_(); // 保存の往復を測る 2026-08-22
   var _scBody={action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,completed_all:true,retry_rounds:(s.retryRounds||1),/* 全問正解して終わった＝1周終えた。点は1周目の値 2026-08-26 */miss_word_ids:s.miss,word_ids:(s.words||[]).map(function(w){return w.id;}),mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:_elapsedMs_(s),rush_wrong_count:Object.keys(s._rushWords||{}).length};
   var _scSq=_sqAdd_(_scBody); /* 送る前に端末へ積む＝ここで閉じられても記録は消えない 2026-09-02 */
   call(_scBody).then(function(d){
-    clearTimeout(_saveGuard);lockBtns(false);_perfPush_('save',_perfNow_()-_svT0);var _db2=$('done-badge');if(_db2)_db2.style.display='';
-    if(!d.ok){if(_sqGiveUp_(d))_sqDel_(_scSq);$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>はこの<ruby>端末<rt class="uf">たんまつ</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>してあります。つぎに<ruby>開<rt class="uf">ひら</rt></ruby>いたとき<ruby>自動<rt class="uf">じどう</rt></ruby>でおくります';$('done-badge').innerHTML='<i class="ti ti-clock"></i>';return;} // 2026-09-02
+    clearTimeout(_saveGuard);lockBtns(false);_perfPush_('save',_perfNow_()-_svT0);
+    try{if(d&&d.data&&d.data._t)_srvT_('save',d.data._t);}catch(eSt){} // サーバー側の内訳をためる（画面には出さない）2026-09-02
+    var _live=_doneAlive_(_mySeq); // 生徒がまだこの完了画面を見ているか
+    if(_live){var _db2=$('done-badge');if(_db2)_db2.style.display='';}
+    if(!d.ok){if(_sqGiveUp_(d))_sqDel_(_scSq);if(!_live)return;$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>はこの<ruby>端末<rt class="uf">たんまつ</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>してあります。つぎに<ruby>開<rt class="uf">ひら</rt></ruby>いたとき<ruby>自動<rt class="uf">じどう</rt></ruby>でおくります';$('done-badge').innerHTML='<i class="ti ti-clock"></i>';return;} // 2026-09-02
     _sqDel_(_scSq); // 届いた＝もう送り直さない 2026-09-02
     homeCacheClear_();/* 完了時にホームキャッシュ無効化→次のホームで最新取得（案A・川上さん承認 2026-07-08）*/
     /* 高速化 2026-07-15：今日のがんばり集計＋word_statsは保存(session_complete)の待ちから外し、
        完了後に complete_extras を裏で取得してチップを出す。保存本体はこの前に確定済み＝失敗しても学習データは無事。 */
-    (function(){var ar=$('today-did-area');if(!ar)return;
+    (function(){var ar=$('today-did-area');if(!ar)return; /* ★裏取り(complete_extras)は生徒が先に進んでも必ず投げる＝学習した日とフリーズの付与を止めない 2026-09-02 */
       /* 【2026-08-22】まず保存の返り値でチップを出す。旧＝complete_extras の返りを待っていたので往復2回ぶん（4秒以上）おくれていた。
          complete_extras はフリーズの付与を含む確定値を返すので、返ってきたら静かに差し替える。 */
-      try{renderEffort_(d.data&&d.data.effort);_perfPush_('chip',_perfNow_()-_finT0);}catch(e){}
+      try{if(_doneAlive_(_mySeq))renderEffort_(d.data&&d.data.effort);_perfPush_('chip',_perfNow_()-_finT0);}catch(e){} // 先に進んでいたら描かない 2026-09-02
       var _tx0=_perfNow_();
       call({action:'complete_extras',part_id:s.listId,word_ids:(s.words||[]).map(function(w){return w.id;}),miss_word_ids:s.miss}).then(function(ex){
         _perfPush_('extras',_perfNow_()-_tx0);
@@ -5217,9 +5250,12 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
         /* 【2026-08-30】守ったときの通知は badges 経由（noticeFrozeDays_）に一本化した。
            ここで出すと、朝のバッチ（freezeConsumeBatchKwt）が先に消費を確定させた日は froze_today が空になり、
            学習を終えても二度と知らせられない。ホームに戻れば loadBadges が未読ぶんを出す。 */
-        try{renderEffort_(d2);}catch(e){} // 付与のあとの確定値で差し替え（同じ内容なら書き換えない＝ちらつかせない）
+        try{if(_doneAlive_(_mySeq))renderEffort_(d2);}catch(e){} // 付与のあとの確定値で差し替え（先に進んでいたら描かない 2026-09-02）
       });
     })();
+    /* 【2026-09-02】ここから下はぜんぶ完了画面への描画。生徒が先に進んでいたら書かない。
+       上の complete_extras はここより前に投げてあるので、先に進まれても裏取りは走る。 */
+    if(!_doneAlive_(_mySeq)){_afterSaveSync_(_mySeq);return;}
     var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').innerHTML=d.data.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby>';}else{dl.style.display='none';}}
     if(s.fromReview){
       /* テスト配信おさらい（卒業方式）の完了画面。機能仕様書_テスト配信 0章§5。2026-07-08 スライス3 */
