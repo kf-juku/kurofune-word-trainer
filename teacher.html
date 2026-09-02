@@ -127,6 +127,14 @@
   .tm-num{width:56px;padding:4px 7px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;}
   /* 紙の形＝どちらを刷るかは重要なので、小さいラジオでなく大きいカードで選ぶ 2026-08-31 */
   .stycards{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 4px;}
+  /* ★2026-09-02⑬ 川上さん指摘：横長のプルダウンだと、そこが選ぶ所だと分からない。
+     選択肢が数個しかないものは**全部出しておく**。見た目は「紙の形」と同じカードにそろえる。
+     .sm＝紙の形より一回り小さい版（主役は紙の形なので、同じ大きさにしない）。 */
+  .stycards.sm{gap:8px;}
+  .stycards.sm .styc{flex:1 1 150px;padding:8px 10px;gap:7px;}
+  .stycards.sm .styc .sy-mk{width:16px;height:16px;font-size:10px;margin-top:1px;}
+  .stycards.sm .styc .sy-t{font-size:12.5px;}
+  .stycards.sm .styc .sy-s{font-size:10.5px;margin-top:2px;}
   .styc{flex:1 1 250px;display:flex;align-items:flex-start;gap:9px;padding:11px 13px;border:2px solid var(--border);border-radius:10px;background:white;cursor:pointer;font-family:inherit;text-align:left;transition:all .12s;}
   .styc:hover{border-color:var(--crimson-mid);}
   .styc.on{border-color:var(--crimson);background:var(--crimson-light);}
@@ -2055,10 +2063,42 @@ function _fsMinDaysText_(){
   var n=_fsMinDays_();
   return n>=1 ? ('まちがえてから<b>'+n+'日以上たった問題</b>') : '<b>いつまちがえたかは見ずに、ぜんぶ</b>';
 }
+/* 日数のカード（選択肢を全部出す）。押すと保存して、その場で塗り替える 2026-09-02⑬ */
+var FS_MINDAYS_OPTS_=[
+  {v:3,t:'3日以上前',s:'ふだんはこれ。まちがえた直後は覚えているので、少し寝かせてから出す。'},
+  {v:2,t:'2日以上前',s:'おとといのまちがいまで出す。'},
+  {v:1,t:'1日以上前',s:'きのうのまちがいまで出す。'},
+  {v:0,t:'ぜんぶ',s:'今日のぶんまで出す。テスト直前に進めた範囲を出すときはこれ。'}
+];
+function _fsMinDaysCards_(){
+  var now=_fsMinDays_();
+  return FS_MINDAYS_OPTS_.map(function(o){
+    return '<button type="button" class="styc'+(now===o.v?' on':'')+'" id="tmMd-'+o.v+'" onclick="_fsSetMinDays_('+o.v+')">'
+      +'<span class="sy-mk">✓</span><span class="sy-b"><span class="sy-t">'+esc(o.t)+'</span>'
+      +'<span class="sy-s">'+esc(o.s)+'</span></span></button>';
+  }).join('');
+}
+/* 覚える一覧の範囲カード。値は隠し input(#tmScope) に入れる＝読む側は今までどおり */
+var TM_SCOPE_OPTS_=[
+  {v:'active',t:'まちがえ中ぜんぶ',s:'いま間違いノートに入っているものを全部。'},
+  {v:'recent',t:'直近◯日のまちがえ',s:'下の「直近◯日」で決めた日数のあいだに間違えたものだけ。'}
+];
+function _tmScopeCards_(cur){
+  return TM_SCOPE_OPTS_.map(function(o){
+    return '<button type="button" class="styc'+(cur===o.v?' on':'')+'" id="tmSc-'+o.v+'" onclick="_tmSetScope_(\''+o.v+'\')">'
+      +'<span class="sy-mk">✓</span><span class="sy-b"><span class="sy-t">'+esc(o.t)+'</span>'
+      +'<span class="sy-s">'+esc(o.s)+'</span></span></button>';
+  }).join('');
+}
+function _tmSetScope_(v){
+  var el=$('tmScope'); if(el)el.value=v;
+  var box=$('tmScopeCards'); if(box)box.innerHTML=_tmScopeCards_(v);
+}
 function _fsSetMinDays_(v){
   var n=parseInt(v,10); if(!(n>=0&&n<=99))n=3;
   try{ localStorage.setItem('kwt_fs_min_days',String(n)); }catch(e){}
   var el=document.getElementById('fsMinDaysNote'); if(el)el.innerHTML=_fsMinDaysText_();
+  var box=document.getElementById('tmMinDaysCards'); if(box)box.innerHTML=_fsMinDaysCards_();
 }
 var FS_CODE_TMP_='XX-9999';    /* 測るときだけ使う仮のセット番号。実物と同じ7文字にして幅をそろえる 2026-08-31 */
 var FS_SHEET_URL_='https://kf-juku.github.io/kurofune-word-trainer/?sheet=';  /* QRの中身（川上さん確定 2026-08-30）*/
@@ -2664,12 +2704,23 @@ function fsPreload_(urls,cb){
   setTimeout(go,20000);   /* 図が多いと6秒では終わらない。読めなかったぶんは最大の高さで場所を取る＝あふれない側に倒れる */
 }
 var _finishCand=null;
+/* ★2026-09-02⑬ 川上さん指摘「作れないときに勝手にホームに戻る。見逃すからやめてほしい」。
+   原因＝紙を作る前に closeModal していたので、失敗すると画面だけ閉じてトーストが消えて終わりだった。
+   直し＝**作れると分かってから閉じる**。作れないときはモーダルを開いたまま、
+   消えないメッセージをモーダルの中（#bulkErr）に出す。 */
+function tmErr_(msg){
+  var el=$('bulkErr'); if(!el) return;
+  if(!msg){ el.innerHTML=''; return; }
+  el.innerHTML=msg;
+  try{ el.scrollIntoView({block:'nearest'}); }catch(e){}
+}
 function runFinishSheet_(ids,mats,types){
-  if(!ids.length){toast('印刷する生徒がいません');return;}
+  if(!ids.length){tmErr_('印刷する生徒がえらばれていません。');return;}
+  tmErr_('');
   showLoading('仕上げプリントを作っています…');
   call({action:'teacher_mistakes',student_ids:ids.join(','),material_ids:mats.join(','),types:types,mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_})
   .then(function(d){
-    if(!d||!d.ok){ hideLoading(); toast('候補が取れませんでした：'+((d&&d.error)||'通信に失敗しました')); return; }
+    if(!d||!d.ok){ hideLoading(); tmErr_('候補が取れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
     _finishCand=d.data; window._finishCand=d.data;
     var ss=d.data.students||[];
     var urls={}; ss.forEach(function(s){ (s.items||[]).forEach(function(it){ if(it.fig) urls[it.fig]=1; }); });
@@ -2678,7 +2729,17 @@ function runFinishSheet_(ids,mats,types){
       var built=[];
       ss.forEach(function(s){ var b0=fsBuildSheet_(s,base); if(b0) built.push(b0); });
       var skipped=ss.length-built.length;
-      if(!built.length){ hideLoading(); toast('紙にできる問題がある生徒がいません（'+ss.length+'名ぜんぶ0問）'); return; }
+      if(!built.length){ hideLoading();
+        /* ★なぜ0問なのかと、次にどうすればよいかまで書く（2026-09-02 実測でいちばん多い原因は下の2つ）。
+           鈴木遥斗さんの九州＝8/31に19問まちがえたのに「3日以上前」で全部落ちていた。
+           中国四国・中部＝割り当てただけで1回もやっていない。 */
+        tmErr_('紙にできる問題がある生徒がいません（'+ss.length+'名ぜんぶ0問）。<br>'
+          +'・テスト直前に進めた範囲なら、上の「<b>いつのまちがいを出すか</b>」を「<b>ぜんぶ</b>」にしてください。'
+          +'いまは「'+esc(_fsMinDays_()>=1?(_fsMinDays_()+'日以上前'):'ぜんぶ')+'」です。<br>'
+          +'・それでも0問なら、その生徒はえらんだ範囲を<b>まだ学習していません</b>（まちがいノートが空です）。');
+        return; }
+      /* ★ここまで来て初めて閉じる。作れないうちは開いたままにして、理由を読ませる */
+      closeModal('bulkModal');
       if(skipped) toast('まちがいなし '+skipped+'名は印刷しません');
       /* セット番号を発行してから描く。保存に失敗したら印刷しない
          （番号のない紙を配ると、生徒が答え合わせできない）2026-08-31 段4 */
@@ -2801,7 +2862,8 @@ function runPrint_(ids,scope,days,limit,types){
       return s.items.length>0;   // 0問の子は紙を作らない（紙のむだ＝川上さん 2026-08-17）
     });
     var skipped=all-sts.length;
-    if(!sts.length){toast((scope==='graduated')?('克服した語がある生徒がいません（'+all+'名ぜんぶ0語）'):('まちがえている問題がある生徒がいません（'+all+'名ぜんぶ0問）'));return;}
+    if(!sts.length){tmErr_((scope==='graduated')?('克服した語がある生徒がいません（'+all+'名ぜんぶ0語）'):('まちがえている問題がある生徒がいません（'+all+'名ぜんぶ0問）'));return;}
+    closeModal('bulkModal');   /* ★作れると分かってから閉じる 2026-09-02⑬ */
     if(skipped)toast((scope==='graduated'?'克服した語なし ':'まちがいなし ')+skipped+'名は印刷しません');
     var html=sts.map(function(s){
       return '<div class="p-unit">'+unifiedStudentHtml_(s,{wrapClass:'print-student',docTitle:subLbl,showSubmit:false,missLabel:missLbl,emptyLabel:emptyLbl})+'</div>';
@@ -4913,10 +4975,10 @@ function tmStepPrint_(body){
     +'</div></div>'
     +'<div id="tmListOpts">'
     +'<div class="tm-qh" style="margin-top:10px;">印刷する範囲</div>'
-    +'<select id="tmScope" class="tm-sel">'
-    +'<option value="active"'+(scope==='active'?' selected':'')+'>まちがえ中ぜんぶ（いまの間違い）</option>'
-    +'<option value="recent"'+(scope==='recent'?' selected':'')+'>直近◯日のまちがえ</option>'
-    +'</select>'
+    /* ★プルダウンをやめてカードに（2026-09-02⑬）。値の読み口は今までどおり $('tmScope').value のまま
+       （隠し input に同じ id を持たせてある）ので、あとの処理は1行も変えていない。 */
+    +'<input type="hidden" id="tmScope" value="'+esc(scope)+'">'
+    +'<div class="stycards sm" id="tmScopeCards">'+_tmScopeCards_(scope)+'</div>'
     +'<div class="tm-qh" style="margin-top:10px;">直近 <input id="tmDays" type="number" min="1" max="99" value="'+esc(days)+'" class="tm-num"> 日（「直近◯日」のときだけ）　／　1人あたり上限 <input id="tmLimit" type="number" min="1" max="99" value="'+esc(limit)+'" class="tm-num"> 語</div>'
     +'<div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">🖨 生徒ごとに<b>新しい紙の表（奇数ページ）から</b>印刷されます。両面印刷でも、前の子の裏面に次の子が入りません。</div>'
     +'</div>'
@@ -4928,12 +4990,7 @@ function tmStepPrint_(body){
        ★教材えらびの下に置いたら、スクロールしないと見えず川上さんが見つけられなかった（同日）。
          **押す前に必ず目に入る位置＝テスト範囲をえらぶより前**に置く。 */
     +'<div class="tm-qh" style="margin-top:10px;">いつのまちがいを出すか</div>'
-    +'<select id="tmMinDays" class="tm-sel" onchange="_fsSetMinDays_(this.value)">'
-    +'<option value="3"'+(_fsMinDays_()===3?' selected':'')+'>3日以上前のまちがい（ふだん）</option>'
-    +'<option value="2"'+(_fsMinDays_()===2?' selected':'')+'>2日以上前のまちがい</option>'
-    +'<option value="1"'+(_fsMinDays_()===1?' selected':'')+'>1日以上前のまちがい</option>'
-    +'<option value="0"'+(_fsMinDays_()===0?' selected':'')+'>ぜんぶ（テスト直前・直前に進めた範囲も出す）</option>'
-    +'</select>'
+    +'<div class="stycards sm" id="tmMinDaysCards">'+_fsMinDaysCards_()+'</div>'
     +'<div class="tm-note" style="background:#fff7e6;border-color:#f0d08a;color:#8a5a00;">📅 <b>テスト直前に進めた範囲を出すときは「ぜんぶ」にしてください。</b>ふだんは「3日以上前」のままでかまいません（まちがえた直後は覚えているので、少し寝かせてから出す）。</div>'
     +'<div class="tm-qh" style="margin-top:10px;">テスト範囲（教材をえらぶ・複数可）</div>'
     +'<div class="pk-two">'
@@ -5002,7 +5059,8 @@ function tmPrint(){
     var mats=Object.keys(printMat);
     if(!mats.length){ toast('テスト範囲の教材をえらんでください'); return; }
     localStorage.setItem('kwt_print_mats',mats.join(','));
-    closeModal('bulkModal');
+    /* ★閉じるのは runFinishSheet_ が「作れる」と分かってから（2026-09-02⑬）。
+       ここで閉じていたので、0問のときに画面だけ戻ってトーストが消えていた。 */
     /* 範囲は教材で決めるので種別では絞らない（毎日学習・単元別・確認テストのぜんぶから集める）
        ＝川上さん確定 2026-08-31。「覚える一覧」側の種別チェックはそのまま残す */
     runFinishSheet_(ids,mats,'daily,unit,quiz');
@@ -5014,8 +5072,8 @@ function tmPrint(){
   var types=[]; ['daily','unit','quiz'].forEach(function(t){ var c=$('tmT-'+t); if(c&&c.checked) types.push(t); });
   if(!types.length && scope!=='graduated'){ toast('印刷する種別を1つ以上えらんでください'); return; }
   localStorage.setItem('kwt_print_scope',scope);localStorage.setItem('kwt_print_days',days);localStorage.setItem('kwt_print_limit',limit);localStorage.setItem('kwt_print_types',types.join(','));
-  closeModal('bulkModal');
-  runPrint_(ids,scope,days,limit,types.join(','));
+  tmErr_('');
+  runPrint_(ids,scope,days,limit,types.join(','));   /* 閉じるのは中で「作れる」と分かってから 2026-09-02⑬ */
 }
 /* 教材の表示順：毎日学習→単元別対策、その中は 教科→本→display_order
    ※シートの行順に依存しない。教材が増えても探しやすさを保つ */
