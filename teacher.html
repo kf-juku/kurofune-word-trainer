@@ -2136,12 +2136,37 @@ function fsPick_(items){
     if(!byFig[it.fig]){byFig[it.fig]=[];figOrder.push(it.fig);}
     byFig[it.fig].push(it);
   });
-  figOrder.sort(function(a,b){ var d=byFig[b].length-byFig[a].length; return d?d:(a<b?-1:(a>b?1:0)); });
-  var blocks=[];
-  figOrder.slice(0,FS_FIG_BLK_MAX_).forEach(function(u){
-    blocks.push({fig:u,items:byFig[u].slice(0,FS_FIG_PER_BLK_)});
+  /* ★図のかたまりも教材を順に回して選ぶ（2026-09-02 川上さん確定）。
+     旧＝「同じ図の問題が多い順」に上から FS_FIG_BLK_MAX_ 個。図の多い1教材だけで枠が埋まり、
+     ほかの教材の図が1つも紙に出ないことがあった（文章の問題で起きていたのと同じこと）。
+     教材の回る順＝サーバーが返した順（＝display_order で散らした順）の最初に出てきた順。
+     教材の中は今までどおり「同じ図の問題が多い順」。 */
+  var figByMat={}, figMatOrder=[];
+  figOrder.forEach(function(u){
+    var m=String((byFig[u][0]||{}).material_id||'');
+    if(!figByMat[m]){figByMat[m]=[];figMatOrder.push(m);}
+    figByMat[m].push(u);
   });
-  var texts=fsGroupSort_(list.filter(function(it){return it._fsKind==='write';}));
+  figMatOrder.forEach(function(m){
+    figByMat[m].sort(function(a,b){ var d=byFig[b].length-byFig[a].length; return d?d:(a<b?-1:(a>b?1:0)); });
+  });
+  var picked=[], fIdx={}, fGuard=0;
+  figMatOrder.forEach(function(m){ fIdx[m]=0; });
+  while(picked.length<FS_FIG_BLK_MAX_ && fGuard++<1000){
+    var movedF=false;
+    for(var fm=0; fm<figMatOrder.length && picked.length<FS_FIG_BLK_MAX_; fm++){
+      var mk=figMatOrder[fm];
+      if(fIdx[mk]>=figByMat[mk].length) continue;
+      picked.push(figByMat[mk][fIdx[mk]++]); movedF=true;
+    }
+    if(!movedF) break;
+  }
+  var blocks=[];
+  picked.forEach(function(u){ blocks.push({fig:u,items:byFig[u].slice(0,FS_FIG_PER_BLK_)}); });
+  /* ★文章の問題はサーバーの順（教材を散らした順）のまま詰める。fsGroupSort_ はここでは呼ばない。
+     「似たものを隣に」は詰め終わってからページの中だけでやる＝fsFillQPages_ の末尾（2026-09-02）。
+     詰める前に教材ごとのかたまりに並べ替えると、紙に入りきらないとき最後の教材が丸ごと落ちる。 */
+  var texts=list.filter(function(it){return it._fsKind==='write';});
   return {blocks:blocks,texts:texts};
 }
 /* 単位＝図ブロック（1〜3問）／文章問題（1問）。ページはこの単位で埋める */
@@ -2446,6 +2471,15 @@ function fsFillQPages_(units,ctx,roomy,usable){
     pages.push(pg);
   }
   if(probe.parentNode) document.body.removeChild(probe);
+  /* ★詰め終わってから、ページの中だけ「似たものを隣に」並べ替えて番号を振り直す（2026-09-02）。
+     取る順（教材を散らす）と紙の並び（似たものを隣に）を分ける。
+     ページの中身は1問も変えないので、測った高さもページ数も動かない。 */
+  var rn=1;
+  pages.forEach(function(pg2){
+    pg2.figs.forEach(function(f){ f.start=rn; rn+=f.block.items.length; });
+    pg2.texts=fsGroupSort_(pg2.texts.map(function(t){return t.item;})).map(function(it){ return {item:it,no:0}; });
+    pg2.texts.forEach(function(t){ t.no=rn++; });
+  });
   return pages;
 }
 /* 置けた問題を並び順に平らにする（＝紙の1番〜N番） */
