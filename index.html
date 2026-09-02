@@ -4282,7 +4282,10 @@ function _afterSaveSync_(seq){
   try{var h=$('scr-home');if(h&&h.classList.contains('active'))loadHomeData_(false);}catch(e2){}
 }
 /* 保存中の小さい表示。閉じてよくなったので「とじないで待ってね」はもう出さない。 */
-function _savingHtml_(){return '<div class="sw-load"><span style="display:inline-block;vertical-align:middle">'+kwtSpin(30)+'</span><span style="vertical-align:middle"> <ruby>記録<rt class="uf">きろく</rt></ruby>をおくっています</span></div>';}
+/* 文言は元どおり「記録を保存中…」。2026-09-02 に一度「おくっています」に変えたが、
+   言われていない変更だったので川上さんの指示で戻した。
+   「とじないで待ってね」だけは出さない＝閉じても記録は消えなくなったので、もう嘘になるため。 */
+function _savingHtml_(){return '<div class="sw-load"><span style="display:inline-block;vertical-align:middle">'+kwtSpin(30)+'</span><span style="vertical-align:middle"> <ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>';}
 var _sqBusy_=false, _sqFlushed_=false;
 /* 残っているものを1本ずつ送り直す。まとめて投げない＝GAS側のロックを取り合って共倒れしない。
    done(送れた件数) を呼ぶ。 */
