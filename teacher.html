@@ -2796,7 +2796,7 @@ function runFinishSheet_(ids,mats,types){
 /* ---- できた紙を「印刷」か「PDFで保存」で出す（同じセット番号の紙）2026-08-31 段4 ---- */
 var _fsGoInfo=null;
 function fsShowGo_(built,ss){
-  _fsGoInfo={n:built.length, codes:built.map(function(b){return b.ctx.code;})};
+  _fsGoInfo={n:built.length, codes:built.map(function(b){return b.ctx.code;}), names:built.map(function(b){return b.ctx.name;})};
   var el=$('fsGoInfo');
   if(el) el.innerHTML='<b>'+built.length+'名</b>ぶん・1人あたり両面2枚。セット番号は発行ずみです（'
     +esc(_fsGoInfo.codes.slice(0,3).join('・'))+(built.length>3?('　ほか'+(built.length-3)+'名'):'')+'）。<br>'
@@ -2804,13 +2804,32 @@ function fsShowGo_(built,ss){
     +fsFilledNote_(ss);   /* 範囲の語で埋めた生徒の注意書き 2026-09-02⑬ */
   $('fsGoModal').classList.add('show');
 }
+/* ---- 印刷・PDFのファイル名 2026-09-02⑭（川上さん＝「1名だけのときは名前を入れて」）----
+   2名以上は今までどおり「◯名」。
+   ブラウザの印刷ダイアログから「PDFに保存」したときのファイル名は <title> で決まるので、
+   印刷の直前にタイトルを差し替えて、afterprint で元に戻す。 */
+function _fnSafe_(x){ return String(x||'').replace(/[\\\/:*?"<>|]/g,'').replace(/\s+/g,'').slice(0,24); }
+function _cntOrName_(names){
+  var a=(names||[]).filter(function(x){ return !!x; });
+  return (a.length===1) ? (_fnSafe_(a[0])||'1名') : (a.length+'名');
+}
+var _printTitleOld_=null;
+function _applyPrintTitle_(nm){
+  if(!nm) return;
+  if(_printTitleOld_===null) _printTitleOld_=document.title;
+  document.title=nm;
+}
+function _restorePrintTitle_(){
+  if(_printTitleOld_!==null){ document.title=_printTitleOld_; _printTitleOld_=null; }
+}
+window.addEventListener('afterprint',_restorePrintTitle_);
 function _fsPdfName_(){
-  return _rpToday().replace(/-/g,'')+'_仕上げプリント_'+((_fsGoInfo&&_fsGoInfo.n)||0)+'名';
+  return _rpToday().replace(/-/g,'')+'_仕上げプリント_'+_cntOrName_((_fsGoInfo&&_fsGoInfo.names)||[]);
 }
 function fsGo_(how){
   /* 画面は閉じない。印刷したあとに続けてPDFも保存できるようにする（閉じるのは「閉じる」だけ）
      ＝作り直すとセット番号が変わるので、うっかり消えると困る。川上さん 2026-08-31 */
-  printWhenImagesReady_($('printArea'));
+  printWhenImagesReady_($('printArea'), _fsPdfName_());
 }
 /* ---- PDFファイルをそのまま落とす（印刷ダイアログを開かない）2026-08-31 ----
    レポートタブの rpPdf と同じ html2pdf を使う。
@@ -2895,12 +2914,15 @@ function runPrint_(ids,scope,days,limit,types){
       return '<div class="p-unit">'+unifiedStudentHtml_(s,{wrapClass:'print-student',docTitle:subLbl,showSubmit:false,missLabel:missLbl,emptyLabel:emptyLbl})+'</div>';
     }).join('');
     $('printArea').innerHTML=html;
-    printWhenImagesReady_($('printArea')); // 図の画像を読み込んでから印刷（旧80ms固定だと図の読み込み前に印刷が走り図が空白になった）2026-07-24
+    var _pnLbl=(scope==='graduated')?'復習チェック':'覚える一覧';
+    printWhenImagesReady_($('printArea'),
+      _rpToday().replace(/-/g,'')+'_'+_pnLbl+'_'+_cntOrName_(sts.map(function(s){return s.name;})));   /* 2026-09-02⑭ */ // 図の画像を読み込んでから印刷（旧80ms固定だと図の読み込み前に印刷が走り図が空白になった）2026-07-24
   }).finally(function(){hideLoading();});
 }
 /* 印刷対象の画像（設問の図）が全部 読み込み終わる（or エラー確定）まで待ってから window.print()。
    保険で最大4秒。cが空/画像なしなら即印刷。2026-07-24（「印刷で図が出ない」の実体＝画像未読込での印刷を解消） */
-function printWhenImagesReady_(c){
+function printWhenImagesReady_(c,nm){
+  _applyPrintTitle_(nm);   /* 印刷ダイアログの「PDFに保存」のファイル名 2026-09-02⑭ */
   var imgs=Array.prototype.slice.call((c||document).querySelectorAll('img'));
   var pending=imgs.filter(function(im){ return !(im.complete && im.naturalWidth>0); });
   var fired=false, go=function(){ if(fired)return; fired=true; insertDuplexFillers_(c, function(){ setTimeout(function(){window.print();},60); }); };
@@ -5703,13 +5725,18 @@ function _rpCurSet_(){ var i=(RP_CUR>=0)?RP_CUR:RP_LAST; return (i>=0&&RP_SETS[i
    ＝教室などで絞ってもファイル名からセット名が消えない。
    あわせて絞り込み（教室・学年・中学校・名前）も名前に入れる＝教室ごとに落としたPDFが同じ名前でぶつからない。 */
 function _rpFnSafe_(x){ return String(x||'').replace(/[\\\/:*?"<>|]/g,'').replace(/\s+/g,'').slice(0,24); }
-function _rpPdfName_(){
+function _rpPdfName_(list){
   var i=_rpCurSet_(), a=[_rpToday().replace(/-/g,''),'学習状況レポート'];
   if(i>=0&&RP_SETS[i])a.push(_rpFnSafe_(RP_SETS[i].name));
-  if(RP_F.cls!=='all')a.push(_rpFnSafe_(RP_F.cls));
-  if(RP_F.grade!=='all')a.push(_rpFnSafe_(RP_F.grade));
-  if(RP_F.sch!=='all')a.push(_rpFnSafe_(RP_F.sch));
-  var q=((($('rpName')||{}).value)||'').trim(); if(q)a.push(_rpFnSafe_(q));
+  /* 1名だけのときは、絞り込みより名前のほうが分かる。川上さん 2026-09-02⑭ */
+  if(list&&list.length===1&&list[0]&&list[0].s&&list[0].s.name){
+    a.push(_rpFnSafe_(list[0].s.name));
+  }else{
+    if(RP_F.cls!=='all')a.push(_rpFnSafe_(RP_F.cls));
+    if(RP_F.grade!=='all')a.push(_rpFnSafe_(RP_F.grade));
+    if(RP_F.sch!=='all')a.push(_rpFnSafe_(RP_F.sch));
+    var q=((($('rpName')||{}).value)||'').trim(); if(q)a.push(_rpFnSafe_(q));
+  }
   return a.filter(function(x){return !!x;}).join('_')+'.pdf';
 }
 function rpSaveSet(btn){   /* ＝いつでも「増える」。いま選んでいるセットは絶対に書き換えない */
@@ -5992,7 +6019,8 @@ function rpPrintMistakes(){
     }).join('');
     $('printArea').innerHTML=html;
     var note=$('rpFitNote'); if(note)note.textContent='まちがいプリント '+sts.length+'名'+(clsLbl?('（'+clsLbl+'）'):'')+'・1人1枚'+(skipped?('（まちがいなし '+skipped+'名は省略）'):'');
-    printWhenImagesReady_($('printArea'));   // 図を読み込んでから → 仕切りを入れて → 印刷
+    printWhenImagesReady_($('printArea'),
+      _rpToday().replace(/-/g,'')+'_まちがいプリント_'+_cntOrName_(sts.map(function(s){return s.name;})));   /* 2026-09-02⑭ */   // 図を読み込んでから → 仕切りを入れて → 印刷
   }).finally(function(){hideLoading();});
 }
 function rpTargets(){
@@ -6324,7 +6352,9 @@ function rpFit_(list){
 }
 function rpPrint(){
   var list=rpPrintList_(); if(!list.length){toast('印刷する生徒がいません');return;}
-  rpFit_(list); window.print();
+  rpFit_(list);
+  _applyPrintTitle_(_rpPdfName_(list).replace(/\.pdf$/,''));   /* 2026-09-02⑭ */
+  window.print();
 }
 function _rpEnsureH2P(cb,ecb){
   if(window.html2pdf)return cb();
@@ -6346,7 +6376,7 @@ function rpPdf(){
        いちど一番上に戻してから作り、終わったらスクロール位置を戻す。*/
     var sx=window.pageXOffset||0, sy=window.pageYOffset||0; window.scrollTo(0,0);
     var fin=function(){ host.style.cssText=''; window.scrollTo(sx,sy); for(var j=0;j<btns.length;j++)btns[j].disabled=false; if(note)note.textContent=old; };
-    var nm=_rpPdfName_();
+    var nm=_rpPdfName_(list);
     html2pdf().set({
       margin:[12,12,12,12], filename:nm,
       image:{type:'jpeg',quality:0.98},
