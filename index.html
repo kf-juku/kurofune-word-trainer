@@ -4217,7 +4217,14 @@ function imgHoles(words,assetId){var out=[];words.forEach(function(x,i){if(x.qty
 function imgFigHtml(w,assets){var qd=tfParse(w);var a=(assets||{})[qd.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';var h='';/* 出題図はタイトル非表示＝答えバレ防止 2026-07-16 */h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';return h;}
 /* 解説画像（参考資料画像）2026-07-16：解説文の下に参考画像を1枚出す。qdata.kaisetsu_asset のアセットを使う（image_fillでない4択にも付く） */
 var _kaiImgCur='';var _curExW=null;
-function kaiImgHtml(w,assets){var qd=tfParse(w);var aid=qd&&qd.kaisetsu_asset;if(!aid)return '';var a=(assets||{})[aid]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';if(!url)return '';var h='<img src="'+esc(url)+'" alt="参考資料" onerror="this.style.opacity=.2;">';h+='<div class="tf-title">'+(a.title?esc(a.title)+'<br>':'')+'<span class="ex-zoom">タップで<ruby>拡大<rt class="uf">かくだい</rt></ruby></span></div>';return h;}
+function kaiImgHtml(w,assets){var qd=tfParse(w);var aid=qd&&qd.kaisetsu_asset;if(!aid)return '';var a=(assets||{})[aid]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}var url=pl.url||pl.src||a.url||'';if(!url)return '';var h='<img src="'+esc(url)+'" alt="参考資料" onerror="this.style.opacity=.2;">';h+='<div class="tf-title"><span class="ex-zoom">タップで<ruby>拡大<rt class="uf">かくだい</rt></ruby></span></div>';return h;}
+/* 【2026-09-03 川上さん報告】解説図の下に assets の title 列をそのまま出していた。
+   title は図を切り出したときの自分用メモ（「p5 解説[その他の地形] 記号ア〜キ／印字語なし」等）で、
+   生徒に読ませる文ではない。ライブの解説図343枚のうち、メモ調が194枚・アセットIDの断片がそのまま
+   入っているものが十数枚あり、あわせて792問の解説に出ていた。→ キャプションを出すのをやめる。
+   出題図（renderIMG）は元から title 非表示（答えバレ防止 2026-07-16）。
+   表の出題図（renderTF・5枚）は生徒に見せる見出しなので、そちらは残す。
+   生徒向けの説明を出したくなったら、title を書き直したうえでここを戻す。 */
 function missWordsHtml(missIds,words){var uniq=(missIds||[]).filter(function(v,i){return missIds.indexOf(v)===i;});if(!uniq.length)return '';var byId={};(words||[]).forEach(function(w){byId[String(w.id||w.word_id)]=w;});var list=uniq.map(function(id){var w=byId[String(id)];if(!w)return '';var jp=(w.qtype==='image_fill')?'':('（'+esc(w.japanese)+'）');return '<div style="font-size:14px;padding:5px 0;border-top:1px solid var(--line);">'+esc(w.english)+jp+'</div>';}).filter(Boolean).join('');if(!list)return '';return '<div style="background:var(--surface);border-radius:14px;padding:13px;margin-top:14px;box-shadow:var(--shadow);text-align:left;"><div style="font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:6px;"><ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>語句<rt class="uf">ごく</rt></ruby>（'+uniq.length+'）— <ruby>見<rt class="uf">み</rt></ruby><ruby>直<rt class="uf">なお</rt></ruby>そう</div>'+list+'</div>';}
 function quizToggle_(id){var e=document.getElementById(id);var a=document.getElementById(id+'-a');if(!e)return;var o=e.style.display==='none';e.style.display=o?'block':'none';quizOpen_[id]=o;if(a)a.className='ti '+(o?'ti-chevron-up':'ti-chevron-down');}
 function renderIMG(ss){
