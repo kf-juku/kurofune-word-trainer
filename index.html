@@ -4510,7 +4510,15 @@ function _resumeAny_(){
     if(!r||r.v!==1)return null;
     if(!r.ids||!r.ids.length)return null;
     if(r.fx){ if(!((r.fq&&r.fq.length)||(r.fn&&r.fn.length)))return null; }   // ミス問モードは待ち行列が残っているか
-    else if(!(r.idx>0)||r.idx>=r.ids.length)return null;   // 1問も終えていない/全部終えた＝中断ではない
+    else {
+      /* 【2026-09-04】「1問終えたか」を idx だけで見てはいけない。
+         英語（両方向・キソ300）は1語で2回採点する（意味 → 日本語→英語）ので、
+         1語目の意味を間違えた直後に抜けると idx は0のまま＝中断として残らず、記録もされなかった。
+         「最初の数問で間違えたらやり直す」のいちばん典型的な形がここをすり抜けていた（川上さん指摘）。
+         答えた数（正解＋1周目に間違えた数）で見る。 */
+      var _ansR=(parseInt(r.mc,10)||0)+(parseInt(r.rc,10)||0)+((r.fw||[]).length);
+      if((!(r.idx>0)&&!_ansR)||r.idx>=r.ids.length)return null;   // 1問も答えていない/全部終えた＝中断ではない
+    }
     if(String(r.day||'')!==todayStr_()){_abandonLog_(r,'expired');_resumeClear_();return null;}        // 中断はその日のうちだけ（川上さん確定 2026-08-20）
     return r;
   }catch(e){return null;}

@@ -3228,7 +3228,7 @@ var _ABD_PHASE_={round1:'1周目の途中',fix:'繰り返しの途中'};
 function abandonBlock_(d){
   if(!d)return '<div style="font-size:12px;color:var(--crimson);">取得に失敗しました</div>';
   var total=parseInt(d.total,10)||0, sdG=parseInt(d.same_day_groups,10)||0;
-  if(!total&&!sdG)return '<div style="font-size:12px;color:var(--text-light);">やり直しの記録はありません</div>';
+  if(!total&&!sdG&&!(parseInt(d.redo_count,10)||0))return '<div style="font-size:12px;color:var(--text-light);">やり直しの記録はありません</div>';
   var out='<div style="font-size:12px;line-height:1.9;">';
   out+='<div><b>途中でやめた</b> '+total+'回';
   if(total){
@@ -3244,6 +3244,24 @@ function abandonBlock_(d){
   out+='<div style="margin-top:4px;"><b>同じ日に同じパートを2回以上</b> '+sdG+'回';
   if(sdG)out+=' <span class="t-sub">（のべ '+(parseInt(d.same_day_sessions,10)||0)+'回）</span>';
   out+='</div></div>';
+  /* 「やめて → 10分以内に同じパートをやり直した」＝答えが分かった状態でやり直した回。2026-09-04 */
+  var rdN=parseInt(d.redo_count,10)||0, rdM=parseInt(d.redo_minutes,10)||10;
+  if(rdN){
+    out+='<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(198,0,11,.06);border:1px solid rgba(198,0,11,.25);">'
+      +'<div style="font-size:12px;font-weight:700;color:var(--crimson);">やめて、すぐやり直した '+rdN+'回</div>'
+      +'<div class="t-sub" style="font-size:11px;">やめてから'+rdM+'分以内に、同じパートをやり直した回数</div>';
+    (d.redo||[]).forEach(function(r){
+      var ans=parseInt(r.answered,10)||0, cor=parseInt(r.correct,10)||0;
+      var rt=(r.rate==null?'':('・'+r.rate+'%'));
+      var rr=(r.redo_total?(' → '+r.gap+'分後 '+r.redo_correct+'/'+r.redo_total+'問'+(r.redo_rate!=null?('・'+r.redo_rate+'%'):'')):'');
+      out+='<div style="font-size:12px;padding:3px 0;border-top:1px solid rgba(198,0,11,.15);margin-top:4px;">'
+        +'<span class="t-sub">'+esc(String(r.at||'').slice(5,16))+'</span> '+esc(r.part||'')
+        +' <span class="t-sub">'+esc(_ABD_LABEL_[r.reason]||r.reason||'')+'</span>'
+        +' '+cor+'/'+ans+'問'+rt+esc(rr)
+        +'</div>';
+    });
+    out+='</div>';
+  }
   var rec=d.recent||[];
   if(rec.length){
     out+='<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:6px;">'
