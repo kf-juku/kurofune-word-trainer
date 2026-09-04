@@ -2816,7 +2816,7 @@ $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};var _ic
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
 $('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();try{shGoIfPending_();}catch(e){}});};
 function doLogout_(){try{_sqFlush_();}catch(eSq){}/* 未送信があれば先に流す。1件ずつが自分のトークンを持つので token='' にしても届く 2026-09-02 */
-  homeCacheClear_();try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');}catch(e){}token='';show('scr-login');}
+  homeCacheClear_();try{var _rsLo=_resumeAny_();if(_rsLo)_abandonLog_(_rsLo,'logout',true);}catch(e){}try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');}catch(e){}token='';show('scr-login');}
 $('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
 $('logout-cancel').onclick=function(){$('logout-mask').classList.remove('show');};
 $('logout-mask').onclick=function(e){if(e.target===this)$('logout-mask').classList.remove('show');};
@@ -3995,7 +3995,7 @@ function startPractice(listId){
 function _startPracticeWith_(listId,d){if(!d.ok){_pendingResume=null;/* 【2026-08-21】失敗時に消さないと、次に別のパートを始めたとき古い中断が適用され、_resumeOrder_ が不一致→本物の中断記録が消える */toastH(d.error?esc(d.error):'<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>みに<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
 /* 中断からの再開：出題順を前回と同じに戻す。問題が増減していたら再開せず最初から（教材が差し替わった場合）2026-08-20 */
 var _rs=_pendingResume;_pendingResume=null;
-if(_rs){var _ord=_resumeOrder_(d.data.words,_rs);if(_ord){d.data.words=_ord;}else{_rs=null;_resumeClear_();toastH('<ruby>教材<rt class="uf">きょうざい</rt></ruby>が<ruby>変<rt class="uf">か</rt></ruby>わったので<ruby>最初<rt class="uf">さいしょ</rt></ruby>から<ruby>始<rt class="uf">はじ</rt></ruby>めます');}}
+if(_rs){var _ord=_resumeOrder_(d.data.words,_rs);if(_ord){d.data.words=_ord;}else{_abandonLog_(_rs,'changed');_rs=null;_resumeClear_();toastH('<ruby>教材<rt class="uf">きょうざい</rt></ruby>が<ruby>変<rt class="uf">か</rt></ruby>わったので<ruby>最初<rt class="uf">さいしょ</rt></ruby>から<ruby>始<rt class="uf">はじ</rt></ruby>めます');}}
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
 session={mode:'daily',onNext:function(){nextWord();},listId:listId,quizMode:!!(d.data&&d.data.quiz),/* 【2026-08-21⑬】確認テストは session を作る時点で確定させる。startQuiz が後から session.quizMode=true を立てる形だと、_startPracticeWith_ の中で走る1問目の描画に間に合わず、帯が「単元別の練習」と出た（川上さん報告） */words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),dir:(d.data.direction||''),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now(),fixMode:false,fixQ:[],fixNext:[],fixCur:null,fixTotal:0,retryRounds:1,_firstWrong:[]};session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});
 if(_rs){session.idx=_rs.idx;session.step=_rs.step;session.meaningCorrect=_rs.mc||0;session.reverseCorrect=_rs.rc||0;session.miss=(_rs.miss||[]).slice();session.activeMs=_rs.am||0;session.startedAtIso=_rs.at||session.startedAtIso;session.startedMs=Date.now()-(_rs.el||0);session.pronAttempts=_rs.pa||0;session.pronSuccesses=_rs.ps||0;
@@ -4337,6 +4337,46 @@ function _resumeMigrate_(){
   }catch(e){}
 }
 function _resumeClear_(){try{localStorage.removeItem(_resumeKey_());}catch(e){}}
+/* ===== 途中でやめた学習を記録する（2026-09-04 川上さん確定） =====
+   ちょっと間違えたところで抜けて最初からやり直すと、答えたところまでの点がどこにも残らず、
+   先生の画面では「そんな回は無かった」ことになっていた。中断を捨てる瞬間に、その回を記録する。
+   ・1周目を答え終わっている中断（fx）は、サーバーが study_sessions に正規の1行として書く
+     （passed は「1周終えた」の意味で TRUE＝2026-08-26 の定義どおり）。繰り返しの途中で閉じて逃げるのが塞がる
+   ・1周目の途中（点が未確定）は abandoned_sessions にだけ書く。既存の数字は1つも動かない
+   ・生徒の画面は1文字も変えない。送信に失敗しても学習は止めない（fire-and-forget）
+   ・reason を減らさない。まとめて記録したものは、あとから分け直せない */
+var _abandonSent_={};
+function _abandonLog_(rs,reason,useBeacon){
+  try{
+    if(!rs||!token)return;
+    if(!rs.part||!rs.ids||!rs.ids.length)return;
+    var key=String(rs.part)+'|'+String(rs.at||'')+'|'+String(rs.idx||0)+'|'+(rs.fx?1:0)+'|'+String(reason||'');
+    if(_abandonSent_[key])return;                     /* 同じ中断を2回送らない（画面側の保険） */
+    _abandonSent_[key]=1;
+    var fw=_fixUnpack_(rs.fw)||[];
+    var mc=parseInt(rs.mc,10)||0,rc=parseInt(rs.rc,10)||0;
+    var body={action:'abandon_log',token:token,
+      part_id:String(rs.part),mode:(rs.quiz?'quiz':'daily'),
+      phase:((rs.fx&&!rs.quiz)?'fix':'round1'),reason:String(reason||'restart'),
+      started_at:String(rs.at||''),
+      answered:(mc+rc+fw.length),                     /* 答えた設問数＝正解＋1周目に間違えた数 */
+      meaning_score:mc,reverse_score:rc,word_count:(rs.ids||[]).length,
+      retry_rounds:(parseInt(rs.rr,10)||1),
+      active_ms:(parseInt(rs.am,10)||0),duration_ms:(parseInt(rs.el,10)||0),
+      miss_word_ids:(rs.miss||[]),word_ids:(rs.ids||[]),
+      pron_attempts:(parseInt(rs.pa,10)||0),pron_successes:(parseInt(rs.ps,10)||0),
+      device_info:String((navigator&&navigator.userAgent)||'').slice(0,120),
+      /* 翌日になって消えた中断を「今日の学習」として記録しないための時刻。サーバーが未来と7日超を弾く */
+      client_completed_at:(rs.ts?new Date(rs.ts).toISOString():''),
+      send_id:'abd-'+_hash32_(key+'|'+token)};
+    /* ログアウトは画面がすぐ切り替わるので、届く前に通信が切られることがある。
+       sendBeacon なら送信だけ残る。同じ send_id なのでサーバー側で二重にならない。 */
+    if(useBeacon&&typeof navigator!=='undefined'&&navigator.sendBeacon){
+      try{ if(navigator.sendBeacon(GAS_URL,new Blob([JSON.stringify(body)],{type:'text/plain;charset=UTF-8'})))return; }catch(e){}
+    }
+    try{ call(body).catch(function(){}); }catch(e){}
+  }catch(e){}
+}
 
 /* ===== 未送信キュー（送り直し）2026-09-02 川上さん確定 =====
    なにを直すか＝採点（保存）中に画面を閉じられると記録が残らなかった。
@@ -4471,7 +4511,7 @@ function _resumeAny_(){
     if(!r.ids||!r.ids.length)return null;
     if(r.fx){ if(!((r.fq&&r.fq.length)||(r.fn&&r.fn.length)))return null; }   // ミス問モードは待ち行列が残っているか
     else if(!(r.idx>0)||r.idx>=r.ids.length)return null;   // 1問も終えていない/全部終えた＝中断ではない
-    if(String(r.day||'')!==todayStr_()){_resumeClear_();return null;}        // 中断はその日のうちだけ（川上さん確定 2026-08-20）
+    if(String(r.day||'')!==todayStr_()){_abandonLog_(r,'expired');_resumeClear_();return null;}        // 中断はその日のうちだけ（川上さん確定 2026-08-20）
     return r;
   }catch(e){return null;}
 }
@@ -4601,7 +4641,7 @@ function _renderResumeCard_(){
   el.querySelector('.rz-go').onclick=function(){_resumeGoNow_(rs);};
   el.querySelector('.rz-x').onclick=function(){
     if(!confirm('途中の学習を消しますか？\n答えたところまでの点数は消えます。'))return;
-    _resumeClear_();try{_renderResumeCard_();}catch(e){}
+    _abandonLog_(rs,'discard_card');_resumeClear_();try{_renderResumeCard_();}catch(e){}
   };
 }
 function _resumeGoNow_(rs){   // カードから再開＝「続きから？」は聞かずにそのまま続きへ
@@ -4613,13 +4653,13 @@ function _resumeAskIfAny_(part,quiz,again){
   var any=_resumeAny_();if(!any)return false;
   if(String(any.part)===String(part)&&(!!any.quiz)===(!!quiz)){
     askResume_(any,function(use){
-      _pendingResume=use?any:null;if(!use)_resumeClear_();
+      _pendingResume=use?any:null;if(!use){_abandonLog_(any,'restart');_resumeClear_();}
       _resumeSkip_=true;try{again();}finally{_resumeSkip_=false;}
     });
   }else{
     askDiscard_(any,function(go){
       if(!go)return;                                   // やめる＝新しい学習を始めない（中断はそのまま残る）
-      _resumeClear_();_pendingResume=null;
+      _abandonLog_(any,'discard_other');_resumeClear_();_pendingResume=null;
       _resumeSkip_=true;try{again();}finally{_resumeSkip_=false;}
     });
   }

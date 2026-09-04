@@ -3219,6 +3219,46 @@ function partsBlock(mv){if(!mv||!mv.length)return '<div style="font-size:12px;co
     return '<div class="ptblk"><div class="ptmat"><span class="ptdot" style="background:'+col(m.acc)+'"></span>'+esc(mtLabel(m))+'</div>'+rows+noneRow+'</div>';
   }).join('');
 }
+/* ===== やり直し（途中でやめた回）の表示 2026-09-04 =====
+   生徒詳細モーダルを開いたときだけ abandon_summary を読む。dashboard は無改修＝
+   生徒一覧の表示速度も、要注意カード・レポートタブ・毎朝のメールの数字も1つも変わらない。
+   1周目の途中でやめた回は正答率に入れていない（川上さん確定 2026-09-04。2週間ためて決める）。 */
+var _ABD_LABEL_={restart:'最初から',discard_card:'中断を消した',discard_other:'別のパートを始めた',expired:'翌日まで放置',logout:'ログアウト',changed:'教材が差し替わった'};
+var _ABD_PHASE_={round1:'1周目の途中',fix:'繰り返しの途中'};
+function abandonBlock_(d){
+  if(!d)return '<div style="font-size:12px;color:var(--crimson);">取得に失敗しました</div>';
+  var total=parseInt(d.total,10)||0, sdG=parseInt(d.same_day_groups,10)||0;
+  if(!total&&!sdG)return '<div style="font-size:12px;color:var(--text-light);">やり直しの記録はありません</div>';
+  var out='<div style="font-size:12px;line-height:1.9;">';
+  out+='<div><b>途中でやめた</b> '+total+'回';
+  if(total){
+    var ph=[];['round1','fix'].forEach(function(k){var n=parseInt((d.by_phase||{})[k],10)||0;if(n)ph.push(_ABD_PHASE_[k]+' '+n);});
+    if(ph.length)out+=' <span class="t-sub">（'+esc(ph.join('／'))+'）</span>';
+  }
+  out+='</div>';
+  if(total){
+    var rs=[];['restart','discard_card','discard_other','expired','logout','changed'].forEach(function(k){
+      var n=parseInt((d.by_reason||{})[k],10)||0;if(n)rs.push(_ABD_LABEL_[k]+' '+n);});
+    if(rs.length)out+='<div class="t-sub">'+esc(rs.join('／'))+'</div>';
+  }
+  out+='<div style="margin-top:4px;"><b>同じ日に同じパートを2回以上</b> '+sdG+'回';
+  if(sdG)out+=' <span class="t-sub">（のべ '+(parseInt(d.same_day_sessions,10)||0)+'回）</span>';
+  out+='</div></div>';
+  var rec=d.recent||[];
+  if(rec.length){
+    out+='<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:6px;">'
+      +rec.map(function(r){
+        var ans=parseInt(r.answered,10)||0, cor=parseInt(r.correct,10)||0;
+        var rate=ans?Math.round(cor/ans*100):null;
+        return '<div style="font-size:12px;padding:3px 0;">'
+          +'<span class="t-sub">'+esc(String(r.at||'').slice(5,16))+'</span> '+esc(r.part||'')
+          +' <span class="t-sub">'+esc((_ABD_LABEL_[r.reason]||r.reason||'')+'・'+(_ABD_PHASE_[r.phase]||r.phase||''))+'</span>'
+          +(ans?(' <span class="t-sub">'+cor+'/'+ans+'問'+(rate!=null?('・'+rate+'%'):'')+'</span>'):'')
+          +'</div>';
+      }).join('')+'</div>';
+  }
+  return out;
+}
 function openStudentDetail(sid){
   var s=null;for(var i=0;i<_students.length;i++){if(String(_students[i].student_id)===String(sid)){s=_students[i];break;}}
   if(!s)return;
@@ -3241,12 +3281,17 @@ function openStudentDetail(sid){
       +'</div>'
       +'<div>'
         +'<div class="sd-sec" style="margin-top:0;">いま間違えている単語（＝対策の対象）</div><div id="sdWrong"><div style="font-size:12px;color:var(--text-light);">読み込み中…</div></div>'
+        +'<div class="sd-sec">やり直し <span class="t-sub">（途中でやめた回。1周目の途中の点は正答率に入れていません）</span></div><div id="sdAbandon"><div style="font-size:12px;color:var(--text-light);">読み込み中…</div></div>'
       +'</div>'
     +'</div>'
     +'<div style="display:flex;gap:8px;margin-top:14px;align-items:center;"><span style="flex:1;"></span><button id="sdClose2" class="btn-ghost">閉じる</button></div>';
   $('sdClose1').onclick=function(){closeModal('studentModal');};
   $('sdClose2').onclick=function(){closeModal('studentModal');};
   $('studentModal').classList.add('show');
+  call({action:'abandon_summary',student_id:sid}).then(function(d){
+    var el=$('sdAbandon');if(!el)return;
+    el.innerHTML=abandonBlock_((d&&d.ok)?d.data:null);
+  });
   call({action:'teacher_mistakes',student_ids:sid,mode:'active',limit:60}).then(function(d){
     var el=$('sdWrong');if(!el)return;
     if(!d||!d.ok){el.innerHTML='<div style="font-size:12px;color:var(--crimson);">取得に失敗しました</div>';return;}
