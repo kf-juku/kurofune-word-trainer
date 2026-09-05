@@ -1383,8 +1383,22 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   100%{background:none;border-color:transparent;}}
 .pt-ch.dim{opacity:.3;}
 .pt-ch.right{border-color:var(--ok);background:rgba(31,170,107,.12);color:var(--ok);animation:pop .35s;}
-.pt-msg{margin-top:9px;font-size:12.5px;font-weight:800;min-height:18px;}
-.pt-msg.ok{color:var(--ok);} .pt-msg.re{color:var(--fix-ink);}
+/* 【要】手応えは選択肢の下ではなく【空欄の上】に出す。生徒が見ているのは文章のほう
+   （2026-09-04 川上さん「選択肢の下に出てるけど気づかない」）。
+   色でも分ける＝緑が当たり／黄色は直している最中（§19の意味と同じ）。 */
+.bl.miss{animation:blMiss .9s ease-out;}
+@keyframes blMiss{0%{background:rgba(232,163,23,.38);border-color:var(--fix);}
+  55%{background:rgba(232,163,23,.20);border-color:rgba(232,163,23,.6);}
+  100%{background:none;border-color:transparent;}}
+.bl .fb{position:absolute;left:50%;bottom:100%;margin-bottom:3px;font-size:11px;font-weight:800;
+  white-space:nowrap;pointer-events:none;padding:2px 9px;border-radius:999px;z-index:5;
+  box-shadow:0 2px 9px rgba(20,24,40,.22);animation:fbUp 1.2s ease-out forwards;}
+.bl .fb.ok{background:var(--ok);color:#fff;}
+.bl .fb.re{background:var(--fix);color:#3a2f14;}
+@keyframes fbUp{0%{opacity:0;transform:translate(-50%,5px);}
+  16%{opacity:1;transform:translate(-50%,0);}
+  72%{opacity:1;transform:translate(-50%,-2px);}
+  100%{opacity:0;transform:translate(-50%,-9px);}}
 .pt-pick{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
 .pt-pl{font-size:11px;font-weight:800;color:var(--sub);margin-bottom:8px;}
 .pt-chs{display:flex;flex-wrap:wrap;gap:8px;}
@@ -1523,23 +1537,27 @@ function ptOpen(b){
   box.innerHTML='<div class="pt-pl">〔 ？ 〕に入る<ruby>語句<rt class="uf">ごく</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう</div><div class="pt-chs">'
     +cs.map(function(c){return '<button class="pt-ch" type="button" data-v="'+esc(c)+'">'+esc(c)+'</button>';}).join('')+'</div>';
   card.querySelector('.pt-body').insertAdjacentElement('afterend',box);
-  var msg=card.querySelector('.pt-msg');
+  try{ b.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
   Array.prototype.forEach.call(box.querySelectorAll('.pt-ch'),function(btn){
     btn.onclick=function(){
       Array.prototype.forEach.call(box.querySelectorAll('.pt-ch'),function(x){x.disabled=true;});
       var right=null;
       Array.prototype.forEach.call(box.querySelectorAll('.pt-ch'),function(x){ if(x.dataset.v===b.dataset.a)right=x; });
-      if(btn.dataset.v===b.dataset.a){
+      var ok=(btn.dataset.v===b.dataset.a);
+      /* 手応えは空欄の上に出す。生徒が見ているのは文章のほうなので、選択肢の下だと気づかない */
+      var fb=document.createElement('span');
+      fb.className='fb '+(ok?'ok':'re'); fb.textContent = ok?'正解！':'こっちだね';
+      b.appendChild(fb); setTimeout(function(){ if(fb.parentNode)fb.parentNode.removeChild(fb); },1250);
+      if(ok){
         btn.classList.add('right');
-        if(msg){msg.className='pt-msg ok';msg.textContent='正解！';}
         b.classList.add('hit');
-        setTimeout(function(){ ptFill(b); ptAfter(card); },340);
+        setTimeout(function(){ ptFill(b); ptAfter(card); },380);
       }else{
         /* バツは出さない。押したのが薄くなって、正しい語が光ってから空欄に入る */
         btn.classList.add('dim');
         if(right)right.classList.add('right');
-        if(msg){msg.className='pt-msg re';msg.textContent='こっちだね';}
-        setTimeout(function(){ ptFill(b); ptAfter(card); },800);
+        b.classList.add('miss');
+        setTimeout(function(){ ptFill(b); ptAfter(card); },850);
       }
     };
   });
@@ -1549,7 +1567,6 @@ function ptAfter(card){
   var p=card.querySelector('.pt-pick'); if(p)p.remove();
   var nx=card.querySelector('.bl:not(.done)');
   if(nx){ setTimeout(function(){ptOpen(nx);},120); }
-  else { var m=card.querySelector('.pt-msg'); if(m){m.className='pt-msg';m.textContent='';} }
 }
 function renderPoint(){
   var p=DATA.parts[st.pi], pt=p.point;
@@ -1558,7 +1575,7 @@ function renderPoint(){
    +'<div class="pointcard" id="pointcard">'
    +'<div class="pt-h"><div class="pt-ic"><i class="ti '+esc(pt.icon)+'"></i></div><div class="pt-t">'+esc(pt.title)+'</div></div>'
    +(pt.img?'<div class="pt-fig"><img src="'+IMG(pt.img)+'" alt="図" decoding="async"></div>':'')
-   +'<div class="pt-body">'+pt.text+'</div><div class="pt-msg"></div><div class="pt-left"></div>'
+   +'<div class="pt-body">'+pt.text+'</div><div class="pt-left"></div>'
    +'<div class="pt-meta"><i class="ti ti-stack-2"></i><span>'+pt.n+'問</span></div>'
    +'<div class="pt-go"><button class="btn" id="pt-go"><i class="ti ti-arrow-right"></i> <span>はじめる</span></button></div></div>';
   var card=$('pointcard');
