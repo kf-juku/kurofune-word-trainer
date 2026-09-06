@@ -963,9 +963,10 @@
   .sofar:active{opacity:.5;}
   .figdone{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 2px 0;}
   .figdone .fd-l{font-size:10.5px;font-weight:800;color:var(--sub);width:100%;}
-  .figdone .fd-c{display:inline-flex;align-items:center;gap:5px;background:var(--ring-track);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;}
-  .figdone .fd-c b{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 3px;border-radius:5px;background:var(--surface);font-size:10.5px;}
-  .figdone .fd-c.miss{background:var(--fix-soft);color:var(--fix-ink);}
+  .figdone .fd-c{display:inline-flex;align-items:center;gap:5px;background:rgba(31,170,107,.12);color:var(--ok);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;}
+  .figdone .fd-c b{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 3px;border-radius:5px;background:var(--surface);color:var(--ok);font-size:10.5px;}
+  .figdone .fd-c.miss{background:var(--ring-track);color:var(--ink);}
+  .figdone .fd-c.miss b{color:var(--sub);}
   .sfmask{position:fixed;inset:0;z-index:80;background:rgba(10,14,22,.5);display:none;align-items:flex-end;justify-content:center;}
   .sfmask.on{display:flex;}
   .sfsheet{width:100%;max-width:430px;background:var(--surface);border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));max-height:76vh;display:flex;flex-direction:column;}
@@ -4239,18 +4240,52 @@ function _sofarList_(s){
   });
   return out;
 }
+/* 図の記号の並び順を作る。A→abc順／数字と丸数字→数の順／カナ→五十音順。
+   記号が無い語は null を返し、出題順のまま後ろに置く。
+   image_fill には読み仮名のデータが1件も無いので、記号が無い語を五十音では並べられない 2026-09-06 */
+function _figNumKey_(n){
+  var CN='\u2460\u2461\u2462\u2463\u2464\u2465\u2466\u2467\u2468\u2469'
+        +'\u246a\u246b\u246c\u246d\u246e\u246f\u2470\u2471\u2472\u2473'
+        +'\u3251\u3252\u3253\u3254\u3255\u3256\u3257\u3258\u3259\u325a'
+        +'\u325b\u325c\u325d\u325e\u325f\u32b1\u32b2\u32b3\u32b4\u32b5'
+        +'\u32b6\u32b7\u32b8\u32b9\u32ba\u32bb\u32bc\u32bd\u32be\u32bf';
+  n=String(n==null?'':n).trim();
+  if(!n)return null;
+  var p=CN.indexOf(n);
+  if(p>=0)return ['2',('000000'+(p+1)).slice(-6)];
+  if(/^[0-9]+$/.test(n))return ['2',('000000'+n).slice(-6)];
+  if(/^[A-Za-z]+$/.test(n))return ['1',n.toUpperCase()];
+  return ['3',n];
+}
+function _figDoneSort_(a){
+  a.forEach(function(x,i){x._k=_figNumKey_(x.n);x._i=i;});
+  a.sort(function(p,q){
+    if(!p._k&&!q._k)return p._i-q._i;
+    if(!p._k)return 1;
+    if(!q._k)return -1;
+    if(p._k[0]!==q._k[0])return p._k[0]<q._k[0]?-1:1;
+    if(p._k[1]!==q._k[1])return p._k[1]<q._k[1]?-1:1;
+    return p._i-q._i;
+  });
+  a.forEach(function(x){delete x._k;delete x._i;});
+  return a;
+}
 function _figDoneHtml_(s,assetId){
   if(!s||!assetId)return '';
-  var A=s._answered||{},OK=s._ansOK||{},out=[];
+  var A=s._answered||{},OK=s._ansOK||{},fix=!!(s&&s.fixMode),out=[];
   (s.words||[]).forEach(function(x,i){
     if(String(x.qtype||'')!=='image_fill')return;
     var q={};try{q=tfParse(x)||{};}catch(e){return;}
     if(String(q.asset||'')!==String(assetId))return;
     if(!A[i+'_j2e'])return;
     var a=String(x.english||'');if(!a)return;
-    out.push({a:a,n:q.num||'',miss:(OK[i+'_j2e']===false)});
+    var miss=(OK[i+'_j2e']===false);
+    /* 解き直しの最中は、いま直している語を出さない＝答えが先に見えるのを止める 2026-09-06 */
+    if(fix&&miss)return;
+    out.push({a:a,n:q.num||'',miss:miss});
   });
   if(!out.length)return '';
+  _figDoneSort_(out);
   return '<div class="figdone"><span class="fd-l">この図でここまで答えたもの</span>'
     +out.map(function(x){return '<span class="fd-c'+(x.miss?' miss':'')+'">'
       +(x.n?'<b>'+esc(x.n)+'</b>':'')+'<span>'+esc(x.a)+'</span></span>';}).join('')+'</div>';
