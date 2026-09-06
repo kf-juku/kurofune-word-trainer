@@ -908,7 +908,41 @@
   /* ===== ② 学習中に見返す（2026-09-06 川上さん確定）=====
      元の困りごと＝「筑紫平野と筑紫山地は同じ回に出ているのに、その回の中で前に戻れないので結びつかない」。
      もう答えたものだけを見返せるようにする。まだ答えていないものは出さない＝答えバレしない。通信はゼロ。 */
-  .sofar{flex:none;display:inline-flex;align-items:center;gap:5px;background:none;border:none;color:var(--ink);font-family:inherit;font-size:11.5px;font-weight:700;padding:6px 4px;min-height:34px;border-radius:9px;cursor:pointer;}
+  /* ===== ① 始める前の要点（軽い穴埋め）2026-09-06 =====
+   【要】空欄は「答え」の幅をゴーストで先に確保する。？ と 答え で幅が変わると
+   文章が組み直されて改行位置が動く（2026-09-04 川上さん指摘）。
+   枠線の太さも done で変えない（border-color だけ変える）＝高さも動かない。 */
+.pt-lead{font-size:11.5px;font-weight:800;letter-spacing:.06em;color:var(--sub);margin:14px 2px 6px;}
+.pointcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px 16px 14px;}
+.pt-h{display:flex;align-items:center;gap:8px;margin-bottom:11px;}
+.pt-h .pt-ic{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto;background:var(--n-goldsoft);color:var(--gold);}
+.pt-h .pt-t{font-size:14.5px;font-weight:800;letter-spacing:-.01em;}
+.pt-fig{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:11px;}
+.pt-fig img{display:block;width:100%;max-height:190px;object-fit:contain;}
+.pt-body{font-size:14px;line-height:2.15;font-weight:500;}
+.pt-body p{margin:0 0 10px;}
+.pt-body p:last-child{margin-bottom:0;}
+.bl{position:relative;display:inline-flex;align-items:center;justify-content:center;line-height:1.55;padding:0 8px;margin:0 2px;border-radius:7px;background:var(--accent-soft);border:1.5px dashed var(--accent);color:var(--accent);font-weight:800;cursor:pointer;vertical-align:1px;}
+.bl .gh{visibility:hidden;white-space:nowrap;}
+.bl .q{position:absolute;left:0;right:0;text-align:center;}
+.bl.open{background:var(--accent);color:#fff;border-style:solid;}
+.bl.done{background:none;border-color:transparent;border-bottom-color:var(--ring-track);border-bottom-style:solid;color:var(--ink);cursor:default;border-radius:0;}
+.bl.done .gh{visibility:visible;}
+.bl.done .q{display:none;}
+.bl.miss{border-bottom-color:var(--fix);}
+.bl.shake{animation:blShake .3s;}
+@keyframes blShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.pt-pick{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+.pt-pl{font-size:11px;font-weight:800;color:var(--sub);margin-bottom:8px;}
+.pt-chs{display:flex;flex-wrap:wrap;gap:8px;}
+.pt-ch{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;min-height:44px;}
+.pt-ch:active{transform:translateY(1px);}
+.pt-left{font-size:11.5px;font-weight:700;color:var(--sub);margin-top:11px;}
+.pt-go{margin-top:12px;}
+.pt-go .btn:disabled{opacity:.4;cursor:default;}
+#pt-wrap{display:none;}
+
+.sofar{flex:none;display:inline-flex;align-items:center;gap:5px;background:none;border:none;color:var(--ink);font-family:inherit;font-size:11.5px;font-weight:700;padding:6px 4px;min-height:34px;border-radius:9px;cursor:pointer;}
   .sofar i{font-size:15px;color:var(--ink);opacity:.5;}
   .sofar span{white-space:nowrap;}
   .sofar:active{opacity:.5;}
@@ -1575,6 +1609,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <div class="body">
       <div class="prac-top"><button class="prac-quit" id="btn-quit" type="button"><i class="ti ti-x"></i> <span>やめる</span></button><div class="prac-acts"><button class="prac-refresh" id="btn-pause" type="button"><i class="ti ti-player-pause"></i> <span class="pr-t"><ruby>一時停止<rt class="uf">いちじていし</rt></ruby></span></button><button class="prac-refresh" id="btn-refresh" type="button"><i class="ti ti-refresh"></i> <span class="pr-t"><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div></div>
       <div class="nowbar" id="now-bar" style="display:none;"></div>
+      <div id="pt-wrap"></div>
       <div class="progrow"><div class="prog"><i id="prog"></i></div><button class="sofar" id="btn-sofar" type="button" style="display:none;"><i class="ti ti-clipboard-list"></i><span>ここまでの答え</span></button><div class="fixchip" id="fix-chip" style="display:none;"></div></div>
       <div class="muted center" id="step-label"></div>
       <div class="furi-bar" id="furi-bar"></div>
@@ -1917,7 +1952,7 @@ var _prevScr='';
 /* 画面を切り替えるところ。アプリの自動更新のフックを2つだけ足している（2026-08-21 川上さん指摘）
    ・学習を始めた瞬間＝解いている数分のあいだに裏で新しい版がないか見ておく（入れ替えはしない）
    ・完了画面からホームに戻った直後＝1つ終わって画面が切り替わる瞬間なので、ここで入れ替えるのが一番ストレスが小さい */
-function show(scr){var _p=_prevScr;_prevScr=scr;try{var _sf=$('sfmask');if(_sf)_sf.classList.remove('on');}catch(e){} /* ②のシートを持ち越さない 2026-09-06 */try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
+function show(scr){try{if(_ptHidden_)_ptRestore_();}catch(e){}var _p=_prevScr;_prevScr=scr;try{var _sf=$('sfmask');if(_sf)_sf.classList.remove('on');}catch(e){} /* ②のシートを持ち越さない 2026-09-06 */try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
 /* 学習マップのパート行のメタ：前回合格日・正答率・おさらいの進み（GAS material_parts が per-part で返す）2026-07-26 */
 function _mapMetaHtml_(l){
   if(!l||!l.last_pass_date)return ''; // 合格していないパートは出さない
@@ -4059,13 +4094,13 @@ function _startPracticeWith_(listId,d){if(!d.ok){_pendingResume=null;/* 【2026-
 var _rs=_pendingResume;_pendingResume=null;
 if(_rs){var _ord=_resumeOrder_(d.data.words,_rs);if(_ord){d.data.words=_ord;}else{_abandonLog_(_rs,'changed');_rs=null;_resumeClear_();toastH('<ruby>教材<rt class="uf">きょうざい</rt></ruby>が<ruby>変<rt class="uf">か</rt></ruby>わったので<ruby>最初<rt class="uf">さいしょ</rt></ruby>から<ruby>始<rt class="uf">はじ</rt></ruby>めます');}}
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
-session={mode:'daily',onNext:function(){nextWord();},listId:listId,quizMode:!!(d.data&&d.data.quiz),/* 【2026-08-21⑬】確認テストは session を作る時点で確定させる。startQuiz が後から session.quizMode=true を立てる形だと、_startPracticeWith_ の中で走る1問目の描画に間に合わず、帯が「単元別の練習」と出た（川上さん報告） */words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),dir:(d.data.direction||''),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now(),fixMode:false,fixQ:[],fixNext:[],fixCur:null,fixTotal:0,retryRounds:1,_firstWrong:[]};session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});
+session={mode:'daily',onNext:function(){nextWord();},listId:listId,quizMode:!!(d.data&&d.data.quiz),/* 【2026-08-21⑬】確認テストは session を作る時点で確定させる。startQuiz が後から session.quizMode=true を立てる形だと、_startPracticeWith_ の中で走る1問目の描画に間に合わず、帯が「単元別の練習」と出た（川上さん報告） */words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),dir:(d.data.direction||''),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now(),fixMode:false,fixQ:[],fixNext:[],fixCur:null,fixTotal:0,retryRounds:1,_firstWrong:[]};session.point=(d.data&&d.data.point)||'';session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});
 if(_rs){session.idx=_rs.idx;session.step=_rs.step;session.meaningCorrect=_rs.mc||0;session.reverseCorrect=_rs.rc||0;session.miss=(_rs.miss||[]).slice();session.activeMs=_rs.am||0;session.startedAtIso=_rs.at||session.startedAtIso;session.startedMs=Date.now()-(_rs.el||0);session.pronAttempts=_rs.pa||0;session.pronSuccesses=_rs.ps||0;
   /* ミス問モードの続きから（川上さん確定 2026-08-26）。1周目の正答率は保存ずみなのでズルにならない */
   session._firstWrong=_fixUnpack_(_rs.fw);session.retryRounds=_rs.rr||1;
   if(_rs.fx){session.fixMode=true;session.fixQ=_fixUnpack_(_rs.fq);session.fixNext=_fixUnpack_(_rs.fn);session.fixTotal=_rs.ft||(session.fixQ.length+session.fixNext.length);session.fixCur=null;}
 }
-if(session.fixMode){_fixStep_(session);}else{renderStep();}}
+if(session.fixMode){_fixStep_(session);}else if(!_rs&&_ptShow_(session)){/* ①要点カードを1枚はさむ。はじめるを押したら renderStep() 2026-09-06 */}else{renderStep();}}
 /* ===== 出題エンジン（毎日学習・おさらい・間違いノート 共通）2026-07-26 =====
    3フローで「元と全く同じ問題」を出すため描画を1本化。違いは、語の出どころ(session/srsSes/noteSes)・
    採点と次へ(s.onNext)・最初のステップ(英語=発音/意味, 用語=英語)だけ。表/図は renderTF/renderIMG を共用。 */
@@ -4328,6 +4363,119 @@ function _sumRender_(s){
     im.onerror=function(){if(--left<=0)fin();};
     im.src=u;
   });
+}
+/* ===== ① 始める前の要点（2026-09-06）=====
+   parts.description に入れた文章を、パートの1問目の前に1枚だけ出す。
+   セルの形＝ 本文（改行あり・[[語]] が穴） ＋ 改行 --- 改行 ＋ 3択（答え>ダミー1|ダミー2 を ／ でつなぐ）
+   出すのは毎日学習・単元別だけ。確認テスト（quizMode）では出さない＝答えバレになるため。
+   中断からの再開でも出さない。 */
+var _ptHidden_=null;
+function _ptParse_(txt){
+  var t=String(txt||''); if(!t.trim())return null;
+  var i=t.indexOf('\n---\n'); var body=(i<0?t:t.slice(0,i)); var cs=(i<0?'':t.slice(i+5));
+  var map={};
+  cs.split('／').forEach(function(seg){
+    seg=seg.trim(); if(!seg||seg.indexOf('>')<0)return;
+    var a=seg.split('>'); map[a[0].trim()]=a[1].split('|').map(function(x){return x.trim();}).filter(Boolean);
+  });
+  var blanks=[]; var re=/\[\[(.+?)\]\]/g,m;
+  while((m=re.exec(body))){ blanks.push(m[1]); }
+  if(!blanks.length)return null;
+  return {body:body,blanks:blanks,ch:map};
+}
+/* カードに出す図＝解説図を優先。そのパートで一番多く指されている図を1枚だけ。 */
+function _ptFig_(s){
+  var cnt={},cntQ={};
+  (s.words||[]).forEach(function(w){
+    var q={};try{q=tfParse(w)||{};}catch(e){return;}
+    if(q.kaisetsu_asset)cnt[q.kaisetsu_asset]=(cnt[q.kaisetsu_asset]||0)+1;
+    if(q.asset)cntQ[q.asset]=(cntQ[q.asset]||0)+1;
+  });
+  function top(o){var k='',n=0;for(var x in o){if(o[x]>n){n=o[x];k=x;}}return k;}
+  var id=top(cnt)||top(cntQ); if(!id)return '';
+  try{ return _sumAssetUrl_(s.assets||{},id)||''; }catch(e){ return ''; }
+}
+function _ptHide_(){
+  _ptHidden_=[];
+  var sel='#scr-practice .progrow, #scr-practice #step-label, #scr-practice .furi-bar, #scr-practice #qtimer, #scr-practice .card';
+  Array.prototype.forEach.call(document.querySelectorAll(sel),function(el){
+    _ptHidden_.push([el,el.style.display]); el.style.display='none';
+  });
+}
+function _ptRestore_(){
+  (_ptHidden_||[]).forEach(function(a){ a[0].style.display=a[1]; });
+  _ptHidden_=null;
+  var w=$('pt-wrap'); if(w){ w.innerHTML=''; w.style.display='none'; }
+}
+function _ptHtml_(s,d){
+  var url=_ptFig_(s);
+  var h='<div class="pt-lead"><ruby>要点<rt class="uf">ようてん</rt></ruby></div><div class="pointcard">'
+   +'<div class="pt-h"><div class="pt-ic"><i class="ti ti-bulb"></i></div><div class="pt-t">はじめる<ruby>前<rt class="uf">まえ</rt></ruby>に</div></div>';
+  if(url)h+='<div class="pt-fig"><img src="'+esc(url)+'" alt="" loading="lazy"></div>';
+  h+='<div class="pt-body">';
+  d.body.split('\n').forEach(function(line){
+    if(!line.trim())return;
+    h+='<p>'+line.replace(/\[\[(.+?)\]\]/g,function(_,w){
+      var cs=(d.ch[w]||[]).slice(); cs.unshift(w);
+      return '<span class="bl" role="button" tabindex="0" data-a="'+esc(w)+'" data-c="'+esc(cs.join('|'))+'">'
+        +'<span class="gh">'+esc(w)+'</span><span class="q">？</span></span>';
+    })+'</p>';
+  });
+  h+='</div><div class="pt-left"></div>'
+   +'<div class="pt-go"><button class="btn" id="pt-go" type="button" disabled>はじめる</button></div></div>';
+  return h;
+}
+/* 出せたら true。出せなければ false（呼び元がふつうに1問目を描く） */
+function _ptShow_(s){
+  if(!s||s.quizMode)return false;
+  var d=_ptParse_(s.point); if(!d)return false;
+  var wrap=$('pt-wrap'); if(!wrap)return false;
+  wrap.innerHTML=_ptHtml_(s,d); wrap.style.display='block'; /* CSSで #pt-wrap{display:none} にしてあるので '' では戻らない */
+  _ptHide_();
+  var card=wrap.querySelector('.pointcard');
+  function sync(){
+    var rest=card.querySelectorAll('.bl:not(.done)').length;
+    card.querySelector('.pt-left').textContent=rest?('あと'+rest+'つ'):'';
+    var g=$('pt-go'); if(g)g.disabled=rest>0;
+  }
+  function fill(b){ b.classList.remove('open'); b.classList.add('done'); }
+  function after(){
+    sync();
+    var p=card.querySelector('.pt-pick'); if(p)p.remove();
+    var nx=card.querySelector('.bl:not(.done)');
+    if(nx)setTimeout(function(){openBl(nx);},120);
+  }
+  function openBl(b){
+    var old=card.querySelector('.pt-pick'); if(old)old.remove();
+    Array.prototype.forEach.call(card.querySelectorAll('.bl.open'),function(x){x.classList.remove('open');});
+    b.classList.add('open');
+    try{ b.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){}
+    var cs=b.getAttribute('data-c').split('|').slice();
+    for(var i=cs.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=cs[i];cs[i]=cs[j];cs[j]=t;}
+    var box=document.createElement('div'); box.className='pt-pick';
+    box.innerHTML='<div class="pt-pl">〔 ？ 〕に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語句<rt class="uf">ごく</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう</div><div class="pt-chs">'
+      +cs.map(function(c){return '<button class="pt-ch" type="button" data-v="'+esc(c)+'">'+esc(c)+'</button>';}).join('')+'</div>';
+    card.querySelector('.pt-body').insertAdjacentElement('afterend',box);
+    Array.prototype.forEach.call(box.querySelectorAll('.pt-ch'),function(btn){
+      btn.onclick=function(){
+        if(btn.getAttribute('data-v')!==b.getAttribute('data-a')){
+          /* 間違えてもバツは出さない。ゆれてから正しい語が入る（2026-09-04 川上さん確定） */
+          b.classList.add('shake','miss');
+          setTimeout(function(){ b.classList.remove('shake'); fill(b); after(); },320);
+          return;
+        }
+        fill(b); after();
+      };
+    });
+  }
+  Array.prototype.forEach.call(card.querySelectorAll('.bl'),function(b){
+    b.onclick=function(){ if(!b.classList.contains('done'))openBl(b); };
+  });
+  sync();
+  var g=$('pt-go');
+  if(g)g.onclick=function(){ _ptRestore_(); renderStep(); };
+  var f=card.querySelector('.bl:not(.done)'); if(f)openBl(f);
+  return true;
 }
 function renderQz_(s){
   if(!s||!s.words||!s.words[s.idx])return; _quizSes=s;
