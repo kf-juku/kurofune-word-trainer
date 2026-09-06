@@ -4390,10 +4390,11 @@ var _PT_YOMI_=/[（(]([ぁ-んァ-ヶーゝゞ・]+)[）)]/;
 function _ptParse_(txt){
   var t=String(txt||''); if(!t.trim())return null;
   var i=t.indexOf('\n---\n'); var body=(i<0?t:t.slice(0,i)); var cs=(i<0?'':t.slice(i+5));
-  var map={},yomi={};
+  var map={},yomi={},fig='';
   cs.split('／').forEach(function(seg){
     seg=seg.trim(); if(!seg||seg.indexOf('>')<0)return;
     var a=seg.split('>'); var key=a[0].trim();
+    if(key==='図'){ fig=a[1].trim(); return; }   /* 図>アセットID で手で上書きできる */
     var m=key.match(_PT_YOMI_);
     if(m){ yomi[key.replace(_PT_YOMI_,'')]=m[1]; key=key.replace(_PT_YOMI_,''); }
     map[key]=a[1].split('|').map(function(x){return x.trim();}).filter(Boolean);
@@ -4401,25 +4402,25 @@ function _ptParse_(txt){
   var blanks=[]; var re=/\[\[(.+?)\]\]/g,m2;
   while((m2=re.exec(body))){ blanks.push(m2[1]); }
   if(!blanks.length)return null;
-  return {body:body,blanks:blanks,ch:map,yomi:yomi};
+  return {body:body,blanks:blanks,ch:map,yomi:yomi,fig:fig};
 }
-/* カードに出す図（2026-09-06 川上さん確定で差し替え）。
-   ①穴になっている語を答えにしている問題の【出題図】の最多 → ②パート全体の出題図の最多 → ③解説図の最多。
-   旧「解説図を優先」だと、解説図が1枚しか無いパートでその1枚が勝ってしまう
-   （地形パートで輪中の図が選ばれた＝地名の話なのに合わない）。 */
-function _ptFig_(s,blanks){
-  var byBlank={},allQ={},kai={};
-  var want={}; (blanks||[]).forEach(function(w){ want[w]=1; });
+/* カードに出す図（2026-09-06③ 川上さん確定）。
+   ★【解説図】を使う。答えがしっかり載っている図でよい。
+     要点カードは「いきなりやっても分からない・身に付かない」を防ぐためのもので、答えバレは問題にしない。
+     ノーヒントにするのは確認テストの側。
+   ①TSVの 図>アセットID があればそれ（自動が外したパートを手で直すための逃げ道）
+   ②そのパートの解説図の最多
+   ③解説図が無ければ出題図の最多
+   ④どちらも無ければ図なし */
+function _ptFig_(s,d){
+  var kai={},q={};
   (s.words||[]).forEach(function(w){
-    var q={};try{q=tfParse(w)||{};}catch(e){return;}
-    if(q.asset){
-      allQ[q.asset]=(allQ[q.asset]||0)+1;
-      if(want[String(w.english||'')])byBlank[q.asset]=(byBlank[q.asset]||0)+1;
-    }
-    if(q.kaisetsu_asset)kai[q.kaisetsu_asset]=(kai[q.kaisetsu_asset]||0)+1;
+    var x={};try{x=tfParse(w)||{};}catch(e){return;}
+    if(x.kaisetsu_asset)kai[x.kaisetsu_asset]=(kai[x.kaisetsu_asset]||0)+1;
+    if(x.asset)q[x.asset]=(q[x.asset]||0)+1;
   });
   function top(o){var k='',n=0;for(var x in o){if(o[x]>n){n=o[x];k=x;}}return k;}
-  var id=top(byBlank)||top(allQ)||top(kai); if(!id)return '';
+  var id=(d&&d.fig)||top(kai)||top(q); if(!id)return '';
   try{ return _sumAssetUrl_(s.assets||{},id)||''; }catch(e){ return ''; }
 }
 function _ptHide_(){
@@ -4437,7 +4438,7 @@ function _ptRestore_(){
 /* 本文の（よみ）を小さいグレーにする。漢字と同じ大きさだと行が重くなる（モックの .yomi と同じ） */
 function _ptYomi_(html){ return html.replace(/[（(]([ぁ-んァ-ヶーゝゞ・]+)[）)]/g,'<span class="yomi">（$1）</span>'); }
 function _ptHtml_(s,d){
-  var url=_ptFig_(s,d.blanks);
+  var url=_ptFig_(s,d);
   var h='<div class="pt-lead"><ruby>要点<rt class="uf">ようてん</rt></ruby></div><div class="pointcard">'
    +'<div class="pt-h"><div class="pt-ic"><i class="ti ti-bulb"></i></div><div class="pt-t">はじめる<ruby>前<rt class="uf">まえ</rt></ruby>に</div></div>';
   if(url)h+='<div class="pt-fig"><img src="'+esc(url)+'" alt="" loading="lazy"></div>';
@@ -4449,7 +4450,9 @@ function _ptHtml_(s,d){
       parts.push(_ptYomi_(esc(line.slice(last,m.index))));
       var w=m[1], y=d.yomi[w]||'';
       var cs=(d.ch[w]||[]).slice(); cs.unshift(w);
-      parts.push('<span class="bl" role="button" tabindex="0" data-a="'+esc(w)+'" data-c="'+esc(cs.join('|'))+'">'
+      /* 更新ボタンで描き直すとき、埋めた穴はそのまま復元する（やり直しにしない・飛ばせない） */
+      var st=(s._ptFilled||{})[w];
+      parts.push('<span class="bl'+(st?(' done'+(st==='miss'?' miss':'')):'')+'" role="button" tabindex="0" data-a="'+esc(w)+'" data-c="'+esc(cs.join('|'))+'">'
         +'<span class="gh">'+esc(w)+(y?'<span class="yomi">（'+esc(y)+'）</span>':'')+'</span>'
         +'<span class="q">？</span></span>');
       last=m.index+m[0].length;
@@ -4463,7 +4466,10 @@ function _ptHtml_(s,d){
 }
 /* 出せたら true。出せなければ false（呼び元がふつうに1問目を描く） */
 function _ptShow_(s){
-  if(!s||s.quizMode)return false;
+  /* 単元別だけ（content_type==='test' かつ確認テストでない）。毎日学習では出さない＝2026-09-06 川上さん確定。
+     おさらい・間違いノートは _startPracticeWith_ を通らないのでもともと出ない。 */
+  if(!s||s.quizMode||String(s.content_type||'')!=='test')return false;
+  if(s._ptDone)return false;   /* 終えたあとは出さない（更新で出し直さない） */
   var d=_ptParse_(s.point); if(!d)return false;
   var wrap=$('pt-wrap'); if(!wrap)return false;
   wrap.innerHTML=_ptHtml_(s,d); wrap.style.display='block'; /* CSSで #pt-wrap{display:none} にしてあるので '' では戻らない */
@@ -4502,6 +4508,7 @@ function _ptShow_(s){
     setTimeout(function(){
       b.classList.remove('lit');
       b.classList.add('done'); if(!ok)b.classList.add('miss');
+      (s._ptFilled||(s._ptFilled={}))[b.getAttribute('data-a')]=ok?'ok':'miss';
       setTimeout(function(){ if(fb.parentNode)fb.parentNode.removeChild(fb); busy=false; after(); },520);
     }, ok?680:820);
   }
@@ -4525,11 +4532,11 @@ function _ptShow_(s){
   });
   sync();
   var g=$('pt-go');
-  if(g)g.onclick=function(){ _ptRestore_(); renderStep(); };
+  if(g)g.onclick=function(){ s._ptDone=true; _ptRestore_(); renderStep(); };
   var f=card.querySelector('.bl:not(.done)'); if(f)openBl(f);
   return true;
 }
-function renderQz_(s){try{if(_ptHidden_)_ptRestore_();}catch(e){}/* 更新ボタンなど、カードを知らない経路から描かれても二重にしない 2026-09-06 */
+function renderQz_(s){if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestore_();if(_ptShow_(_ps))return;}catch(e){}}/* 更新ボタンは要点カードのことを知らない。片づけて問題を描くと【要点を飛ばせてしまう】ので、終えていなければカードを描き直す（埋めた穴は復元する）2026-09-06③ */
   if(!s||!s.words||!s.words[s.idx])return; _quizSes=s;
   try{_nowBarSync_(s);}catch(e){}
   var w=s.words[s.idx],tot=s.words.length;
