@@ -4515,12 +4515,13 @@ function _ptShow_(s){
     card.querySelector('.pt-left').textContent=rest?('あと'+rest+'つ'):'';
     var g=$('pt-go'); if(g)g.disabled=rest>0;
   }
+  /* 箱を消してから作り直すと、その一瞬ページが縮んで読んでいる場所がずれる。
+     箱は置いたまま次の穴を開く。待ち時間も入れない 2026-09-06⑤ */
   function after(){
     sync();
-    var p=card.querySelector('.pt-pick'); if(p)p.remove();
     var nx=card.querySelector('.bl:not(.done)');
-    if(nx)setTimeout(function(){openBl(nx);},120);
-    else busy=false;
+    if(nx){ openBl(nx); }
+    else{ var p=card.querySelector('.pt-pick'); if(p)p.remove(); busy=false; }
   }
   /* 手応え（2026-09-04 川上さん確定）
      ・バツは出さない
@@ -4547,18 +4548,24 @@ function _ptShow_(s){
       setTimeout(function(){ if(fb.parentNode)fb.parentNode.removeChild(fb); busy=false; after(); },520);
     }, ok?680:820);
   }
+  /* 【地雷 2026-09-06⑤】ここで画面を動かす命令を呼んではいけない。
+     読んでいる途中で画面が動くと、川上さんの言う「見てる場所がずれる」が起きる。
+     要点カードは3〜5文なので、生徒は自分で読む位置を決めている。勝手に動かさない。
+     箱（.pt-pick）も作り直さない。中のボタンだけ入れ替える＝高さが消えて戻る動きを起こさない */
   function openBl(b){
-    var old=card.querySelector('.pt-pick'); if(old)old.remove();
     Array.prototype.forEach.call(card.querySelectorAll('.bl.open'),function(x){x.classList.remove('open');});
     b.classList.add('open');
-    try{ b.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){}
     var cs=b.getAttribute('data-c').split('|').slice();
     for(var i=cs.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=cs[i];cs[i]=cs[j];cs[j]=t;}
-    var box=document.createElement('div'); box.className='pt-pick';
-    box.innerHTML='<div class="pt-pl">〔 ？ 〕に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語句<rt class="uf">ごく</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう</div><div class="pt-chs">'
-      +cs.map(function(c){return '<button class="pt-ch" type="button" data-v="'+esc(c)+'">'+esc(c)+'</button>';}).join('')+'</div>';
-    card.querySelector('.pt-body').insertAdjacentElement('afterend',box);
-    Array.prototype.forEach.call(box.querySelectorAll('.pt-ch'),function(btn){
+    var box=card.querySelector('.pt-pick');
+    if(!box){
+      box=document.createElement('div'); box.className='pt-pick';
+      box.innerHTML='<div class="pt-pl">〔 ？ 〕に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語句<rt class="uf">ごく</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう</div><div class="pt-chs"></div>';
+      card.querySelector('.pt-body').insertAdjacentElement('afterend',box);
+    }
+    var chs=box.querySelector('.pt-chs');
+    chs.innerHTML=cs.map(function(c){return '<button class="pt-ch" type="button" data-v="'+esc(c)+'">'+esc(c)+'</button>';}).join('');
+    Array.prototype.forEach.call(chs.querySelectorAll('.pt-ch'),function(btn){
       btn.onclick=function(){ judge(b,box,btn,btn.getAttribute('data-v')===b.getAttribute('data-a')); };
     });
   }
