@@ -909,7 +909,7 @@
      元の困りごと＝「筑紫平野と筑紫山地は同じ回に出ているのに、その回の中で前に戻れないので結びつかない」。
      もう答えたものだけを見返せるようにする。まだ答えていないものは出さない＝答えバレしない。通信はゼロ。 */
   /* ===== ① 始める前の要点（軽い穴埋め）2026-09-06 =====
-   【要】空欄は「答え」の幅をゴーストで先に確保する。？ と 答え で幅が変わると
+   【要】空欄は「答え＋読み」の幅をゴーストで先に確保する。？ と 答え で幅が変わると
    文章が組み直されて改行位置が動く（2026-09-04 川上さん指摘）。
    枠線の太さも done で変えない（border-color だけ変える）＝高さも動かない。 */
 .pt-lead{font-size:11.5px;font-weight:800;letter-spacing:.06em;color:var(--sub);margin:14px 2px 6px;}
@@ -919,24 +919,39 @@
 .pt-h .pt-t{font-size:14.5px;font-weight:800;letter-spacing:-.01em;}
 .pt-fig{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:11px;}
 .pt-fig img{display:block;width:100%;max-height:190px;object-fit:contain;}
-.pt-body{font-size:14px;line-height:2.15;font-weight:500;}
+.pt-body{font-size:14px;line-height:2.3;font-weight:500;}
 .pt-body p{margin:0 0 10px;}
 .pt-body p:last-child{margin-bottom:0;}
-.bl{position:relative;display:inline-flex;align-items:center;justify-content:center;line-height:1.55;padding:0 8px;margin:0 2px;border-radius:7px;background:var(--accent-soft);border:1.5px dashed var(--accent);color:var(--accent);font-weight:800;cursor:pointer;vertical-align:1px;}
-.bl .gh{visibility:hidden;white-space:nowrap;}
+/* 読み仮名＝答えの語すべてに（よみ）を常時表示。粒度は解説と同じ「語全体」（§3共通） */
+.pt-body .yomi{font-size:10.5px;color:var(--sub);font-weight:600;}
+.bl{position:relative;display:inline-flex;align-items:center;justify-content:center;line-height:1.55;padding:0 8px;margin:0 2px;border-radius:7px;background:var(--accent-soft);border:1.5px dashed var(--accent);color:var(--accent);font-weight:800;cursor:pointer;vertical-align:1px;max-width:calc(100% - 6px);text-align:center;}
+/* 「答え＋読み」が狭い端末（320px・280px）で1行に入らないので折り返す。
+   nowrap のままだと横にはみ出す（2026-09-06 実測）。読みの中では折らない。 */
+.bl .gh{visibility:hidden;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;}
+.bl .gh .yomi{white-space:nowrap;}
 .bl .q{position:absolute;left:0;right:0;text-align:center;}
 .bl.open{background:var(--accent);color:#fff;border-style:solid;}
+.bl.lit{background:rgba(31,170,107,.16);border-color:var(--ok);border-style:solid;color:var(--ok);}
 .bl.done{background:none;border-color:transparent;border-bottom-color:var(--ring-track);border-bottom-style:solid;color:var(--ink);cursor:default;border-radius:0;}
 .bl.done .gh{visibility:visible;}
 .bl.done .q{display:none;}
+.bl.done .yomi{color:var(--sub);}
 .bl.miss{border-bottom-color:var(--fix);}
 .bl.shake{animation:blShake .3s;}
 @keyframes blShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+/* 手応えは空欄の【上】に出す。選択肢の下だと気づかない（2026-09-04 川上さん） */
+.pt-fb{position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11.5px;font-weight:800;padding:4px 11px;border-radius:13px;color:#fff;background:var(--ok);box-shadow:var(--shadow);z-index:3;animation:ptFb .18s;}
+.pt-fb::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ok);}
+.pt-fb.miss{background:var(--fix);}
+.pt-fb.miss::after{border-top-color:var(--fix);}
+@keyframes ptFb{from{opacity:0;transform:translate(-50%,4px)}to{opacity:1;transform:translate(-50%,0)}}
 .pt-pick{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
 .pt-pl{font-size:11px;font-weight:800;color:var(--sub);margin-bottom:8px;}
 .pt-chs{display:flex;flex-wrap:wrap;gap:8px;}
-.pt-ch{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;min-height:44px;}
+.pt-ch{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;min-height:44px;transition:opacity .18s,border-color .18s,background .18s,color .18s;}
 .pt-ch:active{transform:translateY(1px);}
+.pt-ch.dim{opacity:.3;}
+.pt-ch.hit{border-color:var(--ok);background:rgba(31,170,107,.14);color:var(--ok);}
 .pt-left{font-size:11.5px;font-weight:700;color:var(--sub);margin-top:11px;}
 .pt-go{margin-top:12px;}
 .pt-go .btn:disabled{opacity:.4;cursor:default;}
@@ -4364,35 +4379,47 @@ function _sumRender_(s){
     im.src=u;
   });
 }
-/* ===== ① 始める前の要点（2026-09-06）=====
+/* ===== ① 始める前の要点（2026-09-06・第2版）=====
    parts.description に入れた文章を、パートの1問目の前に1枚だけ出す。
-   セルの形＝ 本文（改行あり・[[語]] が穴） ＋ 改行 --- 改行 ＋ 3択（答え>ダミー1|ダミー2 を ／ でつなぐ）
+   セルの形＝ 本文（改行あり・[[語]] が穴） ＋ 改行 --- 改行 ＋ 3択
+   3択の形＝ 答え（よみ）>ダミー1|ダミー2  を ／ でつなぐ。（よみ）は無くてもよい（カタカナ語など）。
    出すのは毎日学習・単元別だけ。確認テスト（quizMode）では出さない＝答えバレになるため。
    中断からの再開でも出さない。 */
 var _ptHidden_=null;
+var _PT_YOMI_=/[（(]([ぁ-んァ-ヶーゝゞ・]+)[）)]/;
 function _ptParse_(txt){
   var t=String(txt||''); if(!t.trim())return null;
   var i=t.indexOf('\n---\n'); var body=(i<0?t:t.slice(0,i)); var cs=(i<0?'':t.slice(i+5));
-  var map={};
+  var map={},yomi={};
   cs.split('／').forEach(function(seg){
     seg=seg.trim(); if(!seg||seg.indexOf('>')<0)return;
-    var a=seg.split('>'); map[a[0].trim()]=a[1].split('|').map(function(x){return x.trim();}).filter(Boolean);
+    var a=seg.split('>'); var key=a[0].trim();
+    var m=key.match(_PT_YOMI_);
+    if(m){ yomi[key.replace(_PT_YOMI_,'')]=m[1]; key=key.replace(_PT_YOMI_,''); }
+    map[key]=a[1].split('|').map(function(x){return x.trim();}).filter(Boolean);
   });
-  var blanks=[]; var re=/\[\[(.+?)\]\]/g,m;
-  while((m=re.exec(body))){ blanks.push(m[1]); }
+  var blanks=[]; var re=/\[\[(.+?)\]\]/g,m2;
+  while((m2=re.exec(body))){ blanks.push(m2[1]); }
   if(!blanks.length)return null;
-  return {body:body,blanks:blanks,ch:map};
+  return {body:body,blanks:blanks,ch:map,yomi:yomi};
 }
-/* カードに出す図＝解説図を優先。そのパートで一番多く指されている図を1枚だけ。 */
-function _ptFig_(s){
-  var cnt={},cntQ={};
+/* カードに出す図（2026-09-06 川上さん確定で差し替え）。
+   ①穴になっている語を答えにしている問題の【出題図】の最多 → ②パート全体の出題図の最多 → ③解説図の最多。
+   旧「解説図を優先」だと、解説図が1枚しか無いパートでその1枚が勝ってしまう
+   （地形パートで輪中の図が選ばれた＝地名の話なのに合わない）。 */
+function _ptFig_(s,blanks){
+  var byBlank={},allQ={},kai={};
+  var want={}; (blanks||[]).forEach(function(w){ want[w]=1; });
   (s.words||[]).forEach(function(w){
     var q={};try{q=tfParse(w)||{};}catch(e){return;}
-    if(q.kaisetsu_asset)cnt[q.kaisetsu_asset]=(cnt[q.kaisetsu_asset]||0)+1;
-    if(q.asset)cntQ[q.asset]=(cntQ[q.asset]||0)+1;
+    if(q.asset){
+      allQ[q.asset]=(allQ[q.asset]||0)+1;
+      if(want[String(w.english||'')])byBlank[q.asset]=(byBlank[q.asset]||0)+1;
+    }
+    if(q.kaisetsu_asset)kai[q.kaisetsu_asset]=(kai[q.kaisetsu_asset]||0)+1;
   });
   function top(o){var k='',n=0;for(var x in o){if(o[x]>n){n=o[x];k=x;}}return k;}
-  var id=top(cnt)||top(cntQ); if(!id)return '';
+  var id=top(byBlank)||top(allQ)||top(kai); if(!id)return '';
   try{ return _sumAssetUrl_(s.assets||{},id)||''; }catch(e){ return ''; }
 }
 function _ptHide_(){
@@ -4407,19 +4434,28 @@ function _ptRestore_(){
   _ptHidden_=null;
   var w=$('pt-wrap'); if(w){ w.innerHTML=''; w.style.display='none'; }
 }
+/* 本文の（よみ）を小さいグレーにする。漢字と同じ大きさだと行が重くなる（モックの .yomi と同じ） */
+function _ptYomi_(html){ return html.replace(/[（(]([ぁ-んァ-ヶーゝゞ・]+)[）)]/g,'<span class="yomi">（$1）</span>'); }
 function _ptHtml_(s,d){
-  var url=_ptFig_(s);
+  var url=_ptFig_(s,d.blanks);
   var h='<div class="pt-lead"><ruby>要点<rt class="uf">ようてん</rt></ruby></div><div class="pointcard">'
    +'<div class="pt-h"><div class="pt-ic"><i class="ti ti-bulb"></i></div><div class="pt-t">はじめる<ruby>前<rt class="uf">まえ</rt></ruby>に</div></div>';
   if(url)h+='<div class="pt-fig"><img src="'+esc(url)+'" alt="" loading="lazy"></div>';
   h+='<div class="pt-body">';
   d.body.split('\n').forEach(function(line){
     if(!line.trim())return;
-    h+='<p>'+line.replace(/\[\[(.+?)\]\]/g,function(_,w){
+    var parts=[],last=0,re=/\[\[(.+?)\]\]/g,m;
+    while((m=re.exec(line))){
+      parts.push(_ptYomi_(esc(line.slice(last,m.index))));
+      var w=m[1], y=d.yomi[w]||'';
       var cs=(d.ch[w]||[]).slice(); cs.unshift(w);
-      return '<span class="bl" role="button" tabindex="0" data-a="'+esc(w)+'" data-c="'+esc(cs.join('|'))+'">'
-        +'<span class="gh">'+esc(w)+'</span><span class="q">？</span></span>';
-    })+'</p>';
+      parts.push('<span class="bl" role="button" tabindex="0" data-a="'+esc(w)+'" data-c="'+esc(cs.join('|'))+'">'
+        +'<span class="gh">'+esc(w)+(y?'<span class="yomi">（'+esc(y)+'）</span>':'')+'</span>'
+        +'<span class="q">？</span></span>');
+      last=m.index+m[0].length;
+    }
+    parts.push(_ptYomi_(esc(line.slice(last))));
+    h+='<p>'+parts.join('')+'</p>';
   });
   h+='</div><div class="pt-left"></div>'
    +'<div class="pt-go"><button class="btn" id="pt-go" type="button" disabled>はじめる</button></div></div>';
@@ -4432,18 +4468,42 @@ function _ptShow_(s){
   var wrap=$('pt-wrap'); if(!wrap)return false;
   wrap.innerHTML=_ptHtml_(s,d); wrap.style.display='block'; /* CSSで #pt-wrap{display:none} にしてあるので '' では戻らない */
   _ptHide_();
-  var card=wrap.querySelector('.pointcard');
+  var card=wrap.querySelector('.pointcard'), busy=false;
   function sync(){
     var rest=card.querySelectorAll('.bl:not(.done)').length;
     card.querySelector('.pt-left').textContent=rest?('あと'+rest+'つ'):'';
     var g=$('pt-go'); if(g)g.disabled=rest>0;
   }
-  function fill(b){ b.classList.remove('open'); b.classList.add('done'); }
   function after(){
     sync();
     var p=card.querySelector('.pt-pick'); if(p)p.remove();
     var nx=card.querySelector('.bl:not(.done)');
     if(nx)setTimeout(function(){openBl(nx);},120);
+    else busy=false;
+  }
+  /* 手応え（2026-09-04 川上さん確定）
+     ・バツは出さない
+     ・押した選択肢以外は薄くなり、正しい語が緑に光ってから空欄に入る
+     ・吹き出しは空欄の【上】。当たり＝緑「正解！」／外し＝黄「こっちだね」 */
+  function judge(b,box,btn,ok){
+    if(busy)return; busy=true;
+    Array.prototype.forEach.call(box.querySelectorAll('.pt-ch'),function(x){
+      x.disabled=true;
+      if(x.getAttribute('data-v')===b.getAttribute('data-a'))x.classList.add('hit');
+      else x.classList.add('dim');
+    });
+    var fb=document.createElement('span');
+    fb.className='pt-fb'+(ok?'':' miss');
+    fb.textContent=ok?'正解！':'こっちだね';
+    b.appendChild(fb);
+    b.classList.remove('open');
+    b.classList.add('lit');
+    if(!ok){ b.classList.add('shake'); setTimeout(function(){b.classList.remove('shake');},320); }
+    setTimeout(function(){
+      b.classList.remove('lit');
+      b.classList.add('done'); if(!ok)b.classList.add('miss');
+      setTimeout(function(){ if(fb.parentNode)fb.parentNode.removeChild(fb); busy=false; after(); },520);
+    }, ok?680:820);
   }
   function openBl(b){
     var old=card.querySelector('.pt-pick'); if(old)old.remove();
@@ -4457,19 +4517,11 @@ function _ptShow_(s){
       +cs.map(function(c){return '<button class="pt-ch" type="button" data-v="'+esc(c)+'">'+esc(c)+'</button>';}).join('')+'</div>';
     card.querySelector('.pt-body').insertAdjacentElement('afterend',box);
     Array.prototype.forEach.call(box.querySelectorAll('.pt-ch'),function(btn){
-      btn.onclick=function(){
-        if(btn.getAttribute('data-v')!==b.getAttribute('data-a')){
-          /* 間違えてもバツは出さない。ゆれてから正しい語が入る（2026-09-04 川上さん確定） */
-          b.classList.add('shake','miss');
-          setTimeout(function(){ b.classList.remove('shake'); fill(b); after(); },320);
-          return;
-        }
-        fill(b); after();
-      };
+      btn.onclick=function(){ judge(b,box,btn,btn.getAttribute('data-v')===b.getAttribute('data-a')); };
     });
   }
   Array.prototype.forEach.call(card.querySelectorAll('.bl'),function(b){
-    b.onclick=function(){ if(!b.classList.contains('done'))openBl(b); };
+    b.onclick=function(){ if(!busy&&!b.classList.contains('done'))openBl(b); };
   });
   sync();
   var g=$('pt-go');
@@ -4477,7 +4529,7 @@ function _ptShow_(s){
   var f=card.querySelector('.bl:not(.done)'); if(f)openBl(f);
   return true;
 }
-function renderQz_(s){
+function renderQz_(s){try{if(_ptHidden_)_ptRestore_();}catch(e){}/* 更新ボタンなど、カードを知らない経路から描かれても二重にしない 2026-09-06 */
   if(!s||!s.words||!s.words[s.idx])return; _quizSes=s;
   try{_nowBarSync_(s);}catch(e){}
   var w=s.words[s.idx],tot=s.words.length;
