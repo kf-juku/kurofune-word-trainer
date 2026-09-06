@@ -826,6 +826,15 @@
   .mp-ro{font-size:12px;font-weight:700;color:var(--text-muted);white-space:nowrap;}
   .mp-part{margin:10px 0 4px;font-weight:800;color:var(--text);font-size:14px;display:flex;align-items:center;gap:8px;}
   .mp-part .c{font-size:11px;color:var(--text-muted);font-weight:700;}
+  /* ①要点カードの文章（parts.description）をプレビューでも見せる 2026-09-06 */
+  .mp-pt{margin:2px 0 8px;padding:9px 11px;background:var(--blue-light);border:1px solid #c7dbfd;border-radius:8px;}
+  .mp-pt .ttl{font-size:10.5px;font-weight:800;color:var(--blue-dark);letter-spacing:.04em;margin-bottom:5px;}
+  .mp-pt .bd{font-size:13px;line-height:1.95;color:var(--text);white-space:pre-wrap;}
+  .mp-pt .bl{display:inline;font-weight:800;color:var(--blue-dark);background:#fff;border-bottom:2px solid var(--blue);padding:0 3px;border-radius:3px;}
+  .mp-pt .ch{margin-top:7px;padding-top:7px;border-top:1px dashed #c7dbfd;font-size:11.5px;line-height:1.9;color:var(--text-muted);}
+  .mp-pt .ch b{color:var(--text);font-weight:800;}
+  .mp-pt .ch .y{color:var(--text-light);font-weight:600;}
+  .mp-pt .none{font-size:11.5px;color:var(--text-light);}
   .mp-q{display:flex;gap:10px;align-items:flex-start;padding:4px 8px;border-bottom:1px solid var(--surface2);font-size:13px;}
   .mp-q .no{color:var(--text-light);font-weight:700;min-width:22px;}
   .mp-q .en{font-weight:700;color:var(--text);flex:0 0 auto;max-width:46%;word-break:break-word;}
@@ -844,6 +853,9 @@
   .mp-ed:hover{background:#f8fafc;}
   .mp-ed:focus{outline:none;background:#eff6ff;border:1px solid #2563eb;}
   .mp-ed.en{font-weight:700;color:var(--text);}
+  .mp-pted{background:#fff;border:1px solid #c7dbfd;border-radius:6px;font-size:12.5px;line-height:1.85;padding:6px 8px;}
+  .mp-pt .mp-row{margin:0 0 6px;}
+  .mp-pt .mp-ptview{margin-top:2px;}
   .mp-ed.saving{background:#fef9c3;border-color:#eab308;}
   .mp-st{display:inline-flex;align-items:center;justify-content:center;}
   .mp-spin{display:inline-block;width:15px;height:15px;border:2.5px solid #fde68a;border-top-color:#d97706;border-radius:50%;animation:mpspin .6s linear infinite;box-sizing:border-box;}
@@ -3783,6 +3795,111 @@ function refreshMatList(btn){
   });
 }
 /* ===== 教材プレビュー（中身を見る・読み取り専用）2026-07-15 ===== */
+/* ①要点カード（parts.description）をプレビューに出す 2026-09-06
+   書式は生徒アプリの _ptParse_ と同じ。本文の [[語]] が穴。'---' の下が3択（答え（よみ）>ダミー|ダミー）。
+   先生用なので答えは隠さない。どの語が穴になり、ダミーが何かまで見せる。 */
+function mpPointView_(desc){
+  var t=String(desc||'');
+  var i=t.indexOf('\n---\n');
+  var body=(i<0?t:t.slice(0,i)), cs=(i<0?'':t.slice(i+5));
+  var h='<div class="bd">';
+  h+=esc(body).replace(/\[\[(.+?)\]\]/g,function(m,w){return '<span class="bl">'+w+'</span>';});
+  h+='</div>';
+  var rows=[];
+  cs.split('／').forEach(function(seg){
+    seg=seg.trim(); if(!seg||seg.indexOf('>')<0)return;
+    var a=seg.split('>'), key=a[0].trim();
+    if(key==='図'){ rows.push('<div>図　'+esc(a[1].trim())+'</div>'); return; }
+    var y='', m=key.match(/[（(]([ぁ-んァ-ヶーゝゞ・]+)[）)]$/);
+    if(m){ y=m[1]; key=key.replace(/[（(][ぁ-んァ-ヶーゝゞ・]+[）)]$/,''); }
+    rows.push('<div><b>'+esc(key)+'</b>'+(y?'<span class="y">（'+esc(y)+'）</span>':'')
+      +'　← '+esc(a[1].split('|').map(function(x){return x.trim();}).filter(Boolean).join('／'))+'</div>');
+  });
+  if(rows.length)h+='<div class="ch">'+rows.join('')+'</div>';
+  return h;
+}
+/* 要点の枠＝上に「生の全文を直す欄」、下に「整形した見え方」。2026-09-06
+   川上さん確定＝全文を1枚の欄で直す（A案）。穴と3択を別々の欄には割らない。
+   要点が無いパートには枠ごと出さない（＝画面から新規に足すことはしない・川上さん確定）。 */
+function mpPointHtml_(desc,pid){
+  var t=String(desc||''); if(!t.trim())return '';
+  return '<div class="mp-pt"><div class="ttl">始める前の要点</div>'
+    +'<div class="mp-row"><span class="mpl">要点</span>'
+    +'<span class="mp-ed mp-pted multiline" contenteditable="true" data-pid="'+esc(String(pid||''))+'" data-orig="'+esc(t)+'">'+esc(t)+'</span>'
+    +'<span class="mp-st"></span></div>'
+    +'<div class="mp-ptview">'+mpPointView_(t)+'</div>'
+    +'</div>';
+}
+/* 保存前チェック＝警告文の配列（空なら警告なし）。引っかかっても止めずに選ばせる（川上さん確定 2026-09-06）。
+   見るもの＝①穴があるか ②--- の行があるか ③穴と3択が1対1か ④ダミーが2つあるか ⑤穴の数（教材の正 §3c＝2〜4個）。 */
+function mpPointValidate_(txt){
+  var t=String(txt||''), w=[];
+  var i=t.indexOf('\n---\n');
+  var body=(i<0?t:t.slice(0,i)), cs=(i<0?'':t.slice(i+5));
+  var blanks=[], re=/\[\[(.+?)\]\]/g, m;
+  while((m=re.exec(body)))blanks.push(m[1]);
+  if(!blanks.length){w.push('・穴（[[語]]）が1つもありません。このままだと生徒に要点カードが出ません');return w;}
+  if(i<0){w.push('・「---」だけの行がありません。3択が読み取れないので、生徒は語を選べません');return w;}
+  var keys={}, dummies={}, order=[];
+  cs.split('／').forEach(function(seg){
+    seg=seg.trim(); if(!seg||seg.indexOf('>')<0)return;
+    var a=seg.split('>'), key=a[0].trim();
+    if(key==='図')return;
+    key=key.replace(/[（(][ぁ-んァ-ヶーゝゞ・]+[）)]$/,'');
+    if(keys[key])w.push('・3択に「'+key+'」が2回出てきます');
+    keys[key]=1; order.push(key);
+    dummies[key]=a[1].split('|').map(function(x){return x.trim();}).filter(Boolean);
+  });
+  blanks.forEach(function(b){ if(!keys[b])w.push('・穴「'+b+'」の3択がありません'); });
+  order.forEach(function(k){
+    if(blanks.indexOf(k)<0)w.push('・3択に書いてある「'+k+'」が本文の穴にありません');
+    var d=dummies[k]||[];
+    if(d.length<2)w.push('・「'+k+'」のダミーが2つありません（今'+d.length+'つ）');
+    if(d.indexOf(k)>=0)w.push('・「'+k+'」のダミーに答えと同じ語が入っています');
+  });
+  var uniq={}; blanks.forEach(function(b){uniq[b]=1;});
+  if(Object.keys(uniq).length<blanks.length)w.push('・同じ語を2回穴にしています');
+  if(blanks.length<2||blanks.length>4)w.push('・穴が'+blanks.length+'個です（要点の穴は2〜4個）');
+  return w;
+}
+/* 要点の保存（フォーカスアウトで自動保存）。words の word_edit ではなく parts の part_edit を叩く。2026-09-06 */
+function mpPointSave_(el){
+  var pid=el.getAttribute('data-pid');
+  if(!pid)return Promise.resolve();
+  var orig=el.getAttribute('data-orig')||'';
+  var val=(el.innerText||'').replace(/\u00a0/g,' ').replace(/\r/g,'').replace(/[ \t]+$/gm,'').replace(/^\n+|\n+$/g,'');
+  if(val===orig)return Promise.resolve(); // 変更なしは送らない
+  var warns=mpPointValidate_(val);
+  if(warns.length){
+    return mpConfirm_(warns.join('\n')+'\n\nこのまま保存しますか？').then(function(go){
+      if(go)return mpPointDoSave_(el,pid,orig,val);
+      el.innerText=orig; // やめる＝元に戻す
+    });
+  }
+  return mpPointDoSave_(el,pid,orig,val);
+}
+function mpPointDoSave_(el,pid,orig,val){
+  var st=el.parentNode.querySelector('.mp-st');
+  el.classList.remove('saved','err','srv-ok','srv-diff');el.classList.add('saving');
+  if(st){st.innerHTML='<span class="mp-spin"></span>';st.style.color='';}
+  return call({action:'part_edit',part_id:pid,description:val}).then(function(d){
+    el.classList.remove('saving');
+    if(d&&d.ok){
+      var saved=(d.data&&d.data.saved)||{};
+      var sv=(saved.description!=null?String(saved.description):val); // サーバーが読み直した保存値で照合
+      el.setAttribute('data-orig',sv);
+      if(sv!==val){el.innerText=sv;}
+      var card=el.closest('.mp-pt'), vw=card?card.querySelector('.mp-ptview'):null;
+      if(vw)vw.innerHTML=mpPointView_(sv); // 下の「整形した見え方」も描き直す
+      el.classList.add('saved');if(st){st.textContent='✓';st.style.color='#16a34a';}
+      setTimeout(function(){el.classList.remove('saved');if(st)st.textContent='';},1500);
+    }else{
+      el.classList.add('err');if(st){st.textContent='⚠';st.style.color='#dc2626';}
+      el.innerText=orig; // 失敗は元の値に戻す
+      toast((d&&d.error)||'保存に失敗しました');
+    }
+  });
+}
 var _mpAssets={};
 function mpZoom_(src){var lb=$('mpLightbox'),im=$('mpLightboxImg');if(!lb||!im)return;im.src=src;lb.style.display='flex';}
 function mpAssetUrl_(id){
@@ -3810,9 +3927,10 @@ function openMatPreview(mid){
     var totalQ=parts.reduce(function(a,b){return a+(b.count||0);},0);
     var _jb=parts.map(function(pt,pi){return '<button class="mp-jump" title="'+esc(pt.title||'')+'" onclick="mpJump('+pi+')">'+(pi+1)+'</button>';}).join('');
     $('mpToolbar').innerHTML='<span class="mp-count">'+parts.length+'パート・全'+totalQ+'問</span><div class="mp-jumps">'+_jb+'</div>';
-    var h='<div class="mp-edit-hint">✏️ テキストをクリックすると直せます。入力後にほかの場所をクリックすると自動で保存します（✓＝保存済み）。選択肢は1行に1つ・正解を含めて4つ書いてください。図・番号方式の設問は編集対象外です。</div>';
+    var h='<div class="mp-edit-hint">✏️ テキストをクリックすると直せます。入力後にほかの場所をクリックすると自動で保存します（✓＝保存済み）。選択肢は1行に1つ・正解を含めて4つ書いてください。図・番号方式の設問は編集対象外です。<br>始める前の要点は書式のまま直します＝穴は [[語]]、3択は --- の行の下に「答え（よみ）&gt;ダミー|ダミー」を ／ でつなぎます。</div>';
     parts.forEach(function(pt,pi){
       h+='<div class="mp-part" id="mp-part-'+pi+'">'+esc(pt.title||'(無題パート)')+'<span class="c">'+(pt.count||0)+'問</span></div>';
+      h+=mpPointHtml_(pt.description,pt.part_id);   /* ①要点カードの文章。part_id を渡して直せるようにする 2026-09-06 */
       (pt.words||[]).forEach(function(w,i){
         var badge='';
         if(w.qtype==='image_fill')badge='<span class="qb fig">図</span>';
@@ -3868,11 +3986,20 @@ function mpServerCheck(){
   call({action:'material_preview',material_id:_mpMid}).then(function(d){
     if(btn){btn.disabled=false;btn.textContent='☁︎ サーバー確認';}
     if(!d||!d.ok){toast('サーバー確認に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':''));return;}
-    var byId={};(d.data.parts||[]).forEach(function(pt){(pt.words||[]).forEach(function(w){byId[String(w.id)]=w;});});
+    var byId={};var byPart={};(d.data.parts||[]).forEach(function(pt){byPart[String(pt.part_id)]=String(pt.description||'');(pt.words||[]).forEach(function(w){byId[String(w.id)]=w;});});
     var eds=[].slice.call(document.querySelectorAll('#mpBody .mp-ed'));
     var diffs=0,checked=0;
     eds.forEach(function(el){
       var wid=el.getAttribute('data-id'),field=el.getAttribute('data-wf');
+      // 要点（parts.description）も同じやり方で照合する 2026-09-06
+      if(el.classList.contains('mp-pted')){
+        var pid=el.getAttribute('data-pid');el.classList.remove('srv-ok','srv-diff');el.removeAttribute('title');
+        if(!pid||byPart[pid]===undefined)return;
+        checked++;
+        if(byPart[pid]!==(el.getAttribute('data-orig')||'')){diffs++;el.classList.add('srv-diff');el.setAttribute('title','サーバーの値: '+byPart[pid]);}
+        else{el.classList.add('srv-ok');}
+        return;
+      }
       var w=byId[wid];el.classList.remove('srv-ok','srv-diff');el.removeAttribute('title');
       if(!w)return;
       var sv=(field==='choices')?((w.choices||[]).join('\n')):(field==='choices_ja')?((w.choices_ja||[]).join('\n')):String(w[field]!=null?w[field]:'');
@@ -3893,6 +4020,7 @@ function mpEdRow_(wid,field,label,val,extraCls){
     +'<span class="mp-st"></span></div>';
 }
 function mpFieldSave_(el){
+  if(el.classList&&el.classList.contains('mp-pted')){mpPointSave_(el);return;} // 要点は parts.description＝別の口 2026-09-06
   var wid=el.getAttribute('data-id'),field=el.getAttribute('data-wf');
   if(!wid||!field)return;
   var orig=el.getAttribute('data-orig')||'';
