@@ -905,6 +905,65 @@
   .fixchip{flex:none;display:flex;align-items:center;gap:5px;background:var(--fix-soft);color:var(--fix-ink);font-size:11.5px;font-weight:700;border-radius:999px;padding:4px 10px;white-space:nowrap;}
   .fixchip i{font-size:13px;}
   .fixchip b{font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;}
+  /* ===== ② 学習中に見返す（2026-09-06 川上さん確定）=====
+     元の困りごと＝「筑紫平野と筑紫山地は同じ回に出ているのに、その回の中で前に戻れないので結びつかない」。
+     もう答えたものだけを見返せるようにする。まだ答えていないものは出さない＝答えバレしない。通信はゼロ。 */
+  .sofar{flex:none;display:inline-flex;align-items:center;gap:5px;background:none;border:none;color:var(--ink);font-family:inherit;font-size:11.5px;font-weight:700;padding:6px 4px;min-height:34px;border-radius:9px;cursor:pointer;}
+  .sofar i{font-size:15px;color:var(--ink);opacity:.5;}
+  .sofar span{white-space:nowrap;}
+  .sofar:active{opacity:.5;}
+  .figdone{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 2px 0;}
+  .figdone .fd-l{font-size:10.5px;font-weight:800;color:var(--sub);width:100%;}
+  .figdone .fd-c{display:inline-flex;align-items:center;gap:5px;background:var(--ring-track);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;}
+  .figdone .fd-c b{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 3px;border-radius:5px;background:var(--surface);font-size:10.5px;}
+  .figdone .fd-c.miss{background:var(--fix-soft);color:var(--fix-ink);}
+  .sfmask{position:fixed;inset:0;z-index:80;background:rgba(10,14,22,.5);display:none;align-items:flex-end;justify-content:center;}
+  .sfmask.on{display:flex;}
+  .sfsheet{width:100%;max-width:430px;background:var(--surface);border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));max-height:76vh;display:flex;flex-direction:column;}
+  .sf-h{display:flex;align-items:center;gap:9px;margin-bottom:11px;}
+  .sf-h .sf-t{flex:1;min-width:0;font-size:15px;font-weight:800;}
+  .sf-h .sf-t small{display:block;font-size:11px;font-weight:600;color:var(--sub);margin-top:1px;}
+  .sf-x{flex:none;background:none;border:none;color:var(--ink);opacity:.55;font-size:22px;line-height:1;padding:6px;cursor:pointer;}
+  .sf-list{overflow:auto;-webkit-overflow-scrolling:touch;}
+  .sf-it{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);}
+  .sf-it:last-child{border-bottom:none;}
+  .sf-no{flex:0 0 auto;width:22px;text-align:right;font-family:'Manrope',sans-serif;font-weight:700;font-size:12px;color:var(--sub);}
+  .sf-b{flex:1;min-width:0;}
+  .sf-w{display:block;font-size:14.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sf-r{display:block;font-size:10.5px;color:var(--sub);font-weight:600;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sf-n{flex:0 0 auto;min-width:24px;height:24px;padding:0 5px;border-radius:8px;background:var(--ring-track);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  .sf-it.miss{background:var(--fix-soft);border-radius:10px;border-bottom-color:transparent;}
+  .sf-it.miss .sf-w{color:var(--fix-ink);}
+  .sf-it.miss .sf-n{background:rgba(232,163,23,.22);color:var(--fix-ink);}
+  .sf-tag{flex:0 0 auto;font-size:10.5px;font-weight:800;color:var(--fix-ink);white-space:nowrap;}
+  .sf-empty{padding:22px 6px;text-align:center;color:var(--sub);font-size:13px;}
+  /* ===== ③ 終わったあとのまとめ（2026-09-06 川上さん確定）===== */
+  .sumsec{margin-top:14px;}
+  .sumsec .shead .sic{background:rgba(31,170,107,.13);color:var(--ok);}
+  .sumcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:13px;}
+  .sum-grp+.sum-grp{margin-top:13px;padding-top:13px;border-top:1px solid var(--line);}
+  .sum-fig{position:relative;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:11px;}
+  .sum-fig img{display:block;width:100%;max-height:230px;object-fit:contain;}
+  .sum-list{display:grid;grid-template-columns:1fr 1fr;gap:9px 10px;}
+  .sum-list.one{grid-template-columns:1fr;}
+  .sum-it{display:flex;align-items:center;gap:7px;min-width:0;}
+  .sum-n{flex:0 0 auto;min-width:22px;height:22px;padding:0 4px;border-radius:7px;background:var(--ring-track);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;}
+  .sum-b{flex:1;min-width:0;}
+  .sum-w{display:block;font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sum-r{display:block;font-size:10px;color:var(--sub);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sum-gal{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .sum-cell{min-width:0;text-align:center;}
+  .sum-cell .ph{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;}
+  .sum-cell .ph img{width:100%;height:100%;object-fit:cover;display:block;}
+  .sum-cell .nm{font-size:12px;font-weight:700;margin-top:5px;line-height:1.3;}
+  .sum-cell .rd{font-size:9.5px;color:var(--sub);font-weight:600;line-height:1.3;}
+  .sum-other{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+  .sum-ol{font-size:11px;font-weight:800;color:var(--sub);margin-bottom:8px;}
+  .sum-chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .sum-chip{background:var(--ring-track);border-radius:12px;padding:6px 11px;text-align:center;}
+  .sum-chip .w{display:block;font-size:12.5px;font-weight:700;line-height:1.3;}
+  .sum-chip .r{display:block;font-size:9.5px;color:var(--sub);font-weight:600;line-height:1.3;}
+  @media (max-width:330px){ .sum-list{grid-template-columns:1fr;} }
   /* 1問あたりの制限時間バー（案C・太バー＋残り秒数・色変化）2026-07-04 */
   .qtimer{display:flex;align-items:center;gap:10px;margin:10px 0 4px;}
   .qbar{flex:1;height:12px;background:var(--ring-track);border-radius:8px;overflow:hidden;}
@@ -1516,7 +1575,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     <div class="body">
       <div class="prac-top"><button class="prac-quit" id="btn-quit" type="button"><i class="ti ti-x"></i> <span>やめる</span></button><div class="prac-acts"><button class="prac-refresh" id="btn-pause" type="button"><i class="ti ti-player-pause"></i> <span class="pr-t"><ruby>一時停止<rt class="uf">いちじていし</rt></ruby></span></button><button class="prac-refresh" id="btn-refresh" type="button"><i class="ti ti-refresh"></i> <span class="pr-t"><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div></div>
       <div class="nowbar" id="now-bar" style="display:none;"></div>
-      <div class="progrow"><div class="prog"><i id="prog"></i></div><div class="fixchip" id="fix-chip" style="display:none;"></div></div>
+      <div class="progrow"><div class="prog"><i id="prog"></i></div><button class="sofar" id="btn-sofar" type="button" style="display:none;"><i class="ti ti-clipboard-list"></i><span>ここまでの答え</span></button><div class="fixchip" id="fix-chip" style="display:none;"></div></div>
       <div class="muted center" id="step-label"></div>
       <div class="furi-bar" id="furi-bar"></div>
       <div class="qtimer" id="qtimer" style="display:none;"><div class="qbar"><i id="qbar-fill"></i></div><span class="qsec num" id="qsec">10<ruby>秒<rt class="uf">びょう</rt></ruby></span></div>
@@ -1576,6 +1635,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       </div>
       <div id="done-daily-area"></div><!-- 今日のデイリーの進み（ホームと同じバー）2026-08-22 -->
       <div id="done-tiles"></div>
+      <div id="done-sum"></div><!-- ③ 終わったあとのまとめ 2026-09-06 -->
       <div id="today-did-area"></div>
       <div id="star-area"></div>
       <div id="done-guide-area"></div>
@@ -1647,6 +1707,8 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
     </div>
   </div>
 </div>
+<!-- ② ここまでの答え（下から出るシート）2026-09-06 -->
+<div class="sfmask" id="sfmask"></div>
 <!-- 羅針盤（コンパス）SVG定義：アンティーク・紺地×金（川上さん承認モック 2026-07-26） -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
 <radialGradient id="rbFace" cx="42%" cy="38%" r="70%"><stop offset="0%" stop-color="#20315a"/><stop offset="70%" stop-color="#101e3c"/><stop offset="100%" stop-color="#0a1428"/></radialGradient>
@@ -1855,7 +1917,7 @@ var _prevScr='';
 /* 画面を切り替えるところ。アプリの自動更新のフックを2つだけ足している（2026-08-21 川上さん指摘）
    ・学習を始めた瞬間＝解いている数分のあいだに裏で新しい版がないか見ておく（入れ替えはしない）
    ・完了画面からホームに戻った直後＝1つ終わって画面が切り替わる瞬間なので、ここで入れ替えるのが一番ストレスが小さい */
-function show(scr){var _p=_prevScr;_prevScr=scr;try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
+function show(scr){var _p=_prevScr;_prevScr=scr;try{var _sf=$('sfmask');if(_sf)_sf.classList.remove('on');}catch(e){} /* ②のシートを持ち越さない 2026-09-06 */try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
 /* 学習マップのパート行のメタ：前回合格日・正答率・おさらいの進み（GAS material_parts が per-part で返す）2026-07-26 */
 function _mapMetaHtml_(l){
   if(!l||!l.last_pass_date)return ''; // 合格していないパートは出さない
@@ -4072,7 +4134,7 @@ function _quizAns(s,w,ok,_el,which){ measAns_(_el,ok);
     if(s._fixAnswered)return; s._fixAnswered=true;
     if(!ok&&s.fixCur)s.fixNext.push(s.fixCur);
     try{_saveResumeNext_(s,which);}catch(e){} return; }
-  s._answered=s._answered||{}; var _ak=_ansKey_(s,which); if(s._answered[_ak])return; s._answered[_ak]=true; if(s.mode==='daily'){ if(ok){ if(which==='e2j')s.meaningCorrect++; else s.reverseCorrect++; } else { pushMiss(w.id); (s._firstWrong||(s._firstWrong=[])).push({i:s.idx,which:which}); } } else { if(!ok)s.wordOK=false; } try{_saveResumeNext_(s,which);}catch(e){} }
+  s._answered=s._answered||{}; var _ak=_ansKey_(s,which); if(s._answered[_ak])return; s._answered[_ak]=true; (s._ansOK||(s._ansOK={}))[_ak]=!!ok; /* ②の既出リストで「あとで直す」を出すため 2026-09-06 */ if(s.mode==='daily'){ if(ok){ if(which==='e2j')s.meaningCorrect++; else s.reverseCorrect++; } else { pushMiss(w.id); (s._firstWrong||(s._firstWrong=[])).push({i:s.idx,which:which}); } } else { if(!ok)s.wordOK=false; } try{_saveResumeNext_(s,which);}catch(e){} }
 function renderStep(){renderQz_(session);}
 function renderSrsStep(){renderQz_(srsSes);}
 function renderNoteStep(){renderQz_(noteSes);}
@@ -4110,6 +4172,163 @@ function _nowBarSync_(s){
   el.innerHTML='<div class="nb-ic"><i class="ti '+K.ic+'"></i></div><div class="nb-b"><div class="nb-k">'+K.nm+'</div>'
     +((mat||part)?('<div class="nb-p">'+(mat?'<small>'+esc(mat)+' ・ </small>':'')+esc(part)+'</div>'):'')+'</div>';
 }
+/* ===== ② 学習中に見返す（2026-09-06 川上さん確定）=====
+   正＝20260904_保留_単元のまとまりを見せる3案.md §3②。
+   ・図の下＝いま出ている図で、ここまでに答えたものだけを並べる（押さなくても目に入る）
+   ・進み具合バーの右のボタン＝その回で答えたものを全部見る（パート全体を見たい人用）
+   ★まだ答えていないものは1つも出さない＝答えバレしない。通信は追加ゼロ。 */
+function _sofarList_(s){
+  var A=(s&&s._answered)||{},OK=(s&&s._ansOK)||{},out=[];
+  ((s&&s.words)||[]).forEach(function(x,i){
+    var kj=i+'_j2e',ke=i+'_e2j';
+    if(!A[kj]&&!A[ke])return;
+    var a=String(x.english||'');if(!a)return;
+    var q={};try{q=tfParse(x)||{};}catch(e){}
+    out.push({a:a,r:(x.reading_hint&&String(x.reading_hint)!==a)?String(x.reading_hint):'',n:q.num||'',
+      miss:!!((A[kj]&&OK[kj]===false)||(A[ke]&&OK[ke]===false))});
+  });
+  return out;
+}
+function _figDoneHtml_(s,assetId){
+  if(!s||!assetId)return '';
+  var A=s._answered||{},OK=s._ansOK||{},out=[];
+  (s.words||[]).forEach(function(x,i){
+    if(String(x.qtype||'')!=='image_fill')return;
+    var q={};try{q=tfParse(x)||{};}catch(e){return;}
+    if(String(q.asset||'')!==String(assetId))return;
+    if(!A[i+'_j2e'])return;
+    var a=String(x.english||'');if(!a)return;
+    out.push({a:a,n:q.num||'',miss:(OK[i+'_j2e']===false)});
+  });
+  if(!out.length)return '';
+  return '<div class="figdone"><span class="fd-l">この図でここまで答えたもの</span>'
+    +out.map(function(x){return '<span class="fd-c'+(x.miss?' miss':'')+'">'
+      +(x.n?'<b>'+esc(x.n)+'</b>':'')+'<span>'+esc(x.a)+'</span></span>';}).join('')+'</div>';
+}
+/* ミス問モードのときは出さない（1周目とは数え方が別物・チップが同じ場所を使う）*/
+function _sofarSync_(s){
+  var b=$('btn-sofar');if(!b)return;
+  var on=!!(s&&!s.fixMode&&_sofarList_(s).length);
+  b.style.display=on?'':'none';
+  b.onclick=on?function(){_openSofar_(s);}:null;
+}
+function _openSofar_(s){
+  var m=$('sfmask');if(!m)return;
+  var list=_sofarList_(s),sub='';
+  try{var e=_partIdx[String(s.listId||'')];if(e&&e.part)sub=e.part;}catch(e2){}
+  var rows=list.map(function(x,i){
+    return '<div class="sf-it'+(x.miss?' miss':'')+'"><span class="sf-no">'+(i+1)+'</span>'
+      +'<span class="sf-b"><span class="sf-w">'+esc(x.a)+'</span><span class="sf-r">'+esc(x.r)+'</span></span>'
+      +(x.miss?'<span class="sf-tag">あとで直す</span>':'')
+      +(x.n?'<span class="sf-n">'+esc(x.n)+'</span>':'')+'</div>';}).join('');
+  m.innerHTML='<div class="sfsheet"><div class="sf-h"><div class="sf-t">ここまでの答え<small>'
+    +list.length+'問'+(sub?(' ・ '+esc(sub)):'')+'</small></div>'
+    +'<button class="sf-x" type="button" aria-label="閉じる">&times;</button></div>'
+    +'<div class="sf-list">'+(rows||'<div class="sf-empty">まだ答えがありません</div>')+'</div></div>';
+  /* 見返しているあいだは制限時間を止める（見たせいで時間切れにしない）*/
+  try{pauseQTimer_();}catch(e3){}
+  var close=function(){m.classList.remove('on');try{resumeQTimer_();}catch(e4){}};
+  m.querySelector('.sf-x').onclick=close;
+  m.onclick=function(ev){if(ev.target===m)close();};
+  m.classList.add('on');
+}
+/* ===== ③ 終わったあとのまとめ（2026-09-06 川上さん確定）=====
+   正＝20260904_保留_単元のまとまりを見せる3案.md §3③。完了画面のタイルの下に出す。
+   ・文で答える問題（答えが「。」で終わる）は用語ではないので出さない
+   ・同じ答えが2問あるとき（聞き方ちがい）は1回だけ
+   ・群のキーは【解説図があれば解説図】＝同じ解説図を指す出題図はひとまとめになる
+   ・図が無いパートは出さない（英語208中205・国語60中60が図0枚＝言葉が並ぶだけになる）
+   ★要るもの（語・読み・図のURL）は全部端末にあるので、保存の返事を待たない（地雷§7-3）。 */
+function _sumAssetUrl_(assets,aid){
+  if(!aid)return '';
+  var a=(assets||{})[aid]||{},pl={};
+  try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}
+  return pl.url||pl.src||a.url||'';
+}
+function _sumData_(s){
+  if(!s||!s.words||!s.words.length)return null;
+  var A=s.assets||{},seen={},use=[];
+  s.words.forEach(function(w){
+    var a=String(w.english||'');
+    if(!a||/。$/.test(a)||seen[a])return;
+    seen[a]=1;
+    var q={};try{q=tfParse(w)||{};}catch(e){q={};}
+    use.push({a:a,r:(w.reading_hint&&String(w.reading_hint)!==a)?String(w.reading_hint):'',n:q.num||'',
+      img:(String(w.qtype||'')==='image_fill')?_sumAssetUrl_(A,q.asset):'',
+      kimg:_sumAssetUrl_(A,q.kaisetsu_asset)});
+  });
+  if(!use.length)return null;
+  var order=[],byImg={};
+  use.forEach(function(w){
+    if(!w.img)return;
+    var key=w.kimg||w.img;
+    if(!byImg[key]){byImg[key]=[];order.push(key);}
+    byImg[key].push(w);
+  });
+  if(!order.length)return null;
+  return {use:use,order:order,byImg:byImg,none:use.filter(function(w){return !w.img;})};
+}
+/* 横長の図（地図・グラフ）は小さくすると読めないので1問でも大きく出す。
+   正方形〜縦長（肖像・写真）が3枚以上そろったときだけ3列に並べる。 */
+function _sumHtml_(d,ar,ptitle){
+  var cand=d.order.filter(function(u){return d.byImg[u].length===1;}),solo=[];
+  if(cand.length>=3){solo=cand.filter(function(u){return ar[u]&&ar[u]<1.15;});if(solo.length<3)solo=[];}
+  var big=d.order.filter(function(u){return solo.indexOf(u)<0;}),h='';
+  big.forEach(function(u){
+    var g=d.byImg[u],kai='';
+    for(var i=0;i<g.length;i++){if(g[i].kimg){kai=g[i].kimg;break;}}
+    h+='<div class="sum-grp"><div class="sum-fig"><img src="'+esc(kai||u)+'" alt="図" loading="lazy" decoding="async" onerror="this.style.opacity=.2;"></div>'
+      +'<div class="sum-list'+(g.length===1?' one':'')+'">'+g.map(function(w){
+        return '<div class="sum-it">'+((!kai&&w.n)?'<span class="sum-n">'+esc(w.n)+'</span>':'')
+          +'<span class="sum-b"><span class="sum-w">'+esc(w.a)+'</span>'
+          +'<span class="sum-r">'+esc(w.r)+'</span></span></div>';}).join('')+'</div></div>';
+  });
+  if(solo.length){
+    h+='<div class="sum-grp"><div class="sum-gal">'+solo.map(function(u){
+      var w=d.byImg[u][0];
+      return '<div class="sum-cell"><div class="ph"><img src="'+esc(u)+'" alt="'+esc(w.a)+'" loading="lazy" decoding="async" onerror="this.style.opacity=.2;"></div>'
+        +'<div class="nm">'+esc(w.a)+'</div><div class="rd">'+esc(w.r)+'</div></div>';}).join('')+'</div></div>';
+  }
+  if(d.none.length){
+    h+='<div class="sum-other"><div class="sum-ol">そのほかの<ruby>語句<rt class="uf">ごく</rt></ruby></div><div class="sum-chips">'
+      +d.none.map(function(w){return '<span class="sum-chip"><span class="w">'+esc(w.a)+'</span>'
+        +(w.r?'<span class="r">'+esc(w.r)+'</span>':'')+'</span>';}).join('')+'</div></div>';
+  }
+  return '<div class="sumsec"><div class="shead"><div class="sic"><i class="ti ti-circle-check"></i></div>'
+    +'<div class="sb"><div class="st">この<ruby>単元<rt class="uf">たんげん</rt></ruby>の<ruby>用語<rt class="uf">ようご</rt></ruby></div>'
+    +'<div class="ss">'+(ptitle?(esc(ptitle)+' ・ '):'')+d.use.length+'語</div></div></div>'
+    +'<div class="sumcard">'+h+'</div></div>';
+}
+var _sumSeq=0;
+function _sumRender_(s){
+  var host=$('done-sum');if(!host)return;
+  var my=++_sumSeq;
+  host.innerHTML='';
+  var d=null;try{d=_sumData_(s);}catch(e){d=null;}
+  if(!d)return;
+  var ptitle='';try{var e2=_partIdx[String(s.listId||'')];if(e2&&e2.part)ptitle=e2.part;}catch(e3){}
+  host.innerHTML=_sumHtml_(d,{},ptitle);   /* まずは全部大きく出す（縦横比はまだ分からない）*/
+  /* 1問だけの図が3枚以上あるときだけ、縦横比を測って3列に組み直す。
+     測るのはその候補の図だけ＝どのみち画面に出る図なので、通信は増えない。*/
+  var cand=d.order.filter(function(u){return d.byImg[u].length===1;});
+  if(cand.length<3)return;
+  var ar={},left=cand.length,done=false;
+  var fin=function(){
+    if(done)return;done=true;
+    if(my!==_sumSeq)return;                /* もう別の完了画面になっていたら触らない */
+    var h2=$('done-sum');if(!h2)return;
+    var solo=cand.filter(function(u){return ar[u]&&ar[u]<1.15;});
+    if(solo.length<3)return;               /* 組み直す必要がない */
+    h2.innerHTML=_sumHtml_(d,ar,ptitle);
+  };
+  setTimeout(fin,900);
+  cand.forEach(function(u){
+    var im=new Image();
+    im.onload=function(){if(im.naturalHeight>0)ar[u]=im.naturalWidth/im.naturalHeight;if(--left<=0)fin();};
+    im.onerror=function(){if(--left<=0)fin();};
+    im.src=u;
+  });
+}
 function renderQz_(s){
   if(!s||!s.words||!s.words[s.idx])return; _quizSes=s;
   try{_nowBarSync_(s);}catch(e){}
@@ -4127,6 +4346,7 @@ function renderQz_(s){
   }else{
     $('step-label').innerHTML=(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
   }
+  try{_sofarSync_(s);}catch(e){}    /* ② ここまでの答え（答えたものが1つでもあれば出す）2026-09-06 */
   try{_fixBarSync_(s);}catch(e){}   /* ミス問モードは黄色バー＋「あと◯問で全問正解」＋問題番号なし 2026-08-26 */
   // 表・図＝毎日学習と同じレンダラーをそのまま使う（元と同じ設問・表・図）
   if(w.qtype==='table_fill'){
@@ -4244,6 +4464,7 @@ function renderIMG(ss){
      肖像画のように図が手がかりでしかない問題と、どちらにも当てはまる言い方にする。 */
   if(!qd.num){h+='<div class="imgq-askhint"><ruby>問題文<rt class="uf">もんだいぶん</rt></ruby>と<ruby>図<rt class="uf">ず</rt></ruby>の<b>りょうほう</b>を<ruby>見<rt class="uf">み</rt></ruby>て<ruby>答<rt class="uf">こた</rt></ruby>えよう</div>';}
   h+='<div class="imgq-fig"><img src="'+esc(url)+'" alt="図" onerror="this.style.opacity=.2;"></div>';
+  h+=_figDoneHtml_(s,qd.asset);   /* ② いま出ている図で、ここまでに答えたもの 2026-09-06 */
   /* 【2026-08-31 生徒の不具合報告】図の下に出す記号の並びは、図に印刷されている記号だけを出す。
      同じ図を ask方式（記号を使わず設問文で聞く）の問題と共有していると、記号のない問題に ①③ の
      連番が入り、図のどこにも無い「① イ ③」のような並びが出て、生徒には何のことか分からなかった。
@@ -5343,6 +5564,7 @@ function doneGuideHtml_(){return '<div style="background:var(--surface);border:1
 function _doneResetCommon_(){
   var a=$('today-did-area');if(a)a.innerHTML='';
   var dd=$('done-daily-area');if(dd)dd.innerHTML=''; // 前のモードのデイリーバーを残さない 2026-08-22
+  var sm=$('done-sum');if(sm)sm.innerHTML='';        // 前のモードのまとめを残さない 2026-09-06
   var l=$('done-lap');if(l)l.style.display='none';
   var b=$('btn-home');if(b){b.innerHTML='<span>ホームへ<ruby>戻<rt class="uf">もど</rt></ruby>る</span>';b.onclick=function(){openHome();};}
 }
@@ -5385,6 +5607,7 @@ function finishQuizSubmit_(){
   $('done-rate').innerHTML=termOnly?('<ruby>正答<rt class="uf">せいとう</rt></ruby> <b>'+rr+'</b>％'):(e2jOnly?('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％'):('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> '+rr+'％'));
   animNum($('score-anim'),score,450); /* 数え上がりは残す（ただの演出で、これがあっても待たされない）。0.9秒→0.45秒 2026-09-02 川上さん確定 */
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（確認テストにも）2026-08-08
+  try{_sumRender_(s);}catch(e){}  /* ③ 終わったあとのまとめ 2026-09-06 */
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
   /* 2026-09-02：保存を待たずに押せる（閉じても送り直しが効く）。ボタンを止める処理は無くした。 */
   $('btn-retry').style.display='flex';$('btn-next').style.display='none';
@@ -5448,6 +5671,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル 2026-07-24
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);
   _doneResetCommon_();var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
+  try{_sumRender_(s);}catch(e){}  /* ③ 終わったあとのまとめ（_doneResetCommon_ のあとに出す）2026-09-06 */
   var _isUnit_=(s.content_type==='test'); // 単元別（テスト配信）かどうかは端末で分かる
   var _donePre=false;                      // 保存より先に描いたか
   $('star-area').innerHTML=tipHtml_();     // 豆知識は先に出す。流れ星が届いたら入れかわる
