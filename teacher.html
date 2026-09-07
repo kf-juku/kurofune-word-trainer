@@ -2900,13 +2900,15 @@ function fsPdf_(){
     });
   }, function(){ fin(); });
 }
-function runPrint_(ids,scope,days,limit,types){
+/* mats＝教材idのカンマ区切り（任意・2026-09-07）。空なら全教材から。
+   サーバー側は material_ids が空文字なら絞らない（kwtGAS.gs teacherMistakes）。 */
+function runPrint_(ids,scope,days,limit,types,mats){
   if(!ids.length){toast('印刷する生徒がいません');return;}
   var subLbl=(scope==='recent')?('直近'+days+'日にまちがえた問題'):(scope==='graduated')?'復習チェック（前にやって克服した語）':'まちがえた問題';
   var emptyLbl=(scope==='graduated')?'まだ克服した語がありません。':'いまはまちがえている問題はありません。';
   var missLbl=(scope==='graduated')?'復習チェック':'まちがえた問題';
   showLoading('印刷データを準備中…');
-  call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit,types:(types||'daily,unit,quiz')}).then(function(d){
+  call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit,types:(types||'daily,unit,quiz'),material_ids:(mats||'')}).then(function(d){
     if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
     var sts=d.data.students||[];
     // 表示が同じ問題は1件に（GAS teacher_mistakes は word_id で統合済み。別パートの同一用語など"見た目の重複"を画面側でも除去）2026-07-28
@@ -5231,7 +5233,13 @@ function tmStepPrint_(body){
     +'<div class="tm-qh" style="margin-top:10px;">いつのまちがいを出すか</div>'
     +'<div class="stycards sm" id="tmMinDaysCards">'+_fsMinDaysCards_()+'</div>'
     +'<div class="tm-note" style="background:#fff7e6;border-color:#f0d08a;color:#8a5a00;">📅 <b>テスト直前に進めた範囲を出すときは「ぜんぶ」にしてください。</b>ふだんは「3日以上前」のままでかまいません（まちがえた直後は覚えているので、少し寝かせてから出す）。</div>'
-    +'<div class="tm-qh" style="margin-top:10px;">テスト範囲（教材をえらぶ・複数可）</div>'
+    +'</div>'   /* ← tmFinishOpts をここで閉じる */
+    /* ★2026-09-07 川上さん確定：範囲（教材）は「覚える一覧」でも使う。
+       仕上げプリント＝必須／覚える一覧＝任意（えらばなければ全教材から）。
+       ★部品は1つだけにする。同じ教材えらびを2か所に作らない（片方だけ直る事故を防ぐ）。
+       見出しと下の注記だけ紙の形で差し替える（_tmToggleStyle_）。 */
+    +'<div id="tmMatOpts">'
+    +'<div class="tm-qh" style="margin-top:10px;" id="tmMatHd">テスト範囲（教材をえらぶ・複数可）</div>'
     +'<div class="pk-two">'
     +'<div class="pk-col"><div class="pk-coltitle">候補（教材）</div>'
     +'<input class="pk-search2" id="printMatSearch" placeholder="教材名で探す">'
@@ -5240,6 +5248,9 @@ function tmStepPrint_(body){
     +'<button type="button" class="btn-ghost pk-clr" id="printMatClear" onclick="clearPrintMats()">クリア</button></div>'
     +'<div class="pk-list sel" id="printMatSel"></div></div>'
     +'</div>'
+    +'<div class="tm-note" id="tmMatNoteList">えらばなければ<b>全教材</b>から集めます。<br>用語集で重要度を付けてある教材（FD中学地理・メキメキ中学歴史）は<b>★3→★2の順</b>に選びます。英語・国語・理科は今までどおり、新しくまちがえた順です。</div>'
+    +'</div>'
+    +'<div id="tmFinishOpts2">'
     +'<div class="tm-note">選んだ教材のまちがいを<b>毎日学習・単元別・確認テストのぜんぶから</b>集めます（範囲は教材で決めるので種別では絞りません）。<br><span id="fsMinDaysNote">'+_fsMinDaysText_()+'</span>から、ミス問8割＋克服した語2割で選びます（<b>ミス問が足りないぶんは克服した語で埋めます</b>）。1人あたり最大100問。<br>紙は<b>両面2枚（1枚目＝問題／2枚目＝答え）</b>。問題数は紙に入るだけ（教科によって変わります）。<br><b>選択肢は紙に出しません</b>（思い出して書く練習にするため）。選択肢が無いと解けない「あてはまらないものを選べ」型は紙から外します。</div>'
     +'<div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">🖨 <b>両面（長辺とじ）で印刷してください。</b>1枚目の表裏＝問題、2枚目の表裏＝答えです。</div>'
     +'</div>';
@@ -5257,10 +5268,16 @@ function tmStepPrint_(body){
    （仕上げプリントは範囲を教材で決めるので、種別で絞る意味がない＝川上さん確定 2026-08-31）*/
 function _tmToggleStyle_(){
   var st=_printStyle_();
-  var a=$('tmListOpts'), b=$('tmFinishOpts'), c=$('tmTypeOpts');
+  var a=$('tmListOpts'), b=$('tmFinishOpts'), c=$('tmTypeOpts'), b2=$('tmFinishOpts2');
   if(a)a.style.display=(st==='list')?'':'none';
   if(b)b.style.display=(st==='finish')?'':'none';
+  if(b2)b2.style.display=(st==='finish')?'':'none';   /* 仕上げプリントの注記＝教材えらびの下 2026-09-07 */
   if(c)c.style.display=(st==='list')?'':'none';
+  /* ★2026-09-07：教材えらび（#tmMatOpts）は両方の紙で出す。見出しと注記だけ差し替える。
+     覚える一覧では任意なので「えらばなければ全教材から」と書く。 */
+  var hd=$('tmMatHd');
+  if(hd)hd.textContent=(st==='finish')?'テスト範囲（教材をえらぶ・複数可）':'範囲の教材（えらばなければ全教材から・複数可）';
+  var nt=$('tmMatNoteList'); if(nt)nt.style.display=(st==='list')?'':'none';
   tmUpdateFoot();
 }
 function setPrintStyle(k){
@@ -5310,9 +5327,14 @@ function tmPrint(){
   var limit=parseInt($('tmLimit').value,10);if(!(limit>=1))limit=20;
   var types=[]; ['daily','unit','quiz'].forEach(function(t){ var c=$('tmT-'+t); if(c&&c.checked) types.push(t); });
   if(!types.length && scope!=='graduated'){ toast('印刷する種別を1つ以上えらんでください'); return; }
+  /* ★2026-09-07 川上さん確定：覚える一覧も教材で絞れる。ただし任意＝空なら全教材から。
+     選んだ範囲は仕上げプリントと同じ localStorage を使う（テスト範囲は同じもののため）。
+     消したいときは教材えらびの「クリア」を押す。 */
+  var lmats=Object.keys(printMat);
+  try{ localStorage.setItem('kwt_print_mats',lmats.join(',')); }catch(e){}
   localStorage.setItem('kwt_print_scope',scope);localStorage.setItem('kwt_print_days',days);localStorage.setItem('kwt_print_limit',limit);localStorage.setItem('kwt_print_types',types.join(','));
   tmErr_('');
-  runPrint_(ids,scope,days,limit,types.join(','));   /* 閉じるのは中で「作れる」と分かってから 2026-09-02⑬ */
+  runPrint_(ids,scope,days,limit,types.join(','),lmats.join(','));   /* 閉じるのは中で「作れる」と分かってから 2026-09-02⑬ */
 }
 /* 教材の表示順：毎日学習→単元別対策、その中は 教科→本→display_order
    ※シートの行順に依存しない。教材が増えても探しやすさを保つ */
