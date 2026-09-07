@@ -4472,6 +4472,8 @@ function _ptRestore_(){
   var w=$('pt-wrap'); if(w){ w.innerHTML=''; w.style.display='none'; }
 }
 /* 本文の（よみ）を小さいグレーにする。漢字と同じ大きさだと行が重くなる（モックの .yomi と同じ） */
+/* 穴の番号。①〜⑳はその文字、それ以上は (21) の形。2026-09-07 */
+function _ptNo_(n){ return (n>=1&&n<=20)?String.fromCharCode(0x2460+n-1):('('+n+')'); }
 function _ptYomi_(html){ return html.replace(/[（(]([ぁ-んァ-ヶーゝゞ・]+)[）)]/g,'<span class="yomi">（$1）</span>'); }
 function _ptHtml_(s,d){
   var url=_ptFig_(s,d);
@@ -4479,6 +4481,10 @@ function _ptHtml_(s,d){
    +'<div class="pt-h"><div class="pt-ic"><i class="ti ti-bulb"></i></div><div class="pt-t">はじめる<ruby>前<rt class="uf">まえ</rt></ruby>に</div></div>';
   if(url)h+='<div class="pt-fig"><img src="'+esc(url)+'" alt="" loading="lazy"></div>';
   h+='<div class="pt-body">';
+  /* 穴に番号を振る。同じ語が2か所に出たら同じ番号にして、1回答えれば両方が埋まる（2026-09-07 川上さん確定）。
+     川上さん＝「おなじ穴埋め番号にすばいいんじゃない？」 */
+  var _no={}, _nn=0;
+  d.blanks.forEach(function(w){ if(!_no[w]){ _nn++; _no[w]=_nn; } });
   d.body.split('\n').forEach(function(line){
     if(!line.trim())return;
     var parts=[],last=0,re=/\[\[(.+?)\]\]/g,m;
@@ -4488,9 +4494,9 @@ function _ptHtml_(s,d){
       var cs=(d.ch[w]||[]).slice(); cs.unshift(w);
       /* 更新ボタンで描き直すとき、埋めた穴はそのまま復元する（やり直しにしない・飛ばせない） */
       var st=(s._ptFilled||{})[w];
-      parts.push('<span class="bl'+(st?(' done'+(st==='miss'?' miss':'')):'')+'" role="button" tabindex="0" data-a="'+esc(w)+'" data-c="'+esc(cs.join('|'))+'">'
+      parts.push('<span class="bl'+(st?(' done'+(st==='miss'?' miss':'')):'')+'" role="button" tabindex="0" data-a="'+esc(w)+'" data-n="'+_no[w]+'" data-c="'+esc(cs.join('|'))+'">'
         +'<span class="gh">'+esc(w)+(y?'<span class="yomi">（'+esc(y)+'）</span>':'')+'</span>'
-        +'<span class="q">？</span></span>');
+        +'<span class="q">'+_ptNo_(_no[w])+'</span></span>');
       last=m.index+m[0].length;
     }
     parts.push(_ptYomi_(esc(line.slice(last))));
@@ -4512,7 +4518,8 @@ function _ptShow_(s){
   _ptHide_();
   var card=wrap.querySelector('.pointcard'), busy=false;
   function sync(){
-    var rest=card.querySelectorAll('.bl:not(.done)').length;
+    var _r={}; Array.prototype.forEach.call(card.querySelectorAll('.bl:not(.done)'),function(x){_r[x.getAttribute('data-a')]=1;});
+    var rest=Object.keys(_r).length;   /* 同じ番号の穴は1つと数える 2026-09-07 */
     card.querySelector('.pt-left').textContent=rest?('あと'+rest+'つ'):'';
     var g=$('pt-go'); if(g)g.disabled=rest>0;
   }
@@ -4540,12 +4547,20 @@ function _ptShow_(s){
     fb.textContent=ok?'正解！':'こっちだね';
     b.appendChild(fb);
     b.classList.remove('open');
-    b.classList.add('lit');
+    Array.prototype.forEach.call(card.querySelectorAll('.bl'),function(x){
+      if(x.getAttribute('data-a')===b.getAttribute('data-a')){ x.classList.remove('open'); x.classList.add('lit'); }
+    });
     if(!ok){ b.classList.add('shake'); setTimeout(function(){b.classList.remove('shake');},320); }
     setTimeout(function(){
       b.classList.remove('lit');
-      b.classList.add('done'); if(!ok)b.classList.add('miss');
-      (s._ptFilled||(s._ptFilled={}))[b.getAttribute('data-a')]=ok?'ok':'miss';
+      /* 同じ番号の穴（同じ語がもう一度出てくるところ）もまとめて埋める 2026-09-07 */
+      var _a=b.getAttribute('data-a');
+      Array.prototype.forEach.call(card.querySelectorAll('.bl'),function(x){
+        if(x.getAttribute('data-a')!==_a)return;
+        x.classList.remove('lit','open');
+        x.classList.add('done'); if(!ok)x.classList.add('miss');
+      });
+      (s._ptFilled||(s._ptFilled={}))[_a]=ok?'ok':'miss';
       setTimeout(function(){ if(fb.parentNode)fb.parentNode.removeChild(fb); busy=false; after(); },520);
     }, ok?680:820);
   }
@@ -4555,15 +4570,20 @@ function _ptShow_(s){
      箱（.pt-pick）も作り直さない。中のボタンだけ入れ替える＝高さが消えて戻る動きを起こさない */
   function openBl(b){
     Array.prototype.forEach.call(card.querySelectorAll('.bl.open'),function(x){x.classList.remove('open');});
-    b.classList.add('open');
+    /* 同じ番号の穴は一緒に開く（どこを聞かれているか分かるように）2026-09-07 */
+    Array.prototype.forEach.call(card.querySelectorAll('.bl'),function(x){
+      if(x.getAttribute('data-a')===b.getAttribute('data-a'))x.classList.add('open');
+    });
     var cs=b.getAttribute('data-c').split('|').slice();
     for(var i=cs.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=cs[i];cs[i]=cs[j];cs[j]=t;}
     var box=card.querySelector('.pt-pick');
     if(!box){
       box=document.createElement('div'); box.className='pt-pick';
-      box.innerHTML='<div class="pt-pl">〔 ？ 〕に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語句<rt class="uf">ごく</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう</div><div class="pt-chs"></div>';
+      box.innerHTML='<div class="pt-pl"></div><div class="pt-chs"></div>';
       card.querySelector('.pt-body').insertAdjacentElement('afterend',box);
     }
+    var _pl=box.querySelector('.pt-pl');
+    if(_pl)_pl.innerHTML='〔 '+_ptNo_(Number(b.getAttribute('data-n')||1))+' 〕に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語句<rt class="uf">ごく</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
     var chs=box.querySelector('.pt-chs');
     chs.innerHTML=cs.map(function(c){return '<button class="pt-ch" type="button" data-v="'+esc(c)+'">'+esc(c)+'</button>';}).join('');
     Array.prototype.forEach.call(chs.querySelectorAll('.pt-ch'),function(btn){
