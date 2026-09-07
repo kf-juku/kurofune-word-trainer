@@ -298,7 +298,10 @@
   .fs-back .fs-qr-ng{border:1.4px dashed #1f56b0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#1f56b0;text-align:center;line-height:1.3;padding:2mm;box-sizing:border-box;}
   .fs-back .fs-bt{font-size:11.5px;line-height:1.6;}
   .fs-back .fs-code{font-size:17px;font-weight:800;letter-spacing:.12em;color:#1f56b0;}
-  .fs-foot{margin-top:auto;padding-top:4px;display:flex;justify-content:space-between;font-size:9.5px;color:#999;}
+  .fs-foot{margin-top:auto;padding-top:4px;display:flex;justify-content:space-between;gap:8px;font-size:9.5px;color:#999;}
+  /* 2ページ目以降は見出し帯が無いので、誰の紙かはフッタで示す（川上さん確定 2026-09-07）。
+     ★必ず nowrap。折り返すとフッタの高さが変わり、測った高さと描いた高さがずれてページ割りが動く。 */
+  .fs-foot span{white-space:nowrap;}
   @media print{
     /* 1ページ＝1コンテナ。仕切り(.p-filler)を間にはさむので :last-child に頼らず「前で改ページ」にする */
     .fs-page{page-break-before:always;}
@@ -2294,13 +2297,24 @@ function fsHeadHtml_(ctx,ttl,scope,tag,score){
     +'<div class="fs-meta">'+esc(ctx.date)+' ／ 全'+ctx.total+'問 ／ '+esc(ctx.code)+'</div></div>'
     +'</div>';
 }
+/* ---- 見出し帯を出すのは「問題の1ページ目」と「解答と解説の1ページ目」だけ（川上さん確定 2026-09-07）----
+   きっかけ＝川上さん「解説が埋まって、問題の最後の1ページがスカスカ。タイトルが全ページにデカデカと入ってる」。
+   紙の問題数を決めているのは答え（解説）側の容量＝fsBuildSheet_ は答えに入りきらないぶんを
+   問題側もろとも後ろから落とす。だから答えページの帯を減らすと、そのぶん問題数がまるごと増える。
+   ★2ページ目以降は帯を出さない代わりに、生徒名・学年をフッタ（fsFootHtml_）に入れる。
+     入れないと、紙がバラけたとき誰の紙か分からなくなる。
+   ★測る側（fsFillQPages_ / fsFillAPages_）と描く側（fsDrawSheet_）で必ず同じものを通す。
+     片方だけ直すとページ割りがずれる。 */
+function fsHeadPageHtml_(ctx,tag,first,score){
+  return first ? fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,tag,score) : '';
+}
 /* 【2026-09-02 廃止】リード行（「答えはうしろの紙。N〜M番を…」＋得点らん）はもう出さない。
    ・文＝川上さん確定で廃止。問題か解答と解説かは見出しの札で示す
    ・得点らん＝見出し帯の中へ移した
    ★この関数はもう呼ばれていない。復活させない（1段で足りるものを2段にしない）。 */
 function fsFootHtml_(ctx,label){
   return '<div class="fs-foot"><span>Kurofune Word Trainer ／ 仕上げプリント</span>'
-    +'<span>'+esc(ctx.code)+' ／ '+esc(label)+'</span></div>';
+    +'<span>'+esc(ctx.name)+(ctx.grade?('　'+esc(ctx.grade)):'')+' ／ '+esc(ctx.code)+' ／ '+esc(label)+'</span></div>';
 }
 function fsQBodyHtml_(it,no){
   return '<div class="fs-q"><div class="fs-n">'+no+'</div><div class="fs-b">'
@@ -2531,6 +2545,8 @@ function fsQrHtml_(code){
   return '<svg class="fs-qr" width="28mm" height="28mm" viewBox="0 0 '+side+' '+side+'" shape-rendering="crispEdges" role="img" aria-label="'+esc(url)+'">'
     +'<rect width="'+side+'" height="'+side+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';
 }
+/* 答え合わせのQR（32mm）。★置き場は固定しない＝「余っているほうの紙」に置く。
+   決めているのは fsBuildSheet_（そこのコメントが正）。2026-09-07 川上さん確定 */
 function fsBackHtml_(ctx){
   return '<div class="fs-back">'+fsQrHtml_(ctx.code)+'<div class="fs-bt">'
     +'丸つけが終わったら、クロトレの「<b>紙の答え合わせ</b>」を開いて、○×をそのまま入力する。'
@@ -2538,15 +2554,16 @@ function fsBackHtml_(ctx){
     +'入力すると、○がついた語は記録に入る。</div></div>';
 }
 /* ---- 問題ページを「入るだけ」詰める（§3-3）。戻り値＝ページごとの中身 ---- */
-function fsFillQPages_(units,ctx,roomy,usable){
+function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
   var probe=fsProbe_(roomy);
   var figQ=[],txtQ=[];
   units.forEach(function(u){ (u.type==='fig'?figQ:txtQ).push(u); });
   var pages=[], no=1, fi=0, ti=0;
   for(var p=0;p<FS_QPAGE_MAX_ && (fi<figQ.length||ti<txtQ.length);p++){
     var pg={figs:[],texts:[]};
-    probe.innerHTML='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'問題',p===0)
+    probe.innerHTML='<div class="fs-page">'+fsHeadPageHtml_(ctx,'問題',p===0,p===0)
       +'<div class="fs-figs"></div><div class="fs-grid"></div>'
+      +((qrFirst&&p===0)?fsBackHtml_(ctx):'')   /* QRを問題の1ページ目に置くとき（fsBuildSheet_ が決める）*/
       +fsFootHtml_(ctx,'　')+'</div>';
     var pageEl=probe.firstChild, figHost=probe.querySelector('.fs-figs'), grid=probe.querySelector('.fs-grid');
     var placed=0;
@@ -2562,17 +2579,33 @@ function fsFillQPages_(units,ctx,roomy,usable){
       if(pageEl.offsetHeight>usable){ grid.removeChild(node2); break; }
       pg.texts.push({item:txtQ[ti].item,no:no}); no++; ti++;
     }
+    /* ★このページの中を「似たものを隣に」並べ替えてから、もう一度高さを測る（2026-09-07）。
+       文章問題は2列のグリッドなので、**並べ替えると行の相方が変わって高さが変わる**。
+       1行の問題と2行の問題がどう対になるかで、実測で 261.7mm → 271.5mm まで伸びた。
+       旧＝全ページ詰め終わったあとにまとめて並べ替えていた（2026-09-02。「中身を変えないから
+       高さも動かない」と書いてあったが、2列グリッドでは動く）。
+       はみ出したら、並べ替えたあとの最後の1問を次のページへ回して測り直す。 */
+    if(pg.texts.length){
+      for(var g2=0; g2<200; g2++){
+        var sorted=fsGroupSort_(pg.texts.map(function(t){return t.item;}));
+        grid.innerHTML='';
+        sorted.forEach(function(it){ grid.insertAdjacentHTML('beforeend', fsQBodyHtml_(it,1)); });
+        if(pageEl.offsetHeight<=usable){ pg.texts=sorted.map(function(it){ return {item:it,no:0}; }); break; }
+        var back=sorted[sorted.length-1];
+        pg.texts=pg.texts.filter(function(t){ return t.item!==back; });
+        txtQ.splice(ti,0,{type:'write',item:back,n:1}); /* 次のページで拾い直す */
+        if(!pg.texts.length) break;
+      }
+    }
     if(!pg.figs.length && !pg.texts.length) break;
     pages.push(pg);
   }
   if(probe.parentNode) document.body.removeChild(probe);
-  /* ★詰め終わってから、ページの中だけ「似たものを隣に」並べ替えて番号を振り直す（2026-09-02）。
-     取る順（教材を散らす）と紙の並び（似たものを隣に）を分ける。
-     ページの中身は1問も変えないので、測った高さもページ数も動かない。 */
+  /* 番号を振り直すだけ。並べ替えはページを詰めるときに済ませてある（2026-09-07 に上へ移した）。
+     取る順（教材を散らす）と紙の並び（似たものを隣に）を分ける考え方は2026-09-02のまま。 */
   var rn=1;
   pages.forEach(function(pg2){
     pg2.figs.forEach(function(f){ f.start=rn; rn+=f.block.items.length; });
-    pg2.texts=fsGroupSort_(pg2.texts.map(function(t){return t.item;})).map(function(it){ return {item:it,no:0}; });
     pg2.texts.forEach(function(t){ t.no=rn++; });
   });
   return pages;
@@ -2587,11 +2620,11 @@ function fsFlat_(qpages){
   return out;
 }
 /* ---- 答えページを「入るだけ」詰める。戻り値＝ページごとの行数 ---- */
-function fsFillAPages_(flat,ctx,usable){
+function fsFillAPages_(flat,ctx,usable,qrLast){
   var probe=fsProbe_(false);
-  var fill=function(startIdx,withBack,label){
-    probe.innerHTML='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'解答と解説')+fsAnsBandHtml_()
-      +fsAnsTableHtml_('')+(withBack?fsBackHtml_(ctx):'')+fsFootHtml_(ctx,label)+'</div>';
+  var fill=function(startIdx,withBack,label,first){
+    probe.innerHTML='<div class="fs-page">'+fsHeadPageHtml_(ctx,'解答と解説',first,false)+(first?fsAnsBandHtml_():'')
+      +fsAnsTableHtml_('')+((qrLast&&withBack)?fsBackHtml_(ctx):'')+fsFootHtml_(ctx,label)+'</div>';
     var pageEl=probe.firstChild, tb=probe.querySelector('tbody'), n=0;
     for(var i=startIdx;i<flat.length;i++){
       var box=document.createElement('tbody'); box.innerHTML=fsAnsRowHtml_(flat[i].item,flat[i].no);
@@ -2602,13 +2635,15 @@ function fsFillAPages_(flat,ctx,usable){
     return n;
   };
   /* 前のページから順に詰める。残りが「QRを載せた1ページ」に収まったら、そこが最後のページ。
-     FS_APAGE_MAX_ ページで足りないぶんは fsBuildSheet_ が問題側もろとも後ろから落とす。2026-09-02 */
+     FS_APAGE_MAX_ ページで足りないぶんは fsBuildSheet_ が問題側もろとも後ろから落とす。2026-09-02
+     ★qrLast が false のとき（QRを問題用紙へ回したとき）は withBack が効かないので、
+       この仕掛けはそのまま「ただ前から詰める」動きになる。 */
   var counts=[], ai=0;
   for(var ap=0; ap<FS_APAGE_MAX_ && ai<flat.length; ap++){
-    var withBack=fill(ai,true,'　');
+    var withBack=fill(ai,true,'　',ap===0);
     if(ai+withBack>=flat.length){ counts.push(flat.length-ai); ai=flat.length; break; }
     if(ap===FS_APAGE_MAX_-1){ counts.push(withBack); ai+=withBack; break; }
-    var nn=fill(ai,false,'　');
+    var nn=fill(ai,false,'　',ap===0);
     if(!(nn>0)) break;
     /* ★このページで残りが尽きると、QRを測っていないページが最後のページになってしまう
        （QRは最後のページにだけ載る＝fsDrawSheet_）。そうなると描いたときだけ紙からあふれる。
@@ -2620,6 +2655,17 @@ function fsFillAPages_(flat,ctx,usable){
   return counts;
 }
 /* ---- 1人ぶんの紙を「組む」（測って中身を決めるところまで。描かない）2026-08-31 段4 ---- */
+/* ★QRは「余っているほうの紙」に置く（川上さん確定 2026-09-07）。
+   ・紙の問題数を決めているのは、問題側と答え側の**少ないほう**
+   ・QRの箱は32mm。詰まっているほうの紙に置くと、その32mmぶん問題数がまるごと減る
+   ・どちらが詰まるかは範囲で変わる。実測（在籍48名）＝
+       FD中2（九州・中国四国・近畿・中部／解説が長い）＝答え側が上限。
+         QRを答えの最後 55.8問／問題の1ページ目 58.9問
+       FD中1（アジア・ヨーロッパ・生活と環境・日本の姿／解説が短い）＝問題側が上限。
+         QRを答えの最後 62.9問／問題の1ページ目 58.9問（**移すと減る**）
+   ・なので置き場を固定しない。まず今までどおり答えの最後で組み、
+     **答え側が上限だったときだけ**QRを問題の1ページ目へ移して組み直し、問題数が多いほうを採る
+   ・組み直しは1人あたり0.1秒ほど。上限になっている生徒だけなので、48名で数秒 */
 function fsBuildSheet_(st,base){
   var pick=fsPick_(st.items||[]);
   var units=fsUnits_(pick);
@@ -2627,36 +2673,46 @@ function fsBuildSheet_(st,base){
   var roomy=(pick.blocks.length===0);          /* 図が無い教科は解答欄を広げて紙を使い切る（§3-3） */
   var ppm=fsPxPerMm_(), usable=FS_PAGE_MM_*ppm;
   var est=0; units.forEach(function(u){est+=u.n;});
-  var ctx={name:st.name||'(無名)',grade:st.grade||'',date:base.date,code:base.code,scope:base.scope,
-           total:Math.min(est,FS_LIMIT_)};
-  var qp=fsFillQPages_(units,ctx,roomy,usable);
-  var flat=fsFlat_(qp);
-  if(!flat.length) return null;
-  var ac=fsFillAPages_(flat,ctx,usable);
-  var R=0; ac.forEach(function(n){R+=n;});
-  if(R<flat.length){
-    /* 答えの紙のほうが少ない＝そちらに合わせる。紙の後ろの単位から丸ごと落とす（図ブロックを半分にしない） */
-    var seq=[];
-    qp.forEach(function(pg){
-      pg.figs.forEach(function(f){ seq.push({type:'fig',block:f.block,n:f.block.items.length}); });
-      pg.texts.forEach(function(t){ seq.push({type:'write',item:t.item,n:1}); });
-    });
-    var tot=0; seq.forEach(function(u){tot+=u.n;});
-    while(seq.length && tot>R){ tot-=seq[seq.length-1].n; seq.pop(); }
-    if(!seq.length) return null;
-    qp=fsFillQPages_(seq,ctx,roomy,usable);
-    flat=fsFlat_(qp);
+  var mk=function(qrOn){
+    var ctx={name:st.name||'(無名)',grade:st.grade||'',date:base.date,code:base.code,scope:base.scope,
+             total:Math.min(est,FS_LIMIT_)};
+    var q1=(qrOn==='q1');
+    var qp=fsFillQPages_(units,ctx,roomy,usable,q1);
+    var flat=fsFlat_(qp);
     if(!flat.length) return null;
-    ac=fsFillAPages_(flat,ctx,usable);
+    var ac=fsFillAPages_(flat,ctx,usable,!q1);
+    var R=0; ac.forEach(function(n){R+=n;});
+    var tight=(R<flat.length);      /* 答えの紙のほうが少ない＝答え側が上限 */
+    if(tight){
+      /* そちらに合わせる。紙の後ろの単位から丸ごと落とす（図ブロックを半分にしない） */
+      var seq=[];
+      qp.forEach(function(pg){
+        pg.figs.forEach(function(f){ seq.push({type:'fig',block:f.block,n:f.block.items.length}); });
+        pg.texts.forEach(function(t){ seq.push({type:'write',item:t.item,n:1}); });
+      });
+      var tot=0; seq.forEach(function(u){tot+=u.n;});
+      while(seq.length && tot>R){ tot-=seq[seq.length-1].n; seq.pop(); }
+      if(!seq.length) return null;
+      qp=fsFillQPages_(seq,ctx,roomy,usable,q1);
+      flat=fsFlat_(qp);
+      if(!flat.length) return null;
+      ac=fsFillAPages_(flat,ctx,usable,!q1);
+    }
+    ctx.total=flat.length;
+    /* 紙の1番＝flat の0番目。この並びをそのまま print_sets に保存する（あとから引き直さない＝
+       印刷から答え合わせまでのあいだに行の状態が変わっても、○×が別の語に入らない）2026-08-31 */
+    return {student_id:String(st.student_id||''),ctx:ctx,qp:qp,ac:ac,flat:flat,roomy:roomy,qrOn:qrOn,tight:tight,
+            tailOdd:(ac.length%2===1), total:flat.length, figs:pick.blocks.length,
+            word_ids:flat.map(function(f){return String(f.item.word_id||'');}),
+            review_ids:flat.map(function(f){return String(f.item.review_id||'');}),
+            progress_ids:flat.map(function(f){return String(f.item.progress_id||'');})};
+  };
+  var b=mk('answer');
+  if(b && b.tight){
+    var b2=mk('q1');
+    if(b2 && b2.total>b.total) b=b2;   /* 増えたときだけ乗り換える＝移して減る生徒には移さない */
   }
-  ctx.total=flat.length;
-  /* 紙の1番＝flat の0番目。この並びをそのまま print_sets に保存する（あとから引き直さない＝
-     印刷から答え合わせまでのあいだに行の状態が変わっても、○×が別の語に入らない）2026-08-31 */
-  return {student_id:String(st.student_id||''),ctx:ctx,qp:qp,ac:ac,flat:flat,roomy:roomy,
-          tailOdd:(ac.length%2===1), total:flat.length, figs:pick.blocks.length,
-          word_ids:flat.map(function(f){return String(f.item.word_id||'');}),
-          review_ids:flat.map(function(f){return String(f.item.review_id||'');}),
-          progress_ids:flat.map(function(f){return String(f.item.progress_id||'');})};
+  return b;
 }
 /* ---- 組んだものを「描く」。セット番号（b.ctx.code）を差し込んでから呼ぶ ---- */
 /* 何枚目の表／裏か。問題は1枚目から、答えは問題が使った枚数の次から。2026-09-02 */
@@ -2672,8 +2728,9 @@ function fsDrawSheet_(b){
     var g='';
     pg.texts.forEach(function(t){ g+=fsQBodyHtml_(t.item,t.no); idx++; });
     var to=idx;
-    h+='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'問題',i===0)
+    h+='<div class="fs-page">'+fsHeadPageHtml_(ctx,'問題',i===0,i===0)
       +body+'<div class="fs-grid">'+g+'</div>'
+      +((b.qrOn==='q1'&&i===0)?fsBackHtml_(ctx):'')
       +fsFootHtml_(ctx,fsSheetLabel_(1,i)+'（問題'+from+'〜'+to+'）')+'</div>';
   });
   if(qp.length%2===1) h+='<div class="p-filler"></div>';   /* 問題と答えを同じ紙の表裏にしない */
@@ -2682,8 +2739,8 @@ function fsDrawSheet_(b){
     var rows='',from=ai+1;
     for(var k=0;k<n;k++){ rows+=fsAnsRowHtml_(flat[ai].item,flat[ai].no); ai++; }
     var last=(i===ac.length-1);
-    h+='<div class="fs-page">'+fsHeadHtml_(ctx,'仕上げプリント',ctx.scope,'解答と解説')+fsAnsBandHtml_()
-      +fsAnsTableHtml_(rows)+(last?fsBackHtml_(ctx):'')
+    h+='<div class="fs-page">'+fsHeadPageHtml_(ctx,'解答と解説',i===0,false)+(i===0?fsAnsBandHtml_():'')
+      +fsAnsTableHtml_(rows)+((b.qrOn!=='q1'&&last)?fsBackHtml_(ctx):'')
       +fsFootHtml_(ctx,fsSheetLabel_(qSheets+1,i)+'（答え'+from+'〜'+ai+'）')+'</div>';
   });
   return '<div class="fs-sheet'+(roomy?' fs-roomy':'')+'">'+h+'</div>';
