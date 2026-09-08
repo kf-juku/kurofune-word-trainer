@@ -863,6 +863,7 @@
   .mp-q .qb{font-size:10px;font-weight:800;border-radius:6px;padding:1px 6px;flex-shrink:0;}
   .mp-q .qb.fig{background:#eef6ff;color:#1f6feb;}
   .mp-q .qb.tbl{background:#fff3e6;color:#b5710a;}
+  .mp-q .qb.snt{background:#eaf7f0;color:#127a4c;}   /* 文の問題（聞く・穴うめ・語順）2026-09-08 */
   .mp-prompt{font-size:12px;color:var(--text);margin:1px 0 5px 32px;line-height:1.55;}
   .mp-prompt .lbl{display:inline-block;font-size:10px;font-weight:800;color:#1f6feb;background:#eef6ff;border-radius:5px;padding:1px 6px;margin-right:6px;}
   /* プレビューのインライン編集（フォーカスアウトで自動保存）2026-07-21 */
@@ -4043,6 +4044,10 @@ function openMatPreview(mid){
         var badge='';
         if(w.qtype==='image_fill')badge='<span class="qb fig">図</span>';
         else if(w.qtype==='table_fill')badge='<span class="qb tbl">表</span>';
+        /* 文の問題 2026-09-08。バッジが無いと、語の4択と見分けがつかない＝検品で見落とす */
+        else if(w.qtype==='listen')badge='<span class="qb snt">聞く</span>';
+        else if(w.qtype==='sentence_fill')badge='<span class="qb snt">穴うめ</span>';
+        else if(w.qtype==='reorder')badge='<span class="qb snt">語順</span>';
         h+='<div class="mp-word">';
         h+='<div class="mp-q"><span class="no">'+(i+1)+'</span><span style="flex:1"></span>'+badge+'</div>';
         // 答え（english）
@@ -4053,13 +4058,23 @@ function openMatPreview(mid){
           else{h+='<div class="mp-row"><span class="mpl">問題文</span><span class="mp-ro-note">番号方式：生徒には「'+(w.num?('『'+esc(w.num)+'』が指す部分の名前をえらぼう'):'図を見て名前をえらぶ')+'」と出ます（番号・図は編集対象外）</span></div>';}
         }else if(w.qtype==='table_fill'){
           h+='<div class="mp-row"><span class="mpl">問題文</span><span class="mp-ro-note">表穴埋め：生徒には「表の空欄に入る形をえらぼう」と出ます</span></div>';
+        }else if(w.qtype==='listen'){
+          h+='<div class="mp-row"><span class="mpl">出し方</span><span class="mp-ro-note">聞く：音だけ流して、意味（日本語）を4つから選ばせます。英文は画面に出ません。答え＝下の「問題文」</span></div>';
+          h+=mpEdRow_(w.id,'japanese','問題文',w.japanese);
+        }else if(w.qtype==='sentence_fill'){
+          h+='<div class="mp-row"><span class="mpl">出し方</span><span class="mp-ro-note">穴うめ：英文の1語を空欄にして、入る語を4つから選ばせます。空欄の場所は qdata の blank（何語目か）で決まります</span></div>';
+          h+=mpEdRow_(w.id,'japanese','問題文',w.japanese);
+        }else if(w.qtype==='reorder'){
+          h+='<div class="mp-row"><span class="mpl">出し方</span><span class="mp-ro-note">語順：語をタップして□に並べさせます。語群は素材(asset)の tokens。全部小文字（I と固有名詞だけ大文字）</span></div>';
+          h+=mpEdRow_(w.id,'japanese','問題文',w.japanese);
         }else{
           h+=mpEdRow_(w.id,'japanese','問題文',w.japanese);
         }
         // 答えの読み
         h+=mpEdRow_(w.id,'reading_hint','読み',w.reading_hint);
         // 選択肢の誤答（英→日＝文4択の choices_ja）＝インライン編集（1行1つ・3つ）。正解は「問題文」。2026-07-28
-        if(_isEng&&w.qtype!=='image_fill'&&w.qtype!=='table_fill'){
+        var _isSentQT=(w.qtype==='listen'||w.qtype==='sentence_fill'||w.qtype==='reorder');   /* 文の問題 2026-09-08 */
+        if(_isEng&&w.qtype!=='image_fill'&&w.qtype!=='table_fill'&&(!_isSentQT||w.qtype==='listen')){
           h+=mpEdRow_(w.id,'choices_ja','誤答3つ',(w.choices_ja||[]),'multiline');
         }
         // 図（設問の画像・編集対象外）
@@ -4069,7 +4084,7 @@ function openMatPreview(mid){
         }
         // 選択肢（1行1つ・4つ）＝図・表に加えて理社/国語の文字4択でも出す。2026-08-19
         //   英→日の文4択だけは上の「誤答3つ（choices_ja）」が担当なので、ここでは出さない（二重表示を避ける）。
-        if(w.choices&&w.choices.length&&!(_isEng&&w.qtype!=='image_fill'&&w.qtype!=='table_fill')){
+        if(w.choices&&w.choices.length&&(w.qtype==='sentence_fill'||!(_isEng&&w.qtype!=='image_fill'&&w.qtype!=='table_fill'))){
           h+=mpEdRow_(w.id,'choices','選択肢',w.choices,'multiline');
         }
         // 解説

@@ -1352,6 +1352,35 @@
   .fic.skip{background:var(--ring-track);color:var(--sub);}
   .fbtn:active{transform:translateY(2px) scale(.98);}
   #btn-mic.rec{background:var(--ng);}
+/* ===== 文の問題（listen / sentence_fill / reorder）2026-09-08 =====
+   正＝要件定義書_英検教材_Kurofune-Word-Trainer.md §5・§7／教材作成基準 §2-6。
+   クラス名は sq-／ro- で始める。素の .chip はホーム画面の実績ピルで先に使われているので衝突させない。 */
+  .sq-ask{text-align:center;color:var(--sub);font-size:13.5px;font-weight:700;margin:2px 0 10px;}
+  .sq-spk{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:24px 15px;border:1px solid var(--line);border-radius:18px;background:var(--accent-soft);color:var(--accent);font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;margin:6px 0 16px;}
+  .sq-spk:active{transform:scale(.99);}
+  .sq-spk i{font-size:25px;}
+  .sq-sent{font-size:25px;font-weight:700;text-align:center;line-height:1.5;margin:10px 0 6px;}
+  .sq-bl{display:inline-block;min-width:74px;border-bottom:3px solid var(--accent);margin:0 4px;vertical-align:-2px;}
+  .sq-ja{text-align:center;color:var(--sub);font-size:14px;margin-bottom:14px;}
+  /* 並び替え：□が語数ぶん並ぶ（あとで不要語を入れてもそのまま使える形にしてある） */
+  .ro-slots{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;min-height:48px;margin:4px 0 14px;padding:10px 6px;border-radius:14px;background:var(--neutral-ic);}
+  /* 空き□は全部おなじ幅。記号のところだけ細くすると「カンマはここ」が見えてしまう */
+  .ro-sl{min-width:58px;height:48px;border:2px dashed var(--line);border-radius:12px;box-sizing:border-box;}
+  .ro-chip{height:48px;min-width:58px;padding:0 14px;display:flex;align-items:center;justify-content:center;font-family:inherit;font-size:17px;font-weight:700;border:none;border-radius:12px;background:var(--accent-soft);color:var(--accent);cursor:grab;touch-action:none;user-select:none;box-sizing:border-box;transition:opacity .12s;}
+  .ro-chip.pn{min-width:38px;padding:0 10px;}
+  .ro-chip.dragging{opacity:.22;}
+  .ro-chip.ng{background:rgba(224,83,60,.14);color:var(--ng);cursor:default;}
+  .ro-chip.okc{background:rgba(31,170,107,.14);color:var(--ok);cursor:default;}
+  .ro-chip.ghost{position:fixed;pointer-events:none;z-index:99;box-shadow:0 10px 26px rgba(10,108,255,.28);transform:scale(1.06);opacity:.96;cursor:grabbing;}
+  .ro-slots.shake{animation:shake .3s;}
+  .ro-hint{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--sub);font-size:12px;margin:-4px 0 12px;}
+  .ro-hint svg{display:block;color:var(--accent);opacity:.85;}
+  .ro-hint span{white-space:nowrap;}
+  .ro-bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:48px;margin-bottom:4px;}
+  .ro-tok{height:48px;min-width:58px;padding:0 14px;display:flex;align-items:center;justify-content:center;font-family:inherit;font-size:17px;font-weight:700;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);cursor:pointer;box-shadow:var(--shadow);box-sizing:border-box;}
+  .ro-tok.pn{min-width:38px;padding:0 10px;}
+  .ro-tok:active{transform:scale(.96);}
+  .ro-tok:disabled{opacity:.45;cursor:default;}
 /* ===== 表穴埋め（table_fill・問題タイプ拡張）2026-07-05 ===== */
 .tf-title{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px;text-align:center}
 .imgq-ask{font-size:18px;font-weight:800;color:var(--ink);text-align:center;line-height:1.5;margin:2px 4px 5px}
@@ -1659,6 +1688,12 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       </div>
       <div class="card" id="step-tf" style="display:none;">
         <div id="tf-table"></div><p class="center muted" id="tf-ask" style="margin:10px 0 14px;">□に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>形<rt class="uf">かたち</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう</p><div id="tf-choices"></div>
+      </div>
+      <!-- 文の問題（listen / sentence_fill / reorder）2026-09-08。中身は renderSENT が組む -->
+      <div class="card" id="step-sent" style="display:none;">
+        <div class="sq-ask" id="sent-ask"></div>
+        <div id="sent-body"></div>
+        <div id="sent-choices"></div>
       </div>
       <button class="listen-btn" id="btn-listen" type="button" style="display:none;"><i class="ti ti-volume"></i> <span><ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く</span></button>
       <div class="explain" id="explain" style="display:none;">
@@ -4126,7 +4161,14 @@ function _actSes(){return _quizSes;}
 /* 【2026-08-26】間違いノートの「今日の10語」は教科が混ざる（的から7語＋残りを古い順）。
    おさらい(srs)と同じく、語ごとの subject を先に見る。語に subject が無いとき（古いGAS）はセッションの教科に落ちる。 */
 function _wIsEng(s,w){ if(!s)return true; if(s.mode==='srs'||s.mode==='note')return ((w&&w.subject)||s.subject)==='english'; if(s.isEnglish!==undefined)return s.isEnglish!==false; return (s.subject||'english')==='english'; }
-function _startStepFor(s,w){ return _wIsEng(s,w) ? (s.mode==='daily'?1:2) : 3; } // 英語=毎日は発音1/復習は意味2、用語=英語3から
+function _startStepFor(s,w){ return _wIsEng(s,w) ? (s.mode==='daily'?1:2) : 3; }
+/* ===== MARK_SENTQ_20260908 文の問題（listen / sentence_fill / reorder）=====
+   正＝要件定義書_英検教材_Kurofune-Word-Trainer.md §5・§5c。1行＝1問で終わる。
+   語の3ステップ（発音→意味→日本語→英語）には乗せない＝renderQz_ の頭で分岐して戻る（表・図と同じやり方）。
+   採点の向きは e2j にそろえる。教材は direction=e2j なので、語も文も「意味」の正答率に入り、
+   分母（total＝行数）とそろう。j2e にすると reverse 側に入って正答率が半分に見える。 */
+function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder';}
+function _isOneShot_(w){var q=String((w&&w.qtype)||'');return q==='table_fill'||q==='image_fill'||_isSentQ_(w);} // 英語=毎日は発音1/復習は意味2、用語=英語3から
 function qPresentE2J(w){ $('e2j-label').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';$('e2j-en').textContent=w.english;var _er=$('e2j-reading');if(_er){_er.textContent=w.reading_hint||'';_er.style.display=w.reading_hint?'':'none';} }
 function _promptLabel_(w){ /* 問題タイプでラベルを出し分け（記述→4択/あてはまらない型）。用語・英語は空を返し既定ラベル 2026-08-09 */ var q=(tfParse(w).ask)||w.japanese||''; if(/あてはまらない/.test(q)) return 'あてはまらないものを<ruby>選<rt class="uf">えら</rt></ruby>ぼう'; var a=String(w.english||''); if(/[、。]/.test(a)||(a.length>=12&&/(ため|防ぐ|から|こと)$/.test(a))) return '<ruby>正<rt class="uf">ただ</rt></ruby>しいものを<ruby>選<rt class="uf">えら</rt></ruby>ぼう'; return ''; }
 function qPresentJ2E(w,isEng){ var _pl=isEng?'':_promptLabel_(w); $('j2e-label').innerHTML=_pl||((!isEng)?'<ruby>用語<rt class="uf">ようご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう':'<ruby>英語<rt class="uf">えいご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう');$('j2e-ja').innerHTML=renderQ(w,furiQ);renderFuriBar(w); }
@@ -4134,7 +4176,7 @@ function qPresentJ2E(w,isEng){ var _pl=isEng?'':_promptLabel_(w); $('j2e-label')
    正解を選び直して正解数を増やせた（正答率100%超えも可能だった）＝合格判定のズル。2026-08-20 川上さん報告で修正。
    ミス(pushMiss)は最初の採点で入り、以後この関数を素通りするので間違いノート判定は従来どおり残る。 */
 function _ansKey_(s,which){return s.idx+'_'+which;}
-function _ansWhichNow_(s){var w=(s&&s.words)?s.words[s.idx]:null;var isFig=(w&&(w.qtype==='table_fill'||w.qtype==='image_fill'));return (!isFig&&s&&s.step===2)?'e2j':'j2e';}
+function _ansWhichNow_(s){var w=(s&&s.words)?s.words[s.idx]:null;if(_isSentQ_(w))return 'e2j';var isFig=(w&&(w.qtype==='table_fill'||w.qtype==='image_fill'));return (!isFig&&s&&s.step===2)?'e2j':'j2e';}
 /* ===== ミス問モード（その場で全問正解するまで繰り返す）2026-08-26 =====
    正＝機能仕様書「おさらい改善と弱点集中」§1・§5-3。要件定義書 0.2版。
    ・1周目に間違えた「問題」だけをランダム順で出し直し、全部正解するまで続ける
@@ -4604,7 +4646,7 @@ function renderQz_(s){if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestor
   try{_nowBarSync_(s);}catch(e){}
   var w=s.words[s.idx],tot=s.words.length;
   $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
-  $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';
+  $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';var _sc=$('step-sent');if(_sc)_sc.style.display='none';
   var _fb=$('furi-bar');if(_fb)_fb.style.display='none';
   _kaiImgCur=kaiImgHtml(w,s.assets);_curExW=w;
   // 進捗ラベル（おさらいは教材・パートのタグつき）
@@ -4627,6 +4669,7 @@ function renderQz_(s){if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestor
     $('step-j2e').style.display='block';showListen_(w,_wIsEng(s,w));return;
   }
   if(w.qtype==='image_fill'){renderIMG(s);return;}
+  if(_isSentQ_(w)){renderSENT(s);return;}   /* 文の問題＝1行1問。語のステップに乗せない 2026-09-08 */
   var isEng=_wIsEng(s,w);
   /* 【2026-08-20 川上さん確定】制限時間は全部の画面でそろえる（教科ごと＝英語10秒・理社国語15秒）。
      以前は「間違いノート＝なし／単元別・確認テストの教材＝なし／毎日学習とおさらい＝あり」でバラバラだった。
@@ -4748,6 +4791,193 @@ function renderIMG(ss){
   buildChoices('tf-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},
     {fig:true,fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,promptText:w.japanese,next:s.onNext});
   $('step-tf').style.display='block';showListen_(w,_wIsEng(s,w));
+}
+/* ===== 文の問題（listen / sentence_fill / reorder）レンダラー 2026-09-08 =====
+   正＝要件定義書_英検教材_Kurofune-Word-Trainer.md §5・§5c・§7、教材作成基準 §2-6。
+   ・素材は assets（kind=sentence）の payload：{"en":文,"ja":訳,"tokens":[語群],"audio":mp3のパス}
+   ・語群（tokens）は全部小文字（I と固有名詞だけ大文字）。文から機械で作らない＝May(5月)と may(助動詞)を
+     機械が決められないため、教材データに持たせている（教材作成基準 §2-6）
+   ・「音を聞く」ボタン（btn-listen）は出さない。文をそのまま読み上げると穴埋め・並び替えの答えが分かる */
+var _sentAu=null;
+function _sentSay_(t){try{if(!window.speechSynthesis||!t)return;var u=new SpeechSynthesisUtterance(String(t));u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
+function _sentStop_(){try{if(_sentAu){_sentAu.pause();_sentAu=null;}}catch(e){}try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
+/* mp3 がまだ置かれていない・読めないときは端末の読み上げに落とす＝音声をそろえる前でも出題できる（要件定義書 §6） */
+function _sentPlay_(pl){
+  _sentStop_();
+  var url=String((pl&&pl.audio)||'');
+  if(!url){_sentSay_(pl&&pl.en);return;}
+  try{
+    var au=new Audio(url);_sentAu=au;
+    au.onerror=function(){_sentAu=null;_sentSay_(pl.en);};
+    var p=au.play();if(p&&p['catch'])p['catch'](function(){_sentAu=null;_sentSay_(pl.en);});
+  }catch(e){_sentSay_(pl&&pl.en);}
+}
+function _sentPack_(s,w){var q=tfParse(w);var a=((s&&s.assets)||{})[q.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}return {q:q,pl:pl};}
+/* T-shirt・P.E.・don't は1語として切る（ハイフンとアポストロフィで割らない）＝文のビルドと検査.py と同じ正規表現 */
+function _sentTok_(t){return String(t==null?'':t).match(/P\.E\.|[A-Za-z]+(?:[-'][A-Za-z]+)*|[.,?!]/g)||[];}
+function _sentJoin_(a){return (a||[]).join(' ').replace(/\s+([.,?!])/g,'$1');}
+function _sentIsPn_(t){return /^[.,?!]$/.test(String(t));}
+/* シャッフルが偶然そのままの並びになると、並べ替えが「押すだけ」で正解になる。ずれるまで振り直す 2026-09-08 */
+function _shufNot_(a){var b=shuffle(a);for(var k=0;k<20&&b.join('')===a.join('');k++)b=shuffle(a);return b;}
+
+function renderSENT(ss){
+  var s=ss||session,w=s.words[s.idx],X=_sentPack_(s,w),q=X.q,pl=X.pl,qt=String(w.qtype||'');
+  hideListen_();
+  var ask=$('sent-ask'),body=$('sent-body');
+  $('sent-choices').innerHTML='';body.innerHTML='';
+  $('step-sent').style.display='block';
+  /* 文は読む・聞く時間が要るので、秒数は図・表と同じ枠（fig:true でさらに＋5秒）2026-09-02 の考え方をそのまま使う */
+  var _tl=(s.mode==='note')?0:qSecFor('table_fill');
+  if(qt==='listen'){
+    ask.innerHTML='<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>意味<rt class="uf">いみ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
+    body.innerHTML='<button type="button" class="sq-spk" id="sent-spk"><i class="ti ti-volume"></i><span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
+    $('sent-spk').onclick=function(){_sentPlay_(pl);};
+    _sentPlay_(pl);
+    buildChoices('sent-choices',w.japanese,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
+      {fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext});
+    return;
+  }
+  if(qt==='sentence_fill'){
+    ask.innerHTML='<ruby>文<rt class="uf">ぶん</rt></ruby>に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語<rt class="uf">ご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
+    /* 穴のある文は en から組む＝文頭の大文字がそのまま出る。tokens（全部小文字）は使わない */
+    var tk=_sentTok_(pl.en),bi=(q.blank|0),h='';
+    if(tk.length){
+      var _BL='\u0001';   /* 穴の目印。join したあとで下線に置き換える（記号の前の空白つめを先に効かせるため）*/
+      h=tk.map(function(t,i){return (i===bi)?_BL:esc(t);}).join(' ').replace(/\s+([.,?!])/g,'$1').replace(_BL,'<span class="sq-bl"></span>');
+    }else{
+      h=_boxBlank(esc(w.japanese||''));   /* 素材が取れないときだけ japanese 列の（　）を四角にして出す */
+    }
+    body.innerHTML='<div class="sq-sent">'+h+'</div><div class="sq-ja">'+esc(pl.ja||'')+'</div>';
+    buildChoices('sent-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
+      {fig:true,fixedChoices:(q.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext});
+    return;
+  }
+  renderRO_(s,w,q,pl);
+}
+
+/* 語順（reorder）＝語をタップして□に入れる／入れた語はドラッグで入れ替える。
+   時間制限は付けない。並べている途中で切れると「並べ終える前に不正解」になり、何を間違えたのか分からない。
+   【地雷1】setPointerCapture を掴んだチップに付けてはいけない。並べ替えで DOM を動かした瞬間に捕捉が外れ、
+     1回動いたきり反応しなくなる。pointermove/up は document で受ける。
+   【地雷2】行き先をその場の座標で決めると1つずれる・元に戻せない。掴んだ時点の位置を焼き込んで、
+     最後までその物差しで「何番目か」を測る。
+   （どちらもモックで実測して見つけた。末尾→先頭・先頭→末尾・途中どうしの3方向を試すまで出てこない）*/
+function renderRO_(s,w,q,pl){
+  hideQTimer();
+  var ask=$('sent-ask'),body=$('sent-body');
+  ask.innerHTML='<ruby>文<rt class="uf">ぶん</rt></ruby>になるように<ruby>並<rt class="uf">なら</rt></ruby>べよう';
+  var toks=(pl.tokens&&pl.tokens.length)?pl.tokens.slice():_sentTok_(pl.en);
+  var N=toks.length,_t0=Date.now(),locked=false,drag=null;
+  var bank=_shufNot_(toks);
+  body.innerHTML='<div class="sq-ja">'+esc(pl.ja||'')+'</div>'
+   +'<div class="ro-slots" id="ro-slots"></div>'
+   +'<div class="ro-hint" id="ro-hint"><svg width="52" height="20" viewBox="0 0 52 20" fill="none" aria-hidden="true">'
+     +'<rect x="1.5" y="7.5" width="17" height="11" rx="3.5" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-opacity=".5"/>'
+     +'<rect x="33.5" y="7.5" width="17" height="11" rx="3.5" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-opacity=".5"/>'
+     +'<path d="M10 5.5C14 1.5 38 1.5 42 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'
+     +'<path d="M7.2 3.2L10 5.8L12.9 3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
+     +'<path d="M39.1 3.6L42 5.8L44.8 3.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
+   +'</svg><span>ドラッグで<ruby>入<rt class="uf">い</rt></ruby>れ<ruby>替<rt class="uf">か</rt></ruby>え</span></div>'
+   +'<div class="ro-bank" id="ro-bank"></div>';
+  var btn=document.createElement('button');btn.type='button';btn.className='btn';btn.style.marginTop='12px';btn.disabled=true;
+  btn.innerHTML='<i class="ti ti-check"></i> <span>これでいい</span>';
+  var cbox=$('sent-choices');cbox.innerHTML='';cbox.appendChild(btn);
+
+  function placedNow(){return [].map.call($('ro-slots').querySelectorAll('.ro-chip'),function(e){return e.getAttribute('data-t');});}
+  function sync(){
+    var p=placedNow();
+    btn.disabled=(p.length!==N)||locked;
+    var h=$('ro-hint');if(h)h.style.visibility=(p.length>=2&&!locked)?'visible':'hidden';
+  }
+  function drawBank(){
+    var bk=$('ro-bank');bk.innerHTML='';
+    bank.forEach(function(t,i){
+      var b=document.createElement('button');b.type='button';
+      b.className='ro-tok'+(_sentIsPn_(t)?' pn':'');b.textContent=t;
+      b.onclick=function(){if(locked)return;addChip(bank.splice(i,1)[0]);drawBank();fillEmpty();sync();};
+      bk.appendChild(b);
+    });
+  }
+  function makeChip(t){
+    var c=document.createElement('div');
+    c.className='ro-chip'+(_sentIsPn_(t)?' pn':'');c.textContent=t;c.setAttribute('data-t',t);
+    c.addEventListener('pointerdown',function(e){startDrag(e,c);});
+    return c;
+  }
+  function addChip(t){var sl=$('ro-slots');sl.insertBefore(makeChip(t),sl.querySelector('.ro-sl'));}
+  function fillEmpty(){
+    var sl=$('ro-slots');
+    [].forEach.call(sl.querySelectorAll('.ro-sl'),function(e){if(e.parentNode)e.parentNode.removeChild(e);});
+    var have=sl.querySelectorAll('.ro-chip').length;
+    for(var i=have;i<N;i++){var d=document.createElement('div');d.className='ro-sl';sl.appendChild(d);}
+  }
+  function startDrag(e,chip){
+    if(locked)return;
+    var r=chip.getBoundingClientRect();
+    var ghost=chip.cloneNode(true);ghost.className=chip.className.replace('dragging','')+' ghost';
+    ghost.style.left=r.left+'px';ghost.style.top=r.top+'px';ghost.style.width=r.width+'px';
+    document.body.appendChild(ghost);
+    chip.classList.add('dragging');
+    var snap=[].map.call($('ro-slots').querySelectorAll('.ro-chip'),function(c){
+      var b=c.getBoundingClientRect();return {x:b.left+b.width/2,y:b.top+b.height/2};});
+    drag={chip:chip,ghost:ghost,snap:snap,dx:e.clientX-r.left,dy:e.clientY-r.top,x0:e.clientX,y0:e.clientY,moved:false};
+    document.addEventListener('pointermove',onMove);
+    document.addEventListener('pointerup',onUp);
+    document.addEventListener('pointercancel',onUp);
+    e.preventDefault();
+  }
+  function onMove(e){
+    if(!drag)return;
+    if(Math.abs(e.clientX-drag.x0)>6||Math.abs(e.clientY-drag.y0)>6)drag.moved=true;
+    drag.ghost.style.left=(e.clientX-drag.dx)+'px';
+    drag.ghost.style.top=(e.clientY-drag.dy)+'px';
+    if(!drag.moved)return;
+    var best=0,bd=Infinity;
+    for(var i=0;i<drag.snap.length;i++){
+      var sp=drag.snap[i];
+      var d=(e.clientX-sp.x)*(e.clientX-sp.x)+(e.clientY-sp.y)*(e.clientY-sp.y)*4; /* 縦のずれは重く見る（折り返しても行を間違えない）*/
+      if(d<bd){bd=d;best=i;}
+    }
+    var sl=$('ro-slots');
+    var others=[].filter.call(sl.querySelectorAll('.ro-chip'),function(c){return c!==drag.chip;});
+    if(best>=others.length)sl.insertBefore(drag.chip,sl.querySelector('.ro-sl'));
+    else sl.insertBefore(drag.chip,others[best]);
+  }
+  function onUp(){
+    if(!drag)return;
+    var c=drag.chip;
+    document.removeEventListener('pointermove',onMove);
+    document.removeEventListener('pointerup',onUp);
+    document.removeEventListener('pointercancel',onUp);
+    if(drag.ghost&&drag.ghost.parentNode)drag.ghost.parentNode.removeChild(drag.ghost);
+    c.classList.remove('dragging');
+    var wasTap=!drag.moved;drag=null;
+    if(wasTap){bank.push(c.getAttribute('data-t'));if(c.parentNode)c.parentNode.removeChild(c);drawBank();}
+    fillEmpty();sync();
+  }
+  fillEmpty();drawBank();sync();
+  btn.onclick=function(){
+    if(locked)return;
+    var placed=placedNow();
+    if(placed.length!==N)return;
+    locked=true;
+    var ok=(_sentJoin_(placed)===_sentJoin_(toks));
+    var sl=$('ro-slots');
+    /* 4択は自分が選んだものが赤くなるので合否がすぐ分かる。並び替えも同じにする。
+       赤くしないと、下に出る「正解 ◯◯」だけが目に入って正解したように見える（川上さん指摘 2026-09-08⑦）*/
+    [].forEach.call(sl.querySelectorAll('.ro-chip'),function(c){c.classList.add(ok?'okc':'ng');});
+    if(!ok){sl.classList.add('shake');setTimeout(function(){sl.classList.remove('shake');},320);}
+    /* 答えたら「これでいい」と語群は片づける。下に出る「つぎへ」と2つボタンが並ぶと、どちらを押すのか迷う */
+    btn.disabled=true;btn.style.display='none';
+    var bk=$('ro-bank');if(bk){[].forEach.call(bk.querySelectorAll('.ro-tok'),function(b){b.disabled=true;});bk.style.display='none';}
+    var hh=$('ro-hint');if(hh)hh.style.display='none';
+    if(ok){combo++;if(combo>maxCombo)maxCombo=combo;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
+    else{combo=0;sndWrong();}
+    ansCount++;
+    _quizAns(s,w,ok,(Date.now()-_t0),'e2j');
+    /* 正解の表示は文頭を大文字にした正しい形（＝en）。語群の小文字のまま見せない */
+    afterAnswer(ok,(pl.en||_sentJoin_(toks)),w.kaisetsu,'',s.onNext);
+  };
 }
 function nextWord(){var s=session;
   if(s.fixMode){_fixStep_(s);return;}                       /* ミス問モード中は待ち行列が次を決める 2026-08-26 */
@@ -4982,7 +5212,7 @@ function _resumeSave_(s,idx,step,ov){
 function _saveResumeNext_(s,which){
   if(!s||s.mode!=='daily'||!s.words)return;
   if(s.fixMode){_resumeSave_(s,(s.fixCur?s.fixCur.i:s.idx),3);return;}   /* ミス問モードは待ち行列がそのまま状態 2026-08-26 */
-  var w=s.words[s.idx];var isFig=(w&&(w.qtype==='table_fill'||w.qtype==='image_fill'));
+  var w=s.words[s.idx];var isFig=_isOneShot_(w);   /* 表・図・文＝1行1問なので、答えたら次の行へ 2026-09-08 */
   var dirE2J=(((w&&w.direction)||s.dir||'')==='e2j');
   var ni=s.idx,nst=s.step;
   if(which==='e2j'&&!dirE2J&&!isFig){nst=3;}                                  // 意味の次は 日本語→英語（同じ語）
