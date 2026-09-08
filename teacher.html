@@ -532,6 +532,16 @@
 /* ===== 注目ファースト改修（teacher-dashboard-design）2026-07-05 ===== */
 .alertsK{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 @media(max-width:760px){.alertsK{grid-template-columns:1fr}}
+/* 【2026-09-08 川上さん確定・案D】カードの並び。
+   もとは5枚を2列に並べていたので、行の高さが背の高いほうに揃い、
+   完走0名の隣が未着手35名だと右半分がまるごと空いていた。
+   ・大きい2枚（😴未着手・📘単元別 未練習）＝全幅。チップが1行に4〜6人入って縦が縮む
+   ・小さい3枚（🎉完走・⚠️つまずき・👏ほめたい）＝3列
+   実データ（未着手35・未練習39・つまずき9・完走0・ほめたい3）で 1425px → 1007px（幅1100pxのとき）。
+   モック＝モック/20260908_モック_アラートカードの並び.html */
+.alertsK.big{grid-template-columns:1fr}
+.alertsK.small{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:900px){.alertsK.small{grid-template-columns:1fr}}
 .alert-cardK{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:11px 14px;border-left:4px solid #f59e0b}
 .alert-cardK.bad{border-left-color:#C6000B}
 .alert-cardK .ac-h{font-weight:700;font-size:13px}
@@ -980,10 +990,13 @@
     </div>
 
     <!-- 要注意（メール通知と同じ基準・共通しきい値）teacher-dashboard-design 2026-07-05 -->
-    <div class="alertsK">
+    <div class="alertsK big">
       <div class="alert-cardK" id="alCardIdle"><div class="ac-h afc" onclick="alertFilterClick(event,'idle')">😴 未着手 <b id="alIdleN">–</b>名<span class="ac-sub">毎日学習・昨日やってない</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習を昨日1回もやっていない子。あき日数（既定1日）を超えたら出ます。→「今日のをやろう」と声かけ。</span></span></div><div class="chipsK" id="alIdleChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alIdlePrintBtn" onclick="alPrint('idle')" style="display:none;">🖨 この<span id="alIdlePrintN">0</span>名を印刷</button></div></div>
-      <div class="alert-cardK" id="alCardDone"><div class="ac-h afc" onclick="alertFilterClick(event,'done')">🎉 完走 <b id="alDoneN">–</b>名<span class="ac-sub">毎日学習を最後まで終えた</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習（英単語キソ300・語彙力アップ）の教材を最後まで終えた子。<b>ほかの教材が残っていても出ます。</b>黄色いチップは次の毎日学習がまだ割り当てられていない子。次を割り当てるか、もう一周を始めるか、割当を解除すると消えます。単元別対策はこのカードに出ません。</span></span></div><div class="chipsK" id="alDoneChips"></div></div>
       <div class="alert-cardK" id="alCardTIdle"><div class="ac-h afc" onclick="alertFilterClick(event,'test_idle')">📘 単元別 未練習 <b id="alTIdleN">–</b>名<span class="ac-sub">割当あり・昨日ゼロ</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">単元別対策を割り当て済みなのに、昨日1つもさわっていない子。単元別の割当が無い子は出ません。→テスト対策を進めるよう声かけ。</span></span></div><div class="chipsK" id="alTIdleChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTIdlePrintBtn" onclick="alPrint('test_idle')" style="display:none;">🖨 この<span id="alTIdlePrintN">0</span>名を印刷</button></div></div>
+    </div>
+    <!-- 小さい3枚は3列（案D・2026-09-08）。しきい値の帯はいちばん下に置く -->
+    <div class="alertsK small">
+      <div class="alert-cardK" id="alCardDone"><div class="ac-h afc" onclick="alertFilterClick(event,'done')">🎉 完走 <b id="alDoneN">–</b>名<span class="ac-sub">毎日学習を最後まで終えた</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習（英単語キソ300・語彙力アップ）の教材を最後まで終えた子。<b>ほかの教材が残っていても出ます。</b>黄色いチップは次の毎日学習がまだ割り当てられていない子。次を割り当てるか、もう一周を始めるか、割当を解除すると消えます。単元別対策はこのカードに出ません。</span></span></div><div class="chipsK" id="alDoneChips"></div></div>
       <div class="alert-cardK bad" id="alCardStuck"><div class="ac-h afc" onclick="alertFilterClick(event,'stuck')">⚠️ つまずき <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">いちばん弱い教材の直近3回平均が、正答率の基準（既定60%）未満の子。→「まちがいを印刷」で対策プリント。</span></span></div><div class="chipsK" id="alTeachChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTeachPrintBtn" onclick="printTeachAll()" style="display:none;">🖨 この<span id="alTeachPrintN">0</span>名のまちがいを印刷</button></div></div>
       <div class="alert-cardK good" id="alCardPraise"><div class="ac-h afc" onclick="alertFilterClick(event,'praise')">👏 昨日デイリークリアした子 <b id="alPraiseN">–</b>名<span class="ac-sub">毎日学習＋おさらいを 昨日ぜんぶ完了</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習の今日の分と、おさらいの枠を、昨日ぜんぶ終えた子（＝デイリークリア）。さらに先取り・単元別を終えた・確認テスト合格・間違いノート卒業をしていれば印を添えます。→ ひとことほめてあげてください。</span></span></div><div class="chipsK" id="alPraiseChips"></div></div>
       <div class="alert-setK" style="grid-column:1/-1;">⚙ この基準は毎朝のメール通知と共通：未着手＝昨日やってなければ即（あき<input id="cfgIdle" type="number" min="1" max="99" value="1" onchange="saveAlertConfig()">日超・<span id="alIdleDaysLbl">1</span>）／つまずき＝正答率<input id="cfgAcc" type="number" min="1" max="100" value="60" onchange="saveAlertConfig()">%未満<span class="cfg-tag">毎日学習・単元別 共通。ここを変えると画面もメールも両方変わります</span></div>
