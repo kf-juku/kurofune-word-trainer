@@ -557,6 +557,7 @@
 .alert-cardK.good{border-left-color:#1faa6b}
 .pchipK{display:inline-block;background:rgba(31,170,107,.12);color:#12805a;border:1px solid rgba(31,170,107,.35);border-radius:999px;padding:3px 9px;font-size:11.5px;margin:2px 3px 0 0;cursor:pointer}
 .pchipK:hover{background:rgba(31,170,107,.2)}
+.dchipK{background:#fff8e6;border-color:#f0b429;font-weight:700;} /* 完走・次の毎日学習が未割当 2026-09-08 */
 /* 学習アラートを教室で色分け（北久里浜=水色／久里浜=オレンジ・クラスボード模倣）2026-08-09 */
 .acRooms{margin-top:7px}
 .acRoomRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -758,6 +759,7 @@
   .sd-actwhy b{color:var(--text);}
   .sd-act{width:auto!important;font-size:12px!important;padding:7px 13px!important;flex:none;}
   .sd-actnote{font-size:12px;color:var(--text-light);flex:none;align-self:center;}
+  .sd-donelist{margin-top:5px;font-size:12px;line-height:1.75;} /* 完走した教材の一覧 2026-09-08 */
   .sd-trend{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:8px 12px;background:var(--surface2);border-radius:10px;}
   .sd-bars{display:flex;align-items:flex-end;gap:5px;height:34px;}
   .sd-bar1{width:16px;border-radius:3px 3px 0 0;position:relative;}
@@ -974,6 +976,7 @@
     <!-- 要注意（メール通知と同じ基準・共通しきい値）teacher-dashboard-design 2026-07-05 -->
     <div class="alertsK">
       <div class="alert-cardK" id="alCardIdle"><div class="ac-h afc" onclick="alertFilterClick(event,'idle')">😴 未着手 <b id="alIdleN">–</b>名<span class="ac-sub">毎日学習・昨日やってない</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習を昨日1回もやっていない子。あき日数（既定1日）を超えたら出ます。→「今日のをやろう」と声かけ。</span></span></div><div class="chipsK" id="alIdleChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alIdlePrintBtn" onclick="alPrint('idle')" style="display:none;">🖨 この<span id="alIdlePrintN">0</span>名を印刷</button></div></div>
+      <div class="alert-cardK" id="alCardDone"><div class="ac-h afc" onclick="alertFilterClick(event,'done')">🎉 完走 <b id="alDoneN">–</b>名<span class="ac-sub">毎日学習を最後まで終えた</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習（英単語キソ300・語彙力アップ）の教材を最後まで終えた子。<b>ほかの教材が残っていても出ます。</b>黄色いチップは次の毎日学習がまだ割り当てられていない子。次を割り当てるか、もう一周を始めるか、割当を解除すると消えます。単元別対策はこのカードに出ません。</span></span></div><div class="chipsK" id="alDoneChips"></div></div>
       <div class="alert-cardK" id="alCardTIdle"><div class="ac-h afc" onclick="alertFilterClick(event,'test_idle')">📘 単元別 未練習 <b id="alTIdleN">–</b>名<span class="ac-sub">割当あり・昨日ゼロ</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">単元別対策を割り当て済みなのに、昨日1つもさわっていない子。単元別の割当が無い子は出ません。→テスト対策を進めるよう声かけ。</span></span></div><div class="chipsK" id="alTIdleChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTIdlePrintBtn" onclick="alPrint('test_idle')" style="display:none;">🖨 この<span id="alTIdlePrintN">0</span>名を印刷</button></div></div>
       <div class="alert-cardK bad" id="alCardStuck"><div class="ac-h afc" onclick="alertFilterClick(event,'stuck')">⚠️ つまずき <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">いちばん弱い教材の直近3回平均が、正答率の基準（既定60%）未満の子。→「まちがいを印刷」で対策プリント。</span></span></div><div class="chipsK" id="alTeachChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTeachPrintBtn" onclick="printTeachAll()" style="display:none;">🖨 この<span id="alTeachPrintN">0</span>名のまちがいを印刷</button></div></div>
       <div class="alert-cardK good" id="alCardPraise"><div class="ac-h afc" onclick="alertFilterClick(event,'praise')">👏 昨日デイリークリアした子 <b id="alPraiseN">–</b>名<span class="ac-sub">毎日学習＋おさらいを 昨日ぜんぶ完了</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習の今日の分と、おさらいの枠を、昨日ぜんぶ終えた子（＝デイリークリア）。さらに先取り・単元別を終えた・確認テスト合格・間違いノート卒業をしていれば印を添えます。→ ひとことほめてあげてください。</span></span></div><div class="chipsK" id="alPraiseChips"></div></div>
@@ -1827,7 +1830,7 @@ function alertBucketMatch(s,k){
   if(!(s.assignments&&s.assignments.length))return false;
   return (s.next_actions||[]).indexOf(k)>=0;
 }
-var _AF_LABEL={idle:'😴 未着手',test_idle:'📘 単元別 未練習',stuck:'⚠️ つまずき',praise:'👏 昨日デイリークリアした子'};
+var _AF_LABEL={idle:'😴 未着手',done:'🎉 完走',test_idle:'📘 単元別 未練習',stuck:'⚠️ つまずき',praise:'👏 昨日デイリークリアした子'};
 function alertFilterClick(e,k){
   if(e&&e.target&&e.target.closest&&e.target.closest('.tt'))return; /* ？ツールチップのクリックは無視 */
   _alertFilter=(_alertFilter===k)?null:k;
@@ -2000,6 +2003,14 @@ var _inactiveDays=(function(){var v=parseInt(localStorage.getItem('kwt_inactive_
 function onInactiveDaysChange(){var v=parseInt($('inactiveDays').value,10);if(!(v>=1&&v<=99)){v=7;$('inactiveDays').value=7;}_inactiveDays=v;localStorage.setItem('kwt_inactive_days',v);renderTable();}
 function daysAgo(ss){if(!ss)return null;var m=String(ss).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return null;var d=Date.UTC(parseInt(m[1],10),parseInt(m[2],10)-1,parseInt(m[3],10));var jn=new Date(Date.now()+9*3600*1000);var t0=Date.UTC(jn.getUTCFullYear(),jn.getUTCMonth(),jn.getUTCDate());return Math.round((t0-d)/86400000);}/* JST固定 2026-07-08 */
 function isInactive(s){var da=daysAgo(s.last_studied_at);return da===null||da>=_inactiveDays;}
+/* 完走の日付の文言＝唯一の置き場（2026-09-08）。学習アラートのチップ・個人詳細・一覧バッジのツールチップが全部ここを通る。
+   completed_at の列を足す前に完走したぶんは last_studied_at で代用しているので「（推定）」と付ける。 */
+function doneDayText_(d){
+  if(!d||!d.completed_at)return '完走日不明';
+  var day=String(d.completed_at).slice(0,10);
+  var n=daysAgo(day);
+  return day+' 完走'+(d.estimated?'（推定）':'')+(n===null?'':(n===0?'・今日':'・'+n+'日前'));
+}
 var _needHelpRate=(function(){var v=parseInt(localStorage.getItem('kwt_needhelp_rate'),10);return (v>=1&&v<=100)?v:60;})();
 function onNeedHelpRateChange(){var v=parseInt($('needHelpRate').value,10);if(!(v>=1&&v<=100)){v=60;$('needHelpRate').value=60;}_needHelpRate=v;localStorage.setItem('kwt_needhelp_rate',v);renderTable();}
 function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate!==undefined;}
@@ -2012,7 +2023,10 @@ var NA_SEV={stuck:5,idle:4,test_idle:3,rush:3,done:2,ok:1,na:0};
 function naList(s){var a=s.next_actions||[];return NA_ORDER.filter(function(k){return a.indexOf(k)>=0;});}
 function hasAction(s){return (s.next_actions||[]).some(function(k){return ['done','idle','test_idle','stuck','rush'].indexOf(k)>=0;});}
 function nextWeight(s){var a=s.next_actions||[];if(!a.length)return 0;var mx=Math.max.apply(null,a.map(function(k){return NA_SEV[k]||0;}));return (hasAction(s)?100:0)+mx;}
-function nextActionCell(s){var ks=naList(s);if(!ks.length)return '<span class="dash">–</span>';return ks.map(function(k){var m=NA_META[k];return '<span class="nact '+m.c+'">'+m.t+'</span>';}).join('');}
+function nextActionCell(s){var ks=naList(s);if(!ks.length)return '<span class="dash">–</span>';return ks.map(function(k){var m=NA_META[k];
+  var ti='';
+  if(k==='done'){ var dl=s.done_mains||[]; if(dl.length) ti=' title="'+esc(dl.map(function(d){return (mtLabel(d)||d.material_id)+'／'+doneDayText_(d);}).join('\n'))+'"'; } /* 教材名は必ず mt*() を通す（生フルタイトルを描かない）*/ /* 何をいつ完走したか 2026-09-08 */
+  return '<span class="nact '+m.c+'"'+ti+'>'+m.t+'</span>';}).join('');}
 function teachCell(s){if(!hasTeach(s))return '<span class="dash">–</span>';var v=s.teach_rate;var cls=(v<_needHelpRate)?'acc-low':((v<80)?'acc-mid':'acc-hi');return '<span class="acc-rate '+cls+' num">'+v+'%</span>';}
 /* 統一印刷レイアウト（リアルタイム印刷と共通の描画）。1枚＝1生徒。学習日→教材でグループ、パートは小タグ、図は大きく、答え側に読み方・覚え方 2026-07-24 */
 function unifiedStudentHtml_(st, opts){
@@ -3253,7 +3267,12 @@ function sdAssign(sid){closeModal('studentModal');openAssign(sid);}
 function lastStudiedText(s){return s.last_studied_at?String(s.last_studied_at).slice(0,10):'まだ学習なし';}
 function weakPartName(s){var mv=s.materials_view||[];var w=null;mv.forEach(function(m){(m.parts||[]).forEach(function(p){if(p.status==='try'&&p.acc!=null&&p.acc<_needHelpRate&&(!w||p.acc<w.acc))w={n:p.name,acc:p.acc};});});return w?w.n:'';}
 function naWhy(s,k){
-  if(k==='done')return {t:'🎉 完走',why:'教材を最後まで終わりました。次の教材が未割当です。',btn:'<button class="btn-primary sd-act" onclick="sdAssign('+"'"+esc(String(s.student_id))+"'"+')">＋ 次の教材を割り当てる</button>'};
+  if(k==='done'){ /* 2026-09-08：何をいつ完走したかを出す。次が割当ずみかで文言とボタンを出し分ける */
+    var _dl=s.done_mains||[];
+    var _lst=_dl.length?('<div class="sd-donelist">'+_dl.map(function(d){return '<div>🎉 '+esc(mtLabel(d)||d.material_id)+'　<span class="t-sub">'+esc(doneDayText_(d))+'</span></div>';}).join('')+'</div>'):'';
+    if(s.has_active_main)return {t:'🎉 完走',why:'毎日学習を最後まで終えました。次の毎日学習は割当ずみです。'+_lst,btn:'<span class="sd-actnote">ひとことほめる（割り当ては不要）</span>'};
+    return {t:'🎉 完走',why:'毎日学習を最後まで終えました。<b>次の毎日学習が未割当です。</b>'+_lst,btn:'<button class="btn-primary sd-act" onclick="sdAssign('+"'"+esc(String(s.student_id))+"'"+')">＋ 次の教材を割り当てる</button>'};
+  }
   if(k==='idle')return {t:'😴 未着手',why:'昨日、毎日学習をやっていません（最終学習 '+esc(lastStudiedText(s))+'）。',btn:'<span class="sd-actnote">「今日のをやろう」と声かけ</span>'};
   if(k==='test_idle')return {t:'📘 未練習',why:'単元別対策を割当済みですが、昨日1つもさわっていません。',btn:'<span class="sd-actnote">テスト対策を進めるよう声かけ</span>'};
   if(k==='stuck'){var wp=weakPartName(s);return {t:'⚠️ つまずき',why:'正答率が基準未満'+(wp?'（弱点：'+esc(wp)+'）':'')+'。下のパート内訳の赤を確認。',btn:'<span class="sd-actnote">→ 右の「まちがいを印刷」で対策プリント</span>'};}
@@ -3535,7 +3554,7 @@ function renderAlertsK(){
   if(!$('alIdleChips'))return;
   var _il=$('alIdleDaysLbl');if(_il)_il.textContent=_alertCfg.idle_days;var _al=$('alAccLbl');if(_al)_al.textContent=_alertCfg.accuracy;
   // 2トラック（2026-07-22）：サーバの next_actions をそのままバケット分け＝画面とメールを完全一致させる
-  var idle=[],tidle=[],teach=[];
+  var idle=[],tidle=[],teach=[],doneL=[];
   (_students||[]).forEach(function(st){
     if(_cheerCfg&&_cheerCfg.exclude_alert&&st.is_teacher_account)return; // 先生応援：要注意から除外 2026-07-07
     if(!(st.assignments&&st.assignments.length))return; // 割当なしは対象外（メール通知と同じ）
@@ -3543,12 +3562,22 @@ function renderAlertsK(){
     if(a.indexOf('idle')>=0){var da=daysAgo(st.last_studied_at);idle.push({id:sid,n:nm,c:cn,d:(da===null?'未学習':'あき'+da+'日')});}
     if(a.indexOf('test_idle')>=0)tidle.push({id:sid,n:nm,c:cn});
     if(a.indexOf('stuck')>=0)teach.push({id:sid,n:nm,c:cn,r:st.teach_rate});
+    /* 🎉完走（2026-09-08）：完走した教材1つにつき1チップ。次の毎日学習が未割当の子は黄色。
+       文言は doneDayText_ が唯一の置き場＝チップ・個人詳細・一覧バッジのツールチップが全部これを通る。 */
+    if(a.indexOf('done')>=0){
+      var dl=st.done_mains||[];
+      if(!dl.length)doneL.push({id:sid,n:nm,c:cn,t:'',day:'',sort:'',cls:(st.has_active_main?'chipK':'chipK dchipK'),noNext:!st.has_active_main});
+      dl.forEach(function(d){doneL.push({id:sid,n:nm,c:cn,t:(mtLabel(d)||d.material_id||''),day:doneDayText_(d),sort:(d.completed_at||''),cls:(st.has_active_main?'chipK':'chipK dchipK'),noNext:!st.has_active_main});});
+    }
   });
+  doneL.sort(function(a,b){return a.sort>b.sort?-1:(a.sort<b.sort?1:0);}); // 完走日の新しい順
   idle.sort(function(a,b){return (b.d==='未学習'?1e9:parseInt(b.d.replace(/\D/g,''),10))-(a.d==='未学習'?1e9:parseInt(a.d.replace(/\D/g,''),10));});
   teach.sort(function(a,b){return a.r-b.r;});
   $('alIdleN').textContent=idle.length;$('alTIdleN').textContent=tidle.length;$('alTeachN').textContent=teach.length;
+  var _doneStu={};doneL.forEach(function(x){_doneStu[x.id]=1;});
+  if($('alDoneN'))$('alDoneN').textContent=Object.keys(_doneStu).length; // 人数（チップは教材ごとなので行数を人数にしない）
   // 教室で色分け（北久里浜=水色／久里浜=オレンジ／その他）＝クラスボードの2列を模倣 2026-08-09
-  var _alChip=function(x,fmt,cls){var b=document.createElement('span');b.className=cls||'chipK';b.textContent=fmt(x);b.title='クリックで検索';b.onclick=function(){_alertFilter=null;$('searchInput').value=x.n;renderTable();};return b;};
+  var _alChip=function(x,fmt,cls){var b=document.createElement('span');b.className=x.cls||cls||'chipK';b.textContent=fmt(x);b.title='クリックで検索';b.onclick=function(){_alertFilter=null;$('searchInput').value=x.n;renderTable();};return b;};
   var _alRoomCol=function(kind,label,list,fmt,cls){
     var col=document.createElement('div');col.className='acRoom '+kind;
     var h=document.createElement('div');h.className='acRoomHead';h.innerHTML=esc(label)+' <span class="rc-n">'+list.length+'</span>';col.appendChild(h);
@@ -3573,10 +3602,11 @@ function renderAlertsK(){
   mk('alIdleChips',idle,function(x){return x.n+'（'+x.d+'）';});
   mk('alTIdleChips',tidle,function(x){return x.n;});
   mk('alTeachChips',teach,function(x){return x.n+'（'+x.r+'%）';});
+  mkRooms('alDoneChips',doneL,function(x){return x.n+(x.t?'　'+x.t:'')+(x.day?'（'+x.day+'）':'')+(x.noNext?'　← 次を割り当て':'');},'chipK','完走した子は まだ いません');
   // 印刷ショートカット（川上さん承認モック 2026-07-05）：対象プリセットで印刷モーダルへ
   window._teachIds=teach.map(function(x){return x.id;});
   // カテゴリ絞り込み用のバケットID＋各カードの印刷ボタン 2026-08-07
-  window._alIds={idle:idle.map(function(x){return x.id;}),test_idle:tidle.map(function(x){return x.id;}),stuck:teach.map(function(x){return x.id;})};
+  window._alIds={idle:idle.map(function(x){return x.id;}),test_idle:tidle.map(function(x){return x.id;}),stuck:teach.map(function(x){return x.id;}),done:Object.keys(_doneStu)};
   var _setAlPrint=function(btnId,nId,arr){var b=$(btnId);if(!b)return;var n=$(nId);if(n)n.textContent=arr.length;b.style.display=arr.length?'inline-flex':'none';};
   _setAlPrint('alIdlePrintBtn','alIdlePrintN',idle);
   _setAlPrint('alTIdlePrintBtn','alTIdlePrintN',tidle);
@@ -3592,7 +3622,7 @@ function renderAlertsK(){
   var _pN=$('alPraiseN'); if(_pN)_pN.textContent=praise.length;
   mkRooms('alPraiseChips',praise,function(x){return x.n+'（'+x.r+'）';},'pchipK','きのうは まだ いません'); // 教室で色分け（緑チップは維持）2026-08-09
   // カテゴリ絞り込みの見た目：選択中カードのハイライトと絞り込みバー 2026-08-07
-  [['idle','alCardIdle'],['test_idle','alCardTIdle'],['stuck','alCardStuck'],['praise','alCardPraise']].forEach(function(p){var c=$(p[1]);if(c)c.classList.toggle('afon',_alertFilter===p[0]);});
+  [['idle','alCardIdle'],['done','alCardDone'],['test_idle','alCardTIdle'],['stuck','alCardStuck'],['praise','alCardPraise']].forEach(function(p){var c=$(p[1]);if(c)c.classList.toggle('afon',_alertFilter===p[0]);});
   var bar=$('alFilterBar');
   if(bar){
     if(_alertFilter){
