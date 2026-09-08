@@ -458,9 +458,15 @@
   .pick-item .pi-grade{margin-left:auto;font-size:11px;color:var(--text-muted);}
   .pick-item.assigned-other{opacity:0.55;}
   .pick-item .pi-warn{font-size:10px;color:var(--amber-dark);margin-left:auto;}
-  .sd-closebar{position:sticky;top:-8px;height:0;z-index:20;text-align:right;pointer-events:none;}
-  .sd-closefix{pointer-events:auto;position:relative;top:-6px;right:-6px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:18px;line-height:1;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,.14);}
-  .sd-closefix:hover{border-color:var(--crimson);color:var(--crimson);}
+  /* 閉じる×は全モーダル共通で右上に固定する（2026-09-08 川上さん確定・クロフネ共通ルール）。
+     もとは studentModal だけの .sd-closebar/.sd-closefix（2026-08-17）。同じ指摘がまた出たので全部にそろえた。
+     height:0 の sticky バーなので、中身のレイアウトを1pxも動かさずに置ける。
+     ・.modal が縦スクロールするモーダル → sticky で上に貼りつく
+     ・.modal が display:flex（中の要素がスクロール）→ 先頭に居るだけで常に上に見える
+     どちらも同じ1つの作りで済む。 */
+  .m-closebar{position:sticky;top:-8px;height:0;z-index:20;text-align:right;pointer-events:none;}
+  .m-closefix{pointer-events:auto;position:relative;top:-6px;right:-6px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:18px;line-height:1;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,.14);}
+  .m-closefix:hover{border-color:var(--crimson);color:var(--crimson);}
   .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;}
   .asg-btn{font-size:11px;color:var(--crimson);border:1px solid var(--crimson-mid);background:#fff;border-radius:7px;padding:3px 7px;font-weight:700;cursor:pointer;white-space:nowrap;}
   .asg-btn:hover{background:var(--crimson-light);}
@@ -1772,7 +1778,7 @@
 <div class="modal-back" id="studentModal" onclick="if(event.target===this)closeModal('studentModal');">
   <div class="modal" style="max-width:min(1200px,96vw);width:min(1200px,96vw);max-height:92vh;overflow-y:auto;position:relative;">
     <!-- 閉じる×は常に右上に出す（下までスクロールすると閉じられない問題・川上さん 2026-08-17）。背景クリック・Escでも閉じる -->
-    <div class="sd-closebar"><button class="sd-closefix" onclick="closeModal('studentModal')" title="閉じる（Escでも閉じます）">×</button></div>
+    <div class="m-closebar"><button class="m-closefix" onclick="closeModal('studentModal')" title="閉じる（Escでも閉じます）">×</button></div>
     <div id="sdBody"></div>
   </div>
 </div>
@@ -4952,6 +4958,27 @@ function saveMembers(){
     });
   }).finally(function(){hideLoading();});
 }
+
+/* 【共通ルール・2026-09-08 川上さん確定】どのモーダルも右上の×で閉じられる。
+   下までスクロールしないと「閉じる」が押せない、を全部なくす。
+   markup を14か所に足すのではなく、ここで1回だけ入れる＝モーダルを増やしても自動でつく。
+   既に×を持っているモーダル（.m-closebar があるもの）は触らない。
+   下の「閉じる」ボタンは残す（×は追加であって置き換えではない）。 */
+function ensureModalCloseX_(){
+  try{
+    document.querySelectorAll('.modal-back').forEach(function(back){
+      var box=back.querySelector(':scope > .modal'); if(!box)return;
+      if(box.querySelector(':scope > .m-closebar'))return;
+      var id=back.id; if(!id)return;
+      var bar=document.createElement('div'); bar.className='m-closebar';
+      var btn=document.createElement('button'); btn.className='m-closefix'; btn.type='button';
+      btn.textContent='×'; btn.title='閉じる（Escでも閉じます）'; btn.setAttribute('aria-label','閉じる');
+      btn.onclick=function(){ closeModal(id); };
+      bar.appendChild(btn); box.insertBefore(bar, box.firstChild);
+    });
+  }catch(e){}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureModalCloseX_);else ensureModalCloseX_();
 
 /* Esc で開いているモーダルを閉じる 2026-08-17 */
 document.addEventListener('keydown',function(e){
