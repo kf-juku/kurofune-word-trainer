@@ -848,6 +848,19 @@
   .mp-part{margin:10px 0 4px;font-weight:800;color:var(--text);font-size:14px;display:flex;align-items:center;gap:8px;}
   .mp-part .c{font-size:11px;color:var(--text-muted);font-weight:700;}
   /* ①要点カードの文章（parts.description）をプレビューでも見せる 2026-09-06 */
+  .mp-pv{margin-left:8px;font:inherit;font-size:11px;font-weight:700;border:1px solid var(--blue);background:#fff;color:var(--blue-dark);border-radius:7px;padding:3px 9px;cursor:pointer;vertical-align:1px;}
+  .mp-pv:hover{background:var(--blue-light);}
+  /* 生徒の画面プレビュー（2026-09-09）＝公開中の index.html をスマホ幅の枠でそのまま開く。
+     先生画面で描き直さない＝本物のコードで描くので見た目が食い違わない */
+  #pvBack{position:fixed;inset:0;background:rgba(15,23,42,.72);z-index:10000;display:none;align-items:flex-start;justify-content:center;padding:18px;overflow:auto;}
+  #pvBack.show{display:flex;}
+  #pvCard{background:#fff;border-radius:14px;padding:12px;box-shadow:0 12px 44px rgba(0,0,0,.35);}
+  #pvCard .pvh{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:13px;font-weight:800;color:var(--text);}
+  #pvCard .pvh .pvx{margin-left:auto;border:0;background:#eef2f7;border-radius:8px;padding:5px 11px;font:inherit;font-weight:700;cursor:pointer;}
+  #pvCard iframe{width:390px;height:760px;border:1px solid var(--line,#dbe3ee);border-radius:12px;background:#fff;display:block;}
+  #pvCard .pvnote{margin-top:8px;font-size:11.5px;color:var(--text-muted);line-height:1.7;max-width:390px;}
+  #pvCard .pvurl{font-size:11px;color:var(--text-light);word-break:break-all;}
+  #pvCard .fs-qr{width:180px;height:180px;}
   .mp-pt{margin:2px 0 8px;padding:9px 11px;background:var(--blue-light);border:1px solid #c7dbfd;border-radius:8px;}
   .mp-pt .ttl{font-size:10.5px;font-weight:800;color:var(--blue-dark);letter-spacing:.04em;margin-bottom:5px;}
   .mp-pt .bd{font-size:13px;line-height:1.95;color:var(--text);white-space:pre-wrap;}
@@ -1655,6 +1668,8 @@
     </div>
   </div>
 </div>
+<!-- 生徒の画面プレビュー（2026-09-09） -->
+<div id="pvBack" onclick="if(event.target===this)mpPvClose_()"><div id="pvCard"></div></div>
 <div id="mpLightbox" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;"><img id="mpLightboxImg" alt="拡大" style="max-width:96vw;max-height:92vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);"></div>
 
 <!-- 教材ごと 名簿編集モーダル 2026-07-09 -->
@@ -3903,6 +3918,46 @@ function refreshMatList(btn){
     try{ toast((r&&r.ok)?'教材を最新に更新しました':'更新に失敗しました'); }catch(e){}
   });
 }
+/* ===== 生徒の画面プレビュー（2026-09-09 川上さん）=====
+   ねらい＝「実機でどう見えるか」を、問題を解き進めずに確かめる。
+   ★ここでは描かない。公開中の index.html を #pv=<part_id> 付きで枠に開き、生徒アプリ本体の
+     描画関数にそのまま描かせる。先生画面で描き直すと必ず食い違うため（2026-09-06 の反省）。
+   ★枠の中はログインが要る（生徒アカウント）。その生徒に教材が配られていないと出ない。
+   ★記録は付かない（生徒アプリ側のプレビューで、採点も保存も止めてある）。
+   QRは同じURLを出すだけ。スマホで読めば実機でそのまま見られる。 */
+var PV_BASE_='https://kf-juku.github.io/kurofune-word-trainer/';
+function pvUrl_(pid){ return PV_BASE_+'#pv='+encodeURIComponent(String(pid||'')); }
+/* fsQrHtml_ は紙用でURLの頭が固定なので、任意のURLを入れられる版 */
+function mpQrSvg_(url,px){
+  var m=null; try{ m=qrModules_(String(url||'')); }catch(e){ m=null; }
+  if(!m) return '<div style="font-size:12px;color:#b91c1c">QRを作れませんでした（URLが長すぎます）</div>';
+  var n=m.length,q=4,side=n+q*2,d='',r,c;
+  for(r=0;r<n;r++){ c=0;
+    while(c<n){ if(!m[r][c]){c++;continue;} var st=c; while(c<n&&m[r][c])c++;
+      d+='M'+(st+q)+' '+(r+q)+'h'+(c-st)+'v1h-'+(c-st)+'z'; } }
+  return '<svg width="'+(px||180)+'" height="'+(px||180)+'" viewBox="0 0 '+side+' '+side+'" shape-rendering="crispEdges" role="img" aria-label="'+esc(String(url))+'">'
+    +'<rect width="'+side+'" height="'+side+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';
+}
+function mpPvClose_(){ var b=$('pvBack'); if(b){ b.classList.remove('show'); $('pvCard').innerHTML=''; } }
+function mpPvOpen_(pid,title){
+  var u=pvUrl_(pid);
+  $('pvCard').innerHTML='<div class="pvh">'+esc(title||'')+' <span style="font-weight:600;color:#64748b">生徒の画面</span>'
+    +'<button class="pvx" type="button" onclick="mpPvClose_()">閉じる</button></div>'
+    +'<iframe src="'+esc(u)+'" title="生徒の画面"></iframe>'
+    +'<div class="pvnote">公開中の画面をそのまま開いています。ここで直した文章を見るときは、先に自動保存（✓）が出たのを確かめてから、枠を開き直してください。'
+    +'<br>枠の中でログインを求められたら、確認用の生徒アカウントで入ってください。記録は付きません。'
+    +'<br><span class="pvurl">'+esc(u)+'</span></div>';
+  $('pvBack').classList.add('show');
+}
+function mpPvQr_(pid,title){
+  var u=pvUrl_(pid);
+  $('pvCard').innerHTML='<div class="pvh">'+esc(title||'')+' <span style="font-weight:600;color:#64748b">スマホで見る</span>'
+    +'<button class="pvx" type="button" onclick="mpPvClose_()">閉じる</button></div>'
+    +'<div style="text-align:center;padding:6px 0 2px;">'+mpQrSvg_(u,200)+'</div>'
+    +'<div class="pvnote">スマホのカメラで読むと、この回のプレビューが実機で開きます。生徒アカウントでのログインが要ります（記録は付きません）。'
+    +'<br><span class="pvurl">'+esc(u)+'</span></div>';
+  $('pvBack').classList.add('show');
+}
 /* ===== 教材プレビュー（中身を見る・読み取り専用）2026-07-15 ===== */
 /* ①要点カード（parts.description）をプレビューに出す 2026-09-06
    書式は生徒アプリの _ptParse_ と同じ。本文の [[語]] が穴。'---' の下が3択（答え（よみ）>ダミー|ダミー）。
@@ -4038,7 +4093,10 @@ function openMatPreview(mid){
     $('mpToolbar').innerHTML='<span class="mp-count">'+parts.length+'パート・全'+totalQ+'問</span><div class="mp-jumps">'+_jb+'</div>';
     var h='<div class="mp-edit-hint">✏️ テキストをクリックすると直せます。入力後にほかの場所をクリックすると自動で保存します（✓＝保存済み）。選択肢は1行に1つ・正解を含めて4つ書いてください。図・番号方式の設問は編集対象外です。<br>始める前の要点は書式のまま直します＝穴は [[語]]、3択は --- の行の下に「答え（よみ）&gt;ダミー|ダミー」を ／ でつなぎます。</div>';
     parts.forEach(function(pt,pi){
-      h+='<div class="mp-part" id="mp-part-'+pi+'">'+esc(pt.title||'(無題パート)')+'<span class="c">'+(pt.count||0)+'問</span></div>';
+      h+='<div class="mp-part" id="mp-part-'+pi+'">'+esc(pt.title||'(無題パート)')+'<span class="c">'+(pt.count||0)+'問</span>'
+        +'<button class="mp-pv" type="button" onclick="mpPvOpen_(\''+esc(String(pt.part_id||''))+'\',\''+esc(String(pt.title||'').replace(/'/g,''))+'\')">生徒の画面で見る</button>'
+        +'<button class="mp-pv" type="button" onclick="mpPvQr_(\''+esc(String(pt.part_id||''))+'\',\''+esc(String(pt.title||'').replace(/'/g,''))+'\')">QR</button>'
+        +'</div>';
       h+=mpPointHtml_(pt.description,pt.part_id);   /* ①要点カードの文章。part_id を渡して直せるようにする 2026-09-06 */
       (pt.words||[]).forEach(function(w,i){
         var badge='';

@@ -3355,6 +3355,7 @@ function renderNoteNudge_(totalN){
   var el=wrap.querySelector('.nnudge');if(el)el.onclick=function(){showHomeTab('review');var nl=$('note-list');if(nl&&nl.scrollIntoView)nl.scrollIntoView({behavior:'smooth'});}; // 間違いノートの一覧は間違いタブ内に表示（sv-noteは廃止）2026-07-26
 }
 function openHome(){
+  if(_PV_&&!_PV_.started){ _pvStart_(); return; }   /* 先生用プレビュー＝ホームではなくプレビューを開く 2026-09-09 */
   $('nick').textContent=nickname;try{applyMyIcon_();}catch(e){}syncThemeIcon();show('scr-home');
   // 初回ログイン：ニックネーム未設定なら設定モーダルを自動表示（スキップ可・1ログイン1回だけ・川上さん確定 2026-07-04 機能仕様書_テスト配信 §5-2）
   if((!nickname||nickname==='きみ'||localStorage.getItem('kwt_nick_auto')==='1')&&!window._nickPrompted){window._nickPrompted=true;setTimeout(openNickModal,600);} // 自動付与された子にも初回1回だけ案内（§5-2踏襲・2026-07-05）
@@ -4252,7 +4253,9 @@ function _fixBarSync_(s){
   chip.innerHTML='<i class="ti ti-repeat"></i> <span>あと<b>'+rem+'</b><ruby>問<rt class="uf">もん</rt></ruby>で<ruby>全問正解<rt class="uf">ぜんもんせいかい</rt></ruby></span>';
 }
 function _ansDone_(s,which){if(s&&s.fixMode)return !!s._fixAnswered;return !!(s&&s._answered&&s._answered[_ansKey_(s,which)]);}
-function _quizAns(s,w,ok,_el,which){ measAns_(_el,ok);
+function _quizAns(s,w,ok,_el,which){
+  if(_PV_)return;   /* 先生用プレビュー＝記録にさわらない。正解の演出と解説は buildChoices の中で出る 2026-09-09 */
+  measAns_(_el,ok);
   if(s&&s.fixMode){ /* ミス問モード＝採点しない。間違えたらもう一度だけ待ち行列に戻す 2026-08-26 */
     if(s._fixAnswered)return; s._fixAnswered=true;
     if(!ok&&s.fixCur)s.fixNext.push(s.fixCur);
@@ -7341,6 +7344,122 @@ try{refreshBugFab();}catch(e){}
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',ready);}else{ready();}
 })();
+
+/* ===== 先生用プレビュー（2026-09-09 川上さん）=====
+   ねらい＝「実機でどう見えるか」を、問題を解き進めずに確かめる。要点カード・文法解説カードだけでなく
+   4択・図・表・聞き取り・穴うめ・語順・解説まで、その回の全部を矢印で送って見られる。
+   入口＝URLの末尾に #pv=<part_id> を付けて開く（teacher.html の「生徒の画面で見る」とQRがこのURLを作る）。
+   ログインは要る（生徒アカウント）。ログインするとホームではなくプレビューが開く。
+   ★記録には一切さわらない。歯止めは3つ。
+     ① student_today を start なしで呼ぶ＝「解き始めた」を記録しない
+     ② _quizAns がプレビューのとき先頭で返る＝採点・保存・未送信キューのどれも動かない
+       （正解の演出と解説は buildChoices の中で出るので、見た目はそのまま確かめられる）
+     ③ 読み取り以外の通信は投げないように call を包んである
+   ★#pv= が付いていないときは、この節は何も動かない＝生徒の画面には影響しない。 */
+var _PV_=null;
+(function(){
+  var m=String(location.hash||'').match(/(?:^|[#&])pv=([^&]*)/); if(!m)return;
+  _PV_={pid:decodeURIComponent(m[1]||''),d:null,at:0,list:[],started:false};
+  var _oc=call;
+  call=function(b,t){
+    var a=b&&b.action;
+    if(a==='student_login'||a==='student_home'||(a==='student_today'&&!b.start))return _oc(b,t);
+    return Promise.resolve({ok:true,data:{}});
+  };
+})();
+function _pvSes_(){
+  var d=_PV_.d||{}, ws=d.words||[];
+  return {mode:'daily',listId:_PV_.pid,quizMode:false,words:ws,idx:0,step:2,
+    subject:d.subject||'',isEnglish:(d.subject==='english'),assets:d.assets||{},
+    content_type:d.content_type||'',dir:d.direction||'e2j',point:d.point||'',
+    meaningCorrect:0,reverseCorrect:0,total:ws.length,miss:[],pronAttempts:0,pronSuccesses:0,
+    pronDoneIdx:{},activeMs:0,_rushWords:{},fixMode:false,fixQ:[],fixNext:[],fixCur:null,fixTotal:0,
+    retryRounds:1,_firstWrong:[],startedAtIso:new Date().toISOString(),startedMs:Date.now(),
+    _ptFilled:{},onNext:function(){_pvGo_(_PV_.at+1);}};
+}
+/* その語で生徒が実際に見る画面（ステップ）。_saveResumeNext_ と同じ決め方にそろえてある。
+   発音（step 1）はマイクが要るのでプレビューでは出さない＝意味の画面から見せる */
+function _pvSteps_(s,w){
+  if(_isOneShot_(w))return [0];                    /* 表・図・文＝1行1問。renderQz_ が頭で分岐する */
+  var st=_startStepFor(s,w); if(st===1)st=2;
+  var dirE2J=(((w&&w.direction)||s.dir||'')==='e2j');
+  return (st===2&&!dirE2J)?[2,3]:[st];             /* e2j 以外は「意味→英語」の2画面 */
+}
+/* 送る順番＝［カード（あれば）］＋その回の全問（語ごとに、生徒が見る画面の数だけ）。
+   カードは本番と同じ場所の問題にひもづける */
+function _pvList_(){
+  var s=_pvSes_(), out=[], k='';
+  try{k=_ptKind_(s)||'';}catch(e){k='';}
+  if(k==='head'&&s.point){ out.push({card:1,at:0,step:0}); }
+  else if(k==='sent'&&s.point){
+    for(var j=0;j<s.words.length;j++){ if(_isSentQ_(s.words[j])){ out.push({card:1,at:j,step:0}); break; } }
+  }
+  for(var i=0;i<s.words.length;i++){
+    var sp=_pvSteps_(s,s.words[i]);
+    for(var q=0;q<sp.length;q++) out.push({card:0,at:i,step:sp[q]});
+  }
+  return out;
+}
+function _pvGo_(n){
+  var L=_PV_.list; if(!L.length)return;
+  _PV_.at=Math.max(0,Math.min(L.length-1,n));
+  var it=L[_PV_.at], s=_pvSes_();
+  s.idx=it.at; if(it.step)s.step=it.step; window.session=s;
+  try{_ptRestore_();}catch(e){}
+  show('scr-practice');
+  if(it.card){ try{_ptShow_(s);}catch(e){} }
+  else{ try{ s._ptDone=true; s._ptSentDone=true; renderQz_(s); }catch(e){} }
+  _pvBarSync_();
+}
+function _pvBarSync_(){
+  var b=$('pv-pos'); if(!b)return;
+  var it=_PV_.list[_PV_.at]||{};
+  var w=(_PV_.d&&(_PV_.d.words||[])[it.at])||{}, q=String(w.qtype||'');
+  var lb=it.card?'カード':(q==='listen'?'聞く':q==='sentence_fill'?'穴うめ':q==='reorder'?'語順'
+    :q==='image_fill'?'図':q==='table_fill'?'表':(it.step===2?'意味':(it.step===3?'英語':'問題')));
+  b.textContent=(_PV_.at+1)+' / '+_PV_.list.length+'　'+lb;
+}
+function _pvBar_(){
+  if($('pv-bar'))return;
+  var st=document.createElement('style');
+  st.textContent='#pv-bar{position:fixed;left:0;right:0;bottom:0;z-index:9998;display:flex;align-items:center;gap:9px;'
+   +'flex-wrap:nowrap;white-space:nowrap;padding:6px 9px;background:rgba(17,24,39,.94);color:#fff;font-size:12px;font-weight:700;}'
+   +'#pv-bar button{font:inherit;border:0;border-radius:8px;padding:6px 11px;background:#374151;color:#fff;cursor:pointer;line-height:1;}'
+   +'#pv-bar #pv-pos{min-width:110px;text-align:center;}'
+   +'#pv-bar .pvn{font-weight:500;color:#cbd5e1;margin-left:auto;overflow:hidden;text-overflow:ellipsis;}'
+   +'#pv-bar label{display:inline-flex;align-items:center;gap:4px;font-weight:600;}'
+   +'@media(max-width:520px){#pv-bar .pvn{display:none;}}'
+   +'body{padding-bottom:48px;}';
+  document.head.appendChild(st);
+  var d=document.createElement('div'); d.id='pv-bar';
+  d.innerHTML='<button type="button" id="pv-prev">◀</button><span id="pv-pos"></span>'
+   +'<button type="button" id="pv-next">▶</button>'
+   +'<label><input type="checkbox" id="pv-furi"> ふりがな</label>'
+   +'<span class="pvn">先生用プレビュー・記録は付きません</span>';
+  document.body.appendChild(d);
+  $('pv-prev').onclick=function(){_pvGo_(_PV_.at-1);};
+  $('pv-next').onclick=function(){_pvGo_(_PV_.at+1);};
+  var f=$('pv-furi');
+  f.checked=document.documentElement.classList.contains('furi-on');
+  f.onchange=function(){document.documentElement.classList.toggle('furi-on',f.checked);_pvGo_(_PV_.at);};
+}
+function _pvStart_(){
+  if(!_PV_||_PV_.started||!_PV_.pid)return false;
+  _PV_.started=true;
+  show('scr-practice');
+  call({action:'student_today',part_id:_PV_.pid}).then(function(d){
+    if(!d||!d.ok||!d.data||!(d.data.words||[]).length){
+      document.body.innerHTML='<div style="padding:26px;font:14px/1.9 system-ui,sans-serif;color:#111">'
+        +'この回のデータを取れませんでした。<br>いまログインしている生徒アカウントに、この教材が配られているか確かめてください。'
+        +'<br><br><code style="font-size:12px;color:#666">'+esc(_PV_.pid)+'</code></div>';
+      return;
+    }
+    _PV_.d=d.data;
+    _readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});
+    _PV_.list=_pvList_(); _pvBar_(); _pvGo_(0);
+  });
+  return true;
+}
 
 </script>
 <div class="kzoom" id="kzoom">
