@@ -852,13 +852,19 @@
   .mp-pv:hover{background:var(--blue-light);}
   /* 生徒の画面プレビュー（2026-09-09）＝公開中の index.html をスマホ幅の枠でそのまま開く。
      先生画面で描き直さない＝本物のコードで描くので見た目が食い違わない */
-  #pvBack{position:fixed;inset:0;background:rgba(15,23,42,.72);z-index:10000;display:none;align-items:flex-start;justify-content:center;padding:18px;overflow:auto;}
+  /* ★枠はウィンドウの高さに必ず収める（2026-09-09 川上さん指摘＝下の ◀▶ のバーが切れて押せなかった）。
+     カードを縦のフレックスにして、真ん中の iframe だけを伸び縮みさせる。中は生徒アプリ自身がスクロールする */
+  #pvBack{position:fixed;inset:0;background:rgba(15,23,42,.72);z-index:10000;display:none;align-items:center;justify-content:center;padding:10px;overflow:hidden;}
   #pvBack.show{display:flex;}
-  #pvCard{background:#fff;border-radius:14px;padding:12px;box-shadow:0 12px 44px rgba(0,0,0,.35);}
-  #pvCard .pvh{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:13px;font-weight:800;color:var(--text);}
+  #pvCard{background:#fff;border-radius:14px;padding:10px;box-shadow:0 12px 44px rgba(0,0,0,.35);max-height:calc(100vh - 20px);display:flex;flex-direction:column;min-height:0;}
+  /* 画面（iframe）を出すときだけ高さを持たせる。持たせないと iframe が既定の150pxに縮む。
+     QRのときは中身なりの高さでよいので付けない */
+  #pvCard.pv-frame{height:min(820px,calc(100vh - 20px));}
+  #pvCard .pvh{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px;font-weight:800;color:var(--text);flex:none;}
   #pvCard .pvh .pvx{margin-left:auto;border:0;background:#eef2f7;border-radius:8px;padding:5px 11px;font:inherit;font-weight:700;cursor:pointer;}
-  #pvCard iframe{width:390px;height:760px;border:1px solid var(--line,#dbe3ee);border-radius:12px;background:#fff;display:block;}
-  #pvCard .pvnote{margin-top:8px;font-size:11.5px;color:var(--text-muted);line-height:1.7;max-width:390px;}
+  #pvCard iframe{width:390px;flex:1 1 auto;min-height:0;height:auto;border:1px solid var(--line,#dbe3ee);border-radius:12px;background:#fff;display:block;}
+  #pvCard .pvnote{margin-top:7px;font-size:11px;color:var(--text-muted);line-height:1.6;max-width:390px;flex:none;}
+  #pvCard .pvqr{flex:1 1 auto;min-height:0;overflow:auto;text-align:center;}
   #pvCard .pvurl{font-size:11px;color:var(--text-light);word-break:break-all;}
   #pvCard .fs-qr{width:180px;height:180px;}
   .mp-pt{margin:2px 0 8px;padding:9px 11px;background:var(--blue-light);border:1px solid #c7dbfd;border-radius:8px;}
@@ -3938,9 +3944,10 @@ function mpQrSvg_(url,px){
   return '<svg width="'+(px||180)+'" height="'+(px||180)+'" viewBox="0 0 '+side+' '+side+'" shape-rendering="crispEdges" role="img" aria-label="'+esc(String(url))+'">'
     +'<rect width="'+side+'" height="'+side+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';
 }
-function mpPvClose_(){ var b=$('pvBack'); if(b){ b.classList.remove('show'); $('pvCard').innerHTML=''; } }
+function mpPvClose_(){ var b=$('pvBack'); if(b){ b.classList.remove('show'); $('pvCard').classList.remove('pv-frame'); $('pvCard').innerHTML=''; } }
 function mpPvOpen_(pid,title){
   var u=pvUrl_(pid);
+  $('pvCard').classList.add('pv-frame');
   $('pvCard').innerHTML='<div class="pvh">'+esc(title||'')+' <span style="font-weight:600;color:#64748b">生徒の画面</span>'
     +'<button class="pvx" type="button" onclick="mpPvClose_()">閉じる</button></div>'
     +'<iframe src="'+esc(u)+'" title="生徒の画面"></iframe>'
@@ -3951,9 +3958,10 @@ function mpPvOpen_(pid,title){
 }
 function mpPvQr_(pid,title){
   var u=pvUrl_(pid);
+  $('pvCard').classList.remove('pv-frame');
   $('pvCard').innerHTML='<div class="pvh">'+esc(title||'')+' <span style="font-weight:600;color:#64748b">スマホで見る</span>'
     +'<button class="pvx" type="button" onclick="mpPvClose_()">閉じる</button></div>'
-    +'<div style="text-align:center;padding:6px 0 2px;">'+mpQrSvg_(u,200)+'</div>'
+    +'<div class="pvqr" style="padding:6px 0 2px;">'+mpQrSvg_(u,200)+'</div>'
     +'<div class="pvnote">スマホのカメラで読むと、この回のプレビューが実機で開きます。生徒アカウントでのログインが要ります（記録は付きません）。'
     +'<br><span class="pvurl">'+esc(u)+'</span></div>';
   $('pvBack').classList.add('show');
