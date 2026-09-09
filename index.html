@@ -4517,10 +4517,16 @@ function _ptRestore_(){
 /* 穴の番号。①〜⑳はその文字、それ以上は (21) の形。2026-09-07 */
 function _ptNo_(n){ return (n>=1&&n<=20)?String.fromCharCode(0x2460+n-1):('('+n+')'); }
 function _ptYomi_(html){ return html.replace(/[（(]([ぁ-んァ-ヶーゝゞ・]+)[）)]/g,'<span class="yomi">（$1）</span>'); }
-function _ptHtml_(s,d){
+function _ptHtml_(s,d,kind){
   var url=_ptFig_(s,d);
-  var h='<div class="pt-lead"><ruby>要点<rt class="uf">ようてん</rt></ruby></div><div class="pointcard">'
-   +'<div class="pt-h"><div class="pt-ic"><i class="ti ti-bulb"></i></div><div class="pt-t">はじめる<ruby>前<rt class="uf">まえ</rt></ruby>に</div></div>';
+  /* 見出しは入口で変える。単元別（社会）＝「要点／はじめる前に」、
+     英検5級の文法解説＝「文法／文に入る前に」。中身の仕組みはどちらも同じ 2026-09-09 */
+  var _sent=(kind==='sent');
+  var lead=_sent?'<ruby>文法<rt class="uf">ぶんぽう</rt></ruby>':'<ruby>要点<rt class="uf">ようてん</rt></ruby>';
+  var ttl=_sent?'<ruby>文<rt class="uf">ぶん</rt></ruby>に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>前<rt class="uf">まえ</rt></ruby>に'
+               :'はじめる<ruby>前<rt class="uf">まえ</rt></ruby>に';
+  var h='<div class="pt-lead">'+lead+'</div><div class="pointcard">'
+   +'<div class="pt-h"><div class="pt-ic"><i class="ti ti-bulb"></i></div><div class="pt-t">'+ttl+'</div></div>';
   if(url)h+='<div class="pt-fig"><img src="'+esc(url)+'" alt="" loading="lazy"></div>';
   h+='<div class="pt-body">';
   /* 穴に番号を振る。同じ語が2か所に出たら同じ番号にして、1回答えれば両方が埋まる（2026-09-07 川上さん確定）。
@@ -4545,18 +4551,45 @@ function _ptHtml_(s,d){
     h+='<p>'+parts.join('')+'</p>';
   });
   h+='</div><div class="pt-left"></div>'
-   +'<div class="pt-go"><button class="btn" id="pt-go" type="button" disabled>はじめる</button></div></div>';
+   +'<div class="pt-go"><button class="btn" id="pt-go" type="button" disabled>'
+     +(_sent?'<ruby>文<rt class="uf">ぶん</rt></ruby>に<ruby>進<rt class="uf">すす</rt></ruby>む':'はじめる')
+   +'</button></div></div>';
   return h;
+}
+/* この教材にカードを出すか、出すならどこに挟むかを決める 2026-09-09
+     'head' ＝ 単元別（社会）。いちばん最初に1枚。文言は「要点／はじめる前に」
+     'sent' ＝ 毎日学習で文の問題を持つもの（英検5級）。語を終えて文の問題に入る手前で1枚。
+              文言は「文法／文に入る前に」。仕組み（3択の穴埋め・間違えても進む・正答率に無関係）は同じ
+     ''     ＝ 出さない。確認テスト・おさらい・間違いノートはここで落ちる */
+function _hasSentQ_(s){
+  var a=(s&&s.words)||[];
+  for(var i=0;i<a.length;i++)if(_isSentQ_(a[i]))return true;
+  return false;
+}
+function _ptKind_(s){
+  if(!s||s.quizMode)return '';
+  var ct=String(s.content_type||'');
+  if(ct==='test')return 'head';
+  /* mode も見る。おさらい（srs）・間違いノート（note）は content_type を持たないので今でも落ちるが、
+     あとで持つようになっても出ないようにしておく */
+  if(ct==='daily'&&s.mode==='daily'&&_hasSentQ_(s))return 'sent';
+  return '';
 }
 /* 出せたら true。出せなければ false（呼び元がふつうに1問目を描く） */
 function _ptShow_(s){
   /* 単元別だけ（content_type==='test' かつ確認テストでない）。毎日学習では出さない＝2026-09-06 川上さん確定。
      おさらい・間違いノートは _startPracticeWith_ を通らないのでもともと出ない。 */
-  if(!s||s.quizMode||String(s.content_type||'')!=='test')return false;
-  if(s._ptDone)return false;   /* 終えたあとは出さない（更新で出し直さない） */
+  /* 2026-09-09 に英検5級ぶんを足した。毎日学習でも、文の問題の直前だけカードを1枚はさむ。 */
+  var kind=_ptKind_(s); if(!kind)return false;
+  if(kind==='head'){
+    if(s._ptDone)return false;   /* 終えたあとは出さない（更新で出し直さない） */
+  }else{
+    if(s._ptSentDone)return false;
+    if(!_isSentQ_(s.words&&s.words[s.idx]))return false;  /* まだ語の問題。文の1問目に来てから出す */
+  }
   var d=_ptParse_(s.point); if(!d)return false;
   var wrap=$('pt-wrap'); if(!wrap)return false;
-  wrap.innerHTML=_ptHtml_(s,d); wrap.style.display='block'; /* CSSで #pt-wrap{display:none} にしてあるので '' では戻らない */
+  wrap.innerHTML=_ptHtml_(s,d,kind); wrap.style.display='block'; /* CSSで #pt-wrap{display:none} にしてあるので '' では戻らない */
   _ptHide_();
   var card=wrap.querySelector('.pointcard'), busy=false;
   function sync(){
@@ -4637,11 +4670,14 @@ function _ptShow_(s){
   });
   sync();
   var g=$('pt-go');
-  if(g)g.onclick=function(){ s._ptDone=true; _ptRestore_(); renderStep(); };
+  if(g)g.onclick=function(){ if(kind==='sent')s._ptSentDone=true; else s._ptDone=true; _ptRestore_(); renderStep(); };
   var f=card.querySelector('.bl:not(.done)'); if(f)openBl(f);
   return true;
 }
 function renderQz_(s){if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestore_();if(_ptShow_(_ps))return;}catch(e){}}/* 更新ボタンは要点カードのことを知らない。片づけて問題を描くと【要点を飛ばせてしまう】ので、終えていなければカードを描き直す（埋めた穴は復元する）2026-09-06③ */
+  /* 英検5級：語を全部終えて文の問題に来た1回だけ、文法解説カードをはさむ。
+     _ptShow_ の中で「文の問題かどうか」「もう出したか」を見るので、ここは呼ぶだけ 2026-09-09 */
+  if(!_ptHidden_&&_ptKind_(s)==='sent'){try{if(_ptShow_(s))return;}catch(e){}}
   if(!s||!s.words||!s.words[s.idx])return; _quizSes=s;
   try{_nowBarSync_(s);}catch(e){}
   var w=s.words[s.idx],tot=s.words.length;
@@ -4794,17 +4830,34 @@ function renderIMG(ss){
 }
 /* ===== 文の問題（listen / sentence_fill / reorder）レンダラー 2026-09-08 =====
    正＝要件定義書_英検教材_Kurofune-Word-Trainer.md §5・§5c・§7、教材作成基準 §2-6。
-   ・素材は assets（kind=sentence）の payload：{"en":文,"ja":訳,"tokens":[語群],"audio":mp3のパス}
+   ・素材は assets（kind=sentence）の payload：{"en":文,"ja":訳,"tokens":[語群],"audios":[mp3のパス…]}
+     audios は複数の声。1本しかない古い形（"audio":パス）もそのまま動く（2026-09-09）
    ・語群（tokens）は全部小文字（I と固有名詞だけ大文字）。文から機械で作らない＝May(5月)と may(助動詞)を
      機械が決められないため、教材データに持たせている（教材作成基準 §2-6）
    ・「音を聞く」ボタン（btn-listen）は出さない。文をそのまま読み上げると穴埋め・並び替えの答えが分かる */
 var _sentAu=null;
 function _sentSay_(t){try{if(!window.speechSynthesis||!t)return;var u=new SpeechSynthesisUtterance(String(t));u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
 function _sentStop_(){try{if(_sentAu){_sentAu.pause();_sentAu=null;}}catch(e){}try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
-/* mp3 がまだ置かれていない・読めないときは端末の読み上げに落とす＝音声をそろえる前でも出題できる（要件定義書 §6） */
+/* mp3 がまだ置かれていない・読めないときは端末の読み上げに落とす＝音声をそろえる前でも出題できる（要件定義書 §6）
+   【2026-09-09 川上さん確定】1文に複数の声を持たせ、**再生するたびに声が変わる**（A案）。
+   payload の audios（配列）があればそこから1本選ぶ。無ければ従来どおり audio（単数）を使う
+   ＝声が1本しかない古いデータもそのまま動く。GAS・シートの列は変えていない。
+   直前に鳴らした声は続けて選ばない＝「もう一回聞く」を押したのに同じ声、が起きない。
+   声を問題のあいだ固定したくなったら、_sentPick_ の中で1問ぶん覚える形に変えれば
+   呼び出し側（_sentPlay_）は触らずに済む。 */
+var _sentVoi=-1;
+function _sentPick_(pl){
+  var a=(pl&&pl.audios&&pl.audios.length)?pl.audios:null;
+  if(!a)return String((pl&&pl.audio)||'');
+  if(a.length===1)return String(a[0]||'');
+  var i=Math.floor(Math.random()*a.length);if(i>=a.length)i=a.length-1;
+  if(i===_sentVoi)i=(i+1)%a.length;
+  _sentVoi=i;
+  return String(a[i]||'');
+}
 function _sentPlay_(pl){
   _sentStop_();
-  var url=String((pl&&pl.audio)||'');
+  var url=_sentPick_(pl);
   if(!url){_sentSay_(pl&&pl.en);return;}
   try{
     var au=new Audio(url);_sentAu=au;
