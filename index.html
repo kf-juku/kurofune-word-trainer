@@ -1914,6 +1914,22 @@ function _buildDiag_(){var d={};try{
   var s='';try{s=JSON.stringify(d);}catch(e){s='{"_diagErr":"stringify"}';}
   if(s.length>9000)s=s.slice(0,9000)+'…';return s;}
 var token=localStorage.getItem('kwt_token')||'';
+/* ===== 先生用プレビューの入口（#pv=<part_id>）2026-09-09 =====
+   ★ここは【起動の分岐（if(_PV_&&_PV_.pid&&token)）より前】でなければならない。
+     スクリプト末尾に置いていたら、その時点で _PV_ が null で、画面の復元にホームへ戻されていた。
+   関数（_pvStart_ ほか）は宣言なので巻き上げられる＝末尾のままでよい。作るのはここ。 */
+var _PV_=null;
+(function(){
+  var m=String(location.hash||'').match(/(?:^|[#&])pv=([^&]*)/); if(!m)return;
+  _PV_={pid:decodeURIComponent(m[1]||''),d:null,at:0,list:[],started:false};
+  var _oc=call;
+  call=function(b,t){
+    var a=b&&b.action;
+    if(a==='student_login'||a==='student_home'||(a==='student_today'&&!b.start))return _oc(b,t);
+    return Promise.resolve({ok:true,data:{}});
+  };
+})();
+
 var nickname=localStorage.getItem('kwt_nick')||'';
 /* ===== UI文言のふりがな出し分け（学年連動）2026-07-22 =====
    学年が「小」で始まる子（小学生）だけ <html> に furi-on を付け、rt.uf のルビを表示する。
@@ -3355,7 +3371,7 @@ function renderNoteNudge_(totalN){
   var el=wrap.querySelector('.nnudge');if(el)el.onclick=function(){showHomeTab('review');var nl=$('note-list');if(nl&&nl.scrollIntoView)nl.scrollIntoView({behavior:'smooth'});}; // 間違いノートの一覧は間違いタブ内に表示（sv-noteは廃止）2026-07-26
 }
 function openHome(){
-  if(_PV_&&!_PV_.started){ _pvStart_(); return; }   /* 先生用プレビュー＝ホームではなくプレビューを開く 2026-09-09 */
+  if(_PV_&&_PV_.pid){ _pvStart_(); return; }   /* 先生用プレビュー＝ホームには落とさない。2回目以降の呼び出しは _pvStart_ が false を返すだけで、プレビューはそのまま残る 2026-09-09 */
   $('nick').textContent=nickname;try{applyMyIcon_();}catch(e){}syncThemeIcon();show('scr-home');
   // 初回ログイン：ニックネーム未設定なら設定モーダルを自動表示（スキップ可・1ログイン1回だけ・川上さん確定 2026-07-04 機能仕様書_テスト配信 §5-2）
   if((!nickname||nickname==='きみ'||localStorage.getItem('kwt_nick_auto')==='1')&&!window._nickPrompted){window._nickPrompted=true;setTimeout(openNickModal,600);} // 自動付与された子にも初回1回だけ案内（§5-2踏襲・2026-07-05）
@@ -7073,7 +7089,8 @@ function verOnReturn_(){
 })();
 verInit_();
 try{shReadUrl_();}catch(e){} // QRの ?sheet=XXXX を覚えてURLから消す（ログイン前でも拾う）2026-09-01
-if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}try{_ht=sessionStorage.getItem('kwt_htab');}catch(e){}openHome();try{if(shPendGet_()){showSub('sheet');}else if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}else if(_ht&&['daily','review','unit'].indexOf(_ht)>=0){showHomeTab(_ht);}}catch(e){}} // 更新後は今の画面を復元：サブ画面(kwt_view)優先、なければホームのタブ(kwt_htab)。openHome内のbackToTiles()が復元キーを消すので必ず先に読む（川上さん 2026-07-06/24）
+if(_PV_&&_PV_.pid&&token){_pvStart_();}   /* 先生用プレビュー＝画面の復元をしない。openHome() の【あと】に showSub/showHomeTab が走るので、ここで分けないとホームに戻される 2026-09-09 */
+else if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}try{_ht=sessionStorage.getItem('kwt_htab');}catch(e){}openHome();try{if(shPendGet_()){showSub('sheet');}else if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}else if(_ht&&['daily','review','unit'].indexOf(_ht)>=0){showHomeTab(_ht);}}catch(e){}} // 更新後は今の画面を復元：サブ画面(kwt_view)優先、なければホームのタブ(kwt_htab)。openHome内のbackToTiles()が復元キーを消すので必ず先に読む（川上さん 2026-07-06/24）
 
 /* ===== 生徒バグ報告（各画面から押せる・記録のみ＝メールは朝まとめ）2026-07-11 ===== */
 var _bugSending=false;
@@ -7356,17 +7373,8 @@ try{refreshBugFab();}catch(e){}
        （正解の演出と解説は buildChoices の中で出るので、見た目はそのまま確かめられる）
      ③ 読み取り以外の通信は投げないように call を包んである
    ★#pv= が付いていないときは、この節は何も動かない＝生徒の画面には影響しない。 */
-var _PV_=null;
-(function(){
-  var m=String(location.hash||'').match(/(?:^|[#&])pv=([^&]*)/); if(!m)return;
-  _PV_={pid:decodeURIComponent(m[1]||''),d:null,at:0,list:[],started:false};
-  var _oc=call;
-  call=function(b,t){
-    var a=b&&b.action;
-    if(a==='student_login'||a==='student_home'||(a==='student_today'&&!b.start))return _oc(b,t);
-    return Promise.resolve({ok:true,data:{}});
-  };
-})();
+/* _PV_ の作成は、起動の分岐より前（token を読む所の直後）に移してある。
+   ここに置いていたら、7076行の分岐の時点でまだ null で、ホームに戻されていた 2026-09-09 */
 function _pvSes_(){
   var d=_PV_.d||{}, ws=d.words||[];
   return {mode:'daily',listId:_PV_.pid,quizMode:false,words:ws,idx:0,step:2,
@@ -7447,11 +7455,18 @@ function _pvStart_(){
   if(!_PV_||_PV_.started||!_PV_.pid)return false;
   _PV_.started=true;
   show('scr-practice');
+  try{showPracticeLoading_();}catch(e){}
   call({action:'student_today',part_id:_PV_.pid}).then(function(d){
     if(!d||!d.ok||!d.data||!(d.data.words||[]).length){
-      document.body.innerHTML='<div style="padding:26px;font:14px/1.9 system-ui,sans-serif;color:#111">'
-        +'この回のデータを取れませんでした。<br>いまログインしている生徒アカウントに、この教材が配られているか確かめてください。'
-        +'<br><br><code style="font-size:12px;color:#666">'+esc(_PV_.pid)+'</code></div>';
+      var er=String((d&&d.error)||'');
+      if(er.indexOf('ログイン')>=0){ _PV_.started=false; try{show('scr-login');}catch(e){} return; }  /* 入り直せばまた開く。画面を壊さない */
+      var wp=$('pt-wrap');
+      if(wp){ wp.style.display='block';
+        wp.innerHTML='<div class="pointcard" style="font-size:13px;line-height:1.9">'
+          +'この<ruby>回<rt class="uf">かい</rt></ruby>のデータを取れませんでした。<br>'
+          +'いまログインしている生徒アカウントに、この教材が配られているか確かめてください。'
+          +(er?('<br><br>'+esc(er)):'')
+          +'<br><br><code style="font-size:11px;color:#888">'+esc(_PV_.pid)+'</code></div>'; }
       return;
     }
     _PV_.d=d.data;
