@@ -422,9 +422,14 @@
 
   input{width:100%;padding:14px;font-size:16px;border:1px solid var(--line);border-radius:13px;margin-bottom:11px;background:var(--surface);color:var(--ink);}
   input:focus{outline:none;border-color:var(--accent);}
-  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;font-family:inherit;font-size:16px;font-weight:700;border:none;border-radius:14px;background:var(--accent);color:#fff;cursor:pointer;transition:transform .12s;}
+  .btn{display:block;text-align:center;width:100%;padding:15px;font-family:inherit;font-size:16px;font-weight:700;border:none;border-radius:14px;background:var(--accent);color:#fff;cursor:pointer;transition:transform .12s;}
 .btn.danger{background:var(--ng);}
   .btn:active{transform:translateY(2px) scale(.99);}
+  /* 【地雷 2026-09-09】display:flex だと <ruby> が1つずつ別のフレックス箱になり、「文 に 進 む」のように字間が開く／選択肢が途中で折り返す。block にして中身は行として流す。アイコンの左右の間は gap:8px の代わりにマージンで作る */
+  .btn>i{vertical-align:-1px;}
+  .btn>i:first-child{margin-right:8px;}
+  .btn>i:last-child{margin-left:8px;}
+  .btn>i:only-child{margin:0;}
   .btn.sub{background:var(--surface);color:var(--accent);border:1px solid var(--accent);}
   .btn.ghost{background:transparent;color:var(--sub);}
   .btn.gold{background:linear-gradient(135deg,var(--gold),#a9842f);color:#1a1304;}
@@ -925,6 +930,13 @@
 .pt-body p:last-child{margin-bottom:0;}
 /* 読み仮名＝答えの語すべてに（よみ）を常時表示。粒度は解説と同じ「語全体」（§3共通） */
 .pt-body .yomi{font-size:10.5px;color:var(--sub);font-weight:600;}
+/* 例文と、その語の下に付ける直訳（2026-09-09 川上さん指定の形）。
+   英文の1語ごとに縦2段の箱を作り、上に英語・下に日本語を置く。和訳は行の最後に上段だけで並べる */
+.exline{display:flex;flex-wrap:wrap;align-items:stretch;column-gap:13px;row-gap:4px;margin:0 0 12px;line-height:1.5;}
+.exw{display:inline-flex;flex-direction:column;align-items:center;justify-content:space-between;}  /* 穴のある語は背が高い。直訳を下ぞろえにして1行に見せる */
+.exw .exen{font-weight:700;white-space:nowrap;min-height:30px;display:flex;align-items:center;justify-content:center;}  /* 穴（.bl）が入る語は背が高い。上段の高さをそろえないと直訳の行がガタつく */
+.exw .exja{font-size:11px;color:var(--sub);font-weight:600;white-space:nowrap;min-height:1.25em;line-height:1.25;}
+.exw.extr .exen{font-weight:500;color:var(--sub);}
 .bl{position:relative;display:inline-flex;align-items:center;justify-content:center;line-height:1.55;padding:0 8px;margin:0 2px;border-radius:7px;background:var(--accent-soft);border:1.5px dashed var(--accent);color:var(--accent);font-weight:800;cursor:pointer;vertical-align:1px;max-width:calc(100% - 6px);text-align:center;}
 /* 「答え＋読み」が狭い端末（320px・280px）で1行に入らないので折り返す。
    nowrap のままだと横にはみ出す（2026-09-06 実測）。読みの中では折らない。 */
@@ -1058,6 +1070,7 @@
   .furi-coach{position:absolute;right:10px;top:-11px;background:#111827;color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:8px;white-space:nowrap;z-index:4;}
   .furi-coach::after{content:'';position:absolute;right:20px;bottom:-5px;border:5px solid transparent;border-top-color:#111827;border-bottom:0;}
   .choice{display:flex;align-items:center;justify-content:center;width:100%;padding:17px;font-family:inherit;font-size:18px;margin-bottom:12px;border:1px solid var(--line);border-radius:15px;background:var(--surface);color:var(--ink);cursor:pointer;transition:transform .1s;}
+  .choice .ci{display:block;width:100%;text-align:center;}  /* ルビが別々のフレックス箱にならないように、中身をまとめる 2026-09-09 */
   .choice:active{transform:scale(.98);}
   .choice.correct{border-color:var(--ok);background:rgba(31,170,107,.12);color:var(--ok);font-weight:700;animation:pop .35s;}
   .choice.wrong{border-color:var(--ng);background:rgba(224,83,60,.12);color:var(--ng);animation:shake .3s;}
@@ -4533,6 +4546,51 @@ function _ptRestore_(){
 /* 穴の番号。①〜⑳はその文字、それ以上は (21) の形。2026-09-07 */
 function _ptNo_(n){ return (n>=1&&n<=20)?String.fromCharCode(0x2460+n-1):('('+n+')'); }
 function _ptYomi_(html){ return html.replace(/[（(]([ぁ-んァ-ヶーゝゞ・]+)[）)]/g,'<span class="yomi">（$1）</span>'); }
+var _PT_GL_=/^\s*::/;
+/* 穴（[[語]]）1つぶんのHTML。更新で描き直すとき、埋めた穴はそのまま復元する（やり直しにしない・飛ばせない） */
+function _ptBlank_(w,d,s,_no){
+  var y=d.yomi[w]||'';
+  var cs=(d.ch[w]||[]).slice(); cs.unshift(w);
+  var st=(s._ptFilled||{})[w];
+  return '<span class="bl'+(st?(' done'+(st==='miss'?' miss':'')):'')+'" role="button" tabindex="0" data-a="'+esc(w)+'" data-n="'+_no[w]+'" data-c="'+esc(cs.join('|'))+'">'
+    +'<span class="gh">'+esc(w)+(y?'<span class="yomi">（'+esc(y)+'）</span>':'')+'</span>'
+    +'<span class="q">'+_ptNo_(_no[w])+'</span></span>';
+}
+/* カードの日本語にふりがなを振るのは英語の教材だけ（辞書は英検5級の訳で検算したもの）。
+   理科・社会の要点カードは今までどおりふりがな無し。_isEigo_ は session を見るが、
+   カードは session が入る前にも描くことがあるので、ここは渡された s から教科を見る 2026-09-09 */
+function _ptJa_(t,s){
+  var subj=(s&&s.subject)||'';
+  if(!subj&&s&&s.words&&s.words.length)subj=(s.words[0]&&s.words[0].subject)||'';
+  return (subj==='english')?_jaRuby_(t):esc(String(t==null?'':t));
+}
+/* 本文の1行。[[語]] は穴に、そのほかの日本語には自動でふりがなを振る（2026-09-09 川上さん指摘＝解説に読みがなが無かった） */
+function _ptLine_(line,d,s,_no){
+  var out='',last=0,re=/\[\[(.+?)\]\]/g,m;
+  while((m=re.exec(line))){
+    out+=_ptYomi_(_ptJa_(line.slice(last,m.index),s));
+    out+=_ptBlank_(m[1],d,s,_no);
+    last=m.index+m[0].length;
+  }
+  out+=_ptYomi_(_ptJa_(line.slice(last),s));
+  return out;
+}
+/* 英文＋語ごとの直訳。英文を空白で切って、上に英語・下に日本語を並べる。
+   直訳は「|」区切りで英語の語と同じ数だけ書く（空にすればその語には付かない）。
+   行末の（和訳）は最後にまとめて置く 2026-09-09 */
+function _ptEx_(line,gl,d,s,_no){
+  var en=line, tr='';
+  var m=String(line).match(/^([\s\S]*?)\s*[（(]([^（）()]*)[）)]\s*$/);
+  if(m){ en=m[1]; tr=m[2]; }
+  var toks=en.trim().split(/\s+/), gs=String(gl||'').split('|');
+  var h='<div class="exline">';
+  for(var i=0;i<toks.length;i++){
+    h+='<span class="exw"><span class="exen">'+_ptLine_(toks[i],d,s,_no)+'</span>'
+      +'<span class="exja">'+_ptJa_(String(gs[i]||'').trim(),s)+'</span></span>';
+  }
+  if(tr)h+='<span class="exw extr"><span class="exen">（'+_ptJa_(tr,s)+'）</span><span class="exja"></span></span>';
+  return h+'</div>';
+}
 function _ptHtml_(s,d,kind){
   var url=_ptFig_(s,d);
   /* 見出しは入口で変える。単元別（社会）＝「要点／はじめる前に」、
@@ -4549,23 +4607,15 @@ function _ptHtml_(s,d,kind){
      川上さん＝「おなじ穴埋め番号にすばいいんじゃない？」 */
   var _no={}, _nn=0;
   d.blanks.forEach(function(w){ if(!_no[w]){ _nn++; _no[w]=_nn; } });
-  d.body.split('\n').forEach(function(line){
-    if(!line.trim())return;
-    var parts=[],last=0,re=/\[\[(.+?)\]\]/g,m;
-    while((m=re.exec(line))){
-      parts.push(_ptYomi_(esc(line.slice(last,m.index))));
-      var w=m[1], y=d.yomi[w]||'';
-      var cs=(d.ch[w]||[]).slice(); cs.unshift(w);
-      /* 更新ボタンで描き直すとき、埋めた穴はそのまま復元する（やり直しにしない・飛ばせない） */
-      var st=(s._ptFilled||{})[w];
-      parts.push('<span class="bl'+(st?(' done'+(st==='miss'?' miss':'')):'')+'" role="button" tabindex="0" data-a="'+esc(w)+'" data-n="'+_no[w]+'" data-c="'+esc(cs.join('|'))+'">'
-        +'<span class="gh">'+esc(w)+(y?'<span class="yomi">（'+esc(y)+'）</span>':'')+'</span>'
-        +'<span class="q">'+_ptNo_(_no[w])+'</span></span>');
-      last=m.index+m[0].length;
-    }
-    parts.push(_ptYomi_(esc(line.slice(last))));
-    h+='<p>'+parts.join('')+'</p>';
-  });
+  /* 「:: 」で始まる行は、そのすぐ上の英文の【語ごとの直訳】。行としては出さず、上の行と組にして描く 2026-09-09 */
+  var _ls=d.body.split('\n');
+  for(var _li=0;_li<_ls.length;_li++){
+    var line=_ls[_li]; if(!line.trim())continue;
+    if(_PT_GL_.test(line))continue;                       /* 直訳行が単独で残っていても出さない */
+    var nx=_ls[_li+1];
+    if(nx&&_PT_GL_.test(nx)){ h+=_ptEx_(line,nx.replace(_PT_GL_,''),d,s,_no); _li++; continue; }
+    h+='<p>'+_ptLine_(line,d,s,_no)+'</p>';
+  }
   h+='</div><div class="pt-left"></div>'
    +'<div class="pt-go"><button class="btn" id="pt-go" type="button" disabled>'
      +(_sent?'<ruby>文<rt class="uf">ぶん</rt></ruby>に<ruby>進<rt class="uf">すす</rt></ruby>む':'はじめる')
@@ -4766,10 +4816,13 @@ var JA_RUBY_={
   '帰宅':'きたく','帽子':'ぼうし','年齢':'ねんれい','彼女':'かのじょ','意識':'いしき','掃除':'そうじ','授業':'じゅぎょう','映画':'えいが','時刻':'じこく',
   '歴史':'れきし','毎晩':'まいばん','浜辺':'はまべ','牛乳':'ぎゅうにゅう','男性':'だんせい','留守':'るす','祖母':'そぼ','祖父':'そふ','簡単':'かんたん',
   '美術':'びじゅつ','複数':'ふくすう','訪ね':'たず','訪れ':'おとず','質問':'しつもん','趣味':'しゅみ','鉛筆':'えんぴつ','高価':'こうか','個':'こ',
-  '冊':'さつ','卵':'たまご','彼':'かれ','机':'つくえ','猫':'ねこ','私':'わたし','窓':'まど','豚':'ぶた','靴':'くつ'};
+  '冊':'さつ','卵':'たまご','彼':'かれ','机':'つくえ','猫':'ねこ','私':'わたし','窓':'まど','豚':'ぶた','靴':'くつ',
+  /* 文法解説カードの本文で使う語 2026-09-09 */
+  '代名詞':'だいめいし','名詞':'めいし','前置詞':'ぜんちし'};
 var JA_RUBY_OK_={
   '与':'あた','呼':'よ','寝':'ね','座':'すわ','忙':'いそが','怒':'おこ','撮':'と','曇':'くも','欲':'ほ','洗':'あら','疲':'つか','眠':'ねむ',
-  '背':'せ','若':'わか','踊':'おど','遅':'おそ','閉':'し','離':'はな','難':'むずか','飼':'か'};
+  '背':'せ','若':'わか','踊':'おど','遅':'おそ','閉':'し','離':'はな','難':'むずか','飼':'か',
+  '並':'なら'};
 var _jaRubyK_=null;
 function _jaRubyHira_(c){return c>='\u3041'&&c<='\u309f';}
 function _jaRuby_(t){
@@ -4800,7 +4853,8 @@ function _jaRubyIf_(t){return _isEigo_()?_jaRuby_(t):esc(String(t==null?'':t));}
 function _boxBlank(h){return h.replace(/（[\s　]*）/g,'<span class="qblank"></span>');}
 function _isKokugo(){var s=_actSes()||session;if(!s)return false;var w=s.words&&s.words[s.idx];var subj=(w&&w.subject)||s.subject;return subj==='japanese';} // おさらいは教科混在＝語ごとに判定 2026-07-26
 function renderQ(w,showFuri){var q=tfParse(w);if(q&&q.q_ruby&&q.q_ruby.length){var h='';q.q_ruby.forEach(function(seg){var t=String((seg&&seg[0])||'');var y=(seg&&seg[1])?seg[1]:'';h+=(showFuri&&y)?_rubyTag(t,y):esc(t);});return _boxBlank(h);}return _boxBlank(esc(String(w.japanese||'')));}
-function _choiceHtml(v){v=String(v);if(furiC&&_isKokugo()&&_kanjiRe(v)&&_readingMap[v])return _rubyTag(v,_readingMap[v]);return _jaRubyIf_(v);}
+function _choiceHtml(v){v=String(v);var _h=(furiC&&_isKokugo()&&_kanjiRe(v)&&_readingMap[v])?_rubyTag(v,_readingMap[v]):_jaRubyIf_(v);
+  return '<span class="ci">'+_h+'</span>';}  /* .choice は display:flex。ruby を直接入れると1文字ずつ別の箱になって折り返しが壊れる 2026-09-09 */
 function _hasQRuby(w){var q=tfParse(w);return !!(q&&q.q_ruby&&q.q_ruby.length);}
 function _furiCoachSeen(){try{return localStorage.getItem('kwt_furicoach')==='1';}catch(e){return true;}}
 function _furiCoachDone(){try{localStorage.setItem('kwt_furicoach','1');}catch(e){}var c=document.querySelector('.furi-coach');if(c)c.remove();}
