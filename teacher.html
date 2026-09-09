@@ -4043,9 +4043,10 @@ function mpPointSave_(el){
   if(val===orig)return Promise.resolve(); // 変更なしは送らない
   var warns=mpPointValidate_(val);
   if(warns.length){
-    return mpConfirm_(warns.join('\n')+'\n\nこのまま保存しますか？').then(function(go){
-      if(go)return mpPointDoSave_(el,pid,orig,val);
-      el.innerText=orig; // やめる＝元に戻す
+    return mpConfirm_(warns.join('\n')+'\n\nこのまま保存しますか？').then(function(r){
+      if(r==='save')return mpPointDoSave_(el,pid,orig,val);
+      if(r==='revert'){ el.innerText=orig; return; }   // やめる＝元に戻す
+      mpRefocus_(el);                                   // 修正する＝書いたものを残してその場に戻る（保存しない）
     });
   }
   return mpPointDoSave_(el,pid,orig,val);
@@ -4228,8 +4229,10 @@ function mpFieldSave_(el){
   // ②③ 選択肢の整合・答えバレは警告して確認（意図的な編集もありうるので止めず選ばせる）
   var warns=mpValidate_(el,field,val);
   if(warns.length){
-    mpConfirm_(warns.join('\n')+'\n\nこのまま保存しますか？').then(function(go){
-      if(go)mpDoSave_(el,wid,field,orig,val); else {el.innerText=orig;} // やめる＝元に戻す
+    mpConfirm_(warns.join('\n')+'\n\nこのまま保存しますか？').then(function(r){
+      if(r==='save'){ mpDoSave_(el,wid,field,orig,val); return; }
+      if(r==='revert'){ el.innerText=orig; return; }   // やめる＝元に戻す
+      mpRefocus_(el);                                   // 修正する＝書いたものを残してその場に戻る（保存しない）
     });
     return;
   }
@@ -4288,7 +4291,19 @@ function mpValidate_(el,field,val){
   }
   return w;
 }
-/* アプリと同じ見た目のカスタム確認（ネイティブconfirmは使わない）→Promise<boolean> 2026-07-21 */
+/* 直したところに戻す（カーソルを末尾に置く）2026-09-09 */
+function mpRefocus_(el){
+  try{ el.focus();
+    var r=document.createRange(); r.selectNodeContents(el); r.collapse(false);
+    var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    if(el.scrollIntoView)el.scrollIntoView({block:'center'});
+  }catch(e){}
+}
+/* アプリと同じ見た目のカスタム確認（ネイティブconfirmは使わない）2026-07-21
+   → Promise<'save'|'edit'|'revert'> 2026-09-09 川上さん
+     いままで「やめる（元に戻す）」と「このまま保存」しかなく、
+     直したいだけなのに、いちいち書き直すか一度保存するしかなかった。
+     'edit' ＝ 書いたものをそのまま残して、その場に戻る（保存しない・元にも戻さない） */
 function mpConfirm_(msg){
   return new Promise(function(resolve){
     var ov=document.createElement('div');
@@ -4299,12 +4314,19 @@ function mpConfirm_(msg){
       +'<div style="font-size:13px;color:#334155;white-space:pre-wrap;line-height:1.65;margin-bottom:14px;">'+esc(msg)+'</div>'
       +'<div style="display:flex;gap:8px;justify-content:flex-end;">'
       +'<button id="_mpcNo" style="border:1px solid #cbd5e1;background:#fff;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-family:inherit;">やめる（元に戻す）</button>'
-      +'<button id="_mpcYes" style="border:none;background:#dc2626;color:#fff;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">このまま保存</button></div>';
+      +'<button id="_mpcEdit" style="border:none;background:#2563eb;color:#fff;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">修正する</button>'
+      +'<button id="_mpcYes" style="border:1px solid #fca5a5;background:#fff;color:#dc2626;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">このまま保存</button></div>';
     ov.appendChild(box);document.body.appendChild(ov);
     function done(v){if(ov.parentNode)ov.parentNode.removeChild(ov);resolve(v);}
-    box.querySelector('#_mpcYes').onclick=function(){done(true);};
-    box.querySelector('#_mpcNo').onclick=function(){done(false);};
-    ov.addEventListener('click',function(e){if(e.target===ov)done(false);});
+    box.querySelector('#_mpcYes').onclick=function(){done('save');};
+    box.querySelector('#_mpcEdit').onclick=function(){done('edit');};
+    box.querySelector('#_mpcNo').onclick=function(){done('revert');};
+    /* 外side を押した・Escape ＝ 書いたものは消さない（'edit'）。うっかり全部消える事故を作らない */
+    ov.addEventListener('click',function(e){if(e.target===ov)done('edit');});
+    document.addEventListener('keydown',function _k(e){
+      if(!ov.parentNode){document.removeEventListener('keydown',_k);return;}
+      if(e.key==='Escape'){e.preventDefault();document.removeEventListener('keydown',_k);done('edit');}
+    });
   });
 }
 /* ===== 確認テスト リアルタイムモード（別ウィンドウを開く）2026-07-22 ===== */
