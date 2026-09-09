@@ -1362,6 +1362,11 @@
   .sq-sent{font-size:25px;font-weight:700;text-align:center;line-height:1.5;margin:10px 0 6px;}
   .sq-bl{display:inline-block;min-width:74px;border-bottom:3px solid var(--accent);margin:0 4px;vertical-align:-2px;}
   .sq-ja{text-align:center;color:var(--sub);font-size:14px;margin-bottom:14px;}
+  /* 並べ替えは日本語訳が問題文そのもの。穴埋めのように英文が上に出ないので、ここを主役の大きさにする
+     （2026-09-09 川上さん指摘「私は生徒です の方を目立つように」）。.sq-ja のあとに書いて上書きする */
+  .ro-ja{color:var(--text);font-size:21px;font-weight:700;line-height:1.5;margin:10px 0 16px;}
+  /* 語を並べ終えるまで押せないボタンが、いちばん濃い色で出ていた。押せない間は下げる */
+  .ro-go:disabled{opacity:.42;}
   /* 並び替え：□が語数ぶん並ぶ（あとで不要語を入れてもそのまま使える形にしてある） */
   .ro-slots{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;min-height:48px;margin:4px 0 14px;padding:10px 6px;border-radius:14px;background:var(--neutral-ic);}
   /* 空き□は全部おなじ幅。記号のところだけ細くすると「カンマはここ」が見えてしまう */
@@ -4169,6 +4174,15 @@ function _startStepFor(s,w){ return _wIsEng(s,w) ? (s.mode==='daily'?1:2) : 3; }
    分母（total＝行数）とそろう。j2e にすると reverse 側に入って正答率が半分に見える。 */
 function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder';}
 function _isOneShot_(w){var q=String((w&&w.qtype)||'');return q==='table_fill'||q==='image_fill'||_isSentQ_(w);} // 英語=毎日は発音1/復習は意味2、用語=英語3から
+/* 語の4択の誤答は、語の行からだけ作る 2026-09-09 川上さん指摘
+   1行1問のタイプ（表・図・文の3種）は english / japanese が「語と意味」ではなく設問文なので、
+   混ぜると I（　）a student. 私は生徒です。 が「I の意味」の選択肢に出てしまう。
+   語の行が1つも無い教材（表だけの回など）では今までどおり全部から作る＝選択肢が消えないように */
+function _wordRows_(s){
+  var a=(s&&s.words)||[];
+  var o=a.filter(function(x){return !_isOneShot_(x);});
+  return o.length?o:a;
+}
 function qPresentE2J(w){ $('e2j-label').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';$('e2j-en').textContent=w.english;var _er=$('e2j-reading');if(_er){_er.textContent=w.reading_hint||'';_er.style.display=w.reading_hint?'':'none';} }
 function _promptLabel_(w){ /* 問題タイプでラベルを出し分け（記述→4択/あてはまらない型）。用語・英語は空を返し既定ラベル 2026-08-09 */ var q=(tfParse(w).ask)||w.japanese||''; if(/あてはまらない/.test(q)) return 'あてはまらないものを<ruby>選<rt class="uf">えら</rt></ruby>ぼう'; var a=String(w.english||''); if(/[、。]/.test(a)||(a.length>=12&&/(ため|防ぐ|から|こと)$/.test(a))) return '<ruby>正<rt class="uf">ただ</rt></ruby>しいものを<ruby>選<rt class="uf">えら</rt></ruby>ぼう'; return ''; }
 function qPresentJ2E(w,isEng){ var _pl=isEng?'':_promptLabel_(w); $('j2e-label').innerHTML=_pl||((!isEng)?'<ruby>用語<rt class="uf">ようご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう':'<ruby>英語<rt class="uf">えいご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう');$('j2e-ja').innerHTML=renderQ(w,furiQ);renderFuriBar(w); }
@@ -4717,13 +4731,13 @@ function renderQz_(s){if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestor
   if(s.step===2){
     qPresentE2J(w);
     var _qje=tfParse(w),_fxJa=(_qje&&_qje.choices_ja&&_qje.choices_ja.length)?_qje.choices_ja:null; // 教材が用意した同品詞の誤答(英→日)を優先 2026-07-28
-    var poolJa=(s.mode==='daily')?s.words.map(function(x){return x.japanese;}):((w.wrong_choices_ja&&w.wrong_choices_ja.length)?w.wrong_choices_ja:s.words.map(function(x){return x.japanese;})); // 誤答：毎日=同セッション語、復習=同パート誤答(サーバー)優先。qdata.choices_jaがあればそちらを使う
+    var poolJa=(s.mode==='daily')?_wordRows_(s).map(function(x){return x.japanese;}):((w.wrong_choices_ja&&w.wrong_choices_ja.length)?w.wrong_choices_ja:_wordRows_(s).map(function(x){return x.japanese;})); // 誤答：毎日=同セッション語、復習=同パート誤答(サーバー)優先。qdata.choices_jaがあればそちらを使う。語の行だけから作る 2026-09-09
     buildChoices('e2j-choices',w.japanese,(_fxJa?[]:poolJa),function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},{timeLimit:_tl,kaisetsu:w.kaisetsu,fixedChoices:_fxJa,next:function(){ if(s.fixMode){ (s.onNext||nextWord)(); return; } /* ミス問は1問ずつ 2026-08-26 */ if(((w&&w.direction)||(s&&s.dir)||'')==='e2j'){ (s.onNext||nextWord)(); } else { s.step=3;renderQz_(s); } }});
     $('step-e2j').style.display='block';showListen_(w,isEng);
   }else if(s.step===3){
     qPresentJ2E(w,isEng);
     var _qd3=tfParse(w),_fx3=(_qd3&&_qd3.choices&&_qd3.choices.length)?_qd3.choices:null; // 教材のqdata.choices（同カテゴリ）優先
-    var poolEn=(s.mode==='daily')?s.words.filter(function(x){var _qx=tfParse(x);return !(_qx&&_qx.choices&&_qx.choices.length);}).map(function(x){return x.english;}):((w.wrong_choices_en&&w.wrong_choices_en.length)?w.wrong_choices_en:s.words.map(function(x){return x.english;}));
+    var poolEn=(s.mode==='daily')?_wordRows_(s).filter(function(x){var _qx=tfParse(x);return !(_qx&&_qx.choices&&_qx.choices.length);}).map(function(x){return x.english;}):((w.wrong_choices_en&&w.wrong_choices_en.length)?w.wrong_choices_en:_wordRows_(s).map(function(x){return x.english;}));
     buildChoices('j2e-choices',w.english,(_fx3?[]:poolEn),function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},{timeLimit:_tl,kaisetsu:w.kaisetsu,reading:(!isEng?w.reading_hint:''),promptText:w.japanese,fixedChoices:_fx3,next:s.onNext});
     $('step-j2e').style.display='block';showListen_(w,isEng);
   }
@@ -4886,8 +4900,11 @@ function renderSENT(ss){
     body.innerHTML='<button type="button" class="sq-spk" id="sent-spk"><i class="ti ti-volume"></i><span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
     $('sent-spk').onclick=function(){_sentPlay_(pl);};
     _sentPlay_(pl);
+    /* 答え合わせに、いま流れた英文を出す（2026-09-09 川上さん指摘）。
+       聞き取りは音が消えると何を言われたのか確かめようがない。教材の kaisetsu があればそちらを優先する */
+    var _kai=w.kaisetsu||(pl.en?('英文　'+pl.en):'');
     buildChoices('sent-choices',w.japanese,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
-      {fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext});
+      {fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:_tl,kaisetsu:_kai,next:s.onNext});
     return;
   }
   if(qt==='sentence_fill'){
@@ -4922,7 +4939,7 @@ function renderRO_(s,w,q,pl){
   var toks=(pl.tokens&&pl.tokens.length)?pl.tokens.slice():_sentTok_(pl.en);
   var N=toks.length,_t0=Date.now(),locked=false,drag=null;
   var bank=_shufNot_(toks);
-  body.innerHTML='<div class="sq-ja">'+esc(pl.ja||'')+'</div>'
+  body.innerHTML='<div class="sq-ja ro-ja">'+esc(pl.ja||'')+'</div>'
    +'<div class="ro-slots" id="ro-slots"></div>'
    +'<div class="ro-hint" id="ro-hint"><svg width="52" height="20" viewBox="0 0 52 20" fill="none" aria-hidden="true">'
      +'<rect x="1.5" y="7.5" width="17" height="11" rx="3.5" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-opacity=".5"/>'
@@ -4932,7 +4949,7 @@ function renderRO_(s,w,q,pl){
      +'<path d="M39.1 3.6L42 5.8L44.8 3.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
    +'</svg><span>ドラッグで<ruby>入<rt class="uf">い</rt></ruby>れ<ruby>替<rt class="uf">か</rt></ruby>え</span></div>'
    +'<div class="ro-bank" id="ro-bank"></div>';
-  var btn=document.createElement('button');btn.type='button';btn.className='btn';btn.style.marginTop='12px';btn.disabled=true;
+  var btn=document.createElement('button');btn.type='button';btn.className='btn ro-go';btn.style.marginTop='12px';btn.disabled=true;
   btn.innerHTML='<i class="ti ti-check"></i> <span>これでいい</span>';
   var cbox=$('sent-choices');cbox.innerHTML='';cbox.appendChild(btn);
 
