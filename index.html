@@ -1361,7 +1361,9 @@
   .sq-spk i{font-size:25px;}
   .sq-sent{font-size:25px;font-weight:700;text-align:center;line-height:1.5;margin:10px 0 6px;}
   .sq-bl{display:inline-block;min-width:74px;border-bottom:3px solid var(--accent);margin:0 4px;vertical-align:-2px;}
-  .sq-ja{text-align:center;color:var(--sub);font-size:14px;margin-bottom:14px;}
+  /* 日本語訳は「ついで」ではなく、何を英語にするかを決める文。グレーの14pxだと読み飛ばされる
+     （2026-09-09 川上さん指摘）。穴埋めは英文が主役なので17px、並べ替えは訳が問題文そのものなので21px */
+  .sq-ja{text-align:center;color:var(--text);font-size:17px;line-height:1.6;margin-bottom:14px;}
   /* 並べ替えは日本語訳が問題文そのもの。穴埋めのように英文が上に出ないので、ここを主役の大きさにする
      （2026-09-09 川上さん指摘「私は生徒です の方を目立つように」）。.sq-ja のあとに書いて上書きする */
   .ro-ja{color:var(--text);font-size:21px;font-weight:700;line-height:1.5;margin:10px 0 16px;}
@@ -4749,10 +4751,56 @@ function tfParse(w){try{return JSON.parse(w.qdata||'{}');}catch(e){return{};}}
 var _readingMap={},furiQ=false,furiC=false;
 function _kanjiRe(x){return /[一-龯々〆ヶ]/.test(String(x));}
 function _rubyTag(t,y){return '<ruby>'+esc(t)+'<rt>'+esc(y)+'</rt></ruby>';}
+/* 日本語のふりがな（2026-09-09 川上さん確定）
+   英検5級は小学生も解く。訳や意味に「私」「彼」「猫」のような読めない漢字が出るので振る。
+   ・振るのは【小5以上の漢字を含む語】だけ。小1〜小4だけでできている語は振らない＝ふりがなだらけにしない
+   ・出るのは小学生アカウントだけ（rt.uf は html.furi-on のときだけ表示する既存の作り。1048行）
+   ・級が上がったら線を上げる。4級からは「小学校で習わない漢字」だけにする
+   JA_RUBY_   ＝そのまま当てる語
+   JA_RUBY_OK_＝うしろに送り仮名（ひらがな）が続くときだけ当てる1字。
+                こうしないと「難民」に むずか、「寝台」に ね、「閉鎖」に し と振ってしまう。
+   ★語を足したら 20260909_日本語のふりがな_検査.py を回す（教材の全文字列で取りこぼしを見る）*/
+var JA_RUBY_={
+  '事務所':'じむしょ','大丈夫':'だいじょうぶ','看護師':'かんごし','芸術家':'げいじゅつか','誕生日':'たんじょうび','郵便局':'ゆうびんきょく','2匹':'にひき',
+  '3匹':'さんびき','何歳':'なんさい','俳優':'はいゆう','切符':'きっぷ','動詞':'どうし','女性':'じょせい','定規':'じょうぎ','寝室':'しんしつ','小舟':'こぶね',
+  '帰宅':'きたく','帽子':'ぼうし','年齢':'ねんれい','彼女':'かのじょ','意識':'いしき','掃除':'そうじ','授業':'じゅぎょう','映画':'えいが','時刻':'じこく',
+  '歴史':'れきし','毎晩':'まいばん','浜辺':'はまべ','牛乳':'ぎゅうにゅう','男性':'だんせい','留守':'るす','祖母':'そぼ','祖父':'そふ','簡単':'かんたん',
+  '美術':'びじゅつ','複数':'ふくすう','訪ね':'たず','訪れ':'おとず','質問':'しつもん','趣味':'しゅみ','鉛筆':'えんぴつ','高価':'こうか','個':'こ',
+  '冊':'さつ','卵':'たまご','彼':'かれ','机':'つくえ','猫':'ねこ','私':'わたし','窓':'まど','豚':'ぶた','靴':'くつ'};
+var JA_RUBY_OK_={
+  '与':'あた','呼':'よ','寝':'ね','座':'すわ','忙':'いそが','怒':'おこ','撮':'と','曇':'くも','欲':'ほ','洗':'あら','疲':'つか','眠':'ねむ',
+  '背':'せ','若':'わか','踊':'おど','遅':'おそ','閉':'し','離':'はな','難':'むずか','飼':'か'};
+var _jaRubyK_=null;
+function _jaRubyHira_(c){return c>='\u3041'&&c<='\u309f';}
+function _jaRuby_(t){
+  t=String(t==null?'':t); if(!t)return '';
+  if(!_jaRubyK_){_jaRubyK_=Object.keys(JA_RUBY_).concat(Object.keys(JA_RUBY_OK_)).sort(function(a,b){return b.length-a.length;});}
+  var out='',i=0,n=t.length;
+  while(i<n){
+    var hit='',y='';
+    for(var k=0;k<_jaRubyK_.length;k++){
+      var w=_jaRubyK_[k];
+      if(t.substr(i,w.length)!==w)continue;
+      if(JA_RUBY_OK_[w]!==undefined){
+        var nx=t.charAt(i+w.length);
+        if(!nx||!_jaRubyHira_(nx))continue;   /* 送り仮名が続かない＝音読み。振らない */
+        y=JA_RUBY_OK_[w];
+      }else{ y=JA_RUBY_[w]; }
+      hit=w;break;
+    }
+    if(hit){ out+='<ruby>'+esc(hit)+'<rt class="uf">'+esc(y)+'</rt></ruby>'; i+=hit.length; }
+    else{ out+=esc(t.charAt(i)); i++; }
+  }
+  return out;
+}
+/* ふりがなを当てるのは英語の教材だけ。理科・社会・国語は今までどおり（辞書は英検5級の訳で検算したもの）
+   おさらいは教科が混ざるので、語ごとに見る＝_isKokugo_ と同じ作り */
+function _isEigo_(){var s=_actSes()||session;if(!s)return false;var w=s.words&&s.words[s.idx];var subj=(w&&w.subject)||s.subject;return subj==='english';}
+function _jaRubyIf_(t){return _isEigo_()?_jaRuby_(t):esc(String(t==null?'':t));}
 function _boxBlank(h){return h.replace(/（[\s　]*）/g,'<span class="qblank"></span>');}
 function _isKokugo(){var s=_actSes()||session;if(!s)return false;var w=s.words&&s.words[s.idx];var subj=(w&&w.subject)||s.subject;return subj==='japanese';} // おさらいは教科混在＝語ごとに判定 2026-07-26
 function renderQ(w,showFuri){var q=tfParse(w);if(q&&q.q_ruby&&q.q_ruby.length){var h='';q.q_ruby.forEach(function(seg){var t=String((seg&&seg[0])||'');var y=(seg&&seg[1])?seg[1]:'';h+=(showFuri&&y)?_rubyTag(t,y):esc(t);});return _boxBlank(h);}return _boxBlank(esc(String(w.japanese||'')));}
-function _choiceHtml(v){v=String(v);if(furiC&&_isKokugo()&&_kanjiRe(v)&&_readingMap[v])return _rubyTag(v,_readingMap[v]);return esc(v);}
+function _choiceHtml(v){v=String(v);if(furiC&&_isKokugo()&&_kanjiRe(v)&&_readingMap[v])return _rubyTag(v,_readingMap[v]);return _jaRubyIf_(v);}
 function _hasQRuby(w){var q=tfParse(w);return !!(q&&q.q_ruby&&q.q_ruby.length);}
 function _furiCoachSeen(){try{return localStorage.getItem('kwt_furicoach')==='1';}catch(e){return true;}}
 function _furiCoachDone(){try{localStorage.setItem('kwt_furicoach','1');}catch(e){}var c=document.querySelector('.furi-coach');if(c)c.remove();}
@@ -4917,7 +4965,7 @@ function renderSENT(ss){
     }else{
       h=_boxBlank(esc(w.japanese||''));   /* 素材が取れないときだけ japanese 列の（　）を四角にして出す */
     }
-    body.innerHTML='<div class="sq-sent">'+h+'</div><div class="sq-ja">'+esc(pl.ja||'')+'</div>';
+    body.innerHTML='<div class="sq-sent">'+h+'</div><div class="sq-ja">'+_jaRuby_(pl.ja||'')+'</div>';
     buildChoices('sent-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
       {fig:true,fixedChoices:(q.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext});
     return;
@@ -4939,7 +4987,7 @@ function renderRO_(s,w,q,pl){
   var toks=(pl.tokens&&pl.tokens.length)?pl.tokens.slice():_sentTok_(pl.en);
   var N=toks.length,_t0=Date.now(),locked=false,drag=null;
   var bank=_shufNot_(toks);
-  body.innerHTML='<div class="sq-ja ro-ja">'+esc(pl.ja||'')+'</div>'
+  body.innerHTML='<div class="sq-ja ro-ja">'+_jaRuby_(pl.ja||'')+'</div>'
    +'<div class="ro-slots" id="ro-slots"></div>'
    +'<div class="ro-hint" id="ro-hint"><svg width="52" height="20" viewBox="0 0 52 20" fill="none" aria-hidden="true">'
      +'<rect x="1.5" y="7.5" width="17" height="11" rx="3.5" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-opacity=".5"/>'
@@ -5767,7 +5815,7 @@ function afterAnswer(ok,correct,kaisetsu,reading,next){
 }
 function showExplain(correct,kaisetsu,reading,ok){
   var _mk=(ok===true)?'<span style="color:#1fa971;font-weight:800;">⭕ </span>':((ok===false)?'<span style="color:#e0574b;font-weight:800;">❌ </span>':'');
-  $('ex-ans').innerHTML=_mk+'<span class="ex-lbl"><ruby>正解<rt class="uf">せいかい</rt></ruby></span><b>'+esc(correct)+'</b>'+(reading?'<span style="font-size:13px;color:var(--sub);font-weight:400;">（'+esc(reading)+'）</span>':'');
+  $('ex-ans').innerHTML=_mk+'<span class="ex-lbl"><ruby>正解<rt class="uf">せいかい</rt></ruby></span><b>'+_jaRubyIf_(correct)+'</b>'+(reading?'<span style="font-size:13px;color:var(--sub);font-weight:400;">（'+esc(reading)+'）</span>':'');
   var kai=$('ex-kai');
   if(kaisetsu){
     kai.style.display='';
