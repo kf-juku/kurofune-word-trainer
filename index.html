@@ -936,6 +936,10 @@
 .exw{display:inline-flex;flex-direction:column;align-items:center;justify-content:space-between;}  /* 穴のある語は背が高い。直訳を下ぞろえにして1行に見せる */
 .exw .exen{font-weight:700;white-space:nowrap;min-height:30px;display:flex;align-items:center;justify-content:center;}  /* 穴（.bl）が入る語は背が高い。上段の高さをそろえないと直訳の行がガタつく */
 .exw .exja{font-size:11px;color:var(--sub);font-weight:600;white-space:nowrap;min-height:1.25em;line-height:1.25;}
+/* 【地雷 2026-09-09】.bl は max-width:calc(100% - 6px) を持つ。例文の列（.exw）の幅は中身の最大幅で決まるので、
+   直訳が短いと列が細くなり、穴の中の答えが「i／s」のように1文字ずつ折り返した。例文の中では幅を縛らない */
+.exline .bl{max-width:none;white-space:nowrap;}
+.exline .bl .gh,.exline .bl .q{white-space:nowrap;}
 .exw.extr .exen{font-weight:500;color:var(--sub);}
 .bl{position:relative;display:inline-flex;align-items:center;justify-content:center;line-height:1.55;padding:0 8px;margin:0 2px;border-radius:7px;background:var(--accent-soft);border:1.5px dashed var(--accent);color:var(--accent);font-weight:800;cursor:pointer;vertical-align:1px;max-width:calc(100% - 6px);text-align:center;}
 /* 「答え＋読み」が狭い端末（320px・280px）で1行に入らないので折り返す。
@@ -7398,11 +7402,16 @@ function _pvSteps_(s,w){
 function _pvList_(){
   var s=_pvSes_(), out=[], k='';
   try{k=_ptKind_(s)||'';}catch(e){k='';}
-  if(k==='head'&&s.point){ out.push({card:1,at:0,step:0}); }
+  /* ★カードは本番と同じ位置に置く（2026-09-09 川上さん）。
+     'head'（社会の単元別）＝いちばん最初。'sent'（英検の毎日学習）＝【文の問題の直前】。
+     矢印で送れるからといって1枚目に持ってこない＝プレビューは実機の順番のままにする */
+  var cardAt=-1;
+  if(k==='head'&&s.point)cardAt=0;
   else if(k==='sent'&&s.point){
-    for(var j=0;j<s.words.length;j++){ if(_isSentQ_(s.words[j])){ out.push({card:1,at:j,step:0}); break; } }
+    for(var j=0;j<s.words.length;j++){ if(_isSentQ_(s.words[j])){ cardAt=j; break; } }
   }
   for(var i=0;i<s.words.length;i++){
+    if(i===cardAt) out.push({card:1,at:i,step:0});
     var sp=_pvSteps_(s,s.words[i]);
     for(var q=0;q<sp.length;q++) out.push({card:0,at:i,step:sp[q]});
   }
