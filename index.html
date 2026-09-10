@@ -4563,6 +4563,7 @@ function _ptParse_(txt){
     seg=seg.trim(); if(!seg||seg.indexOf('>')<0)return;
     var a=seg.split('>'); var key=a[0].trim();
     if(key==='図'){ fig=a[1].trim(); return; }   /* 図>アセットID で手で上書きできる */
+    if(key==='音')return;   /* 音>ID|ID… はGASに「この asset も返して」と伝えるための印。画面では使わない 2026-09-11 */
     var m=key.match(_PT_YOMI_);
     if(m){ yomi[key.replace(_PT_YOMI_,'')]=m[1]; key=key.replace(_PT_YOMI_,''); }
     map[key]=a[1].split('|').map(function(x){return x.trim();}).filter(Boolean);
