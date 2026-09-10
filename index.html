@@ -1049,6 +1049,11 @@
   .ex-kai .kc{transition:background-color .12s linear;border-radius:3px;}
   .ex-kai .kc.read{text-decoration:underline;text-decoration-color:var(--gold);text-decoration-thickness:2px;text-underline-offset:3px;}
   .ex-kai .kc.cur{text-decoration:underline;text-decoration-color:var(--gold);text-decoration-thickness:2px;text-underline-offset:3px;background-color:rgba(202,162,74,.20);}
+  /* 答え合わせで文をもう一度聞く（穴うめ・語順）2026-09-11。出題中は流せない＝ここが唯一聞ける場 */
+  .ex-audio{margin:2px 0 4px;}
+  .ex-spk{width:100%;background:var(--accent-soft);color:var(--accent);border:1px solid rgba(10,108,255,.28);border-radius:13px;padding:12px;font-size:14.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;cursor:pointer;}
+  .ex-spk i{font-size:19px;}
+  .ex-spk:active{transform:scale(.99);}
   .ex-actions{display:flex;gap:9px;margin-top:12px;}
   .ex-next{flex:1;background:var(--accent);color:#fff;border:0;border-radius:13px;padding:14px;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;cursor:pointer;position:relative;overflow:hidden;}
   .ex-next i{font-size:19px;}
@@ -1756,6 +1761,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
         <div class="ex-ans" id="ex-ans"></div>
         <div class="ex-kai" id="ex-kai"></div>
         <div class="ex-fig" id="ex-img" style="display:none;"></div>
+        <div class="ex-audio" id="ex-audio" style="display:none;"></div><!-- 文の音声（答え合わせ）2026-09-11 -->
         <div class="ex-actions">
           <button type="button" class="ex-next" id="ex-next"><i class="ti ti-hand-finger"></i> <span><ruby>次<rt class="uf">つぎ</rt></ruby>へ</span></button>
           <button type="button" class="ex-report" id="ex-report" onclick="openBugFromExplain()"><i class="ti ti-message-report"></i> <span><ruby>間違<rt class="uf">まちが</rt></ruby>い<ruby>報告<rt class="uf">ほうこく</rt></ruby></span></button>
@@ -4644,14 +4650,30 @@ function _wlOfSent_(pl,except){
   }
   return out;
 }
-/* いま出す一覧を決める。文の問題なら文から、それ以外はカードから */
-function _wlFor_(s,w){
+/* 一覧をアルファベット順に並べ替える（並べ替えの答えバレ対策）2026-09-11 */
+function _wlAbc_(a){
+  return (a||[]).slice().sort(function(x,y){
+    var p=String(x.en||'').toLowerCase(),q=String(y.en||'').toLowerCase();
+    return p<q?-1:(p>q?1:0);
+  });
+}
+/* いま出す一覧を決める。文の問題なら文から、それ以外はカードから
+   answered＝答え合わせのあとか。聞き取りだけ、答える前後で出し分ける 2026-09-11 */
+function _wlFor_(s,w,answered){
   try{
     if(_isSentQ_(w)){
+      var qt=String(w.qtype||'');
+      /* 聞き取り＝答える前に全語の訳が読めると、聞かずに答えの文を組める。答え合わせまで出さない
+         （川上さん確定 2026-09-11）。答えたあとは、聞き取れなかった語を確かめられるように出す */
+      if(qt==='listen'&&!answered)return {list:[],title:''};
       var qd=tfParse(w),pl={};
       try{pl=JSON.parse(((s.assets||{})[qd.asset]||{}).payload||'{}');}catch(e){pl={};}
-      var ex=(String(w.qtype)==='sentence_fill')?w.english:'';
-      return {list:_wlOfSent_(pl,ex),title:'この文の単語'};
+      var ex=(qt==='sentence_fill')?w.english:'';
+      var li=_wlOfSent_(pl,ex);
+      /* 語順＝tokens の並びは正しい語順そのもの。そのまま出すと一覧が答えになる（川上さん指摘 2026-09-11）。
+         アルファベット順にしてから出す＝語・意味・音はこれまでどおり見られて、並びだけ分からない */
+      if(qt==='reorder')li=_wlAbc_(li);
+      return {list:li,title:'この文の単語'};
     }
   }catch(e){}
   try{ var d=_ptParse_(s&&s.point); if(d)return {list:_wlOfCard_(d),title:'このページの単語'}; }catch(e){}
@@ -4685,9 +4707,9 @@ function _wlOpen_(list,title){
   });
 }
 /* ボタンの出し入れ。一覧が空なら出さない（語の問題・理社にはそもそも gloss が無い） */
-function _wlSync_(s,w){
+function _wlSync_(s,w,answered){
   var bar=$('wl-bar'),btn=$('wl-btn'); if(!bar||!btn)return;
-  var r=_wlFor_(s,w);
+  var r=_wlFor_(s,w,answered);
   if(!r.list.length){ bar.style.display='none'; btn.onclick=null; return; }
   bar.style.display='flex';
   btn.onclick=function(){ btn.classList.remove('pulse'); _wlOpen_(r.list,r.title); };
@@ -5149,6 +5171,25 @@ function _sentPlay_(pl){
     var p=au.play();if(p&&p['catch'])p['catch'](function(){_sentAu=null;_sentSay_(pl.en);});
   }catch(e){_sentSay_(pl&&pl.en);}
 }
+/* ===== 答え合わせで文を流す（要件定義書_英検教材 確定13「文は答え合わせで聞ける」）2026-09-11 =====
+   穴うめ・語順は出題中に文を流せない（答えバレ）ので、答えたあとが唯一「文の音を聞ける場」になる。
+   正解でも不正解でも自動で1回鳴らし、聞き逃したとき用に解説の中にもボタンを出す（川上さん確定 2026-09-11）。
+   ・正解音・不正解音とぶつからないよう 600ms 置いてから鳴らす
+   ・iOS は「押した流れ」から外れた自動再生を止めることがある。鳴らなかったときの逃げ道がボタン
+   ・mp3 が無ければ _sentPlay_ が端末の読み上げに落ちる（音声をそろえる前でも動く）*/
+var _sentAfterT_=null;
+function _sentAfterAudio_(pl){
+  if(!pl||!(pl.en||pl.audio||(pl.audios&&pl.audios.length)))return;
+  var box=$('ex-audio');
+  if(box){
+    box.style.display='';
+    box.innerHTML='<button type="button" class="ex-spk" id="ex-spk"><i class="ti ti-volume"></i>'
+      +'<span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
+    var b=$('ex-spk'); if(b)b.onclick=function(){_sentPlay_(pl);};
+  }
+  clearTimeout(_sentAfterT_);
+  _sentAfterT_=setTimeout(function(){_sentPlay_(pl);},600);
+}
 function _sentPack_(s,w){var q=tfParse(w);var a=((s&&s.assets)||{})[q.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}return {q:q,pl:pl};}
 /* T-shirt・P.E.・don't は1語として切る（ハイフンとアポストロフィで割らない）＝文のビルドと検査.py と同じ正規表現 */
 function _sentTok_(t){return String(t==null?'':t).match(/P\.E\.|[A-Za-z]+(?:[-'][A-Za-z]+)*|[.,?!]/g)||[];}
@@ -5174,7 +5215,8 @@ function renderSENT(ss){
        聞き取りは音が消えると何を言われたのか確かめようがない。教材の kaisetsu があればそちらを優先する */
     var _kai=w.kaisetsu||(pl.en?('英文　'+pl.en):'');
     buildChoices('sent-choices',w.japanese,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
-      {fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:_tl,kaisetsu:_kai,next:s.onNext});
+      {fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:_tl,kaisetsu:_kai,next:s.onNext,
+       afterShow:function(){try{_wlSync_(s,w,true);}catch(e){}}});   /* 聞いたあとに単語をみるを出す 2026-09-11 */
     return;
   }
   if(qt==='sentence_fill'){
@@ -5189,7 +5231,8 @@ function renderSENT(ss){
     }
     body.innerHTML='<div class="sq-sent">'+h+'</div><div class="sq-ja">'+_jaRuby_(pl.ja||'')+'</div>';
     buildChoices('sent-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
-      {fig:true,fixedChoices:(q.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext});
+      {fig:true,fixedChoices:(q.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext,
+       afterShow:function(){_sentAfterAudio_(pl);}});   /* 答え合わせで文を鳴らす 2026-09-11 */
     return;
   }
   renderRO_(s,w,q,pl);
@@ -5317,6 +5360,7 @@ function renderRO_(s,w,q,pl){
     _quizAns(s,w,ok,(Date.now()-_t0),'e2j');
     /* 正解の表示は文頭を大文字にした正しい形（＝en）。語群の小文字のまま見せない */
     afterAnswer(ok,(pl.en||_sentJoin_(toks)),w.kaisetsu,'',s.onNext);
+    _sentAfterAudio_(pl);   /* 答え合わせで文を鳴らす 2026-09-11 */
   };
 }
 function nextWord(){var s=session;
@@ -6010,6 +6054,7 @@ function buildChoices(containerId,correct,pool,onResult,opts){
     else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(_choiceKey(c.getAttribute('data-val'))===_ck)c.classList.add('correct');});} /* data-val は必ず文字列・correct は数値のことがある 2026-08-18 */
     ansCount++;onResult(ok,(Date.now()-_t0));
     afterAnswer(ok,correct,opts.kaisetsu,opts.reading,opts.next);
+    if(opts.afterShow){try{opts.afterShow(ok);}catch(_e){}}   /* 解説を出したあとに動くもの（文の音声・単語をみるの出し直し）2026-09-11 */
   }
   applyChoiceCols(box,choices); // 2列/1列 自動分岐 2026-07-05
   choices.forEach(function(opt){var b=document.createElement('button');b.className='choice';b.setAttribute('data-val',opt);b.innerHTML=_choiceHtml(opt);
@@ -6045,6 +6090,7 @@ function showExplain(correct,kaisetsu,reading,ok){
     else{_kaiWaitMs=0;kaiTraceStop_();kai.classList.remove('trace');kai.textContent=kaisetsu;}
   }else{_kaiWaitMs=0;kaiTraceStop_();kai.classList.remove('trace');kai.style.display='none';}
   var _kimg=$('ex-img');if(_kimg){if(_kaiImgCur){_kimg.innerHTML=_kaiImgCur;_kimg.style.display='';}else{_kimg.innerHTML='';_kimg.style.display='none';}}
+  var _xa=$('ex-audio');if(_xa){_xa.innerHTML='';_xa.style.display='none';}   /* 文の音声ボタンは毎回消す＝前の問題のが残らない 2026-09-11 */
   var _bf=$('bug-fab');if(_bf)_bf.style.display='none'; /* 解説中はフローティング報告を隠す＝機能は解説内「まちがい報告」へ 2026-07-16 */
   $('explain').style.display='block';
   try{$('explain').scrollIntoView({behavior:'smooth',block:'end'});}catch(e){try{$('explain').scrollIntoView(false);}catch(e2){}}
@@ -6064,7 +6110,7 @@ function kaiTraceStart_(el,text,ms){
     else{kaiTraceStop_();if(cs[cs.length-1])cs[cs.length-1].classList.remove('cur');}
   },per);
 }
-function hideExplain(){kaiTraceStop_();var e=$('explain');if(e)e.style.display='none';try{refreshBugFab();}catch(_e){var _bf=$('bug-fab');if(_bf)_bf.style.display='';}}
+function hideExplain(){kaiTraceStop_();try{_sentStop_();}catch(_e){}/* 「つぎへ」で解説を閉じたら文の音声も止める 2026-09-11 */var e=$('explain');if(e)e.style.display='none';try{refreshBugFab();}catch(_e){var _bf=$('bug-fab');if(_bf)_bf.style.display='';}}
 /* いま出しているのが最後の1問か。ミス問モード中は「まだ続く」ので false。
    ここが true でも実際にはミス問が始まることがあるが、その場合でも
    「正解した問題のボタンが0.6秒早く押せる」だけなので害はない。 2026-09-02 */
