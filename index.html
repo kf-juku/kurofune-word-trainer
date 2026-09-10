@@ -4618,6 +4618,10 @@ function _wlPush_(out,seen,en,ja){
 /* カードから導く。例文行（次の行が「:: 」）の語と直訳を1対1で組にする */
 function _wlOfCard_(d){
   var out=[],seen={},body=String((d&&(d.raw||d.body))||''),ls=body.split('\n');
+  /* {{en|ja}} を先に読む。例文の :: 直訳は語の下に添える1〜2文字なので、
+     同じ語なら {{ }} の説明を残す（2026-09-10 川上さん指摘） */
+  var mm=body.match(/\{\{[^}]+\}\}/g)||[];
+  for(var q=0;q<mm.length;q++){ var p=mm[q].replace(/[{}]/g,'').split('|'); _wlPush_(out,seen,p[0],p[1]||''); }
   for(var i=0;i<ls.length;i++){
     var L=ls[i]; if(_PT_GL_.test(L))continue;
     var nx=ls[i+1]; if(!(nx&&_PT_GL_.test(nx)))continue;
@@ -4627,8 +4631,6 @@ function _wlOfCard_(d){
     for(var j=0;j<toks.length;j++)_wlPush_(out,seen,_wlNorm_(toks[j],j===0),(gs[j]||'').trim());
     i++;
   }
-  var mm=body.match(/\{\{[^}]+\}\}/g)||[];
-  for(var q=0;q<mm.length;q++){ var p=mm[q].replace(/[{}]/g,'').split('|'); _wlPush_(out,seen,p[0],p[1]||''); }
   return out;
 }
 /* 文から導く。assets の payload の tokens と gloss を1対1で組にする */
