@@ -5119,8 +5119,12 @@ function renderTF(ss){
   $('tf-ask').style.display='';$('tf-ask').innerHTML='<b style="color:var(--accent)">'+(TF_CIRC[myN]||myN)+'</b> に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>形<rt class="uf">かたち</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
   var _tl=qSecFor('table_fill'); // 表は読む時間が要るので教科によらず理社と同じ秒数。全画面共通 2026-08-20／fig:true でさらに＋5秒 2026-09-02
   buildChoices('tf-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},
-    {fig:true,fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,next:s.onNext});
-  $('step-tf').style.display='block';showListen_(w,_wIsEng(s,w));
+    {fig:true,fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,next:s.onNext,
+     afterShow:function(){showListen_(w,_wIsEng(s,w));}});   /* 答え合わせのあとだけ聞ける 2026-09-11 */
+  /* 【答えバレ・2026-09-11 川上さん報告】表の穴うめは english が答えそのもの（is / are）。
+     出題中に「音を聞く」を出すと、押しただけで答えが聞こえていた。理社の表は英語ではないので
+     showListen_ が中で落としており、英語の表（英検5級 be動詞）が出て初めて表に出た。 */
+  $('step-tf').style.display='block';hideListen_();
 }
 /* ===== 図問題（image_fill・番号方式）レンダラー 2026-07-12 =====
    table_fillの「同一asset保持・連続出題」を流用。表の代わりに asset(kind=image) の画像を出し、
@@ -5170,8 +5174,9 @@ function renderIMG(ss){
   $('tf-ask').innerHTML='';$('tf-ask').style.display='none'; /* 設問は図の上に表示済み 2026-07-16 */
   var _tl=qSecFor('table_fill'); // 図も読む時間が要るので理社と同じ秒数。全画面共通 2026-08-20／fig:true でさらに＋5秒 2026-09-02
   buildChoices('tf-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},
-    {fig:true,fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,promptText:w.japanese,next:s.onNext});
-  $('step-tf').style.display='block';showListen_(w,_wIsEng(s,w));
+    {fig:true,fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,promptText:w.japanese,next:s.onNext,
+     afterShow:function(){showListen_(w,_wIsEng(s,w));}});   /* 答え合わせのあとだけ聞ける 2026-09-11 */
+  $('step-tf').style.display='block';hideListen_();   /* 表と同じ理由＝english が答え */
 }
 /* ===== 文の問題（listen / sentence_fill / reorder）レンダラー 2026-09-08 =====
    正＝要件定義書_英検教材_Kurofune-Word-Trainer.md §5・§5c・§7、教材作成基準 §2-6。
