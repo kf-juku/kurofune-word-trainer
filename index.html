@@ -4719,6 +4719,7 @@ function _wlSync_(s,w,answered){
 }
 function _wlHide_(){ var bar=$('wl-bar'); if(bar)bar.style.display='none'; }
 function _ptHide_(){
+  try{_sentStop_();}catch(_e){}   /* カードを出し直すときに前の音を止める 2026-09-11 */
   _ptHidden_=[];
   var sel='#scr-practice .progrow, #scr-practice #step-label, #scr-practice .furi-bar, #scr-practice #qtimer, #scr-practice .card';
   Array.prototype.forEach.call(document.querySelectorAll(sel),function(el){
@@ -4772,13 +4773,49 @@ function _ptEx_(line,gl,d,s,_no){
   var m=String(line).match(/^([\s\S]*?)\s*[（(]([^（）()]*)[）)]\s*$/);
   if(m){ en=m[1]; tr=m[2]; }
   var toks=en.trim().split(/\s+/), gs=String(gl||'').split('|');
-  var h='<div class="exline">';
+  /* 穴を埋めたときに鳴らす文＝答えが入った形。[[ ]] を外して行ごと持たせる 2026-09-11 */
+  var h='<div class="exline" data-en="'+esc(String(en).replace(/\[\[|\]\]/g,'').trim())+'">';
   for(var i=0;i<toks.length;i++){
     h+='<span class="exw"><span class="exen">'+_ptLine_(toks[i],d,s,_no)+'</span>'
       +'<span class="exja">'+_ptJa_(String(gs[i]||'').trim(),s)+'</span></span>';
   }
   if(tr)h+='<span class="exw extr"><span class="exen">（'+_ptJa_(tr,s)+'）</span><span class="exja"></span></span>';
   return h+'</div>';
+}
+/* ===== 文法解説カードの穴を埋めたら、その例文を1文まるごと鳴らす（川上さん確定 2026-09-11）=====
+   正解でも不正解でも鳴らす。埋まった形（答えが入った文）を音で確かめさせるため。
+   ・その文の mp3 が assets にあればそれを鳴らす。無ければ端末の読み上げに落ちる
+   ・毎日学習のカードの例文は、そのパートの出題文と同じなので mp3 が鳴る
+   ・単元別のカードの例文は assets に無い（GAS は出題が指す asset しか返さない）＝いまは読み上げ */
+var _ptAuMap_=null,_ptAuFor_=null;
+/* 直訳行のない行にも data-en を付ける。ただし英文の行だけ＝日本語が混ざる説明文は付けない
+   （英語の声で日本語を読ませない）。［［］］と行末の（和訳）は外す */
+function _ptEnAttr_(line){
+  var t=String(line||'').replace(/\[\[|\]\]/g,'');
+  t=t.replace(/\s*[（(][^（）()]*[）)]\s*$/,'').trim();
+  if(!/[A-Za-z]/.test(t))return '';
+  if(/[ぁ-んァ-ヶ一-龥ー、。「」]/.test(t))return '';
+  return ' data-en="'+esc(t)+'"';
+}
+function _ptAuLookup_(s,en){
+  en=String(en||'').trim(); if(!en)return null;
+  if(_ptAuFor_!==s||!_ptAuMap_){
+    _ptAuFor_=s; _ptAuMap_={};
+    var A=(s&&s.assets)||{};
+    for(var k in A){
+      var p={}; try{p=JSON.parse((A[k]||{}).payload||'{}');}catch(e){p={};}
+      if(p&&p.en)_ptAuMap_[String(p.en).trim()]=p;
+    }
+  }
+  return _ptAuMap_[en]||null;
+}
+function _ptCardSay_(s,el){
+  var n=el;
+  while(n&&n.nodeType===1&&!(n.getAttribute&&n.getAttribute('data-en')))n=n.parentNode;
+  var en=(n&&n.getAttribute)?String(n.getAttribute('data-en')||''):'';
+  if(!en)return;
+  var pl=_ptAuLookup_(s,en);
+  if(pl)_sentPlay_(pl); else _sentSay_(en);
 }
 function _ptHtml_(s,d,kind){
   var url=_ptFig_(s,d);
@@ -4803,7 +4840,7 @@ function _ptHtml_(s,d,kind){
     if(_PT_GL_.test(line))continue;                       /* 直訳行が単独で残っていても出さない */
     var nx=_ls[_li+1];
     if(nx&&_PT_GL_.test(nx)){ h+=_ptEx_(line,nx.replace(_PT_GL_,''),d,s,_no); _li++; continue; }
-    h+='<p>'+_ptLine_(line,d,s,_no)+'</p>';
+    h+='<p'+_ptEnAttr_(line)+'>'+_ptLine_(line,d,s,_no)+'</p>';
   }
   h+='</div><div class="pt-left"></div>'
    +'<div class="pt-go"><button class="btn" id="pt-go" type="button" disabled>'
@@ -4891,6 +4928,7 @@ function _ptShow_(s){
         x.classList.add('done'); if(!ok)x.classList.add('miss');
       });
       (s._ptFilled||(s._ptFilled={}))[_a]=ok?'ok':'miss';
+      try{_ptCardSay_(s,b);}catch(_e){}   /* 埋まった例文を1文まるごと鳴らす 2026-09-11 */
       setTimeout(function(){ if(fb.parentNode)fb.parentNode.removeChild(fb); busy=false; after(); },520);
     }, ok?680:820);
   }
