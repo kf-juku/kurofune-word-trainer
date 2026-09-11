@@ -2097,12 +2097,13 @@ function _mapMetaHtml_(l){
   return '<div style="font-size:10.5px;color:var(--sub);margin-top:3px;line-height:1.5"><ruby>前回<rt class="uf">ぜんかい</rt></ruby> '+md+rate+srs+'</div>';
 }
 /* 学習マップの1行（川上さん承認モック 2026-07-05）。inFold=クリアずみ枠内（「もう一回」バッジつき・状態文言なし） */
-function buildMapRow(l,isTest,inFold){
+/* subj＝その本の教科。一覧のパート名にふりがなを当てるために受ける（英語・国語だけ）2026-09-11 */
+function buildMapRow(l,isTest,inFold,subj){
   var row=document.createElement('div');row.className='list-row';
   var icon=l.is_current?'<div class="dot cur"><i class="ti ti-player-play"></i></div>':(l.passed?'<div class="dot done"><i class="ti ti-check"></i></div>':'<div class="dot"><i class="ti ti-book-2"></i></div>');
   // テスト配信＝クリア済/挑戦中/未挑戦の3状態（未挑戦=この周で未着手・「いまここ」なし・川上さん確定 2026-07-06）
   var st=inFold?'':(isTest?(l.passed?'クリア<ruby>済<rt class="uf">ずみ</rt></ruby>':(l.attempted?'<ruby>挑戦<rt class="uf">ちょうせん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>':'<ruby>未<rt class="uf">み</rt></ruby><ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>')):(l.passed?'<ruby>合格<rt class="uf">ごうかく</rt></ruby><ruby>済<rt class="uf">ず</rt></ruby>み':(l.is_current?'':'<ruby>未<rt class="uf">み</rt></ruby><ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>')));
-  var ttl=isTest?esc(l.title):('DAY '+(l.part_order||1)); // 毎日学習=DAY表記（川上さん確定 2026-07-03）
+  var ttl=isTest?_jaRubySubj_(l.title,subj):('DAY '+(l.part_order||1)); // 毎日学習=DAY表記（川上さん確定 2026-07-03）
   var redo=inFold?'<span class="redo-pill"><i class="ti ti-refresh"></i> もう<ruby>一回<rt class="uf">いっかい</rt></ruby></span>':'';
   // パートごとの記録＝前回合格日・正答率・おさらいの進み（GAS material_parts が返す）2026-07-26
   var meta=_mapMetaHtml_(l);
@@ -2620,7 +2621,7 @@ function renderQuiz(){
         : ('<span class="nbk-rate"><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+pas+'/'+tot+'</span>');
       html+='<div class="nbook qbook'+(bookDone?' done':'')+(_bo.indexOf(gp.key)>=0?' open':'')+'" data-bk="'+esc(gp.key)+'">'
         +'<div class="nbook-head"><div class="nbk-ic"><i class="ti ti-checkup-list"></i></div>' /* 確認テストの本＝チェックリストのアイコン（青）。教科は下の教科タグで分かる 2026-08-20 */
-        +'<div class="nbk-body"><div class="nbk-nm">'+esc(gp.lab)+'</div>'
+        +'<div class="nbk-body"><div class="nbk-nm">'+_jaRubySubj_(gp.lab,subj)+'</div>' /* 一覧のふりがな＝英語と国語だけ 2026-09-11 */
         +'<div class="nbk-meta">'+subjTag+metaMid
         +((soloBook&&rdyb>0)?(' <span class="qrdy"><i class="ti ti-checkup-list"></i>そろそろテスト '+rdyb+'</span>'):'')+'</div>'
         +'<div class="nbk-bar"><i style="width:'+pct+'%"></i></div></div>'
@@ -2635,7 +2636,7 @@ function renderQuiz(){
         var ck='C:'+String(g.material_id||g.title||'');
         html+='<div class="qchw'+((soloBook||_co.indexOf(ck)>=0)?' open':'')+'" data-ck="'+esc(ck)+'"'+(soloBook?' data-solo="1"':'')+'>';
         if(!soloBook){
-          html+='<div class="nchap qchap"><div class="ncf-nm">'+esc(mtShort(g)||'教材')
+          html+='<div class="nchap qchap"><div class="ncf-nm">'+_jaRubySubj_(mtShort(g)||'教材',subj)
           +(rdy>0?(' <span class="qrdy"><i class="ti ti-checkup-list"></i>そろそろテスト '+rdy+'</span>'):'')
           +'<small><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+np+'/'+ps.length+'</small></div>'
           +(g.all_pass?'<span class="nbk-tag qch-gold"><ruby>全<rt class="uf">ぜん</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby></span>':'')
@@ -2646,7 +2647,7 @@ function renderQuiz(){
           /* 練習の状態は「名前の下の小さいタグ」＝テストが主役のまま（川上さん確定 2026-08-20）。
              まだ練習していない／途中のときだけ、小さい「練習」ボタンを1つ足す。押すとそのパートの練習がその場で始まる。 */
           html+='<div class="nqp" data-pid="'+esc(String(p.part_id))+'">'
-            +'<div class="nqp-nm">'+esc(p.title||'パート')+(p.attempt_count>0?('<small> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></small>'):'')+_unitTag_(p)+'</div>'
+            +'<div class="nqp-nm">'+_jaRubySubj_(p.title||'パート',subj)+(p.attempt_count>0?('<small> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></small>'):'')+_unitTag_(p)+'</div>'
             +_unitBtn_(p)+quizStatus2_(p)+'</div>'; /* 右端の青丸→は廃止＝「受ける →」と矢印が2つ並んでいた 2026-08-20 川上さん */
         });
         html+='</div></div>';
@@ -3322,7 +3323,7 @@ function _dailyFocus_(m){
   var label=cleared?'<i class="ti ti-circle-check"></i> <ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！':'<ruby>次<rt class="uf">つぎ</rt></ruby>はこれ';
   // 教材のどこまで進んだか（DAY po / 全pc）＝全体像。複数DAYの教材だけ出す 2026-07-24
   var prog='';if(pc>1){var pct=Math.max(0,Math.min(100,Math.round(po/pc*100)));prog='<div class="f-prog"><div class="f-prog-t"><span>DAY '+po+' / '+pc+'</span><span>'+pct+'%</span></div><div class="f-prog-bar"><i style="width:'+pct+'%"></i></div></div>';}
-  el.innerHTML='<div class="f-label"><span>'+label+'</span></div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+esc(mtLabelMt(m))+'</div><div class="f-sub">'+subj+road+'</div></div></div>'+prog+'<button class="f-btn"><span>'+(cleared?'<ruby>続<rt class="uf">つづ</rt></ruby>ける':'<ruby>始<rt class="uf">はじ</rt></ruby>める')+'</span> <i class="ti ti-arrow-right"></i></button>';
+  el.innerHTML='<div class="f-label"><span>'+label+'</span></div><div class="f-main"><div class="f-day"><span class="fdd">DAY</span><span class="fdn">'+po+'</span></div><div><div class="f-title">'+_jaRubySubj_(mtLabelMt(m),m.subject)+'</div><div class="f-sub">'+subj+road+'</div></div></div>'+prog+'<button class="f-btn"><span>'+(cleared?'<ruby>続<rt class="uf">つづ</rt></ruby>ける':'<ruby>始<rt class="uf">はじ</rt></ruby>める')+'</span> <i class="ti ti-arrow-right"></i></button>';
   el.onclick=function(){startPractice(m.part_id);};
   return el;
 }
@@ -3333,7 +3334,7 @@ function _dailyDoneCard_(m){
   var lapPill=(m.lap>=2)?'<span class="dpill">'+m.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'';
   el.innerHTML='<div class="dcard-l"><i class="ti ti-circle-check"></i></div>'
     +'<div class="dcard-r"><div class="dcard-top"><span class="dpill"><ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby></span>'+subj+lapPill+'<span class="dbadge"><i class="ti ti-check"></i> <span><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby><ruby>完了<rt class="uf">かんりょう</rt></ruby></span></span></div>'
-    +'<div class="dcard-nm">'+esc(mtLabelMt(m))+'</div>'
+    +'<div class="dcard-nm">'+_jaRubySubj_(mtLabelMt(m),m.subject)+'</div>'
     +'<div class="dcard-cta"><span><ruby>自分<rt class="uf">じぶん</rt></ruby>で<ruby>先<rt class="uf">さき</rt></ruby>に<ruby>進<rt class="uf">すす</rt></ruby>む</span> <i class="ti ti-arrow-right"></i></div></div>';
   el.onclick=function(){startPractice(m.part_id);};
   return el;
@@ -3358,7 +3359,7 @@ function _dailyQueueRow_(m){
   var po=(m.part_order||1)|0,done=!!m.cleared_today;
   var lapPill=(m.lap>=2)?'<span class="npill lap">'+m.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'';
   var subj=m.subject?esc(subjLabel(m.subject)):'';
-  el.innerHTML='<div class="q-node">'+(done?'<i class="ti ti-check" style="font-size:16px;color:var(--ok)"></i>':'<span class="qd">DAY</span>'+po)+'</div><div class="q-body"><div class="q-top"><span class="q-nm">'+esc(mtLabelMt(m))+'</span>'+lapPill+'</div><div class="q-sub">'+subj+'</div></div><div class="q-go"><i class="ti ti-arrow-right"></i></div>';
+  el.innerHTML='<div class="q-node">'+(done?'<i class="ti ti-check" style="font-size:16px;color:var(--ok)"></i>':'<span class="qd">DAY</span>'+po)+'</div><div class="q-body"><div class="q-top"><span class="q-nm">'+_jaRubySubj_(mtLabelMt(m),m.subject)+'</span>'+lapPill+'</div><div class="q-sub">'+subj+'</div></div><div class="q-go"><i class="ti ti-arrow-right"></i></div>';
   el.onclick=function(){startPractice(m.part_id);};
   return el;
 }
@@ -3383,7 +3384,7 @@ function renderUnitZone_(materials){
       var metaMid=bookDone?('<span class="nbk-tag"><i class="ti ti-check"></i> <ruby>全部<rt class="uf">ぜんぶ</rt></ruby>できた</span>'):('<span class="nbk-rate">できた '+pas+'/'+tot+'</span>');
       var book=document.createElement('div');book.className=bookDone?'nbook unitbook done':'nbook unitbook'; /* 単元別＝金の左帯（確認テストは qbook＝青）2026-08-20 */
       var head='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subj)+'"></i></div>'
-        +'<div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+'</div>'
+        +'<div class="nbk-body"><div class="nbk-nm">'+_jaRubySubj_(g.lab,subj)+'</div>' /* 一覧のふりがな＝英語と国語だけ 2026-09-11 */
         +'<div class="nbk-meta">'+subjTag+metaMid+'</div>'
         +'<div class="nbk-bar"><i style="width:'+pct+'%"></i></div></div>'
         +'<i class="ti ti-chevron-down nbk-arw"></i></div>';
@@ -3409,7 +3410,7 @@ function renderUnitZone_(materials){
         var soloBook=(g.items.length===1 && !isDone);
         detail+='<div class="qchw'+((soloBook||_co.indexOf(uck)>=0)?' open':'')+'" data-uck="'+esc(uck)+'"'+(soloBook?' data-solo="1"':'')+'>';
         if(!soloBook){
-          detail+='<div class="nchap'+(isDone?' done':'')+'" data-pid="'+esc(String(target))+'"'+(isDone?(' data-map="1" data-mid="'+esc(String(c.material_id||''))+'"'):'')+'><div class="ncf-nm">'+esc(mtShortMt(c))
+          detail+='<div class="nchap'+(isDone?' done':'')+'" data-pid="'+esc(String(target))+'"'+(isDone?(' data-map="1" data-mid="'+esc(String(c.material_id||''))+'"'):'')+'><div class="ncf-nm">'+_jaRubySubj_(mtShortMt(c),subj)
           +(isDone?'<small class="chap-done">🎉 <ruby>完走<rt class="uf">かんそう</rt></ruby> ・ <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップでやり<ruby>直<rt class="uf">なお</rt></ruby>せる</small>':'<small>できた '+p2+'/'+t2+'</small>')+'</div>'
           +(isDone?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')
           +(t2?'<i class="ti ti-chevron-down ncf-arw" data-utog="1" role="button" tabindex="0" aria-label="パートの一覧をひらく" style="padding:7px;margin:-7px -3px;"></i>':'')
@@ -3422,7 +3423,7 @@ function renderUnitZone_(materials){
             var st=l.passed
               ? '<span class="utag done"><i class="ti ti-circle-check"></i>できた</span>'
               : '<span class="utag"><i class="ti ti-player-play"></i>まだ</span>';
-            detail+='<div class="nqp" data-upid="'+esc(String(l.part_id||''))+'"><div class="nqp-nm">'+esc(String(l.title||'パート'))+'</div>'
+            detail+='<div class="nqp" data-upid="'+esc(String(l.part_id||''))+'"><div class="nqp-nm">'+_jaRubySubj_(String(l.title||'パート'),subj)+'</div>'
               +st+(l.passed?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
           });
           detail+='</div>';
@@ -3657,7 +3658,7 @@ function loadHomeData_(showSkel){
       var kindIc=_allTest?'ti-flag':(_allDaily?'ti-anchor':'');
       var kindPill=bookKind?(' <span class="mkind"><i class="ti '+kindIc+'"></i>'+bookKind+'</span>'):'';
       var book=document.createElement('div');book.className='nbook';book.setAttribute('data-bk',String(g.key||'')); /* ピンポイント遷移で開いた状態を記憶するため 2026-08-21 */
-      book.innerHTML='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subjB)+'"></i></div><div class="nbk-body"><div class="nbk-nm">'+esc(g.lab)+kindPill+'</div><div class="nbk-meta">'+(subjB?'<span class="nbk-subj">'+esc(subjLabel(subjB))+'</span> ':'')+'できた '+bpct+'%</div><div class="nbk-bar"><i style="width:'+bpct+'%"></i></div></div><i class="ti ti-chevron-down nbk-arw"></i></div>';
+      book.innerHTML='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subjB)+'"></i></div><div class="nbk-body"><div class="nbk-nm">'+_jaRubySubj_(g.lab,subjB)+kindPill+'</div><div class="nbk-meta">'+(subjB?'<span class="nbk-subj">'+esc(subjLabel(subjB))+'</span> ':'')+'できた '+bpct+'%</div><div class="nbk-bar"><i style="width:'+bpct+'%"></i></div></div><i class="ti ti-chevron-down nbk-arw"></i></div>';
       var bdetail=document.createElement('div');bdetail.className='nbk-detail';book.appendChild(bdetail);
       if(_mapOpen.indexOf(g.key)>=0)book.classList.add('open'); // 学習マップも開いた本を保持（単元別と統一）2026-07-24
       book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_openToggle_('kwt_map_open',g.key,book.classList.contains('open'));};
@@ -3667,7 +3668,7 @@ function loadHomeData_(showSkel){
         var total=parts.length;
         var passedN=parts.filter(function(l){return l.passed;}).length;
         var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
-        var curLbl=curPart?(isTest?esc(curPart.l.title):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
+        var curLbl=curPart?(isTest?_jaRubySubj_(curPart.l.title,subjB):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
         var ov=document.createElement('div');ov.className='ov-card';ov.setAttribute('data-mid',String(c.material_id||'')); /* ピンポイント遷移の宛先 2026-08-21 */
         var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'');
         var right=curPart?(curLbl+' <small>/ <ruby>全<rt class="uf">ぜん</rt></ruby>'+total+'</small>'):('クリア '+passedN+' <small>/ <ruby>全<rt class="uf">ぜん</rt></ruby>'+total+'</small>');
@@ -3676,7 +3677,7 @@ function loadHomeData_(showSkel){
         parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
         map+='</div>';
         var doneTag=(total>0&&passedN===total)?' <span style="font-size:10px;font-weight:800;color:var(--ok);background:rgba(31,170,107,.12);border:1px solid rgba(31,170,107,.3);border-radius:6px;padding:1px 7px;vertical-align:middle;white-space:nowrap;"><i class="ti ti-circle-check" style="font-size:11px;vertical-align:-1px;"></i> クリア<ruby>済<rt class="uf">ずみ</rt></ruby></span>':''; // 完了教材は緑タグ 2026-08-01
-        ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+esc(mtShortMt(c))+lapPill+doneTag+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
+        ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+_jaRubySubj_(mtShortMt(c),subjB)+lapPill+doneTag+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
           +'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>'+map
           +'<div class="ov-sub"><span class="dm-s done"></span>クリア<ruby>済<rt class="uf">ず</rt></ruby>み <b>'+passedN+'</b>　'+(curPart?'<span class="dm-s cur"></span><ruby>今<rt class="uf">いま</rt></ruby>ここ <b>'+curLbl+'</b>　':'')+'<ruby>残<rt class="uf">のこ</rt></ruby>り <b>'+(total-passedN)+'</b></div>';
         var detail=document.createElement('div');detail.className='macc-detail';
@@ -3685,18 +3686,18 @@ function loadHomeData_(showSkel){
         /* 【案B・2026-08-21】全部合格した教材は「クリア済み（N）」に畳まない。
            畳むと、開いてもその1行しか出てこない（完走教材は全部クリア済みなので畳む意味がない）＝川上さん指摘。 */
         var _allDone=(total>0&&passedN===total);
-        if(_allDone){ parts.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,true));}); }
+        if(_allDone){ parts.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,true,subjB));}); }
         else if(cleared.length){
           var contig=!isTest&&cleared.every(function(l,i){return (l.part_order||0)===i+1;});
           var lbl='クリア<ruby>済<rt class="uf">ず</rt></ruby>み '+(contig?('DAY 1〜'+cleared[cleared.length-1].part_order+'　'):'')+'（'+cleared.length+'）';
           var fold=document.createElement('div');fold.className='done-fold';
           fold.innerHTML='<div class="df-ic"><i class="ti ti-check"></i></div><div class="df-t">'+lbl+'</div><i class="ti ti-chevron-down df-arw"></i>';
           var farea=document.createElement('div');farea.className='fold-area';
-          cleared.forEach(function(l){farea.appendChild(buildMapRow(l,isTest,true));});
+          cleared.forEach(function(l){farea.appendChild(buildMapRow(l,isTest,true,subjB));});
           fold.onclick=function(e){e.stopPropagation();fold.classList.toggle('open');farea.classList.toggle('open');};
           detail.appendChild(fold);detail.appendChild(farea);
         }
-        if(!_allDone)rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false));});
+        if(!_allDone)rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false,subjB));});
         ov.onclick=function(){ov.classList.toggle('open');detail.classList.toggle('open');};
         bdetail.appendChild(ov);bdetail.appendChild(detail);
       });
@@ -5031,7 +5032,7 @@ function renderQz_(s){if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestor
   try{_wlSync_(s,w);}catch(e){}   /* 単語をみる 2026-09-10 */
   // 進捗ラベル（おさらいは教材・パートのタグつき）
   if(s.mode==='srs'){
-    var _tag=(w.material_title||w.part_title)?('<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 11px;margin-bottom:7px;"><i class="ti ti-clock-bolt" style="font-size:12px"></i> おさらい・'+esc(mtLabelMt(w))+(w.part_title?('／'+esc(w.part_title)):'')+'</div><br>'):'';
+    var _tag=(w.material_title||w.part_title)?('<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 11px;margin-bottom:7px;"><i class="ti ti-clock-bolt" style="font-size:12px"></i> おさらい・'+_jaRubySubj_(mtLabelMt(w),w.subject)+(w.part_title?('／'+_jaRubySubj_(w.part_title,w.subject)):'')+'</div><br>'):'';
     $('step-label').innerHTML=_tag+(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
   }else if(s.mode==='note'){
     $('step-label').innerHTML=(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
@@ -5097,13 +5098,21 @@ var JA_RUBY_={
   '帰宅':'きたく','帽子':'ぼうし','年齢':'ねんれい','彼女':'かのじょ','意識':'いしき','掃除':'そうじ','授業':'じゅぎょう','映画':'えいが','時刻':'じこく',
   '歴史':'れきし','毎晩':'まいばん','浜辺':'はまべ','牛乳':'ぎゅうにゅう','男性':'だんせい','留守':'るす','祖母':'そぼ','祖父':'そふ','簡単':'かんたん',
   '美術':'びじゅつ','複数':'ふくすう','訪ね':'たず','訪れ':'おとず','質問':'しつもん','趣味':'しゅみ','鉛筆':'えんぴつ','高価':'こうか','個':'こ',
-  '冊':'さつ','卵':'たまご','彼':'かれ','机':'つくえ','猫':'ねこ','私':'わたし','窓':'まど','豚':'ぶた','靴':'くつ',
+  '冊':'さつ','卵':'たまご','彼':'かれ','机':'つくえ','猫':'ねこ','私':'わたし','窓':'まど','豚':'ぶた','靴':'くつ','歳':'さい',
   /* 文法解説カードの本文で使う語 2026-09-09 */
-  '代名詞':'だいめいし','名詞':'めいし','前置詞':'ぜんちし'};
+  '代名詞':'だいめいし','名詞':'めいし','前置詞':'ぜんちし','形容詞':'けいようし','間違':'まちが','枚':'まい',
+  /* 一覧（本の見出し・章名・パート名）で使う語 2026-09-11。英語40教材・国語2教材の名前356種を
+     本番シートから全件とって、小5以上の漢字を含む57種を拾ったもの。理科・社会の名前には当てない */
+  '語彙力':'ごいりょく','英検':'えいけん','文法編':'ぶんぽうへん','一般':'いっぱん','復習':'ふくしゅう',
+  '許可':'きょか','依頼':'いらい','症状':'しょうじょう','投稿':'とうこう','指示語':'しじご',
+  '所有格':'しょゆうかく','疑問詞':'ぎもんし','助動詞':'じょどうし','否定':'ひてい','頻度':'ひんど',
+  '頻出':'ひんしゅつ','基本':'きほん','移動':'いどう','程度':'ていど','熟語':'じゅくご',
+  '応答':'おうとう','自己紹介':'じこしょうかい','職業':'しょくぎょう','施設':'しせつ','服装':'ふくそう',
+  '評価':'ひょうか'};
 var JA_RUBY_OK_={
   '与':'あた','呼':'よ','寝':'ね','座':'すわ','忙':'いそが','怒':'おこ','撮':'と','曇':'くも','欲':'ほ','洗':'あら','疲':'つか','眠':'ねむ',
   '背':'せ','若':'わか','踊':'おど','遅':'おそ','閉':'し','離':'はな','難':'むずか','飼':'か',
-  '並':'なら'};
+  '並':'なら','誘':'さそ'};
 var _jaRubyK_=null;
 function _jaRubyHira_(c){return c>='\u3041'&&c<='\u309f';}
 function _jaRuby_(t){
@@ -5131,6 +5140,11 @@ function _jaRuby_(t){
    おさらいは教科が混ざるので、語ごとに見る＝_isKokugo_ と同じ作り */
 function _isEigo_(){var s=_actSes()||session;if(!s)return false;var w=s.words&&s.words[s.idx];var subj=(w&&w.subject)||s.subject;return subj==='english';}
 function _jaRubyIf_(t){return _isEigo_()?_jaRuby_(t):esc(String(t==null?'':t));}
+/* 【2026-09-11 川上さん確定】一覧（本の見出し・章名・パート名）のふりがな。
+   上の _jaRubyIf_ は「いま解いているセッションの教科」を見るので、一覧では使えない＝教科を引数でもらう。
+   当てるのは english と japanese だけ。理科・社会の教材名（幕府・循環・鉱工業…）は辞書に1語も無く、
+   通しても何も振られないので通さない（川上さん「理社は小学生向けじゃないので不要」）。 */
+function _jaRubySubj_(t,subj){return (subj==='english'||subj==='japanese')?_jaRuby_(t):esc(String(t==null?'':t));}
 function _boxBlank(h){return h.replace(/（[\s　]*）/g,'<span class="qblank"></span>');}
 function _isKokugo(){var s=_actSes()||session;if(!s)return false;var w=s.words&&s.words[s.idx];var subj=(w&&w.subject)||s.subject;return subj==='japanese';} // おさらいは教科混在＝語ごとに判定 2026-07-26
 function renderQ(w,showFuri){var q=tfParse(w);if(q&&q.q_ruby&&q.q_ruby.length){var h='';q.q_ruby.forEach(function(seg){var t=String((seg&&seg[0])||'');var y=(seg&&seg[1])?seg[1]:'';h+=(showFuri&&y)?_rubyTag(t,y):esc(t);});return _boxBlank(h);}return _boxBlank(esc(String(w.japanese||'')));}
@@ -6409,7 +6423,7 @@ function nextStepGuide_(preferNote,justPartId){
   var mkMain=function(cls){
     if(!nextMain)return '';
     return '<button class="gbtn '+cls+'" onclick="startPractice(\''+String(nextMain.part_id)+'\');"><i class="ti ti-anchor"></i> <span>'
-      +esc(mtLabelMt(nextMain))+'を'+rb('始','はじ')+'める</span></button>';
+      +_jaRubySubj_(mtLabelMt(nextMain),nextMain.subject)+'を'+rb('始','はじ')+'める</span></button>';
   };
   var mkOsarai=function(cls){
     if(osDone)return '';
