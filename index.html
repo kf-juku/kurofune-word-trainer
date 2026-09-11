@@ -2600,11 +2600,15 @@ function renderQuiz(){
     var _bo=_quizBookOpen_(),_co=_quizChapOpen_();
     var html='';
     _grps.forEach(function(gp){
-      var tot=0,pas=0,ngb=0,unb=0;
+      var tot=0,pas=0,ngb=0,unb=0,rdyb=0;
       gp.items.forEach(function(g){var ps=g.parts||[];tot+=ps.length;
         pas+=ps.filter(function(p){return p.status==='ok';}).length;
         ngb+=ps.filter(function(p){return p.status==='ng';}).length;
+        rdyb+=ps.filter(_quizReady_).length;   // 章の行を出さない本のぶん 2026-09-11
         unb+=ps.filter(function(p){return _qIsUnfinished_(p);}).length;});
+      /* 【2026-09-11】章が1つしかない本は、章の行を出さない（単元別タブと同じ理由＝本と章が同じ見出し・
+         同じ数字になり、開閉の矢印が2つ縦に並ぶ）。章の行にしか無い「そろそろテスト N」は本の見出しに出す。 */
+      var soloBook=(gp.items.length===1);
       var pct=tot?Math.round(pas/tot*100):0;
       var subj=_subjGuess_(gp.items[0]);
       var bookDone=(tot>0&&pas===tot);
@@ -2617,7 +2621,8 @@ function renderQuiz(){
       html+='<div class="nbook qbook'+(bookDone?' done':'')+(_bo.indexOf(gp.key)>=0?' open':'')+'" data-bk="'+esc(gp.key)+'">'
         +'<div class="nbook-head"><div class="nbk-ic"><i class="ti ti-checkup-list"></i></div>' /* 確認テストの本＝チェックリストのアイコン（青）。教科は下の教科タグで分かる 2026-08-20 */
         +'<div class="nbk-body"><div class="nbk-nm">'+esc(gp.lab)+'</div>'
-        +'<div class="nbk-meta">'+subjTag+metaMid+'</div>'
+        +'<div class="nbk-meta">'+subjTag+metaMid
+        +((soloBook&&rdyb>0)?(' <span class="qrdy"><i class="ti ti-checkup-list"></i>そろそろテスト '+rdyb+'</span>'):'')+'</div>'
         +'<div class="nbk-bar"><i style="width:'+pct+'%"></i></div></div>'
         +'<i class="ti ti-chevron-down nbk-arw"></i></div>'
         +'<div class="nbk-detail">';
@@ -2628,13 +2633,15 @@ function renderQuiz(){
         var unc=ps.filter(function(p){return _qIsUnfinished_(p);}).length; // 未実施（再配信後）2026-07-28
         var rdy=ps.filter(_quizReady_).length; // そろそろテスト＝単元別に合格して3日以上たった 2026-08-20
         var ck='C:'+String(g.material_id||g.title||'');
-        html+='<div class="qchw'+(_co.indexOf(ck)>=0?' open':'')+'" data-ck="'+esc(ck)+'">'
-          +'<div class="nchap qchap"><div class="ncf-nm">'+esc(mtShort(g)||'教材')
+        html+='<div class="qchw'+((soloBook||_co.indexOf(ck)>=0)?' open':'')+'" data-ck="'+esc(ck)+'"'+(soloBook?' data-solo="1"':'')+'>';
+        if(!soloBook){
+          html+='<div class="nchap qchap"><div class="ncf-nm">'+esc(mtShort(g)||'教材')
           +(rdy>0?(' <span class="qrdy"><i class="ti ti-checkup-list"></i>そろそろテスト '+rdy+'</span>'):'')
           +'<small><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+np+'/'+ps.length+'</small></div>'
           +(g.all_pass?'<span class="nbk-tag qch-gold"><ruby>全<rt class="uf">ぜん</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby></span>':'')
-          +'<i class="ti ti-chevron-down ncf-arw"></i></div>'
-          +'<div class="nqparts">';
+          +'<i class="ti ti-chevron-down ncf-arw"></i></div>';
+        }
+        html+='<div class="nqparts">';
         ps.forEach(function(p){
           /* 練習の状態は「名前の下の小さいタグ」＝テストが主役のまま（川上さん確定 2026-08-20）。
              まだ練習していない／途中のときだけ、小さい「練習」ボタンを1つ足す。押すとそのパートの練習がその場で始まる。 */
@@ -2653,7 +2660,9 @@ function renderQuiz(){
     });
     el.querySelectorAll('.qchw').forEach(function(w){
       var ck=w.getAttribute('data-ck');
-      w.querySelector('.qchap').onclick=function(){w.classList.toggle('open');_openToggle_('kwt_quizchap_open',ck,w.classList.contains('open'));};
+      /* 章の行を出していない本（data-solo・章が1つだけ）は .qchap が無い＝開きっぱなし 2026-09-11 */
+      var _qc=w.querySelector('.qchap');
+      if(_qc)_qc.onclick=function(){w.classList.toggle('open');_openToggle_('kwt_quizchap_open',ck,w.classList.contains('open'));};
       w.querySelectorAll('.nqp').forEach(function(row){var pid=row.getAttribute('data-pid');row.onclick=function(){if(pid)startQuiz(pid);};});
       /* 「練習」ボタン＝行のテスト開始より先に拾う。そのパートの練習をその場で始める（学習マップのパート行と同じ startPractice） 2026-08-20 */
       w.querySelectorAll('.ubtn').forEach(function(btn){
@@ -3392,12 +3401,20 @@ function renderUnitZone_(materials){
            そのまま流用する（新しい部品を作らない）。色は本カードの .unitbook（金）がそのまま効く。
            章行そのものの動き（→ ＝最初の未合格パートを始める／完走章は学習マップ）は変えない＝開閉は矢印だけで行う。 */
         var uck='U:'+String(c.material_id||c.title||'');
-        detail+='<div class="qchw'+(_co.indexOf(uck)>=0?' open':'')+'" data-uck="'+esc(uck)+'">'
-          +'<div class="nchap'+(isDone?' done':'')+'" data-pid="'+esc(String(target))+'"'+(isDone?(' data-map="1" data-mid="'+esc(String(c.material_id||''))+'"'):'')+'><div class="ncf-nm">'+esc(mtShortMt(c))
+        /* 【2026-09-11】章が1つしかない本は、章の行を出さない。
+           本の見出しと章の見出しが同じ文字列・同じ「できた N/M」になり、開閉の矢印も2つ縦に並ぶため。
+           ★対象＝その本に教材が1つだけ、かつ完走していないとき。完走している章は
+             「🎉完走・学習マップでやり直せる」の導線がこの行にしか無いので、今までどおり出す。
+           ★シリーズに教材が2つ以上ある本（FD地理・メキメキ・教科書英単語）は今までどおり。 */
+        var soloBook=(g.items.length===1 && !isDone);
+        detail+='<div class="qchw'+((soloBook||_co.indexOf(uck)>=0)?' open':'')+'" data-uck="'+esc(uck)+'"'+(soloBook?' data-solo="1"':'')+'>';
+        if(!soloBook){
+          detail+='<div class="nchap'+(isDone?' done':'')+'" data-pid="'+esc(String(target))+'"'+(isDone?(' data-map="1" data-mid="'+esc(String(c.material_id||''))+'"'):'')+'><div class="ncf-nm">'+esc(mtShortMt(c))
           +(isDone?'<small class="chap-done">🎉 <ruby>完走<rt class="uf">かんそう</rt></ruby> ・ <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップでやり<ruby>直<rt class="uf">なお</rt></ruby>せる</small>':'<small>できた '+p2+'/'+t2+'</small>')+'</div>'
           +(isDone?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')
           +(t2?'<i class="ti ti-chevron-down ncf-arw" data-utog="1" role="button" tabindex="0" aria-label="パートの一覧をひらく" style="padding:7px;margin:-7px -3px;"></i>':'')
           +'</div>';
+        }
         if(t2){
           detail+='<div class="nqparts">';
           ps.forEach(function(l){
@@ -3421,6 +3438,7 @@ function renderUnitZone_(materials){
       book.querySelectorAll('.qchw').forEach(function(w){
         var uck=w.getAttribute('data-uck');
         var arw=w.querySelector('.ncf-arw[data-utog="1"]');
+        /* 章の行を出していない本（data-solo）は矢印が無い＝開きっぱなし。開閉の記憶も持たない 2026-09-11 */
         if(arw)arw.onclick=function(ev){ev.stopPropagation();w.classList.toggle('open');_unitChapOpenToggle_(uck,w.classList.contains('open'));};
         w.querySelectorAll('.nqp').forEach(function(prow){var upid=prow.getAttribute('data-upid');prow.onclick=function(ev){ev.stopPropagation();if(upid)startPractice(upid);};});
       });
