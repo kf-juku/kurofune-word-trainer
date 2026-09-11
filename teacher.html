@@ -701,6 +701,7 @@
   .rt-qtag.b{background:#f8efd6;color:#7a5f16;}
   .rt-qbtn{border:1.5px solid var(--border);background:#fff;border-radius:16px;padding:4px 11px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text-muted);}
   .rt-qbtn:hover{border-color:var(--crimson);color:var(--crimson);}
+  .rt-qbtn.on{background:var(--crimson);border-color:var(--crimson);color:#fff;}   /* 配信のしかたの切り替え 2026-09-11 */
   .rt-lwrap{border:1px solid var(--border);border-radius:10px;flex:1 1 auto;min-height:180px;overflow-y:auto;overflow-x:hidden;}
   .rt-lhead,.rt-lrow{display:grid;grid-template-columns:104px 1fr 112px 104px;align-items:center;gap:6px;padding:9px 12px;}
   .rt-lhead{background:var(--surface2);font-size:10.5px;font-weight:800;color:var(--text-muted);text-align:center;position:sticky;top:0;z-index:1;}
@@ -1734,6 +1735,12 @@
         <div class="rtx-h">この教材を持っている子 <span class="c" id="rtRosterCnt"></span></div>
         <div class="rtx-list" id="rtRoster"></div>
         <div class="rtx-toolbar"><span class="rtx-lab">確認テスト</span><button class="rt-qbtn" onclick="rtDelvQuick('new')">未配信の子だけ</button><button class="rt-qbtn" onclick="rtDelvQuick('all')">全員に配信</button><button class="rt-qbtn" onclick="rtDelvQuick('clear')">配信オフ</button></div>
+        <!-- 配信のしかた 2026-09-11：教材にあとから単元を足したとき、前の単元の点数を消さずに足せるようにする -->
+        <div class="rtx-toolbar"><span class="rtx-lab">配信のしかた</span>
+          <button class="rt-qbtn" id="rtModeNew" onclick="rtSetMode('new')">足したパートだけ</button>
+          <button class="rt-qbtn" id="rtModeAll" onclick="rtSetMode('all')">はじめから配信し直す</button>
+          <span class="rtx-lab" id="rtModeNote" style="flex:1 0 100%;font-weight:700;color:var(--text-muted);line-height:1.5;"></span>
+        </div>
       </div>
     </div>
     <div class="modal-actions rt-foot" style="align-items:center;">
@@ -4792,6 +4799,18 @@ function jumpToMaterial(mid){ if(!mid)return; switchTab('mat'); setTimeout(funct
 
 /* ===== 名簿＋確認テスト配信（2列チェック・単元別対策）2026-07-13 ===== */
 var _rtMid=null,_rtSelA={},_rtSelB={},_rtA0={},_rtDeliver={},_rtDates={},_rtFilt={grade:{},cls:{},school:{}},_rtSearch='';
+/* 配信のしかた 2026-09-11。'new'＝まだ配信していないパートだけ作る（受けたぶんは残す）／
+   'all'＝今までどおり全パートの配信日を今にする（全部が未受験に戻る）。既定は 'new'。 */
+var _rtMode='new';
+function rtSetMode(m){_rtMode=(m==='all')?'all':'new';rtRenderMode();}
+function rtRenderMode(){
+  var a=$('rtModeAll'),n=$('rtModeNew'),t=$('rtModeNote');
+  if(n)n.className='rt-qbtn'+(_rtMode==='new'?' on':'');
+  if(a)a.className='rt-qbtn'+(_rtMode==='all'?' on':'');
+  if(t)t.textContent=(_rtMode==='new')
+    ? 'まだ配信していないパートだけ作ります。すでに受けたパートの点数と合否はそのままです。'
+    : '選んだ子の全パートの配信日を今にします。受けたパートも「未受験」に戻ります（点数は消えません）。';
+}
 function _rtSid(s){return String(s.student_id!=null?s.student_id:(s.id!=null?s.id:''));}
 function _rtUniq(field){var m={};(_students||[]).forEach(function(s){var v=String(s[field]||'').trim();if(v)m[v]=1;});var a=Object.keys(m);return field==='grade'?a.sort(function(x,y){return gradeRank(x)-gradeRank(y);}):a.sort(function(x,y){return x.localeCompare(y,'ja');});}
 function _rtAnyOn(o){return Object.keys(o).some(function(k){return o[k];});}
@@ -4811,14 +4830,14 @@ function openRosterTest(mid){
   _rtFilt={grade:{},cls:{},school:{}};_rtSearch='';
   _rtSelA={};_rtA0={};
   (_students||[]).forEach(function(s){(s.materials_view||[]).forEach(function(mm){if(String(mm.material_id)===_rtMid){var id=_rtSid(s);_rtSelA[id]=1;_rtA0[id]=1;}});});
-  _rtSelB={};_rtDeliver={};_rtDates={};
+  _rtSelB={};_rtDeliver={};_rtDates={};_rtMode='new';
   $('rtRoster').innerHTML='<div style="padding:18px;text-align:center;color:var(--text-light);font-size:12px;">読み込み中…</div>';
   $('rtFbar').innerHTML='';
   $('rtModal').classList.add('show');
   call({action:'quiz_delivery_dates',material_id:_rtMid}).then(function(d){
     _rtDates=(d&&d.ok&&d.data&&d.data.dates)?d.data.dates:{};
     Object.keys(_rtSelA).forEach(function(id){_rtDeliver[id]=_rtDates[id]?false:true;}); /* 既定：未配信=配信ON・配信済み=OFF */
-    rtRenderFbar();rtRender();
+    rtRenderFbar();rtRender();rtRenderMode();
   });
 }
 function rtChip_(field,v){var on=_rtFilt[field][v];return '<button class="pk-chip'+(on?' on':'')+'" onclick="rtTog(\''+field+'\',\''+esc(v)+'\')">'+(on?'✓ ':'')+esc(v)+'</button>';}
@@ -4880,13 +4899,16 @@ function saveRosterTest(){
   var rem=before.filter(function(id){return _rtSelA[id]!==1;});
   if(rem.length){ if(!confirm('この教材から '+rem.length+'名 を外します。進捗・間違いノートは残ります（もう一度割り当てれば続きから）。よろしいですか？'))return; }
   if(bIds.length){ var again=bIds.filter(function(id){return _rtDates[id];}).length;
-    if(!confirm(bIds.length+'名に確認テストを配信します（未受験スタート・過去の点数は保持）。うち再配信 '+again+'件。よろしいですか？'))return; }
+    var _msg=(_rtMode==='new')
+      ? (bIds.length+'名に確認テストを配信します。\n\nまだ配信していないパートだけ作ります。すでに受けたパートの点数と合否はそのままです。\n\nよろしいですか？')
+      : (bIds.length+'名に確認テストを配信し直します（未受験スタート・過去の点数は保持）。うち再配信 '+again+'件。\n\n★受けたパートも「未受験」に戻ります。単元を足しただけなら「足したパートだけ」を選んでください。\n\nよろしいですか？');
+    if(!confirm(_msg))return; }
   var btn=$('rtSave');btn.disabled=true;btn.textContent='⏳ 保存中…';
   $('rtErr').textContent='';
   call({action:'material_roster_set',material_id:_rtMid,student_ids:aIds}).then(function(d){
     if(!d||!d.ok){btn.disabled=false;btn.textContent='保存する';$('rtErr').textContent=(d&&d.error)||'割り当ての保存に失敗しました';return;}
     if(!bIds.length){rtSaveDone(d,null);return;}
-    call({action:'quiz_assign',material_id:_rtMid,student_ids:bIds}).then(function(d2){
+    call({action:'quiz_assign',material_id:_rtMid,student_ids:bIds,only_new:(_rtMode==='new')}).then(function(d2){
       if(!d2||!d2.ok){btn.disabled=false;btn.textContent='保存する';$('rtErr').textContent=(d2&&d2.error)||'確認テストの配信に失敗しました（割り当ては保存済み）';return;}
       rtSaveDone(d,d2);
     });
@@ -4895,7 +4917,10 @@ function saveRosterTest(){
 function rtSaveDone(d,d2){
   var dd=d.data||{};
   var msg='割り当て：追加'+((dd.added||0)+(dd.activated||0))+'／外す'+(dd.removed||0)+'名';
-  if(d2){var d2d=d2.data||{};msg+=' ／ 確認テスト配信 '+(d2d.students||0)+'名（未受験スタート）';}
+  if(d2){var d2d=d2.data||{};
+    msg+=d2d.only_new
+      ? (' ／ 確認テスト '+(d2d.students||0)+'名に足したパートだけ配信（新しく作った '+(d2d.made||0)+'件・そのままにした '+(d2d.kept||0)+'件）')
+      : (' ／ 確認テスト配信 '+(d2d.students||0)+'名（未受験スタート）');}
   $('rtSave').disabled=false;$('rtSave').textContent='保存する';
   toast(msg);
   closeModal('rtModal');
