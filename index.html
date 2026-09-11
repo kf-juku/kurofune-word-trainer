@@ -4996,8 +4996,11 @@ function renderQz_(s){if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestor
     if(_tfRenderable_(w,s.assets)){renderTF(s);return;}
     // 表データが取れないときだけ文字版にフォールバック（描画不能で無表示にしない）
     var _qtf=tfParse(w);$('j2e-label').innerHTML='<ruby>正<rt class="uf">ただ</rt></ruby>しい<ruby>形<rt class="uf">かたち</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';$('j2e-ja').innerHTML=renderQ(w,furiQ);renderFuriBar(w);
-    buildChoices('j2e-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},{fig:true,fixedChoices:(_qtf.choices||[]),timeLimit:(s.mode==='note'?0:qSecFor('table_fill')),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',promptText:w.japanese,next:s.onNext});
-    $('step-j2e').style.display='block';showListen_(w,_wIsEng(s,w));return;
+    buildChoices('j2e-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},{fig:true,fixedChoices:(_qtf.choices||[]),timeLimit:(s.mode==='note'?0:qSecFor('table_fill')),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',promptText:w.japanese,next:s.onNext,
+      afterShow:function(){showListen_(w,_wIsEng(s,w));}});   /* 答え合わせのあとだけ聞ける 2026-09-11 */
+    /* 【答えバレ・2026-09-11】表が描けないときの文字版。ここも english が答えそのもの。
+       renderTF を直したときに見落としていた（同じ設問の別の道）。出題中は出さず、答え合わせのあとに出す。 */
+    $('step-j2e').style.display='block';hideListen_();return;
   }
   if(w.qtype==='image_fill'){renderIMG(s);return;}
   if(_isSentQ_(w)){renderSENT(s);return;}   /* 文の問題＝1行1問。語のステップに乗せない 2026-09-08 */
@@ -5822,11 +5825,39 @@ function _resumeAskIfAny_(part,quiz,again){
   }
   return true;
 }
-function speak(w){try{if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(w.tts_text||w.english);u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}}catch(e){}}
+/* ===== 語の音（2026-09-11 川上さん確定「ジは気になるのでmp3で音を作りましょう」）=====
+   words.audio ＝ 作りおきの mp3 のパス。あればそれを鳴らす。
+   無い／読めない（まだ push していない・消した）ときは、今までどおり端末の読み上げに落とす。
+   ★tts_text（a→uh のような小細工）は**端末に読ませるときだけ**の道具。mp3 には関係しない。
+     mp3 は english（本来のつづり）から作っている。
+   ★音の口を増やしていない＝答えバレの入口は今までと同じ場所のまま（教材の正 §3）。 */
+var _wordAu=null;
+function _wordStop_(){
+  try{if(_wordAu){_wordAu.pause();_wordAu=null;}}catch(e){}
+  try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
+}
+function _wordSay_(w){
+  try{ if(!window.speechSynthesis||!w)return;
+    var u=new SpeechSynthesisUtterance(w.tts_text||w.english); u.lang='en-US'; u.rate=0.9;
+    speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){}
+}
+function speak(w){
+  if(!w)return;
+  _wordStop_();
+  var url=String(w.audio||'');
+  if(!url){_wordSay_(w);return;}
+  try{
+    var au=new Audio(url); _wordAu=au;
+    au.onerror=function(){_wordAu=null;_wordSay_(w);};
+    var p=au.play(); if(p&&p['catch'])p['catch'](function(){_wordAu=null;_wordSay_(w);});
+  }catch(e){_wordAu=null;_wordSay_(w);}
+}
 /* どの画面でも発音を聞けるボタン 2026-07-08：選択問題中でも現在の単語を再生 */
 var _playWord=null;
 function showListen_(w,isEng){var b=$('btn-listen');if(!b)return;if(isEng===false){_playWord=null;b.style.display='none';return;}_playWord=w;b.style.display='flex';} // 発音は英語のみ（理社では出さない）2026-07-08
-function hideListen_(){var b=$('btn-listen');if(b)b.style.display='none';}
+/* 隠すときは的も外す（2026-09-11）。ボタンは display:none なので押せないが、
+   「英語の答えを持ったまま」にしておく理由が無い。答えバレの口は残さない（教材の正 §3）。 */
+function hideListen_(){_playWord=null;var b=$('btn-listen');if(b)b.style.display='none';}
 (function(){var b=$('btn-listen');if(b)b.onclick=function(){if(_playWord)speak(_playWord);};})();
 
 /* ===== 発音認識（参考値・合否に含めない）2026-06-22 =====
