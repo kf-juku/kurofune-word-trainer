@@ -3221,6 +3221,9 @@ function _openGet_(sk){try{return JSON.parse(sessionStorage.getItem(sk)||'[]')||
 function _openToggle_(sk,key,isOpen){var a=_openGet_(sk);var i=a.indexOf(key);if(isOpen&&i<0)a.push(key);else if(!isOpen&&i>=0)a.splice(i,1);try{sessionStorage.setItem(sk,JSON.stringify(a));}catch(e){}}
 function _unitOpenGet_(){return _openGet_('kwt_unit_open');}
 function _unitOpenToggle_(key,isOpen){_openToggle_('kwt_unit_open',key,isOpen);}
+/* 単元別：章の下のパート行の開閉も保持（sessionStorage）。確認テストの章（kwt_quizchap_open）と同じ流儀・キーだけ別 2026-09-11 */
+function _unitChapOpenGet_(){return _openGet_('kwt_unitchap_open');}
+function _unitChapOpenToggle_(key,isOpen){_openToggle_('kwt_unitchap_open',key,isOpen);}
 /* 毎日学習＝1本道：先頭の未完了を大きく（つぎは これ）＋このあとを queue */
 function renderDailyList_(main){
   var host=$('daily-list');if(!host)return;host.innerHTML='';
@@ -3376,6 +3379,7 @@ function renderUnitZone_(materials){
         +'<div class="nbk-bar"><i style="width:'+pct+'%"></i></div></div>'
         +'<i class="ti ti-chevron-down nbk-arw"></i></div>';
       var detail='<div class="nbk-detail">';
+      var _co=_unitChapOpenGet_(); // 章ごとのパート一覧の開閉を保持 2026-09-11
       g.items.forEach(function(c){
         var ps=(c.parts||[]);var t2=ps.length,p2=ps.filter(function(l){return l.passed;}).length;
         var cur=null;ps.forEach(function(l){if(l.is_current&&!cur)cur=l;});
@@ -3384,15 +3388,42 @@ function renderUnitZone_(materials){
         var target=cur?cur.part_id:(firstUnpassed?firstUnpassed.part_id:(ps[0]?ps[0].part_id:''));
         var allPass=(t2>0&&p2===t2);
         var isDone=(String(c.sm_status)==='completed')||allPass; // 完走＝全パート合格 or 割当が完了状態 2026-08-08
-        detail+='<div class="nchap'+(isDone?' done':'')+'" data-pid="'+esc(String(target))+'"'+(isDone?(' data-map="1" data-mid="'+esc(String(c.material_id||''))+'"'):'')+'><div class="ncf-nm">'+esc(mtShortMt(c))
+        /* 【2026-09-11】章の下にパート行を開く折りたたみ。確認テストの .qchw → .nchap → .nqparts → .nqp を
+           そのまま流用する（新しい部品を作らない）。色は本カードの .unitbook（金）がそのまま効く。
+           章行そのものの動き（→ ＝最初の未合格パートを始める／完走章は学習マップ）は変えない＝開閉は矢印だけで行う。 */
+        var uck='U:'+String(c.material_id||c.title||'');
+        detail+='<div class="qchw'+(_co.indexOf(uck)>=0?' open':'')+'" data-uck="'+esc(uck)+'">'
+          +'<div class="nchap'+(isDone?' done':'')+'" data-pid="'+esc(String(target))+'"'+(isDone?(' data-map="1" data-mid="'+esc(String(c.material_id||''))+'"'):'')+'><div class="ncf-nm">'+esc(mtShortMt(c))
           +(isDone?'<small class="chap-done">🎉 <ruby>完走<rt class="uf">かんそう</rt></ruby> ・ <ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップでやり<ruby>直<rt class="uf">なお</rt></ruby>せる</small>':'<small>できた '+p2+'/'+t2+'</small>')+'</div>'
-          +(isDone?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
+          +(isDone?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')
+          +(t2?'<i class="ti ti-chevron-down ncf-arw" data-utog="1" role="button" tabindex="0" aria-label="パートの一覧をひらく" style="padding:7px;margin:-7px -3px;"></i>':'')
+          +'</div>';
+        if(t2){
+          detail+='<div class="nqparts">';
+          ps.forEach(function(l){
+            /* パート名は title をそのまま出す（切らない・まとめない）。右は済み／未。 */
+            var st=l.passed
+              ? '<span class="utag done"><i class="ti ti-circle-check"></i>できた</span>'
+              : '<span class="utag"><i class="ti ti-player-play"></i>まだ</span>';
+            detail+='<div class="nqp" data-upid="'+esc(String(l.part_id||''))+'"><div class="nqp-nm">'+esc(String(l.title||'パート'))+'</div>'
+              +st+(l.passed?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
+          });
+          detail+='</div>';
+        }
+        detail+='</div>';
       });
       detail+='</div>';
       book.innerHTML=head+detail;
       if(_open.indexOf(g.key)>=0)book.classList.add('open'); // リロード後も開いた本を保持
       book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_unitOpenToggle_(g.key,book.classList.contains('open'));};
       book.querySelectorAll('.nchap').forEach(function(row){var pid=row.getAttribute('data-pid');var isMap=row.getAttribute('data-map')==='1';row.onclick=function(){ if(isMap){goMapSub_(row.getAttribute('data-mid'));} else if(pid){startPractice(pid);} };}); // 完走章は学習マップ(復習)へ・未完走は練習へ 2026-08-08
+      /* 矢印＝パート一覧の開閉だけ（章行の → の動きは変えないので stopPropagation する）。開いた状態は sessionStorage に持つ 2026-09-11 */
+      book.querySelectorAll('.qchw').forEach(function(w){
+        var uck=w.getAttribute('data-uck');
+        var arw=w.querySelector('.ncf-arw[data-utog="1"]');
+        if(arw)arw.onclick=function(ev){ev.stopPropagation();w.classList.toggle('open');_unitChapOpenToggle_(uck,w.classList.contains('open'));};
+        w.querySelectorAll('.nqp').forEach(function(prow){var upid=prow.getAttribute('data-upid');prow.onclick=function(ev){ev.stopPropagation();if(upid)startPractice(upid);};});
+      });
       host.appendChild(book);
     });
     host.appendChild(uhint); // 本の一覧の下に置く（帯→本→学習マップ導線 の順）2026-08-20

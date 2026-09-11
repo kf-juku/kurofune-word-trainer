@@ -4016,7 +4016,7 @@ function mpPointValidate_(txt){
   cs.split('／').forEach(function(seg){
     seg=seg.trim(); if(!seg||seg.indexOf('>')<0)return;
     var a=seg.split('>'), key=a[0].trim();
-    if(key==='図')return;
+    if(key==='図'||key==='音')return;   /* 音>ID|ID は要点カードの例文の音声（2026-09-11 A案）。3択ではない */
     key=key.replace(/[（(][ぁ-んァ-ヶーゝゞ・]+[）)]$/,'');
     if(keys[key])w.push('・3択に「'+key+'」が2回出てきます');
     keys[key]=1; order.push(key);
