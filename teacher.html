@@ -194,6 +194,10 @@
   .mnone{font-size:11px;color:var(--text-light);font-weight:600;align-self:center;}
   /* ピルの中は「未合格が何本あるか」だけ（狭いので）。そろった書き方は右の「✅ 確認テスト」列 */
   .mq-ng{font-size:10px;font-weight:800;color:#d64545;white-space:nowrap;}
+  /* 【2026-09-13e・段B】個別詳細の表。部品は確認テストタブの .qsu-* をそのまま使い、枠だけ足す */
+  .sd-qtbl{border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .sd-qtbl td{padding:6px 9px;font-size:12px;}
+  .sd-none{font-size:12px;color:var(--text-light);padding:4px 2px;}
   .mchip{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;margin:2px 4px 2px 0;border:1px solid transparent;white-space:nowrap;vertical-align:top;}
   .mchip .mdot{width:8px;height:8px;border-radius:50%;flex:none;}
   .mchip .mhere{font-size:10px;font-weight:600;color:var(--text-muted);}
@@ -3419,6 +3423,9 @@ function timeCell(ms){ms=parseInt(ms,10)||0;if(ms<=0)return '<span class="dash">
 /* 生徒 個人詳細モーダル（item5・2026-07-07）：一覧の行クリックで開く。サマリは_students、履歴はstudent_sessions。 */
 function fmtMs_(ms){ms=parseInt(ms,10)||0;if(ms<=0)return '–';var sec=Math.round(ms/1000);return Math.floor(sec/60)+':'+('0'+(sec%60)).slice(-2);}
 function printOne(sid){closeModal('studentModal');openTargetModal('print',[sid]);}
+/* 【2026-09-13e・段B】その生徒・その教材だけを対象にチェックプリントを出す（個別詳細の🖨）。
+   旧「覚える一覧」「まちがいプリント」は用語を「チェックプリント」に統一（要件定義書 §7）。 */
+function printOneMat(sid,mid){closeModal('studentModal');openTargetModal('print',[sid],[mid]);}
 function sdAssign(sid){closeModal('studentModal');openAssign(sid);}
 function lastStudiedText(s){return s.last_studied_at?String(s.last_studied_at).slice(0,10):'まだ学習なし';}
 function weakPartName(s){var mv=s.materials_view||[];var w=null;mv.forEach(function(m){(m.parts||[]).forEach(function(p){if(p.status==='try'&&p.acc!=null&&p.acc<_accLine()&&(!w||p.acc<w.acc))w={n:p.name,acc:p.acc};});});return w?w.n:'';}
@@ -3539,7 +3546,10 @@ function openStudentDetail(sid){
     +trendStrip(s)
     +'<div class="sd-grid">'
       +'<div>'
-        +'<div class="sd-sec" style="margin-top:0;">教材ごとの全パート正答率 <span class="t-sub">（赤＝基準未満＝弱点パート）</span></div>'+partsBlock(mv)
+        /* 【2026-09-13e・段B】確認テストタブ「生徒ごと」をここへ移した。教材1つずつに🖨 チェックプリント */
+        +'<div class="sd-sec" style="margin-top:0;">毎日学習</div><div id="sdDaily">'+sdDailyBlock_(s)+'</div>'
+        +'<div class="sd-sec">単元別（テスト対策）</div><div id="sdUnit"><div style="font-size:12px;color:var(--text-light);">読み込み中…</div></div>'
+        +'<div class="sd-sec">教材ごとの全パート正答率 <span class="t-sub">（赤＝基準未満＝弱点パート）</span></div>'+partsBlock(mv)
         +completedHtml
         +pastHtml
       +'</div>'
@@ -3549,6 +3559,11 @@ function openStudentDetail(sid){
       +'</div>'
     +'</div>'
     +'<div style="display:flex;gap:8px;margin-top:14px;align-items:center;"><span style="flex:1;"></span><button id="sdClose2" class="btn-ghost">閉じる</button></div>';
+  sdLoadQuiz_(sid,function(pack,err){
+    var el=$('sdUnit'); if(!el)return;
+    if(err){ el.innerHTML='<div style="font-size:12px;color:var(--crimson);">取得に失敗しました（'+esc(err)+'）</div>'; return; }
+    el.innerHTML=sdUnitBlock_(s,pack);
+  });
   $('sdClose1').onclick=function(){closeModal('studentModal');};
   $('sdClose2').onclick=function(){closeModal('studentModal');};
   $('studentModal').classList.add('show');
@@ -3569,6 +3584,95 @@ function openStudentDetail(sid){
     }).join('')
     +'<div style="margin-top:12px;"><button class="btn-primary" style="width:auto;" onclick="printOne('+"'"+esc(String(sid))+"'"+')">🖨 この子のまちがいを印刷</button></div>';
   });
+}
+
+/* ===== 【2026-09-13e・先生画面の再編 段B】個別詳細の「毎日学習」と「単元別（確認テスト）」 =====
+   要件定義書_先生画面の再編 §4 行き先表／§5 段B。
+   ・確認テストタブ「生徒ごと」を生徒を開いたときの表を、そのままここへ移す（列見出しもそのまま）
+   ・教材1つずつに「🖨 チェックプリント」を置く。**毎日学習の教材にも置く**（2026-09-13 川上さん）
+   ・材料は quiz_board に student_id を渡した1生徒ぶん（段Bで足した）。
+     点数表の全件キャッシュ（_quizBoard）とは別の入れものに持つ＝取り違えない */
+var _quizStu={};      // {student_id: {entries:[], materials:[]}}
+var _quizStuLoading={};
+/* 次の一手の列。確認テストタブの _qsAct と同じだが、**🖨 は出さない**。
+   行き先表（要件定義書 §4）で「行の🖨まちがい印刷」は「教材1つずつの🖨チェックプリント」に移したので、
+   同じ表に🖨が2種類ならぶのを避ける。文言のほうは _qsAct をそのまま使う。 */
+function _sdAct_(e){
+  if(e.status==='ng')return '';
+  return _qsAct(e,'');
+}
+function _sdMatTitle_(mats,mid){ for(var i=0;i<(mats||[]).length;i++){ if(String(mats[i].material_id)===String(mid)) return mats[i].title||''; } return ''; }
+/* 毎日学習の表＝教材・進み・🖨。確認テストは毎日学習には無いので列を作らない（空の列を並べない） */
+function sdDailyBlock_(s){
+  var mv=_sortByDord_((s.materials_view||[]).filter(function(m){return String(m.type)!=='test';}));
+  var sid=esc(String(s.student_id));
+  if(!mv.length) return '<div class="sd-none">毎日学習の割り当てはありません</div>';
+  var col=function(a){return (a==null||a===''?'#c3cbd6':(a<_accLine()?'#d64545':(a<80?'#c98a12':'#1f9d57')));};
+  return '<table class="qsu-tbl sd-qtbl"><tbody>'
+    +'<tr class="qsu-hd"><td>教材</td><td class="qsu-prac">進み</td><td class="qsu-a">紙</td></tr>'
+    +mv.map(function(m){
+      var mid=esc(String(m.material_id));
+      var acc=(m.acc===''||m.acc==null)?'未評価':(m.acc+'%');
+      return '<tr><td class="qsu-u">'+esc(mtLabel(m))+_lapBadge(m)+'</td>'
+        +'<td class="qsu-prac"><span class="qsu-pr">→'+esc(m.here||'-')+'</span> <b style="color:'+col(m.acc)+'">'+esc(acc)+'</b></td>'
+        +'<td class="qsu-a"><span class="qsu-print" onclick="printOneMat(\''+sid+'\',\''+mid+'\')">🖨 チェックプリント</span></td></tr>';
+    }).join('')
+  +'</tbody></table>';
+}
+/* 単元別の表＝確認テストタブ「生徒ごと」と同じ中身・同じ列見出し。
+   ちがうのは「開いた状態で出す」ことだけ（1人に絞って開いた画面なので、たたむ意味がない）。 */
+function sdUnitBlock_(s,pack){
+  var sid=String(s.student_id);
+  var ents=(pack&&pack.entries)||[], mats=(pack&&pack.materials)||[];
+  var mvTest=(s.materials_view||[]).filter(function(m){return String(m.type)==='test';});
+  if(!ents.length&&!mvTest.length) return '<div class="sd-none">単元別（テスト対策）の割り当てはありません</div>';
+  if(!ents.length) return '<div class="sd-none">この子にはまだ確認テストを配信していません</div>';
+  var PIDX=_practiceIndex();
+  var hd='<tr class="qsu-hd"><td class="qsu-u">単元</td><td class="qsu-prac">📘 単元別の練習</td><td class="qsu-arw"></td><td>✅ 確認テスト（前回比）</td><td class="qsu-a">次の一手</td></tr>';
+  /* 確認テストタブと同じまとめ方＝シリーズ → 教材(Unit/章) → パート */
+  var ser={},sorder=[];
+  ents.forEach(function(e){
+    var k=(e.series_label||_sdMatTitle_(mats,e.material_id)||e.material_title||'その他');
+    if(!ser[k]){ser[k]=[];sorder.push(k);} ser[k].push(e);
+  });
+  var prn=function(mid){ return '<span class="qsu-print" onclick="printOneMat(\''+esc(sid)+'\',\''+esc(mid)+'\')">🖨 チェックプリント</span>'; };
+  var body=sorder.map(function(k,j){
+    var list=ser[k].slice().sort(function(a,b){return (a.part_order||0)-(b.part_order||0);});
+    var so=0,sn=0,sm=0; list.forEach(function(e){if(e.status==='ok')so++;else if(e.status==='ng')sn++;else sm++;});
+    var byMat={},matOrder=[];
+    list.forEach(function(e){var mid=String(e.material_id);if(!byMat[mid]){byMat[mid]=[];matOrder.push(mid);}byMat[mid].push(e);});
+    /* 確認テストタブと同じ＝教材の小見出しは「シリーズに教材が2つ以上あるとき」だけ出す。
+       1つしかないときに出すと、シリーズ見出しと同じ名前が2行続いてしまう（本番データで実際にそうなった）。
+       🖨 は「教材1つにつき1つ」置きたいので、教材が1つのときはシリーズ見出しの側に置く。 */
+    var multiMat=matOrder.length>1;
+    var rows=matOrder.map(function(mid){
+      var mes=byMat[mid];
+      var sub=multiMat?('<tr class="qsu-mat"><td colspan="4">'+esc(_sdMatTitle_(mats,mid)||mes[0].material_title||'')+'</td>'
+        +'<td class="qsu-a">'+prn(mid)+'</td></tr>'):'';
+      return sub+mes.map(function(e){
+        return '<tr><td class="qsu-u">'+esc(e.part_title)+'</td><td class="qsu-prac">'+_qsPrac(sid,e,PIDX)+'</td>'
+          +'<td class="qsu-arw">→</td><td>'+_qsCell(e)+'</td><td class="qsu-a">'+_sdAct_(e)+'</td></tr>';
+      }).join('');
+    }).join('');
+    return '<tr class="qsu-ser"><td colspan="4">'+esc(k)+' <span class="qsu-sercnt">合格'+so+'・未合格'+sn+'・未受験'+sm+'</span></td>'
+      +'<td class="qsu-a">'+(multiMat?'':prn(matOrder[0]))+'</td></tr>'+rows;
+  }).join('');
+  return '<table class="qsu-tbl sd-qtbl"><tbody>'+hd+body+'</tbody></table>';
+}
+/* 1生徒ぶんの確認テストを取りに行く。2回目からはキャッシュで即表示。 */
+function sdLoadQuiz_(sid,cb){
+  sid=String(sid);
+  if(_quizStu[sid]){ cb(_quizStu[sid]); return; }
+  if(_quizStuLoading[sid]) return;
+  _quizStuLoading[sid]=1;
+  call({action:'quiz_board',student_id:sid}).then(function(d){
+    _quizStuLoading[sid]=0;
+    if(!d||!d.ok){ cb(null,(d&&d.error)||'取得に失敗しました'); return; }
+    /* 【地雷よけ】絞った応答を点数表の全件キャッシュ(_quizBoard)に入れない。
+       サーバが student_id を返すので、それで見分ける（古いGASなら undefined＝絞れていない可能性があるので入れない）。 */
+    var pack={entries:(d.data.entries||[]),materials:(d.data.materials||[])};
+    _quizStu[sid]=pack; cb(pack);
+  }).catch(function(){ _quizStuLoading[sid]=0; cb(null,'取得に失敗しました'); });
 }
 /* 発音セル：直近セッションの「成功/試行」。試行0は「–」。2026-06-22
    川上さん確定：参考値・合否に使わない。セッション単位の集計のみ表示。 */
@@ -5468,10 +5572,16 @@ var bulkMat={}, bulkMaterials=[]; var bulkDeliver={}, bulkDelivDates={}, bulkDel
 var printMat={}, _printMatOpen={};
 function _printStyle_(){ return (localStorage.getItem('kwt_print_style')==='finish')?'finish':'list'; }
 var tmMode='assign', tmStep=1, tmSel={}, tmSearch='';
-function openTargetModal(mode,presetIds){
+/* 【2026-09-13e・段B】presetMats＝「この教材だけ」を先に選んだ状態で開く（個別詳細の🖨 チェックプリント）。
+   渡されたときは前回のテスト範囲（localStorage）を読まない＝押した教材だけが対象になる。
+   渡さなければ今までどおり（前回の範囲を復元）。 */
+function openTargetModal(mode,presetIds,presetMats){
   tmMode=mode;tmStep=1;tmSel={};tmSearch='';bulkMat={};bulkDeliver={};bulkDelivDates={};bulkDelivOpen={};_bulkOpen={};
   printMat={};_printMatOpen={};
-  if(mode==='print'){ (localStorage.getItem('kwt_print_mats')||'').split(',').forEach(function(id){id=String(id).trim();if(id)printMat[id]=1;}); } // 前回のテスト範囲を覚えておく
+  if(mode==='print'){
+    if(presetMats&&presetMats.length){ presetMats.forEach(function(id){id=String(id).trim();if(id)printMat[id]=1;}); }
+    else { (localStorage.getItem('kwt_print_mats')||'').split(',').forEach(function(id){id=String(id).trim();if(id)printMat[id]=1;}); } // 前回のテスト範囲を覚えておく
+  }
   (presetIds||[]).forEach(function(id){tmSel[String(id)]=1;});
   $('bulkTitle').textContent=(mode==='assign')?'まとめて割り当てる':'まとめて印刷';
   $('bulkModal').classList.toggle('printmode',mode==='print');
