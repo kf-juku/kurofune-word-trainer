@@ -179,10 +179,21 @@
   tr.row-needhelp td:first-child{box-shadow:inset 3px 0 0 #d9820e;}
   .teach-rate{font-size:12.5px;font-weight:700;}
   .teach-low{color:#d9820e;}
-  .acc-rate{font-size:12.5px;font-weight:700;}
+  /* .acc-rate は teachCell() 専用だったので 2026-09-13d に削除（§6-4）。下の .acc-hi/.acc-mid/.acc-low は rpRateCls が使うので残す */
   .acc-hi{color:#1f9d57;}
   .acc-mid{color:#c98a12;}
   .acc-low{color:#d64545;}
+  /* 【2026-09-13d・段A】「教材と進み」を 毎日学習／単元別 の2段に分ける帯。ピルの見た目は1つも変えない。
+     値は承認モック（20260913_モック_先生画面_動作でタブを分ける.html v8）から写した。 */
+  .mrow{display:flex;align-items:flex-start;gap:6px;padding:1px 0;}
+  .mrow + .mrow{margin-top:3px;padding-top:3px;border-top:1px dashed var(--surface2);}
+  .mkind{font-size:9.5px;font-weight:800;border-radius:4px;padding:1px 5px;white-space:nowrap;margin-top:5px;flex:none;}
+  .mkind.d{background:var(--blue-light);color:var(--blue-dark);}
+  .mkind.u{background:#efe7fb;color:#5b21b6;}
+  .mpills{display:flex;flex-wrap:wrap;align-items:flex-start;min-width:0;}
+  .mnone{font-size:11px;color:var(--text-light);font-weight:600;align-self:center;}
+  /* ピルの中は「未合格が何本あるか」だけ（狭いので）。そろった書き方は右の「✅ 確認テスト」列 */
+  .mq-ng{font-size:10px;font-weight:800;color:#d64545;white-space:nowrap;}
   .mchip{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;margin:2px 4px 2px 0;border:1px solid transparent;white-space:nowrap;vertical-align:top;}
   .mchip .mdot{width:8px;height:8px;border-radius:50%;flex:none;}
   .mchip .mhere{font-size:10px;font-weight:600;color:var(--text-muted);}
@@ -945,7 +956,10 @@
 .table-wrap th:first-child,.table-wrap td:first-child{min-width:78px;}
 .table-wrap .t-nick{font-size:10px;}
 .table-wrap .mfold{min-width:158px;max-width:250px;}
-.table-wrap .mfold-h{padding:5px 7px;font-size:10.5px;}
+.table-wrap .mfold-h{padding:5px 7px;font-size:10.5px;flex-wrap:wrap;}
+/* 【2026-09-13d・段A】狭い幅（780px）で「・2教材」「未合格1」が1字ずつ縦に折れないようにする。
+   原則13「数値列を縦割れさせない」と同じ。見出し全体は折り返してよい（flex-wrap:wrap）。 */
+.table-wrap .mfold-h .fcount,.table-wrap .mfold-h .mq-ng{white-space:nowrap;word-break:keep-all;}
 .table-wrap .mfold-h .fcaret,.table-wrap .mfold-h .fcount{font-size:10px;}
 .table-wrap .mchip{max-width:230px;}
 .table-wrap .chrow{font-size:10.5px;padding:2px 2px;}
@@ -1020,7 +1034,7 @@
       <div class="alert-cardK" id="alCardDone"><div class="ac-h afc" onclick="alertFilterClick(event,'done')">🎉 完走 <b id="alDoneN">–</b>名<span class="ac-sub">毎日学習を最後まで終えた</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習（英単語キソ300・語彙力アップ）の教材を最後まで終えた子。<b>ほかの教材が残っていても出ます。</b>黄色いチップは次の毎日学習がまだ割り当てられていない子。次を割り当てるか、もう一周を始めるか、割当を解除すると消えます。単元別対策はこのカードに出ません。</span></span></div><div class="chipsK" id="alDoneChips"></div></div>
       <div class="alert-cardK bad" id="alCardStuck"><div class="ac-h afc" onclick="alertFilterClick(event,'stuck')">⚠️ つまずき <b id="alTeachN">–</b>名<span class="ac-sub">直近3回平均が <span id="alAccLbl">60</span>%未満</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">いちばん弱い教材の直近3回平均が、正答率の基準（既定60%）未満の子。→「まちがいを印刷」で対策プリント。</span></span></div><div class="chipsK" id="alTeachChips"></div><div style="margin-top:8px;"><button class="btn-teach-print" id="alTeachPrintBtn" onclick="printTeachAll()" style="display:none;">🖨 この<span id="alTeachPrintN">0</span>名のまちがいを印刷</button></div></div>
       <div class="alert-cardK good" id="alCardPraise"><div class="ac-h afc" onclick="alertFilterClick(event,'praise')">👏 昨日デイリークリアした子 <b id="alPraiseN">–</b>名<span class="ac-sub">毎日学習＋おさらいを 昨日ぜんぶ完了</span><span class="af-hint">🔍 クリックで絞り込む</span><span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日学習の今日の分と、おさらいの枠を、昨日ぜんぶ終えた子（＝デイリークリア）。さらに先取り・単元別を終えた・確認テスト合格・間違いノート卒業をしていれば印を添えます。→ ひとことほめてあげてください。</span></span></div><div class="chipsK" id="alPraiseChips"></div></div>
-      <div class="alert-setK" style="grid-column:1/-1;">⚙ この基準は毎朝のメール通知と共通：未着手＝昨日やってなければ即（あき<input id="cfgIdle" type="number" min="1" max="99" value="1" onchange="saveAlertConfig()">日超・<span id="alIdleDaysLbl">1</span>）／つまずき＝正答率<input id="cfgAcc" type="number" min="1" max="100" value="60" onchange="saveAlertConfig()">%未満<span class="cfg-tag">毎日学習・単元別 共通。ここを変えると画面もメールも両方変わります</span></div>
+      <div class="alert-setK" style="grid-column:1/-1;">⚙ この基準は毎朝のメール通知と共通：未着手＝昨日やってなければ即（あき<input id="cfgIdle" type="number" min="1" max="99" value="1" onchange="saveAlertConfig()">日超・<span id="alIdleDaysLbl">1</span>）／つまずき＝正答率<input id="cfgAcc" type="number" min="1" max="100" value="60" onchange="saveAlertConfig()">%未満<span class="cfg-tag">毎日学習・単元別 共通。塾で1つの値です（先生ごとの設定はありません）。ここを変えると 生徒一覧の色・要指導・⚠️つまずき・毎朝のメール・リアルタイムの色 が全部同時に変わります</span></div>
     </div>
     <!-- 通知について（毎朝メールの一覧）2026-07-23 -->
     <details class="notif-panel">
@@ -1065,10 +1079,21 @@
         <span class="filter-label" id="schoolLabel" style="display:none;">中学校</span>
         <span id="schoolChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
       </div>
+      <!-- 【2026-09-13d・段A】学習の種類・教材で絞る。原則16の並び（教室→学年→中学校）の下に、.filter-grp で1行ずつ足す -->
+      <div class="filter-grp">
+        <span class="filter-label">学習の種類</span>
+        <button class="filter-chip active" data-kd="all" onclick="setKindFilter('all',this)">すべて</button>
+        <button class="filter-chip" data-kd="main" onclick="setKindFilter('main',this)">毎日学習</button>
+        <button class="filter-chip" data-kd="test" onclick="setKindFilter('test',this)">単元別</button>
+      </div>
+      <div class="filter-grp">
+        <span class="filter-label" id="matLabel" style="display:none;">教材</span>
+        <span id="matChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
+      </div>
       <div class="filter-grp filter-colorset">
         <span class="filter-label">色分け（注意の目印）</span>
         <label class="inactive-th"><input id="inactiveDays" type="number" min="1" max="99" value="7" onchange="onInactiveDaysChange()">日以上あいた子に色</label>
-        <label class="inactive-th">正答率 <input id="needHelpRate" type="number" min="1" max="100" value="60" onchange="onNeedHelpRateChange()">％未満に色</label>
+        <span class="inactive-th" style="color:var(--text-light);">正答率の色分けは <b>先生設定</b> の「つまずき（正答率）」1つに統一しました（塾で共通・メール通知と同じ値）</span>
       </div>
       <div class="filter-hint">並び替えは表の見出しをクリック（もう一度で昇順↔降順）</div>
     </div>
@@ -1083,6 +1108,7 @@
               <th data-sk="grade" onclick="sortBy('grade')">学年 <span class="sort-ar" data-ar="grade"></span></th>
               <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。毎日学習は 😴未着手=あき日数ぶん学習なし。単元別は 📘未練習（毎日学習と別で判定）。🎉完走=次を割当／⚠️つまずき=復習・印刷／💨雑=ていねいに／✅順調=不要／👀未評価=一度も未着手。当てはまるものは全部表示。</span></span></th>
               <th>教材と進み<span class="tt"><span class="help-mark">?</span><span class="tt-body">割当教材ごとの状態（閲覧のみ）。色＝その教材の直近3回の平均正答率（緑80/黄60/赤=60%未満は要指導）。→いまここ。🔊＝英語の発音（○大半/△一部/–）。</span></span></th>
+              <th style="white-space:nowrap;">✅ 確認テスト<span class="tt"><span class="help-mark">?</span><span class="tt-body">この子の確認テストの合計（合格・未合格・未受験）。レポートタブと同じ書き方です。1度も配信していない子は「未配信」。教材ごとの内訳は行をクリックした個別詳細に出ます。</span></span></th>
               <th class="gcol">今日</th>
               <th data-sk="last" onclick="sortBy('last')">最終学習 <span class="sort-ar" data-ar="last"></span></th>
               <th data-sk="practice_count" onclick="sortBy('practice_count')">練習<br><small style="font-weight:400">累計</small> <span class="sort-ar" data-ar="practice_count"></span></th>
@@ -1976,6 +2002,12 @@ function loadDash(){
   }).finally(function(){hideLoading();});
 }
 
+function setKindFilter(k,el){
+  _kindSel=k;
+  document.querySelectorAll('.filter-chip[data-kd]').forEach(function(c){c.classList.remove('active');});
+  if(el)el.classList.add('active');
+  renderTable();
+}
 function setFilter(f,el){
   _filter=f;
   document.querySelectorAll('.filter-chip[data-f]').forEach(function(c){c.classList.remove('active');});
@@ -1997,7 +2029,11 @@ function fmtDate(s){
 }
 
 /* 学年・教室フィルタ＋学年ソート 2026-07-02 川上さん指示：学年ソート＋学年の複数選択・教室(class_name)フィルタ */
-var _gradeSel={};var _classSel={};var _schoolSel={};var _sortKey='next',_sortDir=-1;/* 既定＝次の一手の重い順（要アクションを上に）2026-07-10 */
+var _gradeSel={};var _classSel={};var _schoolSel={};var _sortKey='next',_sortDir=-1;
+/* 【2026-09-13d・段A】学習の種類（1つだけ選ぶ）と 教材（いくつでも選ぶ）。
+   絞り込みは「誰を出すか」を絞るだけ。期限は関係ない（期限つきの範囲はレポート・印刷タブ）。
+   教材の単位は _bookKey/_bookLabel ＝ シリーズ（本）。章が何冊あっても1つのチップにまとまる。 */
+var _kindSel='all'; var _matSel={};/* 既定＝次の一手の重い順（要アクションを上に）2026-07-10 */
 function gradeRank(g){var m=String(g||'').match(/^(小|中|高)\s*(\d)/);if(!m)return 99;var base={'小':0,'中':10,'高':20}[m[1]];return base+parseInt(m[2],10);}
 function buildFilterChips(){
   var grades=[],classes=[],schools=[];
@@ -2032,6 +2068,33 @@ function buildFilterChips(){
     b.onclick=function(){toggleSelChip(_schoolSel,sc,b);};
     sw.appendChild(b);
   });
+  buildMatChips_();
+}
+/* 【2026-09-13d・段A】教材のチップ。割り当てられている教材から作る（誰にも割り当てられていない教材は出さない）。
+   シリーズ（本）でまとめる＝FD 中学地理 中2 が何章あっても1つ。並びは display_order の小さい順（KWTの並びの唯一の基準）。 */
+function buildMatChips_(){
+  var w=$('matChips'); if(!w) return;
+  var map={},keys=[];
+  (_students||[]).forEach(function(s){
+    (s.materials_view||[]).forEach(function(m){
+      var k=_bookKey(m);
+      if(!map[k]){ map[k]={label:(_bookLabel(m)||mtLabel(m)||k), dord:_dordMat_(m), test:false, main:false}; keys.push(k); }
+      if(_dordMat_(m)<map[k].dord) map[k].dord=_dordMat_(m);
+      if(String(m.type)==='test') map[k].test=true; else map[k].main=true;
+    });
+  });
+  keys.sort(function(a,b){ var d=map[a].dord-map[b].dord; return d!==0?d:String(map[a].label).localeCompare(String(map[b].label),'ja'); });
+  /* 消えた教材が選ばれたままにならないようにする（選択だけ残ると「条件に合う生徒がいません」から抜け出せない） */
+  Object.keys(_matSel).forEach(function(k){ if(keys.indexOf(k)<0) delete _matSel[k]; });
+  w.innerHTML='';
+  $('matLabel').style.display=keys.length?'':'none';
+  keys.forEach(function(k){
+    var b=document.createElement('button');
+    b.className='filter-chip'+(_matSel[k]?' active':'');b.type='button';b.textContent=map[k].label;
+    b.title=map[k].label+(map[k].test&&map[k].main?'（毎日学習・単元別の両方）':(map[k].test?'（単元別）':'（毎日学習）'));
+    b.onclick=function(){toggleSelChip(_matSel,k,b);};
+    w.appendChild(b);
+  });
 }
 function toggleSelChip(sel,v,el){if(sel[v])delete sel[v];else sel[v]=true;el.classList.toggle('active',!!sel[v]);renderTable();}
 function sortBy(key){if(_sortKey===key){_sortDir=-_sortDir;}else{_sortKey=key;_sortDir=1;}renderTable();}
@@ -2059,10 +2122,14 @@ function doneDayText_(d){
   var n=daysAgo(day);
   return day+' 完走'+(d.estimated?'（推定）':'')+(n===null?'':(n===0?'・今日':'・'+n+'日前'));
 }
-var _needHelpRate=(function(){var v=parseInt(localStorage.getItem('kwt_needhelp_rate'),10);return (v>=1&&v<=100)?v:60;})();
-function onNeedHelpRateChange(){var v=parseInt($('needHelpRate').value,10);if(!(v>=1&&v<=100)){v=60;$('needHelpRate').value=60;}_needHelpRate=v;localStorage.setItem('kwt_needhelp_rate',v);renderTable();}
+/* 【2026-09-13d・段A2】正答率の赤いラインは塾で1本（要件定義書_先生画面の再編 §6-1・決定14）。
+   旧＝端末ごとの localStorage 'kwt_needhelp_rate'（先生Aと先生Bで赤くなる子が変わっていた）。
+   新＝サーバの Script Property 'kwt_alert_accuracy'（先生設定の⚙で変える1つ）＝_alertCfg.accuracy。
+   _alertCfg がまだ読めていない間（起動直後）は 60 で描き、alert_config_get が返ったら renderAlertsK/renderTable で描き直る。
+   80%（緑）は固定のまま。変えるのは赤いライン1本だけ。 */
+function _accLine(){var v=(_alertCfg&&parseInt(_alertCfg.accuracy,10));return (v>=1&&v<=100)?v:60;}
 function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate!==undefined;}
-function needsHelp(s){return hasTeach(s)&&s.teach_rate<_needHelpRate;}
+function needsHelp(s){return hasTeach(s)&&s.teach_rate<_accLine();}
 /* 次の一手（機能仕様書§先生ダッシュボード「次の一手」2026-07-10）。GAS next_actions を表示。 */
 /* 2026-07-22 2トラック化：idle=毎日未着手／test_idle=単元別未練習。2026-08-27③ やりかけ(half/test_half)は廃止＝やったか、やってないかだけで見る */
 var NA_META={done:{c:'na-done',t:'🎉完走'},idle:{c:'na-idle',t:'😴未着手'},test_idle:{c:'na-tidle',t:'📘未練習'},stuck:{c:'na-stuck',t:'⚠️つまずき'},rush:{c:'na-rush',t:'💨雑'},ok:{c:'na-ok',t:'✅順調'},na:{c:'na-na',t:'👀未評価'}};
@@ -2075,7 +2142,10 @@ function nextActionCell(s){var ks=naList(s);if(!ks.length)return '<span class="d
   var ti='';
   if(k==='done'){ var dl=s.done_mains||[]; if(dl.length) ti=' title="'+esc(dl.map(function(d){return (mtLabel(d)||d.material_id)+'／'+doneDayText_(d);}).join('\n'))+'"'; } /* 教材名は必ず mt*() を通す（生フルタイトルを描かない）*/ /* 何をいつ完走したか 2026-09-08 */
   return '<span class="nact '+m.c+'"'+ti+'>'+m.t+'</span>';}).join('');}
-function teachCell(s){if(!hasTeach(s))return '<span class="dash">–</span>';var v=s.teach_rate;var cls=(v<_needHelpRate)?'acc-low':((v<80)?'acc-mid':'acc-hi');return '<span class="acc-rate '+cls+' num">'+v+'%</span>';}
+/* teachCell() は 2026-09-13d に削除（要件定義書_先生画面の再編 §6-4）。
+   2026-07-08 の改修（原則9「指標は正答率1本」）で正答率の列が「教材と進み」のピルの色に吸収され、
+   呼び出しが0件になったまま定義だけ残っていた。専用CSS .acc-rate も一緒に消した。
+   .acc-hi / .acc-mid / .acc-low は残す＝レポートタブの rpRateCls が使っている。 */
 /* 統一印刷レイアウト（リアルタイム印刷と共通の描画）。1枚＝1生徒。学習日→教材でグループ、パートは小タグ、図は大きく、答え側に読み方・覚え方 2026-07-24 */
 function unifiedStudentHtml_(st, opts){
   opts=opts||{};
@@ -3183,13 +3253,19 @@ function _lapBadge(m){
   var lap=parseInt(m&&m.lap,10)||1;
   return lap>=2 ? ' <span class="mlap">'+lap+'周目</span>' : '';
 }
-function _mChipHtml(m, short){
+/* 【2026-09-13d・段A】確認テストの「未合格N」をピルの中に出す。
+   ・数の出どころ＝dashboard の quiz_by_mat（判定は本番の quizStatus_ 1本）
+   ・未合格が0の教材には何も出さない（川上さん確定 2026-09-13）
+   ・合格数・配信数はここに出さない。そろった書き方は右の「✅ 確認テスト」列とレポートタブ */
+function _ngOf(s,mid){var q=(s&&s.quiz_by_mat)||{};var e=q[String(mid)];return e?(parseInt(e.ng,10)||0):0;}
+function _ngChip(n){return (n>0)?' <span class="mq-ng">未合格'+n+'</span>':'';}
+function _mChipHtml(m, short, ngN){
   var acc=m.acc; var isNa=(acc===''||acc==null);
-  var cls=isNa?'m-na':(acc<_needHelpRate?'m-low':(acc<80?'m-mid':'m-hi'));
+  var cls=isNa?'m-na':(acc<_accLine()?'m-low':(acc<80?'m-mid':'m-hi'));
   var pron=(m.subject==='english')?(' <span style="opacity:.75;font-size:10px;">🔊'+(m.pron==='o'?'○':(m.pron==='t'?'△':'–'))+'</span>'):'';
   var disp=short?mtShort(m):mtLabel(m); /* シリーズ内の子は章だけ／単独チップはシリーズ名+章に圧縮（生タイトルを描画しない）2026-07-23 */
   var lapB=_lapBadge(m); /* 2周目以降だけ。生徒画面・教材モーダルと同じ見せ方 2026-09-02⑬ */
-  return '<span class="mchip '+cls+'" title="クリックで教材ごとの名簿へ" style="cursor:pointer;" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="mtop"><span class="mdot"></span>'+esc(disp)+lapB+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+(isNa?'未評価':acc+'%')+pron+'</span></span>';
+  return '<span class="mchip '+cls+'" title="クリックで教材ごとの名簿へ" style="cursor:pointer;" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="mtop"><span class="mdot"></span>'+esc(disp)+lapB+'</span><span class="mbot">→'+esc(m.here||'-')+' ・ '+(isNa?'未評価':acc+'%')+pron+_ngChip(parseInt(ngN,10)||0)+'</span></span>';
 }
 /* 同じシリーズの教材はまとめて折りたたむ（2026-07-18 川上さん承認）。判定＝タイトルで分類。 */
 /* ===== 教材の並び順＝materials.display_order 昇順（KWTの並び順の唯一の基準・2026-09-02⑨）=====
@@ -3213,11 +3289,13 @@ function _mSeries(t){t=String(t||'');
   var _fd=t.match(/^FD 中学地理 中([123])/);if(_fd){return {k:'fd_chiri_j'+_fd[1],label:'FD 中学地理 中'+_fd[1]};} /* FD 中学地理：数字は学年。中1の教材が何冊でも同じシリーズ 2026-08-14 */
   return null;
 }
-function _mWorst(list){var lo=false,mi=false,hi=false,allNa=true;list.forEach(function(m){var a=m.acc;if(a===''||a==null)return;allNa=false;if(a<_needHelpRate)lo=true;else if(a<80)mi=true;else hi=true;});return allNa?'m-na':(lo?'m-low':(mi?'m-mid':'m-hi'));}
+function _mWorst(list){var lo=false,mi=false,hi=false,allNa=true;list.forEach(function(m){var a=m.acc;if(a===''||a==null)return;allNa=false;if(a<_accLine())lo=true;else if(a<80)mi=true;else hi=true;});return allNa?'m-na':(lo?'m-low':(mi?'m-mid':'m-hi'));}
 /* 未評価の畳み＋同シリーズのまとめ折りたたみ（2026-07-18）：評価済み単独教材は全部出し、同シリーズ（2件以上）と未評価は見出しに畳む（クリックで展開＝内容は消えない） */
-function matViewCell(s){
-  var mv=_sortByDord_(s.materials_view||[]);   /* 番号順。旧＝割り当てた順 2026-09-02⑨ */
-  if(!mv.length) return '<span class="dash">未割当</span>';
+/* 【2026-09-13d・段A】1つの段（毎日学習／単元別）ぶんのピルを作る。
+   中身は 2026-07-18 の実装をそのまま移しただけ（畳み方・色・クリック先を1つも変えていない）。
+   変えたのは ①段ごとに呼ぶので id に段の印（tag）を足した ②未合格Nを添えた の2つ。 */
+function _matPills_(s, mv, tag){
+  if(!mv.length) return '<span class="mnone">なし</span>';
   var groups={},order=[],standalone=[],na=[];
   mv.forEach(function(m){
     var acc=m.acc, isNa=(acc===''||acc==null);
@@ -3227,32 +3305,54 @@ function matViewCell(s){
     else standalone.push(m);
   });
   var out=''; var sid=esc(String(s.student_id));
-  standalone.forEach(function(m){out+=_mChipHtml(m);});
+  standalone.forEach(function(m){out+=_mChipHtml(m,false,_ngOf(s,m.material_id));});
   order.forEach(function(k){
     var g=groups[k];
-    if(g.items.length===1){ out+=_mChipHtml(g.items[0]); return; }
-    var col=_worstColorOf(g.items); var gid='mf_'+sid+'_'+k;
+    if(g.items.length===1){ out+=_mChipHtml(g.items[0],false,_ngOf(s,g.items[0].material_id)); return; }
+    var col=_worstColorOf(g.items); var gid='mf_'+sid+'_'+tag+'_'+k;
+    var gng=0; g.items.forEach(function(m){gng+=_ngOf(s,m.material_id);}); /* 畳んだままでも未合格に気づけるように、見出しに合計を出す */
     out+='<span class="mfold">'
-      +'<span class="mfold-h" style="border-left-color:'+col+'" title="クリックで章を開閉" onclick="event.stopPropagation();mFoldToggle(\''+gid+'\',this)"><span class="fic">📚</span><span class="fbk">'+esc(g.label)+'</span><span class="fcount">・'+g.items.length+'教材</span><span class="fcaret">▾ ひらく</span></span>'
+      +'<span class="mfold-h" style="border-left-color:'+col+'" title="クリックで章を開閉" onclick="event.stopPropagation();mFoldToggle(\''+gid+'\',this)"><span class="fic">📚</span><span class="fbk">'+esc(g.label)+'</span><span class="fcount">・'+g.items.length+'教材</span>'+_ngChip(gng)+'<span class="fcaret">▾ ひらく</span></span>'
       +'<span id="'+gid+'" class="mfold-b" style="display:none;">'
       +g.items.map(function(m){ var isNa=(m.acc===''||m.acc==null), c=_accColor(m.acc);
-          return '<span class="chrow" title="クリックで教材ごとの名簿へ" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="cdot" style="background:'+c+'"></span><span class="cnm">'+esc(mtShort(m))+_lapBadge(m)+'</span><span class="chere">→'+esc(m.here||'-')+'</span><span class="cacc" style="color:'+c+'">'+(isNa?'未評価':m.acc+'%')+'</span></span>'; }).join('')
+          return '<span class="chrow" title="クリックで教材ごとの名簿へ" onclick="event.stopPropagation();jumpToMaterial(\''+esc(String(m.material_id))+'\')"><span class="cdot" style="background:'+c+'"></span><span class="cnm">'+esc(mtShort(m))+_lapBadge(m)+'</span><span class="chere">→'+esc(m.here||'-')+'</span><span class="cacc" style="color:'+c+'">'+(isNa?'未評価':m.acc+'%')+'</span>'+_ngChip(_ngOf(s,m.material_id))+'</span>'; }).join('')
       +'</span>'
     +'</span>'; /* フォルダ型：本のまとめ＝見出しバー／中の章＝インデント行 2026-07-23（川上さん承認） */
   });
   if(na.length){
-    var nid='na_'+sid;
+    var nid='na_'+sid+'_'+tag;
     out+='<span class="mchip m-na na-fold" title="クリックで未評価の教材をすべて表示" onclick="event.stopPropagation();mGroupToggle(\''+nid+'\',this)"><span class="mtop"><span class="mdot"></span>未評価 '+na.length+'</span><span class="mbot">▾ 展開</span></span>';
     out+='<span id="'+nid+'" class="na-more" style="display:none;">';
-    na.forEach(function(m){out+=_mChipHtml(m);});
+    na.forEach(function(m){out+=_mChipHtml(m,false,_ngOf(s,m.material_id));});
     out+='</span>';
   }
   return out;
 }
+/* 【2026-09-13d・段A】割り当てている教材を1つも欠かさず出す。毎日学習と単元別を段で分ける。
+   「単元別」＝content_type==='test' の教材（＝教材の種類）。文法の「第N単元」とは別のもの。 */
+function matViewCell(s){
+  var mv=_sortByDord_(s.materials_view||[]);   /* 番号順。旧＝割り当てた順 2026-09-02⑨ */
+  if(!mv.length) return '<span class="dash">未割当</span>';
+  var daily=[],unit=[];
+  mv.forEach(function(m){ (String(m.type)==='test'?unit:daily).push(m); });
+  return '<div class="mrow"><span class="mkind d">毎日</span><span class="mpills">'+_matPills_(s,daily,'d')+'</span></div>'
+       + '<div class="mrow"><span class="mkind u">単元別</span><span class="mpills">'+_matPills_(s,unit,'u')+'</span></div>';
+}
+/* 【2026-09-13d・段A】✅ 確認テストの列。書き方はレポートタブ（rp-tst・6586行）と同じ＝合格◯・未合格◯・未受験◯。
+   もとから別の画面にある書き方を、勝手に別の形にしない（川上さん 2026-09-13）。
+   CSS（.rp-tst / .rp-ok / .rp-ng / .rp-ms）は #view-report の <style> にあるが、
+   セレクタに #view-report が付いていないので画面全体で効く。
+   数の出どころ＝dashboard の quiz（判定は本番の quizStatus_ 1本＝確認テストタブと同じ材料・同じ判定）。 */
+function quizSumCell(s){
+  var q=s.quiz||{};
+  var ok=parseInt(q.ok,10)||0, ng=parseInt(q.ng,10)||0, ms=parseInt(q.miss,10)||0;
+  if(ok+ng+ms===0) return '<span class="rp-tst"><b class="rp-ms">未配信</b></span>';
+  return '<span class="rp-tst"><b class="rp-ok">合格'+ok+'</b>・<b class="rp-ng">未合格'+ng+'</b>・<b class="rp-ms">未受験'+ms+'</b></span>';
+}
 function mGroupToggle(id,btn){var el=document.getElementById(id);if(!el)return;var open=el.style.display==='none';el.style.display=open?'inline':'none';var b=btn.querySelector('.mbot');if(b)b.textContent=b.textContent.replace(/(▾ 展開|▴ 閉じる)/, open?'▴ 閉じる':'▾ 展開');}
 /* フォルダ型（案A・2026-07-23）：色ヘルパ＋開閉 */
-function _accColor(acc){var isNa=(acc===''||acc==null);return isNa?'#c3cbd6':(acc<_needHelpRate?'#d64545':(acc<80?'#c98a12':'#1f9d57'));}
-function _worstColorOf(items){var lo=false,mi=false,hi=false;items.forEach(function(m){var a=m.acc;if(a===''||a==null)return;if(a<_needHelpRate)lo=true;else if(a<80)mi=true;else hi=true;});return lo?'#d64545':(mi?'#c98a12':(hi?'#1f9d57':'#c3cbd6'));}
+function _accColor(acc){var isNa=(acc===''||acc==null);return isNa?'#c3cbd6':(acc<_accLine()?'#d64545':(acc<80?'#c98a12':'#1f9d57'));}
+function _worstColorOf(items){var lo=false,mi=false,hi=false;items.forEach(function(m){var a=m.acc;if(a===''||a==null)return;if(a<_accLine())lo=true;else if(a<80)mi=true;else hi=true;});return lo?'#d64545':(mi?'#c98a12':(hi?'#1f9d57':'#c3cbd6'));}
 function mFoldToggle(id,btn){var el=document.getElementById(id);if(!el)return;var open=el.style.display==='none';el.style.display=open?'block':'none';var c=btn.querySelector('.fcaret');if(c)c.textContent=open?'▴ とじる':'▾ ひらく';}
 function gearBtn(s){return '<button class="asg-btn" onclick="openAssign('+"'"+esc(String(s.student_id))+"'"+')">⚙ 教材</button>';}
 function retentionCell2(s){
@@ -3264,7 +3364,7 @@ function retentionCell2(s){
 }
 function renderTable(){
   var search=($('searchInput').value||'').trim();
-  var gsel=Object.keys(_gradeSel),csel=Object.keys(_classSel),scsel=Object.keys(_schoolSel);
+  var gsel=Object.keys(_gradeSel),csel=Object.keys(_classSel),scsel=Object.keys(_schoolSel),msel=Object.keys(_matSel);
   var rows=_students.filter(function(s){
     if(_filter==='today'&&!s.did_today)return false;
     if(_filter==='not_today'&&s.did_today)return false;
@@ -3273,10 +3373,17 @@ function renderTable(){
     if(scsel.length&&scsel.indexOf(String(s.school))<0)return false;
     if(search&&String(s.name).indexOf(search)<0&&String(s.nickname).indexOf(search)<0)return false;
     if(_alertFilter&&!alertBucketMatch(s,_alertFilter))return false;
+    /* 【2026-09-13d・段A】学習の種類・教材。どちらも「その教材を割り当てられている子」を残すだけ */
+    if(_kindSel!=='all'){
+      var _wantTest=(_kindSel==='test');
+      if(!(s.materials_view||[]).some(function(m){return (String(m.type)==='test')===_wantTest;}))return false;
+    }
+    if(msel.length){
+      if(!(s.materials_view||[]).some(function(m){return msel.indexOf(_bookKey(m))>=0;}))return false;
+    }
     return true;
   });
   var _idi=$('inactiveDays');if(_idi&&String(_inactiveDays)!==_idi.value)_idi.value=_inactiveDays;
-  var _nhr=$('needHelpRate');if(_nhr&&String(_needHelpRate)!==_nhr.value)_nhr.value=_needHelpRate;
   if(_sortKey==='name'){rows.sort(function(a,b){return _sortDir*String(a.name||'').localeCompare(String(b.name||''),'ja');});}
   else if(_sortKey){rows.sort(function(a,b){var d=sortVal_(a,_sortKey)-sortVal_(b,_sortKey);if(d===0)d=String(a.name||'').localeCompare(String(b.name||''),'ja');return _sortDir*d;});}
   $('filterCount').textContent=rows.length+'名';
@@ -3295,6 +3402,7 @@ function renderTable(){
       +'<td class="t-sub">'+esc(s.grade||'')+'</td>'
       +'<td>'+nextActionCell(s)+'</td>'
       +'<td>'+matViewCell(s)+'</td>'
+      +'<td>'+quizSumCell(s)+'</td>'
       +'<td class="gcol">'+todayBadge+'</td>'
       +'<td class="t-sub">'+lastStudiedCell(s)+'</td>'
       +'<td class="num">'+(s.practice_count||0)+'</td>'
@@ -3313,7 +3421,7 @@ function fmtMs_(ms){ms=parseInt(ms,10)||0;if(ms<=0)return '–';var sec=Math.rou
 function printOne(sid){closeModal('studentModal');openTargetModal('print',[sid]);}
 function sdAssign(sid){closeModal('studentModal');openAssign(sid);}
 function lastStudiedText(s){return s.last_studied_at?String(s.last_studied_at).slice(0,10):'まだ学習なし';}
-function weakPartName(s){var mv=s.materials_view||[];var w=null;mv.forEach(function(m){(m.parts||[]).forEach(function(p){if(p.status==='try'&&p.acc!=null&&p.acc<_needHelpRate&&(!w||p.acc<w.acc))w={n:p.name,acc:p.acc};});});return w?w.n:'';}
+function weakPartName(s){var mv=s.materials_view||[];var w=null;mv.forEach(function(m){(m.parts||[]).forEach(function(p){if(p.status==='try'&&p.acc!=null&&p.acc<_accLine()&&(!w||p.acc<w.acc))w={n:p.name,acc:p.acc};});});return w?w.n:'';}
 function naWhy(s,k){
   if(k==='done'){ /* 2026-09-08：何をいつ完走したかを出す。次が割当ずみかで文言とボタンを出し分ける */
     var _dl=s.done_mains||[];
@@ -3333,18 +3441,18 @@ function naDetailBlock(s){var ks=naList(s);if(!ks.length)return '';
   return '<div class="sd-acts"><div class="sd-sec" style="margin-top:0;">次の一手（この子にいま必要なこと）</div>'+ks.map(function(k){var o=naWhy(s,k);return '<div class="sd-actrow"><div class="sd-actwhy"><b>'+o.t+'</b>　'+o.why+'</div>'+o.btn+'</div>';}).join('')+'</div>';
 }
 function trendStrip(s){var r=s.recent||[];if(r.length<2)return '';
-  var col=function(v){return (v<_needHelpRate?'#d64545':(v<80?'#c98a12':'#1f9d57'));};
+  var col=function(v){return (v<_accLine()?'#d64545':(v<80?'#c98a12':'#1f9d57'));};
   var bars=r.map(function(v){var h=Math.max(6,Math.round(v*0.30));return '<div class="sd-bar1" style="height:'+h+'px;background:'+col(v)+'"><span>'+v+'</span></div>';}).join('');
   var d=r[r.length-1]-r[0];var ar=d>3?'<span style="color:#1f9d57;font-weight:800;">↑ 上向き</span>':(d<-3?'<span style="color:#d64545;font-weight:800;">↓ 下向き</span>':'<span style="color:var(--text-muted);font-weight:800;">→ 横ばい</span>');
   return '<div class="sd-trend"><span class="t-sub" style="line-height:1.3;">直近の推移<br>（正答率・古→新）</span><div class="sd-bars">'+bars+'</div>'+ar+'</div>';
 }
 function partsBlock(mv){if(!mv||!mv.length)return '<div style="font-size:12px;color:var(--text-light);">いま割り当てている教材はありません</div>';
   mv=_sortByDord_(mv);   /* 番号順 2026-09-02⑨ */
-  var col=function(a){return (a==null||a===''?'#c3cbd6':(a<_needHelpRate?'#d64545':(a<80?'#c98a12':'#1f9d57')));};
+  var col=function(a){return (a==null||a===''?'#c3cbd6':(a<_accLine()?'#d64545':(a<80?'#c98a12':'#1f9d57')));};
   return mv.map(function(m){
     var ps=m.parts||[];var shown=ps.filter(function(p){return p.status!=='none';});var noneN=ps.length-shown.length;
     var rows=shown.map(function(p){
-      var wk=(p.status==='try'&&p.acc!=null&&p.acc<_needHelpRate);
+      var wk=(p.status==='try'&&p.acc!=null&&p.acc<_accLine());
       var st=(p.status==='done'||p.status==='pass')?'<span class="pst pst-pass">終わった</span>':'<span class="pst '+(wk?'pst-tryw':'pst-try')+'">挑戦中</span>';
       /* 【2026-08-27】全問正解して終わる設計になり、毎日学習・単元別に合否は無くなった（要件定義書 §10-1②）。
          【2026-08-27③】内部値も pass → done に揃えた。旧値 pass は半年ほど受け入れる（GASの再デプロイと
@@ -3542,7 +3650,9 @@ document.addEventListener('change',function(e){
 var _alertCfg={idle_days:1,accuracy:60};
 function loadAlertConfig(){
   call({action:'alert_config_get'}).then(function(d){
-    if(d&&d.ok){_alertCfg=d.data;var i=$('cfgIdle'),a=$('cfgAcc');if(i)i.value=_alertCfg.idle_days;if(a)a.value=_alertCfg.accuracy;renderAlertsK();}
+    /* 【2026-09-13d・段A2】しきい値は生徒一覧の色・要指導バッジにも効くようになったので、
+       受け取ったら一覧も描き直す（旧＝端末ごとの値だったので renderAlertsK だけでよかった）。 */
+    if(d&&d.ok){_alertCfg=d.data;var i=$('cfgIdle'),a=$('cfgAcc');if(i)i.value=_alertCfg.idle_days;if(a)a.value=_alertCfg.accuracy;renderAlertsK();if(_students&&_students.length)renderTable();}
   });
 }
 function saveAlertConfig(){
@@ -3550,7 +3660,7 @@ function saveAlertConfig(){
   toast('⏳ 保存中…');
   call({action:'alert_config_set',idle_days:dI,accuracy:aC}).then(function(d){
     if(!d||!d.ok){toast('⚠ '+((d&&d.error)||'保存に失敗しました'));$('cfgIdle').value=_alertCfg.idle_days;$('cfgAcc').value=_alertCfg.accuracy;return;}
-    _alertCfg=d.data;toast('しきい値を保存しました（メール通知にも反映されます）');renderAlertsK();
+    _alertCfg=d.data;toast('しきい値を保存しました（生徒一覧の色・メール通知・リアルタイムにも反映されます）');renderAlertsK();if(_students&&_students.length)renderTable();
   });
 }
 /* --- 先生応援の設定（先生アカウントの特別仕様・全項目ON/OFF）2026-07-07 --- */
