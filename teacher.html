@@ -1349,6 +1349,28 @@
     <div id="view-report" style="display:none;">
       <style>
         #view-report .qcard{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:14px;margin-bottom:14px;}
+        /* 【2026-09-14・段F】セットの1行サマリー／レポートとプリントの切り替え／プリント側の選び直し */
+        #view-report .rp-sumline{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+        #view-report .rp-sl-b{flex:1;min-width:240px;}
+        #view-report .rp-sl-r{font-size:12.5px;color:var(--text-light);font-weight:700;line-height:1.85;}
+        #view-report .rp-sl-r b{color:var(--text);font-weight:900;font-size:13px;}
+        #view-report .rp-sl-s{margin-left:8px;}
+        #view-report #rpSetEdit{margin-top:12px;border-top:1px dashed var(--border);padding-top:10px;}
+        #view-report #rpSetEdit .qcard{box-shadow:none;padding:0 0 10px;margin-bottom:0;border-radius:0;}
+        #view-report .rp-swt{display:flex;gap:0;background:#e5e7eb;border-radius:11px;padding:4px;margin-bottom:14px;}
+        #view-report .rp-swt button{flex:1;background:transparent;border:none;border-radius:8px;padding:10px 8px;font-size:14px;font-weight:900;color:#6b7280;cursor:pointer;line-height:1.35;}
+        #view-report .rp-swt button.on{background:#fff;color:var(--crimson);box-shadow:0 1px 3px rgba(0,0,0,.12);}
+        #view-report .rp-swt button span{display:block;font-size:11.5px;font-weight:700;color:#9ca3af;margin-top:2px;}
+        #view-report .rp-swt button.on span{color:#6b7280;}
+        #view-report .pr-row{padding:11px 0;border-bottom:1px dashed #e9ebef;}
+        #view-report .pr-row.diff{background:#fffbeb;border-radius:9px;padding-left:10px;padding-right:10px;}
+        #view-report .pr-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+        #view-report .pr-lab{font-size:12.5px;font-weight:900;color:var(--text);}
+        #view-report .pr-same{color:#15803d;font-weight:800;font-size:12.5px;}
+        #view-report .pr-diff{color:#b45309;font-weight:900;font-size:12.5px;}
+        #view-report .pmwrap{border:1px solid #eef0f3;border-radius:10px;background:#fbfcfd;padding:8px;max-height:420px;overflow-y:auto;}
+        #view-report .rp-pfrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 2px;}
+        #view-report .rp-pflab{font-size:11.5px;font-weight:800;color:var(--text-light);width:56px;flex:none;}
         #view-report .qch{font-size:13px;color:var(--text-muted);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
         .rp-tag{display:inline-block;font-size:9.5px;font-weight:800;border-radius:5px;padding:1px 5px;margin-right:5px;vertical-align:1px;}
         .rp-tag.unit{background:#e7f0fd;color:#1b4f9c;}
@@ -1479,14 +1501,25 @@
         </div>
       </div>
 
-      <div class="qcard">
+      <!-- 【2026-09-14・段F】セットを1行にたたむ → 「レポートを見る」「プリントを出す」で分ける。
+           Why: 「1. 教材をえらぶ」が画面の3分の1を占め、そのあとに43名の一覧が続くので
+                紙を出す入口が画面の4,000px下にあり、気づけなかった（川上さん報告 2026-09-14）。 -->
+      <div class="qcard" id="rpSetSumCard">
+        <div class="rp-sumline">
+          <div class="rp-sl-b">
+            <div class="rp-sl-r">教材 <b id="rpSlMatN">—</b><span class="rp-sl-s" id="rpSlMatS"></span></div>
+            <div class="rp-sl-r">生徒 <b id="rpSlStuN">—</b><span class="rp-sl-s" id="rpSlStuS"></span></div>
+          </div>
+          <button class="rp-allbtn" id="rpSetEditBtn" onclick="rpToggleSetEdit()">▾ 変える</button>
+        </div>
+        <div id="rpSetEdit" style="display:none;">
+          <div class="qcard">
         <div class="qch">1. 教材をえらぶ<span class="rp-mute" style="font-weight:600;margin-left:auto;">毎日学習・単元別のどちらも選べます</span></div>
         <div class="qmt-hint">教材をクリックで選択（複数OK）。同じ本はまとめて選べます。</div>
         <div class="qmatsel" id="rpMatSel"></div>
         <div class="rp-cap" id="rpMatCap"></div>
       </div>
-
-      <div class="qcard">
+          <div class="qcard">
         <div class="qch">2. 絞り込み</div>
         <div id="rpFstrip" class="qfstrip"></div>
         <div id="rpFilters" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;"></div>
@@ -1498,12 +1531,19 @@
           <span class="filter-count" id="rpCnt"></span>
         </div>
       </div>
+        </div>
+      </div>
 
+      <div class="rp-swt">
+        <button type="button" id="rpSw-rep" class="on" onclick="rpPane('rep')">📊 レポートを見る<span>まとめと、生徒ごとの進み</span></button>
+        <button type="button" id="rpSw-prn" onclick="rpPane('prn')">🖨 プリントを出す<span>チェックプリント／仕上げプリント</span></button>
+      </div>
+
+      <div id="rpPaneRep">
       <div class="qcard">
         <div class="qch">3. まとめ<span class="rp-mute" style="font-weight:600;">選んだ教材・絞り込みの範囲での集計</span></div>
         <div class="rp-sum" id="rpSummary"></div>
       </div>
-
       <div class="qcard">
         <div class="rp-hd">
           <div class="qch" style="margin:0;">4. 生徒ごとの進み</div>
@@ -1555,21 +1595,40 @@
 
       <!-- 【2026-09-13i・段D】5. 紙にする＝ここで紙が出る。生徒一覧に戻らない（要件定義書 §5 段D）
            見る範囲＝「1. 教材をえらぶ」／出す範囲＝この中でさらに絞る。2つは別々に指定できる。 -->
-      <div class="qcard" id="rpPaperCard">
-        <div class="rp-hd">
-          <div class="qch" style="margin:0;">5. 紙にする</div>
-          <span class="rp-mute">対象＝いま一覧に出ている生徒（上の絞り込みのまま）<b id="rpPaperWho"></b></span>
-        </div>
+      </div>
 
+      <div id="rpPanePrn" style="display:none;">
+      <div class="qcard" id="rpPaperCard">
         <div class="tm-qh" style="font-size:12px;font-weight:800;color:var(--text);">紙の形（どちらを刷るか）</div>
         <div class="stycards" id="rpStyleCards"></div>
 
-        <div class="tm-qh" style="margin-top:10px;">出す範囲（上でえらんだ教材から、さらに絞る）
-          <button class="qmt-allbtn" id="rpOutAll" onclick="rpOutPickAll()">ぜんぶ選ぶ</button>
-          <button class="qmt-allbtn" onclick="rpOutClear()">クリア</button>
+        <!-- 【2026-09-14・段F】出す教材＝レポートで見ている教材が はじめから選ばれている。
+             全教材から選び直せる（レポートの外の教材も出せる）。川上さん確定。 -->
+        <div class="pr-row" id="rpOutRow">
+          <div class="pr-head">
+            <span class="pr-lab">出す教材</span>
+            <span id="rpOutState"></span>
+            <span style="flex:1;"></span>
+            <button class="qmt-allbtn" id="rpOutClrBtn" onclick="rpOutClearAll()">× ぜんぶ外す</button>
+            <button class="qmt-allbtn" id="rpOutBackBtn" onclick="rpOutSameAsReport()" disabled>↺ レポートと同じに戻す</button>
+          </div>
+          <div class="rp-mute" style="font-weight:600;margin:3px 0 6px;">レポートで見ている教材が<b>はじめから選ばれています</b>。押して外す・ほかの本から足す、どちらもできます。「× ぜんぶ外す」で空にしてから選び直せます。</div>
+          <div class="qmatsel pmwrap" id="rpOutMats"></div>
+          <div class="rp-cap" id="rpOutCap"></div>
         </div>
-        <div class="qmatsel" id="rpOutMats"></div>
-        <div class="rp-cap" id="rpOutCap"></div>
+
+        <!-- 【2026-09-14・段F】出す生徒＝レポートの絞り込みが はじめから入っている。
+             ここで変えても レポートの一覧は変わらない（見る範囲と出す範囲は別・§5 段D と同じ考え方）。 -->
+        <div class="pr-row" id="rpPfRow">
+          <div class="pr-head">
+            <span class="pr-lab">出す生徒</span>
+            <span id="rpPfState"></span>
+            <span style="flex:1;"></span>
+            <button class="qmt-allbtn" id="rpPfBackBtn" onclick="rpPfSameAsReport()" disabled>↺ レポートと同じに戻す</button>
+          </div>
+          <div class="rp-mute" style="font-weight:600;margin:3px 0 6px;">レポートの絞り込みが<b>はじめから入っています</b>。ここで変えても、レポートの一覧は変わりません。</div>
+          <div class="pmwrap" id="rpPfFilters"></div>
+        </div>
 
         <div id="rpListOpts">
           <div class="tm-qh" style="margin-top:10px;">出す種別（複数えらべます）</div>
@@ -1597,11 +1656,11 @@
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
           <button class="btn-primary" style="width:auto;" id="rpPaperGoBtn" onclick="rpPaperGo()">🖨 チェックプリントを出す</button>
           <span class="rp-mute" id="rpPaperNote"></span>
+          <span class="rp-mute" id="rpPaperWho" style="display:none;"></span>
         </div>
       </div>
-    </div>
-
-    <!-- ===== チーム編成ビュー 2026-06-21 ===== -->
+      </div>
+    </div><!-- ===== チーム編成ビュー 2026-06-21 ===== -->
     <!-- ===== 一斉指示（生徒側の呼び名＝お知らせ）2026-08-28 ===== -->
     <div id="view-notice" style="display:none;">
       <style>
@@ -6710,6 +6769,8 @@ function renderReportTab(){
   var host=$('rpRows');
   try{ RP_COMPACT=(localStorage.getItem('kwt_rp_compact')==='1'); }catch(e){}
   _rpCompactBtn();
+  /* 【2026-09-14・段F】前に見ていた面（レポート／プリント）でひらく */
+  try{ rpPane(localStorage.getItem('kwt_rp_pane')||'rep'); }catch(e){}
   if(!RP_SETS_LOADED){
     RP_SETS_LOADED=true;
     call({action:'report_sets_get'}).then(function(d){
@@ -6765,27 +6826,54 @@ function rpPickBook(ids){ ids=ids.split('|');
   if(all)RP_SEL=RP_SEL.filter(function(x){return ids.indexOf(x)<0;}); else ids.forEach(function(x){if(RP_SEL.indexOf(x)<0)RP_SEL.push(x);});
   rpDirty_(); _rpStdCache={}; rpRenderMat(); rpRender(); }
 function rpFold(k){ RP_MOPEN[k]=!RP_MOPEN[k]; rpRenderMat(); }
+/* 【2026-09-14・段F】教材えらびの見た目は**1組だけ**作る。
+   レポート側（1. 教材をえらぶ）と プリント側（出す教材）の両方がこれを呼ぶ。
+   片方だけ直る事故を作らないため（§6-3 と同じ考え方）。
+     sel   ＝ 選ばれている material_id の配列
+     pfx   ＝ 'rp'（レポート側）／'po'（プリント側）。押したときの飛び先と、たたみ具合の記憶を分ける
+     selTop＝ true なら「1つでも選ばれている本」を先に並べる（プリント側）*/
+function _rpMatBoxHtml_(sel, pfx, selTop){
+  var SEL={}; (sel||[]).forEach(function(id){SEL[String(id)]=1;});
+  var open_=(pfx==='po')?RP_OOPEN:RP_MOPEN;
+  var fnPick=(pfx==='po')?'rpOutPick':'rpPick';
+  var fnBook=(pfx==='po')?'rpOutPickBook':'rpPickBook';
+  var fnFold=(pfx==='po')?'rpOutFold':'rpFold';
+  var mats=_rpMats(), grps=[], gm={};
+  mats.forEach(function(m){var k=_bookKey(m);if(!gm[k]){gm[k]={key:k,lab:_bookLabel(m),items:[]};grps.push(gm[k]);}gm[k].items.push(m);});
+  if(selTop){
+    var hasSel=function(g){return g.items.some(function(m){return SEL[String(m.id)];})?0:1;};
+    grps=grps.map(function(g,i){return {g:g,i:i,r:hasSel(g)};})
+             .sort(function(a,b){return (a.r-b.r)||(a.i-b.i);})
+             .map(function(x){return x.g;});
+  }
+  var tag=function(m){var d=(String(m.content_type||'')==='test');return '<span class="rp-tag '+(d?'unit':'daily')+'">'+(d?'単元別':'毎日')+'</span>';};
+  var chip=function(m,label,withTag){var on=!!SEL[String(m.id)];
+    return '<div class="qmtab'+(on?' on':'')+'" onclick="'+fnPick+'(\''+esc(String(m.id))+'\')">'+(on?'✓ ':'')+(withTag?tag(m):'')+esc(label)+'</div>';};
+  return grps.map(function(g){
+    if(g.items.length===1){ return '<div class="qmt-group"><div class="qmt-tabs">'+chip(g.items[0],mtLabel(g.items[0]),true)+'</div></div>'; }
+    var has=g.items.some(function(m){return SEL[String(m.id)];});
+    var all=g.items.every(function(m){return SEL[String(m.id)];});
+    /* ★プリント側（po）は たたみ具合を**書き戻さない**。
+       Why: 教材が届く前に1回描くと has=false のまま覚えてしまい、データが来て
+            選ばれた状態になっても 本が閉じたまま になる（2026-09-14 実測）。
+            開け閉めしたときだけ覚える＝rpOutFold に いまの状態を渡す。 */
+    var open=(g.key in open_)?open_[g.key]:has;
+    if(pfx!=='po')open_[g.key]=open;
+    var kk=g.key.replace(/['"\\]/g,'');
+    var ids=g.items.map(function(m){return String(m.id).replace(/['"\\]/g,'');}).join('|');
+    var foldArg=(pfx==='po')?('\''+esc(kk)+'\','+(open?'true':'false')):('\''+esc(kk)+'\'');
+    return '<div class="qmt-group"><div class="qmt-glab qmt-fold" onclick="'+fnFold+'('+foldArg+')"><span class="qs-caret">'+(open?'▾':'▸')+'</span> '+tag(g.items[0])+esc(g.lab)+' <span class="qmt-cnt">'+g.items.length+'教材</span>'
+      +'<button class="qmt-allbtn'+(all?' on':'')+'" onclick="event.stopPropagation();'+fnBook+'(\''+ids+'\')">'+(all?'この本を外す':'この本をまとめて選ぶ')+'</button></div>'
+      +'<div class="qmt-tabs" style="'+(open?'':'display:none;')+'">'+g.items.map(function(m){return chip(m,mtShort(m));}).join('')+'</div></div>';
+  }).join('');
+}
 function rpRenderMat(){
   var el=$('rpMatSel'); if(!el)return;
   _rpUnitC={};   /* 教材リストを描き直すタイミングで教材タイプの記憶を捨てる */
-  var mats=_rpMats(), grps=[], gm={};
-  mats.forEach(function(m){var k=_bookKey(m);if(!gm[k]){gm[k]={key:k,lab:_bookLabel(m),items:[]};grps.push(gm[k]);}gm[k].items.push(m);});
-  var tag=function(m){var d=(String(m.content_type||'')==='test');return '<span class="rp-tag '+(d?'unit':'daily')+'">'+(d?'単元別':'毎日')+'</span>';};
-  var chip=function(m,label,withTag){var on=RP_SEL.indexOf(String(m.id))>=0;
-    return '<div class="qmtab'+(on?' on':'')+'" onclick="rpPick(\''+esc(String(m.id))+'\')">'+(on?'✓ ':'')+(withTag?tag(m):'')+esc(label)+'</div>';};
-  el.innerHTML=grps.map(function(g){
-    if(g.items.length===1){ return '<div class="qmt-group"><div class="qmt-tabs">'+chip(g.items[0],mtLabel(g.items[0]),true)+'</div></div>'; }
-    var has=g.items.some(function(m){return RP_SEL.indexOf(String(m.id))>=0;});
-    var all=g.items.every(function(m){return RP_SEL.indexOf(String(m.id))>=0;});
-    var open=(g.key in RP_MOPEN)?RP_MOPEN[g.key]:has; RP_MOPEN[g.key]=open;
-    var kk=g.key.replace(/['"\\]/g,'');
-    var ids=g.items.map(function(m){return String(m.id).replace(/['"\\]/g,'');}).join('|');
-    return '<div class="qmt-group"><div class="qmt-glab qmt-fold" onclick="rpFold(\''+esc(kk)+'\')"><span class="qs-caret">'+(open?'▾':'▸')+'</span> '+tag(g.items[0])+esc(g.lab)+' <span class="qmt-cnt">'+g.items.length+'教材</span>'
-      +'<button class="qmt-allbtn'+(all?' on':'')+'" onclick="event.stopPropagation();rpPickBook(\''+ids+'\')">'+(all?'この本を外す':'この本をまとめて選ぶ')+'</button></div>'
-      +'<div class="qmt-tabs" style="'+(open?'':'display:none;')+'">'+g.items.map(function(m){return chip(m,mtShort(m));}).join('')+'</div></div>';
-  }).join('');
+  el.innerHTML=_rpMatBoxHtml_(RP_SEL,'rp',false);
   var cap=$('rpMatCap'); if(cap)cap.innerHTML=RP_SEL.length?('選択中の教材（'+RP_SEL.length+'）　'+esc(rpSelText_())):'<span style="color:var(--text-light);font-weight:600;">教材を選ぶとレポートが出ます。</span>';
   rpRenderSets();
+  rpRenderSumLine();
 }
 function rpSelText_(){   /* 教材は本ごとにまとめて書く（Unit1 だけ並ぶと どの学年か分からないため）*/
   var gb=[],gm={};
@@ -6831,6 +6919,9 @@ function rpLoadSet(i){
   RP_F={cls:(s.f&&s.f.cls)||'all',grade:(s.f&&s.f.grade)||'all',sch:(s.f&&s.f.sch)||'all'};
   RP_DL=s.dl||''; var d=$('rpDl'); if(d)d.value=RP_DL;
   RP_CUR=i; RP_LAST=i; RP_DIRTY=false;
+  /* 【2026-09-14・段F】セットを切り替えたら、プリント側の選び直しも捨てて「レポートと同じ」に戻す。
+     前のセットで選んだ教材が残っていると、別のセットの紙にまざる。 */
+  RP_OUT_TOUCHED=false; RP_OUT={}; RP_OOPEN={}; RP_PF_TOUCHED=false;
   rpRenderSets(); // 【2026-08-20】旧実装はここを呼んでおらず、選んでも見た目が変わらなかった（＝どれを見ているか分からない主因）
   rpRenderMat(); rpRenderFilters(); rpRender();
 }
@@ -6912,7 +7003,7 @@ function rpRenderFilters(){
 }
 function _rpChips(kind,cur,opts){ var mk=function(v,l){return '<button class="filter-chip'+(cur===v?' active':'')+'" onclick="rpSetF(\''+kind+'\',\''+String(v).replace(/['"\\]/g,'')+'\')">'+esc(l)+'</button>';};
   return mk('all','すべて')+opts.map(function(o){return mk(o,o);}).join(''); }
-function rpSetF(k,v){ RP_F[k]=v; rpDirty_(); rpRenderFilters(); rpRender(); }
+function rpSetF(k,v){ RP_F[k]=v; rpDirty_(); rpRenderFilters(); rpRender(); rpRenderSumLine(); }
 function rpSetDL(v){ RP_DL=v||''; rpDirty_(); rpRender(); }
 function rpRemoveF(k){ if(k==='q'){var s=$('rpName');if(s)s.value='';} else {RP_F[k]='all';rpDirty_();} rpRenderFilters(); rpRender(); }
 function rpClearF(){ RP_F={cls:'all',grade:'all',sch:'all'}; var s=$('rpName'); if(s)s.value=''; rpDirty_(); rpRenderFilters(); rpRender(); }
@@ -7119,27 +7210,54 @@ function rpToggleMiss(){ RP_ONLY_MISS=!RP_ONLY_MISS; if(RP_ONLY_MISS){RP_ONLY_SH
 var RP_OUT={};        /* 出す範囲。教材id→1。空＝RP_SEL ぜんぶ */
 var RP_OUT_TOUCHED=false;   /* 先生が1度でも触ったか。触っていなければ RP_SEL の変化にそのまま追従する */
 function _rpPaperStyle_(){ return (localStorage.getItem('kwt_print_style')==='finish')?'finish':'list'; }
-/* 出す範囲の実体。空なら「上でえらんだ教材ぜんぶ」＝RP_SEL */
+/* 【2026-09-14・段F】出す範囲＝**選ばれている教材そのもの**（川上さん確定）。
+   ★旧：RP_SEL の部分集合で、空なら「RP_SEL ぜんぶ」。
+     新：RP_OUT に入っているものが そのまま出す教材。全78教材から選べる＝
+         レポートで見ていない教材（英検5級など）も紙にできる。
+   さわるまでは RP_SEL を写す（＝レポートと同じ）。さわったら独立する。 */
+var RP_OOPEN={};              /* プリント側の本のたたみ具合（レポート側の RP_MOPEN とは別に持つ）*/
 function rpOutMats_(){
-  var a=RP_SEL.filter(function(id){return RP_OUT[String(id)];});
-  return a.length?a:RP_SEL.slice();
+  var o=RP_OUT, a=[];
+  _rpMats().forEach(function(m){ if(o[String(m.id)]) a.push(String(m.id)); });   /* 教材の並び順で返す */
+  return a;
+}
+/* さわっていなければ RP_SEL を写す。さわっていればそのまま。 */
+function _rpOutSync_(){
+  if(RP_OUT_TOUCHED)return;
+  RP_OUT={}; RP_SEL.forEach(function(id){ RP_OUT[String(id)]=1; });
+}
+function _rpOutSame_(){       /* いまレポートと同じか */
+  var a=rpOutMats_(), b=RP_SEL.slice().sort(), c=a.slice().sort();
+  return b.length===c.length&&b.every(function(x,i){return String(x)===String(c[i]);});
 }
 function rpSetPaper(k){
   try{ localStorage.setItem('kwt_print_style',k); }catch(e){}
   rpRenderPaper();
 }
 function rpOutPick(mid){ mid=String(mid); RP_OUT_TOUCHED=true; if(RP_OUT[mid])delete RP_OUT[mid]; else RP_OUT[mid]=1; rpRenderPaper(); }
+function rpOutPickBook(ids){ ids=ids.split('|'); RP_OUT_TOUCHED=true;
+  var all=ids.every(function(x){return RP_OUT[String(x)];});
+  ids.forEach(function(x){ if(all)delete RP_OUT[String(x)]; else RP_OUT[String(x)]=1; });
+  rpRenderPaper(); }
+function rpOutFold(k,cur){ RP_OOPEN[k]=!cur; rpRenderPaper(); }
+function rpOutClearAll(){ RP_OUT_TOUCHED=true; RP_OUT={}; Object.keys(RP_OOPEN).forEach(function(k){RP_OOPEN[k]=true;}); rpRenderPaper(); }
+function rpOutSameAsReport(){ RP_OUT_TOUCHED=false; RP_OOPEN={}; rpRenderPaper(); }
+/* 旧名でも動くようにしておく（ほかから呼ばれていないか分からないため）2026-09-14 */
 function rpOutPickAll(){ RP_OUT_TOUCHED=true; RP_SEL.forEach(function(id){RP_OUT[String(id)]=1;}); rpRenderPaper(); }
-function rpOutClear(){ RP_OUT_TOUCHED=true; RP_OUT={}; rpRenderPaper(); }
-/* 「1. 教材をえらぶ」から外れた教材は、出す範囲からも落とす（消えた教材の紙を作らない） */
-function _rpOutSync_(){
-  Object.keys(RP_OUT).forEach(function(id){ if(RP_SEL.indexOf(id)<0) delete RP_OUT[id]; });
-}
+function rpOutClear(){ rpOutClearAll(); }
+
+/* 【2026-09-14・段F】プリント側の生徒の絞り込み。さわるまではレポートと同じ。
+   ★レポートの一覧（RP_F）は変えない＝「見る範囲と出す範囲は別」（段D の確定と同じ）。 */
+var RP_PF={cls:'all',grade:'all',sch:'all'}, RP_PF_TOUCHED=false;
+function _rpPfSync_(){ if(RP_PF_TOUCHED)return; RP_PF={cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch}; }
+function _rpPfSame_(){ return RP_PF.cls===RP_F.cls&&RP_PF.grade===RP_F.grade&&RP_PF.sch===RP_F.sch; }
+function rpSetPF(k,v){ RP_PF_TOUCHED=true; RP_PF[k]=v; rpRenderPaper(); }
+function rpPfSameAsReport(){ RP_PF_TOUCHED=false; rpRenderPaper(); }
 /* n＝対象人数。rpRender から呼ぶときは数えたものを渡す（48名で rpTargets を2回走らせないため）。
    省略したときはここで数える。 */
 function rpRenderPaper(n){
   var box=$('rpOutMats'); if(!box)return;
-  _rpOutSync_();
+  _rpOutSync_(); _rpPfSync_();
   var st=_rpPaperStyle_();
   /* 紙の形のカード2枚 */
   var sc=$('rpStyleCards');
@@ -7150,29 +7268,54 @@ function rpRenderPaper(n){
     +'<button type="button" class="styc'+(st==='finish'?' on':'')+'" onclick="rpSetPaper(\'finish\')">'
     +'<span class="sy-mk">✓</span><span class="sy-b"><span class="sy-t">仕上げプリント</span>'
     +'<span class="sy-s">1枚目＝問題／2枚目＝答え。自分で解いて丸つけする紙（セット番号とQRつき）。</span></span></button>';
-  /* 出す範囲のチップ。本ごとにまとめず、選んだ教材だけを並べる（もう絞ったあとなので数が少ない） */
-  if(!RP_SEL.length){
-    box.innerHTML='<span style="color:var(--text-light);font-weight:600;font-size:12px;">上の「1. 教材をえらぶ」で教材を選ぶと、ここで出す範囲を決められます。</span>';
+
+  /* ---- 出す教材＝全教材から選ぶ。レポートで見ている本を先に並べる（2026-09-14 段F）---- */
+  if(!bulkMaterials||!bulkMaterials.length){
+    box.innerHTML='<span style="color:var(--text-light);font-weight:600;font-size:12px;">教材を読み込み中…</span>';
   }else{
-    box.innerHTML=RP_SEL.map(function(id){
-      var m=_rpMat(id), on=!!RP_OUT[String(id)];
-      var d=m?(String(m.content_type||'')==='test'):false;
-      /* 【2026-09-14】教材の一覧がまだ届いていないときに生のIDを出さない（先生には意味が無い文字列）。
-         届いたら renderReportTab の materials_list の戻りで描き直される。 */
-      var lbl=m?mtShort(m):((bulkMaterials&&bulkMaterials.length)?String(id):'読み込み中…');
-      return '<div class="qmtab'+(on?' on':'')+'" onclick="rpOutPick(\''+esc(String(id))+'\')">'+(on?'✓ ':'')
-        +'<span class="rp-tag '+(d?'unit':'daily')+'">'+(d?'単元別':'毎日')+'</span>'
-        +esc(lbl)+'</div>';
-    }).join('');
+    box.innerHTML=_rpMatBoxHtml_(rpOutMats_(),'po',true);
   }
-  var use=rpOutMats_();
+  var use=rpOutMats_(), same=_rpOutSame_();
+  var stEl=$('rpOutState');
+  if(stEl)stEl.innerHTML=(same?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')+'　<b>'+use.length+'</b>件';
+  var row=$('rpOutRow'); if(row)row.classList.toggle('diff',!same);
+  var bb=$('rpOutBackBtn'); if(bb)bb.disabled=same;
+  var cb=$('rpOutClrBtn'); if(cb)cb.disabled=(use.length===0);
   var cap=$('rpOutCap');
   if(cap){
-    if(!RP_SEL.length)cap.innerHTML='';
-    else if(!Object.keys(RP_OUT).length)cap.innerHTML='<b>えらんでいないので、上の'+RP_SEL.length+'教材ぜんぶ</b>から出します。';
-    else cap.innerHTML='出す範囲（'+use.length+'／'+RP_SEL.length+'教材）　'+esc(use.map(function(id){var m=_rpMat(id);return m?mtShort(m):((bulkMaterials&&bulkMaterials.length)?String(id):'読み込み中…');}).join('・'));
+    if(!use.length)cap.innerHTML='<span style="color:var(--crimson);font-weight:800;">出す教材が1つも選ばれていません。</span>';
+    else{
+      /* 多いときは全部並べない（22教材ぶん並べると読めない紙の説明になる。2026-09-14 実測）*/
+      var nm=use.slice(0,5).map(function(id){var m=_rpMat(id);return m?mtShort(m):String(id);});
+      cap.innerHTML=esc(nm.join('・'))+((use.length>5)?('　…ほか'+(use.length-5)+'教材'):'');
+    }
   }
-  var ab=$('rpOutAll'); if(ab)ab.textContent=(RP_SEL.length&&use.length===RP_SEL.length&&Object.keys(RP_OUT).length)?'ぜんぶ選び直す':'ぜんぶ選ぶ';
+
+  /* ---- 出す生徒＝レポートの絞り込みが入った状態。ここで変えても一覧は変わらない ---- */
+  var pf=$('rpPfFilters');
+  if(pf){
+    var _d=function(f){var o={},a=[];(_students||[]).forEach(function(s){
+        if(s.is_active===false)return;
+        if(_rpExT_()&&s.is_teacher_account)return;
+        var v=f(s); if(v&&!o[v]){o[v]=1;a.push(v);} }); return a;};
+    var cls=_d(function(s){return s.class_name;}), grades=_d(function(s){return s.grade;}), sch=_d(function(s){return s.school;});
+    grades.sort(function(a,b){return _rpGradeRank(a)-_rpGradeRank(b);});
+    var mk=function(kind,cur,opts){
+      var one=function(v,l){return '<button class="filter-chip'+(cur===v?' active':'')+'" onclick="rpSetPF(\''+kind+'\',\''+String(v).replace(/['"\\]/g,'')+'\')">'+esc(l)+'</button>';};
+      return one('all','すべて')+opts.map(function(o){return one(o,o);}).join(''); };
+    var ph='';
+    if(cls.length)   ph+='<div class="rp-pfrow"><span class="rp-pflab">教室</span>'  +mk('cls',RP_PF.cls,cls)+'</div>';
+    if(grades.length)ph+='<div class="rp-pfrow"><span class="rp-pflab">学年</span>'  +mk('grade',RP_PF.grade,grades)+'</div>';
+    if(sch.length)   ph+='<div class="rp-pfrow"><span class="rp-pflab">中学校</span>'+mk('sch',RP_PF.sch,sch)+'</div>';
+    pf.innerHTML=ph||'<span style="color:var(--text-light);font-weight:600;font-size:12px;">生徒を読み込み中…</span>';
+  }
+  var psame=_rpPfSame_();
+  var pn=rpTargets(true).length;
+  var pst=$('rpPfState');
+  if(pst)pst.innerHTML=(psame?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')+'　<b>'+pn+'</b>名';
+  var prow=$('rpPfRow'); if(prow)prow.classList.toggle('diff',!psame);
+  var pbb=$('rpPfBackBtn'); if(pbb)pbb.disabled=psame;
+
   /* 条件の欄は紙の形で出し分ける */
   var a=$('rpListOpts'), b=$('rpFinishOpts');
   if(a)a.style.display=(st==='list')?'':'none';
@@ -7189,16 +7332,53 @@ function rpRenderPaper(n){
     var traw=localStorage.getItem('kwt_print_types'); var tl=(traw==null?'daily,unit,quiz':traw).split(',');
     ['daily','unit','quiz'].forEach(function(t){ var c=$('rpT-'+t); if(c)c.checked=(tl.indexOf(t)>=0); });
   }
-  /* ボタンの文字と、対象人数 */
-  if(n==null)n=RP_SEL.length?rpTargets().length:0;
-  var who=$('rpPaperWho'); if(who)who.textContent='　'+n+'名';
+  /* ボタンの文字と、出す人数。★人数はプリント側の絞り込み（RP_PF）で数える */
+  var who=$('rpPaperWho'); if(who)who.textContent='　'+pn+'名';
   var go=$('rpPaperGoBtn');
   if(go){ go.textContent=(st==='finish')?'🖨 仕上げプリントを出す（生徒用）':'🖨 チェックプリントを出す';
-          go.disabled=(n===0)||(st==='finish'&&!use.length); }
+          go.disabled=(pn===0)||(use.length===0); }
   var nt=$('rpPaperNote');
-  if(nt)nt.textContent=(n===0)?'いま一覧に出ている生徒がいません。'
-    :((st==='finish'&&!use.length)?'仕上げプリントはテスト範囲（教材）が要ります。':(n+'名ぶん・1人ずつ別の紙になります。'));
+  if(nt)nt.textContent=(use.length===0)?'出す教材が1つも選ばれていません。'
+    :((pn===0)?'条件に合う生徒がいません。':(pn+'名ぶん・1人ずつ別の紙になります。'));
   var er=$('rpPrintErr'); if(er&&!er.innerHTML)er.style.display='none';
+  rpRenderSumLine();
+}
+
+/* 【2026-09-14・段F】セットの1行サマリー（教材N件・生徒N名と、その中身）*/
+function rpRenderSumLine(){
+  var mn=$('rpSlMatN'); if(!mn)return;
+  mn.textContent=RP_SEL.length+'件';
+  var ms=$('rpSlMatS');
+  if(ms){
+    var bk={},ord=[];
+    RP_SEL.forEach(function(id){var m=_rpMat(id); var k=m?_bookLabel(m):''; if(!k)return; if(!bk[k]){bk[k]=0;ord.push(k);} bk[k]++;});
+    ms.textContent=ord.length?ord.map(function(k){return k+'（'+bk[k]+'）';}).join('・'):(RP_SEL.length?'読み込み中…':'教材がえらばれていません');
+  }
+  var sn=$('rpSlStuN'); if(sn)sn.textContent=(RP_SEL.length?rpTargets().length:0)+'名';
+  var ss=$('rpSlStuS');
+  if(ss)ss.textContent=[(RP_F.cls==='all'?'教室すべて':'教室 '+RP_F.cls),
+                        (RP_F.grade==='all'?'学年すべて':RP_F.grade),
+                        (RP_F.sch==='all'?'中学校すべて':RP_F.sch)].join('／');
+}
+/* 「▾ 変える」＝教材えらびと絞り込みを開く／閉じる */
+function rpToggleSetEdit(){
+  var e=$('rpSetEdit'), b=$('rpSetEditBtn'); if(!e)return;
+  var on=(e.style.display==='none');
+  e.style.display=on?'':'none';
+  if(b)b.textContent=on?'▴ 閉じる':'▾ 変える';
+}
+/* レポートを見る／プリントを出す の切り替え */
+var RP_PANE='rep';
+function rpPane(k){
+  RP_PANE=(k==='prn')?'prn':'rep';
+  try{ localStorage.setItem('kwt_rp_pane',RP_PANE); }catch(e){}
+  var r=$('rpPaneRep'), p=$('rpPanePrn');
+  if(r)r.style.display=(RP_PANE==='rep')?'':'none';
+  if(p)p.style.display=(RP_PANE==='prn')?'':'none';
+  var br=$('rpSw-rep'), bp=$('rpSw-prn');
+  if(br)br.classList.toggle('on',RP_PANE==='rep');
+  if(bp)bp.classList.toggle('on',RP_PANE==='prn');
+  if(RP_PANE==='prn')rpRenderPaper();
 }
 /* 押したとき。紙を作る本体は既存の2本をそのまま使う。 */
 function rpPaperGo(){
@@ -7207,8 +7387,9 @@ function rpPaperGo(){
   if(!ids.length){ toast('紙にする生徒がいません'); return; }
   var mats=rpOutMats_();
   _prnHost='report'; tmErr_('');
+  /* 【2026-09-14・段F】出す教材は「選ばれているものそのもの」。0件なら作らない（空振りさせない）。 */
+  if(!mats.length){ tmErr_('出す教材が1つも選ばれていません。上の「出す教材」でえらんでください。'); return; }
   if(_rpPaperStyle_()==='finish'){
-    if(!mats.length){ tmErr_('出す範囲の教材をえらんでください（仕上げプリントは範囲が要ります）。'); return; }
     try{ localStorage.setItem('kwt_print_mats',mats.join(',')); }catch(e){}
     runFinishSheet_(ids,mats,'daily,unit,quiz');
     return;
@@ -7238,16 +7419,19 @@ function rpPrintOne_(sid,mid){
   if(!types.length)types=['daily','unit','quiz'];
   runPrint_([String(sid)],scope,days,limit,types.join(','),String(mid));
 }
-function rpTargets(){
+/* useP＝true のとき、プリント側の絞り込み（RP_PF）で数える。
+   省略時は今までどおりレポート側（RP_F）。2026-09-14 段F */
+function rpTargets(useP){
+  var F=useP?(function(){_rpPfSync_();return RP_PF;})():RP_F;
   var q=((($('rpName')||{}).value)||'').trim();
   var showNA=(($('rpShowNA')||{}).checked)||RP_ONLY_SHORT;
   var AS=_rpAssign(), QZ=_rpQuiz();
   return (_students||[]).filter(function(s){
     if(s.is_active===false)return false;
     if(_rpExT_()&&s.is_teacher_account)return false;   // 先生アカウントを外す（先生設定⑥）2026-08-17
-    if(RP_F.cls!=='all'&&String(s.class_name||'')!==RP_F.cls)return false;
-    if(RP_F.grade!=='all'&&String(s.grade||'')!==RP_F.grade)return false;
-    if(RP_F.sch!=='all'&&String(s.school||'')!==RP_F.sch)return false;
+    if(F.cls!=='all'&&String(s.class_name||'')!==F.cls)return false;
+    if(F.grade!=='all'&&String(s.grade||'')!==F.grade)return false;
+    if(F.sch!=='all'&&String(s.school||'')!==F.sch)return false;
     if(q&&String(s.name||'').indexOf(q)<0&&String(s.nickname||'').indexOf(q)<0)return false;
     return true;
   }).map(function(s){return {s:s,a:rpAgg(s,AS,QZ),sh:_rpShortOf(s,AS),AS:AS};})
@@ -7268,7 +7452,8 @@ function rpRender(){
     $('rpSummary').innerHTML='';
     rows.innerHTML='<tr><td colspan="5" class="rp-none">上の「教材をえらぶ」から教材を選ぶと、その教材が割り当てられている子の進み具合が出ます。</td></tr>';
     var c0=$('rpCnt'); if(c0)c0.textContent='';
-    rpRenderPaper(0);   /* 【2026-09-13i・段D】5. 紙にする も一緒に塗り替える（教材が未選択＝対象0名）*/
+    rpRenderPaper();   /* 【2026-09-13i・段D】紙の面も一緒に塗り替える。人数はプリント側の絞り込みで数える（2026-09-14 段F）*/
+    rpRenderSumLine();
     return;
   }
   var list=rpTargets();
@@ -7338,7 +7523,8 @@ function rpRender(){
         +'<button class="rp-detail" onclick="event.stopPropagation();openStudentDetail(\''+esc(sid)+'\')" title="この子の詳細（いま何を間違えているか）">詳細</button></td></tr>'
       +(op?rpDetailRow(x):'');
   }).join('')||'<tr><td colspan="5" class="rp-none">条件に合う生徒がいません</td></tr>';
-  rpRenderPaper(list.length);   /* 【2026-09-13i・段D】対象人数と出す範囲は一覧と同じものを見ているので、最後に一緒に塗り替える（数え直さない）*/
+  rpRenderSumLine();
+  rpRenderPaper();   /* 【2026-09-13i・段D→2026-09-14 段F】人数はプリント側の絞り込み（RP_PF）で数え直す。最後に一緒に塗り替える（数え直さない）*/
 }
 function rpDetailRow(x){
   var s=x.s, AS=x.AS, QZ=_rpQuiz(), sid=String(s.student_id);
@@ -7382,7 +7568,7 @@ function rpNaToggle(sid){ RP_OPENNA[sid]=!RP_OPENNA[sid]; rpRender(); }
 /* ---- 印刷 / PDF（A4たて。2ページに収まるときだけ文字を小さくする）---- */
 /* 印刷・PDFは画面と同じ並び順で出す */
 function rpPrintList_(){
-  var l=rpTargets(), d=RP_SORT.dir, nm=function(x,y){return String(x.s.name||'').localeCompare(String(y.s.name||''),'ja');};
+  var l=rpTargets(true), d=RP_SORT.dir, nm=function(x,y){return String(x.s.name||'').localeCompare(String(y.s.name||''),'ja');};
   l.sort(function(x,y){
     if(RP_SORT.key==='grade'){var gx=_rpGradeRank(x.s.grade),gy=_rpGradeRank(y.s.grade);return gx===gy?nm(x,y):(gx-gy)*d;}
     if(RP_SORT.key==='last'){var lx=(x.a.days&&x.a.days[0])||'0000-00-00',ly=(y.a.days&&y.a.days[0])||'0000-00-00';return lx===ly?nm(x,y):((lx<ly?-1:1)*d);}
