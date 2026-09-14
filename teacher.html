@@ -377,6 +377,32 @@
   .up-read{font-size:12px;color:#0a7a45;font-weight:700;margin-top:2px;}
   .up-kai{font-size:11.5px;color:#333;margin-top:5px;border-top:1px dashed #ccc;padding-top:4px;line-height:1.5;}
   .up-none{color:#0a7a45;font-weight:700;font-size:12px;margin-top:8px;}
+  /* ===== 【2026-09-13j・段E】問題の形式ごとの紙の部品（チェックプリント・仕上げプリント共通）=====
+     語群（並べ替え）・表（穴あき）・答えの番号。どちらの紙でも同じ見た目にする＝2か所に別々の見た目を作らない */
+  .pq-tok{display:inline-block;border:1.2px solid #555;border-radius:5px;padding:1px 8px;margin:0 5px 5px 0;
+          font-size:13px;font-weight:700;color:#000;background:#fff;white-space:nowrap;}
+  .pq-ano{display:inline-block;min-width:15px;margin-right:6px;font-size:11px;font-weight:800;color:#555;}
+  .pq-lead{font-size:12px!important;font-weight:700;color:#333;margin-bottom:5px;}
+  .pq-hole{background:#f2f4f7;}
+  .pq-holeno{font-size:10.5px;font-weight:800;color:#555;}
+  .up-toks{margin-top:6px;}
+  .up-ja{font-size:12px;color:#333;margin-top:2px;}
+  .up-tbl{border-collapse:collapse;width:100%;margin-top:5px;table-layout:fixed;}
+  .up-tbl th,.up-tbl td{border:1px solid #7d8794;padding:3px 5px;font-size:11.5px;text-align:center;
+                        line-height:1.45;overflow-wrap:anywhere;}
+  .up-tbl thead th{background:#eef0f3;font-weight:700;}
+  .up-tbl tbody th{background:#f6f7f9;font-weight:700;}
+  .up-tbl td.pq-hole{height:24px;}
+  .fs-toks{margin-top:4px;}
+  .fs-ja{font-size:11px;color:#333;margin-top:2px;}
+  .fs-toks .pq-tok{font-size:11.5px;padding:0 6px;margin:0 4px 4px 0;}
+  .fs-tbl{border-collapse:collapse;width:100%;table-layout:fixed;}
+  .fs-tbl th,.fs-tbl td{border:1px solid #7d8794;padding:2px 4px;font-size:10.5px;text-align:center;line-height:1.4;overflow-wrap:anywhere;}
+  .fs-tbl thead th{background:#eef0f3;font-weight:700;}
+  .fs-tbl tbody th{background:#f6f7f9;font-weight:700;}
+  .fs-tblblk{align-items:flex-start;}
+  .fs-tblblk .fs-tbl{max-width:110mm;}
+  .fs-tblblk .fs-qs{flex:0 0 44mm;}
   .print-cols-head{display:flex;font-size:11px;color:#666;margin-bottom:4px;}
   .print-cols-head span:first-child{width:45%;}
   .print-none{color:#666;font-size:13px;}
@@ -2173,6 +2199,117 @@ function nextActionCell(s){var ks=naList(s);if(!ks.length)return '<span class="d
    呼び出しが0件になったまま定義だけ残っていた。専用CSS .acc-rate も一緒に消した。
    .acc-hi / .acc-mid / .acc-low は残す＝レポートタブの rpRateCls が使っている。 */
 /* 統一印刷レイアウト（リアルタイム印刷と共通の描画）。1枚＝1生徒。学習日→教材でグループ、パートは小タグ、図は大きく、答え側に読み方・覚え方 2026-07-24 */
+/* ===== 【2026-09-13j・段E】問題の形式ごとに紙を組む =====
+   正＝`要件定義書_先生画面の再編` §5 段E ／ `要件定義書_弱点集計とプリント` §3-4・段4〜6。
+
+   きっかけ＝`sheetKindOf_` が `qtype` を1つも見ておらず、
+   穴うめ・語順・表・聞き取りが ぜんぶ「英文 → 訳」の紙になっていた
+   （英検122問・毎日学習486問。「聞き取りが弱い」と出して紙を押すと英文→訳が出てくる状態）。
+
+   ★材料は新しく作っていない。teacher_mistakes が返す `qtype` / `qdata` と、
+     `data.assets`（asset id → payload）を読むだけ。
+   ★古いGAS（段Eぶんを未再デプロイ）だと qtype も assets も来ない。
+     そのときは `_pqKind_` が '' を返して、今までどおりの「語」の紙に落ちる＝画面は壊れない。 */
+var _pqAssets={};       /* asset id → {id,kind,title,payload,url,holes} */
+var _pqOrdCache={};     /* word_id → 混ぜたあとの語群。1回の印刷のあいだは同じ並びを使う */
+function _pqSetAssets_(d){
+  _pqAssets=(d&&d.assets)||{};
+  _pqOrdCache={};       /* 取り直したら混ぜ直す */
+}
+function _pqData_(it){
+  if(!it||!it.qdata) return null;
+  try{ var q=JSON.parse(it.qdata); return (q&&typeof q==='object')?q:null; }catch(e){ return null; }
+}
+/* 問題1つぶんの素材。{qd:qdata, pl:payload, as:assetの行} または null */
+function _pqPack_(it){
+  var qd=_pqData_(it); if(!qd||!qd.asset) return null;
+  var a=_pqAssets[String(qd.asset)]; if(!a) return null;
+  if(a._pl===undefined){ try{ a._pl=JSON.parse(a.payload||'{}'); }catch(e){ a._pl=null; } }
+  return a._pl?{qd:qd,pl:a._pl,as:a}:null;
+}
+/* 紙の形。素材が取れないものは '' ＝今までの形に落とす（紙が空にならない） */
+function _pqKind_(it){
+  var t=String((it&&it.qtype)||'');
+  if(t==='sentence_fill') return 'fill';                       /* japanese に紙用の穴あき文がある＝素材が無くても組める */
+  if(t==='reorder')       return _pqPack_(it)?'order':'';
+  if(t==='table_fill')    return _pqPack_(it)?'table':'';
+  if(t==='listen')        return 'listen';                     /* 段7。いまは紙にしない（音が要る） */
+  return '';
+}
+/* 語群は「正しい並び」で持っている。紙でも必ず混ぜる（`要件定義書_英検教材` 確定25）。
+   偶然そのままの並びになったら振り直す（5語なら120回に1回そのままになる）。 */
+function _pqShuffle_(tok){
+  var a=(tok||[]).slice(); if(a.length<2) return a;
+  for(var g=0; g<50; g++){
+    for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    var same=true;
+    for(var k=0;k<a.length;k++){ if(String(a[k])!==String(tok[k])){ same=false; break; } }
+    if(!same) return a;
+  }
+  return a.slice().reverse();
+}
+/* ★同じ問題は1回の印刷のあいだ同じ並びにする。
+   仕上げプリントは「測る → 並べ替える → 描く」で同じ問題を何度も組み直すので、
+   そのたびに混ぜ直すと 測った高さと描いた高さがずれる。 */
+function _pqTokens_(it){
+  var k=String(it.word_id||'')||String(it.english||'');
+  if(_pqOrdCache[k]) return _pqOrdCache[k];
+  var pk=_pqPack_(it); if(!pk) return [];
+  return (_pqOrdCache[k]=_pqShuffle_(pk.pl.tokens||[]));
+}
+/* 語群のチップ。紙なので枠だけ（押すものではない） */
+function _pqOrdHtml_(it,cls){
+  var toks=_pqTokens_(it), pk=_pqPack_(it);
+  var ja=pk?String(pk.pl.ja||it.japanese||''):String(it.japanese||'');
+  return '<div class="'+cls+'-toks">'+toks.map(function(t){
+      return '<span class="pq-tok">'+esc(String(t))+'</span>'; }).join('')+'</div>'
+    +(ja?('<div class="'+cls+'-ja">'+esc(ja)+'</div>'):'');
+}
+/* 語ごとの意味（gloss）。tokens と1対1で並ぶ。記号は空（`要件定義書_英検教材` 17i） */
+function _pqGlossText_(it){
+  var pk=_pqPack_(it); if(!pk) return '';
+  var tk=pk.pl.tokens||[], gl=pk.pl.gloss||[];
+  if(!gl.length) return '';
+  var out=[];
+  for(var i=0;i<tk.length;i++){
+    var g=String(gl[i]||'').trim(); if(!g) continue;            /* 記号は空 */
+    /* ★区切りは「＝」にしない。be動詞の gloss は文字そのものが「＝」なので am＝＝ になる（17i）*/
+    out.push(String(tk[i])+'（'+g+'）');
+  }
+  return out.join('　');
+}
+/* 表（table_fill）。1枚の表にまとめて穴を複数あける（川上さん確定 2026-09-13j）。
+   ・この紙に出ている穴 → 問題番号を入れた空欄
+   ・この紙に出ていない穴（asset.holes にあるもの）→ 番号なしの空欄。**答えは見せない**
+   ・穴でないセル → そのまま文字を出す
+   noByRC＝{"r_c": 問題番号} */
+function _pqTableHtml_(pk,noByRC,cls){
+  var pl=pk.pl, holes=(pk.as&&pk.as.holes)||{};
+  var cols=pl.cols||[], rows=pl.rows||[];
+  var h='<table class="'+cls+'-tbl"><thead><tr><th></th>'
+    +cols.map(function(c){ return '<th>'+esc(String(c))+'</th>'; }).join('')+'</tr></thead><tbody>';
+  rows.forEach(function(rw,ri){
+    h+='<tr><th>'+esc(String(rw.label||''))+'</th>';
+    (rw.cells||[]).forEach(function(cell,ci){
+      var key=ri+'_'+ci, no=noByRC[key];
+      if(no) h+='<td class="pq-hole"><span class="pq-holeno">'+no+'</span></td>';
+      else if(holes[key]) h+='<td class="pq-hole"></td>';
+      else h+='<td>'+esc(String(cell||''))+'</td>';
+    });
+    h+='</tr>';
+  });
+  return h+'</tbody></table>';
+}
+/* 答え（プレーン文字）。形式によって「どっちが答えか」が変わる。
+   ★穴うめ・語順・表は、いままでの英語の向き（english を問題・japanese を答え）と**逆**。
+     これを見ていなかったのが §3-4 の「am → I に続く be動詞」＝問題として意味をなさない紙の正体。 */
+function _pqAnswerOf_(it){
+  var k=_pqKind_(it);
+  if(k==='fill'||k==='table') return String(it.english||'');    /* 答え＝入る1語・セルの文字 */
+  if(k==='order')            return String(it.english||'');     /* 答え＝正しい文 */
+  if(k==='listen')           return String(it.japanese||'');    /* 答え＝訳（段7） */
+  return null;                                                  /* 形式なし＝今までどおり */
+}
 function unifiedStudentHtml_(st, opts){
   opts=opts||{};
   var items=(st.items||[]).slice();
@@ -2193,11 +2330,29 @@ function unifiedStudentHtml_(st, opts){
       +'<span>平均正答率 <b>'+(st.avg_rate==null?'—':st.avg_rate+'%')+'</b></span>'
       +'<span class="low">要フォロー <b>'+(st.follow||0)+'</b> 件</span>';
   }
-  h+='<span>'+esc(opts.missLabel||'まちがえた問題')+' <b>'+items.length+'</b> 問</span></div>';
+  /* 【2026-09-13j・段E】聞き取り（listen）はまだ紙にしていない（音が要る＝段7）。
+     英文→訳の紙にして出すと「聞き取りの練習」にならないので、紙から外して件数だけ出す。 */
+  var _lsN=0;
+  items=items.filter(function(it){ if(_pqKind_(it)==='listen'){ _lsN++; return false; } return true; });
+  h+='<span>'+esc(opts.missLabel||'まちがえた問題')+' <b>'+items.length+'</b> 問</span>'
+    +(_lsN?('<span>聞き取り <b>'+_lsN+'</b> 問はこの紙に出していません</span>'):'')+'</div>';
   if(!items.length){ h+='<div class="up-none">'+esc(opts.emptyLabel||'✓ まちがいはありませんでした')+'</div></div>'; return h; }
   h+='<div class="up-colh"><span>問題</span><span>答え・覚え方（折って隠せます）</span></div>';
+  /* 表（table_fill）は同じ表を何問も参照する。**1枚の表にまとめて穴を複数あける**（川上さん確定 2026-09-13j）。
+     → その表がはじめて出てくるところで表を1回だけ描き、同じ表の問題をそこにまとめる。 */
+  var _tblFirst={}, _tblItems={};
+  items.forEach(function(it){
+    if(_pqKind_(it)!=='table') return;
+    var pk=_pqPack_(it), aid=pk?String(pk.qd.asset):''; if(!aid) return;
+    if(!_tblItems[aid]){ _tblItems[aid]=[]; _tblFirst[aid]=it; }
+    _tblItems[aid].push(it);
+  });
   var curKey='', n=0;
   items.forEach(function(it){
+    var kind=_pqKind_(it);
+    var pk=(kind==='table')?_pqPack_(it):null;
+    var aid=pk?String(pk.qd.asset):'';
+    if(kind==='table' && _tblFirst[aid]!==it) return;              /* 2問目以降は表のところでまとめて出す */
     var key=(it.date||'')+'|'+(it.material_title||'');
     if(key!==curKey){
       curKey=key;
@@ -2205,16 +2360,43 @@ function unifiedStudentHtml_(st, opts){
       var lbl=(md?('<span class="up-gdate">'+esc(md)+'</span>'):'')+'<span class="up-gmat">'+esc(mtLabelMt(it)||'(教材)')+'</span>';
       h+='<div class="up-ghead">'+lbl+'</div>';
     }
+    var tag=it.part_title?('<span class="up-tag">'+esc(it.part_title)+'</span>'):'';
+    if(kind==='table'){
+      /* 1枚の表＋この紙に出ている穴ぶんの番号。答えはまとめて右の欄に並べる */
+      var grp=_tblItems[aid], noByRC={}, ansH='';
+      grp.forEach(function(g){
+        n++;
+        var gq=_pqData_(g)||{};
+        noByRC[(gq.r|0)+'_'+(gq.c|0)]=n;
+        ansH+='<div class="up-ans"><span class="pq-ano">'+n+'</span>'+esc(String(g.english||''))+'</div>'
+          +(g.kaisetsu?('<div class="up-kai">覚え方：'+esc(g.kaisetsu)+'</div>'):'');
+      });
+      h+='<div class="up-item"><div class="up-q"><div class="up-qtxt pq-lead">表の空いているところに入る言葉を書く</div>'
+        +_pqTableHtml_(pk,noByRC,'up')+tag+'</div>'
+        +'<div class="up-a">'+ansH+'</div></div>';
+      return;
+    }
     n++;
-    /* 教科で問題／答えの向きを出し分ける：英語=英単語が問題／理社・国語=問題文が問題・用語が答え 2026-07-23 */
-    var isEn=(String(it.subject||'')==='english');
-    var q=isEn?(it.english||''):(it.japanese||'');
-    var a=isEn?(it.japanese||''):(it.english||'');
+    var qH, aTxt=_pqAnswerOf_(it), extra='';
+    if(kind==='fill'){
+      /* 穴あき英文＋和訳は japanese にそのまま入っている（`要件定義書_英検教材` §5b＝紙用）。
+         選択肢は紙に出さない（`print-sheet-design`＝出した時点で「見分ける」練習に変わる）。 */
+      qH='<div class="up-qtxt">'+n+'. '+esc(String(it.japanese||''))+'</div>';
+    }else if(kind==='order'){
+      qH='<div class="up-qtxt">'+n+'. '+esc('ならべかえて文を作る')+'</div>'+_pqOrdHtml_(it,'up');
+      var gl=_pqGlossText_(it);
+      if(gl) extra='<div class="up-kai">語の意味：'+esc(gl)+'</div>';
+    }else{
+      /* 教科で問題／答えの向きを出し分ける：英語=英単語が問題／理社・国語=問題文が問題・用語が答え 2026-07-23 */
+      var isEn=(String(it.subject||'')==='english');
+      qH='<div class="up-qtxt">'+n+'. '+esc(isEn?(it.english||''):(it.japanese||''))+'</div>';
+      if(aTxt==null) aTxt=isEn?(it.japanese||''):(it.english||'');
+    }
     var figH=it.fig?('<div class="up-fig"><img src="'+esc(it.fig)+'" onerror="this.style.display=\'none\'"></div>'):'';
-    h+='<div class="up-item"><div class="up-q"><div class="up-qtxt">'+n+'. '+esc(q)+'</div>'+figH
-      +(it.part_title?'<span class="up-tag">'+esc(it.part_title)+'</span>':'')+'</div>'
-      +'<div class="up-a"><div class="up-ans">'+esc(a)+'</div>'
+    h+='<div class="up-item"><div class="up-q">'+qH+figH+tag+'</div>'
+      +'<div class="up-a"><div class="up-ans">'+esc(String(aTxt||''))+'</div>'
       +(it.reading_hint?'<div class="up-read">読み方：'+esc(it.reading_hint)+'</div>':'')
+      +extra
       +(it.kaisetsu?'<div class="up-kai">覚え方：'+esc(it.kaisetsu)+'</div>':'')
       +'</div></div>';
   });
@@ -2291,6 +2473,7 @@ var FS_CODE_TMP_='XX-9999';    /* 測るときだけ使う仮のセット番号�
 var FS_SHEET_URL_='https://kf-juku.github.io/kurofune-word-trainer/?sheet=';  /* QRの中身（川上さん確定 2026-08-30）*/
 var FS_FIGBLK_PER_PAGE_=3;     /* 1ページに置ける図ブロック数 */
 var FS_FIG_PER_BLK_=3;         /* 1ブロックにぶら下げる問題数 */
+var FS_TBL_PER_BLK_=8;         /* 表（table_fill）は素材が1枚なので上限を別に持つ 2026-09-13j・段E */
 var FS_FIG_BLK_MAX_=12;        /* 問題4ページ×1ページ3ブロック 2026-09-02 */
 var FS_QPAGE_MAX_=4;           /* 問題は最大4ページ＝両面2枚（川上さん確定 2026-09-02） */
 var FS_APAGE_MAX_=4;           /* 答えも最大4ページ＝両面2枚。1人ぶんは最大で用紙4枚 */
@@ -2342,6 +2525,13 @@ function fsQText_(q){
 function sheetKindOf_(it){
   if(!it) return 'skip';
   var isEn=(String(it.subject||'')==='english');
+  /* 【2026-09-13j・段E】qtype を見て紙の形を決める。ここが「英文→訳」に化けていた原因（§3-4）。
+     ★qtype が来ていない古いGASでは _pqKind_ が '' を返す＝下の今までどおりの判定に落ちる。 */
+  var _pk=_pqKind_(it);
+  if(_pk==='fill')  return 'fill';
+  if(_pk==='order') return 'order';
+  if(_pk==='table') return 'table';
+  if(_pk==='listen')return 'skip';   /* 段7。音が要るので紙にしない。英文→訳で出すほうが害が大きい */
   /* 英語で図があるものは表の穴うめ（table_fill）。英語に image_fill は1問も無いので、これで見分けられる */
   if(isEn && it.fig) return 'skip';
   if(!isEn && FS_NEG_.test(String(it.japanese||''))) return 'skip';
@@ -2352,8 +2542,18 @@ function sheetKindOf_(it){
   return 'write';
 }
 function fsIsEn_(it){ return String(it.subject||'')==='english'; }
-function fsQuestionOf_(it){ return fsIsEn_(it)?String(it.english||''):fsQText_(it.japanese); }
-function fsAnswerOf_(it){ return fsIsEn_(it)?String(it.japanese||''):String(it.english||''); }
+function fsQuestionOf_(it){
+  var k=_pqKind_(it);
+  if(k==='fill') return String(it.japanese||'');            /* 穴あき英文＋和訳（紙用・§5b） */
+  if(k==='order')return 'ならべかえて文を作る';
+  return fsIsEn_(it)?String(it.english||''):fsQText_(it.japanese);
+}
+/* 【2026-09-13j・段E】穴うめ・語順・表は、いままでの英語の向きと**逆**（english が答え）。
+   ここを見ていなかったのが §3-4 の「am → I に続く be動詞」＝問題として意味をなさない紙の正体。 */
+function fsAnswerOf_(it){
+  var a=_pqAnswerOf_(it); if(a!=null) return a;
+  return fsIsEn_(it)?String(it.japanese||''):String(it.english||'');
+}
 /* 似たものを隣に＝同じパート → 同じ教材。順番は「最初に出てきた順」で、名前順にしない
    （※分類 review_words.category はサーバーが返していないので v1 では使わない） */
 function fsGroupSort_(arr){
@@ -2415,7 +2615,23 @@ function fsPick_(items){
   /* ★文章の問題はサーバーの順（教材を散らした順）のまま詰める。fsGroupSort_ はここでは呼ばない。
      「似たものを隣に」は詰め終わってからページの中だけでやる＝fsFillQPages_ の末尾（2026-09-02）。
      詰める前に教材ごとのかたまりに並べ替えると、紙に入りきらないとき最後の教材が丸ごと落ちる。 */
-  var texts=list.filter(function(it){return it._fsKind==='write';});
+  /* 【2026-09-13j・段E】表のかたまり。同じ asset の問題をまとめて1枚の表にする。
+     図と同じ「blocks」の列に入れる＝ページ詰めの仕組みは1行も変えない（高さは実測なのでそのまま効く）。 */
+  var tblBy={}, tblOrder=[];
+  list.forEach(function(it){
+    if(it._fsKind!=='table')return;
+    var pk=_pqPack_(it), aid=pk?String(pk.qd.asset):''; if(!aid)return;
+    if(!tblBy[aid]){ tblBy[aid]={pk:pk,items:[]}; tblOrder.push(aid); }
+    tblBy[aid].items.push(it);
+  });
+  tblOrder.forEach(function(aid){
+    /* ★表は穴の数だけ問題がぶら下がる。図の上限（3問）で切ると、1枚の表にまとめた意味が消えて
+       4つ目以降の穴が紙から落ちる。表は素材が1枚なので、上限を別に持つ（FS_TBL_PER_BLK_）。
+       背が高くなりすぎて1ページに入らないかたまりは fsFillQPages_ が落とす（飢え防止の分岐）。 */
+    blocks.push({tbl:tblBy[aid].pk, fig:'', items:tblBy[aid].items.slice(0,FS_TBL_PER_BLK_)});
+  });
+  /* 穴うめ・語順は1問＝1単位＝文章問題と同じ扱い（紙の組み方だけが違う） */
+  var texts=list.filter(function(it){return it._fsKind==='write'||it._fsKind==='fill'||it._fsKind==='order';});
   return {blocks:blocks,texts:texts};
 }
 /* 単位＝図ブロック（1〜3問）／文章問題（1問）。ページはこの単位で埋める */
@@ -2482,8 +2698,10 @@ function fsFootHtml_(ctx,label){
     +'<span>'+esc(ctx.name)+(ctx.grade?('　'+esc(ctx.grade)):'')+' ／ '+esc(ctx.code)+' ／ '+esc(label)+'</span></div>';
 }
 function fsQBodyHtml_(it,no){
+  /* 【2026-09-13j・段E】語順は語群＋和訳を足す。ほかは今までどおり1行＋解答らん */
+  var ex=(_pqKind_(it)==='order')?_pqOrdHtml_(it,'fs'):'';
   return '<div class="fs-q"><div class="fs-n">'+no+'</div><div class="fs-b">'
-    +'<div class="fs-txt">'+esc(fsQuestionOf_(it))+'</div><div class="fs-ansline"></div></div></div>';
+    +'<div class="fs-txt">'+esc(fsQuestionOf_(it))+'</div>'+ex+'<div class="fs-ansline"></div></div></div>';
 }
 /* 図の高さは「読み込めているか」に左右されないよう、mmで直接指定する。
    値は CSS の max-width:58mm / max-height（3問58・2問48・1問36mm）で決まる寸法をそのまま数値にしたものなので、
@@ -2496,6 +2714,19 @@ function fsFigHMm_(url,n){
   return Math.min(mx, FS_FIG_W_MM_*ar);       /* 幅58mmに収めたときの高さ。max-height を超えない */
 }
 function fsFigBlockHtml_(block,startNo){
+  /* 【2026-09-13j・段E】表（table_fill）も「1つの素材＋複数の問題」なので、図と同じ入れ物で描く。
+     1枚の表にまとめて穴を複数あける（川上さん確定 2026-09-13j）。
+     この紙に出ていない穴は番号なしの空欄＝ほかの穴の答えを見せない。 */
+  if(block.tbl){
+    var noByRC={}, lst='';
+    block.items.forEach(function(it,i){
+      var q=_pqData_(it)||{};
+      noByRC[(q.r|0)+'_'+(q.c|0)]=startNo+i;
+      lst+='<div class="fs-q"><div class="fs-n">'+(startNo+i)+'</div><div class="fs-b"><div class="fs-ansline"></div></div></div>';
+    });
+    return '<div class="fs-figblk fs-tblblk" data-n="'+block.items.length+'">'
+      +_pqTableHtml_(block.tbl,noByRC,'fs')+'<div class="fs-qs">'+lst+'</div></div>';
+  }
   var inner='';
   block.items.forEach(function(it,i){ inner+=fsQBodyHtml_(it,startNo+i); });
   var h=Math.round(fsFigHMm_(block.fig,block.items.length)*10)/10;
@@ -2510,8 +2741,12 @@ function fsAnsBandHtml_(){
 function fsAnsRowHtml_(it,no){
   var rd=(!fsIsEn_(it)&&String(it.reading_hint||'').replace(/\s/g,''))
     ?('<span class="fs-rd">'+esc(it.reading_hint)+'</span>'):'';
+  /* 【2026-09-13j・段E】語順は「覚え方」の欄に語ごとの意味（gloss）を出す。
+     問題の側に出すと、並べ替える前に訳が全部見えて練習にならない */
+  var kai=String(it.kaisetsu||'');
+  if(_pqKind_(it)==='order'){ var gl=_pqGlossText_(it); if(gl) kai=(kai?(kai+'　'):'')+gl; }
   return '<tr><td class="fs-tn">'+no+'</td><td class="fs-ta">'+esc(fsAnswerOf_(it))+rd+'</td>'
-    +'<td>'+esc(it.kaisetsu||'')+'</td><td class="fs-mk"><span class="fs-mkbox"></span></td></tr>';
+    +'<td>'+esc(kai)+'</td><td class="fs-mk"><span class="fs-mkbox"></span></td></tr>';
 }
 function fsAnsTableHtml_(rows){
   /* 列幅は colgroup で決める。table-layout:fixed は「最初の行」で列幅を決めるので、
@@ -2735,7 +2970,14 @@ function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
     while(fi<figQ.length && placed<FS_FIGBLK_PER_PAGE_){
       var box=document.createElement('div'); box.innerHTML=fsFigBlockHtml_(figQ[fi].block,no);
       var node=box.firstChild; figHost.appendChild(node);
-      if(pageEl.offsetHeight>usable){ figHost.removeChild(node); break; }
+      if(pageEl.offsetHeight>usable){
+        figHost.removeChild(node);
+        /* 【2026-09-13j・段E】まっさらなページにも入らないかたまりは、この先どのページにも入らない。
+           置き直しを続けると、そのうしろのかたまりが1つも紙に出なくなる（表を入れて背の高い
+           かたまりが増えたので、起きうるようになった）。入らないものはここで落として先へ進む。 */
+        if(placed===0){ fi++; continue; }
+        break;
+      }
       pg.figs.push({block:figQ[fi].block,start:no}); no+=figQ[fi].n; fi++; placed++;
     }
     while(ti<txtQ.length){
@@ -2988,6 +3230,7 @@ function runFinishSheet_(ids,mats,types){
   call({action:'teacher_mistakes',student_ids:ids.join(','),material_ids:mats.join(','),types:types,mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_})
   .then(function(d){
     if(!d||!d.ok){ hideLoading(); tmErr_('候補が取れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
+    _pqSetAssets_(d.data);   /* 【2026-09-13j・段E】問題の形式ごとの素材（表・文）を受け取る */
     _finishCand=d.data; window._finishCand=d.data;
     var ss=d.data.students||[];
     var urls={}; ss.forEach(function(s){ (s.items||[]).forEach(function(it){ if(it.fig) urls[it.fig]=1; }); });
@@ -3140,6 +3383,7 @@ function runPrint_(ids,scope,days,limit,types,mats){
   showLoading('印刷データを準備中…');
   call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit,types:(types||'daily,unit,quiz'),material_ids:(mats||'')}).then(function(d){
     if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
+    _pqSetAssets_(d.data);   /* 【2026-09-13j・段E】問題の形式ごとの素材（表・文）を受け取る */
     var sts=d.data.students||[];
     // 表示が同じ問題は1件に（GAS teacher_mistakes は word_id で統合済み。別パートの同一用語など"見た目の重複"を画面側でも除去）2026-07-28
     var all=sts.length;
