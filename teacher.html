@@ -3415,7 +3415,7 @@ function fsFilledNote_(ss){
 function runFinishSheet_(ids,mats,types){
   if(!ids.length){tmErr_('印刷する生徒がえらばれていません。');return;}
   tmErr_('');
-  showLoading('仕上げプリントを作っています…');
+  showLoading(ids.length+'名ぶんの問題を集めています…（10秒ほどかかります）');   /* 【2026-09-14】進み具合を出す */
   call({action:'teacher_mistakes',student_ids:ids.join(','),material_ids:mats.join(','),types:types,mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_})
   .then(function(d){
     if(!d||!d.ok){ hideLoading(); tmErr_('候補が取れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
@@ -3424,6 +3424,7 @@ function runFinishSheet_(ids,mats,types){
     var ss=d.data.students||[];
     var urls={}; ss.forEach(function(s){ (s.items||[]).forEach(function(it){ if(it.fig) urls[it.fig]=1; }); });
     fsPreload_(Object.keys(urls),function(){
+      showLoading(ss.length+'名ぶんの紙を組んでいます…');   /* 【2026-09-14】進み具合を出す */
       var base={date:_rpToday(),code:FS_CODE_TMP_,scope:fsScopeLabel_(mats)};
       var built=[];
       ss.forEach(function(s){ var b0=fsBuildSheet_(s,base); if(b0) built.push(b0); });
@@ -3570,7 +3571,11 @@ function runPrint_(ids,scope,days,limit,types,mats){
   var subLbl=(scope==='recent')?('直近'+days+'日にまちがえた問題'):(scope==='graduated')?'復習チェック（前にやって克服した語）':'まちがえた問題';
   var emptyLbl=(scope==='graduated')?'まだ克服した語がありません。':'いまはまちがえている問題はありません。';
   var missLbl=(scope==='graduated')?'復習チェック':'まちがえた問題';
-  showLoading('印刷データを準備中…');
+  /* 【2026-09-14】進み具合を出す。
+     Why: サーバーの応答に **約9秒**（43名・37教材で実測 8.8〜10.5秒）かかる。
+          「印刷データを準備中…」だけだと、止まったのか動いているのか分からず
+          「進まない」と受け取られていた（川上さん報告 2026-09-14）。 */
+  showLoading(ids.length+'名ぶんのまちがいを集めています…（10秒ほどかかります）');
   call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit,types:(types||'daily,unit,quiz'),material_ids:(mats||'')}).then(function(d){
     if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
     _pqSetAssets_(d.data);   /* 【2026-09-13j・段E】問題の形式ごとの素材（表・文）を受け取る */
@@ -3588,6 +3593,7 @@ function runPrint_(ids,scope,days,limit,types,mats){
     if(!sts.length){tmErr_((scope==='graduated')?('克服した語がある生徒がいません（'+all+'名ぜんぶ0語）'):('まちがえている問題がある生徒がいません（'+all+'名ぜんぶ0問）'));return;}
     if(_prnHost!=='report')closeModal('bulkModal');   /* ★作れると分かってから閉じる 2026-09-02⑬。タブから呼んだときは閉じるものが無い（段D）*/
     if(skipped)toast((scope==='graduated'?'克服した語なし ':'まちがいなし ')+skipped+'名は印刷しません');
+    showLoading(sts.length+'名ぶんの紙を組んでいます…');   /* 【2026-09-14】 */
     var html=sts.map(function(s){
       return '<div class="p-unit">'+unifiedStudentHtml_(s,{wrapClass:'print-student',docTitle:subLbl,showSubmit:false,missLabel:missLbl,emptyLabel:emptyLbl})+'</div>';
     }).join('');
@@ -3603,7 +3609,11 @@ function printWhenImagesReady_(c,nm){
   _applyPrintTitle_(nm);   /* 印刷ダイアログの「PDFに保存」のファイル名 2026-09-02⑭ */
   var imgs=Array.prototype.slice.call((c||document).querySelectorAll('img'));
   var pending=imgs.filter(function(im){ return !(im.complete && im.naturalWidth>0); });
-  var fired=false, go=function(){ if(fired)return; fired=true; insertDuplexFillers_(c, function(){ setTimeout(function(){window.print();},60); }); };
+  /* 【2026-09-14】印刷ダイアログを作るのはブラウザの仕事で、ページ数が多いと数秒〜十数秒かかる。
+     そのあいだ画面が止まって見えるので、直前まで案内を出しておく。 */
+  var fired=false, go=function(){ if(fired)return; fired=true; insertDuplexFillers_(c, function(){
+    try{ showLoading('印刷ダイアログを開きます…（ページ数が多いと表示まで少し待ちます）'); }catch(e){}
+    setTimeout(function(){ try{ window.print(); }finally{ try{ hideLoading(); }catch(e){} } },60); }); };
   if(!pending.length){ go(); return; }
   var done=0, on=function(){ done++; if(done>=pending.length) go(); };
   pending.forEach(function(im){ im.addEventListener('load',on,{once:true}); im.addEventListener('error',on,{once:true}); });
@@ -3896,7 +3906,33 @@ function fmtMs_(ms){ms=parseInt(ms,10)||0;if(ms<=0)return '–';var sec=Math.rou
 function printOne(sid){closeModal('studentModal');openTargetModal('print',[sid]);}
 /* 【2026-09-13e・段B】その生徒・その教材だけを対象にチェックプリントを出す（個別詳細の🖨）。
    旧「覚える一覧」「まちがいプリント」は用語を「チェックプリント」に統一（要件定義書 §7）。 */
-function printOneMat(sid,mid){closeModal('studentModal');openTargetModal('print',[sid],[mid]);}
+/* 【2026-09-14】kind＝押した表の種別。'daily'＝毎日学習の表／'unit'＝単元別の表。
+   これを渡すのは、教材の一覧（bulkMaterials）がまだ読めていないときでも種別を決められるようにするため。 */
+function printOneMat(sid,mid,kind){closeModal('studentModal');openTargetModal('print',[sid],[mid],kind);}
+/* 【2026-09-14】えらんだ教材に合う「印刷する種別」を決める。
+   ★単元別の教材は「単元別」と「確認テスト」の両方をオンにする（川上さん確定 2026-09-14）。
+     単元別教材のまちがいは、単元別の練習と確認テストの両方から出るため。
+   ★分からないときは3つとも オン＝紙から落とさない側に倒す。
+   Why: 種別のチェックは前回の設定（localStorage）から戻していた。毎日学習をオフにしたまま
+        毎日学習の教材で🖨を押すと、サーバーに送る絞り込みから毎日学習が外れて **0問** になり、
+        「教材はえらんだのに紙が出ない」という形で静かに失敗していた（2026-09-14 川上さん報告）。 */
+function _prnTypesForMats_(ids,kind){
+  var out={};
+  if(kind==='daily'){ out.daily=1; }
+  else if(kind==='unit'){ out.unit=1; out.quiz=1; }
+  else{
+    var unknown=false;
+    (ids||[]).forEach(function(id){
+      var m=null;
+      for(var i=0;i<bulkMaterials.length;i++){ if(String(bulkMaterials[i].id)===String(id)){ m=bulkMaterials[i]; break; } }
+      if(!m){ unknown=true; return; }
+      if(String(m.content_type||'')==='test'){ out.unit=1; out.quiz=1; } else { out.daily=1; }
+    });
+    if(unknown){ out.daily=1; out.unit=1; out.quiz=1; }
+  }
+  var a=['daily','unit','quiz'].filter(function(t){ return out[t]; });
+  return a.length?a:['daily','unit','quiz'];
+}
 function sdAssign(sid){closeModal('studentModal');openAssign(sid);}
 function lastStudiedText(s){return s.last_studied_at?String(s.last_studied_at).slice(0,10):'まだ学習なし';}
 function weakPartName(s){var mv=s.materials_view||[];var w=null;mv.forEach(function(m){(m.parts||[]).forEach(function(p){if(p.status==='try'&&p.acc!=null&&p.acc<_accLine()&&(!w||p.acc<w.acc))w={n:p.name,acc:p.acc};});});return w?w.n:'';}
@@ -4086,7 +4122,7 @@ function sdDailyBlock_(s){
       var acc=(m.acc===''||m.acc==null)?'未評価':(m.acc+'%');
       return '<tr><td class="qsu-u">'+esc(mtLabel(m))+_lapBadge(m)+'</td>'
         +'<td class="qsu-prac"><span class="qsu-pr">→'+esc(m.here||'-')+'</span> <b style="color:'+col(m.acc)+'">'+esc(acc)+'</b></td>'
-        +'<td class="qsu-a"><span class="qsu-print" onclick="printOneMat(\''+sid+'\',\''+mid+'\')">🖨 チェックプリント</span></td></tr>';
+        +'<td class="qsu-a"><span class="qsu-print" onclick="printOneMat(\''+sid+'\',\''+mid+'\',\'daily\')">🖨 チェックプリント</span></td></tr>';
     }).join('')
   +'</tbody></table>';
 }
@@ -4106,7 +4142,7 @@ function sdUnitBlock_(s,pack){
     var k=(e.series_label||_sdMatTitle_(mats,e.material_id)||e.material_title||'その他');
     if(!ser[k]){ser[k]=[];sorder.push(k);} ser[k].push(e);
   });
-  var prn=function(mid){ return '<span class="qsu-print" onclick="printOneMat(\''+esc(sid)+'\',\''+esc(mid)+'\')">🖨 チェックプリント</span>'; };
+  var prn=function(mid){ return '<span class="qsu-print" onclick="printOneMat(\''+esc(sid)+'\',\''+esc(mid)+'\',\'unit\')">🖨 チェックプリント</span>'; };
   var body=sorder.map(function(k,j){
     var list=ser[k].slice().sort(function(a,b){return (a.part_order||0)-(b.part_order||0);});
     var so=0,sn=0,sm=0; list.forEach(function(e){if(e.status==='ok')so++;else if(e.status==='ng')sn++;else sm++;});
@@ -5953,17 +5989,21 @@ var bulkMat={}, bulkMaterials=[]; var bulkDeliver={}, bulkDelivDates={}, bulkDel
    割り当ての bulkMat とは別に持つ（同じモーダルだが選ぶ目的が違うので混ぜない）。
    選ぶUIの部品は renderMatCand_ / renderMatSel_ をそのまま流用する＝新しく作らない。 */
 var printMat={}, _printMatOpen={};
+/* 【2026-09-14】教材を先にえらんで開いたときの「印刷する種別」。null＝今までどおり前回の設定を使う。 */
+var _prnPresetTypes=null;
 function _printStyle_(){ return (localStorage.getItem('kwt_print_style')==='finish')?'finish':'list'; }
 var tmMode='assign', tmStep=1, tmSel={}, tmSearch='';
 /* 【2026-09-13e・段B】presetMats＝「この教材だけ」を先に選んだ状態で開く（個別詳細の🖨 チェックプリント）。
    渡されたときは前回のテスト範囲（localStorage）を読まない＝押した教材だけが対象になる。
    渡さなければ今までどおり（前回の範囲を復元）。 */
-function openTargetModal(mode,presetIds,presetMats){
+function openTargetModal(mode,presetIds,presetMats,presetKind){
   _prnHost='modal';   /* 【2026-09-13i・段D】失敗メッセージの出し先をモーダルに戻す */
   tmMode=mode;tmStep=1;tmSel={};tmSearch='';bulkMat={};bulkDeliver={};bulkDelivDates={};bulkDelivOpen={};_bulkOpen={};
   printMat={};_printMatOpen={};
+  _prnPresetTypes=null;   /* 【2026-09-14】教材を先にえらんで開いたときだけ入る */
   if(mode==='print'){
-    if(presetMats&&presetMats.length){ presetMats.forEach(function(id){id=String(id).trim();if(id)printMat[id]=1;}); }
+    if(presetMats&&presetMats.length){ presetMats.forEach(function(id){id=String(id).trim();if(id)printMat[id]=1;});
+      _prnPresetTypes=_prnTypesForMats_(presetMats,presetKind); }
     else { (localStorage.getItem('kwt_print_mats')||'').split(',').forEach(function(id){id=String(id).trim();if(id)printMat[id]=1;}); } // 前回のテスト範囲を覚えておく
   }
   (presetIds||[]).forEach(function(id){tmSel[String(id)]=1;});
@@ -6054,6 +6094,7 @@ function tmStepPrint_(body){
   var days=localStorage.getItem('kwt_print_days')||'7';
   var limit=localStorage.getItem('kwt_print_limit')||'20';
   var typesRaw=localStorage.getItem('kwt_print_types'); var types=(typesRaw==null?'daily,unit,quiz':typesRaw).split(',');
+  if(_prnPresetTypes)types=_prnPresetTypes.slice();   /* 【2026-09-14】えらんだ教材に合わせる（前回の設定より優先） */
   var has=function(t){return types.indexOf(t)>=0;};
   var style=_printStyle_();
   body.innerHTML=
@@ -6072,7 +6113,9 @@ function tmStepPrint_(body){
     +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-daily"'+(has('daily')?' checked':'')+'> 毎日学習</label>'
     +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-unit"'+(has('unit')?' checked':'')+'> 単元別</label>'
     +'<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="tmT-quiz"'+(has('quiz')?' checked':'')+'> 確認テスト</label>'
-    +'</div></div>'
+    +'</div>'
+    +(_prnPresetTypes?'<div class="tm-mute" style="font-size:11.5px;color:var(--text-light);font-weight:700;">えらんだ教材に合わせてチェックしました。変えたいときは押してください。</div>':'')
+    +'</div>'
     +'<div id="tmListOpts">'
     +'<div class="tm-qh" style="margin-top:10px;">印刷する範囲</div>'
     /* ★プルダウンをやめてカードに（2026-09-02⑬）。値の読み口は今までどおり $('tmScope').value のまま
@@ -6191,7 +6234,10 @@ function tmPrint(){
      消したいときは教材えらびの「クリア」を押す。 */
   var lmats=Object.keys(printMat);
   try{ localStorage.setItem('kwt_print_mats',lmats.join(',')); }catch(e){}
-  localStorage.setItem('kwt_print_scope',scope);localStorage.setItem('kwt_print_days',days);localStorage.setItem('kwt_print_limit',limit);localStorage.setItem('kwt_print_types',types.join(','));
+  localStorage.setItem('kwt_print_scope',scope);localStorage.setItem('kwt_print_days',days);localStorage.setItem('kwt_print_limit',limit);
+  /* 【2026-09-14】教材に合わせて自動でチェックしたぶんは覚えない。
+     覚えるとレポート・印刷タブの「出す種別」まで書き換わってしまう。 */
+  if(!_prnPresetTypes)localStorage.setItem('kwt_print_types',types.join(','));
   tmErr_('');
   runPrint_(ids,scope,days,limit,types.join(','),lmats.join(','));   /* 閉じるのは中で「作れる」と分かってから 2026-09-02⑬ */
 }
@@ -6675,6 +6721,11 @@ function renderReportTab(){
       var mats=(d&&d.ok)?(d.data.materials||[]):[];
       bulkMaterials=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');});
       rpRenderMat(); rpRender();
+      /* 【2026-09-14】「5. 紙にする」の出す範囲も、教材の一覧が届いた時点で描き直す。
+         rpRender() の中からも呼ばれるが、ここで明示的に呼んでおく（読む人が追えるように）。
+         ★教材名が mat-nh1-eng-pr-e2j のような IDで見えていたのは、この一覧が届くまでの数秒間。
+           上の rpRenderPaper 側で、未着のときは「読み込み中…」と出すようにした。 */
+      rpRenderPaper();
     });
   }
   /* 【2026-09-13f・段C】確認テストの取りに行き方は ensureQuizBoard_ 1本にまとめた。
@@ -7106,9 +7157,12 @@ function rpRenderPaper(n){
     box.innerHTML=RP_SEL.map(function(id){
       var m=_rpMat(id), on=!!RP_OUT[String(id)];
       var d=m?(String(m.content_type||'')==='test'):false;
+      /* 【2026-09-14】教材の一覧がまだ届いていないときに生のIDを出さない（先生には意味が無い文字列）。
+         届いたら renderReportTab の materials_list の戻りで描き直される。 */
+      var lbl=m?mtShort(m):((bulkMaterials&&bulkMaterials.length)?String(id):'読み込み中…');
       return '<div class="qmtab'+(on?' on':'')+'" onclick="rpOutPick(\''+esc(String(id))+'\')">'+(on?'✓ ':'')
         +'<span class="rp-tag '+(d?'unit':'daily')+'">'+(d?'単元別':'毎日')+'</span>'
-        +esc(m?mtShort(m):id)+'</div>';
+        +esc(lbl)+'</div>';
     }).join('');
   }
   var use=rpOutMats_();
@@ -7116,7 +7170,7 @@ function rpRenderPaper(n){
   if(cap){
     if(!RP_SEL.length)cap.innerHTML='';
     else if(!Object.keys(RP_OUT).length)cap.innerHTML='<b>えらんでいないので、上の'+RP_SEL.length+'教材ぜんぶ</b>から出します。';
-    else cap.innerHTML='出す範囲（'+use.length+'／'+RP_SEL.length+'教材）　'+esc(use.map(function(id){var m=_rpMat(id);return m?mtShort(m):id;}).join('・'));
+    else cap.innerHTML='出す範囲（'+use.length+'／'+RP_SEL.length+'教材）　'+esc(use.map(function(id){var m=_rpMat(id);return m?mtShort(m):((bulkMaterials&&bulkMaterials.length)?String(id):'読み込み中…');}).join('・'));
   }
   var ab=$('rpOutAll'); if(ab)ab.textContent=(RP_SEL.length&&use.length===RP_SEL.length&&Object.keys(RP_OUT).length)?'ぜんぶ選び直す':'ぜんぶ選ぶ';
   /* 条件の欄は紙の形で出し分ける */
