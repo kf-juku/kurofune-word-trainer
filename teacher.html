@@ -387,6 +387,18 @@
   .pq-hole{background:#f2f4f7;}
   .pq-holeno{font-size:10.5px;font-weight:800;color:#555;}
   .up-toks{margin-top:6px;}
+  /* 聞き取り（段7）。選択肢は1行1つ＝紙で記号を書き写しやすい */
+  .pq-cho{display:block;font-size:12.5px;line-height:1.6;color:#000;}
+  .pq-cho b{display:inline-block;min-width:16px;font-weight:800;color:#555;}
+  .pq-lead2{font-size:11px;font-weight:600;color:#555;}
+  .up-cho{margin-top:5px;}
+  .up-lisans{margin-top:7px;font-size:12px;color:#333;}
+  .up-lisbox{display:inline-block;width:46px;border-bottom:1.4px solid #333;height:15px;vertical-align:-3px;}
+  .fs-cho{margin-top:3px;}
+  /* 聞き取りの区切り見出し（段7）。文章問題は2列のグリッドなので、全幅で置く */
+  .fs-lishead{grid-column:1/-1;border:1.2px solid #7d8794;background:#f2f4f7;border-radius:5px;
+              padding:4px 8px;font-size:11px;color:#222;line-height:1.5;margin:3px 0;page-break-inside:avoid;}
+  .fs-cho .pq-cho{font-size:11px;line-height:1.5;}
   .up-ja{font-size:12px;color:#333;margin-top:2px;}
   .up-tbl{border-collapse:collapse;width:100%;margin-top:5px;table-layout:fixed;}
   .up-tbl th,.up-tbl td{border:1px solid #7d8794;padding:3px 5px;font-size:11.5px;text-align:center;
@@ -2216,6 +2228,7 @@ var _pqOrdCache={};     /* word_id → 混ぜたあとの語群。1回の印刷�
 function _pqSetAssets_(d){
   _pqAssets=(d&&d.assets)||{};
   _pqOrdCache={};       /* 取り直したら混ぜ直す */
+  _pqChoCache={};       /* 聞き取りの選択肢も同じ（段7）*/
 }
 function _pqData_(it){
   if(!it||!it.qdata) return null;
@@ -2301,6 +2314,63 @@ function _pqTableHtml_(pk,noByRC,cls){
   });
   return h+'</tbody></table>';
 }
+/* ===== 【2026-09-14・段7】聞き取り =====
+   正＝`要件定義書_弱点集計とプリント` 段7（案エ・2026-09-13b 確定）。
+
+   | 紙 | 音の出し方 |
+   |---|---|
+   | チェックプリント | **先生が読み上げる。**英文は答えの欄（折って隠す側）にだけ出す |
+   | 仕上げプリント | **QRから聞く。QRは増やさない**＝いまある「紙の答え合わせ」の飛び先で鳴らす |
+
+   ★問題の側に英文を出さない。出したら聞き取りではなく読み取りになる。
+   ★選択肢（`qdata.choices_ja`）は**先頭が正解**というデータの持ち方なので、紙では必ず混ぜる
+     （混ぜないと全部「ア」が正解になる）。語群と同じく、1回の印刷のあいだは同じ並びにする。 */
+var PQ_MARKS_=['ア','イ','ウ','エ','オ','カ'];
+var _pqChoCache={};
+/* 混ぜた選択肢と、正解が何番目か。{list:[…], ans:0起点, mark:'ア'} */
+function _pqChoices_(it){
+  var k=String(it.word_id||'')||String(it.english||'');
+  if(_pqChoCache[k]) return _pqChoCache[k];
+  var qd=_pqData_(it)||{};
+  var src=(qd.choices_ja&&qd.choices_ja.length)?qd.choices_ja:null;
+  if(!src) return null;
+  var correct=String(src[0]||'');
+  var a=src.slice();
+  /* データは先頭が正解。そのまま出すと答えが「ア」に固定されるので混ぜる。
+     ★混ぜるだけでよい。「アを避ける」ような後処理を足してはいけない
+       （2026-09-14 に実際にやってしまった。4,000回まわしてアが0回＝「アは絶対に正解じゃない」を
+       生徒に教えることになる。ふつうに混ぜれば4分の1ずつになる）。 */
+  for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  var ans=0; for(var m=0;m<a.length;m++){ if(String(a[m])===correct){ ans=m; break; } }
+  return (_pqChoCache[k]={list:a, ans:ans, mark:(PQ_MARKS_[ans]||String(ans+1))});
+}
+/* 問題の側。英文は出さない＝選択肢だけ */
+function _pqLisQHtml_(it,cls){
+  var c=_pqChoices_(it);
+  if(!c) return '';
+  return '<div class="'+cls+'-cho">'+c.list.map(function(t,i){
+      return '<span class="pq-cho"><b>'+(PQ_MARKS_[i]||(i+1))+'</b>'+esc(String(t))+'</span>'; }).join('')+'</div>';
+}
+/* 答えの側。記号＋日本語＋**英文**（チェックプリントでは先生の読み上げ原稿になる） */
+function _pqLisAText_(it){
+  var c=_pqChoices_(it), pk=_pqPack_(it);
+  var ja=c?String(c.list[c.ans]||''):String(it.japanese||'');
+  var mk=c?c.mark:'';
+  var en=pk?String(pk.pl.en||it.english||''):String(it.english||'');
+  return (mk?(mk+'　'):'')+ja+(en?('　／　'+en):'');
+}
+/* 【2026-09-14・段7】同じ問題を1回だけにするための鍵。
+   もとは english＋japanese＋subject だけだった。ねらいは「別のパートに出てくる同じ用語を1回にする」。
+
+   ★ところが英検の文は、1本の文から3問（listen / sentence_fill / reorder）を作り、
+     **聞き取りと語順は english も japanese も同じ**（`要件定義書_英検教材` §5b）。
+     鍵に形式が入っていないと、この2問がぶつかって**片方が黙って紙から消える**。
+     実測（2026-09-14）＝語順と聞き取りを両方まちがえている子の紙から、聞き取りが1問も出なかった。
+   直し＝鍵に qtype を足す。別のパートの同じ用語は今までどおり1回にまとまる。 */
+function _pqDedupKey_(it){
+  return String((it&&it.english)||'')+'|~|'+String((it&&it.japanese)||'')
+    +'|~|'+String((it&&it.subject)||'')+'|~|'+String((it&&it.qtype)||'');
+}
 /* 答え（プレーン文字）。形式によって「どっちが答えか」が変わる。
    ★穴うめ・語順・表は、いままでの英語の向き（english を問題・japanese を答え）と**逆**。
      これを見ていなかったのが §3-4 の「am → I に続く be動詞」＝問題として意味をなさない紙の正体。 */
@@ -2308,7 +2378,7 @@ function _pqAnswerOf_(it){
   var k=_pqKind_(it);
   if(k==='fill'||k==='table') return String(it.english||'');    /* 答え＝入る1語・セルの文字 */
   if(k==='order')            return String(it.english||'');     /* 答え＝正しい文 */
-  if(k==='listen')           return String(it.japanese||'');    /* 答え＝訳（段7） */
+  if(k==='listen')           return _pqLisAText_(it);          /* 答え＝記号＋訳＋英文（段7）*/
   return null;                                                  /* 形式なし＝今までどおり */
 }
 function unifiedStudentHtml_(st, opts){
@@ -2331,12 +2401,17 @@ function unifiedStudentHtml_(st, opts){
       +'<span>平均正答率 <b>'+(st.avg_rate==null?'—':st.avg_rate+'%')+'</b></span>'
       +'<span class="low">要フォロー <b>'+(st.follow||0)+'</b> 件</span>';
   }
-  /* 【2026-09-13j・段E】聞き取り（listen）はまだ紙にしていない（音が要る＝段7）。
-     英文→訳の紙にして出すと「聞き取りの練習」にならないので、紙から外して件数だけ出す。 */
+  /* 【2026-09-14・段7】聞き取りも紙に出す。**先生が読み上げる**紙なので、
+     問題の側は日本語の選択肢だけ・英文は答えの欄（折って隠す側）にだけ出す。
+     素材（asset）が取れないものだけは紙にできないので外す（音も英文も無いため）。 */
   var _lsN=0;
-  items=items.filter(function(it){ if(_pqKind_(it)==='listen'){ _lsN++; return false; } return true; });
+  items=items.filter(function(it){
+    if(_pqKind_(it)!=='listen') return true;
+    if(!_pqChoices_(it)){ _lsN++; return false; }   /* 選択肢が無い＝紙にできない */
+    return true;
+  });
   h+='<span>'+esc(opts.missLabel||'まちがえた問題')+' <b>'+items.length+'</b> 問</span><!--PQADD-->'
-    +(_lsN?('<span>聞き取り <b>'+_lsN+'</b> 問はこの紙に出していません</span>'):'')+'</div>';
+    +(_lsN?('<span>聞き取り <b>'+_lsN+'</b> 問は選択肢が無いので出していません</span>'):'')+'</div>';
   if(!items.length){ h+='<div class="up-none">'+esc(opts.emptyLabel||'✓ まちがいはありませんでした')+'</div></div>'; return h; }
   h+='<div class="up-colh"><span>問題</span><span>答え・覚え方（折って隠せます）</span></div>';
   /* 表（table_fill）は同じ表を何問も参照する。**1枚の表にまとめて穴を複数あける**（川上さん確定 2026-09-13j）。
@@ -2413,6 +2488,11 @@ function unifiedStudentHtml_(st, opts){
       qH='<div class="up-qtxt">'+n+'. '+esc('ならべかえて文を作る')+'</div>'+_pqOrdHtml_(it,'up');
       var gl=_pqGlossText_(it);
       if(gl) extra='<div class="up-kai">語の意味：'+esc(gl)+'</div>';
+    }else if(kind==='listen'){
+      /* 【2026-09-14・段7】先生が読み上げる。**英文は問題の側に出さない**（出したら読み取りになる）。
+         答えの欄（＝_pqAnswerOf_）に 記号・訳・英文が入る＝そこが先生の読み上げ原稿。 */
+      qH='<div class="up-qtxt">'+n+'. 🔊 聞き取り <span class="pq-lead2">（先生が読みます。合うものを記号で答える）</span></div>'
+        +_pqLisQHtml_(it,'up')+'<div class="up-lisans">答え <span class="up-lisbox"></span></div>';
     }else{
       /* 教科で問題／答えの向きを出し分ける：英語=英単語が問題／理社・国語=問題文が問題・用語が答え 2026-07-23 */
       var isEn=(String(it.subject||'')==='english');
@@ -2561,7 +2641,9 @@ function sheetKindOf_(it){
   if(_pk==='fill')  return 'fill';
   if(_pk==='order') return 'order';
   if(_pk==='table') return 'table';
-  if(_pk==='listen')return 'skip';   /* 段7。音が要るので紙にしない。英文→訳で出すほうが害が大きい */
+  /* 【2026-09-14・段7】聞き取りも紙に出す。QRの先（紙の答え合わせ）で音を鳴らす。
+     選択肢が取れないものだけは紙にできない（音も選択肢も無い）。 */
+  if(_pk==='listen')return _pqChoices_(it)?'listen':'skip';
   /* 英語で図があるものは表の穴うめ（table_fill）。英語に image_fill は1問も無いので、これで見分けられる */
   if(isEn && it.fig) return 'skip';
   if(!isEn && FS_NEG_.test(String(it.japanese||''))) return 'skip';
@@ -2576,6 +2658,7 @@ function fsQuestionOf_(it){
   var k=_pqKind_(it);
   if(k==='fill') return String(it.japanese||'');            /* 穴あき英文＋和訳（紙用・§5b） */
   if(k==='order')return 'ならべかえて文を作る';
+  if(k==='listen')return '🔊 聞き取り（QRで音を聞いて、合うものを記号で）';
   return fsIsEn_(it)?String(it.english||''):fsQText_(it.japanese);
 }
 /* 【2026-09-13j・段E】穴うめ・語順・表は、いままでの英語の向きと**逆**（english が答え）。
@@ -2593,8 +2676,14 @@ function fsGroupSort_(arr){
     if(!(m in mi))mi[m]=mn++;
     if(!(p in pi))pi[p]=pn++;
   });
+  /* 【2026-09-14・段7】聞き取りは**必ず最後**。見出し（__lisHead）はそのすぐ前。
+     ★ここを入れないと、教材ごとに並べ替えるときに聞き取りが他の問題のあいだに散らばる
+       （聞き取りも同じ教材の問題なので、材料だけで並べると混ざる）。 */
+  var lane=function(it){ return it.__lisHead?1:((_pqKind_(it)==='listen')?2:0); };
   return arr.map(function(it,i){return {it:it,i:i};}).sort(function(a,b){
-    var d=mi[String(a.it.material_id||'')]-mi[String(b.it.material_id||'')]; if(d)return d;
+    var d=lane(a.it)-lane(b.it); if(d)return d;
+    if(lane(a.it)===1) return a.i-b.i;                 /* 見出しは1つだけ */
+    d=mi[String(a.it.material_id||'')]-mi[String(b.it.material_id||'')]; if(d)return d;
     d=pi[String(a.it.part_id||'')]-pi[String(b.it.part_id||'')]; if(d)return d;
     return a.i-b.i;
   }).map(function(x){return x.it;});
@@ -2603,7 +2692,7 @@ function fsGroupSort_(arr){
 function fsPick_(items){
   var seen={}, list=[];
   (items||[]).forEach(function(it){
-    var k=String(it.english||'')+'|~|'+String(it.japanese||'')+'|~|'+String(it.subject||'');
+    var k=_pqDedupKey_(it);
     if(seen[k])return; seen[k]=1;                       /* 同じ答えは1回だけ（別パートの同一用語） */
     var kind=sheetKindOf_(it);
     if(kind==='skip')return;
@@ -2662,6 +2751,12 @@ function fsPick_(items){
   });
   /* 穴うめ・語順は1問＝1単位＝文章問題と同じ扱い（紙の組み方だけが違う） */
   var texts=list.filter(function(it){return it._fsKind==='write'||it._fsKind==='fill'||it._fsKind==='order';});
+  /* 【2026-09-14・段7 川上さん確定】**聞き取りだけ最後にまとめる。**
+     QRを読んで音を聞かないと解けないので、スマホを出すのが1回で済むように後ろへ寄せる。
+     区切りの見出し（__lisHead）を1つだけ先頭に入れる＝これは問題ではないので番号を取らない
+     （fsFillQPages_ の採番と fsFlat_ で飛ばす）。 */
+  var lis=list.filter(function(it){return it._fsKind==='listen';});
+  if(lis.length){ texts=texts.concat([{__lisHead:true}]).concat(lis); }
   return {blocks:blocks,texts:texts};
 }
 /* 単位＝図ブロック（1〜3問）／文章問題（1問）。ページはこの単位で埋める */
@@ -2728,8 +2823,16 @@ function fsFootHtml_(ctx,label){
     +'<span>'+esc(ctx.name)+(ctx.grade?('　'+esc(ctx.grade)):'')+' ／ '+esc(ctx.code)+' ／ '+esc(label)+'</span></div>';
 }
 function fsQBodyHtml_(it,no){
-  /* 【2026-09-13j・段E】語順は語群＋和訳を足す。ほかは今までどおり1行＋解答らん */
-  var ex=(_pqKind_(it)==='order')?_pqOrdHtml_(it,'fs'):'';
+  /* 【2026-09-14・段7】聞き取りの区切り見出し。問題ではないので番号を取らない。
+     ★測るときと描くときで同じものを通すため、ふつうの単位と同じ形（1つの要素）で返す。 */
+  if(it&&it.__lisHead){
+    return '<div class="fs-lishead">🔊 ここからは聞き取りです。'
+      +'<b>QRを読んで音を聞いてから</b>、合うものを記号で答えてください。</div>';
+  }
+  /* 【2026-09-13j・段E】語順は語群＋和訳を足す。【段7】聞き取りは選択肢を足す。
+     ほかは今までどおり1行＋解答らん */
+  var k=_pqKind_(it);
+  var ex=(k==='order')?_pqOrdHtml_(it,'fs'):((k==='listen')?_pqLisQHtml_(it,'fs'):'');
   return '<div class="fs-q"><div class="fs-n">'+no+'</div><div class="fs-b">'
     +'<div class="fs-txt">'+esc(fsQuestionOf_(it))+'</div>'+ex+'<div class="fs-ansline"></div></div></div>';
 }
@@ -3043,7 +3146,8 @@ function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
   var rn=1;
   pages.forEach(function(pg2){
     pg2.figs.forEach(function(f){ f.start=rn; rn+=f.block.items.length; });
-    pg2.texts.forEach(function(t){ t.no=rn++; });
+    /* 【2026-09-14・段7】聞き取りの区切り見出しは問題ではないので番号を取らない */
+    pg2.texts.forEach(function(t){ t.no=(t.item&&t.item.__lisHead)?0:(rn++); });
   });
   return pages;
 }
@@ -3052,9 +3156,27 @@ function fsFlat_(qpages){
   var out=[];
   qpages.forEach(function(pg){
     pg.figs.forEach(function(f){ f.block.items.forEach(function(it,i){ out.push({item:it,no:f.start+i}); }); });
-    pg.texts.forEach(function(t){ out.push({item:t.item,no:t.no}); });
+    /* 【2026-09-14・段7】★見出し（__lisHead）は問題ではない。ここに混ぜると print_sets の
+       word_ids に空の語が入り、紙の番号と○×の欄がずれる（＝○×が別の語に入る）。必ず外す。 */
+    pg.texts.forEach(function(t){ if(t.item&&t.item.__lisHead)return; out.push({item:t.item,no:t.no}); });
   });
   return out;
+}
+/* 【2026-09-14・段7】紙の番号 → その問の音（{"12":{en,audios}}）。
+   セット番号を発行するときに print_sets へ一緒に保存する＝QRの先（紙の答え合わせ）で鳴らせる。
+   ★番号は flat（＝紙の1番〜N番）から取る。あとから引き直さない
+     ＝印刷から答え合わせまでのあいだに行の状態が変わっても、音が別の番号に付かない。 */
+function fsListenMap_(b){
+  var out={}, n=0;
+  (b&&b.flat||[]).forEach(function(f){
+    var it=f.item; if(!it||_pqKind_(it)!=='listen')return;
+    var pk=_pqPack_(it); if(!pk)return;
+    var au=(pk.pl.audios&&pk.pl.audios.length)?pk.pl.audios.slice():(pk.pl.audio?[String(pk.pl.audio)]:[]);
+    var en=String(pk.pl.en||it.english||'');
+    if(!au.length&&!en)return;
+    out[String(f.no)]={en:en,audios:au}; n++;
+  });
+  return n?out:null;
 }
 /* ---- 答えページを「入るだけ」詰める。戻り値＝ページごとの行数 ---- */
 function fsFillAPages_(flat,ctx,usable,qrLast){
@@ -3110,11 +3232,12 @@ function fsBuildSheet_(st,base){
   var roomy=(pick.blocks.length===0);          /* 図が無い教科は解答欄を広げて紙を使い切る（§3-3） */
   var ppm=fsPxPerMm_(), usable=FS_PAGE_MM_*ppm;
   var est=0; units.forEach(function(u){est+=u.n;});
-  var mk=function(qrOn){
+  var mk=function(qrOn,unitsIn){
+    var _u=unitsIn||units;
     var ctx={name:st.name||'(無名)',grade:st.grade||'',date:base.date,code:base.code,scope:base.scope,
              total:Math.min(est,FS_LIMIT_)};
     var q1=(qrOn==='q1');
-    var qp=fsFillQPages_(units,ctx,roomy,usable,q1);
+    var qp=fsFillQPages_(_u,ctx,roomy,usable,q1);
     var flat=fsFlat_(qp);
     if(!flat.length) return null;
     var ac=fsFillAPages_(flat,ctx,usable,!q1);
@@ -3149,7 +3272,43 @@ function fsBuildSheet_(st,base){
     var b2=mk('q1');
     if(b2 && b2.total>b.total) b=b2;   /* 増えたときだけ乗り換える＝移して減る生徒には移さない */
   }
+  /* 【2026-09-14・段7】★聞き取りは紙の最後にまとめるので、そのままだと**いちばん先に紙から落ちる**。
+     実測（2026-09-14）＝語18問と混ぜたら、聞き取り1問が1問も入らず、区切りの見出しごと消えた。
+     「聞き取りが弱い」と出して紙を押したのに聞き取りが1問も無い、では段7の意味が無い。
+
+     直し＝1回組んで「入る数」を測り、**聞き取りに“候補にしめる割合ぶんの枠”を取って**組み直す。
+     ・割合は候補の中の聞き取りの割合。候補が1問でもあれば最低1問は入れる
+     ・枠を取ったぶん、うしろの語が落ちる（もともと入りきらない紙なので、どれかは必ず落ちる）
+     ・サーバの「ミス問8割＋克服した語2割」と同じ考え方＝**量ではなく割合をそろえる**
+     ・組み直して減った／作れなかったときは、もとのまま（無理に入れて紙を壊さない） */
+  var b3=fsListenReserve_(b,units,mk);
+  if(b3) b=b3;
   return b;
+}
+/* 聞き取りの枠を取って組み直す。直す必要が無ければ null を返す（＝もとのまま） */
+function fsListenReserve_(b,units,mk){
+  if(!b||!b.flat) return null;
+  var isLis=function(u){ return u&&u.item&&!u.item.__lisHead&&_pqKind_(u.item)==='listen'; };
+  var figs=[], oth=[], head=[], lis=[];
+  units.forEach(function(u){
+    if(u.type==='fig'){ figs.push(u); return; }
+    if(u.item&&u.item.__lisHead){ head.push(u); return; }
+    (isLis(u)?lis:oth).push(u);
+  });
+  if(!lis.length) return null;                       /* 聞き取りが無い紙は何もしない */
+  var inNow=0; b.flat.forEach(function(f){ if(f.item&&_pqKind_(f.item)==='listen') inNow++; });
+  var figN=0; figs.forEach(function(u){ figN+=u.n; });
+  var slots=Math.max(0,b.flat.length-figN);          /* 文章問題に使えている数（実測）*/
+  var want=Math.min(lis.length, Math.max(1, Math.round(slots*lis.length/(oth.length+lis.length))));
+  if(inNow>=want) return null;                       /* もう足りている */
+  var keepOth=Math.max(0, slots-want-(head.length?1:0));
+  var u2=figs.concat(oth.slice(0,keepOth)).concat(head).concat(lis.slice(0,want));
+  if(!u2.length) return null;
+  var b2=mk(b.qrOn,u2);
+  if(!b2||!b2.flat||!b2.flat.length) return null;    /* 作れなかった＝もとのまま */
+  var in2=0; b2.flat.forEach(function(f){ if(f.item&&_pqKind_(f.item)==='listen') in2++; });
+  if(in2<=inNow) return null;                        /* 増えていない＝もとのまま */
+  return b2;
 }
 /* ---- 組んだものを「描く」。セット番号（b.ctx.code）を差し込んでから呼ぶ ---- */
 /* 何枚目の表／裏か。問題は1枚目から、答えは問題が使った枚数の次から。2026-09-02 */
@@ -3286,7 +3445,8 @@ function runFinishSheet_(ids,mats,types){
       showLoading('セット番号を発行しています…');
       call({action:'print_sets_issue',sets:JSON.stringify(built.map(function(b){
         return {student_id:b.student_id,word_ids:b.word_ids,review_ids:b.review_ids,
-                progress_ids:b.progress_ids,material_ids:mats.join(',')};
+                progress_ids:b.progress_ids,material_ids:mats.join(','),
+                listen:fsListenMap_(b)};   /* 【2026-09-14・段7】紙の番号 → 聞き取りの音 */
       }))}).then(function(d2){
         hideLoading();
         if(!d2||!d2.ok){ toast('セット番号を保存できませんでした：'+((d2&&d2.error)||'通信に失敗しました')+'。印刷は中止しました'); return; }
@@ -3419,7 +3579,7 @@ function runPrint_(ids,scope,days,limit,types,mats){
     var all=sts.length;
     sts=sts.filter(function(s){
       var seen={}; s.items=(s.items||[]).filter(function(it){
-        var k=String(it.english||'')+'|~|'+String(it.japanese||'')+'|~|'+String(it.subject||'');
+        var k=_pqDedupKey_(it);
         if(seen[k]) return false; seen[k]=true; return true;
       });
       return s.items.length>0;   // 0問の子は紙を作らない（紙のむだ＝川上さん 2026-08-17）
