@@ -40,7 +40,9 @@
   .form-input:focus{outline:none;border-color:var(--crimson);background:white;box-shadow:0 0 0 3px rgba(198,0,11,0.1);}
   .btn-primary{background:var(--crimson);color:white;border:none;border-radius:8px;padding:10px 15px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;min-height:40px;}
   .btn-primary:hover{background:var(--crimson-dark);}
-  .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+  /* 【2026-09-14】押せないときは赤のままうすくせず、グレーにする（UI標準 §赤1色ルール）。
+     ＝ふだん画面に赤は出ず、赤が出たときだけ「ここを押す」。 */
+  .btn-primary:disabled{background:#cbd5e1;color:#fff;opacity:1;cursor:not-allowed;}
   .btn-ghost{background:white;color:var(--text-muted);border:1.5px solid var(--border);border-radius:7px;padding:6px 13px;font-size:12px;cursor:pointer;font-family:inherit;}
   .btn-ghost:hover{background:var(--surface2);}
   .err{color:var(--crimson);font-size:12.5px;min-height:18px;margin-bottom:6px;}
@@ -1287,8 +1289,12 @@
         .qng-filter:hover{background:var(--crimson-light);}
         .qsu-hd td{font-size:10.5px;color:var(--text-light);font-weight:700;padding:4px 8px;border-bottom:1px solid var(--line,#e6e9ef);background:#fafbfc;}
         .qmt-hint{font-size:11px;color:var(--text-muted);margin:0 0 6px;}
-        .qmt-allbtn{border:1px solid var(--crimson);background:#fff;color:var(--crimson);border-radius:12px;padding:1px 9px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:8px;vertical-align:middle;}
-        .qmt-allbtn.on{background:var(--crimson);color:#fff;}
+        /* 【2026-09-14】赤は「いま押すべき主要ボタン1つ」だけ（UI標準 §赤1色ルール・2026-08-20）。
+           この本をまとめて選ぶ＝押す前（OFF）はグレー枠。選ばれている（ON）ときだけ薄い赤。
+           Why: OFFでも赤枠だったので「押すボタン」と「ONの状態」が同じ色に見えた（川上さん指摘 2026-09-14）。 */
+        .qmt-allbtn{border:1px solid var(--border);background:#fff;color:var(--text-muted);border-radius:12px;padding:1px 9px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:8px;vertical-align:middle;}
+        .qmt-allbtn:hover{border-color:#94a3b8;color:var(--text);}
+        .qmt-allbtn.on{background:var(--crimson-light);border-color:var(--crimson);color:var(--crimson-dark);}
         .qtable th.qgrp{background:#eef4ff;color:#1f5fbf;border-bottom:1px solid #cfe0ff;font-weight:800;}
         .qsu-mat td{font-size:11px;color:var(--text-muted);font-weight:700;background:#f4f6f9;padding:3px 8px 3px 16px;border-top:1px solid var(--line,#e6e9ef);} /* 生徒ごと：教材(Unit/章)の小見出し 2026-08-08 */
         .qsu-serfold{cursor:pointer;}
@@ -1406,7 +1412,10 @@
         .rp-btn-ico:hover:not(:disabled){background:var(--surface2);color:var(--text);}
         .rp-btn-ico:disabled{opacity:.35;cursor:not-allowed;}
         .rp-allbtn{border:1px solid var(--border);background:#fff;color:var(--text-muted);border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
-        .rp-allbtn:hover{border-color:var(--crimson);color:var(--crimson);}
+        /* 【2026-09-14】押すボタンは赤にしない（UI標準 §赤1色ルール）。ホバーもグレーの濃淡だけ。
+           赤は「🖨 …を出す」1つと、選ばれている印（.on の薄い赤）だけに使う。 */
+        .rp-allbtn:hover:not(:disabled){border-color:#94a3b8;color:var(--text);}
+        .rp-allbtn:disabled{opacity:.45;cursor:not-allowed;}
         .rp-sum{display:flex;gap:10px;flex-wrap:wrap;}
         .rp-sumc{flex:1 1 128px;max-width:210px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:9px 12px;}
         .rp-sumn{font-size:20px;font-weight:800;line-height:1.2;font-variant-numeric:tabular-nums;}
@@ -1478,8 +1487,9 @@
         #view-report .qmt-cnt{color:var(--text-light);font-weight:600;font-size:10.5px;}
         #view-report .qmt-fold{cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
         #view-report .qmt-fold:hover{color:var(--crimson);}
-        #view-report .qmt-allbtn{border:1px solid var(--crimson);background:#fff;color:var(--crimson);border-radius:12px;padding:1px 9px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:8px;vertical-align:middle;}
-        #view-report .qmt-allbtn.on{background:var(--crimson);color:#fff;}
+        #view-report .qmt-allbtn{border:1px solid var(--border);background:#fff;color:var(--text-muted);border-radius:12px;padding:1px 9px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:8px;vertical-align:middle;}
+        #view-report .qmt-allbtn:hover{border-color:#94a3b8;color:var(--text);}
+        #view-report .qmt-allbtn.on{background:var(--crimson-light);border-color:var(--crimson);color:var(--crimson-dark);}
         #view-report .qseg{display:inline-flex;border:1.5px solid var(--border);border-radius:20px;overflow:hidden;}
         #view-report .qseg button{border:none;background:#fff;color:var(--text-muted);font-size:12px;font-weight:700;padding:5px 13px;cursor:pointer;font-family:inherit;}
         #view-report .qseg button.on{background:var(--crimson);color:#fff;}
@@ -1517,8 +1527,8 @@
           <div class="rp-sl-b">
             <div class="rp-sl-r"><span class="pr-lab" id="rpMatTtl">教材</span> <b id="rpSlMatN">—</b><span id="rpOutState"></span><span class="rp-sl-s" id="rpSlMatS"></span></div>
           </div>
-          <button class="qmt-allbtn" id="rpOutClrBtn" onclick="rpOutClearAll()" style="display:none;">× ぜんぶ外す</button>
-          <button class="qmt-allbtn" id="rpOutBackBtn" onclick="rpOutSameAsReport()" style="display:none;">↺ レポートと同じに戻す</button>
+          <button class="rp-allbtn" id="rpOutClrBtn" onclick="rpOutClearAll()" style="display:none;">× 教材をぜんぶ外す</button>
+          <button class="rp-allbtn" id="rpOutBackBtn" onclick="rpOutSameAsReport()" style="display:none;">↺ 教材をレポートと同じに戻す</button>
           <button class="rp-allbtn" id="rpSetEditBtn" onclick="rpToggleSetEdit()">▾ 教材を変える</button>
         </div>
         <!-- ★畳むのは教材えらびだけ（川上さん確定 2026-09-14）。
@@ -1538,7 +1548,7 @@
             <span class="pr-lab" id="rpFltTtl">絞り込み</span>
             <span id="rpPfState"></span>
             <span style="flex:1;"></span>
-            <button class="qmt-allbtn" id="rpPfBackBtn" onclick="rpPfSameAsReport()" style="display:none;">↺ レポートと同じに戻す</button>
+            <button class="rp-allbtn" id="rpPfBackBtn" onclick="rpPfSameAsReport()" style="display:none;">↺ 生徒をレポートと同じに戻す</button>
           </div>
           <div id="rpFstrip" class="qfstrip"></div>
           <div id="rpFilters" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;"></div>
@@ -1653,7 +1663,7 @@
 
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
           <button class="btn-primary" style="width:auto;" id="rpPaperGoBtn" onclick="rpPaperGo()">🖨 チェックプリントを出す</button>
-          <button class="qmt-allbtn" id="rpPvBtn" onclick="rpPreviewOne()">👁 1人ぶんの見本を見る</button>
+          <button class="rp-allbtn" id="rpPvBtn" onclick="rpPreviewOne()">👁 1人ぶんの見本を見る</button>
           <span class="rp-mute" id="rpPaperNote"></span>
           <span class="rp-mute" id="rpPaperWho" style="display:none;"></span>
         </div>
@@ -7376,8 +7386,11 @@ function rpRenderPaper(n){
   /* ボタンの文字と、出す人数。★人数はプリント側の絞り込み（RP_PF）で数える */
   var who=$('rpPaperWho'); if(who)who.textContent='　'+pn+'名';
   var go=$('rpPaperGoBtn');
+  var ng=(pn===0)||(use.length===0);
   if(go){ go.textContent=(st==='finish')?'🖨 仕上げプリントを出す（生徒用）':'🖨 チェックプリントを出す';
-          go.disabled=(pn===0)||(use.length===0); }
+          go.disabled=ng; }
+  /* 見本も、出す教材0件／対象生徒0名なら押せない（押してもエラー文が出るだけだった）2026-09-14 */
+  var pv=$('rpPvBtn'); if(pv)pv.disabled=ng;
   var nt=$('rpPaperNote');
   if(nt)nt.textContent=(use.length===0)?'出す教材が1つも選ばれていません。'
     :((pn===0)?'条件に合う生徒がいません。':(pn+'名ぶん・1人ずつ別の紙になります。'));
@@ -7400,7 +7413,8 @@ function rpToggleSetEdit(){
   var e=$('rpSetEdit'), b=$('rpSetEditBtn'); if(!e)return;
   var on=(e.style.display==='none');
   e.style.display=on?'':'none';
-  if(b)b.textContent=on?'▴ 閉じる':'▾ 変える';
+  /* ボタン名は「何に対する操作か」まで書く（UI標準）。開いた/閉じたで語を変えない 2026-09-14 */
+  if(b)b.textContent=on?'▴ 教材えらびを閉じる':'▾ 教材を変える';
 }
 /* 【2026-09-14・段F】1人ぶんの見本を画面に出す。
    ★先頭の生徒1人だけで作る＝43名ぶんの印刷プレビューを待たずに中身を確かめられる。
