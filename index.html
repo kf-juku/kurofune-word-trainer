@@ -1231,6 +1231,15 @@
 
 /* ===== 紙の答え合わせ（仕上げプリント 段5）2026-09-01 ===== */
 .sh-lead{font-size:13px;line-height:1.8;color:var(--sub);margin-bottom:12px;}
+/* 聞き取りのある紙（段7・2026-09-14）。順番をまちがえると解けないので、いちばん上で目立たせる */
+.sh-lis-lead{font-size:13px;line-height:1.8;color:#1f56b0;background:#eef4ff;border:1px solid #bcd7f7;
+             border-radius:12px;padding:10px 12px;margin-bottom:10px;}
+.sh-lis-lead b{font-weight:800;}
+.sh-play{flex:none;width:40px;min-height:40px;border:1px solid var(--line);border-radius:11px;
+         background:#eef4ff;color:#1f56b0;font-size:17px;cursor:pointer;font-family:inherit;
+         display:inline-flex;align-items:center;justify-content:center;}
+.sh-play:active{transform:scale(.96);}
+.sh-q.lis{border-color:#bcd7f7;}
 .sh-in{display:flex;gap:8px;align-items:center;}
 .sh-in input{flex:1;min-width:0;font-family:'Manrope','Noto Sans JP',sans-serif;font-size:20px;font-weight:800;letter-spacing:.12em;text-align:center;text-transform:uppercase;padding:13px 8px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);}
 .sh-in .btn{width:auto;flex:none;padding:13px 16px;white-space:nowrap;}
@@ -1265,6 +1274,7 @@
   .sh-q{padding:7px 6px;gap:4px;}
   .sh-n{width:20px;font-size:13px;}
   .sh-m{min-height:38px;font-size:16px;}
+  .sh-play{width:36px;min-height:38px;font-size:16px;}
   .sh-in input{font-size:18px;letter-spacing:.08em;}
 }
 
@@ -2292,7 +2302,10 @@ function shOpen_(){
     if(d.data.expired){ shMsg_('この'+rb('紙','かみ')+'は'+rb('古','ふる')+'いので'+rb('記録','きろく')+'できません。'+rb('新','あたら')+'しい'+rb('紙','かみ')+'を'+rb('先生','せんせい')+'にもらってください。'); return; }
     var n=parseInt(d.data.total,10)||0;
     if(n<=0){ shMsg_('この'+rb('紙','かみ')+'には'+rb('問題','もんだい')+'が'+rb('入','はい')+'っていません。'+rb('先生','せんせい')+'に'+rb('伝','つた')+'えてください。'); return; }
-    _shSet={code:String(d.data.code||v),total:n};
+    /* 【2026-09-14・段7】聞き取りの音。{"12":{en,audios}}（紙の番号 → その問の素材）。
+       紙を発行したときに print_sets へ保存してある（GAS printSetsIssue）ので、ここは1行読むだけ。
+       古い紙（この列が無い）は {} が来る＝音のボタンが出ないだけで今までどおり動く。 */
+    _shSet={code:String(d.data.code||v),total:n,listen:(d.data.listen||{})};
     _shAns=[]; for(var i=0;i<n;i++)_shAns.push('');
     shRenderMarks_();
   });
@@ -2302,7 +2315,12 @@ function shRenderMarks_(){
   if(!_shSet)return;
   var s1=$('sheet-step1'); if(s1)s1.style.display='none';
   var host=$('sheet-step2'); if(!host)return;
+  /* 【2026-09-14・段7】聞き取りがある紙は、**先にここで音を聞いてから紙に答えを書く**。
+     ○×を入れるのはそのあと。順番が逆だと解けないので、いちばん上で言う。 */
+  var _lisN=0; for(var q in (_shSet.listen||{})) if(Object.prototype.hasOwnProperty.call(_shSet.listen,q)) _lisN++;
   var h='<div class="sh-head"><span class="sh-code">'+esc(_shSet.code)+'</span><span class="sh-tot">'+rb('全','ぜん')+_shSet.total+rb('問','もん')+'</span></div>'
+       +(_lisN?('<div class="sh-lis-lead">🔊 この'+rb('紙','かみ')+'には'+rb('聞','き')+'き'+rb('取','と')+'りが<b>'+_lisN+rb('問','もん')+'</b>あります。<br>'
+           +'<b>さきに'+rb('音','おと')+'を'+rb('聞','き')+'いて'+rb('紙','かみ')+'に'+rb('答','こた')+'えを'+rb('書','か')+'いてから</b>、'+rb('丸','まる')+'つけをして○×を'+rb('入','い')+'れてください。</div>'):'')
        +'<div class="sh-lead">'+rb('紙','かみ')+'の'+rb('丸','まる')+'つけのとおりに、'+rb('番号','ばんごう')+'ごとに○か×を'+rb('選','えら')+'ぼう。</div>'
        +'<div class="sh-grid" id="sheet-marks"></div>'
        +'<div class="sh-foot"><span class="sh-left" id="sheet-left"></span>'
@@ -2311,13 +2329,26 @@ function shRenderMarks_(){
   host.innerHTML=h; host.style.display='block';
   var g=$('sheet-marks'), rows='';
   for(var i=0;i<_shSet.total;i++){
-    rows+='<div class="sh-q"><span class="sh-n">'+(i+1)+'</span>'
+    /* 聞き取りの問だけ、その番号の音を鳴らすボタンを足す（段7）*/
+    var lp=(_shSet.listen||{})[String(i+1)];
+    rows+='<div class="sh-q'+(lp?' lis':'')+'"><span class="sh-n">'+(i+1)+'</span>'
+        +(lp?('<button class="sh-play" type="button" data-lis="'+(i+1)+'" aria-label="'+(i+1)+'ばんの音を聞く"><i class="ti ti-volume"></i></button>'):'')
         +'<button class="sh-m o" type="button" data-i="'+i+'" data-v="o">○</button>'
         +'<button class="sh-m x" type="button" data-i="'+i+'" data-v="x">×</button></div>';
   }
   g.innerHTML=rows;
   g.addEventListener('click',function(e){
-    var b=e.target&&e.target.closest?e.target.closest('.sh-m'):null; if(!b)return;
+    var t=e.target&&e.target.closest?e.target:null;
+    /* 音のボタン（段7）。鳴らし方は出題中とまったく同じ _sentPlay_ を通す
+       ＝声の選び方も、mp3 が読めないときに端末の読み上げに落ちるのも1本のまま */
+    var pb=t&&t.closest?t.closest('.sh-play'):null;
+    if(pb){
+      var no=String(pb.getAttribute('data-lis')||'');
+      var pl=(_shSet.listen||{})[no];
+      if(pl)_sentPlay_(pl);
+      return;
+    }
+    var b=t&&t.closest?t.closest('.sh-m'):null; if(!b)return;
     var i=parseInt(b.getAttribute('data-i'),10), v=b.getAttribute('data-v');
     if(isNaN(i)||!v)return;
     _shAns[i]=v; shSyncMarks_();
