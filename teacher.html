@@ -382,6 +382,7 @@
   .pq-tok{display:inline-block;border:1.2px solid #555;border-radius:5px;padding:1px 8px;margin:0 5px 5px 0;
           font-size:13px;font-weight:700;color:#000;background:#fff;white-space:nowrap;}
   .pq-ano{display:inline-block;min-width:15px;margin-right:6px;font-size:11px;font-weight:800;color:#555;}
+  .pq-ano.miss{color:#C6000B;}   /* この子がまちがえた穴。ほかは表をそろえるために足したもの 2026-09-13k */
   .pq-lead{font-size:12px!important;font-weight:700;color:#333;margin-bottom:5px;}
   .pq-hole{background:#f2f4f7;}
   .pq-holeno{font-size:10.5px;font-weight:800;color:#555;}
@@ -2334,7 +2335,7 @@ function unifiedStudentHtml_(st, opts){
      英文→訳の紙にして出すと「聞き取りの練習」にならないので、紙から外して件数だけ出す。 */
   var _lsN=0;
   items=items.filter(function(it){ if(_pqKind_(it)==='listen'){ _lsN++; return false; } return true; });
-  h+='<span>'+esc(opts.missLabel||'まちがえた問題')+' <b>'+items.length+'</b> 問</span>'
+  h+='<span>'+esc(opts.missLabel||'まちがえた問題')+' <b>'+items.length+'</b> 問</span><!--PQADD-->'
     +(_lsN?('<span>聞き取り <b>'+_lsN+'</b> 問はこの紙に出していません</span>'):'')+'</div>';
   if(!items.length){ h+='<div class="up-none">'+esc(opts.emptyLabel||'✓ まちがいはありませんでした')+'</div></div>'; return h; }
   h+='<div class="up-colh"><span>問題</span><span>答え・覚え方（折って隠せます）</span></div>';
@@ -2347,7 +2348,7 @@ function unifiedStudentHtml_(st, opts){
     if(!_tblItems[aid]){ _tblItems[aid]=[]; _tblFirst[aid]=it; }
     _tblItems[aid].push(it);
   });
-  var curKey='', n=0;
+  var curKey='', n=0, _tblAdd=0;   /* _tblAdd＝表をぜんぶ書かせるぶんの上乗せ（2026-09-13k）*/
   items.forEach(function(it){
     var kind=_pqKind_(it);
     var pk=(kind==='table')?_pqPack_(it):null;
@@ -2362,16 +2363,42 @@ function unifiedStudentHtml_(st, opts){
     }
     var tag=it.part_title?('<span class="up-tag">'+esc(it.part_title)+'</span>'):'';
     if(kind==='table'){
-      /* 1枚の表＋この紙に出ている穴ぶんの番号。答えはまとめて右の欄に並べる */
+      /* 【2026-09-13k・川上さん確定】表は**空いているところを全部書かせる**。
+         きっかけ＝本番の be動詞の表は「答えの列が丸ごと穴」（7行ぜんぶが穴）で、
+         まちがえた1問だけに番号を振ると **7行が空っぽの表に番号が1つ**という紙になった（実データで判明）。
+         生徒アプリも表の穴を①②③…と順に全部解かせるので、これでアプリと同じ形になる。
+
+         ★この扱いは**チェックプリントだけ**。仕上げプリント（fsFigBlockHtml_ の表）は
+           まちがえた穴だけのまま。理由＝仕上げプリントは紙に載せた問題の並びを
+           print_sets の word_ids に保存し、QRの先の「紙の答え合わせ」がその語数ぶんだけ
+           ○×の欄を出す（teacher.html 3113 → kwtGAS.gs sheetOpen）。
+           紙の問題数だけ増やすと番号がずれて、**○×が別の語に入る**。
+
+         番号は表の左上から右下へ（読む順）。まちがえた穴は答えの欄で色を変えて分かるようにする。 */
       var grp=_tblItems[aid], noByRC={}, ansH='';
-      grp.forEach(function(g){
-        n++;
-        var gq=_pqData_(g)||{};
-        noByRC[(gq.r|0)+'_'+(gq.c|0)]=n;
-        ansH+='<div class="up-ans"><span class="pq-ano">'+n+'</span>'+esc(String(g.english||''))+'</div>'
-          +(g.kaisetsu?('<div class="up-kai">覚え方：'+esc(g.kaisetsu)+'</div>'):'');
+      var pl=pk.pl, holes=(pk.as&&pk.as.holes)||{};
+      var missBy={};
+      grp.forEach(function(g){ var gq=_pqData_(g)||{}; missBy[(gq.r|0)+'_'+(gq.c|0)]=g; });
+      /* 穴の一覧＝素材が持つ全穴（holes）＋この紙のミス。
+         holes が来ない（古いGAS）ときは、この紙のミスだけになる＝いままでどおり */
+      var hl=[];
+      (pl.rows||[]).forEach(function(rw,ri){
+        (rw.cells||[]).forEach(function(cell,ci){
+          var k=ri+'_'+ci;
+          if(holes[k]||missBy[k]) hl.push({k:k,cell:cell});
+        });
       });
-      h+='<div class="up-item"><div class="up-q"><div class="up-qtxt pq-lead">表の空いているところに入る言葉を書く</div>'
+      hl.forEach(function(x){
+        n++;
+        noByRC[x.k]=n;
+        var g=missBy[x.k];
+        /* 答え＝まちがえた穴はその問題の english、そうでない穴は素材のセルの文字 */
+        var ans=g?String(g.english||''):String(x.cell||'');
+        ansH+='<div class="up-ans"><span class="pq-ano'+(g?' miss':'')+'">'+n+'</span>'+esc(ans)+'</div>'
+          +((g&&g.kaisetsu)?('<div class="up-kai">覚え方：'+esc(g.kaisetsu)+'</div>'):'');
+      });
+      _tblAdd+=Math.max(0,hl.length-grp.length);   /* まちがい以外に足した問題数（見出しに出す）*/
+      h+='<div class="up-item"><div class="up-q"><div class="up-qtxt pq-lead">表の空いているところを<b>ぜんぶ</b>書く</div>'
         +_pqTableHtml_(pk,noByRC,'up')+tag+'</div>'
         +'<div class="up-a">'+ansH+'</div></div>';
       return;
@@ -2401,6 +2428,9 @@ function unifiedStudentHtml_(st, opts){
       +'</div></div>';
   });
   h+='</div>';
+  /* 表をぜんぶ書かせたぶんは「まちがえた問題」ではないので、数え方を分けて書き足す（2026-09-13k）*/
+  if(_tblAdd) h=h.replace('<!--PQADD-->','<span>表はぜんぶ書きます <b>＋'+_tblAdd+'</b> 問</span>');
+  h=h.replace('<!--PQADD-->','');
   return h;
 }
 /* 一括印刷の実行部（対象・内容はモーダルから渡す）2026-07-05 ／ 統一レイアウトに変更 2026-07-24 */
