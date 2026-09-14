@@ -1355,8 +1355,8 @@
         #view-report .rp-sl-r{font-size:12.5px;color:var(--text-light);font-weight:700;line-height:1.85;}
         #view-report .rp-sl-r b{color:var(--text);font-weight:900;font-size:13px;}
         #view-report .rp-sl-s{margin-left:8px;}
-        #view-report #rpSetEdit{margin-top:12px;border-top:1px dashed var(--border);padding-top:10px;}
-        #view-report #rpSetEdit .qcard{box-shadow:none;padding:0 0 10px;margin-bottom:0;border-radius:0;}
+        #view-report #rpSetEdit{margin-top:10px;border-top:1px dashed var(--border);padding-top:10px;}
+        #view-report .rp-fltbox{margin-top:10px;border-top:1px dashed var(--border);padding-top:10px;}
         #view-report .rp-swt{display:flex;gap:0;background:#e5e7eb;border-radius:11px;padding:4px;margin-bottom:14px;}
         #view-report .rp-swt button{flex:1;background:transparent;border:none;border-radius:8px;padding:10px 8px;font-size:14px;font-weight:900;color:#6b7280;cursor:pointer;line-height:1.35;}
         #view-report .rp-swt button.on{background:#fff;color:var(--crimson);box-shadow:0 1px 3px rgba(0,0,0,.12);}
@@ -1508,29 +1508,30 @@
         <div class="rp-sumline">
           <div class="rp-sl-b">
             <div class="rp-sl-r">教材 <b id="rpSlMatN">—</b><span class="rp-sl-s" id="rpSlMatS"></span></div>
-            <div class="rp-sl-r">生徒 <b id="rpSlStuN">—</b><span class="rp-sl-s" id="rpSlStuS"></span></div>
           </div>
-          <button class="rp-allbtn" id="rpSetEditBtn" onclick="rpToggleSetEdit()">▾ 変える</button>
+          <button class="rp-allbtn" id="rpSetEditBtn" onclick="rpToggleSetEdit()">▾ 教材を変える</button>
         </div>
+        <!-- ★畳むのは教材えらびだけ（川上さん確定 2026-09-14）。
+             絞り込みは いつも使うので出したまま＝「無くなった？」と探させない。
+             畳む理由は大きさ：教材えらび 1,045px／絞り込み 185px。 -->
         <div id="rpSetEdit" style="display:none;">
-          <div class="qcard">
-        <div class="qch">1. 教材をえらぶ<span class="rp-mute" style="font-weight:600;margin-left:auto;">毎日学習・単元別のどちらも選べます</span></div>
-        <div class="qmt-hint">教材をクリックで選択（複数OK）。同じ本はまとめて選べます。</div>
-        <div class="qmatsel" id="rpMatSel"></div>
-        <div class="rp-cap" id="rpMatCap"></div>
-      </div>
-          <div class="qcard">
-        <div class="qch">2. 絞り込み</div>
-        <div id="rpFstrip" class="qfstrip"></div>
-        <div id="rpFilters" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;"></div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <input class="filter-search" id="rpName" placeholder="🔍 名前で検索" oninput="rpRender()" style="width:180px;">
-          <label style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-muted);cursor:pointer;">
-            <input type="checkbox" id="rpShowNA" onchange="rpRender()"> 未割当の子も出す
-          </label>
-          <span class="filter-count" id="rpCnt"></span>
+          <div class="qmt-hint">教材をクリックで選択（複数OK）。同じ本はまとめて選べます。毎日学習・単元別のどちらも選べます。</div>
+          <div class="qmatsel" id="rpMatSel"></div>
+          <div class="rp-cap" id="rpMatCap"></div>
         </div>
-      </div>
+        <div class="rp-fltbox">
+          <div id="rpFstrip" class="qfstrip"></div>
+          <div id="rpFilters" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;"></div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <input class="filter-search" id="rpName" placeholder="🔍 名前で検索" oninput="rpRender()" style="width:180px;">
+            <label style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-muted);cursor:pointer;">
+              <input type="checkbox" id="rpShowNA" onchange="rpRender()"> 未割当の子も出す
+            </label>
+            <span class="filter-count" id="rpCnt"></span>
+            <!-- 絞り込みのチップが見えているので、同じことを文でも書かない。
+                 中身は rpRenderSumLine が入れる（テストと将来の1行表示のために残す）2026-09-14 -->
+            <span style="display:none;" id="rpSlStuN"></span><span style="display:none;" id="rpSlStuS"></span>
+          </div>
         </div>
       </div>
 
@@ -1541,12 +1542,12 @@
 
       <div id="rpPaneRep">
       <div class="qcard">
-        <div class="qch">3. まとめ<span class="rp-mute" style="font-weight:600;">選んだ教材・絞り込みの範囲での集計</span></div>
+        <div class="qch">まとめ<span class="rp-mute" style="font-weight:600;">選んだ教材・絞り込みの範囲での集計</span></div>
         <div class="rp-sum" id="rpSummary"></div>
       </div>
       <div class="qcard">
         <div class="rp-hd">
-          <div class="qch" style="margin:0;">4. 生徒ごとの進み</div>
+          <div class="qch" style="margin:0;">生徒ごとの進み</div>
           <button class="rp-allbtn" onclick="rpOpenAll(true)">全部ひらく</button>
           <button class="rp-allbtn" onclick="rpOpenAll(false)">全部たたむ</button>
           <button class="rp-allbtn" id="rpCompactBtn" onclick="rpToggleCompact()" title="1人1行に詰めて、たくさんの生徒を一画面で見ます">詰めて表示</button>
@@ -1588,12 +1589,12 @@
           <span><b style="color:#1b4f9c;">練習中 2</b>＝さわったが、まだ終わっていないパートの数。<b>未着手＝1回も練習せず、テストも受けていない教材だけ</b>です</span>
           <span><b style="color:#d64545;">● 9日 うごいていません</b>＝選んだ教材を7日以上さわっていない子（学習日は直近14日ぶんを見ているので、それより前は「14日以上」と出ます）</span>
           <span>「詰めて表示」＝1人1行にして、たくさんの生徒を一画面で見ます（この端末に覚えます）</span>
-          <span>🖨 一覧を印刷／⬇ PDF＝<b>先生が見る紙</b>（この表そのもの）。<b>生徒に配る紙は下の「5. 紙にする」</b>で出します（旧「🖨 まちがいプリント（1人1枚）」はそちらに移り、条件をえらべるようになりました）</span>
+          <span>🖨 一覧を印刷／⬇ PDF＝<b>先生が見る紙</b>（この表そのもの）。<b>生徒に配る紙は上の「🖨 プリントを出す」</b>から出します（旧「🖨 まちがいプリント（1人1枚）」はそちらに移り、条件をえらべるようになりました）</span>
           <span style="width:100%;">行をクリックすると教材ごとの内訳が開きます。右の「詳細」でその子のまちがいまで見られます。未着手の教材は1行にまとめています（クリックで開きます）。内訳の各教材の右にある「🖨 この範囲で出す」は、<b>その子・その教材だけ</b>の紙を出します。</span>
         </div>
       </div>
 
-      <!-- 【2026-09-13i・段D】5. 紙にする＝ここで紙が出る。生徒一覧に戻らない（要件定義書 §5 段D）
+      <!-- 【2026-09-13i・段D→2026-09-14 段F】プリントを出す＝ここで紙が出る。生徒一覧に戻らない（要件定義書 §5 段D）
            見る範囲＝「1. 教材をえらぶ」／出す範囲＝この中でさらに絞る。2つは別々に指定できる。 -->
       </div>
 
@@ -1628,6 +1629,8 @@
           </div>
           <div class="rp-mute" style="font-weight:600;margin:3px 0 6px;">レポートの絞り込みが<b>はじめから入っています</b>。ここで変えても、レポートの一覧は変わりません。</div>
           <div class="pmwrap" id="rpPfFilters"></div>
+          <!-- ★誰の紙が出るのかを名前で出す。人数だけだと「2名って誰？」になる（川上さん 2026-09-14）-->
+          <div class="rp-cap" id="rpPfWho"></div>
         </div>
 
         <div id="rpListOpts">
@@ -1655,6 +1658,7 @@
 
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
           <button class="btn-primary" style="width:auto;" id="rpPaperGoBtn" onclick="rpPaperGo()">🖨 チェックプリントを出す</button>
+          <button class="qmt-allbtn" id="rpPvBtn" onclick="rpPreviewOne()">👁 1人ぶんの見本を見る</button>
           <span class="rp-mute" id="rpPaperNote"></span>
           <span class="rp-mute" id="rpPaperWho" style="display:none;"></span>
         </div>
@@ -1947,6 +1951,19 @@
 </div>
 
 <!-- 仕上げプリント：できた紙を「印刷」か「PDFで保存」で出す（同じセット番号）2026-08-31 段4 -->
+<!-- 【2026-09-14・段F】1人ぶんの見本。押した紙の形そのままで、先頭の生徒1人だけ作って画面に出す。
+     Why: 43名ぶんの印刷プレビューは作るのに時間がかかり、中身を確かめるだけなら重すぎる（川上さん 2026-09-14）。 -->
+<div class="modal-back" id="rpPvModal">
+  <div class="modal" style="max-width:min(1040px,96vw);">
+    <h3 style="margin-bottom:6px;" id="rpPvTtl">1人ぶんの見本</h3>
+    <div class="mhint" id="rpPvInfo"></div>
+    <div id="rpPvBody" style="max-height:70vh;overflow:auto;background:#f3f4f6;padding:12px;border-radius:10px;"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('rpPvModal')">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-back" id="fsGoModal">
   <div class="modal" style="max-width:min(560px,96vw);">
     <h3 style="margin-bottom:6px;">仕上げプリントができました</h3>
@@ -7315,6 +7332,15 @@ function rpRenderPaper(n){
   if(pst)pst.innerHTML=(psame?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')+'　<b>'+pn+'</b>名';
   var prow=$('rpPfRow'); if(prow)prow.classList.toggle('diff',!psame);
   var pbb=$('rpPfBackBtn'); if(pbb)pbb.disabled=psame;
+  var who2=$('rpPfWho');
+  if(who2){
+    if(!pn)who2.innerHTML='<span style="color:var(--crimson);font-weight:800;">この絞り込みに合う生徒がいません。</span>';
+    else{
+      /* 多いときは全部は並べない（43名ぶん並べると読めない）。誰が入るかが分かれば足りる。 */
+      var _ns=rpTargets(true).map(function(x){return String((x.s&&x.s.name)||'');}).filter(Boolean);
+      who2.innerHTML='この紙が出る生徒＝'+esc(_ns.slice(0,8).join('・'))+((_ns.length>8)?('　…ほか'+(_ns.length-8)+'名'):'');
+    }
+  }
 
   /* 条件の欄は紙の形で出し分ける */
   var a=$('rpListOpts'), b=$('rpFinishOpts');
@@ -7366,6 +7392,64 @@ function rpToggleSetEdit(){
   var on=(e.style.display==='none');
   e.style.display=on?'':'none';
   if(b)b.textContent=on?'▴ 閉じる':'▾ 変える';
+}
+/* 【2026-09-14・段F】1人ぶんの見本を画面に出す。
+   ★先頭の生徒1人だけで作る＝43名ぶんの印刷プレビューを待たずに中身を確かめられる。
+   ★仕上げプリントの見本は **セット番号を発行しない**（見本のたびに print_sets へ行が増えるのを防ぐ）。
+     番号の欄には FS_CODE_TMP_（見本の番号）が入る。 */
+function rpPreviewOne(){
+  var list=rpPrintList_();
+  var mats=rpOutMats_();
+  _prnHost='report'; tmErr_('');
+  if(!mats.length){ tmErr_('出す教材が1つも選ばれていません。'); return; }
+  if(!list.length){ tmErr_('この絞り込みに合う生徒がいません。'); return; }
+  var sid=String(list[0].s.student_id), nm=String(list[0].s.name||'');
+  var st=_rpPaperStyle_();
+  var btn=$('rpPvBtn'); if(btn)btn.disabled=true;
+  showLoading(nm+'さんの見本を作っています…（10秒ほどかかります）');
+  var done=function(){ hideLoading(); if(btn)btn.disabled=false; };
+  if(st==='finish'){
+    call({action:'teacher_mistakes',student_ids:sid,material_ids:mats.join(','),types:'daily,unit,quiz',
+          mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_}).then(function(d){
+      if(!d||!d.ok){ tmErr_('見本を作れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
+      _pqSetAssets_(d.data);
+      var ss=d.data.students||[];
+      var urls={}; ss.forEach(function(s){ (s.items||[]).forEach(function(it){ if(it.fig) urls[it.fig]=1; }); });
+      fsPreload_(Object.keys(urls),function(){
+        var b0=fsBuildSheet_(ss[0]||{},{date:_rpToday(),code:FS_CODE_TMP_,scope:fsScopeLabel_(mats)});
+        if(!b0){ tmErr_(esc(nm)+'さんは、いまの条件で紙にできる問題がありません。'); done(); return; }
+        _rpPvShow_(nm,'仕上げプリント',fsDrawSheet_(b0),
+          'セット番号は<b>まだ発行していません</b>（見本では「'+esc(FS_CODE_TMP_)+'」と出ます）。本番の番号は「🖨 仕上げプリントを出す（生徒用）」を押したときに出ます。');
+        done();
+      });
+    }).catch(function(e){ tmErr_('見本を作れませんでした：'+esc(e&&e.message||e)); done(); });
+    return;
+  }
+  var scope=(($('rpScope')||{}).value)||'active'; if(scope==='graduated')scope='active';
+  var days=parseInt(($('rpDays')||{}).value,10); if(!(days>=1))days=7;
+  var limit=parseInt(($('rpLimit')||{}).value,10); if(!(limit>=1))limit=20;
+  var types=[]; ['daily','unit','quiz'].forEach(function(t){ var c=$('rpT-'+t); if(c&&c.checked)types.push(t); });
+  if(!types.length){ tmErr_('出す種別を1つ以上えらんでください。'); done(); return; }
+  call({action:'teacher_mistakes',student_ids:sid,mode:scope,days:days,limit:limit,
+        types:types.join(','),material_ids:mats.join(',')}).then(function(d){
+    if(!d||!d.ok){ tmErr_('見本を作れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
+    _pqSetAssets_(d.data);
+    var s0=(d.data.students||[])[0];
+    if(s0){ var seen={}; s0.items=(s0.items||[]).filter(function(it){ var k=_pqDedupKey_(it); if(seen[k])return false; seen[k]=true; return true; }); }
+    if(!s0||!(s0.items||[]).length){ tmErr_(esc(nm)+'さんは、いまの条件でまちがえている問題がありません。'); done(); return; }
+    _rpPvShow_(nm,'チェックプリント',
+      unifiedStudentHtml_(s0,{wrapClass:'print-student',docTitle:'まちがえた問題',showSubmit:false,
+        missLabel:'まちがえた問題',emptyLabel:'いまはまちがえている問題はありません。'}),
+      'これは<b>'+esc(nm)+'さん1人ぶん</b>です。印刷すると、いま出す生徒にえらんでいる人ぶんが出ます。');
+    done();
+  }).catch(function(e){ tmErr_('見本を作れませんでした：'+esc(e&&e.message||e)); done(); });
+}
+function _rpPvShow_(nm,kind,html,note){
+  var t=$('rpPvTtl'); if(t)t.textContent='見本：'+kind+'（'+nm+'さん）';
+  var i2=$('rpPvInfo'); if(i2)i2.innerHTML=note||'';
+  var bd=$('rpPvBody');
+  if(bd)bd.innerHTML='<div class="print-preview-wrap" style="background:#fff;padding:10px;border-radius:8px;">'+html+'</div>';
+  $('rpPvModal').classList.add('show');
 }
 /* レポートを見る／プリントを出す の切り替え */
 var RP_PANE='rep';
