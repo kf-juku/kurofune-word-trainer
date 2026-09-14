@@ -809,10 +809,11 @@
   .pst-pass{background:#e6f6ee;color:#14663a;}
   .pst-try{background:#fdf3dd;color:#8a5e08;}
   .pst-tryw{background:#f7d3d3;color:#9c2a2a;}
-  /* 確認テストタブ（2026-07-10） */
-  #view-quiz .qcard{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:14px;margin-bottom:14px;}
-  #view-quiz .qch{font-size:13px;color:var(--text-muted);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
-  #view-quiz .qch .c2cnt{background:#fdeaea;color:#d64545;font-weight:800;border-radius:12px;padding:1px 9px;font-size:12px;}
+  /* 確認テストタブ（2026-07-10）。2026-09-13f（段C）で「教材ごと」タブへ移したので #view-mat に付け替えた。
+     ★#view-quiz のままにすると、移した点数表の枠・見出し・件数バッジが全部そのまま消える。 */
+  #view-mat .qcard{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:14px;margin-bottom:14px;}
+  #view-mat .qch{font-size:13px;color:var(--text-muted);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  #view-mat .qch .c2cnt{background:#fdeaea;color:#d64545;font-weight:800;border-radius:12px;padding:1px 9px;font-size:12px;}
   .qachip{display:inline-flex;align-items:center;gap:5px;border-radius:16px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;margin:2px 4px 2px 0;border:1px solid transparent;}
   .qa-miss{background:#eef1f5;color:#5a6a7e;border-color:#dfe4ec;}.qa-ng{background:#fdeaea;color:#d64545;border-color:#f3c7c7;}
   .qachip small{font-weight:500;opacity:.8;}
@@ -1004,6 +1005,8 @@
         <span class="who"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;flex-shrink:0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><b id="who-name">—</b> 先生</span>
         <button class="btn-ghost" id="btn-sync" title="会員管理の生徒マスタを読み込んで、KWTアカウントを作成・更新・停止します"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px;flex-shrink:0;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>会員管理と同期</button>
         <button class="btn-ghost" id="btn-reload" title="各生徒の学習状況を最新に読み直します（会員管理は見ません）"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px;flex-shrink:0;"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>学習状況を更新</button>
+        <!-- 【2026-09-13f・段C】リアルタイムの入口をヘッダーへ。どのタブからでも1回で開ける（要件定義書 決定9） -->
+        <button class="btn-ghost" id="rtOpenBtn" onclick="openRealtime()" title="別ウィンドウが開き、いま確認テスト中の子をリアルタイムに一覧します。この画面はそのまま操作できます" style="border-color:#C6000B;color:#C6000B;font-weight:800;">● リアルタイムモードを開く<span id="rtOnBadge" style="display:none;align-items:center;gap:4px;background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;border-radius:20px;padding:0 7px;font-size:10px;font-weight:800;margin-left:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;"></span>起動中</span></button>
         <button class="btn-ghost" id="btn-logout">ログアウト</button>
       </div>
     </div>
@@ -1012,7 +1015,7 @@
     <div class="tabs">
       <button class="tab active" id="tab-dash" onclick="switchTab('dash')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>生徒一覧</button>
       <button class="tab" id="tab-mat" onclick="switchTab('mat')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>教材ごと</button>
-      <button class="tab" id="tab-quiz" onclick="switchTab('quiz')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>単元別・確認テスト</button>
+      <!-- 「単元別・確認テスト」タブは 2026-09-13f（段C）に廃止 -->
       <button class="tab" id="tab-report" onclick="switchTab('report')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M3 3v18h18"></path><rect x="7" y="12" width="3" height="6"></rect><rect x="12" y="8" width="3" height="10"></rect><rect x="17" y="4" width="3" height="14"></rect></svg>レポート</button>
       <button class="tab" id="tab-notice" onclick="switchTab('notice')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M18 8a3 3 0 0 1 0 6"></path><path d="M10 8v11a1 1 0 0 1 -1 1h-1a1 1 0 0 1 -1 -1v-5"></path><path d="M12 8h0l4.524 -3.77a.9 .9 0 0 1 1.476 .692v12.156a.9 .9 0 0 1 -1.476 .692l-4.524 -3.77h-8a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h8"></path></svg>一斉指示</button>
       <button class="tab" id="tab-teams" onclick="switchTab('teams')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>チーム編成</button>
@@ -1195,35 +1198,7 @@
     </div><!-- /#view-settings -->
 
     <!-- ===== 教材ごとビュー 2026-07-09 ===== -->
-    <div id="view-mat" style="display:none;">
-      <div style="background:#fff;border-radius:var(--radius);padding:8px 12px;margin-bottom:10px;box-shadow:var(--shadow-sm);font-size:12px;color:var(--text-muted);">教材ごとに「今 誰が持っているか」を見て、行をクリックすると名簿（追加・外す）を編集できます。外しても進捗・間違いノートは残ります。</div>
-      <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><button type="button" onclick="refreshMatList(this)" style="background:var(--crimson);color:#fff;border:1px solid var(--crimson-dark);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:var(--shadow-sm);white-space:nowrap;">↻ 最新に更新</button><span style="font-size:11px;color:var(--text-muted);">シートに貼った教材がまだ出ないときに押す（キャッシュを消して読み直します）</span></div>
-      <details style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:10px;font-size:12px;color:var(--text-muted);">
-        <summary style="cursor:pointer;padding:8px 12px;font-weight:800;color:var(--text);">教材の並び・ラベルの仕組み（メモ）</summary>
-        <div style="padding:0 14px 12px;line-height:1.75;">
-          <b>並び順</b>：形式（毎日学習→単元別）→ 教科 → 本（教材シリーズ）→ 章番号（この順で自動で並ぶ。理科も章番号順に表示。追加した順やdisplay_orderの数字より章番号を優先）<br>
-          <b>スプレッドシートの列と意味</b><br>
-          ・subject（教科）：english=英語／science=理科／history=歴史／geography=地理／civics=公民／japanese=国語／math=数学<br>
-          　※ 2026-08-26 に社会を 歴史・地理・公民 に分けた。<b>新しい教材に social は使わない</b>（間違いノートの弱点集中が「社会」でひとまとめになるため）<br>
-          ・grade（学年）：中1／中2／中3／全学年（空欄=学年未設定）<br>
-          ・display_order（番号）：教科×学年の中の並び順。1,2,3…＝単元順<br>
-          ・target（レベル）：beginner=基礎／junior_high=中学／entrance_exam=受験／eiken=英検／school_test=学校テスト<br>
-          ・content_type（形式）：daily=毎日学習／test=単元別対策<br>
-          <b>大事なルール</b>：番号（display_order）を変えても生徒の履歴は影響なし（教材はIDで管理）。改修は同じIDのまま中身を直す。足すのは新規、消して作り直さない。
-        </div>
-      </details>
-      <div id="matList" style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;"></div>
-    </div>
-
-    <!-- ===== 確認テストビュー（閲覧専用）2026-07-10 ===== -->
-    <div id="view-quiz" style="display:none;">
-      <div class="qcard" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:200px;">
-          <div style="font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px;">リアルタイムモード<span id="rtOnBadge" style="display:none;align-items:center;gap:4px;background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;border-radius:20px;padding:1px 9px;font-size:11px;font-weight:800;"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span>起動中</span></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">押すと別ウィンドウが開き、いま確認テスト中の子をリアルタイムに一覧します。この画面はそのまま操作できます。</div>
-        </div>
-        <button id="rtOpenBtn" onclick="openRealtime()" style="background:#C6000B;color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;">● リアルタイムモードを開く</button>
-      </div>
+    <!-- 点数表と、生徒一覧の個別詳細（段B）が使う CSS。もとは view-quiz の中にあった（段Cで移した） -->
       <style>
         .qseg{display:inline-flex;border:1.5px solid var(--border);border-radius:20px;overflow:hidden;}
         .qseg button{border:none;background:#fff;color:var(--text-muted);font-size:12.5px;font-weight:700;padding:6px 15px;cursor:pointer;font-family:inherit;}
@@ -1296,39 +1271,40 @@
         .qsAllBtn{border:1px solid var(--border);background:#fff;color:var(--text-muted);border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
         .qsAllBtn:hover{border-color:var(--crimson);color:var(--crimson);}
       </style>
-      <div class="qcard" style="padding:10px 14px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-          <div class="qch" style="margin:0;">点数と進み</div>
-          <span class="qseg"><button id="qsegStu" class="on" onclick="quizMode('stu')">生徒ごと</button><button id="qsegMat" onclick="quizMode('mat')">教材ごと（点数表）</button></span>
+    <div id="view-mat" style="display:none;">
+      <div style="background:#fff;border-radius:var(--radius);padding:8px 12px;margin-bottom:10px;box-shadow:var(--shadow-sm);font-size:12px;color:var(--text-muted);">教材ごとに「今 誰が持っているか」を見て、行をクリックすると名簿（追加・外す）を編集できます。外しても進捗・間違いノートは残ります。</div>
+      <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><button type="button" onclick="refreshMatList(this)" style="background:var(--crimson);color:#fff;border:1px solid var(--crimson-dark);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:var(--shadow-sm);white-space:nowrap;">↻ 最新に更新</button><span style="font-size:11px;color:var(--text-muted);">シートに貼った教材がまだ出ないときに押す（キャッシュを消して読み直します）</span></div>
+      <details style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:10px;font-size:12px;color:var(--text-muted);">
+        <summary style="cursor:pointer;padding:8px 12px;font-weight:800;color:var(--text);">教材の並び・ラベルの仕組み（メモ）</summary>
+        <div style="padding:0 14px 12px;line-height:1.75;">
+          <b>並び順</b>：形式（毎日学習→単元別）→ 教科 → 本（教材シリーズ）→ 章番号（この順で自動で並ぶ。理科も章番号順に表示。追加した順やdisplay_orderの数字より章番号を優先）<br>
+          <b>スプレッドシートの列と意味</b><br>
+          ・subject（教科）：english=英語／science=理科／history=歴史／geography=地理／civics=公民／japanese=国語／math=数学<br>
+          　※ 2026-08-26 に社会を 歴史・地理・公民 に分けた。<b>新しい教材に social は使わない</b>（間違いノートの弱点集中が「社会」でひとまとめになるため）<br>
+          ・grade（学年）：中1／中2／中3／全学年（空欄=学年未設定）<br>
+          ・display_order（番号）：教科×学年の中の並び順。1,2,3…＝単元順<br>
+          ・target（レベル）：beginner=基礎／junior_high=中学／entrance_exam=受験／eiken=英検／school_test=学校テスト<br>
+          ・content_type（形式）：daily=毎日学習／test=単元別対策<br>
+          <b>大事なルール</b>：番号（display_order）を変えても生徒の履歴は影響なし（教材はIDで管理）。改修は同じIDのまま中身を直す。足すのは新規、消して作り直さない。
         </div>
-      </div>
-      <div id="qpaneStu">
-        <div class="qcard"><div class="qch qafc" id="qtNgH" onclick="applyQNg({t:'all'})" title="クリックで未合格の子を絞り込み">✅ 要対応：確認テストで未合格<span class="c2cnt" id="qtNgCnt">–</span><span class="qaf-hint">🔍 クリックで絞り込む</span></div><div id="qtNgList"></div>
-          <div class="qmute2">※ 未受験（まだ受けていない）は数が多いので山にしません。「教材ごと（点数表）」のセルで確認できます。</div></div>
-        <div class="qcard">
-          <div id="qtFstrip" class="qfstrip"></div>
-          <div id="qsFilters" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;"></div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-            <input class="filter-search" id="qStuSearch" placeholder="🔍 名前で検索" oninput="renderQuizStu();renderQFStrip()" style="width:190px;">
-            <span class="filter-count" id="qStuCnt"></span>
-            <button class="qsAllBtn" onclick="qsExpandAll(true)">全部ひらく</button>
-            <button class="qsAllBtn" onclick="qsExpandAll(false)">全部たたむ</button>
-            <span style="font-size:11px;color:var(--text-muted);">名前を開くと〈単元｜📘練習｜✅確認テスト〉の順に見られます。</span>
-          </div>
-          <div id="qtStu"></div>
-        </div>
-      </div>
-      <div id="qpaneMat" style="display:none;">
+      </details>
+      <div id="matList" style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;"></div>
+
+      <!-- ===== ここから下は 2026-09-13f（段C）に「単元別・確認テスト」タブから移したもの。作りは変えていない ===== -->
         <div class="qcard"><div class="qch">まだ受けていないテスト（未受験）<span class="c2cnt" id="qtAttCnt">–</span></div><div id="qtAtt"></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">※未合格の子は「生徒ごと」の要対応にまとめています。／配信は「教材ごと」タブの各教材の「確認テストを配信」ボタンから。</div></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">※未合格の子は<b>生徒一覧</b>の「✅ 確認テスト」列と、生徒をクリックした個別詳細で見られます。／配信は上の教材一覧の「確認テストを配信」ボタンから。</div></div>
         <div class="qcard"><div class="qch">点数表（教材ごと）</div><div class="qmatsel" id="qtMatSel"></div>
           <div id="qbFilters" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0;"></div>
           <div id="qbFstrip" class="qfstrip"></div>
           <div id="qbBoardCap" style="font-size:12.5px;font-weight:800;margin:4px 0 8px;"></div>
           <div class="qtboard-scroll" style="overflow:auto;max-height:72vh;"><div id="qtBoard"></div></div>
           <div class="qlegend"><span style="width:100%;color:var(--text-light);font-weight:700;">上段＝✅確認テスト</span><span><i class="qlg q-ok"></i>合格%</span><span><i class="qlg q-ng"></i>未合格%</span><span>— ＝未受験（送ったがまだ）</span><span><span class="q-un" style="padding:1px 5px;line-height:1;"><b style="font-size:10px;">未受験</b></span> 再配信・前○%＝前回の点</span><span style="color:#c7cfda;">・</span>＝未配信（送っていない）<span style="width:100%;color:var(--text-light);font-weight:700;">下段＝📘単元別</span><span><b style="color:#12805a;">📗/📘%</b>＝練習した（完走/途中）・<span style="color:#94a3b8;">日付</span>＝練習日</span><span><b style="color:#7b8794;">📘未練習</b>＝割当あり・練習まだ</span><span><b style="color:#aab4c0;">未割当</b>＝単元別なし</span><span style="width:100%;">見出しクリックで並び替え／セルをタップで詳細</span></div></div>
-      </div>
     </div>
+
+    <!-- ===== 確認テストビューは 2026-09-13f（段C）に廃止した =====
+         点数表と「まだ受けていないテスト」は「教材ごと」タブへ、リアルタイムの入口はヘッダーへ移した。
+         生徒ごと（qpaneStu）は 段B で生徒一覧の個別詳細に入ったので、ここでは持たない。
+         .qsu-* などの CSS は下の共通 <style> に移した（個別詳細のモーダルが使っている）。 -->
 
     <!-- ===== レポートビュー（絞り込んだ教材の学習状況）2026-08-17 ===== -->
     <div id="view-report" style="display:none;">
@@ -4046,19 +4022,16 @@ function switchTab(t){
   var tm=document.getElementById('tab-mat'); if(tm) tm.classList.toggle('active',t==='mat');
   document.getElementById('tab-teams').classList.toggle('active',t==='teams');
   var ts=document.getElementById('tab-settings'); if(ts) ts.classList.toggle('active',t==='settings');
-  var tq=document.getElementById('tab-quiz'); if(tq) tq.classList.toggle('active',t==='quiz');
   var tr=document.getElementById('tab-report'); if(tr) tr.classList.toggle('active',t==='report');
   var tn=document.getElementById('tab-notice'); if(tn) tn.classList.toggle('active',t==='notice');
   $('view-dash').style.display=(t==='dash')?'':'none';
   var vm=$('view-mat'); if(vm) vm.style.display=(t==='mat')?'':'none';
   $('view-teams').style.display=(t==='teams')?'':'none';
   var vs=$('view-settings'); if(vs) vs.style.display=(t==='settings')?'':'none';
-  var vq=$('view-quiz'); if(vq) vq.style.display=(t==='quiz')?'':'none';
   var vr=$('view-report'); if(vr) vr.style.display=(t==='report')?'':'none';
   var vn=$('view-notice'); if(vn) vn.style.display=(t==='notice')?'':'none';
   if(t==='teams') loadTeams();
   if(t==='mat') renderMatTab();
-  if(t==='quiz') renderQuizTab();
   if(t==='report') renderReportTab();
   if(t==='notice') renderNoticeTab(); // 開いたら最新を取り直す（原則6）2026-08-28
   if(t==='settings') renderCheerPanel(); // 設定タブを開いたら最新状態で描画（loadCheerConfigは起動時に実行済み）
@@ -4101,6 +4074,8 @@ function _gradeLabel(g){return g||'学年未設定';}
 function _levelLabel(t){var o={beginner:'基礎',junior_high:'中学',entrance_exam:'受験',eiken:'英検',school_test:'学校テスト'};return o[t]||'';}
 function _ordNum(v){var n=parseInt(v,10);return isNaN(n)?99999:n;}
 function renderMatTab(){
+  /* 【2026-09-13f・段C】このタブに点数表と「まだ受けていないテスト」が入った。教材の一覧と一緒に描く。 */
+  renderQuizBoardArea_();
   var box=$('matList'); if(!box)return;
   box.innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
   var draw=function(mats){
@@ -4140,6 +4115,7 @@ function refreshMatList(btn){
   if(btn){ btn.disabled=true; btn.textContent='更新中…'; }
   call({action:'clear_content_cache'}).then(function(r){
     bulkMaterials=null;      // クライアント側キャッシュ破棄→renderMatTab が materials_list を再取得
+    renderQuizBoardArea_(true);  // 点数表も取り直す（段Cでこのタブに入ったので、ここが唯一の手動更新）2026-09-13f
     renderMatTab();
     if(btn){ btn.disabled=false; btn.textContent=_o||'↻ 最新に更新'; }
     try{ toast((r&&r.ok)?'教材を最新に更新しました':'更新に失敗しました'); }catch(e){}
@@ -4566,7 +4542,13 @@ function openRealtime(){
 }
 function rtBtnState_(on){
   var b=document.getElementById('rtOpenBtn'), badge=document.getElementById('rtOnBadge');
-  if(b){ b.textContent=on?'● 起動中（前面に出す）':'● リアルタイムモードを開く'; b.style.background=on?'#065f46':'#C6000B'; }
+  /* 【2026-09-13f・段C】ヘッダーの btn-ghost になったので、背景ではなく枠と文字の色を変える。
+     文言を入れ替えるとバッジ(span)ごと消えるので、文字だけを差し替える。 */
+  if(b){
+    var lbl=on?'● 起動中（前面に出す）':'● リアルタイムモードを開く';
+    if(b.firstChild&&b.firstChild.nodeType===3)b.firstChild.nodeValue=lbl; else b.insertBefore(document.createTextNode(lbl),b.firstChild);
+    b.style.borderColor=on?'#065f46':'#C6000B'; b.style.color=on?'#065f46':'#C6000B';
+  }
   if(badge){ badge.style.display=on?'inline-flex':'none'; }
 }
 /* ===== 確認テストタブ（閲覧：注目リスト＋点数表＋詳細）2026-07-10 ===== */
@@ -4579,100 +4561,62 @@ function _syncQuizSel_(data){
   if(_quizCurMat&&!mats.some(function(m){return m.material_id===_quizCurMat;}))_quizCurMat=null; // 既定で先頭教材を選ばない（川上さん指摘 2026-08-08）
   _quizSelMats=_quizSelMats.filter(function(id){return mats.some(function(m){return m.material_id===id;});});
 }
-function _renderQuizAll_(){renderQuizAtt();renderQuizMatSel();renderQBFilters();renderQuizBoard();renderQuizNg();renderQSFilters();renderQuizStu();renderQFStrip();}
-function _bgRefreshQuiz_(){ // 裏で最新取得。変化があるときだけ描き直す（無ければ画面はそのまま＝ちらつかない）
-  if(_quizLoading)return; _quizLoading=true;
-  call({action:'quiz_board'}).then(function(d){
-    _quizLoading=false;
-    if(!d.ok||!d.data)return; // 失敗はキャッシュ表示を維持
-    try{ if(JSON.stringify(d.data)===JSON.stringify(_quizBoard))return; }catch(e){}
-    _quizBoard=d.data; _syncQuizSel_(d.data); _renderQuizAll_();
-  }).catch(function(){_quizLoading=false;});
-}
-/* 【地雷・2026-08-20】スピナーの置き場所は「いま見えているペイン」に出す。
-   タブを開いた直後に見えているのは qpaneStu（生徒ごと）で、qtBoard は qpaneMat（display:none）の中。
-   qtBoard だけに出すと、開いた人には何も出ない＝「反応がない／読み込み中か分からない」になる（川上さん報告 2026-08-20）。
-   → 生徒ごと(qtNgList/qtStu)・教材ごと(qtAtt/qtBoard) の4か所すべてに出す。件数も「…」にして待ちが分かるようにする。 */
+/* 点数表と未受験のまとめ（教材ごとタブ）を描き直す。生徒ごとは段Cで無くなった */
+function _renderQuizAll_(){renderQuizAtt();renderQuizMatSel();renderQBFilters();renderQuizBoard();}
+/* 【地雷・2026-08-20】スピナーは「いま見えている所」に出す。何も出ないと「反応がない」になる（川上さん報告）。
+   段Cで生徒ごと（qtNgList/qtStu）が無くなったので、教材ごとの2か所に出す。 */
 var _QT_SPIN_S_='<div style="display:flex;align-items:center;gap:10px;padding:26px 10px;color:#64748b;font-size:13px;"><div class="loading-spinner" style="width:26px;height:26px;border-width:3px;"></div><span>読み込み中…<span style="font-size:11px;color:#94a3b8;margin-left:6px;">全生徒ぶんを集計しています</span></span></div>';
 function _qtSpin_(on,errMsg){
   var set=function(id,html){var e=$(id);if(e)e.innerHTML=html;};
-  set('qtNgList',on?_QT_SPIN_S_:(errMsg||''));   // 生徒ごとペインの上（開いた直後に見える所）
-  set('qtStu',   on?_QT_SPIN_S_:'');
-  set('qtAtt',   on?_QT_SPIN_S_:(errMsg||''));   // 教材ごとペインの上
+  set('qtAtt',   on?_QT_SPIN_S_:(errMsg||''));
   set('qtBoard', on?_QT_SPIN_:'');
-  ['qtNgCnt','qtAttCnt','qStuCnt'].forEach(function(id){var c=$(id);if(c&&(on||errMsg))c.textContent=on?'…':'–';});
+  ['qtAttCnt'].forEach(function(id){var c=$(id);if(c&&(on||errMsg))c.textContent=on?'…':'–';});
 }
-function renderQuizTab(force){
-  if(_quizBoard&&!force){ _renderQuizAll_(); _bgRefreshQuiz_(); return; } // 2回目以降のタブ切替は即表示＋裏で更新
-  _qtSpin_(true); // 初回・強制更新は回転スピナー（見えているペインにも必ず出す）
+/* 【2026-09-13f・段C】確認テストの点数表を取りに行くのは **この関数1つだけ**。
+   教材ごとタブとレポートタブが同じキャッシュ（_quizBoard）を使う＝1回しか取りに行かない。
+   旧＝確認テストタブ(renderQuizTab)とレポートタブ(renderReportTab)が別々に呼んでいて、
+   両方開くと 4,518KB・10.6秒（本番実測 2026-09-13）を2回払っていた。
+   ・cb は「取れたら呼ぶ」。キャッシュがあれば **その場で** 呼ぶ（待たせない）
+   ・force で取り直す。取り直し中も画面はキャッシュのまま＝ちらつかない
+   ★1生徒だけの確認テスト（個別詳細・段B）は別物で、sdLoadQuiz_ が student_id つきで呼ぶ。
+     こちらは絞った応答なので、この全件キャッシュには入れない。 */
+/* 取り直しの間隔。点数表は **4,518KB・10.6秒**（本番実測 2026-09-13）なので、タブを行き来するたびに
+   裏で取り直すと、その重さを何度も払う。90秒より新しければ取り直さない。
+   すぐ最新にしたいときは「↻ 最新に更新」（force）で取り直す。 */
+var _QB_FRESH_MS_=90*1000, _quizBoardAt=0;
+function ensureQuizBoard_(cb,force){
+  if(_quizBoard&&!force){
+    if(cb)cb(_quizBoard);                                   // キャッシュで即描く（待たせない）
+    if(Date.now()-_quizBoardAt>_QB_FRESH_MS_)_bgRefreshQuiz_(cb);  // 古いときだけ裏で取り直す
+    return;
+  }
+  _fetchQuizBoard_(cb,false);
+}
+function _bgRefreshQuiz_(cb){ _fetchQuizBoard_(cb,true); } // 裏で最新取得。変わったときだけ描き直す
+/* ★点数表（全件）を取りに行くのは この1か所だけ。ほかから call({action:'quiz_board'}) を書かない。
+   （1生徒だけの sdLoadQuiz_ は student_id つきの別物） */
+function _fetchQuizBoard_(cb,bg){
   if(_quizLoading)return; _quizLoading=true;
   call({action:'quiz_board'}).then(function(d){
     _quizLoading=false;
-    if(!d.ok){_qtSpin_(false,'<div style="color:var(--crimson);font-size:12px;padding:10px 2px;">取得に失敗しました'+(d.error?'（'+esc(d.error)+'）':'')+'</div>');return;}
-    _quizBoard=d.data; _syncQuizSel_(d.data); _renderQuizAll_();
-  }).catch(function(){_quizLoading=false;_qtSpin_(false,'<div style="color:var(--crimson);font-size:12px;padding:10px 2px;">取得に失敗しました</div>');});
+    if(!d||!d.ok||!d.data){ if(!bg&&cb)cb(null,(d&&d.error)||'取得に失敗しました'); return; } // 裏の失敗はキャッシュ表示を維持
+    _quizBoardAt=Date.now();
+    if(bg){ try{ if(JSON.stringify(d.data)===JSON.stringify(_quizBoard))return; }catch(e){} }
+    _quizBoard=d.data; _syncQuizSel_(d.data); if(cb)cb(_quizBoard);
+  }).catch(function(){ _quizLoading=false; if(!bg&&cb)cb(null,'取得に失敗しました'); });
+}
+/* 教材ごとタブの点数表。旧 renderQuizTab（確認テストタブ）の役目をここが引き取った */
+function renderQuizBoardArea_(force){
+  if(!_quizBoard||force) _qtSpin_(true);
+  ensureQuizBoard_(function(d,err){
+    if(err){_qtSpin_(false,'<div style="color:var(--crimson);font-size:12px;padding:10px 2px;">取得に失敗しました（'+esc(err)+'）</div>');return;}
+    _renderQuizAll_();
+  },force);
 }
 /* ===== 単元別・確認テスト：生徒ごと⇄教材ごと（2026-08-07 大規模UPDATE スライス1）===== */
-function quizMode(m){
-  var s=$('qsegStu'),t=$('qsegMat'); if(s)s.classList.toggle('on',m==='stu'); if(t)t.classList.toggle('on',m==='mat');
-  var ps=$('qpaneStu'),pm=$('qpaneMat'); if(ps)ps.style.display=(m==='stu')?'':'none'; if(pm)pm.style.display=(m==='mat')?'':'none';
-}
-function _qSeriesLabelOf(e){ return e.series_label || _matTitleOf(e.material_id) || e.material_title || 'その他'; }
-/* 絞り込み：生徒一覧の学習アラート(alertFilterClick/clearAlertFilter)と同じ挙動を移植 2026-08-07 スライス3 */
-var _qNgFilter=null; /* null | {t:'all'} | {t:'series',s:シリーズ名} */
-function qNgHas(sid,f){ return _qEntries().some(function(e){return String(e.student_id)===String(sid)&&e.status==='ng'&&(f.t==='all'||_qSeriesLabelOf(e)===f.s);}); }
-function applyQNg(f){
-  var same=_qNgFilter&&((f.t==='all'&&_qNgFilter.t==='all')||(f.t==='series'&&_qNgFilter.t==='series'&&_qNgFilter.s===f.s));
-  _qNgFilter=same?null:f; quizMode('stu');
-  renderQuizNg(); renderQuizStu(); renderQFStrip();
-  var el=$('qpaneStu'); if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'start'});
-}
-function qFocusStu(name){ _qNgFilter=null; var s=$('qStuSearch'); if(s)s.value=name; renderQuizNg(); renderQuizStu(); renderQFStrip(); var el=$('qpaneStu'); if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'start'}); }
-function renderQFStrip(){
-  var strip=$('qtFstrip'); if(!strip)return;
-  var toks=[];
-  if(_qNgFilter)toks.push({k:'ng',lbl:(_qNgFilter.t==='all'?'確認テストで未合格':_qNgFilter.s+' の未合格')});
-  if(_qsCls!=='all')toks.push({k:'c',lbl:'教室 '+_qsCls});
-  if(_qsGrade!=='all')toks.push({k:'g',lbl:'学年 '+_qsGrade});
-  if(_qsSch!=='all')toks.push({k:'s',lbl:'中学校 '+_qsSch});
-  var q=(($('qStuSearch')||{}).value||'').trim(); if(q)toks.push({k:'q',lbl:'名前「'+q+'」'});
-  if(!toks.length){strip.style.display='none';strip.innerHTML='';return;}
-  strip.style.display='flex';
-  strip.innerHTML='<span class="qfstrip-lbl">適用中の絞り込み：</span>'
-    +toks.map(function(t){return '<span class="qftok">'+esc(t.lbl)+'<button class="qftok-x" onclick="removeQF(\''+t.k+'\')" title="この条件を外す">✕</button></span>';}).join('')
-    +'<button class="qfstrip-clear" onclick="clearQF()">すべて解除</button>';
-}
-function removeQF(k){ if(k==='ng')_qNgFilter=null; else if(k==='g')_qsGrade='all'; else if(k==='c')_qsCls='all'; else if(k==='s')_qsSch='all'; else if(k==='q'){var s=$('qStuSearch');if(s)s.value='';} renderQuizNg(); renderQSFilters(); renderQuizStu(); renderQFStrip(); }
-function clearQF(){ _qNgFilter=null; _qsGrade='all'; _qsCls='all'; _qsSch='all'; var s=$('qStuSearch'); if(s)s.value=''; renderQuizNg(); renderQSFilters(); renderQuizStu(); renderQFStrip(); }
-/* 生徒ごとの学年/教室/中学校しぼり＝点数表(renderQBFilters)と同じ部品を流用 2026-08-07 */
-var _qsGrade='all',_qsCls='all',_qsSch='all';
-function renderQSFilters(){
-  var el=$('qsFilters'); if(!el)return;
-  var grades=_qbDistinct(function(s){return s.grade;}), cls=_qbDistinct(function(s){return s.class_name;}), sch=_qbDistinct(function(s){return s.school;});
-  // 生徒一覧タブと同じ：教室→学年→中学校の順・各グループを1行に（filter-grp）
-  var h='';
-  if(cls.length)h+='<div class="filter-grp"><span class="filter-label">教室</span>'+_qsChips('c',_qsCls,cls)+'</div>';
-  h+='<div class="filter-grp"><span class="filter-label">学年</span>'+_qsChips('g',_qsGrade,grades)+'</div>';
-  if(sch.length)h+='<div class="filter-grp"><span class="filter-label">中学校</span>'+_qsChips('s',_qsSch,sch)+'</div>';
-  el.innerHTML=h;
-}
-function _qsChips(kind,cur,opts){ var mk=function(v,l){return '<button class="filter-chip'+(cur===v?' active':'')+'" onclick="setQS(\''+kind+'\',\''+String(v).replace(/['"\\]/g,'')+'\')">'+esc(l)+'</button>';}; return mk('all','すべて')+opts.map(function(o){return mk(o,o);}).join(''); }
-function setQS(k,v){ if(k==='g')_qsGrade=v;else if(k==='c')_qsCls=v;else _qsSch=v; renderQSFilters(); renderQuizStu(); renderQFStrip(); }
-/* 要対応：未合格だけ・シリーズごとにまとめる（未実施は山にしない） */
-function renderQuizNg(){
-  var el=$('qtNgList'); if(!el)return;
-  var ng=_qEntries().filter(function(e){return e.status==='ng';});
-  var c=$('qtNgCnt'); if(c)c.textContent=ng.length+'件';
-  var ch=$('qtNgH'); if(ch)ch.classList.toggle('qafon',!!(_qNgFilter&&_qNgFilter.t==='all'));
-  var g={},order=[];
-  ng.forEach(function(e){var k=_qSeriesLabelOf(e);if(!g[k]){g[k]=[];order.push(k);}g[k].push(e);});
-  el.innerHTML=order.map(function(k,i){
-    var active=(_qNgFilter&&_qNgFilter.t==='series'&&_qNgFilter.s===k),ks=k.replace(/['"\\]/g,''),id='qngb'+i;
-    var chips=g[k].map(function(e){return '<span class="qachip qa-ng" onclick="event.stopPropagation();qFocusStu(\''+esc(e.student_name)+'\')" title="クリックでこの子だけ表示">'+esc(e.student_name)+' <small>'+esc(e.part_title)+'・'+e.latest_rate+'%</small></span>';}).join('');
-    return '<div class="qsrow"><span class="qshead2'+(active?' qafon':'')+'" onclick="qNgFold(\''+id+'\',this)" title="クリックで名前を開く"><span class="cr">▸</span> '+esc(k)+' <span class="cnt">'+g[k].length+'件</span></span> <button class="qng-filter" onclick="applyQNg({t:\'series\',s:\''+esc(ks)+'\'})" title="この子たちで生徒ごとを絞り込み">🔍 この子で絞り込む</button><div class="qsbody2" id="'+id+'" style="display:none;">'+chips+'</div></div>';
-  }).join('') || '<span class="chip-none">未合格の子はいません 🎉</span>';
-}
-function qNgFold(id,el){var b=document.getElementById(id);if(!b)return;var o=b.style.display==='none';b.style.display=o?'':'none';var c=el.querySelector('.cr');if(c)c.textContent=o?'▾':'▸';}
+/* 【2026-09-13f・段C】「単元別・確認テスト」タブの“生徒ごと”は廃止した（段Bで生徒一覧の個別詳細に入っている）。
+   ここにあった 要対応リスト・絞り込み・生徒ごとの表（renderQuizNg / renderQuizStu / qsToggle ほか）は全部消した。
+   下の _qsDelta 〜 _qsPrac は**個別詳細のモーダルが使っている**ので残す（消すと段Bの表が描けなくなる）。 */
 /* 生徒ごと：その子の確認テストをシリーズごとに 合否・前回比・次の一手 で見る */
 function _qsDelta(e){
   if(e.prev_rate==null)return ' <span class="qsdelta first">初回</span>';
@@ -4711,62 +4655,6 @@ function _qsPrac(sid,e,PIDX){
     return '<span class="qsu-pr0">📘 未練習</span>';
   }
   return '<span class="qsu-pr0" title="この教材の単元別は割り当てていません">未割当</span>';
-}
-function renderQuizStu(){
-  var el=$('qtStu'); if(!el)return;
-  var q=(($('qStuSearch')||{}).value||'').trim();
-  var A=_qbAttrs();
-  var byStu={},order=[];
-  _qEntries().forEach(function(e){
-    var sid=e.student_id; if(!byStu[sid]){byStu[sid]={name:e.student_name,series:{},sorder:[]};order.push(sid);}
-    var st=byStu[sid],sk=_qSeriesLabelOf(e);
-    if(!st.series[sk]){st.series[sk]=[];st.sorder.push(sk);} st.series[sk].push(e);
-  });
-  order.sort(function(a,b){return String(byStu[a].name||'').localeCompare(String(byStu[b].name||''),'ja');});
-  var shown=order.filter(function(sid){
-    var a=A[String(sid)]||{};
-    if(_qsGrade!=='all'&&a.grade!==_qsGrade)return false;
-    if(_qsCls!=='all'&&a.cls!==_qsCls)return false;
-    if(_qsSch!=='all'&&a.sch!==_qsSch)return false;
-    if(q&&String(byStu[sid].name||'').indexOf(q)<0)return false;
-    if(_qNgFilter&&!qNgHas(sid,_qNgFilter))return false;
-    return true;
-  });
-  var c=$('qStuCnt'); if(c)c.textContent=shown.length+'名';
-  if(!shown.length){el.innerHTML='<div style="padding:14px;color:var(--text-light);font-size:13px;">条件に合う生徒がいません</div>';return;}
-  var hd='<tr class="qsu-hd"><td class="qsu-u">単元</td><td class="qsu-prac">📘 単元別の練習</td><td class="qsu-arw"></td><td>✅ 確認テスト（前回比）</td><td class="qsu-a">次の一手</td></tr>';
-  var PIDX=_practiceIndex();
-  el.innerHTML=shown.map(function(sid,i){
-    var st=byStu[sid],okN=0,ngN=0,missN=0;
-    st.sorder.forEach(function(sk){st.series[sk].forEach(function(e){if(e.status==='ok')okN++;else if(e.status==='ng')ngN++;else missN++;});});
-    var body=st.sorder.map(function(sk,j){
-      var ents=st.series[sk].slice().sort(function(a,b){return (a.part_order||0)-(b.part_order||0);});
-      var so=0,sn=0,sm=0; ents.forEach(function(e){if(e.status==='ok')so++;else if(e.status==='ng')sn++;else sm++;});
-      var cls='qsr-'+i+'-'+j;
-      // 同じシリーズ内を「教材(Unit/章)」ごとにまとめ、教材名の小見出しを出す＝パート名だけだとUnit/章が分からない対策 2026-08-08
-      var byMat={},matOrder=[];
-      ents.forEach(function(e){var mid=String(e.material_id);if(!byMat[mid]){byMat[mid]=[];matOrder.push(mid);}byMat[mid].push(e);});
-      var multiMat=matOrder.length>1;
-      var partRow=function(e){
-        return '<tr class="'+cls+'" style="display:none;" onclick="openQuizCell(\''+esc(sid)+'\',\''+esc(e.part_id)+'\')"><td class="qsu-u">'+esc(e.part_title)+'</td><td class="qsu-prac">'+_qsPrac(sid,e,PIDX)+'</td><td class="qsu-arw">→</td><td>'+_qsCell(e)+'</td><td class="qsu-a">'+_qsAct(e,sid)+'</td></tr>';
-      };
-      var rows=matOrder.map(function(mid){
-        var mes=byMat[mid];
-        var sub=multiMat?('<tr class="'+cls+' qsu-mat" style="display:none;"><td colspan="5">'+esc(_matTitleOf(mid)||mes[0].material_title||'')+'</td></tr>'):'';
-        return sub+mes.map(partRow).join('');
-      }).join('');
-      return '<tr class="qsu-ser qsu-serfold" onclick="qsSerToggle(\''+cls+'\',this)"><td colspan="5"><span class="cr">▸</span> '+esc(sk)+' <span class="qsu-sercnt">合格'+so+'・未合格'+sn+'・未受験'+sm+'</span></td></tr>'+rows;
-    }).join('');
-    return '<div class="qsu-block"><div class="qsu-h" onclick="qsToggle('+i+')"><span class="qs-caret" id="qsc'+i+'">▾</span> <b>'+esc(st.name||'(無名)')+'</b> <span class="qsu-sum">合格'+okN+'・未合格'+ngN+'・未受験'+missN+'</span></div><table class="qsu-tbl qsbody-'+i+'"><tbody>'+hd+body+'</tbody></table></div>';
-  }).join('');
-}
-function qsSerToggle(cls,el){var rows=document.querySelectorAll('.'+cls);if(!rows.length)return;var open=rows[0].style.display==='none';rows.forEach(function(r){r.style.display=open?'':'none';});var c=el.querySelector('.cr');if(c)c.textContent=open?'▾':'▸';}
-function qsExpandAll(open){
-  var host=$('qtStu'); if(!host)return;
-  host.querySelectorAll('.qsu-tbl').forEach(function(t){t.style.display=open?'':'none';});
-  host.querySelectorAll('.qs-caret').forEach(function(c){c.textContent=open?'▾':'▸';});
-  host.querySelectorAll('.qsu-serfold').forEach(function(h){var cr=h.querySelector('.cr');if(cr)cr.textContent=open?'▾':'▸';});
-  host.querySelectorAll('tr[class^="qsr-"]').forEach(function(r){r.style.display=open?'':'none';});
 }
 function _qEntries(){return (_quizBoard&&_quizBoard.entries)||[];}
 function _matTitleOf(mid){var ms=(_quizBoard&&_quizBoard.materials)||[];for(var i=0;i<ms.length;i++){if(String(ms[i].material_id)===String(mid))return ms[i].title;}return '';}
@@ -5138,7 +5026,7 @@ function rtSaveDone(d,d2){
   $('rtSave').disabled=false;$('rtSave').textContent='保存する';
   toast(msg);
   closeModal('rtModal');
-  call({action:'dashboard'}).then(function(r){if(r&&r.ok&&r.data){_students=r.data.students||_students;renderTable();renderMatTab();if(typeof renderQuizTab==='function')renderQuizTab(true);}}); // 割当・配信後は確認テスト盤も最新に（force）2026-08-09
+  call({action:'dashboard'}).then(function(r){if(r&&r.ok&&r.data){_students=r.data.students||_students;renderTable();renderMatTab();if(typeof renderQuizBoardArea_==='function')renderQuizBoardArea_(true);}}); // 割当・配信後は点数表も最新に（force）2026-08-09／段Cで教材ごとタブへ
 }
 
 
@@ -6293,14 +6181,15 @@ function renderReportTab(){
       rpRenderMat(); rpRender();
     });
   }
+  /* 【2026-09-13f・段C】確認テストの取りに行き方は ensureQuizBoard_ 1本にまとめた。
+     教材ごとタブで先に取っていれば、ここは待たずにその場で描ける（前は別々に取っていて2回払っていた）。 */
   if(!_quizBoard&&!RP_LOADING){
     RP_LOADING=true;
     if(host)host.innerHTML='<tr><td colspan="5" class="rp-none">読み込み中…</td></tr>';
-    call({action:'quiz_board'}).then(function(d){
+    ensureQuizBoard_(function(){
       RP_LOADING=false;
-      if(d&&d.ok&&d.data){ _quizBoard=d.data; _syncQuizSel_(d.data); }
       rpRenderMat(); rpRenderFilters(); rpRender();
-    }).catch(function(){RP_LOADING=false;});
+    });
   }
   rpRenderMat(); rpRenderFilters(); rpRender();
 }
