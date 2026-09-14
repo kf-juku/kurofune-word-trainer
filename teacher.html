@@ -1416,6 +1416,13 @@
            赤は「🖨 …を出す」1つと、選ばれている印（.on の薄い赤）だけに使う。 */
         .rp-allbtn:hover:not(:disabled){border-color:#94a3b8;color:var(--text);}
         .rp-allbtn:disabled{opacity:.45;cursor:not-allowed;}
+        /* 【2026-09-14】読み込み中・失敗を画面に出す（UI標準 §22-B）。
+           Why: 教材の一覧が届くまで「0件」と確定した数字を出し、失敗しても何も出さず
+                取り直しもしなかったので「読み込みが終わらない」に見えた（川上さん報告 2026-09-14）。 */
+        .rp-spin{display:inline-block;width:12px;height:12px;border:2px solid #cbd5e1;border-top-color:#334155;
+          border-radius:50%;animation:kwtspin .7s linear infinite;vertical-align:-2px;margin-right:6px;}
+        .rp-load{color:var(--text-muted);font-size:12px;font-weight:700;}
+        .rp-loaderr{color:#b45309;font-size:12px;font-weight:800;}
         .rp-sum{display:flex;gap:10px;flex-wrap:wrap;}
         .rp-sumc{flex:1 1 128px;max-width:210px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:9px 12px;}
         .rp-sumn{font-size:20px;font-weight:800;line-height:1.2;font-variant-numeric:tabular-nums;}
@@ -1525,7 +1532,7 @@
       <div class="qcard" id="rpSetSumCard">
         <div class="rp-sumline">
           <div class="rp-sl-b">
-            <div class="rp-sl-r"><span class="pr-lab" id="rpMatTtl">教材</span> <b id="rpSlMatN">—</b><span id="rpOutState"></span><span class="rp-sl-s" id="rpSlMatS"></span></div>
+            <div class="rp-sl-r"><span class="pr-lab" id="rpMatTtl">教材</span> <b id="rpSlMatN">—</b><span id="rpOutState"></span><span class="rp-sl-s" id="rpSlMatS"></span><span id="rpMatLoad"></span></div>
           </div>
           <button class="rp-allbtn" id="rpOutClrBtn" onclick="rpOutClearAll()" style="display:none;">× 教材をぜんぶ外す</button>
           <button class="rp-allbtn" id="rpOutBackBtn" onclick="rpOutSameAsReport()" style="display:none;">↺ 教材をレポートと同じに戻す</button>
@@ -6794,23 +6801,14 @@ function renderReportTab(){
   /* 【2026-09-14・段F】前に見ていた面（レポート／プリント）でひらく */
   try{ rpPane(localStorage.getItem('kwt_rp_pane')||'rep'); }catch(e){}
   if(!RP_SETS_LOADED){
-    RP_SETS_LOADED=true;
+    RP_SETS_LOADED=true; RP_SETS_ST='loading'; rpRenderSets();
     call({action:'report_sets_get'}).then(function(d){
+      RP_SETS_ST=(d&&d.ok)?'ok':'error';
       if(d&&d.ok&&d.data){ RP_SETS=d.data.sets||[]; if(RP_SETS.length&&!RP_SEL.length) rpLoadSet(0); else rpRenderSets(); }
+      else rpRenderSets();
     });
   }
-  if(!bulkMaterials||!bulkMaterials.length){
-    call({action:'materials_list'}).then(function(d){
-      var mats=(d&&d.ok)?(d.data.materials||[]):[];
-      bulkMaterials=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');});
-      rpRenderMat(); rpRender();
-      /* 【2026-09-14】「5. 紙にする」の出す範囲も、教材の一覧が届いた時点で描き直す。
-         rpRender() の中からも呼ばれるが、ここで明示的に呼んでおく（読む人が追えるように）。
-         ★教材名が mat-nh1-eng-pr-e2j のような IDで見えていたのは、この一覧が届くまでの数秒間。
-           上の rpRenderPaper 側で、未着のときは「読み込み中…」と出すようにした。 */
-      rpRenderPaper();
-    });
-  }
+  if((!bulkMaterials||!bulkMaterials.length)&&RP_MATS_ST!=='loading')rpLoadMats_();
   /* 【2026-09-13f・段C】確認テストの取りに行き方は ensureQuizBoard_ 1本にまとめた。
      教材ごとタブで先に取っていれば、ここは待たずにその場で描ける（前は別々に取っていて2回払っていた）。 */
   if(!_quizBoard&&!RP_LOADING){
@@ -6900,24 +6898,41 @@ function rpRenderMat(){
   var isPrn=(typeof RP_PANE!=='undefined'&&RP_PANE==='prn');
   if(isPrn)_rpOutSync_();
   var sel=isPrn?rpOutMats_():RP_SEL;
-  if(isPrn&&(!bulkMaterials||!bulkMaterials.length)){
-    el.innerHTML='<span style="color:var(--text-light);font-weight:600;font-size:12px;">教材を読み込み中…</span>';
+  /* 【2026-09-14】教材の一覧が届くまでは「0件」と断定しない。読み込み中／失敗をそのまま出す。 */
+  var busy=(RP_MATS_ST==='loading'), bad=(RP_MATS_ST==='error');
+  if(busy){
+    el.innerHTML='<span class="rp-load"><span class="rp-spin"></span>教材を読み込み中…</span>';
+  }else if(bad){
+    el.innerHTML='<span class="rp-loaderr">⚠ 教材の一覧を取れませんでした。</span> '
+      +'<button class="rp-allbtn" onclick="rpLoadMats_()" style="margin-left:6px;">↻ もう一度読み込む</button>';
+  }else if(!bulkMaterials||!bulkMaterials.length){
+    /* 届いたが0件＝本当に教材が1つも無い。空白のままにしない 2026-09-14 */
+    el.innerHTML='<span class="rp-load">使える教材がありません（教材タブで追加してください）。</span> '
+      +'<button class="rp-allbtn" onclick="rpLoadMats_()" style="margin-left:6px;">↻ もう一度読み込む</button>';
   }else{
     el.innerHTML=_rpMatBoxHtml_(sel,isPrn?'po':'rp',isPrn);
   }
   /* 見出し・件数・札・ボタン */
   var ttl=$('rpMatTtl'); if(ttl)ttl.textContent=isPrn?'この紙を出す教材':'教材';
-  var n=$('rpSlMatN'); if(n)n.textContent=sel.length+'件';
+  /* ★読み込み中・失敗のあいだは、件数も ✓⚠ も出さない（たたんでいても見える場所に出す）。 */
+  var ld=$('rpMatLoad');
+  if(ld)ld.innerHTML=busy?'<span class="rp-load"><span class="rp-spin"></span>教材を読み込み中…</span>'
+    :(bad?'<span class="rp-loaderr">⚠ 教材の一覧を取れませんでした</span> <button class="rp-allbtn" onclick="rpLoadMats_()">↻ もう一度読み込む</button>':'');
+  var n=$('rpSlMatN'); if(n){ n.textContent=sel.length+'件'; n.style.display=(busy||bad)?'none':''; }
   var same=_rpOutSame_();
   var stEl=$('rpOutState');
-  if(stEl)stEl.innerHTML=isPrn?('　'+(same?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')):'';
-  var cb=$('rpOutClrBtn'); if(cb){ cb.style.display=isPrn?'':'none'; cb.disabled=(sel.length===0); }
-  var bb=$('rpOutBackBtn'); if(bb){ bb.style.display=isPrn?'':'none'; bb.disabled=same; }
-  var card=$('rpSetSumCard'); if(card)card.classList.toggle('diff',isPrn&&!same);
+  if(stEl){
+    stEl.innerHTML=(isPrn&&!busy&&!bad)?('　'+(same?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')):'';
+  }
+  var cb=$('rpOutClrBtn'); if(cb){ cb.style.display=isPrn?'':'none'; cb.disabled=(sel.length===0)||busy||bad; }
+  var bb=$('rpOutBackBtn'); if(bb){ bb.style.display=isPrn?'':'none'; bb.disabled=same||busy||bad; }
+  var eb=$('rpSetEditBtn'); if(eb)eb.disabled=busy||bad;
+  var card=$('rpSetSumCard'); if(card)card.classList.toggle('diff',isPrn&&!same&&!busy&&!bad);
   /* 中身の要約 */
   var cap=$('rpMatCap');
   if(cap){
-    if(!sel.length)cap.innerHTML=isPrn
+    if(busy||bad)cap.innerHTML='';                 /* 届いていないのに「選ばれていません」と言わない 2026-09-14 */
+    else if(!sel.length)cap.innerHTML=isPrn
       ? '<span style="color:var(--crimson);font-weight:800;">出す教材が1つも選ばれていません。</span>'
       : '<span style="color:var(--text-light);font-weight:600;">教材を選ぶとレポートが出ます。</span>';
     else if(isPrn){
@@ -6949,7 +6964,11 @@ function rpRenderSets(){
   var sel=$('rpSetSel'); if(!sel)return;
   var cur=(RP_CUR>=0)?RP_CUR:RP_LAST;                       // 変更中でも「どのセットを見ているか」は出したままにする
   if(!(cur>=0&&RP_SETS[cur]))cur=-1;
-  sel.innerHTML='<option value="-1">'+(RP_SETS.length?'— セットを選ぶ —':'— まだセットがありません —')+'</option>'
+  /* 【2026-09-14】届く前に「まだセットがありません」と言い切らない（UI標準 §22-B）。 */
+  var _s0=(RP_SETS_ST==='loading')?'— 読み込み中… —'
+        :((RP_SETS_ST==='error')?'— セットを取れませんでした —'
+        :(RP_SETS.length?'— セットを選ぶ —':'— まだセットがありません —'));
+  sel.innerHTML='<option value="-1">'+_s0+'</option>'
     +RP_SETS.map(function(s,i){return '<option value="'+i+'"'+(cur===i?' selected':'')+'>'+esc(s.name)+esc(_rpDlShort_(s.dl))+'</option>';}).join('');
   sel.value=String(cur); sel.disabled=!RP_SETS.length;
   var tt=$('rpSetTtl'); if(tt)tt.textContent='🔖 保存したセット'+(RP_SETS.length?('（'+RP_SETS.length+'/30）'):'');
@@ -7283,6 +7302,27 @@ function rpToggleMiss(){ RP_ONLY_MISS=!RP_ONLY_MISS; if(RP_ONLY_MISS){RP_ONLY_SH
      （要件定義書 §8 未確認 No.3 はこれで確定。以後は先生が変えたぶんを localStorage に覚える） */
 var RP_OUT={};        /* 出す範囲。教材id→1。空＝RP_SEL ぜんぶ */
 var RP_OUT_TOUCHED=false;   /* 先生が1度でも触ったか。触っていなければ RP_SEL の変化にそのまま追従する */
+/* 【2026-09-14】読み込みの状態。'idle'／'loading'／'ok'／'error'。
+   ★状態を持たないと「届いていない」と「0件だった」の区別がつかず、
+     失敗しても黙って止まる（＝読み込みが終わらないように見える）。UI標準 §22-B。 */
+var RP_MATS_ST='idle', RP_SETS_ST='idle';
+/* 出す種別を自動で入れ直したときの「出す教材」の顔つき。変わったときだけ入れ直す 2026-09-14 */
+var RP_TY_SIG=null;
+function rpMatsLoading_(){ return RP_MATS_ST==='loading'; }
+function rpLoadMats_(){
+  RP_MATS_ST='loading';
+  try{ rpRenderMat(); rpRenderPaper(); }catch(e){}
+  call({action:'materials_list'}).then(function(d){
+    if(d&&d.ok){
+      var mats=d.data&&d.data.materials?d.data.materials:[];
+      bulkMaterials=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');});
+      RP_MATS_ST='ok';
+    }else{
+      RP_MATS_ST='error';    /* call() は3回まで自分で試して {ok:false} を返す＝ここは本当に取れなかったとき */
+    }
+    try{ rpRenderMat(); rpRenderFilters(); rpRender(); rpRenderPaper(); }catch(e){}
+  });
+}
 function _rpPaperStyle_(){ return (localStorage.getItem('kwt_print_style')==='finish')?'finish':'list'; }
 /* 【2026-09-14・段F】出す範囲＝**選ばれている教材そのもの**（川上さん確定）。
    ★旧：RP_SEL の部分集合で、空なら「RP_SEL ぜんぶ」。
@@ -7292,6 +7332,10 @@ function _rpPaperStyle_(){ return (localStorage.getItem('kwt_print_style')==='fi
 var RP_OOPEN={};              /* プリント側の本のたたみ具合（レポート側の RP_MOPEN とは別に持つ）*/
 function rpOutMats_(){
   var o=RP_OUT, a=[];
+  /* ★教材の一覧がまだ届いていないときは、並べ替えを諦めて RP_OUT のキーをそのまま返す。
+     【2026-09-14】ここで _rpMats() だけを見ていたため、37件えらんでいても未着のあいだは 0件を返し、
+     「⚠ レポートと別」になり「レポートと同じに戻す」を押しても直らなかった（川上さん報告）。 */
+  if(!bulkMaterials||!bulkMaterials.length)return Object.keys(o).map(String);
   _rpMats().forEach(function(m){ if(o[String(m.id)]) a.push(String(m.id)); });   /* 教材の並び順で返す */
   return a;
 }
@@ -7346,19 +7390,24 @@ function rpRenderPaper(n){
   /* 【2026-09-14・段F3】出す教材の欄は上の「教材」に移した＝ここでは描かない。
      使う値だけ取る（0件なら印刷を止めるため）。 */
   var use=rpOutMats_();
+  /* 教材の一覧が届いていない／取れなかったあいだは、紙を出させない 2026-09-14 */
+  var busy2=(RP_MATS_ST==='loading'||RP_MATS_ST==='error');
   /* ---- 出す生徒＝レポートの絞り込みが入った状態。ここで変えても一覧は変わらない ---- */
   var psame=_rpPfSame_();
   var pn=rpTargets(true).length;
   /* ★絞り込みの箱は レポート面とプリント面で共用している（段F2）。
      プリント面を見ているときだけ、状態の札と名前を出す。レポート面では空にする。 */
   var isPrn=(RP_PANE==='prn');
+  /* ★読み込み中は人数も「いません」も出さない＝まだ数えられる状態ではない 2026-09-14 */
+  var busyAll=busy2||RP_SETS_ST==='loading';
   var pst=$('rpPfState');
-  if(pst)pst.innerHTML=isPrn?((psame?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')+'　<b>'+pn+'</b>名'):'';
-  var fbox=document.querySelector('#view-report .rp-fltbox'); if(fbox)fbox.classList.toggle('diff',isPrn&&!psame);
-  var pbb=$('rpPfBackBtn'); if(pbb)pbb.disabled=psame;
+  if(pst)pst.innerHTML=(isPrn&&!busyAll)?((psame?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')+'　<b>'+pn+'</b>名'):'';
+  var fbox=document.querySelector('#view-report .rp-fltbox'); if(fbox)fbox.classList.toggle('diff',isPrn&&!psame&&!busyAll);
+  var pbb=$('rpPfBackBtn'); if(pbb)pbb.disabled=psame||busyAll;
   var who2=$('rpPfWho');
   if(who2){
     if(!isPrn)who2.innerHTML='';
+    else if(busyAll)who2.innerHTML='<span class="rp-load"><span class="rp-spin"></span>読み込み中…</span>';
     else if(!pn)who2.innerHTML='<span style="color:var(--crimson);font-weight:800;">この絞り込みに合う生徒がいません。</span>';
     else{
       /* 多いときは全部は並べない（43名ぶん並べると読めない）。誰が入るかが分かれば足りる。 */
@@ -7380,20 +7429,31 @@ function rpRenderPaper(n){
     var sb=$('rpScopeCards'); if(sb)sb.innerHTML=_tmScopeCards_(sv,'rp');
     var dd=$('rpDays'); if(dd&&!dd._t){dd.value=localStorage.getItem('kwt_print_days')||'7';}
     var ll=$('rpLimit'); if(ll&&!ll._t){ll.value=localStorage.getItem('kwt_print_limit')||'20';}
-    var traw=localStorage.getItem('kwt_print_types'); var tl=(traw==null?'daily,unit,quiz':traw).split(',');
-    ['daily','unit','quiz'].forEach(function(t){ var c=$('rpT-'+t); if(c)c.checked=(tl.indexOf(t)>=0); });
+    /* 【2026-09-14】出す種別は「出す教材」に合わせて自動でチェックを入れる・外す（川上さん確定）。
+       Why: 単元別の教材しか選んでいないのに「毎日学習」に勝手にチェックが入っていた
+            （localStorage の既定＝3つ全部を読むだけで、選んだ教材を見ていなかった）。
+       ★出す教材が変わったときだけ入れ直す＝そのあと手で変えたぶんは消さない。
+         出す教材を変えたら、新しい教材に合わせ直す（川上さん確定）。 */
+    var sig=use.slice().sort().join(',');
+    if(!busy2&&sig!==RP_TY_SIG){
+      RP_TY_SIG=sig;
+      var tl=use.length?_prnTypesForMats_(use,''):['daily','unit','quiz'];
+      ['daily','unit','quiz'].forEach(function(t){ var c=$('rpT-'+t); if(c)c.checked=(tl.indexOf(t)>=0); });
+    }
   }
   /* ボタンの文字と、出す人数。★人数はプリント側の絞り込み（RP_PF）で数える */
   var who=$('rpPaperWho'); if(who)who.textContent='　'+pn+'名';
   var go=$('rpPaperGoBtn');
-  var ng=(pn===0)||(use.length===0);
+  var ng=(pn===0)||(use.length===0)||busy2;
   if(go){ go.textContent=(st==='finish')?'🖨 仕上げプリントを出す（生徒用）':'🖨 チェックプリントを出す';
           go.disabled=ng; }
   /* 見本も、出す教材0件／対象生徒0名なら押せない（押してもエラー文が出るだけだった）2026-09-14 */
   var pv=$('rpPvBtn'); if(pv)pv.disabled=ng;
   var nt=$('rpPaperNote');
-  if(nt)nt.textContent=(use.length===0)?'出す教材が1つも選ばれていません。'
-    :((pn===0)?'条件に合う生徒がいません。':(pn+'名ぶん・1人ずつ別の紙になります。'));
+  if(nt)nt.innerHTML=(RP_MATS_ST==='loading')?'<span class="rp-load"><span class="rp-spin"></span>教材を読み込み中…</span>'
+    :((RP_MATS_ST==='error')?'<span class="rp-loaderr">⚠ 教材の一覧を取れませんでした。</span>'
+    :esc((use.length===0)?'出す教材が1つも選ばれていません。'
+    :((pn===0)?'条件に合う生徒がいません。':(pn+'名ぶん・1人ずつ別の紙になります。'))));
   var er=$('rpPrintErr'); if(er&&!er.innerHTML)er.style.display='none';
   rpRenderSumLine();
 }
@@ -7559,7 +7619,12 @@ function rpRender(){
   rpRenderStrip();
   if(!RP_SEL.length){
     $('rpSummary').innerHTML='';
-    rows.innerHTML='<tr><td colspan="5" class="rp-none">上の「教材をえらぶ」から教材を選ぶと、その教材が割り当てられている子の進み具合が出ます。</td></tr>';
+    /* 【2026-09-14】読み込み中に「教材を選ぶと出ます」と案内しない＝選べる状態ではないため。 */
+    rows.innerHTML=(RP_MATS_ST==='loading'||RP_SETS_ST==='loading')
+      ? '<tr><td colspan="5" class="rp-none"><span class="rp-load"><span class="rp-spin"></span>読み込み中…</span></td></tr>'
+      : ((RP_MATS_ST==='error'||RP_SETS_ST==='error')
+        ? '<tr><td colspan="5" class="rp-none"><span class="rp-loaderr">⚠ 読み込めませんでした。</span> <button class="rp-allbtn" onclick="rpLoadMats_()">↻ もう一度読み込む</button></td></tr>'
+        : '<tr><td colspan="5" class="rp-none">上の「教材をえらぶ」から教材を選ぶと、その教材が割り当てられている子の進み具合が出ます。</td></tr>');
     var c0=$('rpCnt'); if(c0)c0.textContent='';
     rpRenderPaper();   /* 【2026-09-13i・段D】紙の面も一緒に塗り替える。人数はプリント側の絞り込みで数える（2026-09-14 段F）*/
     rpRenderSumLine();
