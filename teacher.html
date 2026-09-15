@@ -398,8 +398,16 @@
   .up-lisbox{display:inline-block;width:46px;border-bottom:1.4px solid #333;height:15px;vertical-align:-3px;}
   .fs-cho{margin-top:3px;}
   /* 聞き取りの区切り見出し（段7）。文章問題は2列のグリッドなので、全幅で置く */
+  /* 【2026-09-15】聞き取りの見出しに音声のQRを置く（川上さん確定・刷って決めた）。
+     2026-09-13b の「QRは増やさない」を**変更**した＝問題が3〜4問減っても、
+     音の入口が聞き取りのすぐ横にあるほうが分かりやすい。
+     大きさは解答用紙のQRと同じ28mm（.fs-back .fs-qr と同じ）。 */
   .fs-lishead{grid-column:1/-1;border:1.2px solid #7d8794;background:#f2f4f7;border-radius:5px;
-              padding:4px 8px;font-size:11px;color:#222;line-height:1.5;margin:3px 0;page-break-inside:avoid;}
+              padding:6px 8px;font-size:11px;color:#222;line-height:1.5;margin:3px 0;page-break-inside:avoid;
+              display:flex;gap:10px;align-items:center;}
+  .fs-lishead .fs-qr{width:28mm;height:28mm;flex:none;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .fs-lishead .fs-lh-t{flex:1;min-width:0;}
+  .fs-lishead .fs-lh-c{font-size:10.5px;color:#444;margin-top:3px;}
   .fs-cho .pq-cho{font-size:11px;line-height:1.5;}
   .up-ja{font-size:12px;color:#333;margin-top:2px;}
   .up-tbl{border-collapse:collapse;width:100%;margin-top:5px;table-layout:fixed;}
@@ -1551,15 +1559,26 @@
           <div class="rp-sl-b">
             <div class="rp-sl-r"><span class="pr-lab" id="rpMatTtl">教材</span> <b id="rpSlMatN">—</b><span id="rpOutState"></span><span class="rp-sl-s" id="rpSlMatS"></span><span id="rpMatLoad"></span></div>
           </div>
-          <button class="rp-allbtn" id="rpOutClrBtn" onclick="rpOutClearAll()" style="display:none;">× 教材をぜんぶ外す</button>
-          <button class="rp-allbtn" id="rpOutBackBtn" onclick="rpOutSameAsReport()" style="display:none;">↺ 教材をレポートと同じに戻す</button>
+          <!-- 【2026-09-15・案1】ヘッダに置くボタンは「▾ 教材を変える」1つだけ。
+               「× ぜんぶ外す」「↺ レポートと同じに戻す」は**教材えらびの中**へ移した。
+               Why: 同じ見た目・同じ長さのボタンが3つ横に並び、2つが「教材を」で始まるので
+                    どれが押すものでどれが取り消しか分からなかった（川上さん 2026-09-15
+                    「ここ並列はわかりずらい　工夫してよ」→ 5案から案1を選択）。
+               取り消しは「教材をえらんでいる最中に使うもの」なので、えらぶ場所と一緒に置く
+               ＝生徒側の「✓ 全員にする」「× 全員外す」が一覧の中にあるのと同じ考え方。 -->
           <button class="rp-allbtn" id="rpSetEditBtn" onclick="rpToggleSetEdit()">▾ 教材を変える</button>
         </div>
         <!-- ★畳むのは教材えらびだけ（川上さん確定 2026-09-14）。
              絞り込みは いつも使うので出したまま＝「無くなった？」と探させない。
              畳む理由は大きさ：教材えらび 1,045px／絞り込み 185px。 -->
         <div id="rpSetEdit" style="display:none;">
-          <div class="qmt-hint">教材をクリックで選択（複数OK）。同じ本はまとめて選べます。毎日学習・単元別のどちらも選べます。</div>
+          <div class="sc-head" style="margin-top:2px;">
+            <span class="qmt-hint" style="flex:1;margin:0;">教材をクリックで選択（複数OK）。同じ本はまとめて選べます。毎日学習・単元別のどちらも選べます。</span>
+            <span id="rpOutBtns" style="display:none;gap:8px;">
+              <button class="rp-allbtn" id="rpOutBackBtn" onclick="rpOutSameAsReport()">↺ レポートと同じに戻す</button>
+              <button class="rp-allbtn" id="rpOutClrBtn" onclick="rpOutClearAll()">× ぜんぶ外す</button>
+            </span>
+          </div>
           <div class="qmatsel" id="rpMatSel"></div>
           <div class="rp-cap" id="rpMatCap"></div>
         </div>
@@ -2950,12 +2969,22 @@ function fsFootHtml_(ctx,label){
   return '<div class="fs-foot"><span>Kurofune Word Trainer ／ 仕上げプリント</span>'
     +'<span>'+esc(ctx.name)+(ctx.grade?('　'+esc(ctx.grade)):'')+' ／ '+esc(ctx.code)+' ／ '+esc(label)+'</span></div>';
 }
-function fsQBodyHtml_(it,no){
+function fsQBodyHtml_(it,no,ctx){
   /* 【2026-09-14・段7】聞き取りの区切り見出し。問題ではないので番号を取らない。
      ★測るときと描くときで同じものを通すため、ふつうの単位と同じ形（1つの要素）で返す。 */
   if(it&&it.__lisHead){
-    return '<div class="fs-lishead">🔊 ここからは聞き取りです。'
-      +'<b>QRを読んで音を聞いてから</b>、合うものを記号で答えてください。</div>';
+    /* 【2026-09-15】★音のQRをこの見出しに置く（川上さん確定・刷って決めた）。
+       Why: 「QRを読んで」とだけ書いてあり、どこにあるか分からなかった。
+            場所を文で案内するより、**聞き取りのすぐ横にQRを置く**ほうが分かりやすい。
+       ・飛び先は ?sheet=番号&listen=1 ＝**音だけの画面**（○×欄は出さない）
+       ・解答用紙のQR（?sheet=番号）は今までどおり＝正誤入力。そちらでも音は聞ける
+       ★QRの中身が変わっても大きさは28mm固定なので、測るときと描くときで高さは変わらない。 */
+    var _c=(ctx&&ctx.code)?String(ctx.code):'';
+    return '<div class="fs-lishead">'+fsQrHtml_(_c,true)
+      +'<div class="fs-lh-t">🔊 <b>ここからは聞き取りです。</b>'
+      +'左のQRを読んで音を聞いてから、合うものを記号で答えてください。'
+      +'<div class="fs-lh-c">QRが読めないときは、クロトレの「紙の答え合わせ」を開いて'
+      +'セット番号 <b>'+esc(_c)+'</b> を入れると、同じ音が聞けます。</div></div></div>';
   }
   /* 【2026-09-13j・段E】語順は語群＋和訳を足す。【段7】聞き取りは選択肢を足す。
      ほかは今までどおり1行＋解答らん */
@@ -3189,8 +3218,9 @@ function qrPenalty_(g,n){
 }
 /* 紙に刷るQR。まわりの4マスの余白（クワイエットゾーン）もSVGの中に入れる。
    28mm角のうち 33/41 ＝ 約22.5mm が実際のQR（§3-5 の22〜25mm）。 */
-function fsQrHtml_(code){
-  var url=FS_SHEET_URL_+String(code||'');
+function fsQrHtml_(code,listen){
+  /* listen=true ＝「音だけの画面」へ飛ばす（問題用紙の聞き取りQR）2026-09-15 */
+  var url=FS_SHEET_URL_+String(code||'')+(listen?'&listen=1':'');
   var m=null; try{ m=qrModules_(url); }catch(e){ m=null; }
   if(!m) return '<div class="fs-qr fs-qr-ng">QRを作れませんでした。<br>番号を入力してください</div>';
   var n=m.length, q=4, side=n+q*2, d='', r, c;
@@ -3206,10 +3236,14 @@ function fsQrHtml_(code){
   return '<svg class="fs-qr" width="28mm" height="28mm" viewBox="0 0 '+side+' '+side+'" shape-rendering="crispEdges" role="img" aria-label="'+esc(url)+'">'
     +'<rect width="'+side+'" height="'+side+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';
 }
-/* 答え合わせのQR（32mm）。★置き場は固定しない＝「余っているほうの紙」に置く。
+/* 答え合わせのQR（28mm・.fs-back .fs-qr）。★置き場は固定しない＝「余っているほうの紙」に置く。
    決めているのは fsBuildSheet_（そこのコメントが正）。2026-09-07 川上さん確定 */
 function fsBackHtml_(ctx){
+  /* 【2026-09-15】聞き取りがある紙では、このQRが「音を聞く入口」でもある。
+     紙の聞き取りの見出しから名指しできるよう、ここにも書く（川上さん報告）。 */
+  var lis=!!(ctx&&ctx.hasListen);
   return '<div class="fs-back">'+fsQrHtml_(ctx.code)+'<div class="fs-bt">'
+    +(lis?'<b>🔊 聞き取りの音は、このQRの先でも聞けます</b>（問題用紙のQRと同じ音）。<br>':'')
     +'丸つけが終わったら、クロトレの「<b>紙の答え合わせ</b>」を開いて、○×をそのまま入力する。'
     +'QRを読み取るか、セット番号 <span class="fs-code">'+esc(ctx.code)+'</span> を入力する。<br>'
     +'入力すると、○がついた語は記録に入る。</div></div>';
@@ -3242,7 +3276,7 @@ function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
       pg.figs.push({block:figQ[fi].block,start:no}); no+=figQ[fi].n; fi++; placed++;
     }
     while(ti<txtQ.length){
-      var box2=document.createElement('div'); box2.innerHTML=fsQBodyHtml_(txtQ[ti].item,no);
+      var box2=document.createElement('div'); box2.innerHTML=fsQBodyHtml_(txtQ[ti].item,no,ctx);
       var node2=box2.firstChild; grid.appendChild(node2);
       if(pageEl.offsetHeight>usable){ grid.removeChild(node2); break; }
       pg.texts.push({item:txtQ[ti].item,no:no}); no++; ti++;
@@ -3257,7 +3291,7 @@ function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
       for(var g2=0; g2<200; g2++){
         var sorted=fsGroupSort_(pg.texts.map(function(t){return t.item;}));
         grid.innerHTML='';
-        sorted.forEach(function(it){ grid.insertAdjacentHTML('beforeend', fsQBodyHtml_(it,1)); });
+        sorted.forEach(function(it){ grid.insertAdjacentHTML('beforeend', fsQBodyHtml_(it,1,ctx)); });
         if(pageEl.offsetHeight<=usable){ pg.texts=sorted.map(function(it){ return {item:it,no:0}; }); break; }
         var back=sorted[sorted.length-1];
         pg.texts=pg.texts.filter(function(t){ return t.item!==back; });
@@ -3363,7 +3397,9 @@ function fsBuildSheet_(st,base){
   var mk=function(qrOn,unitsIn){
     var _u=unitsIn||units;
     var ctx={name:st.name||'(無名)',grade:st.grade||'',date:base.date,code:base.code,scope:base.scope,
-             total:Math.min(est,FS_LIMIT_)};
+             total:Math.min(est,FS_LIMIT_),
+             /* 聞き取りがある紙か＝QRの説明に「音はここから」を足すため 2026-09-15 */
+             hasListen:_u.some(function(u){ return u&&u.item&&(u.item.__lisHead||_pqKind_(u.item)==='listen'); })};
     var q1=(qrOn==='q1');
     var qp=fsFillQPages_(_u,ctx,roomy,usable,q1);
     var flat=fsFlat_(qp);
@@ -3450,7 +3486,7 @@ function fsDrawSheet_(b){
     var body='';
     pg.figs.forEach(function(f){ body+=fsFigBlockHtml_(f.block,f.start); idx+=f.block.items.length; });
     var g='';
-    pg.texts.forEach(function(t){ g+=fsQBodyHtml_(t.item,t.no); idx++; });
+    pg.texts.forEach(function(t){ g+=fsQBodyHtml_(t.item,t.no,ctx); idx++; });
     var to=idx;
     h+='<div class="fs-page">'+fsHeadPageHtml_(ctx,'問題',i===0,i===0)
       +body+'<div class="fs-grid">'+g+'</div>'
@@ -6989,8 +7025,10 @@ function rpRenderMat(){
   if(stEl){
     stEl.innerHTML=(isPrn&&!busy&&!bad)?('　'+(same?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')):'';
   }
-  var cb=$('rpOutClrBtn'); if(cb){ cb.style.display=isPrn?'':'none'; cb.disabled=(sel.length===0)||busy||bad; }
-  var bb=$('rpOutBackBtn'); if(bb){ bb.style.display=isPrn?'':'none'; bb.disabled=same||busy||bad; }
+  /* 【2026-09-15・案1】2つの取り消しは教材えらびの中。入れものごと出し分ける。 */
+  var obx=$('rpOutBtns'); if(obx)obx.style.display=isPrn?'inline-flex':'none';
+  var cb=$('rpOutClrBtn'); if(cb){ cb.disabled=(sel.length===0)||busy||bad; }
+  var bb=$('rpOutBackBtn'); if(bb){ bb.disabled=same||busy||bad; }
   var eb=$('rpSetEditBtn'); if(eb)eb.disabled=busy||bad;
   var card=$('rpSetSumCard'); if(card)card.classList.toggle('diff',isPrn&&!same&&!busy&&!bad);
   /* 中身の要約 */

@@ -1240,6 +1240,13 @@
          display:inline-flex;align-items:center;justify-content:center;}
 .sh-play:active{transform:scale(.96);}
 .sh-q.lis{border-color:#bcd7f7;}
+/* 問題用紙のQRから来たとき＝音を聞くだけの画面（段7b・2026-09-15 川上さん）。
+   ○×は解答用紙のQRの方で入れるので、ここには出さない。1問1行で押しやすくする */
+.sh-grid.lisonly{grid-template-columns:1fr;}
+.sh-grid.lisonly .sh-q{padding:10px 12px;gap:10px;}
+.sh-grid.lisonly .sh-n{width:34px;text-align:center;font-size:16px;color:var(--ink);}
+.sh-grid.lisonly .sh-play{flex:1;width:auto;min-height:46px;font-size:15px;font-weight:700;gap:7px;}
+.sh-grid.lisonly .sh-play i{font-size:19px;}
 .sh-in{display:flex;gap:8px;align-items:center;}
 .sh-in input{flex:1;min-width:0;font-family:'Manrope','Noto Sans JP',sans-serif;font-size:20px;font-weight:800;letter-spacing:.12em;text-align:center;text-transform:uppercase;padding:13px 8px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);}
 .sh-in .btn{width:auto;flex:none;padding:13px 16px;white-space:nowrap;}
@@ -2254,15 +2261,20 @@ var _shSet = null;        // いま開いている紙 {code,total}
 var _shAns = [];          // 1..total の 'o' / 'x' / ''（画面を離れたら捨てる）
 var _shMissT = null;      // 未入力の問を光らせる時間切れ 2026-09-01
 var _shSending = false;
+var _shLisOnly = false;   // true＝問題用紙のQRから来た＝音を聞くだけ（段7b・2026-09-15）
 function shPendGet_(){ try{ return sessionStorage.getItem('kwt_sheet_code')||''; }catch(e){ return ''; } }
 function shPendSet_(v){ try{ if(v)sessionStorage.setItem('kwt_sheet_code',v); else sessionStorage.removeItem('kwt_sheet_code'); }catch(e){} }
+/* 【段7b・2026-09-15】問題用紙のQR＝?sheet=XXXX&listen=1 は「音を聞くだけ」で開く。
+   解答用紙のQR（listen=1 が付かない）は今までどおり○×を入れる画面。 */
+function shPendLisGet_(){ try{ return sessionStorage.getItem('kwt_sheet_listen')==='1'; }catch(e){ return false; } }
+function shPendLisSet_(v){ try{ if(v)sessionStorage.setItem('kwt_sheet_listen','1'); else sessionStorage.removeItem('kwt_sheet_listen'); }catch(e){} }
 /* URL の ?sheet=XXXX を読んで覚え、アドレスからは消す（リロードのたびに開き直さないため） */
 function shReadUrl_(){
   try{
     var m=/[?&]sheet=([^&#]+)/.exec(location.search||'');
     if(!m)return '';
     var c=decodeURIComponent(m[1]||'').trim();
-    if(c)shPendSet_(c);
+    if(c){ shPendSet_(c); shPendLisSet_(/[?&]listen=1(&|$)/.test(location.search||'')); }
     try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e2){}
     return c;
   }catch(e){ return ''; }
@@ -2274,7 +2286,8 @@ function shMsg_(html){ var el=$('sheet-msg'); if(el)el.innerHTML=html||''; }
 function shStep1_(){
   var s2=$('sheet-step2'); if(s2){ s2.style.display='none'; s2.innerHTML=''; }
   var s1=$('sheet-step1'); if(s1)s1.style.display='block';
-  _shSet=null; _shAns=[]; _shSending=false;
+  _shSet=null; _shAns=[]; _shSending=false; _shLisOnly=false;   /* 番号を打って開いたら ふつうの○×の画面（段7b）*/
+  var st=$('sub-title'); if(st)st.innerHTML=SUB_TITLES_H.sheet;  /* 音だけの画面の見出しを引きずらない */
 }
 /* 画面を開くたびに呼ぶ（showSub から）。QRの番号が残っていればそのまま開く */
 function loadSheet_(){
@@ -2282,11 +2295,14 @@ function loadSheet_(){
   /* この画面の中のボタンは、この画面を開くときに結ぶ（openHome に置くと、
      openHome を通らない経路＝QRからの直行やテストで押せないボタンになる）。
      onclick への代入なので何度開いても二重にならない。 */
-  var ob=$('sheet-open'); if(ob)ob.onclick=shOpen_;
+  /* 自分で番号を打って開いたときは、いつでも○×の画面（段7b）*/
+  var ob=$('sheet-open'); if(ob)ob.onclick=function(){ _shLisOnly=false; shOpen_(); };
   var el=$('sheet-code');
-  if(el){ el.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); shOpen_(); } }; el.value=''; }
+  if(el){ el.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); _shLisOnly=false; shOpen_(); } }; el.value=''; }
   var c=shPendGet_();
-  if(c){ shPendSet_(''); if(el)el.value=c; shOpen_(); }
+  if(c){ var lis=shPendLisGet_(); shPendSet_(''); shPendLisSet_(false);
+    _shLisOnly=!!lis;                                   /* 段7b：問題用紙のQRなら音だけ */
+    if(el)el.value=c; shOpen_(); }
 }
 function shOpen_(){
   var el=$('sheet-code'), btn=$('sheet-open');
@@ -2298,8 +2314,9 @@ function shOpen_(){
   call({action:'sheet_open',code:v}).then(function(d){
     btn.disabled=false; btn.innerHTML='<span>'+rb('開','ひら')+'く</span> <i class="ti ti-arrow-right"></i>';
     if(_netNG_(d)){ shMsg_(d&&d.error?esc(d.error):_NET_NG_MSG_); return; }
-    if(String(d.data.status||'')==='done'){ shMsg_('この'+rb('紙','かみ')+'は'+rb('答','こた')+'え'+rb('合','あ')+'わせが'+rb('終','お')+'わっています。'); return; }
-    if(d.data.expired){ shMsg_('この'+rb('紙','かみ')+'は'+rb('古','ふる')+'いので'+rb('記録','きろく')+'できません。'+rb('新','あたら')+'しい'+rb('紙','かみ')+'を'+rb('先生','せんせい')+'にもらってください。'); return; }
+    /* 段7b：音を聞くだけのときは、答え合わせが終わった紙・古い紙でも音は聞ける（○×は入れない） */
+    if(String(d.data.status||'')==='done'&&!_shLisOnly){ shMsg_('この'+rb('紙','かみ')+'は'+rb('答','こた')+'え'+rb('合','あ')+'わせが'+rb('終','お')+'わっています。'); return; }
+    if(d.data.expired&&!_shLisOnly){ shMsg_('この'+rb('紙','かみ')+'は'+rb('古','ふる')+'いので'+rb('記録','きろく')+'できません。'+rb('新','あたら')+'しい'+rb('紙','かみ')+'を'+rb('先生','せんせい')+'にもらってください。'); return; }
     var n=parseInt(d.data.total,10)||0;
     if(n<=0){ shMsg_('この'+rb('紙','かみ')+'には'+rb('問題','もんだい')+'が'+rb('入','はい')+'っていません。'+rb('先生','せんせい')+'に'+rb('伝','つた')+'えてください。'); return; }
     /* 【2026-09-14・段7】聞き取りの音。{"12":{en,audios}}（紙の番号 → その問の素材）。
@@ -2310,6 +2327,48 @@ function shOpen_(){
     shRenderMarks_();
   });
 }
+/* 【段7b・2026-09-15 川上さん】問題用紙のリスニングの先頭にあるQR＝音を聞くだけの画面。
+   ・○×は出さない（正誤を入れるのは解答用紙のQRの方だけ）
+   ・答え合わせが終わった紙・古い紙でも、音はここで聞ける
+   ・鳴らし方は出題中・解答用紙の画面とまったく同じ _sentPlay_ を通す */
+function shRenderListenOnly_(lisN){
+  if(!_shSet)return;
+  /* 見出しも変える＝この画面は「答え合わせ」ではない（SUB_TITLES には足さない。
+     あれは不具合報告の画面名の照合に使っているので、キーを増やすと照合が変わる） */
+  var st=$('sub-title');
+  if(st)st.innerHTML=rb('聞','き')+'き'+rb('取','と')+'りの'+rb('音','おと');
+  var s1=$('sheet-step1'); if(s1)s1.style.display='none';
+  var host=$('sheet-step2'); if(!host)return;
+  if(!lisN){
+    host.innerHTML='<div class="sh-head"><span class="sh-code">'+esc(_shSet.code)+'</span></div>'
+      +'<div class="sh-msg">この'+rb('紙','かみ')+'には'+rb('聞','き')+'き'+rb('取','と')+'りの'+rb('音','おと')+'が'+rb('入','はい')+'っていません。'
+      +rb('番号','ばんごう')+'が'+rb('合','あ')+'っているか'+rb('確','たし')+'かめてください。</div>';
+    host.style.display='block'; window.scrollTo(0,0); return;
+  }
+  var h='<div class="sh-head"><span class="sh-code">'+esc(_shSet.code)+'</span>'
+       +'<span class="sh-tot">'+rb('聞','き')+'き'+rb('取','と')+'り'+lisN+rb('問','もん')+'</span></div>'
+       +'<div class="sh-lis-lead">🔊 <b>'+rb('音','おと')+'を'+rb('聞','き')+'く'+rb('画面','がめん')+'です。</b><br>'
+       +rb('問題用紙','もんだいようし')+'の'+rb('番号','ばんごう')+'と'+rb('同','おな')+'じボタンを'+rb('押','お')+'すと、その'+rb('問','もん')+'の'+rb('音','おと')+'が'+rb('鳴','な')+'ります。'
+       +rb('何回','なんかい')+'でも'+rb('聞','き')+'けます。</div>'
+       +'<div class="sh-grid lisonly" id="sheet-marks"></div>'
+       +'<div class="sh-lead" style="margin:14px 0 0;">'+rb('丸','まる')+'つけの○×は、'+rb('解答用紙','かいとうようし')+'のQRを'+rb('読','よ')+'んで'+rb('入','い')+'れてください。</div>';
+  host.innerHTML=h; host.style.display='block';
+  var g=$('sheet-marks'), rows='', nos=[];
+  for(var i=1;i<=_shSet.total;i++) if((_shSet.listen||{})[String(i)]) nos.push(i);
+  for(var k=0;k<nos.length;k++){
+    rows+='<div class="sh-q lis"><span class="sh-n">'+nos[k]+'</span>'
+        +'<button class="sh-play" type="button" data-lis="'+nos[k]+'" aria-label="'+nos[k]+'ばんの音を聞く">'
+        +'<i class="ti ti-volume"></i><span>'+nos[k]+rb('番','ばん')+'の'+rb('音','おと')+'を'+rb('聞','き')+'く</span></button></div>';
+  }
+  g.innerHTML=rows;
+  g.addEventListener('click',function(e){
+    var t=e.target&&e.target.closest?e.target:null;
+    var pb=t&&t.closest?t.closest('.sh-play'):null; if(!pb)return;
+    var pl=(_shSet.listen||{})[String(pb.getAttribute('data-lis')||'')];
+    if(pl)_sentPlay_(pl);
+  });
+  window.scrollTo(0,0);
+}
 /* 紙とまったく同じ並びで 1〜N を出す（並びは print_sets.word_ids の順＝サーバーが持っている） */
 function shRenderMarks_(){
   if(!_shSet)return;
@@ -2318,6 +2377,8 @@ function shRenderMarks_(){
   /* 【2026-09-14・段7】聞き取りがある紙は、**先にここで音を聞いてから紙に答えを書く**。
      ○×を入れるのはそのあと。順番が逆だと解けないので、いちばん上で言う。 */
   var _lisN=0; for(var q in (_shSet.listen||{})) if(Object.prototype.hasOwnProperty.call(_shSet.listen,q)) _lisN++;
+  /* 段7b（2026-09-15 川上さん）：問題用紙のQRから来たときは、音を聞くだけの画面にする */
+  if(_shLisOnly){ shRenderListenOnly_(_lisN); return; }
   var h='<div class="sh-head"><span class="sh-code">'+esc(_shSet.code)+'</span><span class="sh-tot">'+rb('全','ぜん')+_shSet.total+rb('問','もん')+'</span></div>'
        +(_lisN?('<div class="sh-lis-lead">🔊 この'+rb('紙','かみ')+'には'+rb('聞','き')+'き'+rb('取','と')+'りが<b>'+_lisN+rb('問','もん')+'</b>あります。<br>'
            +'<b>さきに'+rb('音','おと')+'を'+rb('聞','き')+'いて'+rb('紙','かみ')+'に'+rb('答','こた')+'えを'+rb('書','か')+'いてから</b>、'+rb('丸','まる')+'つけをして○×を'+rb('入','い')+'れてください。</div>'):'')
@@ -3084,7 +3145,7 @@ $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};var _ic
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
 $('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();try{shGoIfPending_();}catch(e){}});};
 function doLogout_(){try{_sqFlush_();}catch(eSq){}/* 未送信があれば先に流す。1件ずつが自分のトークンを持つので token='' にしても届く 2026-09-02 */
-  homeCacheClear_();try{var _rsLo=_resumeAny_();if(_rsLo)_abandonLog_(_rsLo,'logout',true);}catch(e){}try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');}catch(e){}token='';show('scr-login');}
+  homeCacheClear_();try{var _rsLo=_resumeAny_();if(_rsLo)_abandonLog_(_rsLo,'logout',true);}catch(e){}try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');shPendLisSet_(false);}catch(e){}token='';show('scr-login');}
 $('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
 $('logout-cancel').onclick=function(){$('logout-mask').classList.remove('show');};
 $('logout-mask').onclick=function(e){if(e.target===this)$('logout-mask').classList.remove('show');};
