@@ -3465,6 +3465,10 @@ function fsListenReserve_(b,units,mk){
   var slots=Math.max(0,b.flat.length-figN);          /* 文章問題に使えている数（実測）*/
   var want=Math.min(lis.length, Math.max(1, Math.round(slots*lis.length/(oth.length+lis.length))));
   if(inNow>=want) return null;                       /* もう足りている */
+  /* 【2026-09-15・試して取り下げた】keepOth の引き算を二分探索（組んでみて測る）に変えてみたが、
+     実測 76問/聞き取り16 → 75問/聞き取り17 でほぼ変わらず、紙の空きも減らなかった。
+     組み直しが7回に増えるだけなので**入れない**。空きの正体は候補の切りすぎではない
+     （枠取りを外しても空きは出る＝2列グリッドの行の高さで決まる）。 */
   var keepOth=Math.max(0, slots-want-(head.length?1:0));
   var u2=figs.concat(oth.slice(0,keepOth)).concat(head).concat(lis.slice(0,want));
   if(!u2.length) return null;
@@ -3486,7 +3490,11 @@ function fsDrawSheet_(b){
     var body='';
     pg.figs.forEach(function(f){ body+=fsFigBlockHtml_(f.block,f.start); idx+=f.block.items.length; });
     var g='';
-    pg.texts.forEach(function(t){ g+=fsQBodyHtml_(t.item,t.no,ctx); idx++; });
+    /* 【2026-09-15】★見出し（__lisHead）は問題ではないので idx を進めない。
+       進めていたので、見出しより後ろのページのフッタが1つずつ後ろにずれ、
+       紙に無い番号（「問題74〜88」なのに87まで）が刷られていた。川上さんが刷った紙で発見。
+       ★番号（t.no）は 3312行で振り直しずみ＝ずれていたのはフッタの範囲だけ。 */
+    pg.texts.forEach(function(t){ g+=fsQBodyHtml_(t.item,t.no,ctx); if(!(t.item&&t.item.__lisHead))idx++; });
     var to=idx;
     h+='<div class="fs-page">'+fsHeadPageHtml_(ctx,'問題',i===0,i===0)
       +body+'<div class="fs-grid">'+g+'</div>'
