@@ -1662,13 +1662,20 @@
 
         <!-- 【2026-09-14・段F2】「出す生徒」の欄はここから外した。上の絞り込み1つにまとめてある。 -->
 
-        <div id="rpListOpts">
-          <div class="tm-qh" style="margin-top:10px;">出す種別（複数えらべます）</div>
+        <!-- 【2026-09-15】出す種別は **どちらの紙でも** えらべる。
+             Why: 仕上げプリントだけ欄が出ず、中では types:'daily,unit,quiz' の決め打ちだった
+                  （川上さん報告 2026-09-15「仕上げプリントに、毎日学習からか、単元別か、
+                  確認テストかの選択出ない」）。出す教材から自動でチェックが入る。 -->
+        <div id="rpTypeBox">
+          <div class="tm-qh" style="margin-top:10px;">出す種別（複数えらべます）<span class="rp-mute" id="rpTypeNote" style="font-weight:700;margin-left:8px;"></span></div>
           <div style="display:flex;gap:16px;flex-wrap:wrap;margin:2px 0 2px;">
             <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="rpT-daily" checked> 毎日学習</label>
             <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="rpT-unit" checked> 単元別</label>
             <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="rpT-quiz" checked> 確認テスト</label>
           </div>
+        </div>
+
+        <div id="rpListOpts">
           <div class="tm-qh" style="margin-top:10px;">どのまちがいを出すか</div>
           <input type="hidden" id="rpScope" value="active">
           <div class="stycards sm" id="rpScopeCards"></div>
@@ -7431,6 +7438,8 @@ function rpOutClear(){ rpOutClearAll(); }
    ★レポートの一覧（RP_F）は変えない＝「見る範囲と出す範囲は別」（段D の確定と同じ）。 */
 var RP_PF={cls:'all',grade:'all',sch:'all'}, RP_PF_TOUCHED=false;
 function _rpPfSync_(){ if(RP_PF_TOUCHED)return; RP_PF={cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch}; }
+/* 画面でえらんでいる出す種別。★読む場所を1か所にする（紙ごとに決め打ちしない）2026-09-15 */
+function _rpTypes_(){ var a=[]; ['daily','unit','quiz'].forEach(function(t){ var c=$('rpT-'+t); if(c&&c.checked)a.push(t); }); return a; }
 function _rpPfSame_(){
   /* 絞り込みが同じでも、1人ずつ外していればレポートとは別 2026-09-15 */
   if(Object.keys(RP_DROP.prn).length!==Object.keys(RP_DROP.rep).length)return false;
@@ -7493,18 +7502,25 @@ function rpRenderPaper(n){
     var sb=$('rpScopeCards'); if(sb)sb.innerHTML=_tmScopeCards_(sv,'rp');
     var dd=$('rpDays'); if(dd&&!dd._t){dd.value=localStorage.getItem('kwt_print_days')||'7';}
     var ll=$('rpLimit'); if(ll&&!ll._t){ll.value=localStorage.getItem('kwt_print_limit')||'20';}
-    /* 【2026-09-14】出す種別は「出す教材」に合わせて自動でチェックを入れる・外す（川上さん確定）。
-       Why: 単元別の教材しか選んでいないのに「毎日学習」に勝手にチェックが入っていた
-            （localStorage の既定＝3つ全部を読むだけで、選んだ教材を見ていなかった）。
-       ★出す教材が変わったときだけ入れ直す＝そのあと手で変えたぶんは消さない。
-         出す教材を変えたら、新しい教材に合わせ直す（川上さん確定）。 */
-    var sig=use.slice().sort().join(',');
-    if(!busy2&&sig!==RP_TY_SIG){
-      RP_TY_SIG=sig;
-      var tl=use.length?_prnTypesForMats_(use,''):['daily','unit','quiz'];
-      ['daily','unit','quiz'].forEach(function(t){ var c=$('rpT-'+t); if(c)c.checked=(tl.indexOf(t)>=0); });
-    }
   }
+  /* 【2026-09-14→2026-09-15】出す種別は「出す教材」に合わせて自動でチェックを入れる・外す（川上さん確定）。
+     Why: 単元別の教材しか選んでいないのに「毎日学習」に勝手にチェックが入っていた
+          （localStorage の既定＝3つ全部を読むだけで、選んだ教材を見ていなかった）。
+     ★2026-09-15＝**仕上げプリントでも同じにする**（前はこのブロックがチェックプリント側にしか無く、
+       仕上げは欄も出ず types:'daily,unit,quiz' の決め打ちだった。川上さん報告）。
+     ★出す教材が変わったときだけ入れ直す＝そのあと手で変えたぶんは消さない。 */
+  var sig=use.slice().sort().join(',');
+  if(!busy2&&sig!==RP_TY_SIG){
+    RP_TY_SIG=sig;
+    var tl=use.length?_prnTypesForMats_(use,''):['daily','unit','quiz'];
+    ['daily','unit','quiz'].forEach(function(t){ var c=$('rpT-'+t); if(c)c.checked=(tl.indexOf(t)>=0); });
+  }
+  /* 本番48名で実測（2026-09-15）＝教材から決めた種別で絞っても1問も減らない。
+     毎日学習の4教材：daily,unit,quiz=4800問／daily だけ=4800問
+     単元別の74教材：daily,unit,quiz=4800問／unit,quiz だけ=4800問
+     ＝確認テストは content_type='test' の教材にしか配信されないため。
+     2026-08-31「範囲は教材で決めるので種別では絞らない」は保たれている（種別が教材に従うだけ）。 */
+  var tn=$('rpTypeNote'); if(tn)tn.textContent=use.length?'選んだ教材に合わせています（変えられます）':'';
   /* ボタンの文字と、出す人数。★人数はプリント側の絞り込み（RP_PF）で数える */
   var who=$('rpPaperWho'); if(who)who.textContent='　'+pn+'名';
   var go=$('rpPaperGoBtn');
@@ -7556,7 +7572,7 @@ function rpPreviewOne(){
   showLoading(nm+'さんの見本を作っています…（10秒ほどかかります）');
   var done=function(){ hideLoading(); if(btn)btn.disabled=false; };
   if(st==='finish'){
-    call({action:'teacher_mistakes',student_ids:sid,material_ids:mats.join(','),types:'daily,unit,quiz',
+    call({action:'teacher_mistakes',student_ids:sid,material_ids:mats.join(','),types:(_rpTypes_().join(',')||'daily,unit,quiz'),
           mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_}).then(function(d){
       if(!d||!d.ok){ tmErr_('見本を作れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
       _pqSetAssets_(d.data);
@@ -7624,7 +7640,9 @@ function rpPaperGo(){
   if(!mats.length){ tmErr_('出す教材が1つも選ばれていません。上の「出す教材」でえらんでください。'); return; }
   if(_rpPaperStyle_()==='finish'){
     try{ localStorage.setItem('kwt_print_mats',mats.join(',')); }catch(e){}
-    runFinishSheet_(ids,mats,'daily,unit,quiz');
+    /* 【2026-09-15】仕上げプリントも画面でえらんだ種別を使う（前は決め打ちだった） */
+    var ft=_rpTypes_(); if(!ft.length){ tmErr_('出す種別を1つ以上えらんでください。'); return; }
+    runFinishSheet_(ids,mats,ft.join(','));
     return;
   }
   var scope=(($('rpScope')||{}).value)||'active'; if(scope==='graduated')scope='active';
@@ -7644,7 +7662,7 @@ function rpPaperGo(){
    条件は「5. 紙にする」でいま選んでいるものをそのまま使う＝押す場所で紙が変わらない。 */
 function rpPrintOne_(sid,mid){
   _prnHost='report'; tmErr_('');
-  if(_rpPaperStyle_()==='finish'){ runFinishSheet_([String(sid)],[String(mid)],'daily,unit,quiz'); return; }
+  if(_rpPaperStyle_()==='finish'){ var ft=_rpTypes_(); runFinishSheet_([String(sid)],[String(mid)],(ft.length?ft:['daily','unit','quiz']).join(',')); return; }
   var scope=(($('rpScope')||{}).value)||'active'; if(scope==='graduated')scope='active';
   var days=parseInt(($('rpDays')||{}).value,10); if(!(days>=1))days=7;
   var limit=parseInt(($('rpLimit')||{}).value,10); if(!(limit>=1))limit=20;
