@@ -1416,6 +1416,23 @@
            赤は「🖨 …を出す」1つと、選ばれている印（.on の薄い赤）だけに使う。 */
         .rp-allbtn:hover:not(:disabled){border-color:#94a3b8;color:var(--text);}
         .rp-allbtn:disabled{opacity:.45;cursor:not-allowed;}
+        /* 【2026-09-15】絞り込んだ生徒を全員ならべて、チェックで1人ずつ外す（川上さん確定）。
+           Why: 絞り込んだあと「この子は要らない」を外す手段が無かった。
+                名前を文で並べるだけ（…ほか35名）では、誰が出るか分からず外せもしない。
+           ★一覧が高くなったときだけスクロール（320px）。43名は8行＝約236pxで止まらない。 */
+        .sc-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 6px;font-size:12px;color:var(--text);}
+        .sc-cnt{color:var(--crimson);font-weight:800;}
+        .sc-off{color:#b45309;font-weight:700;font-size:11.5px;}
+        .sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:2px 10px;
+          border:1px solid var(--border);border-radius:8px;background:#fff;padding:6px 8px;
+          max-height:320px;overflow-y:auto;}
+        .sc-s{display:flex;align-items:center;gap:6px;padding:3px 4px;border-radius:6px;cursor:pointer;min-width:0;}
+        .sc-s:hover{background:var(--surface2);}
+        .sc-s input{accent-color:var(--crimson);width:15px;height:15px;flex:0 0 auto;cursor:pointer;}
+        .sc-n{font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .sc-m{font-size:10.5px;color:var(--text-light);margin-left:auto;white-space:nowrap;flex:0 0 auto;}
+        .sc-s.off .sc-n{color:var(--text-light);text-decoration:line-through;}
+        .sc-none{font-size:12px;color:var(--text-light);font-weight:600;padding:6px 2px;}
         /* 【2026-09-14】読み込み中・失敗を画面に出す（UI標準 §22-B）。
            Why: 教材の一覧が届くまで「0件」と確定した数字を出し、失敗しても何も出さず
                 取り直しもしなかったので「読み込みが終わらない」に見えた（川上さん報告 2026-09-14）。 */
@@ -6832,6 +6849,12 @@ function renderReportTab(){
       RP_SETS_ST=(d&&d.ok)?'ok':'error';
       if(d&&d.ok&&d.data){ RP_SETS=d.data.sets||[]; if(RP_SETS.length&&!RP_SEL.length) rpLoadSet(0); else rpRenderSets(); }
       else rpRenderSets();
+      /* 【2026-09-15】★状態が変わったら、それを見ている欄も必ず描き直す。
+         Why: セットの読み込みが終わっても rpRenderSets しか呼んでおらず、
+              「読み込み中…」を出していた生徒の欄がそのまま止まっていた（画面写真で発見）。
+         一般則＝読み込みの状態を見て描き分ける欄を足したら、
+                 その状態を変える所ぜんぶで描き直しを呼ぶ。 */
+      try{ rpRenderFilters(); rpRenderPaper(); }catch(e){}
     });
   }
   if((!bulkMaterials||!bulkMaterials.length)&&RP_MATS_ST!=='loading')rpLoadMats_();
@@ -7035,6 +7058,7 @@ function rpLoadSet(i){
   /* 【2026-09-14・段F】セットを切り替えたら、プリント側の選び直しも捨てて「レポートと同じ」に戻す。
      前のセットで選んだ教材が残っていると、別のセットの紙にまざる。 */
   RP_OUT_TOUCHED=false; RP_OUT={}; RP_OOPEN={}; RP_PF_TOUCHED=false;
+  RP_DROP={rep:{},prn:{}}; RP_TY_SIG=null;   /* 1人ずつ外したのは捨てる＝別のセットの紙に混ざらない 2026-09-15 */
   rpRenderSets(); // 【2026-08-20】旧実装はここを呼んでおらず、選んでも見た目が変わらなかった（＝どれを見ているか分からない主因）
   rpRenderMat(); rpRenderFilters(); rpRender();
 }
@@ -7125,7 +7149,7 @@ function rpRenderFilters(){
   if(nt)nt.textContent=isPrn?'ここで変えても、レポートの一覧は変わりません。':'';
   var bb=$('rpPfBackBtn'); if(bb)bb.style.display=isPrn?'':'none';
   var st=$('rpPfState'); if(st&&!isPrn)st.innerHTML='';
-  var who=$('rpPfWho'); if(who&&!isPrn)who.innerHTML='';
+  /* 2026-09-15 生徒の一覧は rpRenderPaper が両面ぶん描く（ここでは消さない） */
   var strip=$('rpFstrip'); if(strip&&isPrn)strip.innerHTML='';   /* 「絞り込み中」の札はレポート側のもの */
 }
 function _rpChips(kind,cur,opts,fn){ fn=fn||'rpSetF';
@@ -7343,6 +7367,10 @@ var RP_OUT_TOUCHED=false;   /* 先生が1度でも触ったか。触っていな
 var RP_MATS_ST='idle', RP_SETS_ST='idle';
 /* 出す種別を自動で入れ直したときの「出す教材」の顔つき。変わったときだけ入れ直す 2026-09-14 */
 var RP_TY_SIG=null;
+/* 【2026-09-15】1人ずつ外した生徒。★その場だけ（保存しない・セットを切り替えたら捨てる）。
+   面ごとに別々＝プリント面で外してもレポートの一覧は変わらない（絞り込みと同じ考え方）。 */
+var RP_DROP={rep:{},prn:{}};
+function _rpDrop_(useP){ return RP_DROP[useP?'prn':'rep']; }
 function rpMatsLoading_(){ return RP_MATS_ST==='loading'; }
 function rpLoadMats_(){
   RP_MATS_ST='loading';
@@ -7403,9 +7431,14 @@ function rpOutClear(){ rpOutClearAll(); }
    ★レポートの一覧（RP_F）は変えない＝「見る範囲と出す範囲は別」（段D の確定と同じ）。 */
 var RP_PF={cls:'all',grade:'all',sch:'all'}, RP_PF_TOUCHED=false;
 function _rpPfSync_(){ if(RP_PF_TOUCHED)return; RP_PF={cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch}; }
-function _rpPfSame_(){ return RP_PF.cls===RP_F.cls&&RP_PF.grade===RP_F.grade&&RP_PF.sch===RP_F.sch; }
+function _rpPfSame_(){
+  /* 絞り込みが同じでも、1人ずつ外していればレポートとは別 2026-09-15 */
+  if(Object.keys(RP_DROP.prn).length!==Object.keys(RP_DROP.rep).length)return false;
+  for(var k in RP_DROP.prn){ if(!RP_DROP.rep[k])return false; }
+  return RP_PF.cls===RP_F.cls&&RP_PF.grade===RP_F.grade&&RP_PF.sch===RP_F.sch;
+}
 function rpSetPF(k,v){ RP_PF_TOUCHED=true; RP_PF[k]=v; rpRenderFilters(); rpRenderPaper(); }
-function rpPfSameAsReport(){ RP_PF_TOUCHED=false; rpRenderFilters(); rpRenderPaper(); }
+function rpPfSameAsReport(){ RP_PF_TOUCHED=false; RP_DROP.prn={}; rpRenderFilters(); rpRenderPaper(); }
 /* n＝対象人数。rpRender から呼ぶときは数えたものを渡す（48名で rpTargets を2回走らせないため）。
    省略したときはここで数える。 */
 function rpRenderPaper(n){
@@ -7439,16 +7472,12 @@ function rpRenderPaper(n){
   if(pst)pst.innerHTML=(isPrn&&!busyAll)?((psame?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')+'　<b>'+pn+'</b>名'):'';
   var fbox=document.querySelector('#view-report .rp-fltbox'); if(fbox)fbox.classList.toggle('diff',isPrn&&!psame&&!busyAll);
   var pbb=$('rpPfBackBtn'); if(pbb)pbb.disabled=psame||busyAll;
+  /* 【2026-09-15】絞り込んだ生徒を全員ならべて、チェックで1人ずつ外す（川上さん確定）。
+     ★レポート面でも出す＝「レポートも同様」（川上さん 2026-09-14）。 */
   var who2=$('rpPfWho');
   if(who2){
-    if(!isPrn)who2.innerHTML='';
-    else if(busyAll)who2.innerHTML='<span class="rp-load"><span class="rp-spin"></span>読み込み中…</span>';
-    else if(!pn)who2.innerHTML='<span style="color:var(--crimson);font-weight:800;">この絞り込みに合う生徒がいません。</span>';
-    else{
-      /* 多いときは全部は並べない（43名ぶん並べると読めない）。誰が入るかが分かれば足りる。 */
-      var _ns=rpTargets(true).map(function(x){return String((x.s&&x.s.name)||'');}).filter(Boolean);
-      who2.innerHTML='この紙が出る生徒＝'+esc(_ns.slice(0,8).join('・'))+((_ns.length>8)?('　…ほか'+(_ns.length-8)+'名'):'');
-    }
+    if(busyAll)who2.innerHTML='<span class="rp-load"><span class="rp-spin"></span>読み込み中…</span>';
+    else who2.innerHTML=_rpWhoHtml_(isPrn);
   }
 
   /* 条件の欄は紙の形で出し分ける */
@@ -7625,7 +7654,9 @@ function rpPrintOne_(sid,mid){
 }
 /* useP＝true のとき、プリント側の絞り込み（RP_PF）で数える。
    省略時は今までどおりレポート側（RP_F）。2026-09-14 段F */
-function rpTargets(useP){
+/* keepDropped＝true なら、1人ずつ外した子も残して返す（チェックの一覧を描くため）。
+   省略したときは外したあと＝実際に紙が出る／レポートに出る人。2026-09-15 */
+function rpTargets(useP,keepDropped){
   var F=useP?(function(){_rpPfSync_();return RP_PF;})():RP_F;
   var q=((($('rpName')||{}).value)||'').trim();
   var showNA=(($('rpShowNA')||{}).checked)||RP_ONLY_SHORT;
@@ -7645,7 +7676,54 @@ function rpTargets(useP){
       if(RP_ONLY_NG&&!(x.a.ng>0))return false;
       if(RP_ONLY_MISS&&!(x.a.miss>=RP_MISS_MIN))return false;
       return true;
+    })
+    .filter(function(x){   /* ★1人ずつ外した子を除く 2026-09-15 */
+      if(keepDropped)return true;
+      return !_rpDrop_(useP)[String(x.s.student_id)];
     });
+}
+/* 【2026-09-15】絞り込んだ生徒を全員ならべる。チェックを外すと紙（レポート）の対象から外れる。
+   ★外れているのは「この面だけ・その場だけ」。セットを切り替えたら捨てる。 */
+function _rpWhoHtml_(useP){
+  var all=rpTargets(useP,true), dr=_rpDrop_(useP);
+  if(!all.length)return '<div class="sc-none">この絞り込みに合う生徒がいません。</div>';
+  var off=0;
+  var rows=all.map(function(x){
+    var sid=String(x.s.student_id), o=!!dr[sid]; if(o)off++;
+    var meta=[x.s.grade,x.s.class_name].filter(Boolean).join('・');
+    return '<label class="sc-s'+(o?' off':'')+'">'
+      +'<input type="checkbox"'+(o?'':' checked')+' onchange="rpDropToggle(\''+esc(sid)+'\')">'
+      +'<span class="sc-n" title="'+esc(String(x.s.name||''))+'">'+esc(String(x.s.name||'(無名)'))+'</span>'
+      +'<span class="sc-m">'+esc(meta)+'</span></label>';
+  }).join('');
+  var n=all.length-off;
+  /* ★上の見出しが「この紙を出す生徒」なので、ここで同じ語をくり返さない。
+     何をする欄なのかだけ書く（UI標準：同じ文言を2つ並べない）2026-09-15 */
+  return '<div class="sc-head"><b>'+(useP?'チェックを外すと その子には紙を出しません':'チェックを外すと その子はレポートに出ません')+'</b>'
+    +'<span class="sc-cnt">'+n+'名に出します</span>'
+    +(off?('<span class="sc-off">'+off+'名を外しています</span>'):'')
+    +'<span style="flex:1"></span>'
+    +'<button class="rp-allbtn" onclick="rpDropAll(false)"'+(off?'':' disabled')+'>✓ 全員にする</button>'
+    +'<button class="rp-allbtn" onclick="rpDropAll(true)"'+(n?'':' disabled')+'>× 全員外す</button></div>'
+    +'<div class="sc-grid">'+rows+'</div>';
+}
+/* チェック1つで 43名の表まで描き直すと重いので、見ている面のぶんだけ描き直す 2026-09-15 */
+function _rpAfterDrop_(){
+  var useP=(typeof RP_PANE!=='undefined'&&RP_PANE==='prn');
+  if(useP){ rpRenderPaper(); }
+  else { rpRender(); }        /* rpRender の中から rpRenderPaper も呼ばれる */
+}
+function rpDropToggle(sid){
+  var useP=(typeof RP_PANE!=='undefined'&&RP_PANE==='prn'), d=_rpDrop_(useP); sid=String(sid);
+  if(d[sid])delete d[sid]; else d[sid]=1;
+  _rpAfterDrop_();
+}
+function rpDropAll(off){
+  var useP=(typeof RP_PANE!=='undefined'&&RP_PANE==='prn');
+  var d={}; 
+  if(off)rpTargets(useP,true).forEach(function(x){ d[String(x.s.student_id)]=1; });
+  RP_DROP[useP?'prn':'rep']=d;
+  _rpAfterDrop_();
 }
 function rpCard(n,l,c){return '<div class="rp-sumc"><div class="rp-sumn" style="'+(c?'color:'+c+';':'')+'">'+n+'</div><div class="rp-suml">'+esc(l)+'</div></div>';}
 function rpRender(){
