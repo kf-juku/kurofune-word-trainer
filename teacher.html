@@ -341,6 +341,14 @@
      1ページ目は得点らん、それ以外は名前の欄が右はしになるので :last-child でまとめて当てる。2026-09-02 */
   body.fs-pdf .fs-hd-r1 > :last-child,body.fs-pdf .fs-hd-r2 > :last-child{margin-right:5mm;}
   body.fs-pdf .fs-foot > span:last-child{margin-right:5mm;}
+  /* 【2026-09-15・PDFの列ずれの根】★html2pdf は page-break-inside:avoid の要素が
+     ページ境界をまたぐと判断すると、**その要素の前に詰め物の div を差し込んで**次のページへ送る。
+     その詰め物が .fs-grid（2列）の中に入ると、高さ0でも**グリッドのマスを取る**ので、
+     そこから後ろの問題が1つずつずれる（紙は正しいのにPDFだけ左上や右上が空く。川上さん報告）。
+     ページの切れ目は .fs-page の page-break-before:always で決めていて、
+     各ページは組むときに紙へ収まるよう測ってある＝**中の1問ずつに avoid は要らない。**
+     PDFを作るあいだだけ外す。紙（window.print）は今までどおり avoid のまま。 */
+  body.fs-pdf .fs-q,body.fs-pdf .fs-lishead,body.fs-pdf .fs-figblk{page-break-inside:auto;}
   body.fs-pdf .fs-page{page-break-before:always;}
   body.fs-pdf .p-unit > .fs-sheet > .fs-page:first-child{page-break-before:auto;}
   body.fs-pdf .p-filler{display:block;position:relative;page-break-before:always;min-height:258mm;}
@@ -2969,17 +2977,25 @@ function fsFootHtml_(ctx,label){
   return '<div class="fs-foot"><span>Kurofune Word Trainer ／ 仕上げプリント</span>'
     +'<span>'+esc(ctx.name)+(ctx.grade?('　'+esc(ctx.grade)):'')+' ／ '+esc(ctx.code)+' ／ '+esc(label)+'</span></div>';
 }
-/* 【2026-09-15】グリッドの列（1 or 2）を自分で決めるための数え役。
+/* 【2026-09-15】グリッドに置く場所（列と行）を自分で決める。
    ★auto-placement（置いた順に勝手に並ぶ）に任せない。
-     html2pdf は PDF を作るとき、元のDOMをクローンして「ページの余りを埋める詰め物」
-     <div style="display:block;height:Npx"> を差し込む。それが .fs-grid の中に入ると、
-     **高さ0でもグリッドの1マスを取る**ので、そのページから問題が1つ右へずれる。
-     ＝紙は正しいのに PDF だけ左上が1マス空く（川上さん報告 2026-09-15・本番のChromeで実測。
-       4ページ目のグリッドの先頭に class の無い空divが入り、73番が右列に押し出されていた）。
-   列を明示しておけば、余計なものが入っても左右は動かない。
-   n＝そのグリッドに置いた問題の数（見出しを除く。見出しのあとは0に戻す）。 */
-function fsColOf_(n){ return (n%2)+1; }
-function fsQBodyHtml_(it,no,ctx,col){
+     html2pdf は PDF を作るとき、元のDOMをクローンして詰め物の div を差し込むことがある。
+     それが .fs-grid の中に入ると、高さ0でも**グリッドのマスを取る**ので、
+     そこから後ろの問題がずれる（紙は正しいのにPDFだけ空きができる。川上さん報告 2026-09-15）。
+     ★根は body.fs-pdf で page-break-inside を外したこと（上のCSS）。こちらはその押さえ。
+       列だけ決めて行を auto のままにしたら、今度は行がずれた（実測）ので**両方**決める。
+   st＝{col:1,row:1} から始める入れもの。見出しは全幅（CSSの grid-column:1/-1）なので列は返さない。 */
+function fsGridPos_(st,isHead){
+  if(isHead){
+    if(st.col===2){ st.row++; st.col=1; }   /* 左だけ埋まった行を閉じてから、全幅の見出しを置く */
+    var r=st.row; st.row++; st.col=1;
+    return {col:0,row:r};
+  }
+  var c=st.col, r=st.row;
+  if(st.col===1){ st.col=2; } else { st.col=1; st.row++; }
+  return {col:c,row:r};
+}
+function fsQBodyHtml_(it,no,ctx,pos){
   /* 【2026-09-14・段7】聞き取りの区切り見出し。問題ではないので番号を取らない。
      ★測るときと描くときで同じものを通すため、ふつうの単位と同じ形（1つの要素）で返す。 */
   if(it&&it.__lisHead){
@@ -2990,7 +3006,8 @@ function fsQBodyHtml_(it,no,ctx,col){
        ・解答用紙のQR（?sheet=番号）は今までどおり＝正誤入力。そちらでも音は聞ける
        ★QRの中身が変わっても大きさは28mm固定なので、測るときと描くときで高さは変わらない。 */
     var _c=(ctx&&ctx.code)?String(ctx.code):'';
-    return '<div class="fs-lishead">'+fsQrHtml_(_c,true)
+    var hs=(pos&&pos.row)?(' style="grid-row:'+pos.row+'"'):'';   /* 行だけ決める。列はCSSの全幅のまま */
+    return '<div class="fs-lishead"'+hs+'>'+fsQrHtml_(_c,true)
       +'<div class="fs-lh-t">🔊 <b>ここからは聞き取りです。</b>'
       +'左のQRを読んで音を聞いてから、合うものを記号で答えてください。'
       +'<div class="fs-lh-c">QRが読めないときは、クロトレの「紙の答え合わせ」を開いて'
@@ -3000,8 +3017,9 @@ function fsQBodyHtml_(it,no,ctx,col){
      ほかは今までどおり1行＋解答らん */
   var k=_pqKind_(it);
   var ex=(k==='order')?_pqOrdHtml_(it,'fs'):((k==='listen')?_pqLisQHtml_(it,'fs'):'');
-  /* 列を明示する（上の fsColOf_ のコメントが理由）。図のかたまりの中はグリッドではないので付けない */
-  var cs=(col===1||col===2)?(' style="grid-column:'+col+'"'):'';
+  /* 列と行を明示する（上の fsGridPos_ のコメントが理由）。
+     図のかたまり（.fs-figblk）の中はグリッドではないので pos を渡さない＝付かない */
+  var cs=(pos&&(pos.col===1||pos.col===2))?(' style="grid-column:'+pos.col+';grid-row:'+pos.row+'"'):'';
   return '<div class="fs-q"'+cs+'><div class="fs-n">'+no+'</div><div class="fs-b">'
     +'<div class="fs-txt">'+esc(fsQuestionOf_(it))+'</div>'+ex+'<div class="fs-ansline"></div></div></div>';
 }
@@ -3287,14 +3305,14 @@ function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
       }
       pg.figs.push({block:figQ[fi].block,start:no}); no+=figQ[fi].n; fi++; placed++;
     }
-    var qn=0;   /* このページのグリッドに置いた問題の数（見出しは数えない）＝列を決めるため */
+    var gst={col:1,row:1};   /* このページのグリッドで次に置く場所（列と行）*/
     while(ti<txtQ.length){
       var it2=txtQ[ti].item, hd2=!!(it2&&it2.__lisHead);
-      var box2=document.createElement('div'); box2.innerHTML=fsQBodyHtml_(it2,no,ctx,hd2?0:fsColOf_(qn));
+      var save={col:gst.col,row:gst.row};
+      var box2=document.createElement('div'); box2.innerHTML=fsQBodyHtml_(it2,no,ctx,fsGridPos_(gst,hd2));
       var node2=box2.firstChild; grid.appendChild(node2);
-      if(pageEl.offsetHeight>usable){ grid.removeChild(node2); break; }
+      if(pageEl.offsetHeight>usable){ grid.removeChild(node2); gst.col=save.col; gst.row=save.row; break; }
       pg.texts.push({item:txtQ[ti].item,no:no}); no++; ti++;
-      if(hd2) qn=0; else qn++;
     }
     /* ★このページの中を「似たものを隣に」並べ替えてから、もう一度高さを測る（2026-09-07）。
        文章問題は2列のグリッドなので、**並べ替えると行の相方が変わって高さが変わる**。
@@ -3306,11 +3324,9 @@ function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
       for(var g2=0; g2<200; g2++){
         var sorted=fsGroupSort_(pg.texts.map(function(t){return t.item;}));
         grid.innerHTML='';
-        var qn2=0;
+        var gst2={col:1,row:1};
         sorted.forEach(function(it){
-          var hd3=!!(it&&it.__lisHead);
-          grid.insertAdjacentHTML('beforeend', fsQBodyHtml_(it,1,ctx,hd3?0:fsColOf_(qn2)));
-          if(hd3) qn2=0; else qn2++;
+          grid.insertAdjacentHTML('beforeend', fsQBodyHtml_(it,1,ctx,fsGridPos_(gst2,!!(it&&it.__lisHead))));
         });
         if(pageEl.offsetHeight<=usable){ pg.texts=sorted.map(function(it){ return {item:it,no:0}; }); break; }
         var back=sorted[sorted.length-1];
@@ -3514,11 +3530,11 @@ function fsDrawSheet_(b){
        進めていたので、見出しより後ろのページのフッタが1つずつ後ろにずれ、
        紙に無い番号（「問題74〜88」なのに87まで）が刷られていた。川上さんが刷った紙で発見。
        ★番号（t.no）は 3312行で振り直しずみ＝ずれていたのはフッタの範囲だけ。 */
-    var qn=0;   /* 列を自分で決める＝PDFで詰め物が入っても左右がずれない（fsColOf_ のコメント参照）*/
+    var gst={col:1,row:1};   /* 置く場所を自分で決める＝PDFで詰め物が入ってもずれない（fsGridPos_ 参照）*/
     pg.texts.forEach(function(t){
       var hd=!!(t.item&&t.item.__lisHead);
-      g+=fsQBodyHtml_(t.item,t.no,ctx,hd?0:fsColOf_(qn));
-      if(hd){ qn=0; } else { qn++; idx++; }
+      g+=fsQBodyHtml_(t.item,t.no,ctx,fsGridPos_(gst,hd));
+      if(!hd) idx++;
     });
     var to=idx;
     h+='<div class="fs-page">'+fsHeadPageHtml_(ctx,'問題',i===0,i===0)
