@@ -2969,7 +2969,17 @@ function fsFootHtml_(ctx,label){
   return '<div class="fs-foot"><span>Kurofune Word Trainer ／ 仕上げプリント</span>'
     +'<span>'+esc(ctx.name)+(ctx.grade?('　'+esc(ctx.grade)):'')+' ／ '+esc(ctx.code)+' ／ '+esc(label)+'</span></div>';
 }
-function fsQBodyHtml_(it,no,ctx){
+/* 【2026-09-15】グリッドの列（1 or 2）を自分で決めるための数え役。
+   ★auto-placement（置いた順に勝手に並ぶ）に任せない。
+     html2pdf は PDF を作るとき、元のDOMをクローンして「ページの余りを埋める詰め物」
+     <div style="display:block;height:Npx"> を差し込む。それが .fs-grid の中に入ると、
+     **高さ0でもグリッドの1マスを取る**ので、そのページから問題が1つ右へずれる。
+     ＝紙は正しいのに PDF だけ左上が1マス空く（川上さん報告 2026-09-15・本番のChromeで実測。
+       4ページ目のグリッドの先頭に class の無い空divが入り、73番が右列に押し出されていた）。
+   列を明示しておけば、余計なものが入っても左右は動かない。
+   n＝そのグリッドに置いた問題の数（見出しを除く。見出しのあとは0に戻す）。 */
+function fsColOf_(n){ return (n%2)+1; }
+function fsQBodyHtml_(it,no,ctx,col){
   /* 【2026-09-14・段7】聞き取りの区切り見出し。問題ではないので番号を取らない。
      ★測るときと描くときで同じものを通すため、ふつうの単位と同じ形（1つの要素）で返す。 */
   if(it&&it.__lisHead){
@@ -2990,7 +3000,9 @@ function fsQBodyHtml_(it,no,ctx){
      ほかは今までどおり1行＋解答らん */
   var k=_pqKind_(it);
   var ex=(k==='order')?_pqOrdHtml_(it,'fs'):((k==='listen')?_pqLisQHtml_(it,'fs'):'');
-  return '<div class="fs-q"><div class="fs-n">'+no+'</div><div class="fs-b">'
+  /* 列を明示する（上の fsColOf_ のコメントが理由）。図のかたまりの中はグリッドではないので付けない */
+  var cs=(col===1||col===2)?(' style="grid-column:'+col+'"'):'';
+  return '<div class="fs-q"'+cs+'><div class="fs-n">'+no+'</div><div class="fs-b">'
     +'<div class="fs-txt">'+esc(fsQuestionOf_(it))+'</div>'+ex+'<div class="fs-ansline"></div></div></div>';
 }
 /* 図の高さは「読み込めているか」に左右されないよう、mmで直接指定する。
@@ -3275,11 +3287,14 @@ function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
       }
       pg.figs.push({block:figQ[fi].block,start:no}); no+=figQ[fi].n; fi++; placed++;
     }
+    var qn=0;   /* このページのグリッドに置いた問題の数（見出しは数えない）＝列を決めるため */
     while(ti<txtQ.length){
-      var box2=document.createElement('div'); box2.innerHTML=fsQBodyHtml_(txtQ[ti].item,no,ctx);
+      var it2=txtQ[ti].item, hd2=!!(it2&&it2.__lisHead);
+      var box2=document.createElement('div'); box2.innerHTML=fsQBodyHtml_(it2,no,ctx,hd2?0:fsColOf_(qn));
       var node2=box2.firstChild; grid.appendChild(node2);
       if(pageEl.offsetHeight>usable){ grid.removeChild(node2); break; }
       pg.texts.push({item:txtQ[ti].item,no:no}); no++; ti++;
+      if(hd2) qn=0; else qn++;
     }
     /* ★このページの中を「似たものを隣に」並べ替えてから、もう一度高さを測る（2026-09-07）。
        文章問題は2列のグリッドなので、**並べ替えると行の相方が変わって高さが変わる**。
@@ -3291,7 +3306,12 @@ function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
       for(var g2=0; g2<200; g2++){
         var sorted=fsGroupSort_(pg.texts.map(function(t){return t.item;}));
         grid.innerHTML='';
-        sorted.forEach(function(it){ grid.insertAdjacentHTML('beforeend', fsQBodyHtml_(it,1,ctx)); });
+        var qn2=0;
+        sorted.forEach(function(it){
+          var hd3=!!(it&&it.__lisHead);
+          grid.insertAdjacentHTML('beforeend', fsQBodyHtml_(it,1,ctx,hd3?0:fsColOf_(qn2)));
+          if(hd3) qn2=0; else qn2++;
+        });
         if(pageEl.offsetHeight<=usable){ pg.texts=sorted.map(function(it){ return {item:it,no:0}; }); break; }
         var back=sorted[sorted.length-1];
         pg.texts=pg.texts.filter(function(t){ return t.item!==back; });
@@ -3494,7 +3514,12 @@ function fsDrawSheet_(b){
        進めていたので、見出しより後ろのページのフッタが1つずつ後ろにずれ、
        紙に無い番号（「問題74〜88」なのに87まで）が刷られていた。川上さんが刷った紙で発見。
        ★番号（t.no）は 3312行で振り直しずみ＝ずれていたのはフッタの範囲だけ。 */
-    pg.texts.forEach(function(t){ g+=fsQBodyHtml_(t.item,t.no,ctx); if(!(t.item&&t.item.__lisHead))idx++; });
+    var qn=0;   /* 列を自分で決める＝PDFで詰め物が入っても左右がずれない（fsColOf_ のコメント参照）*/
+    pg.texts.forEach(function(t){
+      var hd=!!(t.item&&t.item.__lisHead);
+      g+=fsQBodyHtml_(t.item,t.no,ctx,hd?0:fsColOf_(qn));
+      if(hd){ qn=0; } else { qn++; idx++; }
+    });
     var to=idx;
     h+='<div class="fs-page">'+fsHeadPageHtml_(ctx,'問題',i===0,i===0)
       +body+'<div class="fs-grid">'+g+'</div>'
