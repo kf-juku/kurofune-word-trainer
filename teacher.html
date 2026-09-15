@@ -3729,6 +3729,15 @@ function fsGo_(how){
    十数万pxになりブラウザの canvas 上限を超えて白紙のPDFになる。1人＝2〜5ページなら安全。
    html2pdf の Worker は prop.pdf を使い回すので、2人目からは pdf.addPage() を自分で足してから
    toContainer→toCanvas→toPdf をつなぐ（html2pdf の複数要素の定石）。 */
+/* 【2026-09-15b・PDFのページが少しずつ上にずれる】html2pdf の余白。下だけ 12.2146mm にしている理由：
+   html2pdf は「改ページの位置」と「ページの切り取り位置」を別々に計算する。
+     改ページ位置＝本文の高さ(mm)を px にして **切り捨て**（toPx＝Math.floor）→ 273mm は 1031px
+     切り取り位置＝canvas の幅 × 高さ/幅 を切り捨て → scale:2 だと 2063px ＝ 1031.5px
+   この 0.5px がページごとにたまり、2ページ目以降は**次のページの頭が前のページの下のふちに0.5pxずつはみ出す**
+   （実測＝2ページ目の図の枠の上線が1ページ目の下の余白に灰色の線で出る。7ページ目で約0.8mm）。
+   下の余白を 0.2146mm だけ広げると本文が 272.785mm＝ちょうど1031px になり、2つの計算が一致する。
+   紙（window.print）には効かない。仕上げプリントは1ページ262mmまでしか詰めないので、本文が0.2mm減っても あふれない。 */
+var H2P_MARGIN_=[12,12,12.2146,12];
 var _fsPdfBusy=false;
 function fsPdf_(){
   if(_fsPdfBusy) return;
@@ -3765,7 +3774,7 @@ function fsPdf_(){
        0.95→11.0MB / 0.85→8.0MB / 0.70→6.3MB。0.85 は 0.95 と見分けがつかず3割小さい。
        scale を 1.5 まで下げると 4.9MB になるが、文字が眠くなるので下げない。
        どの組み合わせでもQRは200dpiで6/6デコードできた。 */
-    var opt={ margin:[12,12,12,12], filename:_fsPdfName_()+'.pdf',
+    var opt={ margin:H2P_MARGIN_, filename:_fsPdfName_()+'.pdf',
       image:{type:'jpeg',quality:0.85},
       html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
@@ -8175,7 +8184,7 @@ function rpPdf(){
     var fin=function(){ host.style.cssText=''; window.scrollTo(sx,sy); for(var j=0;j<btns.length;j++)btns[j].disabled=false; if(note)note.textContent=old; };
     var nm=_rpPdfName_(list);
     html2pdf().set({
-      margin:[12,12,12,12], filename:nm,
+      margin:H2P_MARGIN_, filename:nm,   /* 下だけ12.2146mm＝ページずれ対策（H2P_MARGIN_ の説明） */
       image:{type:'jpeg',quality:0.98},
       html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
