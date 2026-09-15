@@ -1221,12 +1221,12 @@
           <label class="cheer-sw"><input type="checkbox" id="cheerT3" checked onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
         </div>
         <div class="cheer-trow">
-          <div class="cheer-tmain"><div class="cheer-tlbl">④ 一括印刷の対象から外す</div><div class="cheer-tdesc">「まとめて印刷」の相手候補から先生アカウントを外す。</div></div>
+          <div class="cheer-tmain"><div class="cheer-tlbl">④ 紙（プリント）の対象から外す</div><div class="cheer-tdesc">先生アカウントを、紙を出す相手から外す。「まとめて印刷」と、「レポート・印刷」タブの<b>🖨 プリントを出す</b>の両方に効きます。<b>OFFにすると先生アカウントにも紙が出ます</b>（自分で試し刷りするとき）。</div></div>
           <span class="cheer-state on" id="cheerS4">ON</span>
           <label class="cheer-sw"><input type="checkbox" id="cheerT4" checked onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
         </div>
         <div class="cheer-trow">
-          <div class="cheer-tmain"><div class="cheer-tlbl">⑥ レポートの対象から外す</div><div class="cheer-tdesc">「レポート」タブの一覧・まとめ・印刷・PDFから先生アカウントを外す。</div></div>
+          <div class="cheer-tmain"><div class="cheer-tlbl">⑥ レポートの対象から外す</div><div class="cheer-tdesc">「レポート・印刷」タブの<b>📊 レポートを見る</b>（一覧・まとめ・PDF）から先生アカウントを外す。<b>紙は④で決めます。</b></div></div>
           <span class="cheer-state on" id="cheerS6">ON</span>
           <label class="cheer-sw"><input type="checkbox" id="cheerT6" checked onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
         </div>
@@ -2038,12 +2038,17 @@
   <div class="loading-box">
     <div class="loading-spinner"></div>
     <div class="loading-text" id="loadingText">保存中…</div>
+    <!-- 【2026-09-14】間違えて押したときのために「やめる」を出す（川上さん 2026-09-14）。
+         通信そのものは止められないので、押したら**このあとの処理を捨てる**＝紙を組まない・
+         印刷ダイアログを開かない。要るときだけ showLoading(text,true) で出す。 -->
+    <button type="button" class="btn-ghost" id="loadingCancel" onclick="loadCancel_()"
+      style="display:none;margin-top:4px;">やめる</button>
   </div>
 </div>
 
 <div id="printArea"></div>
 <script>
-var GAS_URL="https://script.google.com/macros/s/AKfycbyVJKtg34owTRuH4eYcyLaKhJtsSpzsmhDzZYNtuR1A_S0s8A-DSTfWKLmwN6vy3hEBKQ/exec";
+var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
 var token=localStorage.getItem('kwt_t_token')||'';
 var teacherName=localStorage.getItem('kwt_t_name')||'';
 var _students=[];
@@ -2071,8 +2076,19 @@ function $(id){return document.getElementById(id);}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._tid);t._tid=setTimeout(function(){t.classList.remove('show');},2000);}
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
 /* 処理中オーバーレイ（ui-standards 22-B）2026-07-02 */
-function showLoading(text){var t=$('loadingText');if(t)t.textContent=text||'保存中…';var el=$('loadingOverlay');if(el)el.classList.add('show');}
-function hideLoading(){var el=$('loadingOverlay');if(el)el.classList.remove('show');}
+/* 【2026-09-14】やめる。押したら「このあとの処理を捨てる」。
+   ★showLoading は1つの流れの中で何度も呼ぶ（集めています→組んでいます→開きます）ので、
+     ここでフラグを戻さない。戻すのは流れのはじめ（loadCancelReset_）だけ。 */
+var _LOAD_CANCEL=false;
+function loadCancelReset_(){ _LOAD_CANCEL=false; }
+function loadCancel_(){ _LOAD_CANCEL=true; hideLoading(); try{toast('やめました');}catch(e){} }
+function loadCancelled_(){ return !!_LOAD_CANCEL; }
+function showLoading(text,cancelable){
+  var t=$('loadingText');if(t)t.textContent=text||'保存中…';
+  var c=$('loadingCancel');if(c)c.style.display=cancelable?'':'none';
+  var el=$('loadingOverlay');if(el)el.classList.add('show');
+}
+function hideLoading(){var el=$('loadingOverlay');if(el)el.classList.remove('show');var c=$('loadingCancel');if(c)c.style.display='none';}
 function call(b,_try){b.token=token;_try=_try||1;return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json();}).catch(function(){if(_try<3){return sleep(600*_try).then(function(){return call(b,_try+1);});}return {ok:false,error:'通信に失敗しました'};});}
 
 /* ツールチップ（JS制御・画面端対応） */
@@ -3503,16 +3519,19 @@ function fsFilledNote_(ss){
 function runFinishSheet_(ids,mats,types){
   if(!ids.length){tmErr_('印刷する生徒がえらばれていません。');return;}
   tmErr_('');
-  showLoading(ids.length+'名ぶんの問題を集めています…（10秒ほどかかります）');   /* 【2026-09-14】進み具合を出す */
+  loadCancelReset_();
+  showLoading(ids.length+'名ぶんの問題を集めています…（10秒ほどかかります）',true);   /* 【2026-09-14】進み具合＋やめる */
   call({action:'teacher_mistakes',student_ids:ids.join(','),material_ids:mats.join(','),types:types,mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_})
   .then(function(d){
+    if(loadCancelled_()){return;}                     /* やめるを押した＝紙を組まない 2026-09-14 */
     if(!d||!d.ok){ hideLoading(); tmErr_('候補が取れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
     _pqSetAssets_(d.data);   /* 【2026-09-13j・段E】問題の形式ごとの素材（表・文）を受け取る */
     _finishCand=d.data; window._finishCand=d.data;
     var ss=d.data.students||[];
     var urls={}; ss.forEach(function(s){ (s.items||[]).forEach(function(it){ if(it.fig) urls[it.fig]=1; }); });
     fsPreload_(Object.keys(urls),function(){
-      showLoading(ss.length+'名ぶんの紙を組んでいます…');   /* 【2026-09-14】進み具合を出す */
+      if(loadCancelled_()){return;}
+      showLoading(ss.length+'名ぶんの紙を組んでいます…',true);   /* 【2026-09-14】進み具合＋やめる */
       var base={date:_rpToday(),code:FS_CODE_TMP_,scope:fsScopeLabel_(mats)};
       var built=[];
       ss.forEach(function(s){ var b0=fsBuildSheet_(s,base); if(b0) built.push(b0); });
@@ -3663,8 +3682,10 @@ function runPrint_(ids,scope,days,limit,types,mats){
      Why: サーバーの応答に **約9秒**（43名・37教材で実測 8.8〜10.5秒）かかる。
           「印刷データを準備中…」だけだと、止まったのか動いているのか分からず
           「進まない」と受け取られていた（川上さん報告 2026-09-14）。 */
-  showLoading(ids.length+'名ぶんのまちがいを集めています…（10秒ほどかかります）');
+  loadCancelReset_();
+  showLoading(ids.length+'名ぶんのまちがいを集めています…（10秒ほどかかります）',true);
   call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit,types:(types||'daily,unit,quiz'),material_ids:(mats||'')}).then(function(d){
+    if(loadCancelled_()){return;}                     /* やめるを押した＝紙を組まない 2026-09-14 */
     if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
     _pqSetAssets_(d.data);   /* 【2026-09-13j・段E】問題の形式ごとの素材（表・文）を受け取る */
     var sts=d.data.students||[];
@@ -3681,7 +3702,8 @@ function runPrint_(ids,scope,days,limit,types,mats){
     if(!sts.length){tmErr_((scope==='graduated')?('克服した語がある生徒がいません（'+all+'名ぜんぶ0語）'):('まちがえている問題がある生徒がいません（'+all+'名ぜんぶ0問）'));return;}
     if(_prnHost!=='report')closeModal('bulkModal');   /* ★作れると分かってから閉じる 2026-09-02⑬。タブから呼んだときは閉じるものが無い（段D）*/
     if(skipped)toast((scope==='graduated'?'克服した語なし ':'まちがいなし ')+skipped+'名は印刷しません');
-    showLoading(sts.length+'名ぶんの紙を組んでいます…');   /* 【2026-09-14】 */
+    if(loadCancelled_()){return;}
+    showLoading(sts.length+'名ぶんの紙を組んでいます…',true);   /* 【2026-09-14】進み具合＋やめる */
     var html=sts.map(function(s){
       return '<div class="p-unit">'+unifiedStudentHtml_(s,{wrapClass:'print-student',docTitle:subLbl,showSubmit:false,missLabel:missLbl,emptyLabel:emptyLbl})+'</div>';
     }).join('');
@@ -3699,9 +3721,13 @@ function printWhenImagesReady_(c,nm){
   var pending=imgs.filter(function(im){ return !(im.complete && im.naturalWidth>0); });
   /* 【2026-09-14】印刷ダイアログを作るのはブラウザの仕事で、ページ数が多いと数秒〜十数秒かかる。
      そのあいだ画面が止まって見えるので、直前まで案内を出しておく。 */
-  var fired=false, go=function(){ if(fired)return; fired=true; insertDuplexFillers_(c, function(){
+  var fired=false, go=function(){ if(fired)return; fired=true;
+    if(typeof loadCancelled_==='function'&&loadCancelled_()){ try{hideLoading();}catch(e){} return; }  /* やめる 2026-09-14 */
+    insertDuplexFillers_(c, function(){
+    if(typeof loadCancelled_==='function'&&loadCancelled_()){ try{hideLoading();}catch(e){} return; }
     try{ showLoading('印刷ダイアログを開きます…（ページ数が多いと表示まで少し待ちます）'); }catch(e){}
-    setTimeout(function(){ try{ window.print(); }finally{ try{ hideLoading(); }catch(e){} } },60); }); };
+    setTimeout(function(){ if(loadCancelled_()){try{hideLoading();}catch(e){} return;}
+      try{ window.print(); }finally{ try{ hideLoading(); }catch(e){} } },60); }); };
   if(!pending.length){ go(); return; }
   var done=0, on=function(){ done++; if(done>=pending.length) go(); };
   pending.forEach(function(im){ im.addEventListener('load',on,{once:true}); im.addEventListener('error',on,{once:true}); });
@@ -6823,7 +6849,16 @@ function renderReportTab(){
 }
 /* ---- 教材えらび（点数表と同じ部品：本ごとに折りたたみ＋この本をまとめて選ぶ）---- */
 /* 先生アカウントをレポートから外すか（先生設定⑥）。GAS未再デプロイで値が返らないときは既定ON＝外す */
-function _rpExT_(){ return !(_cheerCfg&&_cheerCfg.exclude_report===false); }
+/* 【2026-09-14】紙を出すときは④（紙の対象から外す＝exclude_print）、
+   レポートの一覧・まとめ・PDFは⑥（exclude_report）を見る。
+   Why: 段Dで紙を出す入口をこのタブに移したとき、判定を⑥のままにしてしまい、
+        ④をOFF（＝先生を出す）にしても紙の対象に出てこなかった（川上さん報告 2026-09-14・本番で確認）。
+   useP を渡さなければ、いま見ている面で決める。 */
+function _rpExT_(useP){
+  if(useP===undefined)useP=(typeof RP_PANE!=='undefined'&&RP_PANE==='prn');
+  return useP ? !(_cheerCfg&&_cheerCfg.exclude_print===false)
+              : !(_cheerCfg&&_cheerCfg.exclude_report===false);
+}
 function _rpMats(){
   return (bulkMaterials||[]).slice().sort(function(a,b){return (parseInt(a.display_order,10)||0)-(parseInt(b.display_order,10)||0);});
 }
@@ -7183,7 +7218,7 @@ function rpAgg(s,AS,QZ){
 function _rpGradeStd(g,AS){
   var kids=(_students||[]).filter(function(s){
     if(s.is_active===false)return false;
-    if(_rpExT_()&&s.is_teacher_account)return false;
+    if(_rpExT_(false)&&s.is_teacher_account)return false;   /* レポートのまとめ＝⑥ 2026-09-14 */
     return String(s.grade||'')===String(g);});
   if(!kids.length)return [];
   return RP_SEL.filter(function(mid){
@@ -7597,7 +7632,7 @@ function rpTargets(useP){
   var AS=_rpAssign(), QZ=_rpQuiz();
   return (_students||[]).filter(function(s){
     if(s.is_active===false)return false;
-    if(_rpExT_()&&s.is_teacher_account)return false;   // 先生アカウントを外す（先生設定⑥）2026-08-17
+    if(_rpExT_(!!useP)&&s.is_teacher_account)return false;   /* 紙＝④／レポート＝⑥（先生設定）2026-09-14 */
     if(F.cls!=='all'&&String(s.class_name||'')!==F.cls)return false;
     if(F.grade!=='all'&&String(s.grade||'')!==F.grade)return false;
     if(F.sch!=='all'&&String(s.school||'')!==F.sch)return false;
@@ -7654,7 +7689,7 @@ function rpRender(){
   var AS=_rpAssign();
   var shortN=(_students||[]).filter(function(s){
     if(s.is_active===false)return false;
-    if(_rpExT_()&&s.is_teacher_account)return false;
+    if(_rpExT_(false)&&s.is_teacher_account)return false;   /* レポートのまとめ＝⑥ 2026-09-14 */
     if(RP_F.cls!=='all'&&String(s.class_name||'')!==RP_F.cls)return false;
     if(RP_F.grade!=='all'&&String(s.grade||'')!==RP_F.grade)return false;
     if(RP_F.sch!=='all'&&String(s.school||'')!==RP_F.sch)return false;
