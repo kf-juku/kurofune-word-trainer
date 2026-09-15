@@ -1507,7 +1507,46 @@
         #view-report tr.rp-row{cursor:pointer;}
         #view-report tr.rp-row.on td{background:#fff6f6;}
         #view-report tr.rp-row.on td:first-child{box-shadow:inset 4px 0 0 var(--crimson);}
-        .rp-drow td{background:#fff6f6;padding:0 8px 10px 8px;box-shadow:inset 4px 0 0 var(--crimson);}
+        /* 【2026-09-15b】`.rp-drow td` だと中の表（内訳・弱点）の全部のセルにも赤い線が出ていた＝直接の子だけにする（川上さんOK） */
+        .rp-drow > td{background:#fff6f6;padding:0 8px 10px 8px;box-shadow:inset 4px 0 0 var(--crimson);}
+        /* ===== 【2026-09-15b・弱点集計 段2】第N単元×形式（英検の教材のときだけ）=====
+           モック＝20260915_モック_弱点集計_段2_今の画面.html（川上さん承認）。クラスは .rpwk- で既存と分ける */
+        .rpwk-segw{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:var(--text-muted);margin:0 4px;}
+        .rpwk-segw .rpwk-only{font-size:10.5px;font-weight:800;color:#1b4f9c;background:#e7f0fd;border-radius:5px;padding:1px 6px;}
+        .rpwk-seg{display:inline-flex;border:1.5px solid var(--border);border-radius:20px;overflow:hidden;}
+        .rpwk-seg button{border:none;background:#fff;color:var(--text-muted);font-size:12px;font-weight:700;padding:4px 13px;cursor:pointer;font-family:inherit;}
+        .rpwk-seg button.on{background:var(--crimson-light);color:var(--crimson);}
+        .rpwk-weak{font-size:11px;font-weight:700;color:var(--text-muted);margin-top:2px;white-space:nowrap;}
+        .rpwk-weak b.g{color:#065f46;} .rpwk-weak b.y{color:#92400e;} .rpwk-weak b.r{color:var(--crimson);}
+        .rpwk-inner{background:#fff;border:1px solid var(--border);border-radius:9px;padding:8px 10px;margin:4px 0 2px;}
+        .rpwk-dh{font-size:11px;font-weight:600;color:var(--text-muted);margin:2px 0 6px;}
+        .rpwk-dh b{color:var(--text);}
+        table.rpwk-ux{border-collapse:separate;border-spacing:0;width:100%;font-size:12px;background:#fff;}
+        table.rpwk-ux th,table.rpwk-ux td{border-bottom:1px solid var(--surface2);padding:5px 7px;text-align:center;background:#fff;}
+        table.rpwk-ux thead th{background:#fbfcfe;font-size:11px;color:var(--text-muted);font-weight:800;white-space:nowrap;border-bottom:2px solid var(--border);position:sticky;top:0;z-index:2;}
+        table.rpwk-ux thead th .den{display:block;font-size:9.5px;font-weight:600;color:var(--text-light);}
+        table.rpwk-ux th.ul{text-align:left;white-space:nowrap;min-width:96px;background:#fbfcfe;border-right:2px solid #d7dfea;font-size:11.5px;}
+        table.rpwk-ux th.ul b{display:block;} table.rpwk-ux th.ul span{display:block;font-size:9.5px;font-weight:600;color:var(--text-light);}
+        table.rpwk-ux td.stu,table.rpwk-ux th.stu{text-align:left;white-space:nowrap;font-weight:700;position:sticky;left:0;background:#fff;border-right:2px solid #d7dfea;z-index:1;}
+        table.rpwk-ux thead th.stu{z-index:3;background:#fbfcfe;}
+        .rpwk-v{display:inline-block;min-width:52px;border-radius:7px;padding:2px 6px;font-weight:800;font-size:12.5px;cursor:pointer;line-height:1.3;border:none;font-family:inherit;}
+        .rpwk-v:hover{outline:2px solid #3b82f6;outline-offset:1px;}
+        .rpwk-v.g{background:#d1fae5;color:#065f46;} .rpwk-v.y{background:#fef3c7;color:#92400e;} .rpwk-v.r{background:var(--crimson-light);color:var(--crimson-dark);}
+        .rpwk-v.cnt{background:#eef4ff;color:#1d4ed8;} .rpwk-v.cnt.hi{background:var(--crimson-light);color:var(--crimson-dark);}
+        .rpwk-v.zero{background:#f3f4f6;color:var(--text-light);cursor:default;}
+        .rpwk-v small{font-size:9.5px;font-weight:700;opacity:.75;}
+        .rpwk-na{display:inline-block;min-width:52px;border-radius:7px;padding:2px 6px;background:#f3f4f6;color:var(--text-light);font-weight:700;font-size:11.5px;}
+        .rpwk-den{display:block;font-size:9px;color:var(--text-light);font-weight:600;margin-top:1px;}
+        .rpwk-box{border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#fff;}
+        .rpwk-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+        .rpwk-chip{border:1px solid var(--border);background:#fff;color:var(--text-muted);border-radius:999px;padding:3px 11px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;}
+        .rpwk-chip span{font-weight:600;opacity:.75;margin-left:6px;font-size:11px;}
+        .rpwk-chip.on{background:var(--crimson-light);border-color:var(--crimson);color:var(--crimson);}
+        .rpwk-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--text-muted);margin-top:8px;}
+        .rpwk-leg i{display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid #ddd;vertical-align:-1px;margin-right:4px;}
+        .rpwk-cbs{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:2px 0;}
+        .rpwk-cbs label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;}
+        .rpwk-from{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#eef4ff;border:1px solid #bcd7f7;border-radius:9px;padding:8px 11px;margin-bottom:10px;font-size:12.5px;color:var(--text);}
         .rp-dtbl{width:100%;border-collapse:collapse;}
         .rp-dtbl td{padding:4px 8px;border-top:1px solid #e3e9f2;font-size:11px;}
         .rp-dhd td{font-size:10px;color:var(--text-light);font-weight:700;border-top:none;}
@@ -1627,6 +1666,7 @@
       <div class="qcard">
         <div class="rp-hd">
           <div class="qch" style="margin:0;">生徒ごとの進み</div>
+          <span id="rpWkSeg"></span>
           <button class="rp-allbtn" onclick="rpOpenAll(true)">全部ひらく</button>
           <button class="rp-allbtn" onclick="rpOpenAll(false)">全部たたむ</button>
           <button class="rp-allbtn" id="rpCompactBtn" onclick="rpToggleCompact()" title="1人1行に詰めて、たくさんの生徒を一画面で見ます">詰めて表示</button>
@@ -1644,12 +1684,13 @@
             <button class="btn-teach-print rp-pbtn" onclick="rpPdf()">⬇ PDFでダウンロード</button>
           </span>
         </div>
-        <div class="table-wrap">
+        <div id="rpWkAll" style="display:none;"></div>
+        <div class="table-wrap" id="rpTblWrap">
           <table>
             <thead><tr>
               <th style="min-width:104px;">生徒</th>
               <th style="min-width:150px;">📘 単元別の練習<span style="font-weight:600;color:var(--text-light);"> 進み／正答率／必要ペース</span></th>
-              <th style="min-width:150px;">✅ 確認テスト<span style="font-weight:600;color:var(--text-light);"> 合否／平均点</span></th>
+              <th style="min-width:150px;">✅ 確認テスト<span style="font-weight:600;color:var(--text-light);"> 合否／平均点</span><span id="rpWkTh" style="font-weight:600;color:var(--text-light);"></span></th>
               <th style="min-width:140px;">最近の動き<span style="font-weight:600;color:var(--text-light);"> 今週の伸び／直近5日の学習日</span></th>
               <th style="width:52px;"></th>
             </tr></thead>
@@ -1668,6 +1709,7 @@
           <span><b style="color:#1b4f9c;">練習中 2</b>＝さわったが、まだ終わっていないパートの数。<b>未着手＝1回も練習せず、テストも受けていない教材だけ</b>です</span>
           <span><b style="color:#d64545;">● 9日 うごいていません</b>＝選んだ教材を7日以上さわっていない子（学習日は直近14日ぶんを見ているので、それより前は「14日以上」と出ます）</span>
           <span>「詰めて表示」＝1人1行にして、たくさんの生徒を一画面で見ます（この端末に覚えます）</span>
+          <span><b>弱点（第N単元×形式）は、英検の教材を選んだときだけ出ます</b>（第N単元や文の形式〈穴うめ・語順・聞き取り〉がある教材。いまは英検5級の2つ）。単元別＝確認テストの<b>受けた回ぜんぶ</b>の正答率／毎日学習＝<b>おさらい待ち</b>（毎日学習で間違えて、翌日のおさらいに入っている語）の数。マスを押すと、その子・その範囲の紙を出す画面に移ります</span>
           <span>🖨 一覧を印刷／⬇ PDF＝<b>先生が見る紙</b>（この表そのもの）。<b>生徒に配る紙は上の「🖨 プリントを出す」</b>から出します（旧「🖨 まちがいプリント（1人1枚）」はそちらに移り、条件をえらべるようになりました）</span>
           <span style="width:100%;">行をクリックすると教材ごとの内訳が開きます。右の「詳細」でその子のまちがいまで見られます。未着手の教材は1行にまとめています（クリックで開きます）。内訳の各教材の右にある「🖨 この範囲で出す」は、<b>その子・その教材だけ</b>の紙を出します。</span>
         </div>
@@ -1679,6 +1721,7 @@
 
       <div id="rpPanePrn" style="display:none;">
       <div class="qcard" id="rpPaperCard">
+        <div id="rpWkFrom" style="display:none;"></div>
         <div class="tm-qh" style="font-size:12px;font-weight:800;color:var(--text);">紙の形（どちらを刷るか）</div>
         <div class="stycards" id="rpStyleCards"></div>
 
@@ -1701,6 +1744,9 @@
             <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;"><input type="checkbox" id="rpT-quiz" checked> 確認テスト</label>
           </div>
         </div>
+
+        <!-- 【2026-09-15b・弱点集計 段3】出す形式・出す第N単元。英検の教材が入っているときだけ出す -->
+        <div id="rpQuBox" style="display:none;"></div>
 
         <div id="rpListOpts">
           <div class="tm-qh" style="margin-top:10px;">どのまちがいを出すか</div>
@@ -2178,7 +2224,7 @@ $('btn-login').onclick=function(){
     }).catch(function(){$('btn-login').disabled=false;$('btn-login').textContent='ログイン';$('login-err').textContent='通信に失敗しました';});
 };
 $('btn-logout').onclick=function(){localStorage.removeItem('kwt_t_token');localStorage.removeItem('kwt_t_name');token='';$('scr-dash').style.display='none';$('scr-login').style.display='';};
-$('btn-reload').onclick=function(){loadDash();};
+$('btn-reload').onclick=function(){loadDash(); if(RP_WK_ST!=='idle')_rpWkLoad_(true);};   /* 弱点の表も取り直す 2026-09-15b */
 $('btn-sync').onclick=function(){
   var b=this; if(b.disabled)return; b.disabled=true; var old=b.innerHTML; b.innerHTML='同期中…';
   call({action:'sync_students'}).then(function(d){
@@ -3630,7 +3676,7 @@ function runFinishSheet_(ids,mats,types){
   tmErr_('');
   loadCancelReset_();
   showLoading(ids.length+'名ぶんの問題を集めています…（10秒ほどかかります）',true);   /* 【2026-09-14】進み具合＋やめる */
-  call({action:'teacher_mistakes',student_ids:ids.join(','),material_ids:mats.join(','),types:types,mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_})
+  call(_rpQuArgs_({action:'teacher_mistakes',student_ids:ids.join(','),material_ids:mats.join(','),types:types,mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_}))
   .then(function(d){
     if(loadCancelled_()){return;}                     /* やめるを押した＝紙を組まない 2026-09-14 */
     if(!d||!d.ok){ hideLoading(); tmErr_('候補が取れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
@@ -3802,7 +3848,7 @@ function runPrint_(ids,scope,days,limit,types,mats){
           「進まない」と受け取られていた（川上さん報告 2026-09-14）。 */
   loadCancelReset_();
   showLoading(ids.length+'名ぶんのまちがいを集めています…（10秒ほどかかります）',true);
-  call({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit,types:(types||'daily,unit,quiz'),material_ids:(mats||'')}).then(function(d){
+  call(_rpQuArgs_({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit,types:(types||'daily,unit,quiz'),material_ids:(mats||'')})).then(function(d){
     if(loadCancelled_()){return;}                     /* やめるを押した＝紙を組まない 2026-09-14 */
     if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
     _pqSetAssets_(d.data);   /* 【2026-09-13j・段E】問題の形式ごとの素材（表・文）を受け取る */
@@ -5357,7 +5403,7 @@ function ensureQuizBoard_(cb,force){
 }
 function _bgRefreshQuiz_(cb){ _fetchQuizBoard_(cb,true); } // 裏で最新取得。変わったときだけ描き直す
 /* ★点数表（全件）を取りに行くのは この1か所だけ。ほかから call({action:'quiz_board'}) を書かない。
-   （1生徒だけの sdLoadQuiz_ は student_id つきの別物） */
+   （1生徒だけの sdLoadQuiz_ は student_id つきの別物。弱点の表の _rpWkLoad_ は weak=1 つきの別物＝点数表は返らない） */
 function _fetchQuizBoard_(cb,bg){
   if(_quizLoading)return; _quizLoading=true;
   call({action:'quiz_board'}).then(function(d){
@@ -6959,6 +7005,7 @@ function renderReportTab(){
     });
   }
   if((!bulkMaterials||!bulkMaterials.length)&&RP_MATS_ST!=='loading')rpLoadMats_();
+  _rpWkLoad_();   /* 【2026-09-15b・段2】弱点の表（英検の教材のときだけ出す）。1回取ったら、学習状況を更新するまで使い回す */
   /* 【2026-09-13f・段C】確認テストの取りに行き方は ensureQuizBoard_ 1本にまとめた。
      教材ごとタブで先に取っていれば、ここは待たずにその場で描ける（前は別々に取っていて2回払っていた）。 */
   if(!_quizBoard&&!RP_LOADING){
@@ -7162,6 +7209,7 @@ function rpLoadSet(i){
      前のセットで選んだ教材が残っていると、別のセットの紙にまざる。 */
   RP_OUT_TOUCHED=false; RP_OUT={}; RP_OOPEN={}; RP_PF_TOUCHED=false;
   RP_DROP={rep:{},prn:{}}; RP_TY_SIG=null;   /* 1人ずつ外したのは捨てる＝別のセットの紙に混ざらない 2026-09-15 */
+  RP_WK_FROM=null; RP_QF=null; RP_UF=null;   /* 弱点のマスから入れた条件も捨てる 2026-09-15b */
   rpRenderSets(); // 【2026-08-20】旧実装はここを呼んでおらず、選んでも見た目が変わらなかった（＝どれを見ているか分からない主因）
   rpRenderMat(); rpRenderFilters(); rpRender();
 }
@@ -7616,11 +7664,25 @@ function rpRenderPaper(n){
      単元別の74教材：daily,unit,quiz=4800問／unit,quiz だけ=4800問
      ＝確認テストは content_type='test' の教材にしか配信されないため。
      2026-08-31「範囲は教材で決めるので種別では絞らない」は保たれている（種別が教材に従うだけ）。 */
-  var tn=$('rpTypeNote'); if(tn)tn.textContent=use.length?'選んだ教材に合わせています（変えられます）':'';
+  var tn=$('rpTypeNote'); if(tn)tn.textContent=RP_WK_FROM?((RP_WK_FROM.kind==='daily')?'毎日学習のマスから来たので「毎日学習」だけ':'確認テストのマスから来たので「確認テスト」だけ')
+                                                   :(use.length?'選んだ教材に合わせています（変えられます）':'');
+  /* 【2026-09-15b・段3】出す形式・出す第N単元 */
+  var qb=$('rpQuBox'); if(qb){ var qh=_rpQuBoxHtml_(use); qb.innerHTML=qh; qb.style.display=qh?'':'none'; }
+  var wf=$('rpWkFrom');
+  if(wf){
+    if(RP_WK_FROM){
+      wf.innerHTML='🎯 <b>弱点のマスから来ました</b>　'+esc(RP_WK_FROM.name)+'・'+esc(RP_WK_FROM.range)+'・'+esc(RPWK_LABEL_[RP_WK_FROM.q]||'')
+        +'<span class="rp-mute">下の条件をこのマスに合わせてあります</span>'
+        +'<span style="flex:1"></span><button class="rp-allbtn" onclick="rpPane(\'rep\')">↩ レポートに戻る</button>'
+        +'<button class="rp-allbtn" onclick="rpWkFromClear()">× 条件をもとに戻す</button>';
+      wf.className='rpwk-from'; wf.style.display='';
+    }else{ wf.innerHTML=''; wf.style.display='none'; }
+  }
+  var quNg=_rpQuNg_(use);
   /* ボタンの文字と、出す人数。★人数はプリント側の絞り込み（RP_PF）で数える */
   var who=$('rpPaperWho'); if(who)who.textContent='　'+pn+'名';
   var go=$('rpPaperGoBtn');
-  var ng=(pn===0)||(use.length===0)||busy2;
+  var ng=(pn===0)||(use.length===0)||busy2||!!quNg;
   if(go){ go.textContent=(st==='finish')?'🖨 仕上げプリントを出す（生徒用）':'🖨 チェックプリントを出す';
           go.disabled=ng; }
   /* 見本も、出す教材0件／対象生徒0名なら押せない（押してもエラー文が出るだけだった）2026-09-14 */
@@ -7629,7 +7691,7 @@ function rpRenderPaper(n){
   if(nt)nt.innerHTML=(RP_MATS_ST==='loading')?'<span class="rp-load"><span class="rp-spin"></span>教材を読み込み中…</span>'
     :((RP_MATS_ST==='error')?'<span class="rp-loaderr">⚠ 教材の一覧を取れませんでした。</span>'
     :esc((use.length===0)?'出す教材が1つも選ばれていません。'
-    :((pn===0)?'条件に合う生徒がいません。':(pn+'名ぶん・1人ずつ別の紙になります。'))));
+    :((pn===0)?'条件に合う生徒がいません。':(quNg||(pn+'名ぶん・1人ずつ別の紙になります。')))));
   var er=$('rpPrintErr'); if(er&&!er.innerHTML)er.style.display='none';
   rpRenderSumLine();
 }
@@ -7662,14 +7724,15 @@ function rpPreviewOne(){
   _prnHost='report'; tmErr_('');
   if(!mats.length){ tmErr_('出す教材が1つも選ばれていません。'); return; }
   if(!list.length){ tmErr_('この絞り込みに合う生徒がいません。'); return; }
+  var _qng=_rpQuNg_(mats); if(_qng){ tmErr_(_qng); return; }   /* 段3 2026-09-15b */
   var sid=String(list[0].s.student_id), nm=String(list[0].s.name||'');
   var st=_rpPaperStyle_();
   var btn=$('rpPvBtn'); if(btn)btn.disabled=true;
   showLoading(nm+'さんの見本を作っています…（10秒ほどかかります）');
   var done=function(){ hideLoading(); if(btn)btn.disabled=false; };
   if(st==='finish'){
-    call({action:'teacher_mistakes',student_ids:sid,material_ids:mats.join(','),types:(_rpTypes_().join(',')||'daily,unit,quiz'),
-          mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_}).then(function(d){
+    call(_rpQuArgs_({action:'teacher_mistakes',student_ids:sid,material_ids:mats.join(','),types:(_rpTypes_().join(',')||'daily,unit,quiz'),
+          mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_})).then(function(d){
       if(!d||!d.ok){ tmErr_('見本を作れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
       _pqSetAssets_(d.data);
       var ss=d.data.students||[];
@@ -7689,8 +7752,8 @@ function rpPreviewOne(){
   var limit=parseInt(($('rpLimit')||{}).value,10); if(!(limit>=1))limit=20;
   var types=[]; ['daily','unit','quiz'].forEach(function(t){ var c=$('rpT-'+t); if(c&&c.checked)types.push(t); });
   if(!types.length){ tmErr_('出す種別を1つ以上えらんでください。'); done(); return; }
-  call({action:'teacher_mistakes',student_ids:sid,mode:scope,days:days,limit:limit,
-        types:types.join(','),material_ids:mats.join(',')}).then(function(d){
+  call(_rpQuArgs_({action:'teacher_mistakes',student_ids:sid,mode:scope,days:days,limit:limit,
+        types:types.join(','),material_ids:mats.join(',')})).then(function(d){
     if(!d||!d.ok){ tmErr_('見本を作れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
     _pqSetAssets_(d.data);
     var s0=(d.data.students||[])[0];
@@ -7734,6 +7797,7 @@ function rpPaperGo(){
   _prnHost='report'; tmErr_('');
   /* 【2026-09-14・段F】出す教材は「選ばれているものそのもの」。0件なら作らない（空振りさせない）。 */
   if(!mats.length){ tmErr_('出す教材が1つも選ばれていません。上の「出す教材」でえらんでください。'); return; }
+  var _qng=_rpQuNg_(mats); if(_qng){ tmErr_(_qng); return; }   /* 段3 2026-09-15b */
   if(_rpPaperStyle_()==='finish'){
     try{ localStorage.setItem('kwt_print_mats',mats.join(',')); }catch(e){}
     /* 【2026-09-15】仕上げプリントも画面でえらんだ種別を使う（前は決め打ちだった） */
@@ -7758,6 +7822,7 @@ function rpPaperGo(){
    条件は「5. 紙にする」でいま選んでいるものをそのまま使う＝押す場所で紙が変わらない。 */
 function rpPrintOne_(sid,mid){
   _prnHost='report'; tmErr_('');
+  var _qng=_rpQuNg_([String(mid)]); if(_qng){ tmErr_(_qng); return; }   /* 段3 2026-09-15b */
   if(_rpPaperStyle_()==='finish'){ var ft=_rpTypes_(); runFinishSheet_([String(sid)],[String(mid)],(ft.length?ft:['daily','unit','quiz']).join(',')); return; }
   var scope=(($('rpScope')||{}).value)||'active'; if(scope==='graduated')scope='active';
   var days=parseInt(($('rpDays')||{}).value,10); if(!(days>=1))days=7;
@@ -7840,6 +7905,179 @@ function rpDropAll(off){
   _rpAfterDrop_();
 }
 function rpCard(n,l,c){return '<div class="rp-sumc"><div class="rp-sumn" style="'+(c?'color:'+c+';':'')+'">'+n+'</div><div class="rp-suml">'+esc(l)+'</div></div>';}
+/* ===== 【2026-09-15b・弱点集計 段2・段3】第N単元 × 形式（英検の教材のときだけ）=====
+   正＝要件定義書_弱点集計とプリント §5 段2・段3。モック＝20260915_モック_弱点集計_段2_今の画面.html（川上さん承認）。
+   ・データ＝quiz_board に weak=1（kwtGAS.gs weakBoard_）。**点数表（_fetchQuizBoard_）とは別物**＝軽い集計だけ
+   ・対象の教材は GAS がデータで決めて mats で返す（いまは英検5級の2つ）。RP_SEL にそれが無ければ何も出さない
+   ・単元別＝率（受けた回ぜんぶ）／毎日学習＝おさらい待ちの語数。**率と件数は行を分ける**
+   ・マスを押す＝🖨 面へ。生徒・教材・種別・形式・第N単元をそのマスに合わせて入れる */
+var RP_WK=null, RP_WK_ST='idle', RP_WK_UK='', RP_WK_FROM=null;
+var RP_WK_MODE=(function(){ try{ return localStorage.getItem('kwt_rp_wkmode')==='h'?'h':'v'; }catch(e){ return 'v'; } })();
+var RP_QF=null, RP_UF=null;   /* 出す形式・出す第N単元（null＝ぜんぶ） */
+var RPWK_COLS_=['go','sentence_fill','reorder','listen','table_fill'];
+var RPWK_LABEL_={go:'語',sentence_fill:'穴うめ',reorder:'語順',listen:'聞き取り',table_fill:'表'};
+function _rpWkLoad_(force){
+  if(RP_WK_ST==='loading')return;
+  if(RP_WK&&!force)return;
+  RP_WK_ST='loading'; rpWkRender_();
+  call({action:'quiz_board',weak:'1'}).then(function(d){
+    if(d&&d.ok&&d.data&&d.data.weak){ RP_WK=d.data.weak; RP_WK_ST='ok'; }
+    else if(d&&d.ok){ RP_WK=null; RP_WK_ST='old'; }          /* 古いGAS＝weak を返さない。表は出さない */
+    else { RP_WK_ST='error'; }
+    try{ rpRender(); rpRenderPaper(); }catch(e){}           /* 状態が変わったら、それを見ている欄を全部描き直す（UI標準 §22-A） */
+  }).catch(function(){ RP_WK_ST='error'; try{ rpRender(); rpRenderPaper(); }catch(e){} });
+}
+function _rpWkMatsIn_(mids){
+  if(!RP_WK||!RP_WK.mats)return [];
+  return (mids||[]).filter(function(m){ return !!RP_WK.mats[String(m)]; }).map(String);
+}
+function _rpWkUnits_(){   /* [{k:'1',label:'第1単元',sub:'be動詞'}] */
+  var L=(RP_WK&&RP_WK.unit_label)||{}, ks={};
+  Object.keys((RP_WK&&RP_WK.den)||{}).forEach(function(k){ ks[k.split('/')[0]]=1; });
+  return Object.keys(ks).sort(function(a,b){ return (parseInt(a,10)||0)-(parseInt(b,10)||0); }).map(function(u){
+    var t=String(L[u]||''), sub=t.replace(new RegExp('^第'+u+'単元\\s*'),'').replace(/[（(][0-9０-９]+[）)]\s*$/,'').replace(/[①-⑳]\s*$/,'').trim();
+    return {k:u,label:'第'+u+'単元',sub:sub};
+  });
+}
+function _rpWkRows_(mids){   /* 表の行＝第N単元（単元別を選んでいれば）＋毎日学習（毎日学習を選んでいれば） */
+  var sel=_rpWkMatsIn_(mids), hasU=false, hasD=false;
+  sel.forEach(function(m){ var k=RP_WK.mats[m].kind; if(k==='unit')hasU=true; else hasD=true; });
+  var rows=[];
+  if(hasU)_rpWkUnits_().forEach(function(u){ rows.push({k:'u'+u.k,u:u.k,label:u.label,sub:u.sub,kind:'rate'}); });
+  if(hasD)rows.push({k:'d',u:'',label:'毎日学習',sub:'第N単元で分かれない',kind:'cnt'});
+  return rows;
+}
+function _rpWkRc_(v){ return v>=80?'g':(v>=_accLine()?'y':'r'); }
+function _rpWkCell_(row,sid,c){
+  var den=(row.kind==='rate')?((RP_WK.den||{})[row.u+'/'+c]||0):((RP_WK.daily_den||{})[c]||0);
+  if(!den)return '<td><span class="rpwk-na">—</span><span class="rpwk-den">問題なし</span></td>';
+  var go=' onclick="event.stopPropagation();rpWkGo(\''+esc(sid)+'\',\''+esc(row.k)+'\',\''+c+'\')"';
+  if(row.kind==='rate'){
+    var r=((RP_WK.rate||{})[sid]||{})[row.u+'/'+c];
+    if(!r||!r.n)return '<td><span class="rpwk-na">まだ</span><span class="rpwk-den">'+den+'問</span></td>';
+    return '<td><button type="button" class="rpwk-v '+_rpWkRc_(r.rate)+'"'+go+' title="受けた回ぜんぶで '+r.n+'問中 '+r.miss+'問まちがい">'+r.rate+'%</button><span class="rpwk-den">'+den+'問中</span></td>';
+  }
+  var n=((RP_WK.box0||{})[sid]||{})[c]||0;
+  if(!n)return '<td><span class="rpwk-v cnt zero">0<small>語</small></span><span class="rpwk-den">'+den+'問中</span></td>';
+  return '<td><button type="button" class="rpwk-v cnt'+(n>=20?' hi':'')+'"'+go+'>'+n+'<small>語</small></button><span class="rpwk-den">'+den+'問中</span></td>';
+}
+function _rpWkWeakest_(sid){
+  var w=null, R=((RP_WK&&RP_WK.rate)||{})[sid]||{};
+  Object.keys(R).forEach(function(k){ var c=R[k]; if(!c.n)return; if(!w||c.rate<w.rate)w={rate:c.rate,u:k.split('/')[0],q:k.split('/')[1]}; });
+  return w;
+}
+function _rpWkUxHtml_(sid){
+  var rows=_rpWkRows_(RP_SEL);
+  var h='<div class="rpwk-inner"><div class="rpwk-dh"><b>弱点（第N単元 × 形式）</b>　英検の教材だけ。単元別＝確認テストの正答率（受けた回ぜんぶ）／毎日学習＝おさらい待ちの語数。<b>マスを押すと、その子・その範囲の紙を出す画面に移ります</b>'
+    +((RP_WK&&RP_WK.has_attempts_sheet===false)?'　<span class="rp-loaderr">⚠ 受験の記録のシート（quiz_attempts）がまだありません</span>':'')+'</div>'
+    +'<div style="overflow:auto;"><table class="rpwk-ux"><thead><tr><th class="ul">範囲</th>'
+    +RPWK_COLS_.map(function(c){ return '<th>'+RPWK_LABEL_[c]+'</th>'; }).join('')+'</tr></thead><tbody>';
+  rows.forEach(function(r){
+    h+='<tr><th class="ul"><b>'+esc(r.label)+'</b><span>'+esc(r.sub)+'</span></th>'+RPWK_COLS_.map(function(c){ return _rpWkCell_(r,sid,c); }).join('')+'</tr>';
+  });
+  return h+'</tbody></table></div></div><div class="rpwk-dh" style="margin-top:10px;"><b>教材ごとの内訳</b></div>';
+}
+function _rpWkAllHtml_(list){
+  var rows=_rpWkRows_(RP_SEL); if(!rows.length)return '';
+  var row=null; rows.forEach(function(r){ if(r.k===RP_WK_UK)row=r; }); if(!row){ row=rows[0]; RP_WK_UK=row.k; }
+  var chips=rows.map(function(r){ return '<button type="button" class="rpwk-chip'+(r.k===row.k?' on':'')+'" onclick="rpWkUnit(\''+esc(r.k)+'\')">'+esc(r.label)+'<span>'+esc(r.sub)+'</span></button>'; }).join('');
+  var isR=(row.kind==='rate');
+  var head='<th class="stu">生徒</th>'+RPWK_COLS_.map(function(c){
+    var den=isR?((RP_WK.den||{})[row.u+'/'+c]||0):((RP_WK.daily_den||{})[c]||0);
+    return '<th>'+RPWK_LABEL_[c]+'<span class="den">'+(den?den+'問':'問題なし')+'</span></th>'; }).join('');
+  var body=list.map(function(x){ var sid=String(x.s.student_id);
+    return '<tr><td class="stu">'+esc(x.s.name||x.s.nickname||'(無名)')+'</td>'+RPWK_COLS_.map(function(c){ return _rpWkCell_(row,sid,c); }).join('')+'</tr>'; }).join('')
+    ||'<tr><td colspan="6" class="rp-none">条件に合う生徒がいません</td></tr>';
+  return '<div class="rpwk-box"><div class="rpwk-chips"><span class="rp-mute" style="font-weight:800;">範囲</span>'+chips
+    +'<span class="rp-mute">'+(isR?'確認テストの正答率（受けた回ぜんぶ）':'おさらい待ちの語数')+'</span></div>'
+    +'<div style="overflow:auto;max-height:62vh;"><table class="rpwk-ux"><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>'
+    +'<div class="rpwk-leg"><span><i style="background:#d1fae5"></i>80%以上</span><span><i style="background:#fef3c7"></i>'+_accLine()+'〜79%</span><span><i style="background:var(--crimson-light)"></i>'+_accLine()+'%未満</span>'
+    +'<span><i style="background:#eef4ff"></i>おさらい待ちの語数（20語以上は赤）</span><span>「まだ」＝その単元の確認テストを受けていない／「問題なし」＝その範囲にその形式が無い</span></div></div>';
+}
+/* 見出しの切り替え＋全員×形式の表。rpRender の中から呼ぶ */
+function rpWkRender_(list){
+  var seg=$('rpWkSeg'), all=$('rpWkAll'), tw=$('rpTblWrap'), th=$('rpWkTh');
+  if(!seg)return false;
+  if(RP_WK_ST==='loading'&&!RP_WK){ seg.innerHTML='<span class="rp-load"><span class="rp-spin"></span>弱点の表を読み込み中…</span>'; }
+  else if(RP_WK_ST==='error'){ seg.innerHTML='<span class="rp-loaderr">⚠ 弱点の表を読めませんでした。</span> <button class="rp-allbtn" onclick="_rpWkLoad_(true)">↻ もう一度読み込む</button>'; }
+  var on=!!(RP_WK&&_rpWkMatsIn_(RP_SEL).length);
+  if(RP_WK_ST!=='loading'&&RP_WK_ST!=='error'||RP_WK){
+    seg.innerHTML=on?('<span class="rpwk-segw">弱点の見せ方<span class="rpwk-only">英検の教材だけ</span>'
+      +'<span class="rpwk-seg"><button type="button" class="'+(RP_WK_MODE==='v'?'on':'')+'" onclick="rpWkMode(\'v\')">1人ずつ</button>'
+      +'<button type="button" class="'+(RP_WK_MODE==='h'?'on':'')+'" onclick="rpWkMode(\'h\')">全員×形式</button></span></span>'):'';
+  }
+  if(th)th.innerHTML=(on&&RP_WK_MODE==='v')?'／<b style="color:var(--crimson);">いちばん弱い形式</b>':'';
+  var showAll=on&&RP_WK_MODE==='h'&&list;
+  if(all){ all.style.display=showAll?'':'none'; all.innerHTML=showAll?_rpWkAllHtml_(list):''; }
+  if(tw)tw.style.display=showAll?'none':'';
+  return on&&RP_WK_MODE==='v';
+}
+function rpWkMode(m){ RP_WK_MODE=(m==='h')?'h':'v'; try{ localStorage.setItem('kwt_rp_wkmode',RP_WK_MODE); }catch(e){} rpRender(); }
+function rpWkUnit(k){ RP_WK_UK=String(k); rpRender(); }
+/* マスを押した＝🖨 面へ移って、そのマスの条件を入れる */
+function rpWkGo(sid,rowK,q){
+  if(!RP_WK)return;
+  sid=String(sid);
+  var isD=(rowK==='d'), u=isD?'':String(rowK).replace(/^u/,'');
+  var mats=_rpWkMatsIn_(RP_SEL).filter(function(m){ return RP_WK.mats[m].kind===(isD?'daily':'unit'); });
+  if(!mats.length)return;
+  RP_OUT={}; mats.forEach(function(m){ RP_OUT[m]=1; }); RP_OUT_TOUCHED=true;
+  var d={}; rpTargets(true,true).forEach(function(x){ var k=String(x.s.student_id); if(k!==sid)d[k]=1; });
+  RP_DROP.prn=d;
+  RP_QF={}; RP_QF[q]=1;
+  RP_UF=null; if(!isD){ RP_UF={}; RP_UF[u]=1; }
+  RP_TY_SIG=mats.slice().sort().join(',');           /* 種別は下で入れる＝教材から自動で入れ直さない */
+  var nm=''; (_students||[]).forEach(function(s){ if(String(s.student_id)===sid)nm=s.name||s.nickname||''; });
+  var ul=''; if(!isD)_rpWkUnits_().forEach(function(x){ if(x.k===u)ul=x.label+(x.sub?(' '+x.sub):''); });
+  RP_WK_FROM={sid:sid,name:nm,range:isD?'毎日学習':ul,q:q,kind:isD?'daily':'quiz'};
+  rpPane('prn');
+  ['daily','unit','quiz'].forEach(function(t){ var c=$('rpT-'+t); if(c)c.checked=isD?(t==='daily'):(t==='quiz'); });
+  rpRenderPaper();
+  try{ $('rpPaperCard').scrollIntoView({block:'start',behavior:'smooth'}); }catch(e){}
+}
+function rpWkFromClear(){
+  RP_WK_FROM=null; RP_QF=null; RP_UF=null; RP_DROP.prn={}; RP_OUT_TOUCHED=false; RP_OUT={}; RP_TY_SIG=null;
+  rpRenderMat(); rpRenderFilters(); rpRenderPaper();
+}
+function rpQfPick(q,on){ RP_QF=RP_QF||_rpQfAll_(); if(on)RP_QF[q]=1; else delete RP_QF[q]; rpRenderPaper(); }
+function rpUfPick(u,on){ RP_UF=RP_UF||_rpUfAll_(); if(on)RP_UF[u]=1; else delete RP_UF[u]; rpRenderPaper(); }
+function _rpQfAll_(){ var o={}; RPWK_COLS_.forEach(function(c){ o[c]=1; }); return o; }
+function _rpUfAll_(){ var o={}; _rpWkUnits_().forEach(function(u){ o[u.k]=1; }); return o; }
+/* 🖨 面の「出す形式」「出す第N単元」 */
+function _rpQuBoxHtml_(use){
+  var wm=_rpWkMatsIn_(use); if(!wm.length)return '';
+  var hasU=wm.some(function(m){ return RP_WK.mats[m].kind==='unit'; });
+  var hasOther=use.length>wm.length;
+  var qf=RP_QF||_rpQfAll_(), uf=RP_UF||_rpUfAll_();
+  var h='<div class="tm-qh" style="margin-top:10px;">出す形式（複数えらべます）<span class="rp-mute" style="font-weight:700;margin-left:8px;">英検の教材のときだけ出ます'
+    +(hasOther?'（ほかの教材の問題は、ここでは絞りません）':'')+'</span></div>'
+    +'<div class="rpwk-cbs">'+RPWK_COLS_.map(function(c){ return '<label><input type="checkbox"'+(qf[c]?' checked':'')+' onchange="rpQfPick(\''+c+'\',this.checked)"> '+RPWK_LABEL_[c]+'</label>'; }).join('')+'</div>';
+  if(hasU){
+    h+='<div class="tm-qh" style="margin-top:8px;">出す第N単元（単元別の教材のぶん）</div><div class="rpwk-cbs">'
+      +_rpWkUnits_().map(function(u){ return '<label><input type="checkbox"'+(uf[u.k]?' checked':'')+' onchange="rpUfPick(\''+esc(u.k)+'\',this.checked)"> '+esc(u.label)+(u.sub?'（'+esc(u.sub)+'）':'')+'</label>'; }).join('')
+      +'<span class="rp-mute">毎日学習の問題は第N単元で分かれないので、ここでは絞りません</span></div>';
+  }
+  return h;
+}
+/* 紙を作る呼び出しに足す引数。レポート・印刷タブから呼んだとき・英検の教材が入っているときだけ。
+   ★いつも送る（ぜんぶチェックでも）＝英検の毎日学習のまちがい（おさらい待ち）を チェックプリントでも拾うため（kwtGAS.gs teacherMistakes） */
+function _rpQuArgs_(o){
+  if(_prnHost!=='report'||!RP_WK)return o;
+  var mats=String(o.material_ids||'').split(',').filter(Boolean);
+  var wm=_rpWkMatsIn_(mats); if(!wm.length)return o;
+  o.qu_mats=wm.join(',');
+  o.qtypes=Object.keys(RP_QF||_rpQfAll_()).join(',');
+  if(wm.some(function(m){ return RP_WK.mats[m].kind==='unit'; }))o.units=Object.keys(RP_UF||_rpUfAll_()).join(',');
+  return o;
+}
+/* 形式・第N単元が1つも選ばれていないなら紙を出さない（黙って全部にしない） */
+function _rpQuNg_(use){
+  if(!RP_WK||!_rpWkMatsIn_(use).length)return '';
+  if(RP_QF&&!Object.keys(RP_QF).length)return '出す形式を1つ以上えらんでください。';
+  var hasU=_rpWkMatsIn_(use).some(function(m){ return RP_WK.mats[m].kind==='unit'; });
+  if(hasU&&RP_UF&&!Object.keys(RP_UF).length)return '出す第N単元を1つ以上えらんでください。';
+  return '';
+}
 function rpRender(){
   var rows=$('rpRows'); if(!rows)return;
   _rpStdCache={};
@@ -7853,12 +8091,14 @@ function rpRender(){
         ? '<tr><td colspan="5" class="rp-none"><span class="rp-loaderr">⚠ 読み込めませんでした。</span> <button class="rp-allbtn" onclick="rpLoadMats_()">↻ もう一度読み込む</button></td></tr>'
         : '<tr><td colspan="5" class="rp-none">上の「教材をえらぶ」から教材を選ぶと、その教材が割り当てられている子の進み具合が出ます。</td></tr>');
     var c0=$('rpCnt'); if(c0)c0.textContent='';
+    rpWkRender_(null);
     rpRenderPaper();   /* 【2026-09-13i・段D】紙の面も一緒に塗り替える。人数はプリント側の絞り込みで数える（2026-09-14 段F）*/
     rpRenderSumLine();
     return;
   }
   var list=rpTargets();
   var _nm=function(x,y){return String(x.s.name||'').localeCompare(String(y.s.name||''),'ja');};
+  var _wkV=false;   /* 弱点（1人ずつ）を行に出すか。並べ替えのあとで rpWkRender_ を呼ぶ */
   list.sort(function(x,y){
     var d=RP_SORT.dir;
     if(RP_SORT.key==='grade'){ var gx=_rpGradeRank(x.s.grade),gy=_rpGradeRank(y.s.grade);
@@ -7869,6 +8109,7 @@ function rpRender(){
     return x.a.ratio===y.a.ratio?_nm(x,y):(x.a.ratio-y.a.ratio)*d;
   });
   var c=$('rpCnt'); if(c)c.textContent=list.length+'名';
+  _wkV=rpWkRender_(list);
   var dl=rpDaysLeft_(), dn=$('rpDlNote');
   if(dn)dn.textContent=((dl===null||!RP_DL)?'':(dl>0?('残り'+dl+'日'):(dl===0?'今日が期限':'期限をすぎています')))
     +(RP_DL?(RP_CUR>=0?'（このセットの期限）':'（まだ保存されていません）'):'');
@@ -7918,7 +8159,9 @@ function rpRender(){
         +'<span class="rp-pr">'+a.pd+' / '+a.pt+(cp?'':' パート')+'</span> <span class="rp-pct">'+pct+'%</span>'
         +wrap(rpRateHtml(cp?'正答':'正答率',a.prate))+rpPaceHtml(a,cp)+'</td>'
       +'<td><span class="rp-tst"><b class="rp-ok">合格'+a.ok+'</b>・<b class="rp-ng">未合格'+a.ng+'</b>・<b class="rp-ms">未受験'+a.miss+'</b></span>'
-        +wrap(rpRateHtml(cp?'平均':'平均点',a.trate))+rpPaceQHtml(a,cp)+'</td>'
+        +wrap(rpRateHtml(cp?'平均':'平均点',a.trate))+rpPaceQHtml(a,cp)
+        +(_wkV?(function(){ var w=_rpWkWeakest_(sid);
+            return '<div class="rpwk-weak">'+(w?('弱い：<b class="'+_rpWkRc_(w.rate)+'">第'+esc(w.u)+'単元 '+esc(RPWK_LABEL_[w.q]||w.q)+' '+w.rate+'%</b>'):'弱い形式：まだ受けていない')+'</div>'; })():'')+'</td>'
       +'<td>'+rpStaleHtml_(a,cp)+rpW7Html(a,cp)+rpDaysHtml(cp?((a.days==null)?null:a.days.slice(0,1)):a.days)+'</td>'
       +'<td style="text-align:right;white-space:nowrap;"><span class="rp-caret'+(op?' on':'')+'">'+(op?'▾ 閉じる':'▸ 内訳')+'</span>'
         +'<button class="rp-detail" onclick="event.stopPropagation();openStudentDetail(\''+esc(sid)+'\')" title="この子の詳細（いま何を間違えているか）">詳細</button></td></tr>'
@@ -7961,7 +8204,8 @@ function rpDetailRow(x){
     if(open)rows+=na.map(mkRow).join('');
   }
   var missHtml=x.sh?'<tr class="rp-dtr"><td colspan="7" class="rp-dmiss">⚠ 割り当てられていない：'+esc(x.sh.miss.map(function(mid){var m=_rpMat(mid);return m?mtShort(m):mid;}).join('・'))+'</td></tr>':'';
-  return '<tr class="rp-drow"><td colspan="5"><table class="rp-dtbl">'
+  var _wkTop=(RP_WK&&RP_WK_MODE==='v'&&_rpWkMatsIn_(RP_SEL).length)?_rpWkUxHtml_(sid):'';
+  return '<tr class="rp-drow"><td colspan="5">'+_wkTop+'<table class="rp-dtbl">'
     +'<tr class="rp-dhd"><td>教材</td><td>📘 練習</td><td>📘 正答率</td><td>✅ 合格・未合格・未受験</td><td>✅ 平均点</td><td>最終</td><td>紙</td></tr>'
     +rows+missHtml+'</table></td></tr>';
 }
