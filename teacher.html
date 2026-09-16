@@ -1647,10 +1647,11 @@
           <span class="rp-setttl" id="rpSetTtl">🔖 保存したセット</span>
           <select class="rp-sel" id="rpSetSel" onchange="rpSetPick(this.value)"></select>
           <span class="rp-state none" id="rpSetState"></span>
+          <span class="rp-loaderr" id="rpSetLoadErr" style="display:none;">⚠ 保存セットを読み込めませんでした<span id="rpSetLoadMsg"></span> <button type="button" class="rp-allbtn" id="rpSetReload" onclick="rpSetsLoad_()">↻ 読み込み直す</button></span>
           <button class="rp-btn-ico" id="rpSetRen" onclick="rpRenameSet(this)" title="このセットの名前を変える" disabled>✏️ セット名変更</button>
           <button class="rp-btn-ico" id="rpSetDel" onclick="rpDelSet()" title="このセットを削除する" disabled>🗑 削除</button>
           <span class="rp-setspacer"></span>
-          <span class="rp-acts"><button class="rp-btn-upd" id="rpSetUpd" onclick="rpUpdateSet(this)" disabled>💾 上書き保存</button><button class="rp-btn-new" id="rpSetAdd" onclick="rpSaveSet(this)">＋ 新しいセットとして保存</button></span>
+          <span class="rp-acts"><button class="rp-btn-upd" id="rpSetUpd" onclick="rpUpdateSet(this)" disabled>💾 上書き保存</button><button class="rp-btn-new" id="rpSetAdd" onclick="rpSaveSet(this)" disabled>＋ 新しいセットとして保存</button></span>
         </div>
         <div class="rp-setline rp-setdlline">
           <span class="rp-setsub">このセットの期限</span>
@@ -2165,6 +2166,7 @@
 <div class="modal-back" id="rpReModal">
   <div class="modal">
     <div class="re-hd"><h3 id="rpReTtl">範囲を変える</h3><span class="rp-mute" id="rpReSub"></span></div>
+    <div id="rpReParts" style="display:none;margin:2px 0 6px;"></div>
     <div class="re-two">
       <div class="re-col"><div class="re-ct">教材（本を押すと開きます・教材の ▸ でパート）</div><div class="re-list" id="rpReCand"></div></div>
       <div class="re-col"><div class="re-ct"><span id="rpReSelT">えらんだ範囲</span><span style="flex:1"></span><span id="rpReSelN"></span></div><div class="re-list" id="rpReSel"></div></div>
@@ -2182,6 +2184,22 @@
       <button class="btn-ghost" id="rpPlanCancel" onclick="closeModal('rpPlanModal')">やめる</button>
       <span style="flex:1;"></span>
       <button class="btn-primary" style="width:auto;" id="rpPlanGo" onclick="rpPlanGo()">この内容で出す</button>
+    </div>
+  </div>
+</div>
+
+<!-- 【2026-09-16b】保存セットの同時保存。report_sets_set が conflict を返したら出す。
+     ★機械はどちらにも倒さない。×・ESC で閉じたら何もしない（画面の一覧もサーバーもそのまま）。 -->
+<div class="modal-back" id="rpSetConfModal">
+  <div class="modal" style="max-width:min(560px,96vw);">
+    <h3 style="margin-bottom:6px;">ほかの先生が保存セットを変えています。</h3>
+    <div class="mhint" id="rpSetConfWhat"></div>
+    <div class="rp-mute" id="rpSetConfN" style="font-weight:700;margin:6px 0 2px;"></div>
+    <div id="rpSetConfList" style="max-height:40vh;overflow:auto;border:1px solid #e5e7eb;border-radius:8px;padding:6px 10px;font-size:13px;line-height:1.7;"></div>
+    <div class="modal-actions" style="flex-wrap:wrap;gap:8px;">
+      <button type="button" class="btn-ghost" id="rpSetConfLoad" onclick="rpSetConfLoad()">サーバーの内容を読み込む（この画面の変更は捨てる）</button>
+      <span style="flex:1;"></span>
+      <button type="button" class="btn-ghost" id="rpSetConfOver" onclick="rpSetConfOver()">この画面の内容で上書きする</button>
     </div>
   </div>
 </div>
@@ -3857,9 +3875,11 @@ function _grdConfirm_(rows,onGo,onCancel){
       return '<div class="grd-row" data-sid="'+esc(x.student_id)+'" data-mid="'+esc(x.material_id)+'">・<b>'+esc(x.name||'(無名)')+'</b>（'+esc(x.sgrade||'学年未設定')+'）　'
         +esc(x.mtitle)+'（'+esc(x.mgrade)+'）</div>';
     }).join('');
-    var done=function(go){ closeModal('grdModal'); $('grdGo').onclick=null; $('grdCancel').onclick=null; if(go)onGo(); else if(onCancel)onCancel(); };
+    var done=function(go){ _modalOnClose_('grdModal',null); closeModal('grdModal'); $('grdGo').onclick=null; $('grdCancel').onclick=null; if(go)onGo(); else if(onCancel)onCancel(); };
     $('grdGo').onclick=function(){ done(true); };
     $('grdCancel').onclick=function(){ done(false); };
+    /* 【2026-09-16b】×・ESC で閉じたときも「やめる」と同じ（押しっぱなしの onclick を残さない・やめた案内を出す） */
+    _modalOnClose_('grdModal',function(){ done(false); });
     $('grdModal').classList.add('show');
   });
 }
@@ -6244,9 +6264,20 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 document.addEventListener('keydown',function(e){
   if(e.key!=='Escape')return;
   var open=document.querySelectorAll('.modal-back.show');
-  if(open.length)open[open.length-1].classList.remove('show');
+  if(!open.length)return;
+  var top=open[open.length-1];
+  if(top.id)closeModal(top.id); else top.classList.remove('show');   /* 閉じたときの処理（_modalOnClose_）も×と同じに走らせる 2026-09-16b */
 });
-function closeModal(id){$(id).classList.remove('show');}
+/* 【2026-09-16b】閉じたときの処理。×・ESC・closeModal のどれで閉じても1回だけ呼ぶ。
+   ボタンで閉じるときに呼びたくなければ、先に _modalOnClose_(id,null) で外す。 */
+var _MODAL_ONCLOSE_={};
+function _modalOnClose_(id,fn){ if(fn)_MODAL_ONCLOSE_[id]=fn; else delete _MODAL_ONCLOSE_[id]; }
+function closeModal(id){
+  var el=$(id); if(!el)return;
+  el.classList.remove('show');
+  var f=_MODAL_ONCLOSE_[id];
+  if(f){ delete _MODAL_ONCLOSE_[id]; try{ f(); }catch(e){} }
+}
 
 /* ===== バグ報告ビューア（原因究明用）2026-07-29 ===== */
 /* 対処済み/未対応の切り替え（2026-08-22）。生徒の報告も、アプリが自動で見つけた不具合も同じ扱い。
@@ -7201,18 +7232,7 @@ function renderReportTab(){
   /* 【2026-09-14・段F】前に見ていた面（レポート／プリント）でひらく */
   try{ rpPane(localStorage.getItem('kwt_rp_pane')||'rep'); }catch(e){}
   if(!RP_SETS_LOADED){
-    RP_SETS_LOADED=true; RP_SETS_ST='loading'; rpRenderSets();
-    call({action:'report_sets_get'}).then(function(d){
-      RP_SETS_ST=(d&&d.ok)?'ok':'error';
-      if(d&&d.ok&&d.data){ RP_SETS=d.data.sets||[]; if(RP_SETS.length&&!RP_SEL.length) rpLoadSet(0); else rpRenderSets(); }
-      else rpRenderSets();
-      /* 【2026-09-15】★状態が変わったら、それを見ている欄も必ず描き直す。
-         Why: セットの読み込みが終わっても rpRenderSets しか呼んでおらず、
-              「読み込み中…」を出していた生徒の欄がそのまま止まっていた（画面写真で発見）。
-         一般則＝読み込みの状態を見て描き分ける欄を足したら、
-                 その状態を変える所ぜんぶで描き直しを呼ぶ。 */
-      try{ rpRenderFilters(); rpRenderPaper(); }catch(e){}
-    });
+    RP_SETS_LOADED=true; rpSetsLoad_(true);
   }
   if((!bulkMaterials||!bulkMaterials.length)&&RP_MATS_ST!=='loading')rpLoadMats_();
   else _rpPartsLoad_();   /* 【2026-09-16】教材の一覧をほかのタブが先に取っていたときは、パートだけ取りにいく */
@@ -7228,6 +7248,29 @@ function renderReportTab(){
     });
   }
   rpRenderMat(); rpRenderFilters(); rpRender();
+}
+/* 【2026-09-16b】保存セットを読む（タブを開いたとき・「↻ 読み込み直す」）。
+   ★読めていない（RP_SETS_ST≠'ok'）あいだは、保存・上書き・削除・名前変更を押せない。
+     Why: 読み込みに失敗した画面で「＋ 新しいセットとして保存」を押すと、空の一覧＋1件でサーバーの全セットを書き換えていた（bugA/t5）。
+   ver＝サーバーの版。保存のとき base_ver として送り、ほかの先生の保存と重なったら conflict が返る（古いGASは ver を返さない＝undefined）。 */
+var RP_SETS_VER, RP_SETS_SAVING=false, RP_SETS_ERR='';
+function rpSetsLoad_(first){
+  if(RP_SETS_ST==='loading')return;
+  RP_SETS_ST='loading'; rpRenderSets();
+  if(!first){ try{ rpRenderFilters(); rpRenderPaper(); }catch(e){} }
+  var fin=function(d){
+    RP_SETS_ST=(d&&d.ok)?'ok':'error';
+    RP_SETS_ERR=(d&&d.ok)?'':String((d&&d.error)||'通信に失敗しました');   /* GAS の理由をそのまま出す */
+    if(d&&d.ok&&d.data){ RP_SETS=Array.isArray(d.data.sets)?d.data.sets:[]; RP_SETS_VER=d.data.ver; if(RP_SETS.length&&!RP_SEL.length) rpLoadSet(0); else rpRenderSets(); }
+    else rpRenderSets();
+    /* 【2026-09-15】★状態が変わったら、それを見ている欄も必ず描き直す。
+       Why: セットの読み込みが終わっても rpRenderSets しか呼んでおらず、
+            「読み込み中…」を出していた生徒の欄がそのまま止まっていた（画面写真で発見）。
+       一般則＝読み込みの状態を見て描き分ける欄を足したら、
+               その状態を変える所ぜんぶで描き直しを呼ぶ。 */
+    try{ rpRenderFilters(); rpRenderPaper(); }catch(e){}
+  };
+  call({action:'report_sets_get'}).then(fin).catch(function(){ fin(null); });
 }
 /* ---- 教材えらび（点数表と同じ部品：本ごとに折りたたみ＋この本をまとめて選ぶ）---- */
 /* 先生アカウントをレポートから外すか（先生設定⑥）。GAS未再デプロイで値が返らないときは既定ON＝外す */
@@ -7342,7 +7385,8 @@ function rpRenderMat(){
   /* ★読み込み中・失敗のあいだは、件数も ✓⚠ も出さない（たたんでいても見える場所に出す）。 */
   var ld=$('rpMatLoad');
   if(ld)ld.innerHTML=busy?'<span class="rp-load"><span class="rp-spin"></span>教材を読み込み中…</span>'
-    :(bad?'<span class="rp-loaderr">⚠ 教材の一覧を取れませんでした</span> <button class="rp-allbtn" onclick="rpLoadMats_()">↻ もう一度読み込む</button>':'');
+    :(bad?'<span class="rp-loaderr">⚠ 教材の一覧を取れませんでした</span> <button class="rp-allbtn" onclick="rpLoadMats_()">↻ もう一度読み込む</button>'
+    :(isPrn?_rpPartsStHtml_():''));   /* パートの一覧が未着・失敗（プリント面だけ）2026-09-16b */
   var n=$('rpSlMatN'); if(n){ n.textContent=sel.length+'件'; n.style.display=(busy||bad)?'none':''; }
   var same=_rpOutSame_();
   var stEl=$('rpOutState');
@@ -7357,16 +7401,7 @@ function rpRenderMat(){
   var card=$('rpSetSumCard'); if(card)card.classList.toggle('diff',isPrn&&!same&&!busy&&!bad);
   /* 中身の要約 */
   var cap=$('rpMatCap');
-  if(cap){
-    if(busy||bad)cap.innerHTML='';                 /* 届いていないのに「選ばれていません」と言わない 2026-09-14 */
-    else if(!sel.length)cap.innerHTML=isPrn
-      ? '<span style="color:var(--crimson);font-weight:800;">出す教材が1つも選ばれていません。</span>'
-      : '<span style="color:var(--text-light);font-weight:600;">教材を選ぶとレポートが出ます。</span>';
-    else if(isPrn){
-      var nm=sel.slice(0,5).map(function(id){var m=_rpMat(id);return m?mtShort(m):String(id);});
-      cap.innerHTML=esc(nm.join('・'))+((sel.length>5)?('　…ほか'+(sel.length-5)+'教材'):'');
-    }else cap.innerHTML='選択中の教材（'+RP_SEL.length+'）　'+esc(rpSelText_());
-  }
+  if(cap)cap.innerHTML=_rpMatCapHtml_(sel,isPrn,busy,bad);
   /* 本の名前のまとめ（畳んでいるときに何をえらんでいるか分かるように）*/
   var ms=$('rpSlMatS');
   if(ms){
@@ -7376,6 +7411,28 @@ function rpRenderMat(){
     if(isPrn&&ord.length){ var pk=sel.filter(function(id){ return Array.isArray(RP_OUT[id]); }).length; if(pk)ms.textContent+='　（パートをしぼった教材 '+pk+'）'; }
   }
   rpRenderSets();
+}
+/* 1の要約。【2026-09-16b】1が0件でも 3で変えた学年・中学校／生徒に紙が出るときは、4と食い違う赤字を出さない。
+   _RP_PLU_＝最後に rpRenderPaper が数えた「3で変えているか・紙に使う教材の数」 */
+var _RP_PLU_=null;
+function _rpMatCapHtml_(sel,isPrn,busy,bad){
+  if(busy||bad)return '';                 /* 届いていないのに「選ばれていません」と言わない 2026-09-14 */
+  if(!sel.length){
+    if(!isPrn)return '<span style="color:var(--text-light);font-weight:600;">教材を選ぶとレポートが出ます。</span>';
+    if(_RP_PLU_&&_RP_PLU_.chg&&_RP_PLU_.n)return '<span style="color:#8a5a00;font-weight:800;">1の教材は0です。3で範囲を変えた学年・中学校／生徒にだけ出します。</span>';
+    return '<span style="color:var(--crimson);font-weight:800;">出す教材が1つも選ばれていません。</span>';
+  }
+  if(isPrn){
+    var nm=sel.slice(0,5).map(function(id){var m=_rpMat(id);return m?mtShort(m):String(id);});
+    return esc(nm.join('・'))+((sel.length>5)?('　…ほか'+(sel.length-5)+'教材'):'');
+  }
+  return '選択中の教材（'+RP_SEL.length+'）　'+esc(rpSelText_());
+}
+/* 紙に使う教材が0件のときの案内。3で範囲を空にしたのが原因なら 3へ案内する（1へ案内しない）2026-09-16b */
+function _rpNoMatMsg_(PL,withWhere){
+  if(PL&&PL.chg&&rpOutMats_().length)return '3で範囲を空にしているため、紙が出る生徒がいません。'+(withWhere?'「3 学年・中学校や生徒ごとに範囲を変える」で範囲をえらび直してください。':'');
+  if(PL&&PL.chg)return '1の教材が0で、3で変えた範囲も空のため、紙が出る生徒がいません。'+(withWhere?'「1 どの教材から出すか」か「3 学年・中学校や生徒ごとに範囲を変える」でえらんでください。':'');
+  return '出す教材が1つも選ばれていません。'+(withWhere?'上の「1 どの教材から出すか」でえらんでください。':'');
 }
 function rpSelText_(){   /* 教材は本ごとにまとめて書く（Unit1 だけ並ぶと どの学年か分からないため）*/
   var gb=[],gm={};
@@ -7406,17 +7463,23 @@ function rpRenderSets(){
     else if(RP_DIRTY){ st.className='rp-state dirty'; st.textContent='変更あり（まだ保存していません）'; }
     else { st.className='rp-state clean'; st.textContent='保存ずみ'; }
   }
+  /* 【2026-09-16b】読めていない・保存中は 保存も削除も押せない（押せないボタンは灰色）*/
+  var ready=(RP_SETS_ST==='ok')&&!RP_SETS_SAVING;
   var u=$('rpSetUpd');
   /* 赤くするのは「押す意味があるとき」だけ＝セット選択中かつ変更あり。それ以外はグレーで押せない（ui-standards＝赤は主要ボタン1つ）*/
-  if(u){ u.disabled=(cur<0||!RP_DIRTY);
+  if(u){ u.disabled=(!ready||cur<0||!RP_DIRTY);
     u.textContent=(cur>=0)?('「'+RP_SETS[cur].name+'」に上書き'):'上書き保存'; }
-  var rn=$('rpSetRen'), dl=$('rpSetDel');
-  if(rn)rn.disabled=(cur<0); if(dl)dl.disabled=(cur<0);
+  var rn=$('rpSetRen'), dl=$('rpSetDel'), ad=$('rpSetAdd');
+  if(rn)rn.disabled=(!ready||cur<0); if(dl)dl.disabled=(!ready||cur<0);
+  if(ad)ad.disabled=!ready;
+  var le=$('rpSetLoadErr'); if(le)le.style.display=(RP_SETS_ST==='error')?'':'none';
+  var lm=$('rpSetLoadMsg'); if(lm)lm.textContent=(RP_SETS_ST==='error'&&RP_SETS_ERR)?('（'+RP_SETS_ERR+'）'):'';
+  _rpGrSetNote_();   /* 3の「保存セット『○○』に一緒に保存されます」も最新にする */
   /* 説明書きは置かない（川上さん 2026-08-20）。ボタン名と状態バッジだけで分かる形にする。*/
 }
 function rpSetPick(v){
   var i=parseInt(v,10);
-  if(!(i>=0)){ RP_CUR=-1; RP_LAST=-1; RP_DIRTY=false; rpRenderSets(); return; } // 選択を外すだけ（画面の条件は変えない）
+  if(!(i>=0)){ RP_CUR=-1; RP_LAST=-1; RP_DIRTY=false; rpRenderSets(); try{ rpRenderGr_(); }catch(e){} return; } // 選択を外すだけ（画面の条件は変えない）
   rpLoadSet(i);
 }
 function rpLoadSet(i){
@@ -7431,18 +7494,106 @@ function rpLoadSet(i){
   RP_DROP={rep:{},prn:{}}; RP_TY_SIG=null;   /* 1人ずつ外したのは捨てる＝別のセットの紙に混ざらない 2026-09-15 */
   RP_WK_FROM=null; RP_QF=null; RP_UF=null;   /* 弱点のマスから入れた条件も捨てる 2026-09-15b */
   /* 【2026-09-16】学年・中学校／生徒ごとの範囲は そのセットのものに入れ替える（無ければ空） */
-  RP_GR=_rpClone_(s.gr); RP_STU=_rpClone_(s.stu); RP_GROPEN={}; RP_OMOPEN={};
+  RP_GR=_rpGrNormKeys_(_rpClone_(s.gr)); RP_STU=_rpClone_(s.stu); RP_GROPEN={}; RP_OMOPEN={};   /* 形を確かめ、学年・中学校のキーをそろえて読む 2026-09-16b */
   rpRenderSets(); // 【2026-08-20】旧実装はここを呼んでおらず、選んでも見た目が変わらなかった（＝どれを見ているか分からない主因）
   rpRenderMat(); rpRenderFilters(); rpRender();
 }
-function rpSaveSets_(next,msg,btn){    /* 保存はGAS完了後にトースト（原則3）*/
-  var old=RP_SETS.slice();
+/* 【2026-09-16b】op＝この画面でしようとしたこと {kind:'add'|'upd'|'del'|'ren', row, name, newName, old, st}。
+   ・base_ver を付けて送る（RP_SETS_VER が無い＝古いGASなら付けない）
+   ・conflict が返ったら窓を出す（rpSetConfShow_）。機械はどちらにも倒さない
+   ・失敗したら 一覧と「どのセットを見ているか」を押す前に戻す */
+function rpSaveSets_(next,msg,btn,op){    /* 保存はGAS完了後にトースト（原則3）*/
+  if(RP_SETS_ST!=='ok'||RP_SETS_SAVING)return;   /* 入口で止める：読めていない一覧で全セットを書き換えない */
+  var old=(op&&op.old)||RP_SETS.slice();
+  var req={action:'report_sets_set',sets:JSON.stringify(next)};
+  if(RP_SETS_VER!==undefined&&RP_SETS_VER!==null)req.base_ver=RP_SETS_VER;
+  RP_SETS_SAVING=true;
   if(btn){btn.disabled=true;}
-  call({action:'report_sets_set',sets:JSON.stringify(next)}).then(function(d){
+  rpRenderSets();
+  var back=function(){ RP_SETS=old; if(op&&op.st){ RP_CUR=op.st.cur; RP_LAST=op.st.last; RP_DIRTY=op.st.dirty; } };
+  var fin=function(d){
+    RP_SETS_SAVING=false;
     if(btn){btn.disabled=false;}
-    if(d&&d.ok&&d.data){ RP_SETS=d.data.sets||next; rpRenderSets(); toast(msg); }
-    else { RP_SETS=old; rpRenderSets(); toast((d&&d.error)||'保存に失敗しました'); }
-  });
+    if(d&&d.ok&&d.data){
+      RP_SETS=Array.isArray(d.data.sets)?d.data.sets:next;
+      if(d.data.ver!==undefined)RP_SETS_VER=d.data.ver;
+      rpRenderSets(); toast(msg);
+    }else if(d&&d.conflict&&op&&d.data&&Array.isArray(d.data.sets)){
+      back(); rpRenderSets(); try{ rpRenderGr_(); }catch(e){}
+      rpSetConfShow_(op,d.data);
+    }else{
+      back(); rpRenderSets(); try{ rpRenderGr_(); }catch(e){}
+      toast((d&&d.error)||'保存に失敗しました');
+    }
+  };
+  call(req).then(fin).catch(function(){ fin(null); });
+}
+function _rpSetsSt_(){ return {cur:RP_CUR,last:RP_LAST,dirty:RP_DIRTY}; }
+/* ---- 保存セットの衝突の窓（2026-09-16b）---- */
+var RP_SETCONF=null;
+function _rpSetsMsg_(op,next){
+  if(op.kind==='add')return '「'+op.row.name+'」を新しく保存しました（全'+next.length+'セット・先生全員に反映）';
+  if(op.kind==='upd')return '「'+op.name+'」を上書きしました（先生全員に反映）';
+  if(op.kind==='del')return '「'+op.name+'」を消しました';
+  return '名前を「'+op.newName+'」に変えました（先生全員に反映）';
+}
+function _rpSetIdx_(list,name){ for(var i=0;i<list.length;i++){ if(list[i]&&list[i].name===name)return i; } return -1; }
+function rpSetConfShow_(op,srv){
+  RP_SETCONF={op:op,sets:srv.sets,ver:srv.ver};
+  var what=(op.kind==='add')?('「'+op.row.name+'」を新しいセットとして保存')
+    :(op.kind==='upd')?('「'+op.name+'」に上書き保存')
+    :(op.kind==='del')?('「'+op.name+'」を削除')
+    :('「'+op.name+'」の名前を「'+op.newName+'」に変更');
+  $('rpSetConfWhat').innerHTML='この画面でしようとしたこと：<b>'+esc(what)+'</b>（まだ保存していません）。<br>'
+    +'サーバーの内容を読み込むか、この画面の内容で上書きするかをえらんでください。上書きすると、下の一覧に対して この操作だけを行います。';
+  $('rpSetConfN').textContent='サーバーにいまあるセット（'+srv.sets.length+'個）';
+  $('rpSetConfList').innerHTML=srv.sets.length?srv.sets.map(function(x){
+    return '<div class="rp-confrow">・'+esc((x&&x.name)||'(名前なし)')+esc(_rpDlShort_(x&&x.dl))+'</div>';
+  }).join(''):'<div class="rp-mute">（セットはありません）</div>';
+  /* ×・ESC で閉じたら何もしない */
+  _modalOnClose_('rpSetConfModal',function(){ RP_SETCONF=null; });
+  $('rpSetConfModal').classList.add('show');
+}
+function _rpSetConfClose_(){ _modalOnClose_('rpSetConfModal',null); closeModal('rpSetConfModal'); var C=RP_SETCONF; RP_SETCONF=null; return C; }
+/* サーバーの一覧にする。見ていたセットは名前で引き直す（無くなっていれば選択なし） */
+function _rpSetsAdopt_(sets,ver){
+  var ci=_rpCurSet_(), nm=(ci>=0)?RP_SETS[ci].name:null;
+  RP_SETS=sets.slice(); RP_SETS_VER=ver;
+  var j=(nm===null)?-1:_rpSetIdx_(RP_SETS,nm);
+  if(j<0){ RP_CUR=-1; RP_LAST=-1; RP_DIRTY=false; }
+  else { if(RP_CUR>=0)RP_CUR=j; RP_LAST=j; }
+}
+function rpSetConfLoad(){
+  var C=_rpSetConfClose_(); if(!C)return;
+  _rpSetsAdopt_(C.sets,C.ver);
+  rpRenderSets(); try{ rpRenderGr_(); }catch(e){}
+  toast('サーバーの保存セットを読み込みました（この画面でしようとした保存はしていません）');
+}
+function rpSetConfOver(){
+  var C=_rpSetConfClose_(); if(!C)return;
+  var op=C.op;
+  _rpSetsAdopt_(C.sets,C.ver);
+  var base=RP_SETS.slice(), next=base.slice(), j;
+  if(op.kind==='add'){
+    if(base.length>=30){ rpRenderSets(); try{ rpRenderGr_(); }catch(e){} toast('サーバーのセットが30個あるため追加できません。いらないものを「🗑 削除」で消してください'); return; }
+    next.push(op.row); j=next.length-1;
+  }else if(op.kind==='upd'){
+    j=_rpSetIdx_(base,op.name);
+    if(j>=0)next[j]=op.row; else { next.push(op.row); j=next.length-1; }
+  }else if(op.kind==='del'){
+    j=_rpSetIdx_(base,op.name); if(j>=0)next.splice(j,1);
+    j=-1;
+  }else{
+    j=_rpSetIdx_(base,op.name);
+    if(j<0){ rpRenderSets(); try{ rpRenderGr_(); }catch(e){} toast('「'+op.name+'」はサーバーにもうありません。名前は変えていません'); return; }
+    next[j]=Object.assign({},base[j],{name:op.newName});
+  }
+  var st=_rpSetsSt_();
+  RP_SETS=next;
+  if(op.kind==='ren'){ if(RP_LAST>=0){ var k=_rpSetIdx_(next,op.newName); if(RP_CUR>=0)RP_CUR=k; RP_LAST=k; } }
+  else { RP_CUR=j; RP_LAST=j; RP_DIRTY=false; }
+  rpRenderSets(); try{ rpRenderGr_(); }catch(e){}
+  rpSaveSets_(next,_rpSetsMsg_(op,next),null,{kind:op.kind,row:op.row,name:op.name,newName:op.newName,old:base,st:st});
 }
 function _rpCurSet_(){ var i=(RP_CUR>=0)?RP_CUR:RP_LAST; return (i>=0&&RP_SETS[i])?i:-1; }
 /* PDFのファイル名。2026-08-28
@@ -7465,36 +7616,47 @@ function _rpPdfName_(list){
   return a.filter(function(x){return !!x;}).join('_')+'.pdf';
 }
 function rpSaveSet(btn){   /* ＝いつでも「増える」。いま選んでいるセットは絶対に書き換えない */
+  if(RP_SETS_ST!=='ok'||RP_SETS_SAVING){ toast((RP_SETS_ST==='ok')?'保存セットを保存しています。終わってからもう一度押してください':'保存セットを読み込めていないため、保存できません（「↻ 読み込み直す」を押してください）'); return; }   /* 2026-09-16b */
   if(!RP_SEL.length){ toast('先に教材を選んでください'); return; }
   if(RP_SETS.length>=30){ toast('セットは30個までです。いらないものを「🗑 削除」で消してください'); return; }
   var n=prompt('新しいセットの名前（例：中1英単語／夏休み課題）\n※ 新しく追加します。いま選んでいるセットは書き換えません。',''); if(!n)return;
   n=String(n).trim(); if(!n)return;
-  var next=RP_SETS.concat([{name:n,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL,gr:_rpClone_(RP_GR),stu:_rpClone_(RP_STU)}]);   /* gr/stu 2026-09-16 */
+  var row={name:n,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL,gr:_rpClone_(RP_GR),stu:_rpClone_(RP_STU)};   /* gr/stu 2026-09-16 */
+  var op={kind:'add',row:row,old:RP_SETS.slice(),st:_rpSetsSt_()};
+  var next=RP_SETS.concat([row]);
   RP_SETS=next; RP_CUR=RP_SETS.length-1; RP_LAST=RP_CUR; RP_DIRTY=false; rpRenderSets();
-  rpSaveSets_(next,'「'+n+'」を新しく保存しました（全'+next.length+'セット・先生全員に反映）',btn);
+  rpSaveSets_(next,_rpSetsMsg_(op,next),btn,op);
 }
 function rpRenameSet(btn){
+  if(RP_SETS_ST!=='ok'||RP_SETS_SAVING){ toast((RP_SETS_ST==='ok')?'保存セットを保存しています。終わってからもう一度押してください':'保存セットを読み込めていないため、名前を変えられません（「↻ 読み込み直す」を押してください）'); return; }   /* 2026-09-16b */
   var i=_rpCurSet_(); if(i<0)return;
   var n=prompt('セットの名前を変える',RP_SETS[i].name); if(n===null)return;
   n=String(n).trim(); if(!n)return;
+  var op={kind:'ren',name:RP_SETS[i].name,newName:n,old:RP_SETS.slice(),st:_rpSetsSt_()};
   var next=RP_SETS.slice(); next[i]=Object.assign({},RP_SETS[i],{name:n});
   RP_SETS=next; rpRenderSets();
-  rpSaveSets_(next,'名前を「'+n+'」に変えました（先生全員に反映）',btn);
+  rpSaveSets_(next,_rpSetsMsg_(op,next),btn,op);
 }
 function rpUpdateSet(btn){   /* ＝いま選んでいるセットを書き換える（増えない）。消える内容があるので確認を出す */
+  if(RP_SETS_ST!=='ok'||RP_SETS_SAVING){ toast((RP_SETS_ST==='ok')?'保存セットを保存しています。終わってからもう一度押してください':'保存セットを読み込めていないため、上書きできません（「↻ 読み込み直す」を押してください）'); return; }   /* 2026-09-16b */
   var i=_rpCurSet_(); if(i<0)return;
   if(!confirm('「'+RP_SETS[i].name+'」を いまの内容（教材・絞り込み・期限・学年や中学校や生徒ごとの範囲）で上書きします。\n前の内容は元に戻せません。よろしいですか？\n※ 増やしたいときは「＋ 新しいセットとして保存」。'))return;
+  var row={name:RP_SETS[i].name,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL,gr:_rpClone_(RP_GR),stu:_rpClone_(RP_STU)};   /* gr/stu 2026-09-16 */
+  var op={kind:'upd',name:row.name,row:row,old:RP_SETS.slice(),st:_rpSetsSt_()};
   var next=RP_SETS.slice();
-  next[i]={name:RP_SETS[i].name,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL,gr:_rpClone_(RP_GR),stu:_rpClone_(RP_STU)};   /* gr/stu 2026-09-16 */
+  next[i]=row;
   RP_SETS=next; RP_CUR=i; RP_LAST=i; RP_DIRTY=false; rpRenderSets();
-  rpSaveSets_(next,'「'+RP_SETS[i].name+'」を上書きしました（先生全員に反映）',btn);
+  rpSaveSets_(next,_rpSetsMsg_(op,next),btn,op);
 }
 function rpDelSet(i){
-  if(!(i>=0))i=_rpCurSet_(); if(i<0)return;
+  if(RP_SETS_ST!=='ok'||RP_SETS_SAVING){ toast((RP_SETS_ST==='ok')?'保存セットを保存しています。終わってからもう一度押してください':'保存セットを読み込めていないため、削除できません（「↻ 読み込み直す」を押してください）'); return; }   /* 2026-09-16b */
+  if(!(i>=0))i=_rpCurSet_(); if(i<0||!RP_SETS[i])return;
   var nm=(RP_SETS[i]&&RP_SETS[i].name)||''; if(!confirm('セット「'+nm+'」を消します。よろしいですか？（先生全員から消えます）'))return;
+  var op={kind:'del',name:nm,old:RP_SETS.slice(),st:_rpSetsSt_()};
   var next=RP_SETS.slice(); next.splice(i,1);
   RP_SETS=next; RP_CUR=-1; RP_LAST=-1; RP_DIRTY=false; rpRenderSets();
-  rpSaveSets_(next,'「'+nm+'」を消しました');
+  try{ rpRenderGr_(); }catch(e){}   /* 3の「保存セット『○○』に…」を消したセットのままにしない 2026-09-16b */
+  rpSaveSets_(next,_rpSetsMsg_(op,next),null,op);
 }
 /* ---- 絞り込み（生徒一覧タブと同じ順・同じ部品：教室→学年→中学校）---- */
 /* 【2026-09-14・段F2】絞り込みは画面に1つだけ。見ている面で中身が変わる。
@@ -7747,19 +7909,23 @@ var RP_DROP={rep:{},prn:{}};
 function _rpDrop_(useP){ return RP_DROP[useP?'prn':'rep']; }
 function rpMatsLoading_(){ return RP_MATS_ST==='loading'; }
 function rpLoadMats_(){
+  if(RP_MATS_ST==='loading')return;
   RP_MATS_ST='loading';
+  if(!RP_PARTS_LOADED)RP_PARTS_ST='loading';
   try{ rpRenderMat(); rpRenderPaper(); }catch(e){}
-  call({action:'materials_list'}).then(function(d){
+  var fin=function(d){
     if(d&&d.ok){
       var mats=d.data&&d.data.materials?d.data.materials:[];
       bulkMaterials=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');});
-      _rpSetParts_(d.data&&d.data.parts); RP_PARTS_LOADED=true;   /* パートの一覧 2026-09-16 */
+      _rpSetParts_(d.data&&d.data.parts); RP_PARTS_LOADED=true; RP_PARTS_ST='ok';   /* パートの一覧 2026-09-16 */
       RP_MATS_ST='ok';
     }else{
       RP_MATS_ST='error';    /* call() は3回まで自分で試して {ok:false} を返す＝ここは本当に取れなかったとき */
+      if(!RP_PARTS_LOADED)RP_PARTS_ST='error';
     }
-    try{ rpRenderMat(); rpRenderFilters(); rpRender(); rpRenderPaper(); }catch(e){}
-  });
+    try{ rpRenderMat(); rpRenderFilters(); rpRender(); rpRenderPaper(); _rpReRedraw_(); }catch(e){}
+  };
+  call({action:'materials_list'}).then(fin).catch(function(){ fin(null); });
 }
 function _rpPaperStyle_(){ return (localStorage.getItem('kwt_print_style')==='finish')?'finish':'list'; }
 /* 【2026-09-14・段F】出す範囲＝**選ばれている教材そのもの**（川上さん確定）。
@@ -7847,24 +8013,28 @@ function rpRenderPaper(n){
   var pn=tgt.length;
   /* 3で学年・中学校／生徒ごとに変えた範囲があれば、紙に使う教材＝全員の範囲の和集合（種別・英検の欄・押せるかの判定に使う） */
   var PLu=_rpPrnPlan_(tgt); if(PLu.need)use=PLu.mats;
+  _RP_PLU_={chg:PLu.chg,n:PLu.mats.length};   /* 1の要約（_rpMatCapHtml_）が使う 2026-09-16b */
   /* ★絞り込みの箱は レポート面とプリント面で共用している（段F2）。
      プリント面を見ているときだけ、状態の札と名前を出す。レポート面では空にする。 */
   var isPrn=(RP_PANE==='prn');
-  /* ★読み込み中は人数も「いません」も出さない＝まだ数えられる状態ではない 2026-09-14 */
-  var busyAll=busy2||RP_SETS_ST==='loading';
+  /* ★読み込み中は人数も「いません」も出さない＝まだ数えられる状態ではない 2026-09-14
+     【2026-09-16b】取れなかった（error）は「読み込み中」に含めない＝回り続けない。2と3に「取れませんでした」を出す */
+  var busyAll=(RP_MATS_ST==='loading')||RP_SETS_ST==='loading';
+  var matsErr=(RP_MATS_ST==='error')&&!busyAll;
   var pst=$('rpPfState');
-  if(pst)pst.innerHTML=(isPrn&&!busyAll)?((psame?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')+'　<b>'+pn+'</b>名'):'';
+  if(pst)pst.innerHTML=(isPrn&&!busyAll&&!matsErr)?((psame?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')+'　<b>'+pn+'</b>名'):'';
   var fbox=document.querySelector('#view-report .rp-fltbox'); if(fbox)fbox.classList.toggle('diff',isPrn&&!psame&&!busyAll);
   var wcd=$('rpWhoCard'); if(wcd)wcd.classList.toggle('diff',isPrn&&!psame&&!busyAll);
-  var pbb=$('rpPfBackBtn'); if(pbb)pbb.disabled=psame||busyAll;
+  var pbb=$('rpPfBackBtn'); if(pbb)pbb.disabled=psame||busyAll||matsErr;
   /* 【2026-09-15】絞り込んだ生徒を全員ならべて、チェックで1人ずつ外す（川上さん確定）。
      ★レポート面でも出す＝「レポートも同様」（川上さん 2026-09-14）。 */
   var who2=$('rpPfWho');
   if(who2){
     if(busyAll)who2.innerHTML='<span class="rp-load"><span class="rp-spin"></span>読み込み中…</span>';
+    else if(matsErr)who2.innerHTML=_rpMatsErrHtml_();
     else who2.innerHTML=_rpWhoHtml_(isPrn);
   }
-  rpRenderGr_(_rpGrGroups_(allT,drP),busyAll);   /* 3 学年・中学校や生徒ごとの範囲 2026-09-16 */
+  rpRenderGr_(_rpGrGroups_(allT,drP),busyAll?true:(matsErr?'error':false));   /* 3 学年・中学校や生徒ごとの範囲 2026-09-16 */
 
   /* 条件の欄は紙の形で出し分ける */
   var a=$('rpListOpts'), b=$('rpFinishOpts');
@@ -7923,15 +8093,18 @@ function rpRenderPaper(n){
   var nt=$('rpPaperNote');
   if(nt)nt.innerHTML=(RP_MATS_ST==='loading')?'<span class="rp-load"><span class="rp-spin"></span>教材を読み込み中…</span>'
     :((RP_MATS_ST==='error')?'<span class="rp-loaderr">⚠ 教材の一覧を取れませんでした。</span>'
-    :esc((use.length===0)?'出す教材が1つも選ばれていません。'
+    :esc((use.length===0)?_rpNoMatMsg_(PLu,false)
     :((pn===0)?'条件に合う生徒がいません。':(quNg||(pn+'名ぶん・1人ずつ別の紙になります。'+(PLu.chg?'学年・中学校や生徒ごとに変えた範囲で出します。':''))))));
   var er=$('rpPrintErr'); if(er&&!er.innerHTML)er.style.display='none';
+  /* 1の要約も 3の結果に合わせて描き直す（4と食い違わせない）2026-09-16b */
+  var mcap=$('rpMatCap'); if(mcap&&isPrn)mcap.innerHTML=_rpMatCapHtml_(rpOutMats_(),true,RP_MATS_ST==='loading',RP_MATS_ST==='error');
   rpRenderSumLine();
 }
 
 /* 【2026-09-14・段F】セットの1行サマリー（教材N件・生徒N名と、その中身）*/
 /* 【2026-09-14・段F3】教材の行は rpRenderMat が持つ。ここは隠してある控えの値だけ更新する
    （段Fの実機テストが読んでいるので残す）。 */
+function _rpMatsErrHtml_(){ return '<span class="rp-loaderr">⚠ 教材の一覧を取れませんでした。</span> <button type="button" class="rp-allbtn" onclick="rpLoadMats_()">↻ もう一度読み込む</button>'; }
 function rpRenderSumLine(){
   var sn=$('rpSlStuN'); if(sn)sn.textContent=(RP_SEL.length?rpTargets().length:0)+'名';
   var ss=$('rpSlStuS');
@@ -7958,7 +8131,7 @@ function rpPreviewOne(){
   var mats=PV?PV.mats:rpOutMats_();
   var rgx=function(o){ return _rpWithRanges_(o,(PV&&PV.ranges)?JSON.stringify(PV.ranges):''); };
   _prnHost='report'; tmErr_('');
-  if(!mats.length){ tmErr_((PV&&PV.need)?'先頭の生徒の範囲に教材が1つもありません。':'出す教材が1つも選ばれていません。'); return; }
+  if(!mats.length){ tmErr_((PV&&PV.need)?(PV.chg?'先頭の生徒は、3で範囲を空にしているため紙が出ません。':'先頭の生徒の範囲に教材が1つもありません。'):'出す教材が1つも選ばれていません。'); return; }
   if(!list.length){ tmErr_('この絞り込みに合う生徒がいません。'); return; }
   var _qng=_rpQuNg_(mats); if(_qng){ tmErr_(_qng); return; }   /* 段3 2026-09-15b */
   var sid=String(list[0].s.student_id), nm=String(list[0].s.name||'');
@@ -8040,7 +8213,7 @@ function rpPaperGo(){
   var PL=_rpPrnPlan_(list), mats=PL.mats, rj=PL.ranges?JSON.stringify(PL.ranges):'';
   _prnHost='report'; tmErr_('');
   /* 【2026-09-14・段F】出す教材は「選ばれているものそのもの」。0件なら作らない（空振りさせない）。 */
-  if(!mats.length){ tmErr_('出す教材が1つも選ばれていません。上の「1 どの教材から出すか」でえらんでください。'); return; }
+  if(!mats.length){ tmErr_(_rpNoMatMsg_(PL,true)); return; }
   var _qng=_rpQuNg_(mats); if(_qng){ tmErr_(_qng); return; }   /* 段3 2026-09-15b */
   if(_rpPaperStyle_()==='finish'){
     try{ localStorage.setItem('kwt_print_mats',mats.join(',')); }catch(e){}
@@ -8159,6 +8332,9 @@ function rpDropAll(off){
    ・弱点のマスから来たとき（RP_WK_FROM）は、そのマスの教材で出すので 3の範囲は使わない */
 var RP_GR={}, RP_STU={}, RP_GROPEN={}, RP_GR_OPEN=false, _RP_GRL=[];
 var RP_PARTS={}, RP_PARTS_LOADED=false, RP_PARTS_BUSY=false;   /* 教材id → [{id,title}]（part_order 順・止めたパートは除く） */
+/* 【2026-09-16b】パートの一覧の状態 'idle'／'loading'／'ok'／'error'。届くまでは パート指定を「まるごと」に見せない・id を出さない。
+   時間切れ（RP_PARTS_TIMEOUT_MS）も失敗として扱い、「↻ 読み込み直す」で取り直せるようにする */
+var RP_PARTS_ST='idle', RP_PARTS_TIMEOUT_MS=30000, _rpPartsTok_=0;
 var RP_OMOPEN={};   /* 1の教材えらびで、パートを開いている教材 */
 var RP_ED=null;     /* 範囲を変える窓の中身 */
 function _rpClone_(o){ if(!o||typeof o!=='object'||Array.isArray(o))return {}; try{ return JSON.parse(JSON.stringify(o)); }catch(e){ return {}; } }
@@ -8175,12 +8351,40 @@ function _rpSetParts_(rows){
 }
 function _rpPartsLoad_(){
   if(RP_PARTS_LOADED||RP_PARTS_BUSY||RP_MATS_ST==='loading')return;
-  RP_PARTS_BUSY=true;
-  call({action:'materials_list'}).then(function(d){
-    RP_PARTS_BUSY=false;
-    if(d&&d.ok){ _rpSetParts_(d.data&&d.data.parts); RP_PARTS_LOADED=true; try{ rpRenderMat(); rpRenderPaper(); }catch(e){} }
-  }).catch(function(){ RP_PARTS_BUSY=false; });
+  /* 教材の一覧も取れていないときは、教材ごと取り直す（パートも一緒に来る） */
+  if(RP_MATS_ST==='error'&&(!bulkMaterials||!bulkMaterials.length)){ rpLoadMats_(); return; }
+  RP_PARTS_BUSY=true; RP_PARTS_ST='loading';
+  var tok=++_rpPartsTok_;
+  var redraw=function(){ try{ rpRenderMat(); rpRenderPaper(); _rpReRedraw_(); }catch(e){} };
+  redraw();
+  setTimeout(function(){   /* 時間切れ＝取り直せるように戻す */
+    if(tok!==_rpPartsTok_||!RP_PARTS_BUSY||RP_PARTS_LOADED)return;
+    RP_PARTS_BUSY=false; RP_PARTS_ST='error'; redraw();
+  },RP_PARTS_TIMEOUT_MS);
+  var fin=function(d){
+    if(d&&d.ok){   /* 時間切れのあとに届いても使う */
+      _rpSetParts_(d.data&&d.data.parts); RP_PARTS_LOADED=true; RP_PARTS_ST='ok';
+      if(tok===_rpPartsTok_)RP_PARTS_BUSY=false;
+      redraw(); return;
+    }
+    if(tok!==_rpPartsTok_||RP_PARTS_LOADED)return;   /* 古い呼び出しの失敗は無視 */
+    RP_PARTS_BUSY=false; RP_PARTS_ST='error'; redraw();
+  };
+  call({action:'materials_list'}).then(fin).catch(function(){ fin(null); });
 }
+/* パートの一覧が使えないときの文（使えるなら ''） */
+function _rpPartsWait_(){
+  if(RP_PARTS_LOADED)return '';
+  return (RP_PARTS_ST==='error')?'パートの一覧を取れませんでした':'パートを読み込み中';
+}
+function _rpPartsStHtml_(){
+  if(RP_PARTS_LOADED)return '';
+  if(RP_PARTS_ST==='error')return '<span class="rp-loaderr">⚠ パートの一覧を取れませんでした</span> <button type="button" class="rp-allbtn rp-partsretry" onclick="_rpPartsRetry_()">↻ 読み込み直す</button>';
+  return '<span class="rp-load"><span class="rp-spin"></span>パートを読み込み中…</span>';
+}
+function _rpPartsRetry_(){ if(RP_MATS_ST==='error'&&(!bulkMaterials||!bulkMaterials.length))rpLoadMats_(); else _rpPartsLoad_(); }
+/* 範囲を変える窓が開いていたら描き直す（パートが届いた・取れなかった） */
+function _rpReRedraw_(){ var m=$('rpReModal'); if(RP_ED&&m&&m.classList.contains('show'))rpReDraw_(); }
 function _rpPartsOf_(mid){ return RP_PARTS[String(mid)]||[]; }
 var _rpMI_={src:null,n:-1,map:{}};
 function _rpMatById_(mid){
@@ -8195,8 +8399,14 @@ function _rpMatById_(mid){
 function _rpMatGrade_(mid){ var m=_rpMatById_(mid), g=_grdNorm_(m&&m.grade); return GRD_CHECK_.indexOf(g)>=0?g:''; }
 function _rpOthGrade_(mid,grade){ var mg=_rpMatGrade_(mid); return !!mg&&mg!==_grdNorm_(grade); }
 function _rpMatName_(mid){ var m=_rpMatById_(mid); if(!m)return String(mid); var n=mtShort(m), g=_rpMatGrade_(mid); if(g&&n.indexOf(g)<0)n=g+' '+n; return n; }
-function _rpPartName_(mid,pid){ var ps=_rpPartsOf_(mid); for(var i=0;i<ps.length;i++){ if(ps[i].id===String(pid))return ps[i].title; } return String(pid); }
-function _rpGrKey_(s){ return String((s&&s.grade)||'')+'|'+String((s&&s.school)||''); }
+function _rpPartName_(mid,pid){ var ps=_rpPartsOf_(mid); for(var i=0;i<ps.length;i++){ if(ps[i].id===String(pid))return ps[i].title; }
+  /* 名前が引けないときは id を出さない 2026-09-16b */
+  return RP_PARTS_LOADED?'パート（いまはありません）':((RP_PARTS_ST==='error')?'パート（名前を取れませんでした）':'パート（読み込み中）'); }
+/* 【2026-09-16b】学年は _grdNorm_（空白を除く・全角数字→半角）、中学校は前後の空白を除いてキーにする＝「中２」「公郷中 」も同じ行 */
+function _rpGrKey_(s){ return _grdNorm_((s&&s.grade)||'')+'|'+String((s&&s.school)||'').trim(); }
+function _rpGrNormKey_(k){ k=String(k); var i=k.indexOf('|'); var g=(i<0)?k:k.slice(0,i), sc=(i<0)?'':k.slice(i+1); return _grdNorm_(g)+'|'+sc.trim(); }
+/* 保存ずみの gr のキーも同じ形にそろえる（同じキーになったものは先に出てきた方を使う） */
+function _rpGrNormKeys_(gr){ var o={}; Object.keys(gr||{}).forEach(function(k){ var nk=_rpGrNormKey_(k); if(!(nk in o))o[nk]=gr[k]; }); return o; }
 function _rpGrLabel_(k){ var a=String(k).split('|'); return (a[0]||'学年未設定')+'・'+(a[1]||'中学校未設定'); }
 function _rpAsgSet_(s){ var o={}; ((s&&s.materials_view)||[]).concat((s&&s.completed_view)||[]).forEach(function(m){ o[String(m.material_id)]=1; }); return o; }
 function _rpOutHasParts_(){ _rpOutSync_(); for(var k in RP_OUT){ if(Array.isArray(RP_OUT[k]))return true; } return false; }
@@ -8224,13 +8434,16 @@ function _rpRngMids_(r){
 function _rpRngPartN_(r,mid){ var p=r[mid]; return (p&&p.length)?p.length:_rpPartsOf_(mid).length; }
 function _rpRngSumm_(r){
   var ks=_rpRngMids_(r); if(!ks.length)return '（なし）';
+  var wait=_rpPartsWait_();   /* パートの一覧が無いあいだは パートの数も名前も出さない 2026-09-16b */
   var pn=0, out=ks.map(function(mid){
     var p=r[mid]||[]; pn+=_rpRngPartN_(r,mid);
     if(!p.length)return _rpMatName_(mid)+' ぜんぶ';
+    if(wait)return _rpMatName_(mid)+' '+p.length+'パート（'+(RP_PARTS_ST==='error'?'名前を取れませんでした':'読み込み中')+'）';
     return _rpMatName_(mid)+' '+(p.length<=3?p.map(function(x){ return _rpPartName_(mid,x); }).join('・'):(_rpPartName_(mid,p[0])+' ほか'+(p.length-1)));
   });
-  if(ks.length>4)return out.slice(0,3).join('／')+' ほか'+(ks.length-3)+'教材（計'+ks.length+'教材・'+pn+'パート）';
-  return out.join('／')+'（'+ks.length+'教材・'+pn+'パート）';
+  var tail=wait?(ks.length+'教材'):(ks.length+'教材・'+pn+'パート');
+  if(ks.length>4)return out.slice(0,3).join('／')+' ほか'+(ks.length-3)+'教材（計'+tail+'）';
+  return out.join('／')+'（'+tail+'）';
 }
 /* 紙を出す生徒ぶんの範囲。need＝ranges を送るか（3の変更か 1のパート指定があるとき）。mats＝送る material_ids */
 function _rpPrnPlan_(list){
@@ -8267,6 +8480,7 @@ function _rpEditBtnLabel_(){
    ★本の□＝本ぜんぶの選択。本の行のそれ以外＝開く・閉じる。最初は閉じる */
 function _rpTreeHtml_(o){
   var h='', q=function(x){ return esc(String(x).replace(/['"\\]/g,'')); };
+  var pw=_rpPartsWait_();   /* パートの一覧が未着・失敗のときの文 2026-09-16b */
   o.secs.forEach(function(sc,si){
     if(!sc.mats.length)return;
     h+='<div class="re-div'+(sc.oth?' oth':'')+'">'+esc(sc.t)+(sc.sub?'<span>'+esc(sc.sub)+'</span>':'')+'</div>';
@@ -8288,7 +8502,7 @@ function _rpTreeHtml_(o){
           +'<span class="rg-cb'+(st===2?' on':(st===1?' part':''))+'" onclick="'+o.fn+'(\'mat\',\''+q(id)+'\')">'+(st===2?'✓':(st===1?'−':''))+'</span>'
           +'<span class="re-mn" onclick="'+o.fn+'(\'mat\',\''+q(id)+'\')">'+esc(mtShort(m))+'</span>'
           +(o.tag?o.tag(id):'')
-          +'<span class="n">'+(ps.length?(((st===1)?(o.partN(id)+'/'):'')+ps.length+'パート'):'')+'</span></div>';
+          +'<span class="n">'+(ps.length?(((st===1)?(o.partN(id)+'/'):'')+ps.length+'パート'):((pw&&st===1)?esc(o.partN(id)+'パート・'+pw):''))+'</span></div>';
         if(mo)ps.forEach(function(p){
           var on=o.partOn(id,p.id);
           h+='<div class="re-part" data-pid="'+esc(p.id)+'" onclick="'+o.fn+'(\'part\',\''+q(id)+'\',\''+q(p.id)+'\')"><span class="rg-cb'+(on?' on':'')+'">'+(on?'✓':'')+'</span>'+esc(p.title)+'</div>';
@@ -8298,7 +8512,7 @@ function _rpTreeHtml_(o){
   });
   return h||'<div class="rp-mute" style="padding:10px;">教材がありません</div>';
 }
-function _rpOutSt_(id){ var v=RP_OUT[id]; if(v===1)return 2; if(Array.isArray(v))return (v.length&&v.length>=_rpPartsOf_(id).length)?2:1; return 0; }
+function _rpOutSt_(id){ var v=RP_OUT[id]; if(v===1)return 2; if(Array.isArray(v)){ var n=_rpPartsOf_(id).length; if(!n)return (v.length&&RP_PARTS_LOADED)?2:1; return (v.length&&v.length>=n)?2:1; } return 0; }   /* パート未着なら途中の印 2026-09-16b */
 function _rpOutTreeHtml_(){
   var mats=_rpMats();
   var secs=[{t:'毎日学習',mats:mats.filter(function(m){ return String(m.content_type||'')!=='test'; })},
@@ -8329,7 +8543,7 @@ function _rpGrGroups_(allT,dr){
   var g={}, ord=[];
   allT.forEach(function(x){
     var k=_rpGrKey_(x.s);
-    if(!g[k]){ g[k]={k:k,grade:String(x.s.grade||''),school:String(x.s.school||''),all:0,stu:[]}; ord.push(g[k]); }
+    if(!g[k]){ var ka=k.split('|'); g[k]={k:k,grade:ka[0],school:ka.slice(1).join('|'),all:0,stu:[]}; ord.push(g[k]); }   /* 表示もキーと同じ形（2026-09-16b） */
     g[k].all++;
     if(!dr[String(x.s.student_id)])g[k].stu.push(x.s);
   });
@@ -8339,6 +8553,9 @@ function _rpGrGroups_(allT,dr){
 }
 function rpRenderGr_(groups,busy){
   var rows=$('rpGrRows'); if(!rows)return;
+  /* busy＝true 読み込み中／'error' 教材の一覧を取れなかった（2026-09-16b）。省略したら いまの状態から決める */
+  if(busy===undefined)busy=(RP_MATS_ST==='loading'||RP_SETS_ST==='loading')?true:((RP_MATS_ST==='error')?'error':false);
+  var err=(busy==='error'); if(err)busy=false;
   groups=groups||_rpGrGroups_(); _RP_GRL=groups;
   var body=$('rpGrBody'), car=$('rpGrCar');
   if(body)body.style.display=RP_GR_OPEN?'':'none';
@@ -8347,7 +8564,7 @@ function rpRenderGr_(groups,busy){
   groups.forEach(function(g,i){
     var gr=RP_GR[g.k], over=g.stu.filter(function(s){ return !!RP_STU[String(s.student_id)]; }).length;
     if(gr||over)chg++;
-    if(!RP_GR_OPEN||busy)return;
+    if(!RP_GR_OPEN||busy||err)return;
     var open=!!RP_GROPEN[g.k]||!!q;
     h+='<tr class="gr-row" data-k="'+esc(g.k)+'" onclick="rpGrRowTog('+i+')"><td class="gr-name"><span class="gr-car">'+(open?'▾':'▸')+'</span>'+esc(_rpGrLabel_(g.k))+'</td>'
       +'<td class="gr-n">'+((g.stu.length<g.all)?(g.stu.length+'/'):'')+g.all+'名</td>'
@@ -8370,15 +8587,19 @@ function rpRenderGr_(groups,busy){
     });
   });
   var sm=$('rpGrSum');
-  if(sm)sm.textContent=busy?'':(RP_WK_FROM?'弱点のマスから来たので、いまは使いません'
+  if(sm)sm.textContent=(busy||err)?'':(RP_WK_FROM?'弱点のマスから来たので、いまは使いません'
     :(chg?('変えている学年・中学校 '+chg+'／'+groups.length):'いまは全員「1の教材」'));
   if(RP_GR_OPEN)rows.innerHTML=busy?'<tr><td colspan="4" class="rp-none"><span class="rp-load"><span class="rp-spin"></span>読み込み中…</span></td></tr>'
-    :(h||'<tr><td colspan="4" class="rp-none">出す生徒がいません（2で生徒をえらんでください）</td></tr>');
+    :(err?'<tr><td colspan="4" class="rp-none">'+_rpMatsErrHtml_()+'</td></tr>'
+    :(h||'<tr><td colspan="4" class="rp-none">出す生徒がいません（2で生徒をえらんでください）</td></tr>'));
   var rb=$('rpGrReset'); if(rb)rb.disabled=!Object.keys(RP_GR).length&&!Object.keys(RP_STU).length;
-  var nt=$('rpGrSetNote');
-  if(nt){ var ci=_rpCurSet_();
-    nt.textContent=(ci>=0)?('保存セット「'+RP_SETS[ci].name+'」に一緒に保存されます（上書き保存したとき・先生全員で共有）')
-                          :'保存セットに保存すると、ここで変えた範囲も一緒に入ります（先生全員で共有）'; }
+  _rpGrSetNote_();
+}
+function _rpGrSetNote_(){
+  var nt=$('rpGrSetNote'); if(!nt)return;
+  var ci=_rpCurSet_();
+  nt.textContent=(ci>=0)?('保存セット「'+RP_SETS[ci].name+'」に一緒に保存されます（上書き保存したとき・先生全員で共有）')
+                        :'保存セットに保存すると、ここで変えた範囲も一緒に入ります（先生全員で共有）';
 }
 function rpGrToggle(){ RP_GR_OPEN=!RP_GR_OPEN; rpRenderGr_(); }
 function rpGrRowTog(i){ var g=_RP_GRL[i]; if(!g)return; RP_GROPEN[g.k]=!RP_GROPEN[g.k]; rpRenderGr_(); }
@@ -8402,10 +8623,11 @@ function rpReOpen(i,sid){
   rpReDraw_();
   $('rpReModal').classList.add('show');
 }
-function _rpReSt_(id){ var v=RP_ED&&RP_ED.r[id]; if(!v)return 0; if(!v.length)return 2; return (v.length>=_rpPartsOf_(id).length)?2:1; }
+function _rpReSt_(id){ var v=RP_ED&&RP_ED.r[id]; if(!v)return 0; if(!v.length)return 2; var n=_rpPartsOf_(id).length; if(!n)return RP_PARTS_LOADED?2:1; return (v.length>=n)?2:1; }   /* パート未着なら途中の印 2026-09-16b */
 function rpReDraw_(){
   var E=RP_ED; if(!E)return;
   var g=E.grade;
+  var pe=$('rpReParts'); if(pe){ var ph=_rpPartsStHtml_(); pe.innerHTML=ph; pe.style.display=ph?'':'none'; }   /* 2026-09-16b */
   var secs=[{t:(g||'学年未設定')+'の教材',mats:[]},{t:'全学年の教材',mats:[]},
             {t:'ほかの学年の教材',sub:'復習で出すときに使います。入れると印刷のとき学年ちがいの確認が出ます',oth:1,mats:[]}];
   _rpMats().forEach(function(m){ var mg=_rpMatGrade_(m.id); if(!mg)secs[1].mats.push(m); else if(mg===g)secs[0].mats.push(m); else secs[2].mats.push(m); });
@@ -8416,11 +8638,12 @@ function rpReDraw_(){
   var ks=_rpRngMids_(E.r), pc=0;
   $('rpReSel').innerHTML=ks.length?ks.map(function(id){
     var p=E.r[id]||[]; pc+=_rpRngPartN_(E.r,id);
+    var pw=_rpPartsWait_();
     return '<div class="re-sel" data-mid="'+esc(id)+'"><span class="m">'+esc(_rpMatName_(id))+'</span> '
       +(_rpOthGrade_(id,g)?'<span class="gr-badge w">ほかの学年</span> ':'')
-      +(p.length?'<span class="p">'+p.map(function(x){ return esc(_rpPartName_(id,x)); }).join('／')+'</span>':'<span class="rp-mute">ぜんぶ</span>')+'</div>';
+      +(p.length?'<span class="p">'+(pw?esc(p.length+'パート（'+pw+'）'):p.map(function(x){ return esc(_rpPartName_(id,x)); }).join('／'))+'</span>':'<span class="rp-mute">ぜんぶ</span>')+'</div>';
   }).join(''):'<div class="rp-mute" style="padding:10px;">まだ何もえらんでいません</div>';
-  $('rpReSelN').textContent=ks.length+'教材・'+pc+'パート';
+  $('rpReSelN').textContent=ks.length+'教材'+(_rpPartsWait_()?'':('・'+pc+'パート'));
   var oth=ks.filter(function(id){ return _rpOthGrade_(id,g); }).length;
   var un=E.asg?ks.filter(function(id){ return !E.asg[id]; }).length:0;
   var w=[];
@@ -8459,7 +8682,7 @@ function rpPaperAsk(){
   _prnHost='report'; tmErr_('');
   if(!list.length){ tmErr_('この絞り込みに合う生徒がいません。'); return; }
   var PL=_rpPrnPlan_(list);
-  if(!PL.mats.length){ tmErr_('出す教材が1つも選ばれていません。上の「1 どの教材から出すか」でえらんでください。'); return; }
+  if(!PL.mats.length){ tmErr_(_rpNoMatMsg_(PL,true)); return; }
   var qng=_rpQuNg_(PL.mats); if(qng){ tmErr_(qng); return; }
   if(!_rpTypes_().length){ tmErr_('出す種別を1つ以上えらんでください。'); return; }
   var kind=(_rpPaperStyle_()==='finish')?'仕上げプリント':'チェックプリント';
