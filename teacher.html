@@ -1610,6 +1610,22 @@
         .gr-btn{border:1px solid var(--border);background:#fff;border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;color:var(--text);font-family:inherit;}
         .gr-btn.pri{border-color:var(--crimson);color:var(--crimson-dark);}
         .gr-btn:disabled{opacity:.45;cursor:not-allowed;}
+        /* 【2026-09-16e】狭い幅（〜640px）の3の表は 1行ずつ積む＝横スクロールしない・範囲の列を1文字ずつ折り返さない。
+           1行目＝学年・中学校（生徒名）と人数／2行目＝出す範囲／3行目＝ボタン。641px 以上は表のまま */
+        @media(max-width:640px){
+          #rpGrTbl thead{display:none;}
+          #rpGrTbl,#rpGrTbl tbody{display:block;width:100%;}
+          #rpGrTbl tr{display:flex;flex-wrap:wrap;align-items:baseline;border-bottom:1px solid var(--border);}
+          #rpGrTbl td{display:block;border-bottom:none;padding:4px 8px;min-width:0;}
+          #rpGrTbl td:empty{display:none;}
+          #rpGrTbl td:first-child{flex:1 1 auto;white-space:normal;}
+          #rpGrTbl td:nth-child(2){flex:0 0 auto;}
+          #rpGrTbl td.gr-rng,#rpGrTbl td[colspan]{flex:1 1 100%;padding-top:0;}
+          #rpGrTbl td:last-child:not([colspan]){flex:1 1 100%;width:auto;text-align:left;white-space:normal!important;padding-top:0;}
+          #rpGrTbl td:last-child .gr-btn{display:inline-block;margin:2px 6px 4px 0;white-space:normal;max-width:100%;text-align:left;}
+          #rpGrTbl .gr-stu td:first-child,#rpGrTbl .gr-stu td.gr-rng,#rpGrTbl .gr-stu td:last-child:not([colspan]){padding-left:24px;}
+          #rpGrTbl .gr-name{white-space:normal;}
+        }
         #rpReModal .modal{max-width:none;width:min(96vw,1040px);max-height:95vh;display:flex;flex-direction:column;overflow:hidden;padding:14px 16px;}
         .re-hd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-right:30px;}
         .re-hd h3{margin:0;font-size:16px;}
@@ -3911,6 +3927,36 @@ function _grdConfirm_(rows,onGo,onCancel){
   });
 }
 var GRD_CANCEL_MSG_='学年が合わない教材が入っていたので、印刷をやめました。教材や生徒をえらび直してください。';
+/* 【2026-09-16e】範囲を送ったとき、範囲が空（{}）か 範囲に割り当てている教材が1つもないので紙が出ない生徒（＝範囲なし）。
+   ★この生徒は「まちがいなし」ではない＝案内を分ける。ranges＝JSON文字列（送らないときは空）。
+   送る対象からは外さない（確認窓「この内容で出します」の人数・学年ちがいの確認と同じ生徒のまま） */
+function _rpNoRangeIds_(ranges){
+  var o={}, rg=null;
+  if(!ranges)return o;
+  try{ rg=JSON.parse(ranges); }catch(e){ return o; }
+  if(!rg||typeof rg!=='object')return o;
+  var byId={}; (_students||[]).forEach(function(s){ byId[String(s.student_id)]=s; });
+  Object.keys(rg).forEach(function(sid){
+    var r=rg[sid], ks=(r&&typeof r==='object'&&!Array.isArray(r))?Object.keys(r):[];
+    if(!ks.length){ o[sid]=1; return; }
+    var s=byId[sid]; if(!s)return;
+    var asg=_rpAsgSet_(s);
+    if(!ks.some(function(m){ return asg[m]; }))o[sid]=1;
+  });
+  return o;
+}
+/* 紙が出なかった生徒のうち 範囲なし の人数。rows＝サーバーが返した生徒／got＝紙が出た生徒 */
+function _rpNoRangeN_(ranges,rows,got){
+  var nr=_rpNoRangeIds_(ranges), g={};
+  (got||[]).forEach(function(b){ g[String(b.student_id)]=1; });
+  return (rows||[]).filter(function(s){ var k=String(s.student_id); return !g[k]&&nr[k]; }).length;
+}
+/* 印刷しない生徒の内訳の文。mist＝まちがいなし（graduated なら 克服した語なし）・none＝範囲なし */
+function _rpSkipMsg_(mist,none,mistLbl){
+  var a=[]; if(mist>0)a.push(mistLbl+' '+mist+'名'); if(none>0)a.push('範囲なし '+none+'名');
+  return a.join('・')+'は印刷しません';
+}
+var RP_NORNG_HINT_='範囲なし＝「3 学年・中学校や生徒ごとに範囲を変える」で範囲が空か、範囲に割り当てている教材がありません。';
 /* ranges＝生徒ごとの範囲（JSON文字列・省略可）。レポート・印刷タブで学年・中学校／生徒ごとに範囲を変えたときだけ渡す（2026-09-16）。
    生徒一覧の「まとめて印刷」からは渡さない＝いままでと同じ呼び方（川上さん確定）。 */
 function runFinishSheet_(ids,mats,types,ranges){
@@ -3933,11 +3979,13 @@ function runFinishSheet_(ids,mats,types,ranges){
       var built=[];
       ss.forEach(function(s){ var b0=fsBuildSheet_(s,base); if(b0) built.push(b0); });
       var skipped=ss.length-built.length;
+      var noRng=_rpNoRangeN_(ranges,ss,built);   /* 範囲なし（まちがいなしと分ける）2026-09-16e */
       if(!built.length){ hideLoading();
         /* ★なぜ0問なのかと、次にどうすればよいかまで書く（2026-09-02 実測でいちばん多い原因は下の2つ）。
            鈴木遥斗さんの九州＝8/31に19問まちがえたのに「3日以上前」で全部落ちていた。
            中国四国・中部＝割り当てただけで1回もやっていない。 */
-        tmErr_('紙にできる問題がある生徒がいません（'+ss.length+'名ぜんぶ0問）。<br>'
+        tmErr_('紙にできる問題がある生徒がいません（'+ss.length+'名ぜんぶ0問'+(noRng?('・うち範囲なし '+noRng+'名'):'')+'）。<br>'
+          +(noRng?('・'+RP_NORNG_HINT_+'<br>'):'')
           +'・テスト直前に進めた範囲なら、上の「<b>いつのまちがいを出すか</b>」を「<b>ぜんぶ</b>」にしてください。'
           +'いまは「'+esc(_fsMinDays_()>=1?(_fsMinDays_()+'日以上前'):'ぜんぶ')+'」です。<br>'
           +'・それでも0問なら、その生徒はえらんだ範囲を<b>まだ学習していません</b>（まちがいノートが空です）。');
@@ -3950,7 +3998,7 @@ function runFinishSheet_(ids,mats,types,ranges){
       function _fsIssue_(){
       /* ★ここまで来て初めて閉じる。作れないうちは開いたままにして、理由を読ませる */
       if(_prnHost!=='report')closeModal('bulkModal');   /* タブから呼んだときは閉じるものが無い（段D）*/
-      if(skipped) toast('まちがいなし '+skipped+'名は印刷しません');
+      if(skipped) toast(_rpSkipMsg_(skipped-noRng,noRng,'まちがいなし'));
       /* セット番号を発行してから描く。保存に失敗したら印刷しない
          （番号のない紙を配ると、生徒が答え合わせできない）2026-08-31 段4 */
       showLoading('セット番号を発行しています…');
@@ -4112,14 +4160,16 @@ function runPrint_(ids,scope,days,limit,types,mats,ranges){   /* ranges＝省略
       return s.items.length>0;   // 0問の子は紙を作らない（紙のむだ＝川上さん 2026-08-17）
     });
     var skipped=all-sts.length;
-    if(!sts.length){tmErr_((scope==='graduated')?('克服した語がある生徒がいません（'+all+'名ぜんぶ0語）'):('まちがえている問題がある生徒がいません（'+all+'名ぜんぶ0問）'));return;}
+    var noRng=_rpNoRangeN_(ranges,d.data.students,sts);   /* 範囲なし（まちがいなしと分ける）2026-09-16e */
+    if(!sts.length){tmErr_(((scope==='graduated')?('克服した語がある生徒がいません（'+all+'名ぜんぶ0語'):('まちがえている問題がある生徒がいません（'+all+'名ぜんぶ0問'))
+      +(noRng?('・うち範囲なし '+noRng+'名）。'+RP_NORNG_HINT_):'）'));return;}
     /* 【2026-09-16】学年ちがいの確認。窓を開いているあいだに下の finally が読み込み表示を消すので、
        続けるときは出し直す */
     _grdConfirm_(sts,function(){ showLoading(sts.length+'名ぶんの紙を組んでいます…'); _cpGo_(); hideLoading(); },
       function(){ tmErr_(GRD_CANCEL_MSG_); });
     function _cpGo_(){
     if(_prnHost!=='report')closeModal('bulkModal');   /* ★作れると分かってから閉じる 2026-09-02⑬。タブから呼んだときは閉じるものが無い（段D）*/
-    if(skipped)toast((scope==='graduated'?'克服した語なし ':'まちがいなし ')+skipped+'名は印刷しません');
+    if(skipped)toast(_rpSkipMsg_(skipped-noRng,noRng,(scope==='graduated'?'克服した語なし':'まちがいなし')));
     if(loadCancelled_()){return;}
     showLoading(sts.length+'名ぶんの紙を組んでいます…',true);   /* 【2026-09-14】進み具合＋やめる */
     var html=sts.map(function(s){
@@ -8364,7 +8414,33 @@ var RP_PARTS={}, RP_PARTS_LOADED=false, RP_PARTS_BUSY=false;   /* 教材id → [
 var RP_PARTS_ST='idle', RP_PARTS_TIMEOUT_MS=30000, _rpPartsTok_=0;
 var RP_OMOPEN={};   /* 1の教材えらびで、パートを開いている教材 */
 var RP_ED=null;     /* 範囲を変える窓の中身 */
-function _rpClone_(o){ if(!o||typeof o!=='object'||Array.isArray(o))return {}; try{ return JSON.parse(JSON.stringify(o)); }catch(e){ return {}; } }
+/* 【2026-09-16e】形を確かめて写す。範囲1つ＝{教材id:[part_id（空でない文字列）…]}／gr・stu＝{キー:範囲}。それ以外は捨てる。
+   ★パートの配列の中の壊れた値は その値だけ捨てる。全部壊れていれば その教材ごと捨てる（[]＝まるごと に広げない）。
+     範囲の中身が全部壊れていれば そのキーごと捨てる（{}＝紙が出ない にしない＝上の範囲に戻る）。 */
+function _rpCloneRng_(r){
+  var o={}; if(!r||typeof r!=='object'||Array.isArray(r))return o;
+  Object.keys(r).forEach(function(mid){
+    if(mid==='__proto__')return;
+    var v=r[mid]; if(!Array.isArray(v))return;
+    var a=v.filter(function(x){ return typeof x==='string'&&x.trim()!==''; });
+    if(v.length&&!a.length)return;
+    o[mid]=a;
+  });
+  return o;
+}
+function _rpClone_(o){
+  var out={}; if(!o||typeof o!=='object'||Array.isArray(o))return out;
+  Object.keys(o).forEach(function(k){
+    if(k==='__proto__')return;
+    var v=o[k]; if(!v||typeof v!=='object'||Array.isArray(v))return;
+    var r=_rpCloneRng_(v);
+    if(Object.keys(v).length&&!Object.keys(r).length)return;
+    out[k]=r;
+  });
+  return out;
+}
+/* onclick の '…' の中に入れる文字列（JS の文字列としてエスケープしてから HTML としてエスケープ）2026-09-16e */
+function _rpJsq_(x){ return esc(String(x).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,' ')); }
 function _rpWithRanges_(o,r){ if(r)o.ranges=r; return o; }
 function _rpSetParts_(rows){
   var o={};
@@ -8458,12 +8534,12 @@ function _rpRngMids_(r){
   var a=[]; _rpMats().forEach(function(m){ var k=String(m.id); if(o[k]){ a.push(k); delete o[k]; } });
   return a.concat(Object.keys(o));
 }
-function _rpRngPartN_(r,mid){ var p=r[mid]; return (p&&p.length)?p.length:_rpPartsOf_(mid).length; }
+function _rpRngPartN_(r,mid){ var p=r[mid]; return (Array.isArray(p)&&p.length)?p.length:_rpPartsOf_(mid).length; }
 function _rpRngSumm_(r){
   var ks=_rpRngMids_(r); if(!ks.length)return '（なし）';
   var wait=_rpPartsWait_();   /* パートの一覧が無いあいだは パートの数も名前も出さない 2026-09-16b */
   var pn=0, out=ks.map(function(mid){
-    var p=r[mid]||[]; pn+=_rpRngPartN_(r,mid);
+    var p=Array.isArray(r[mid])?r[mid]:[]; pn+=_rpRngPartN_(r,mid);   /* 形が壊れていても止めない 2026-09-16e */
     if(!p.length)return _rpMatName_(mid)+' ぜんぶ';
     if(wait)return _rpMatName_(mid)+' '+p.length+'パート（'+(RP_PARTS_ST==='error'?'名前を取れませんでした':'読み込み中')+'）';
     return _rpMatName_(mid)+' '+(p.length<=3?p.map(function(x){ return _rpPartName_(mid,x); }).join('・'):(_rpPartName_(mid,p[0])+' ほか'+(p.length-1)));
@@ -8477,7 +8553,7 @@ function _rpPrnPlan_(list){
   var top=_rpTopRange_(), hasP=_rpOutHasParts_(), chg=false, rows=[], uni={};
   (list||[]).forEach(function(x){ var R=_rpRangeOf_(x.s,top); if(R.src!=='t')chg=true; rows.push({s:x.s,R:R}); Object.keys(R.r).forEach(function(m){ uni[m]=1; }); });
   var need=hasP||chg, ranges=null;
-  if(need){ ranges={}; rows.forEach(function(o){ ranges[String(o.s.student_id)]=o.R.r; }); }
+  if(need){ ranges={}; rows.forEach(function(o){ ranges[String(o.s.student_id)]=_rpCloneRng_(o.R.r); }); }   /* 壊れた形は送らない 2026-09-16e */
   return {rows:rows,need:need,chg:chg,ranges:ranges,mats:need?_rpRngMids_(uni):rpOutMats_()};
 }
 /* ---- 1 どの教材から出すか ---- */
@@ -8506,7 +8582,9 @@ function _rpEditBtnLabel_(){
    o.secs=[{t,sub,oth,mats}]／o.state(id)→0 なし・1 パートだけ・2 まるごと／o.fn＝押したときの関数名
    ★本の□＝本ぜんぶの選択。本の行のそれ以外＝開く・閉じる。最初は閉じる */
 function _rpTreeHtml_(o){
-  var h='', q=function(x){ return esc(String(x).replace(/['"\\]/g,'')); };
+  /* 【2026-09-16e】押したときの引数は 文字を削らずに JS の文字列としてエスケープする＝開閉の記憶（bopen/mopen）と同じキーになる
+     （前は ' を削っていたので、シリーズに入らない「Let's Try 小6」の本が開かなかった） */
+  var h='', q=_rpJsq_;
   var pw=_rpPartsWait_();   /* パートの一覧が未着・失敗のときの文 2026-09-16b */
   o.secs.forEach(function(sc,si){
     if(!sc.mats.length)return;
@@ -8604,7 +8682,7 @@ function rpRenderGr_(groups,busy){
       var a=ks.filter(function(m){ return asg[m]; }).length, tot=ks.length;
       var warn=(a===0)?'<span class="gr-badge w">割当なし＝紙が出ません</span>'
         :((a<tot)?'<span class="gr-badge w">割当 '+a+'/'+tot+'教材</span>':'<span class="rp-mute">割当 '+a+'/'+tot+'教材</span>');
-      var sq=esc(sid.replace(/['"\\]/g,''));
+      var sq=_rpJsq_(sid);
       h+='<tr class="gr-stu" data-sid="'+esc(sid)+'"><td>'+esc(s.name||'(無名)')+'</td><td></td><td class="gr-rng">'
         +((R.src==='s')?'<span class="chg">'+esc(_rpRngSumm_(R.r))+'</span><span class="gr-badge s">この生徒だけ</span>'
           :'<span class="same">'+((R.src==='g')?(esc(_rpGrLabel_(g.k))+'と同じ'):'1の教材と同じ')+'</span>')
@@ -8619,7 +8697,9 @@ function rpRenderGr_(groups,busy){
   if(RP_GR_OPEN)rows.innerHTML=busy?'<tr><td colspan="4" class="rp-none"><span class="rp-load"><span class="rp-spin"></span>読み込み中…</span></td></tr>'
     :(err?'<tr><td colspan="4" class="rp-none">'+_rpMatsErrHtml_()+'</td></tr>'
     :(h||'<tr><td colspan="4" class="rp-none">出す生徒がいません（2で生徒をえらんでください）</td></tr>'));
-  var rb=$('rpGrReset'); if(rb)rb.disabled=!Object.keys(RP_GR).length&&!Object.keys(RP_STU).length;
+  /* 【2026-09-16e】押せるのは、3の表に見えていて紙に効く個別範囲があるときだけ（上の要約と同じ数え方）。
+     押したら 見えない分（2で外した生徒・しぼった学年）も全部消す */
+  var rb=$('rpGrReset'); if(rb)rb.disabled=!!busy||err||!!RP_WK_FROM||!chg;
   _rpGrSetNote_();
 }
 function _rpGrSetNote_(){
@@ -8639,11 +8719,15 @@ function rpReOpen(i,sid){
   if(sid&&!s)return;
   var top=_rpTopRange_();
   var R=s?_rpRangeOf_(s,top):(RP_GR[g.k]?{r:RP_GR[g.k],src:'g'}:{r:top,src:'t'});
-  var r=_rpClone_(R.r);
+  var r=_rpCloneRng_(R.r);
   /* まだ変えていなければ「1の教材」から ほかの学年の教材を除いて始める（モック） */
   if(R.src==='t')Object.keys(r).forEach(function(m){ if(_rpOthGrade_(m,g.grade))delete r[m]; });
-  RP_ED={k:g.k,sid:s?String(s.student_id):'',grade:_grdNorm_(g.grade),asg:s?_rpAsgSet_(s):null,r:r,open:{},ser:{}};
+  RP_ED={k:g.k,sid:s?String(s.student_id):'',grade:_grdNorm_(g.grade),asg:s?_rpAsgSet_(s):null,r:r,open:{},ser:{},same:false};
   var lab=_rpGrLabel_(g.k);
+  /* 【2026-09-16e】「↺ …と同じにする」＝押して「この範囲にする」で個別範囲を消す（そのあと1を変えても追いかける）。
+     学年・中学校に範囲がある生徒は、個別範囲を消すと その学年・中学校の範囲になるので、ボタンの名前もそう書く */
+  RP_ED.up=(s&&RP_GR[g.k])?'g':'t';
+  var sb=$('rpReSameBtn'); if(sb)sb.textContent=(RP_ED.up==='g')?('↺ '+lab+'の範囲と同じにする'):'↺ 1の教材と同じにする';
   $('rpReTtl').textContent='範囲を変える：'+(s?((s.name||'(無名)')+'（'+lab+'）だけ'):(lab+'（'+g.all+'名）'));
   $('rpReSub').textContent=s?('この生徒だけに効きます。'+lab+'のほかの生徒は変わりません。'):(lab+'の全員に効きます（「この生徒だけ」を変えた生徒を除く）。');
   $('rpReSelT').textContent=s?((s.name||'')+'の範囲'):(lab+'の範囲');
@@ -8664,7 +8748,7 @@ function rpReDraw_(){
     tag:function(id){ return (E.asg&&!E.asg[id])?'<span class="tg">割当なし</span>':''; }});
   var ks=_rpRngMids_(E.r), pc=0;
   $('rpReSel').innerHTML=ks.length?ks.map(function(id){
-    var p=E.r[id]||[]; pc+=_rpRngPartN_(E.r,id);
+    var p=Array.isArray(E.r[id])?E.r[id]:[]; pc+=_rpRngPartN_(E.r,id);
     var pw=_rpPartsWait_();
     return '<div class="re-sel" data-mid="'+esc(id)+'"><span class="m">'+esc(_rpMatName_(id))+'</span> '
       +(_rpOthGrade_(id,g)?'<span class="gr-badge w">ほかの学年</span> ':'')
@@ -8681,6 +8765,7 @@ function rpReDraw_(){
 }
 function rpReTree(act,a,b){
   var E=RP_ED; if(!E)return;
+  if(act!=='book-open'&&act!=='mat-open')E.same=false;   /* 「同じにする」のあとでチェックを変えたら ふつうの個別範囲にする 2026-09-16e */
   if(act==='book-open'){ E.ser[a]=!E.ser[a]; }
   else if(act==='mat-open'){ E.open[a]=!E.open[a]; }
   else if(act==='book'){ var ids=String(a).split('|'), full=ids.every(function(x){ return _rpReSt_(x)===2; });
@@ -8695,13 +8780,24 @@ function rpReTree(act,a,b){
   }
   rpReDraw_();
 }
-function rpReSame(){ if(!RP_ED)return; RP_ED.r=_rpTopRange_(); rpReDraw_(); }
+/* 【2026-09-16e】窓の見た目は 1の教材（学年・中学校に範囲がある生徒は その範囲）の写し。
+   「この範囲にする」を押したら 個別範囲（RP_GR／RP_STU のキー）を消す＝そのあと1を変えても追いかける */
+function rpReSame(){ var E=RP_ED; if(!E)return;
+  E.r=(E.up==='g'&&RP_GR[E.k])?_rpCloneRng_(RP_GR[E.k]):_rpTopRange_();
+  E.same=true; rpReDraw_(); }
 function rpReSave(){
   var E=RP_ED; if(!E)return;
-  if(E.sid)RP_STU[E.sid]=E.r; else RP_GR[E.k]=E.r;
+  var chg=true;
+  if(E.same){   /* 消す。もともと無ければ何も変わらない＝「変更あり」にしない */
+    var box=E.sid?RP_STU:RP_GR, key=E.sid||E.k;
+    chg=Object.prototype.hasOwnProperty.call(box,key);
+    delete box[key];
+  }
+  else if(E.sid)RP_STU[E.sid]=E.r; else RP_GR[E.k]=E.r;
   RP_GROPEN[E.k]=true; RP_ED=null;
   closeModal('rpReModal');
-  rpDirty_(); rpRenderPaper();
+  if(chg)rpDirty_();
+  rpRenderPaper();
 }
 /* ---- 4 押したら「この内容で出します」 ---- */
 function rpPaperAsk(){
