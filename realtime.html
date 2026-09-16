@@ -392,7 +392,24 @@ var _cardCount={};   // sid → 前回の表示カード数（横スクロール
 // ====== 本番データ（GAS quiz_live をポーリング） ======
 var GAS_URL=(window.opener&&window.opener.GAS_URL)||((new URLSearchParams(location.search)).get('gas')||'');
 var TOKEN=(window.opener&&window.opener.token)||((new URLSearchParams(location.search)).get('token')||'');
-function call(b){ b.token=TOKEN; return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json();}); }
+/* 【2026-09-16d】GASの返事の形を確かめてから受け取る
+   本番で、POST に doGet の返事（{ok:true,data:{service,method:'GET'}}）や HTML のエラーページが返ることがあった。
+   直す前は doGet の返事を「生徒0名」として描き、画面が空になっていた（HTML は JSON の読み取りで落ちていた）。
+   ・おかしな返事は ok:false にする＝呼び出し元は「接続が切れています」を出し、いまの表示を残す。
+   ・quiz_live は5秒ごとに取り直すので、ここでは重ねて取り直さない。rt_print（紙）は3回まで取り直す。
+   ・通信の失敗（fetch の失敗）はいままでどおり呼び出し元の catch に渡す。 */
+function _rtBadReply_(d){
+  if(!d||typeof d!=='object')return true;
+  return !!(d.ok===true&&d.data&&typeof d.data==='object'&&d.data.method==='GET'&&d.data.service);
+}
+function call(b,_try){
+  b.token=TOKEN; _try=_try||1;
+  return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){ return r.json().then(null,function(){ return null; }); }).then(function(d){
+    if(!_rtBadReply_(d)) return d;
+    if(b.action==='rt_print' && _try<3){ return new Promise(function(res){ setTimeout(res,600*_try); }).then(function(){ return call(b,_try+1); }); }
+    return {ok:false,error:'サーバーが混み合っています。少し待ってから、もう一度お試しください。'};
+  });
+}
 var resetAt=+(localStorage.getItem('kwt_rt_reset_at')||0);  // この時刻(クライアントms)以降のぶんだけ表示（授業の区切り）
 
 var roomFilter='all';

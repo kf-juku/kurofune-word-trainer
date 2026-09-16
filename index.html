@@ -2843,6 +2843,22 @@ function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
    タイムアウトしたときは再送しない＝サーバ側が処理済みの可能性があり、二重書き込みを避けるため。
    タイムアウト/通信断は _netRec に残す（次の不具合報告の診断情報に出る）。2026-08-21 */
 var CALL_TIMEOUT_MS=35000; /* 【2026-08-21⑮】20秒だと間違いノート(mistake_set 11〜21秒)が打ち切られて「直す単語はない」と嘘が出ていた。GAS側も軽くしたが保険として伸ばす */
+/* 【2026-09-16d】GASの返事の形を確かめてから受け取る
+   本番で、POST に doGet の返事（{ok:true,data:{service,method:'GET'}}）や HTML のエラーページが返ることがあった
+   （2026-09-16 先生画面から続けて・同時に呼んだとき）。直す前はそれを「成功」と受け取り、
+   保存（session_complete など）なら端末にためた記録（未送信キュー）を消していた＝記録が黙って消える。
+   ・おかしな返事は ok:false「通信に失敗しました」にする＝_sqGiveUp_ が「残して次に送り直す」と判断する（文言はいままでと同じ）。
+   ・取り直すのは、読むだけの action（CALL_SAFE_RE_）と、send_id の付いた保存（GAS 側で二重を弾く）だけ。
+     それ以外の書く action（ニックネーム・いいね等）は取り直さない＝二重に書かない。
+   ・通信の失敗（fetch の失敗）・時間切れの扱いは変えていない。
+   ★action を足したら、読むだけなら CALL_SAFE_RE_ に足す（単体テスト 20260916d が分類漏れを見張る）。
+   ★complete_extras は書き込みも含むが、いままでも取り直していて、二重になっても分析用の数だけなので一覧に入れた。 */
+var CALL_SAFE_RE_=/^(student_login|student_home|student_today|review_due|mistake_set|notes_summary|material_parts|quiz_list|quiz_words|badges|advisor_summary|overall_counter|team_feed|trio_stars|star_received|shooting_star|notice_mine|nickname_status|icon_unlocks|sheet_open|sheet_grade|complete_extras)$/;
+function _callBadReply_(d){
+  if(!d||typeof d!=='object')return true;
+  return !!(d.ok===true&&d.data&&typeof d.data==='object'&&d.data.method==='GET'&&d.data.service);
+}
+function _callCanRetry_(b){ return !!(b&&(b.send_id||CALL_SAFE_RE_.test(String(b.action||'')))); }
 function call(b,_try){
   /* 【2026-09-02】送り直しは、そのとき積んだ本人のトークンを持っている（あとでログインし直しても届く）。
      ふつうの呼び出しは token を渡していない＝これまでどおり今のトークンが入る。 */
@@ -2855,8 +2871,16 @@ function call(b,_try){
   try{if(window.AbortController){ac=new AbortController();tid=setTimeout(function(){timedOut=true;try{ac.abort();}catch(e){}},CALL_TIMEOUT_MS);}}catch(e){ac=null;}
   var opt={method:'POST',body:JSON.stringify(b)};if(ac)opt.signal=ac.signal;
   var clr=function(){if(tid){clearTimeout(tid);tid=null;}};
-  return fetch(GAS_URL,opt).then(function(r){return r.json();}).then(function(d){
-    clr();try{_netRec(b.action,d);}catch(e){}return d;
+  /* JSON として読めない返事（HTML のページ）は null にする。時間切れで止めたときは、いままでどおり下の catch へ */
+  return fetch(GAS_URL,opt).then(function(r){return r.json().then(null,function(eJ){if(timedOut)throw eJ;return null;});}).then(function(d){
+    clr();
+    /* 【2026-09-16d】返事の形を確かめる。doGet の返事・HTML のページは「保存できた」にしない（上の説明） */
+    if(_callBadReply_(d)){
+      try{_netRec(b.action,{ok:false,error:'bad_reply'});}catch(e){}
+      if(_callCanRetry_(b)&&_try<3){return sleep(600*_try).then(function(){return call(b,_try+1);});}
+      return {ok:false,error:'通信に失敗しました'};
+    }
+    try{_netRec(b.action,d);}catch(e){}return d;
   }).catch(function(){
     clr();
     if(!timedOut&&_try<3){return sleep(600*_try).then(function(){return call(b,_try+1);});}
