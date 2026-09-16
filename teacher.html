@@ -2073,6 +2073,20 @@
   </div>
 </div>
 
+<!-- 【2026-09-16】学年ちがいの確認。紙に載る問題に、生徒と学年が違う教材（grade＝中1/中2/中3）が入っていたら出す -->
+<div class="modal-back" id="grdModal">
+  <div class="modal" style="max-width:min(640px,96vw);">
+    <h3 style="margin-bottom:6px;" id="grdTtl">学年が合わない教材が入っています</h3>
+    <div class="mhint">生徒の学年と、教材に決めてある学年がちがいます。復習として出すなら「このまま印刷する」を押してください。</div>
+    <div id="grdList" style="max-height:50vh;overflow:auto;border:1px solid #e5e7eb;border-radius:8px;padding:6px 10px;font-size:13px;line-height:1.7;"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="grdCancel">やめる</button>
+      <span style="flex:1;"></span>
+      <button class="btn-primary" style="width:auto;" id="grdGo">このまま印刷する</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-back" id="fsGoModal">
   <div class="modal" style="max-width:min(560px,96vw);">
     <h3 style="margin-bottom:6px;">仕上げプリントができました</h3>
@@ -3679,6 +3693,64 @@ function fsFilledNote_(ss){
     +'<span style="color:#6b4a00;">解けるかどうかで、その範囲が本当に身についているかを見られます。</span>'
     +lines.join('')+'</div>';
 }
+/* ===== 【2026-09-16】学年ちがいの確認（川上さん指示）=====
+   教材シートの grade が「中1」「中2」「中3」の教材だけを見る（FD地理・教科書英単語）。
+   「全学年」・空欄の教材は見ない（メキメキ合格ノートは全学年のまま＝川上さん確定 2026-09-16）。
+   紙に実際に載る問題の教材で判定する＝教材を選ばずに刷ったときも効く。
+   生徒の学年が教材と同じ文字でなければ「合わない」（学年が空欄の生徒も合わない側に出す）。 */
+var GRD_CHECK_=['中1','中2','中3'];
+function _grdNorm_(g){ return String(g==null?'':g).replace(/\s+/g,'').replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}); }
+/* rows＝[{student_id,name,grade,items:[{material_id,material_title}]}]／mats＝{教材id:教材の行} */
+function _grdMismatch_(rows,mats){
+  var out=[];
+  (rows||[]).forEach(function(r){
+    var sg=_grdNorm_(r.grade), seen={};
+    (r.items||[]).forEach(function(it){
+      var mid=String((it&&it.material_id)||''); if(!mid||seen[mid])return;
+      seen[mid]=1;
+      var m=mats[mid]; if(!m)return;
+      var mg=_grdNorm_(m.grade); if(GRD_CHECK_.indexOf(mg)<0)return;
+      if(sg===mg)return;
+      out.push({student_id:String(r.student_id||''),name:String(r.name||''),sgrade:String(r.grade||''),
+                material_id:mid,mtitle:String(m.title||it.material_title||mid),mgrade:mg});
+    });
+  });
+  return out;
+}
+/* 教材の行を引く。画面が持っている教材一覧（bulkMaterials）で足りなければ materials_list を1回だけ取る
+   （bulkMaterials は使える教材だけなので、止めた教材のまちがいが残っていると引けないことがある） */
+var _grdAllMats_=null;
+function _grdMatMap_(mids,cb){
+  var map={};
+  (bulkMaterials||[]).forEach(function(m){ map[String(m.id)]=m; });
+  (_grdAllMats_||[]).forEach(function(m){ map[String(m.id)]=m; });
+  var lack=(mids||[]).some(function(id){ return !map[id]; });
+  if(!lack||_grdAllMats_){ cb(map); return; }
+  call({action:'materials_list'}).then(function(d){
+    _grdAllMats_=(d&&d.ok&&d.data&&d.data.materials)||[];
+    _grdAllMats_.forEach(function(m){ map[String(m.id)]=m; });
+    cb(map);
+  }).catch(function(){ cb(map); });   /* 取れなければ引ける分だけで判定する（印刷は止めない） */
+}
+/* 合わない組があれば窓を出す。無ければすぐ onGo。やめたら onCancel */
+function _grdConfirm_(rows,onGo,onCancel){
+  var mids={}; (rows||[]).forEach(function(r){ (r.items||[]).forEach(function(it){ if(it&&it.material_id)mids[String(it.material_id)]=1; }); });
+  _grdMatMap_(Object.keys(mids),function(map){
+    var bad=_grdMismatch_(rows,map);
+    if(!bad.length){ onGo(); return; }
+    hideLoading();
+    $('grdTtl').textContent='学年が合わない教材が入っています（'+bad.length+'件）';
+    $('grdList').innerHTML=bad.map(function(x){
+      return '<div class="grd-row" data-sid="'+esc(x.student_id)+'" data-mid="'+esc(x.material_id)+'">・<b>'+esc(x.name||'(無名)')+'</b>（'+esc(x.sgrade||'学年未設定')+'）　'
+        +esc(x.mtitle)+'（'+esc(x.mgrade)+'）</div>';
+    }).join('');
+    var done=function(go){ closeModal('grdModal'); $('grdGo').onclick=null; $('grdCancel').onclick=null; if(go)onGo(); else if(onCancel)onCancel(); };
+    $('grdGo').onclick=function(){ done(true); };
+    $('grdCancel').onclick=function(){ done(false); };
+    $('grdModal').classList.add('show');
+  });
+}
+var GRD_CANCEL_MSG_='学年が合わない教材が入っていたので、印刷をやめました。教材や生徒をえらび直してください。';
 function runFinishSheet_(ids,mats,types){
   if(!ids.length){tmErr_('印刷する生徒がえらばれていません。');return;}
   tmErr_('');
@@ -3708,6 +3780,12 @@ function runFinishSheet_(ids,mats,types){
           +'いまは「'+esc(_fsMinDays_()>=1?(_fsMinDays_()+'日以上前'):'ぜんぶ')+'」です。<br>'
           +'・それでも0問なら、その生徒はえらんだ範囲を<b>まだ学習していません</b>（まちがいノートが空です）。');
         return; }
+      /* 【2026-09-16】学年ちがいの確認。紙に載る問題（flat）で判定する。セット番号を発行する前に聞く
+         ＝やめたときに使わない番号が print_sets に残らない */
+      _grdConfirm_(built.map(function(b){
+        return {student_id:b.student_id,name:b.ctx.name,grade:b.ctx.grade,items:b.flat.map(function(f){return f.item;})};
+      }),function(){ _fsIssue_(); },function(){ tmErr_(GRD_CANCEL_MSG_); });
+      function _fsIssue_(){
       /* ★ここまで来て初めて閉じる。作れないうちは開いたままにして、理由を読ませる */
       if(_prnHost!=='report')closeModal('bulkModal');   /* タブから呼んだときは閉じるものが無い（段D）*/
       if(skipped) toast('まちがいなし '+skipped+'名は印刷しません');
@@ -3736,6 +3814,7 @@ function runFinishSheet_(ids,mats,types){
            （押すたびに作り直すと紙とPDFで番号が変わり、print_sets に無駄な行が増える）2026-08-31 */
         fsShowGo_(built, ss);
       }).catch(function(e){ hideLoading(); toast('セット番号を保存できませんでした：'+(e&&e.message||e)+'。印刷は中止しました'); });
+      }   /* _fsIssue_ ここまで（2026-09-16） */
     });
   }).catch(function(e){ hideLoading(); toast('仕上げプリントを作れませんでした：'+(e&&e.message||e)); });
 }
@@ -3872,6 +3951,11 @@ function runPrint_(ids,scope,days,limit,types,mats){
     });
     var skipped=all-sts.length;
     if(!sts.length){tmErr_((scope==='graduated')?('克服した語がある生徒がいません（'+all+'名ぜんぶ0語）'):('まちがえている問題がある生徒がいません（'+all+'名ぜんぶ0問）'));return;}
+    /* 【2026-09-16】学年ちがいの確認。窓を開いているあいだに下の finally が読み込み表示を消すので、
+       続けるときは出し直す */
+    _grdConfirm_(sts,function(){ showLoading(sts.length+'名ぶんの紙を組んでいます…'); _cpGo_(); hideLoading(); },
+      function(){ tmErr_(GRD_CANCEL_MSG_); });
+    function _cpGo_(){
     if(_prnHost!=='report')closeModal('bulkModal');   /* ★作れると分かってから閉じる 2026-09-02⑬。タブから呼んだときは閉じるものが無い（段D）*/
     if(skipped)toast((scope==='graduated'?'克服した語なし ':'まちがいなし ')+skipped+'名は印刷しません');
     if(loadCancelled_()){return;}
@@ -3883,6 +3967,7 @@ function runPrint_(ids,scope,days,limit,types,mats){
     var _pnLbl=(scope==='graduated')?'復習チェック':'チェックプリント';   /* 【2026-09-13i・段D】用語統一（要件定義書 §7）。旧「覚える一覧」 */
     printWhenImagesReady_($('printArea'),
       _rpToday().replace(/-/g,'')+'_'+_pnLbl+'_'+_cntOrName_(sts.map(function(s){return s.name;})));   /* 2026-09-02⑭ */ // 図の画像を読み込んでから印刷（旧80ms固定だと図の読み込み前に印刷が走り図が空白になった）2026-07-24
+    }   /* _cpGo_ ここまで（2026-09-16） */
   }).finally(function(){hideLoading();});
 }
 /* 印刷対象の画像（設問の図）が全部 読み込み終わる（or エラー確定）まで待ってから window.print()。
