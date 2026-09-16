@@ -1572,6 +1572,73 @@
         #view-report .qseg{display:inline-flex;border:1.5px solid var(--border);border-radius:20px;overflow:hidden;}
         #view-report .qseg button{border:none;background:#fff;color:var(--text-muted);font-size:12px;font-weight:700;padding:5px 13px;cursor:pointer;font-family:inherit;}
         #view-report .qseg button.on{background:var(--crimson);color:#fff;}
+        /* ===== 【2026-09-16】プリントの面＝1 どの教材 → 2 だれに → 3 学年・中学校や生徒ごとの範囲 → 4 紙の形 =====
+           承認モック＝20260916_モック_印刷の範囲を組ごと生徒ごとに.html（CSSの値はモックから流用。クラス名は rg-／gr-／re- で既存と分ける） */
+        .rg-stph{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:900;color:var(--text);margin:0 0 8px;flex-wrap:wrap;}
+        .rg-stp{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--crimson);color:#fff;font-size:12px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;}
+        .rg-stp.sub{background:#9ca3af;}
+        #rpFltTtl.rg-stph{display:inline-flex;margin:0;}
+        .rg-grhd{cursor:pointer;margin:0;}
+        .rg-grsum{margin-left:auto;font-weight:700;}
+        #rpPrnHd1{margin-bottom:8px;}
+        #rpWhoCard .rp-fltbox{margin-top:0;border-top:none;padding-top:0;}
+        #rpWhoCard.diff{background:#fffbeb;}
+        #rpWhoCard .rp-fltbox.diff{background:transparent;margin:0;padding:0;border-radius:0;}
+        .rg-tree{flex:1 1 100%;min-width:0;border:1px solid var(--border);border-radius:8px;background:#fff;max-height:340px;overflow:auto;padding:0;}
+        .rg-tblwrap{overflow-x:auto;}
+        .gr-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;}
+        .gr-tbl th{background:var(--gray-light,#f3f4f6);color:var(--text-muted);font-size:11px;font-weight:700;text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;}
+        .gr-tbl td{white-space:normal;padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
+        .gr-tbl tr.gr-row{cursor:pointer;}
+        .gr-tbl tr.gr-row:hover{background:#fafafa;}
+        .gr-name{font-weight:800;white-space:nowrap;}
+        .gr-car{display:inline-block;width:14px;color:#9ca3af;}
+        .gr-rng{line-height:1.55;}
+        .gr-rng .same{color:var(--text-muted);}
+        .gr-rng .chg{color:var(--crimson-dark);font-weight:700;}
+        .gr-badge{display:inline-block;font-size:10.5px;font-weight:800;border-radius:9px;padding:1px 7px;margin-left:6px;vertical-align:1px;}
+        .gr-badge.g{background:#fde8ea;color:var(--crimson-dark);}
+        .gr-badge.s{background:#e0ecff;color:#1f56b0;}
+        .gr-badge.w{background:#fff4d6;color:#8a5a00;}
+        .gr-stu td{background:#fcfcfd;font-size:12px;}
+        .gr-stu td:first-child{padding-left:30px;}
+        .gr-tbl td:last-child{text-align:right;}
+        .gr-tbl.pl-tbl td:last-child{text-align:left;}
+        .gr-tbl td:first-child,.gr-tbl td:nth-child(2){white-space:nowrap;}
+        .gr-tbl td:last-child .gr-btn{margin:1px 0 1px 4px;}
+        @media(max-width:900px){.gr-tbl:not(.pl-tbl) td:last-child{white-space:normal!important;width:1%;}.gr-tbl:not(.pl-tbl) td:last-child .gr-btn{display:block;margin:2px 0 2px auto;}}
+        .gr-btn{border:1px solid var(--border);background:#fff;border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;color:var(--text);font-family:inherit;}
+        .gr-btn.pri{border-color:var(--crimson);color:var(--crimson-dark);}
+        .gr-btn:disabled{opacity:.45;cursor:not-allowed;}
+        #rpReModal .modal{max-width:none;width:min(96vw,1040px);max-height:95vh;display:flex;flex-direction:column;overflow:hidden;padding:14px 16px;}
+        .re-hd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-right:30px;}
+        .re-hd h3{margin:0;font-size:16px;}
+        .re-two{display:flex;gap:12px;margin-top:8px;min-height:0;flex:1;}
+        .re-col{flex:1;border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;min-width:0;}
+        .re-ct{font-size:11.5px;font-weight:800;color:var(--text-muted);padding:6px 10px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;}
+        .re-list{overflow:auto;height:min(62vh,600px);padding:4px 0;}
+        .re-ser{display:flex;align-items:center;gap:6px;padding:5px 10px;background:#f3f4f6;font-weight:800;font-size:12.5px;cursor:pointer;border-top:1px solid #e5e7eb;}
+        .re-ser .re-sn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .re-div{font-size:11px;font-weight:800;color:var(--text-muted);padding:8px 10px 3px;}
+        .re-div.oth{margin-top:10px;border-top:1px dashed var(--border);padding-top:10px;}
+        .re-div span{display:block;font-weight:600;font-size:10.5px;margin-top:1px;}
+        .re-ser.oth{background:#fafafa;color:#4b5563;}
+        .re-mat{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 22px;font-size:12.5px;cursor:pointer;}
+        .re-mat:hover,.re-part:hover{background:#fafafa;}
+        .re-mat .re-mn{flex:1;min-width:0;}
+        .re-mat .n{color:var(--text-muted);font-size:11px;margin-left:auto;white-space:nowrap;}
+        .re-mat .tg{font-size:10px;font-weight:800;border-radius:8px;padding:0 6px;background:#fff4d6;color:#8a5a00;white-space:nowrap;}
+        .re-part{display:flex;align-items:center;gap:6px;padding:3px 10px 3px 48px;font-size:12px;cursor:pointer;color:#374151;}
+        .rg-cb{flex:0 0 auto;width:15px;height:15px;border:2px solid #cbd5e1;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:#fff;cursor:pointer;}
+        .rg-cb.on{background:var(--crimson);border-color:var(--crimson);}
+        .rg-cb.part{background:#fff;border-color:var(--crimson);color:var(--crimson);}
+        .rg-car{flex:0 0 auto;width:12px;color:#9ca3af;font-size:10px;cursor:pointer;}
+        .re-sel{padding:4px 10px;font-size:12.5px;line-height:1.7;}
+        .re-sel .m{font-weight:800;}
+        .re-sel .p{color:var(--text-muted);font-size:11.5px;display:block;padding-left:12px;}
+        .re-ft{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;}
+        .rp-rewarn{color:#8a5a00;font-weight:700;}
+        @media(max-width:640px){#rpReModal .re-two{flex-direction:column;}#rpReModal .re-list{height:30vh;}}
       </style>
 
       <!-- 保存セットは独立カード＝教材えらびと見た目を分ける（並んでいて紛らわしい・川上さん 2026-08-17）-->
@@ -1602,6 +1669,12 @@
       </div>
 
       <div class="qcard" id="rpSetSumCard">
+        <!-- 【2026-09-16】プリントの面だけ出す＝「1 どの教材から出すか」と2択（レポートの教材のまま／教材を変える）。
+             教材の行（下の .rp-sumline）と教材えらび（#rpSetEdit）は レポート面と共用のまま＝画面に1組だけ。 -->
+        <div id="rpPrnHd1" style="display:none;">
+          <div class="rg-stph"><span class="rg-stp">1</span>どの教材から出すか</div>
+          <div class="stycards sm" id="rpOutModeCards"></div>
+        </div>
         <div class="rp-sumline">
           <div class="rp-sl-b">
             <div class="rp-sl-r"><span class="pr-lab" id="rpMatTtl">教材</span> <b id="rpSlMatN">—</b><span id="rpOutState"></span><span class="rp-sl-s" id="rpSlMatS"></span><span id="rpMatLoad"></span></div>
@@ -1620,9 +1693,9 @@
              畳む理由は大きさ：教材えらび 1,045px／絞り込み 185px。 -->
         <div id="rpSetEdit" style="display:none;">
           <div class="sc-head" style="margin-top:2px;">
-            <span class="qmt-hint" style="flex:1;margin:0;">教材をクリックで選択（複数OK）。同じ本はまとめて選べます。毎日学習・単元別のどちらも選べます。</span>
+            <span class="qmt-hint" id="rpMatHint" style="flex:1;margin:0;">教材をクリックで選択（複数OK）。同じ本はまとめて選べます。毎日学習・単元別のどちらも選べます。</span>
             <span id="rpOutBtns" style="display:none;gap:8px;">
-              <button class="rp-allbtn" id="rpOutBackBtn" onclick="rpOutSameAsReport()">↺ レポートと同じに戻す</button>
+              <button class="rp-allbtn" id="rpOutBackBtn" onclick="rpOutMode('same')">↺ レポートと同じに戻す</button>
               <button class="rp-allbtn" id="rpOutClrBtn" onclick="rpOutClearAll()">× ぜんぶ外す</button>
             </span>
           </div>
@@ -1657,6 +1730,10 @@
           </div>
         </div>
       </div>
+
+      <!-- 【2026-09-16】「2 だれに出すか」。プリントの面のときだけ、上の絞り込みの箱（.rp-fltbox）をここへ移す（rpPane）。
+           ★箱は画面に1つだけ＝移すだけで複製しない（段F2 の決まり）。レポートの面では元の場所に戻る。 -->
+      <div class="qcard" id="rpWhoCard" style="display:none;"></div>
 
       <div id="rpPaneRep">
       <div class="qcard">
@@ -1720,9 +1797,19 @@
       </div>
 
       <div id="rpPanePrn" style="display:none;">
+      <!-- 【2026-09-16】3 学年・中学校や生徒ごとに範囲を変える（必要なときだけ・最初は閉じる）。
+           生徒ごとの範囲（RP_STU）＞ 学年・中学校の範囲（RP_GR）＞ 1の教材（RP_OUT）の順に効く。保存セットに gr / stu として一緒に入る。 -->
+      <div class="qcard" id="rpGrCard">
+        <div class="rg-stph rg-grhd" onclick="rpGrToggle()"><span class="rg-stp sub">3</span><span class="gr-car" id="rpGrCar">▸</span><span>学年・中学校や生徒ごとに範囲を変える</span><span class="gr-badge w">新</span><span class="rp-mute" style="font-weight:700;">必要なときだけ</span><span class="rp-mute rg-grsum" id="rpGrSum">いまは全員「1の教材」</span></div>
+        <div id="rpGrBody" style="display:none;">
+          <div class="rp-mute" style="margin:8px 0 2px;">2でしぼった生徒が、学年・中学校ごとに並びます。行を押すと生徒が出ます。<b>生徒ごとの範囲 ＞ 学年・中学校の範囲 ＞ 1の教材</b> の順に効きます。「割当」＝その生徒に割り当てている教材のうち、範囲に入っている数（紙に出るのはここだけ）。</div>
+          <div class="rg-tblwrap"><table class="gr-tbl" id="rpGrTbl"><thead><tr><th>学年・中学校</th><th>人数</th><th>出す範囲</th><th></th></tr></thead><tbody id="rpGrRows"></tbody></table></div>
+          <div class="re-ft"><button type="button" class="gr-btn" id="rpGrReset" onclick="rpGrResetAll()">↺ すべて1の教材に戻す</button><span class="rp-mute" id="rpGrSetNote"></span></div>
+        </div>
+      </div>
       <div class="qcard" id="rpPaperCard">
         <div id="rpWkFrom" style="display:none;"></div>
-        <div class="tm-qh" style="font-size:12px;font-weight:800;color:var(--text);">紙の形（どちらを刷るか）</div>
+        <div class="rg-stph"><span class="rg-stp">4</span>紙の形を選んで出す</div>
         <div class="stycards" id="rpStyleCards"></div>
 
         <!-- 【2026-09-14・段F3】「出す教材」の欄もここから外した。
@@ -1763,10 +1850,11 @@
           <div class="tm-note"><span id="rpMinDaysNote"></span>から、ミス問8割＋克服した語2割で選びます（<b>ミス問が足りないぶんは克服した語で埋めます</b>）。1人あたり最大100問。<br>紙は<b>両面2枚（1枚目＝問題／2枚目＝答え）</b>。<b>選択肢は紙に出しません。</b><br>🖨 <b>両面（長辺とじ）で印刷してください。</b></div>
         </div>
 
+        <div class="rp-mute" style="margin-top:8px;">3で変えた範囲は、どちらの紙にも同じように効きます。紙に出るのは、その生徒に割り当てている教材（進行中・完走）の問題だけです。</div>
         <div id="rpPrintErr" class="tm-note" style="display:none;background:#fff1f1;border-color:#f3c2c2;color:#a33;"></div>
 
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
-          <button class="btn-primary" style="width:auto;" id="rpPaperGoBtn" onclick="rpPaperGo()">🖨 チェックプリントを出す</button>
+          <button class="btn-primary" style="width:auto;" id="rpPaperGoBtn" onclick="rpPaperAsk()">🖨 チェックプリントを出す</button>
           <button class="rp-allbtn" id="rpPvBtn" onclick="rpPreviewOne()">👁 1人ぶんの見本を見る</button>
           <span class="rp-mute" id="rpPaperNote"></span>
           <span class="rp-mute" id="rpPaperWho" style="display:none;"></span>
@@ -2069,6 +2157,31 @@
     <div id="rpPvBody" style="max-height:70vh;overflow:auto;background:#f3f4f6;padding:12px;border-radius:10px;"></div>
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal('rpPvModal')">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 【2026-09-16】範囲を変える窓（学年・中学校／生徒1人）。左＝教材（本ごとに閉じる・▸でパート）／右＝えらんだ範囲 -->
+<div class="modal-back" id="rpReModal">
+  <div class="modal">
+    <div class="re-hd"><h3 id="rpReTtl">範囲を変える</h3><span class="rp-mute" id="rpReSub"></span></div>
+    <div class="re-two">
+      <div class="re-col"><div class="re-ct">教材（本を押すと開きます・教材の ▸ でパート）</div><div class="re-list" id="rpReCand"></div></div>
+      <div class="re-col"><div class="re-ct"><span id="rpReSelT">えらんだ範囲</span><span style="flex:1"></span><span id="rpReSelN"></span></div><div class="re-list" id="rpReSel"></div></div>
+    </div>
+    <div class="re-ft"><button type="button" class="btn-ghost" id="rpReCancel" onclick="closeModal('rpReModal')">やめる</button><button type="button" class="gr-btn" id="rpReSameBtn" onclick="rpReSame()">↺ 1の教材と同じにする</button><span style="flex:1"></span><span class="rp-mute rp-rewarn" id="rpReWarn"></span><button type="button" class="btn-primary" style="width:auto;" id="rpReSaveBtn" onclick="rpReSave()">この範囲にする</button></div>
+  </div>
+</div>
+
+<!-- 【2026-09-16】「🖨 …を出す」を押したら、印刷の前に 生徒ごとの範囲と紙に出す教材を見せる -->
+<div class="modal-back" id="rpPlanModal">
+  <div class="modal" style="max-width:min(900px,96vw);">
+    <h3 style="margin-bottom:6px;" id="rpPlanTtl">この内容で出します</h3>
+    <div id="rpPlanBody" style="max-height:62vh;overflow:auto;font-size:12.5px;line-height:1.7;"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="rpPlanCancel" onclick="closeModal('rpPlanModal')">やめる</button>
+      <span style="flex:1;"></span>
+      <button class="btn-primary" style="width:auto;" id="rpPlanGo" onclick="rpPlanGo()">この内容で出す</button>
     </div>
   </div>
 </div>
@@ -3751,12 +3864,14 @@ function _grdConfirm_(rows,onGo,onCancel){
   });
 }
 var GRD_CANCEL_MSG_='学年が合わない教材が入っていたので、印刷をやめました。教材や生徒をえらび直してください。';
-function runFinishSheet_(ids,mats,types){
+/* ranges＝生徒ごとの範囲（JSON文字列・省略可）。レポート・印刷タブで学年・中学校／生徒ごとに範囲を変えたときだけ渡す（2026-09-16）。
+   生徒一覧の「まとめて印刷」からは渡さない＝いままでと同じ呼び方（川上さん確定）。 */
+function runFinishSheet_(ids,mats,types,ranges){
   if(!ids.length){tmErr_('印刷する生徒がえらばれていません。');return;}
   tmErr_('');
   loadCancelReset_();
   showLoading(ids.length+'名ぶんの問題を集めています…（10秒ほどかかります）',true);   /* 【2026-09-14】進み具合＋やめる */
-  call(_rpQuArgs_({action:'teacher_mistakes',student_ids:ids.join(','),material_ids:mats.join(','),types:types,mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_}))
+  call(_rpQuArgs_(_rpWithRanges_({action:'teacher_mistakes',student_ids:ids.join(','),material_ids:mats.join(','),types:types,mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_},ranges)))
   .then(function(d){
     if(loadCancelled_()){return;}                     /* やめるを押した＝紙を組まない 2026-09-14 */
     if(!d||!d.ok){ hideLoading(); tmErr_('候補が取れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
@@ -3924,7 +4039,7 @@ function fsPdf_(){
 }
 /* mats＝教材idのカンマ区切り（任意・2026-09-07）。空なら全教材から。
    サーバー側は material_ids が空文字なら絞らない（kwtGAS.gs teacherMistakes）。 */
-function runPrint_(ids,scope,days,limit,types,mats){
+function runPrint_(ids,scope,days,limit,types,mats,ranges){   /* ranges＝省略可（runFinishSheet_ と同じ）2026-09-16 */
   if(!ids.length){toast('印刷する生徒がいません');return;}
   var subLbl=(scope==='recent')?('直近'+days+'日にまちがえた問題'):(scope==='graduated')?'復習チェック（前にやって克服した語）':'まちがえた問題';
   var emptyLbl=(scope==='graduated')?'まだ克服した語がありません。':'いまはまちがえている問題はありません。';
@@ -3935,7 +4050,7 @@ function runPrint_(ids,scope,days,limit,types,mats){
           「進まない」と受け取られていた（川上さん報告 2026-09-14）。 */
   loadCancelReset_();
   showLoading(ids.length+'名ぶんのまちがいを集めています…（10秒ほどかかります）',true);
-  call(_rpQuArgs_({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit,types:(types||'daily,unit,quiz'),material_ids:(mats||'')})).then(function(d){
+  call(_rpQuArgs_(_rpWithRanges_({action:'teacher_mistakes',student_ids:ids.join(','),mode:scope,days:days,limit:limit,types:(types||'daily,unit,quiz'),material_ids:(mats||'')},ranges))).then(function(d){
     if(loadCancelled_()){return;}                     /* やめるを押した＝紙を組まない 2026-09-14 */
     if(!d.ok){toast('取得失敗：'+(d.error||''));return;}
     _pqSetAssets_(d.data);   /* 【2026-09-13j・段E】問題の形式ごとの素材（表・文）を受け取る */
@@ -6513,6 +6628,8 @@ function tmStepPrint_(body){
        見出しと下の注記だけ紙の形で差し替える（_tmToggleStyle_）。 */
     +'<div id="tmMatOpts">'
     +'<div class="tm-qh" style="margin-top:10px;" id="tmMatHd">テスト範囲（教材をえらぶ・複数可）</div>'
+    /* 【2026-09-16】紙に出すのは割り当てている教材だけ（kwtGAS.gs teacherMistakes）。画面にも書く */
+    +'<div class="tm-mute" id="tmAsgNote" style="font-size:11.5px;color:var(--text-light);font-weight:700;margin:-2px 0 4px;">紙には、その生徒に割り当てている教材（進行中・完走）の問題だけが出ます。割当を解除した教材は出ません。</div>'
     +'<div class="pk-two">'
     +'<div class="pk-col"><div class="pk-coltitle">候補（教材）</div>'
     +'<input class="pk-search2" id="printMatSearch" placeholder="教材名で探す">'
@@ -7098,6 +7215,7 @@ function renderReportTab(){
     });
   }
   if((!bulkMaterials||!bulkMaterials.length)&&RP_MATS_ST!=='loading')rpLoadMats_();
+  else _rpPartsLoad_();   /* 【2026-09-16】教材の一覧をほかのタブが先に取っていたときは、パートだけ取りにいく */
   _rpWkLoad_();   /* 【2026-09-15b・段2】弱点の表（英検の教材のときだけ出す）。1回取ったら、学習状況を更新するまで使い回す */
   /* 【2026-09-13f・段C】確認テストの取りに行き方は ensureQuizBoard_ 1本にまとめた。
      教材ごとタブで先に取っていれば、ここは待たずにその場で描ける（前は別々に取っていて2回払っていた）。 */
@@ -7209,10 +7327,18 @@ function rpRenderMat(){
     el.innerHTML='<span class="rp-load">使える教材がありません（教材タブで追加してください）。</span> '
       +'<button class="rp-allbtn" onclick="rpLoadMats_()" style="margin-left:6px;">↻ もう一度読み込む</button>';
   }else{
-    el.innerHTML=_rpMatBoxHtml_(sel,isPrn?'po':'rp',isPrn);
+    /* 【2026-09-16】プリント面＝全教材を 毎日学習／単元別対策 に分け、本ごとに閉じた木（パートまでえらべる）。
+       レポート面＝いままでのチップ（変えない）。 */
+    el.innerHTML=isPrn?_rpOutTreeHtml_():_rpMatBoxHtml_(sel,'rp',false);
   }
   /* 見出し・件数・札・ボタン */
-  var ttl=$('rpMatTtl'); if(ttl)ttl.textContent=isPrn?'この紙を出す教材':'教材';
+  var ttl=$('rpMatTtl'); if(ttl)ttl.textContent=isPrn?'いまの教材':'教材';
+  var h1=$('rpPrnHd1'); if(h1)h1.style.display=isPrn?'':'none';
+  var mc=$('rpOutModeCards'); if(mc)mc.innerHTML=isPrn?_rpOutModeHtml_():'';
+  var hn=$('rpMatHint');
+  if(hn)hn.innerHTML=isPrn?'教材をクリックで選択。<b>レポートにない教材もここに全部あります。</b>本を押すと開き、教材の ▸ でパートまでえらべます。ここでさわると「教材を変える」になります。'
+                          :'教材をクリックで選択（複数OK）。同じ本はまとめて選べます。毎日学習・単元別のどちらも選べます。';
+  _rpEditBtnLabel_();
   /* ★読み込み中・失敗のあいだは、件数も ✓⚠ も出さない（たたんでいても見える場所に出す）。 */
   var ld=$('rpMatLoad');
   if(ld)ld.innerHTML=busy?'<span class="rp-load"><span class="rp-spin"></span>教材を読み込み中…</span>'
@@ -7247,6 +7373,7 @@ function rpRenderMat(){
     var bk={},ord=[];
     sel.forEach(function(id){var m=_rpMat(id); var k=m?_bookLabel(m):''; if(!k)return; if(!bk[k]){bk[k]=0;ord.push(k);} bk[k]++;});
     ms.textContent=ord.length?('　'+ord.map(function(k){return k+'（'+bk[k]+'）';}).join('・')):(sel.length?'　読み込み中…':'');
+    if(isPrn&&ord.length){ var pk=sel.filter(function(id){ return Array.isArray(RP_OUT[id]); }).length; if(pk)ms.textContent+='　（パートをしぼった教材 '+pk+'）'; }
   }
   rpRenderSets();
 }
@@ -7303,6 +7430,8 @@ function rpLoadSet(i){
   RP_OUT_TOUCHED=false; RP_OUT={}; RP_OOPEN={}; RP_PF_TOUCHED=false;
   RP_DROP={rep:{},prn:{}}; RP_TY_SIG=null;   /* 1人ずつ外したのは捨てる＝別のセットの紙に混ざらない 2026-09-15 */
   RP_WK_FROM=null; RP_QF=null; RP_UF=null;   /* 弱点のマスから入れた条件も捨てる 2026-09-15b */
+  /* 【2026-09-16】学年・中学校／生徒ごとの範囲は そのセットのものに入れ替える（無ければ空） */
+  RP_GR=_rpClone_(s.gr); RP_STU=_rpClone_(s.stu); RP_GROPEN={}; RP_OMOPEN={};
   rpRenderSets(); // 【2026-08-20】旧実装はここを呼んでおらず、選んでも見た目が変わらなかった（＝どれを見ているか分からない主因）
   rpRenderMat(); rpRenderFilters(); rpRender();
 }
@@ -7340,7 +7469,7 @@ function rpSaveSet(btn){   /* ＝いつでも「増える」。いま選んで�
   if(RP_SETS.length>=30){ toast('セットは30個までです。いらないものを「🗑 削除」で消してください'); return; }
   var n=prompt('新しいセットの名前（例：中1英単語／夏休み課題）\n※ 新しく追加します。いま選んでいるセットは書き換えません。',''); if(!n)return;
   n=String(n).trim(); if(!n)return;
-  var next=RP_SETS.concat([{name:n,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL}]);
+  var next=RP_SETS.concat([{name:n,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL,gr:_rpClone_(RP_GR),stu:_rpClone_(RP_STU)}]);   /* gr/stu 2026-09-16 */
   RP_SETS=next; RP_CUR=RP_SETS.length-1; RP_LAST=RP_CUR; RP_DIRTY=false; rpRenderSets();
   rpSaveSets_(next,'「'+n+'」を新しく保存しました（全'+next.length+'セット・先生全員に反映）',btn);
 }
@@ -7354,9 +7483,9 @@ function rpRenameSet(btn){
 }
 function rpUpdateSet(btn){   /* ＝いま選んでいるセットを書き換える（増えない）。消える内容があるので確認を出す */
   var i=_rpCurSet_(); if(i<0)return;
-  if(!confirm('「'+RP_SETS[i].name+'」を いまの内容（教材・絞り込み・期限）で上書きします。\n前の内容は元に戻せません。よろしいですか？\n※ 増やしたいときは「＋ 新しいセットとして保存」。'))return;
+  if(!confirm('「'+RP_SETS[i].name+'」を いまの内容（教材・絞り込み・期限・学年や中学校や生徒ごとの範囲）で上書きします。\n前の内容は元に戻せません。よろしいですか？\n※ 増やしたいときは「＋ 新しいセットとして保存」。'))return;
   var next=RP_SETS.slice();
-  next[i]={name:RP_SETS[i].name,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL};
+  next[i]={name:RP_SETS[i].name,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL,gr:_rpClone_(RP_GR),stu:_rpClone_(RP_STU)};   /* gr/stu 2026-09-16 */
   RP_SETS=next; RP_CUR=i; RP_LAST=i; RP_DIRTY=false; rpRenderSets();
   rpSaveSets_(next,'「'+RP_SETS[i].name+'」を上書きしました（先生全員に反映）',btn);
 }
@@ -7388,9 +7517,10 @@ function rpRenderFilters(){
   h+='<div class="filter-grp"><span class="filter-label">学年</span>'+_rpChips('grade',F.grade,grades,fn)+'</div>';
   if(sch.length)h+='<div class="filter-grp"><span class="filter-label">中学校</span>'+_rpChips('sch',F.sch,sch,fn)+'</div>';
   el.innerHTML=h;
-  var t=$('rpFltTtl'); if(t)t.textContent=isPrn?'この紙を出す生徒':'絞り込み';
+  /* 【2026-09-16】プリント面の見出しは「2 だれに出すか」（承認モック）。中身は いままでの「この紙を出す生徒」のまま */
+  var t=$('rpFltTtl'); if(t){ if(isPrn)t.innerHTML='<span class="rg-stp">2</span>だれに出すか'; else t.textContent='絞り込み'; t.classList.toggle('rg-stph',isPrn); }
   var nt=$('rpFltNote');
-  if(nt)nt.textContent=isPrn?'ここで変えても、レポートの一覧は変わりません。':'';
+  if(nt)nt.textContent=isPrn?'ここで変えても、レポートの一覧は変わりません。紙には、その生徒に割り当てている教材（進行中・完走）の問題だけが出ます。':'';   /* 割り当て 2026-09-16 */
   var bb=$('rpPfBackBtn'); if(bb)bb.style.display=isPrn?'':'none';
   var st=$('rpPfState'); if(st&&!isPrn)st.innerHTML='';
   /* 2026-09-15 生徒の一覧は rpRenderPaper が両面ぶん描く（ここでは消さない） */
@@ -7603,7 +7733,7 @@ function rpToggleMiss(){ RP_ONLY_MISS=!RP_ONLY_MISS; if(RP_ONLY_MISS){RP_ONLY_SH
    ・紙を作る本体は runPrint_ / runFinishSheet_ を**そのまま**呼ぶ。紙面のコードは1行も増やさない
    ・既定値は旧「まちがいプリント」と同じ（active・7日・20語・3種ぜんぶ）＝押しただけなら前と同じ紙が出る
      （要件定義書 §8 未確認 No.3 はこれで確定。以後は先生が変えたぶんを localStorage に覚える） */
-var RP_OUT={};        /* 出す範囲。教材id→1。空＝RP_SEL ぜんぶ */
+var RP_OUT={};        /* 出す範囲（1の教材）。教材id→ 1（まるごと）／[part_id…]（そのパートだけ・2026-09-16）。入っていない教材は出さない */
 var RP_OUT_TOUCHED=false;   /* 先生が1度でも触ったか。触っていなければ RP_SEL の変化にそのまま追従する */
 /* 【2026-09-14】読み込みの状態。'idle'／'loading'／'ok'／'error'。
    ★状態を持たないと「届いていない」と「0件だった」の区別がつかず、
@@ -7623,6 +7753,7 @@ function rpLoadMats_(){
     if(d&&d.ok){
       var mats=d.data&&d.data.materials?d.data.materials:[];
       bulkMaterials=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');});
+      _rpSetParts_(d.data&&d.data.parts); RP_PARTS_LOADED=true;   /* パートの一覧 2026-09-16 */
       RP_MATS_ST='ok';
     }else{
       RP_MATS_ST='error';    /* call() は3回まで自分で試して {ok:false} を返す＝ここは本当に取れなかったとき */
@@ -7652,6 +7783,7 @@ function _rpOutSync_(){
   RP_OUT={}; RP_SEL.forEach(function(id){ RP_OUT[String(id)]=1; });
 }
 function _rpOutSame_(){       /* いまレポートと同じか */
+  if(_rpOutHasParts_())return false;   /* パートをしぼっていれば別 2026-09-16 */
   var a=rpOutMats_(), b=RP_SEL.slice().sort(), c=a.slice().sort();
   return b.length===c.length&&b.every(function(x,i){return String(x)===String(c[i]);});
 }
@@ -7659,13 +7791,14 @@ function rpSetPaper(k){
   try{ localStorage.setItem('kwt_print_style',k); }catch(e){}
   rpRenderPaper();
 }
-function rpOutPick(mid){ mid=String(mid); RP_OUT_TOUCHED=true; if(RP_OUT[mid])delete RP_OUT[mid]; else RP_OUT[mid]=1; rpRenderMat(); rpRenderPaper(); }
-function rpOutPickBook(ids){ ids=ids.split('|'); RP_OUT_TOUCHED=true;
-  var all=ids.every(function(x){return RP_OUT[String(x)];});
+/* 【2026-09-16】教材の□＝まるごと入れる／まるごと入っていれば外す（パートだけのときは、まるごとにする） */
+function rpOutPick(mid){ mid=String(mid); _rpOutSync_(); RP_OUT_TOUCHED=true; if(RP_OUT[mid]===1)delete RP_OUT[mid]; else RP_OUT[mid]=1; rpRenderMat(); rpRenderPaper(); }
+function rpOutPickBook(ids){ ids=ids.split('|'); _rpOutSync_(); RP_OUT_TOUCHED=true;
+  var all=ids.every(function(x){return RP_OUT[String(x)]===1;});
   ids.forEach(function(x){ if(all)delete RP_OUT[String(x)]; else RP_OUT[String(x)]=1; });
   rpRenderMat(); rpRenderPaper(); }
 function rpOutFold(k,cur){ RP_OOPEN[k]=!cur; rpRenderMat(); }
-function rpOutClearAll(){ RP_OUT_TOUCHED=true; RP_OUT={}; Object.keys(RP_OOPEN).forEach(function(k){RP_OOPEN[k]=true;}); rpRenderMat(); rpRenderPaper(); }
+function rpOutClearAll(){ RP_OUT_TOUCHED=true; RP_OUT={}; rpRenderMat(); rpRenderPaper(); }   /* 本の開閉はそのまま 2026-09-16 */
 function rpOutSameAsReport(){ RP_OUT_TOUCHED=false; RP_OOPEN={}; rpRenderMat(); rpRenderPaper(); }
 /* 旧名でも動くようにしておく（ほかから呼ばれていないか分からないため）2026-09-14 */
 function rpOutPickAll(){ RP_OUT_TOUCHED=true; RP_SEL.forEach(function(id){RP_OUT[String(id)]=1;}); rpRenderMat(); rpRenderPaper(); }
@@ -7708,7 +7841,12 @@ function rpRenderPaper(n){
   var busy2=(RP_MATS_ST==='loading'||RP_MATS_ST==='error');
   /* ---- 出す生徒＝レポートの絞り込みが入った状態。ここで変えても一覧は変わらない ---- */
   var psame=_rpPfSame_();
-  var pn=rpTargets(true).length;
+  /* 【2026-09-16】外した子も含めて1回だけ数え、ここから「紙を出す子」と「3の表」を作る */
+  var allT=rpTargets(true,true), drP=_rpDrop_(true);
+  var tgt=allT.filter(function(x){ return !drP[String(x.s.student_id)]; });
+  var pn=tgt.length;
+  /* 3で学年・中学校／生徒ごとに変えた範囲があれば、紙に使う教材＝全員の範囲の和集合（種別・英検の欄・押せるかの判定に使う） */
+  var PLu=_rpPrnPlan_(tgt); if(PLu.need)use=PLu.mats;
   /* ★絞り込みの箱は レポート面とプリント面で共用している（段F2）。
      プリント面を見ているときだけ、状態の札と名前を出す。レポート面では空にする。 */
   var isPrn=(RP_PANE==='prn');
@@ -7717,6 +7855,7 @@ function rpRenderPaper(n){
   var pst=$('rpPfState');
   if(pst)pst.innerHTML=(isPrn&&!busyAll)?((psame?'<span class="pr-same">✓ レポートと同じ</span>':'<span class="pr-diff">⚠ レポートと別</span>')+'　<b>'+pn+'</b>名'):'';
   var fbox=document.querySelector('#view-report .rp-fltbox'); if(fbox)fbox.classList.toggle('diff',isPrn&&!psame&&!busyAll);
+  var wcd=$('rpWhoCard'); if(wcd)wcd.classList.toggle('diff',isPrn&&!psame&&!busyAll);
   var pbb=$('rpPfBackBtn'); if(pbb)pbb.disabled=psame||busyAll;
   /* 【2026-09-15】絞り込んだ生徒を全員ならべて、チェックで1人ずつ外す（川上さん確定）。
      ★レポート面でも出す＝「レポートも同様」（川上さん 2026-09-14）。 */
@@ -7725,6 +7864,7 @@ function rpRenderPaper(n){
     if(busyAll)who2.innerHTML='<span class="rp-load"><span class="rp-spin"></span>読み込み中…</span>';
     else who2.innerHTML=_rpWhoHtml_(isPrn);
   }
+  rpRenderGr_(_rpGrGroups_(allT,drP),busyAll);   /* 3 学年・中学校や生徒ごとの範囲 2026-09-16 */
 
   /* 条件の欄は紙の形で出し分ける */
   var a=$('rpListOpts'), b=$('rpFinishOpts');
@@ -7784,7 +7924,7 @@ function rpRenderPaper(n){
   if(nt)nt.innerHTML=(RP_MATS_ST==='loading')?'<span class="rp-load"><span class="rp-spin"></span>教材を読み込み中…</span>'
     :((RP_MATS_ST==='error')?'<span class="rp-loaderr">⚠ 教材の一覧を取れませんでした。</span>'
     :esc((use.length===0)?'出す教材が1つも選ばれていません。'
-    :((pn===0)?'条件に合う生徒がいません。':(quNg||(pn+'名ぶん・1人ずつ別の紙になります。')))));
+    :((pn===0)?'条件に合う生徒がいません。':(quNg||(pn+'名ぶん・1人ずつ別の紙になります。'+(PLu.chg?'学年・中学校や生徒ごとに変えた範囲で出します。':''))))));
   var er=$('rpPrintErr'); if(er&&!er.innerHTML)er.style.display='none';
   rpRenderSumLine();
 }
@@ -7805,7 +7945,7 @@ function rpToggleSetEdit(){
   var on=(e.style.display==='none');
   e.style.display=on?'':'none';
   /* ボタン名は「何に対する操作か」まで書く（UI標準）。開いた/閉じたで語を変えない 2026-09-14 */
-  if(b)b.textContent=on?'▴ 教材えらびを閉じる':'▾ 教材を変える';
+  _rpEditBtnLabel_();   /* プリント面は「▾ 中身を見る」（2026-09-16） */
 }
 /* 【2026-09-14・段F】1人ぶんの見本を画面に出す。
    ★先頭の生徒1人だけで作る＝43名ぶんの印刷プレビューを待たずに中身を確かめられる。
@@ -7813,9 +7953,12 @@ function rpToggleSetEdit(){
      番号の欄には FS_CODE_TMP_（見本の番号）が入る。 */
 function rpPreviewOne(){
   var list=rpPrintList_();
-  var mats=rpOutMats_();
+  /* 【2026-09-16】見本も その生徒の範囲（学年・中学校／生徒ごと・パート指定）で作る */
+  var PV=list.length?_rpPrnPlan_(list.slice(0,1)):null;
+  var mats=PV?PV.mats:rpOutMats_();
+  var rgx=function(o){ return _rpWithRanges_(o,(PV&&PV.ranges)?JSON.stringify(PV.ranges):''); };
   _prnHost='report'; tmErr_('');
-  if(!mats.length){ tmErr_('出す教材が1つも選ばれていません。'); return; }
+  if(!mats.length){ tmErr_((PV&&PV.need)?'先頭の生徒の範囲に教材が1つもありません。':'出す教材が1つも選ばれていません。'); return; }
   if(!list.length){ tmErr_('この絞り込みに合う生徒がいません。'); return; }
   var _qng=_rpQuNg_(mats); if(_qng){ tmErr_(_qng); return; }   /* 段3 2026-09-15b */
   var sid=String(list[0].s.student_id), nm=String(list[0].s.name||'');
@@ -7824,8 +7967,8 @@ function rpPreviewOne(){
   showLoading(nm+'さんの見本を作っています…（10秒ほどかかります）');
   var done=function(){ hideLoading(); if(btn)btn.disabled=false; };
   if(st==='finish'){
-    call(_rpQuArgs_({action:'teacher_mistakes',student_ids:sid,material_ids:mats.join(','),types:(_rpTypes_().join(',')||'daily,unit,quiz'),
-          mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_})).then(function(d){
+    call(_rpQuArgs_(rgx({action:'teacher_mistakes',student_ids:sid,material_ids:mats.join(','),types:(_rpTypes_().join(',')||'daily,unit,quiz'),
+          mode:'mix',min_days:_fsMinDays_(),limit:FS_LIMIT_}))).then(function(d){
       if(!d||!d.ok){ tmErr_('見本を作れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
       _pqSetAssets_(d.data);
       var ss=d.data.students||[];
@@ -7845,8 +7988,8 @@ function rpPreviewOne(){
   var limit=parseInt(($('rpLimit')||{}).value,10); if(!(limit>=1))limit=20;
   var types=[]; ['daily','unit','quiz'].forEach(function(t){ var c=$('rpT-'+t); if(c&&c.checked)types.push(t); });
   if(!types.length){ tmErr_('出す種別を1つ以上えらんでください。'); done(); return; }
-  call(_rpQuArgs_({action:'teacher_mistakes',student_ids:sid,mode:scope,days:days,limit:limit,
-        types:types.join(','),material_ids:mats.join(',')})).then(function(d){
+  call(_rpQuArgs_(rgx({action:'teacher_mistakes',student_ids:sid,mode:scope,days:days,limit:limit,
+        types:types.join(','),material_ids:mats.join(',')}))).then(function(d){
     if(!d||!d.ok){ tmErr_('見本を作れませんでした：'+esc((d&&d.error)||'通信に失敗しました')); return; }
     _pqSetAssets_(d.data);
     var s0=(d.data.students||[])[0];
@@ -7877,25 +8020,33 @@ function rpPane(k){
   var br=$('rpSw-rep'), bp=$('rpSw-prn');
   if(br)br.classList.toggle('on',RP_PANE==='rep');
   if(bp)bp.classList.toggle('on',RP_PANE==='prn');
+  /* 【2026-09-16】絞り込みの箱（.rp-fltbox）は1つだけ。プリント面では「2 だれに出すか」のカードへ移し、レポート面では元へ戻す */
+  var fb=document.querySelector('#view-report .rp-fltbox'), wc=$('rpWhoCard'), sc=$('rpSetSumCard');
+  if(fb&&wc&&sc){
+    if(RP_PANE==='prn'){ if(fb.parentNode!==wc)wc.appendChild(fb); wc.style.display=''; }
+    else { if(fb.parentNode!==sc)sc.appendChild(fb); wc.style.display='none'; }
+  }
   rpRenderMat();          /* 教材えらびの中身を 面に合わせて入れ替える（段F3）*/
   rpRenderFilters();      /* 絞り込みも同じ（段F2）*/
   if(RP_PANE==='prn')rpRenderPaper(); else rpRender();
 }
 /* 押したとき。紙を作る本体は既存の2本をそのまま使う。 */
+/* 【2026-09-16】ボタンは rpPaperAsk（この内容で出します の窓）→「この内容で出す」でここへ来る。
+   学年・中学校／生徒ごとの範囲や 1のパート指定があるときだけ ranges を渡し、material_ids は全員の教材の和集合にする。 */
 function rpPaperGo(){
   var list=rpPrintList_();
   var ids=list.map(function(x){return String(x.s.student_id);});
   if(!ids.length){ toast('紙にする生徒がいません'); return; }
-  var mats=rpOutMats_();
+  var PL=_rpPrnPlan_(list), mats=PL.mats, rj=PL.ranges?JSON.stringify(PL.ranges):'';
   _prnHost='report'; tmErr_('');
   /* 【2026-09-14・段F】出す教材は「選ばれているものそのもの」。0件なら作らない（空振りさせない）。 */
-  if(!mats.length){ tmErr_('出す教材が1つも選ばれていません。上の「出す教材」でえらんでください。'); return; }
+  if(!mats.length){ tmErr_('出す教材が1つも選ばれていません。上の「1 どの教材から出すか」でえらんでください。'); return; }
   var _qng=_rpQuNg_(mats); if(_qng){ tmErr_(_qng); return; }   /* 段3 2026-09-15b */
   if(_rpPaperStyle_()==='finish'){
     try{ localStorage.setItem('kwt_print_mats',mats.join(',')); }catch(e){}
     /* 【2026-09-15】仕上げプリントも画面でえらんだ種別を使う（前は決め打ちだった） */
     var ft=_rpTypes_(); if(!ft.length){ tmErr_('出す種別を1つ以上えらんでください。'); return; }
-    runFinishSheet_(ids,mats,ft.join(','));
+    runFinishSheet_(ids,mats,ft.join(','),rj);
     return;
   }
   var scope=(($('rpScope')||{}).value)||'active'; if(scope==='graduated')scope='active';
@@ -7909,7 +8060,7 @@ function rpPaperGo(){
   }catch(e){}
   var note=$('rpFitNote');
   if(note)note.textContent='チェックプリント '+ids.length+'名'+((RP_F.cls!=='all')?('（'+RP_F.cls+'）'):'')+'・1人1枚';
-  runPrint_(ids,scope,days,limit,types.join(','),mats.join(','));
+  runPrint_(ids,scope,days,limit,types.join(','),mats.join(','),rj);
 }
 /* 内訳の行の「🖨 この範囲で出す」＝その子・その教材だけ（1人×1教材）。
    条件は「5. 紙にする」でいま選んでいるものをそのまま使う＝押す場所で紙が変わらない。 */
@@ -7997,6 +8148,344 @@ function rpDropAll(off){
   RP_DROP[useP?'prn':'rep']=d;
   _rpAfterDrop_();
 }
+/* ===== 【2026-09-16】印刷の範囲を 学年・中学校ごと／生徒ごとに =====
+   承認モック＝20260916_モック_印刷の範囲を組ごと生徒ごとに.html（モックのJSは写していない）
+   つなぎ目＝ジョブス用/仕様書/20260916_つなぎ目_印刷の範囲を組ごと生徒ごとに.md
+   ・1の教材＝RP_OUT {教材id: 1（まるごと）| [part_id…]}
+   ・3の範囲＝RP_GR {'学年|中学校': {教材id: [part_id…]}}／RP_STU {生徒id: {…}}。[]＝まるごと
+   ・生徒1人の範囲＝RP_STU[生徒] ＞ RP_GR[学年|中学校] ＞ 1の教材
+   ・3の変更も1のパート指定も無いときは ranges を送らない（いままでと同じ呼び方）
+   ・保存セットに gr / stu として一緒に入れる（rpSaveSet / rpUpdateSet / rpLoadSet）
+   ・弱点のマスから来たとき（RP_WK_FROM）は、そのマスの教材で出すので 3の範囲は使わない */
+var RP_GR={}, RP_STU={}, RP_GROPEN={}, RP_GR_OPEN=false, _RP_GRL=[];
+var RP_PARTS={}, RP_PARTS_LOADED=false, RP_PARTS_BUSY=false;   /* 教材id → [{id,title}]（part_order 順・止めたパートは除く） */
+var RP_OMOPEN={};   /* 1の教材えらびで、パートを開いている教材 */
+var RP_ED=null;     /* 範囲を変える窓の中身 */
+function _rpClone_(o){ if(!o||typeof o!=='object'||Array.isArray(o))return {}; try{ return JSON.parse(JSON.stringify(o)); }catch(e){ return {}; } }
+function _rpWithRanges_(o,r){ if(r)o.ranges=r; return o; }
+function _rpSetParts_(rows){
+  var o={};
+  (rows||[]).forEach(function(p){
+    if(!p||p.is_active===false||String(p.is_active).toUpperCase()==='FALSE')return;
+    var k=String(p.material_id||''); if(!k||p.id==null)return;
+    (o[k]=o[k]||[]).push({id:String(p.id),title:String(p.title||''),ord:parseFloat(p.part_order)});
+  });
+  Object.keys(o).forEach(function(k){ o[k].sort(function(a,b){ return (isNaN(a.ord)?1e9:a.ord)-(isNaN(b.ord)?1e9:b.ord); }); });
+  RP_PARTS=o;
+}
+function _rpPartsLoad_(){
+  if(RP_PARTS_LOADED||RP_PARTS_BUSY||RP_MATS_ST==='loading')return;
+  RP_PARTS_BUSY=true;
+  call({action:'materials_list'}).then(function(d){
+    RP_PARTS_BUSY=false;
+    if(d&&d.ok){ _rpSetParts_(d.data&&d.data.parts); RP_PARTS_LOADED=true; try{ rpRenderMat(); rpRenderPaper(); }catch(e){} }
+  }).catch(function(){ RP_PARTS_BUSY=false; });
+}
+function _rpPartsOf_(mid){ return RP_PARTS[String(mid)]||[]; }
+var _rpMI_={src:null,n:-1,map:{}};
+function _rpMatById_(mid){
+  var b=bulkMaterials||[];
+  if(_rpMI_.src!==b||_rpMI_.n!==b.length){
+    var o={}; b.forEach(function(m){ o[String(m.id)]=m; });
+    (_grdAllMats_||[]).forEach(function(m){ if(!o[String(m.id)])o[String(m.id)]=m; });
+    _rpMI_={src:b,n:b.length,map:o};
+  }
+  return _rpMI_.map[String(mid)]||null;
+}
+function _rpMatGrade_(mid){ var m=_rpMatById_(mid), g=_grdNorm_(m&&m.grade); return GRD_CHECK_.indexOf(g)>=0?g:''; }
+function _rpOthGrade_(mid,grade){ var mg=_rpMatGrade_(mid); return !!mg&&mg!==_grdNorm_(grade); }
+function _rpMatName_(mid){ var m=_rpMatById_(mid); if(!m)return String(mid); var n=mtShort(m), g=_rpMatGrade_(mid); if(g&&n.indexOf(g)<0)n=g+' '+n; return n; }
+function _rpPartName_(mid,pid){ var ps=_rpPartsOf_(mid); for(var i=0;i<ps.length;i++){ if(ps[i].id===String(pid))return ps[i].title; } return String(pid); }
+function _rpGrKey_(s){ return String((s&&s.grade)||'')+'|'+String((s&&s.school)||''); }
+function _rpGrLabel_(k){ var a=String(k).split('|'); return (a[0]||'学年未設定')+'・'+(a[1]||'中学校未設定'); }
+function _rpAsgSet_(s){ var o={}; ((s&&s.materials_view)||[]).concat((s&&s.completed_view)||[]).forEach(function(m){ o[String(m.material_id)]=1; }); return o; }
+function _rpOutHasParts_(){ _rpOutSync_(); for(var k in RP_OUT){ if(Array.isArray(RP_OUT[k]))return true; } return false; }
+/* 1の教材を 範囲の形（[]＝まるごと）で */
+function _rpTopRange_(){
+  _rpOutSync_();
+  var r={}; rpOutMats_().forEach(function(mid){ var v=RP_OUT[mid]; r[mid]=Array.isArray(v)?v.slice():[]; });
+  return r;
+}
+function _rpRangeOf_(s,top){
+  if(!RP_WK_FROM){
+    var sid=String(s.student_id);
+    if(RP_STU[sid])return {r:RP_STU[sid],src:'s'};
+    var k=_rpGrKey_(s); if(RP_GR[k])return {r:RP_GR[k],src:'g'};
+  }
+  return {r:top||_rpTopRange_(),src:'t'};
+}
+/* 範囲の中の教材を 教材の並び順で */
+function _rpRngMids_(r){
+  var ks=Object.keys(r||{}); if(!bulkMaterials||!bulkMaterials.length)return ks;
+  var o={}; ks.forEach(function(k){ o[k]=1; });
+  var a=[]; _rpMats().forEach(function(m){ var k=String(m.id); if(o[k]){ a.push(k); delete o[k]; } });
+  return a.concat(Object.keys(o));
+}
+function _rpRngPartN_(r,mid){ var p=r[mid]; return (p&&p.length)?p.length:_rpPartsOf_(mid).length; }
+function _rpRngSumm_(r){
+  var ks=_rpRngMids_(r); if(!ks.length)return '（なし）';
+  var pn=0, out=ks.map(function(mid){
+    var p=r[mid]||[]; pn+=_rpRngPartN_(r,mid);
+    if(!p.length)return _rpMatName_(mid)+' ぜんぶ';
+    return _rpMatName_(mid)+' '+(p.length<=3?p.map(function(x){ return _rpPartName_(mid,x); }).join('・'):(_rpPartName_(mid,p[0])+' ほか'+(p.length-1)));
+  });
+  if(ks.length>4)return out.slice(0,3).join('／')+' ほか'+(ks.length-3)+'教材（計'+ks.length+'教材・'+pn+'パート）';
+  return out.join('／')+'（'+ks.length+'教材・'+pn+'パート）';
+}
+/* 紙を出す生徒ぶんの範囲。need＝ranges を送るか（3の変更か 1のパート指定があるとき）。mats＝送る material_ids */
+function _rpPrnPlan_(list){
+  var top=_rpTopRange_(), hasP=_rpOutHasParts_(), chg=false, rows=[], uni={};
+  (list||[]).forEach(function(x){ var R=_rpRangeOf_(x.s,top); if(R.src!=='t')chg=true; rows.push({s:x.s,R:R}); Object.keys(R.r).forEach(function(m){ uni[m]=1; }); });
+  var need=hasP||chg, ranges=null;
+  if(need){ ranges={}; rows.forEach(function(o){ ranges[String(o.s.student_id)]=o.R.r; }); }
+  return {rows:rows,need:need,chg:chg,ranges:ranges,mats:need?_rpRngMids_(uni):rpOutMats_()};
+}
+/* ---- 1 どの教材から出すか ---- */
+function _rpOutModeHtml_(){
+  var own=!!RP_OUT_TOUCHED;
+  var c=function(k,on,t,sub){ return '<button type="button" class="styc'+(on?' on':'')+'" id="rpOutMode-'+k+'" onclick="rpOutMode(\''+k+'\')"><span class="sy-mk">✓</span><span class="sy-b"><span class="sy-t">'+t+'</span><span class="sy-s">'+sub+'</span></span></button>'; };
+  return c('same',!own,'レポートの教材のまま','レポートで見ている教材をそのまま使う')+c('own',own,'教材を変える','この紙だけ教材をえらび直す。パートまでえらべる');
+}
+function rpOutMode(k){
+  var e=$('rpSetEdit');
+  if(k==='same'){
+    rpOutSameAsReport(); RP_OMOPEN={};
+    if(e&&e.style.display!=='none')rpToggleSetEdit();   /* 「レポートの教材のまま」に戻したら中身は閉じる（モック） */
+    rpRenderMat(); return;
+  }
+  _rpOutSync_(); RP_OUT_TOUCHED=true;
+  if(e&&e.style.display==='none')rpToggleSetEdit();
+  rpRenderMat(); rpRenderPaper();
+}
+function _rpEditBtnLabel_(){
+  var e=$('rpSetEdit'), b=$('rpSetEditBtn'); if(!e||!b)return;
+  var on=(e.style.display!=='none'), p=(RP_PANE==='prn');
+  b.textContent=on?(p?'▴ 中身を閉じる':'▴ 教材えらびを閉じる'):(p?'▾ 中身を見る':'▾ 教材を変える');
+}
+/* 教材の木（1の教材えらびと、範囲を変える窓の2か所で使う＝作りは1つ）
+   o.secs=[{t,sub,oth,mats}]／o.state(id)→0 なし・1 パートだけ・2 まるごと／o.fn＝押したときの関数名
+   ★本の□＝本ぜんぶの選択。本の行のそれ以外＝開く・閉じる。最初は閉じる */
+function _rpTreeHtml_(o){
+  var h='', q=function(x){ return esc(String(x).replace(/['"\\]/g,'')); };
+  o.secs.forEach(function(sc,si){
+    if(!sc.mats.length)return;
+    h+='<div class="re-div'+(sc.oth?' oth':'')+'">'+esc(sc.t)+(sc.sub?'<span>'+esc(sc.sub)+'</span>':'')+'</div>';
+    var grps=[], gm={};
+    sc.mats.forEach(function(m){ var k=_bookKey(m); if(!gm[k]){ gm[k]={key:k,lab:_bookLabel(m)||mtShort(m),items:[]}; grps.push(gm[k]); } gm[k].items.push(m); });
+    grps.forEach(function(bk){
+      var ids=bk.items.map(function(m){ return String(m.id); });
+      var full=ids.filter(function(id){ return o.state(id)===2; }).length, part=ids.filter(function(id){ return o.state(id)>0; }).length;
+      var bid=si+'|'+bk.key, op=!!o.bopen[bid], all=(full===ids.length);
+      h+='<div class="re-ser'+(sc.oth?' oth':'')+'" data-book="'+esc(bk.lab)+'" onclick="'+o.fn+'(\'book-open\',\''+q(bid)+'\')">'
+        +'<span class="rg-cb'+(all?' on':(part?' part':''))+'" onclick="event.stopPropagation();'+o.fn+'(\'book\',\''+q(ids.join('|'))+'\')">'+(all?'✓':(part?'−':''))+'</span>'
+        +'<span class="rg-car">'+(op?'▾':'▸')+'</span><span class="re-sn">'+esc(bk.lab)+'</span>'
+        +'<span class="rp-mute" style="margin-left:auto;white-space:nowrap;">'+((part&&part<ids.length)?(part+'/'):'')+ids.length+'教材</span></div>';
+      if(!op)return;
+      bk.items.forEach(function(m){
+        var id=String(m.id), st=o.state(id), ps=_rpPartsOf_(id), mo=!!o.mopen[id];
+        h+='<div class="re-mat" data-mid="'+esc(id)+'">'
+          +(ps.length?'<span class="rg-car" onclick="event.stopPropagation();'+o.fn+'(\'mat-open\',\''+q(id)+'\')">'+(mo?'▾':'▸')+'</span>':'<span class="rg-car"></span>')
+          +'<span class="rg-cb'+(st===2?' on':(st===1?' part':''))+'" onclick="'+o.fn+'(\'mat\',\''+q(id)+'\')">'+(st===2?'✓':(st===1?'−':''))+'</span>'
+          +'<span class="re-mn" onclick="'+o.fn+'(\'mat\',\''+q(id)+'\')">'+esc(mtShort(m))+'</span>'
+          +(o.tag?o.tag(id):'')
+          +'<span class="n">'+(ps.length?(((st===1)?(o.partN(id)+'/'):'')+ps.length+'パート'):'')+'</span></div>';
+        if(mo)ps.forEach(function(p){
+          var on=o.partOn(id,p.id);
+          h+='<div class="re-part" data-pid="'+esc(p.id)+'" onclick="'+o.fn+'(\'part\',\''+q(id)+'\',\''+q(p.id)+'\')"><span class="rg-cb'+(on?' on':'')+'">'+(on?'✓':'')+'</span>'+esc(p.title)+'</div>';
+        });
+      });
+    });
+  });
+  return h||'<div class="rp-mute" style="padding:10px;">教材がありません</div>';
+}
+function _rpOutSt_(id){ var v=RP_OUT[id]; if(v===1)return 2; if(Array.isArray(v))return (v.length&&v.length>=_rpPartsOf_(id).length)?2:1; return 0; }
+function _rpOutTreeHtml_(){
+  var mats=_rpMats();
+  var secs=[{t:'毎日学習',mats:mats.filter(function(m){ return String(m.content_type||'')!=='test'; })},
+            {t:'単元別対策',mats:mats.filter(function(m){ return String(m.content_type||'')==='test'; })}];
+  return '<div class="rg-tree">'+_rpTreeHtml_({secs:secs,fn:'rpOutTree',bopen:RP_OOPEN,mopen:RP_OMOPEN,state:_rpOutSt_,
+    partOn:function(id,pid){ var v=RP_OUT[id]; return v===1||(Array.isArray(v)&&v.indexOf(pid)>=0); },
+    partN:function(id){ var v=RP_OUT[id]; return Array.isArray(v)?v.length:0; }})+'</div>';
+}
+function rpOutTree(act,a,b){
+  if(act==='book-open'){ RP_OOPEN[a]=!RP_OOPEN[a]; rpRenderMat(); return; }
+  if(act==='mat-open'){ RP_OMOPEN[a]=!RP_OMOPEN[a]; rpRenderMat(); return; }
+  if(act==='book'){ rpOutPickBook(a); return; }
+  if(act==='mat'){ rpOutPick(a); return; }
+  if(act==='part'){ rpOutPart(a,b); return; }
+}
+function rpOutPart(mid,pid){
+  mid=String(mid); pid=String(pid); _rpOutSync_(); RP_OUT_TOUCHED=true;
+  var all=_rpPartsOf_(mid).map(function(p){ return p.id; }), v=RP_OUT[mid];
+  var cur=(v===1)?all.slice():(Array.isArray(v)?v.slice():[]);
+  var i=cur.indexOf(pid); if(i>=0)cur.splice(i,1); else cur.push(pid);
+  cur=all.filter(function(x){ return cur.indexOf(x)>=0; });   /* パートの並び順にそろえる */
+  if(!cur.length)delete RP_OUT[mid]; else RP_OUT[mid]=(cur.length===all.length)?1:cur;
+  rpRenderMat(); rpRenderPaper();
+}
+/* ---- 3 学年・中学校や生徒ごとに範囲を変える ---- */
+function _rpGrGroups_(allT,dr){
+  if(!allT){ allT=rpTargets(true,true); dr=_rpDrop_(true); }
+  var g={}, ord=[];
+  allT.forEach(function(x){
+    var k=_rpGrKey_(x.s);
+    if(!g[k]){ g[k]={k:k,grade:String(x.s.grade||''),school:String(x.s.school||''),all:0,stu:[]}; ord.push(g[k]); }
+    g[k].all++;
+    if(!dr[String(x.s.student_id)])g[k].stu.push(x.s);
+  });
+  ord.forEach(function(o){ o.stu.sort(function(a,b){ return String(a.name||'').localeCompare(String(b.name||''),'ja'); }); });
+  return ord.filter(function(o){ return o.stu.length; }).sort(function(a,b){
+    return (_rpGradeRank(a.grade)-_rpGradeRank(b.grade))||(b.all-a.all)||a.school.localeCompare(b.school,'ja'); });
+}
+function rpRenderGr_(groups,busy){
+  var rows=$('rpGrRows'); if(!rows)return;
+  groups=groups||_rpGrGroups_(); _RP_GRL=groups;
+  var body=$('rpGrBody'), car=$('rpGrCar');
+  if(body)body.style.display=RP_GR_OPEN?'':'none';
+  if(car)car.textContent=RP_GR_OPEN?'▾':'▸';
+  var top=_rpTopRange_(), q=((($('rpName')||{}).value)||'').trim(), chg=0, h='';
+  groups.forEach(function(g,i){
+    var gr=RP_GR[g.k], over=g.stu.filter(function(s){ return !!RP_STU[String(s.student_id)]; }).length;
+    if(gr||over)chg++;
+    if(!RP_GR_OPEN||busy)return;
+    var open=!!RP_GROPEN[g.k]||!!q;
+    h+='<tr class="gr-row" data-k="'+esc(g.k)+'" onclick="rpGrRowTog('+i+')"><td class="gr-name"><span class="gr-car">'+(open?'▾':'▸')+'</span>'+esc(_rpGrLabel_(g.k))+'</td>'
+      +'<td class="gr-n">'+((g.stu.length<g.all)?(g.stu.length+'/'):'')+g.all+'名</td>'
+      +'<td class="gr-rng">'+(gr?'<span class="chg">'+esc(_rpRngSumm_(gr))+'</span><span class="gr-badge g">この中学校だけ</span>':'<span class="same">1の教材と同じ</span>')
+      +(over?'<span class="gr-badge s">生徒ごと '+over+'名</span>':'')+'</td>'
+      +'<td><button type="button" class="gr-btn pri" onclick="event.stopPropagation();rpReOpen('+i+',\'\')">範囲を変える</button></td></tr>';
+    if(!open)return;
+    g.stu.forEach(function(s){
+      var sid=String(s.student_id), R=_rpRangeOf_(s,top), asg=_rpAsgSet_(s), ks=Object.keys(R.r);
+      var a=ks.filter(function(m){ return asg[m]; }).length, tot=ks.length;
+      var warn=(a===0)?'<span class="gr-badge w">割当なし＝紙が出ません</span>'
+        :((a<tot)?'<span class="gr-badge w">割当 '+a+'/'+tot+'教材</span>':'<span class="rp-mute">割当 '+a+'/'+tot+'教材</span>');
+      var sq=esc(sid.replace(/['"\\]/g,''));
+      h+='<tr class="gr-stu" data-sid="'+esc(sid)+'"><td>'+esc(s.name||'(無名)')+'</td><td></td><td class="gr-rng">'
+        +((R.src==='s')?'<span class="chg">'+esc(_rpRngSumm_(R.r))+'</span><span class="gr-badge s">この生徒だけ</span>'
+          :'<span class="same">'+((R.src==='g')?(esc(_rpGrLabel_(g.k))+'と同じ'):'1の教材と同じ')+'</span>')
+        +'　・　'+warn+'</td><td style="white-space:nowrap;">'
+        +((R.src==='s')?'<button type="button" class="gr-btn" onclick="rpStuBack(\''+sq+'\')">'+esc(g.school||'学年・中学校')+'の範囲に戻す</button> ':'')
+        +'<button type="button" class="gr-btn" onclick="rpReOpen('+i+',\''+sq+'\')">この生徒だけ変える</button></td></tr>';
+    });
+  });
+  var sm=$('rpGrSum');
+  if(sm)sm.textContent=busy?'':(RP_WK_FROM?'弱点のマスから来たので、いまは使いません'
+    :(chg?('変えている学年・中学校 '+chg+'／'+groups.length):'いまは全員「1の教材」'));
+  if(RP_GR_OPEN)rows.innerHTML=busy?'<tr><td colspan="4" class="rp-none"><span class="rp-load"><span class="rp-spin"></span>読み込み中…</span></td></tr>'
+    :(h||'<tr><td colspan="4" class="rp-none">出す生徒がいません（2で生徒をえらんでください）</td></tr>');
+  var rb=$('rpGrReset'); if(rb)rb.disabled=!Object.keys(RP_GR).length&&!Object.keys(RP_STU).length;
+  var nt=$('rpGrSetNote');
+  if(nt){ var ci=_rpCurSet_();
+    nt.textContent=(ci>=0)?('保存セット「'+RP_SETS[ci].name+'」に一緒に保存されます（上書き保存したとき・先生全員で共有）')
+                          :'保存セットに保存すると、ここで変えた範囲も一緒に入ります（先生全員で共有）'; }
+}
+function rpGrToggle(){ RP_GR_OPEN=!RP_GR_OPEN; rpRenderGr_(); }
+function rpGrRowTog(i){ var g=_RP_GRL[i]; if(!g)return; RP_GROPEN[g.k]=!RP_GROPEN[g.k]; rpRenderGr_(); }
+function rpStuBack(sid){ delete RP_STU[String(sid)]; rpDirty_(); rpRenderPaper(); }
+function rpGrResetAll(){ RP_GR={}; RP_STU={}; rpDirty_(); rpRenderPaper(); }
+/* ---- 範囲を変える窓 ---- */
+function rpReOpen(i,sid){
+  var g=_RP_GRL[i]; if(!g)return;
+  var s=null; if(sid)g.stu.forEach(function(x){ if(String(x.student_id)===String(sid))s=x; });
+  if(sid&&!s)return;
+  var top=_rpTopRange_();
+  var R=s?_rpRangeOf_(s,top):(RP_GR[g.k]?{r:RP_GR[g.k],src:'g'}:{r:top,src:'t'});
+  var r=_rpClone_(R.r);
+  /* まだ変えていなければ「1の教材」から ほかの学年の教材を除いて始める（モック） */
+  if(R.src==='t')Object.keys(r).forEach(function(m){ if(_rpOthGrade_(m,g.grade))delete r[m]; });
+  RP_ED={k:g.k,sid:s?String(s.student_id):'',grade:_grdNorm_(g.grade),asg:s?_rpAsgSet_(s):null,r:r,open:{},ser:{}};
+  var lab=_rpGrLabel_(g.k);
+  $('rpReTtl').textContent='範囲を変える：'+(s?((s.name||'(無名)')+'（'+lab+'）だけ'):(lab+'（'+g.all+'名）'));
+  $('rpReSub').textContent=s?('この生徒だけに効きます。'+lab+'のほかの生徒は変わりません。'):(lab+'の全員に効きます（「この生徒だけ」を変えた生徒を除く）。');
+  $('rpReSelT').textContent=s?((s.name||'')+'の範囲'):(lab+'の範囲');
+  rpReDraw_();
+  $('rpReModal').classList.add('show');
+}
+function _rpReSt_(id){ var v=RP_ED&&RP_ED.r[id]; if(!v)return 0; if(!v.length)return 2; return (v.length>=_rpPartsOf_(id).length)?2:1; }
+function rpReDraw_(){
+  var E=RP_ED; if(!E)return;
+  var g=E.grade;
+  var secs=[{t:(g||'学年未設定')+'の教材',mats:[]},{t:'全学年の教材',mats:[]},
+            {t:'ほかの学年の教材',sub:'復習で出すときに使います。入れると印刷のとき学年ちがいの確認が出ます',oth:1,mats:[]}];
+  _rpMats().forEach(function(m){ var mg=_rpMatGrade_(m.id); if(!mg)secs[1].mats.push(m); else if(mg===g)secs[0].mats.push(m); else secs[2].mats.push(m); });
+  $('rpReCand').innerHTML=_rpTreeHtml_({secs:secs,fn:'rpReTree',bopen:E.ser,mopen:E.open,state:_rpReSt_,
+    partOn:function(id,pid){ var v=E.r[id]; return !!v&&(!v.length||v.indexOf(pid)>=0); },
+    partN:function(id){ var v=E.r[id]; return v?v.length:0; },
+    tag:function(id){ return (E.asg&&!E.asg[id])?'<span class="tg">割当なし</span>':''; }});
+  var ks=_rpRngMids_(E.r), pc=0;
+  $('rpReSel').innerHTML=ks.length?ks.map(function(id){
+    var p=E.r[id]||[]; pc+=_rpRngPartN_(E.r,id);
+    return '<div class="re-sel" data-mid="'+esc(id)+'"><span class="m">'+esc(_rpMatName_(id))+'</span> '
+      +(_rpOthGrade_(id,g)?'<span class="gr-badge w">ほかの学年</span> ':'')
+      +(p.length?'<span class="p">'+p.map(function(x){ return esc(_rpPartName_(id,x)); }).join('／')+'</span>':'<span class="rp-mute">ぜんぶ</span>')+'</div>';
+  }).join(''):'<div class="rp-mute" style="padding:10px;">まだ何もえらんでいません</div>';
+  $('rpReSelN').textContent=ks.length+'教材・'+pc+'パート';
+  var oth=ks.filter(function(id){ return _rpOthGrade_(id,g); }).length;
+  var un=E.asg?ks.filter(function(id){ return !E.asg[id]; }).length:0;
+  var w=[];
+  if(!ks.length)w.push('何もえらんでいません（紙が出ません）');
+  if(oth)w.push('ほかの学年の教材が '+oth+'個 入っています（印刷のとき学年ちがいの確認が出ます）');
+  if(un)w.push('割り当てていない教材が '+un+'個 入っています（紙には出ません）');
+  $('rpReWarn').textContent=w.length?('⚠ '+w.join('／')):'';
+}
+function rpReTree(act,a,b){
+  var E=RP_ED; if(!E)return;
+  if(act==='book-open'){ E.ser[a]=!E.ser[a]; }
+  else if(act==='mat-open'){ E.open[a]=!E.open[a]; }
+  else if(act==='book'){ var ids=String(a).split('|'), full=ids.every(function(x){ return _rpReSt_(x)===2; });
+    ids.forEach(function(x){ if(full)delete E.r[x]; else E.r[x]=[]; }); }
+  else if(act==='mat'){ if(_rpReSt_(a)===2)delete E.r[a]; else E.r[a]=[]; }
+  else if(act==='part'){
+    var all=_rpPartsOf_(a).map(function(p){ return p.id; }), v=E.r[a];
+    var cur=(v&&!v.length)?all.slice():(v?v.slice():[]);
+    var i=cur.indexOf(String(b)); if(i>=0)cur.splice(i,1); else cur.push(String(b));
+    cur=all.filter(function(x){ return cur.indexOf(x)>=0; });
+    if(!cur.length)delete E.r[a]; else E.r[a]=(cur.length===all.length)?[]:cur;
+  }
+  rpReDraw_();
+}
+function rpReSame(){ if(!RP_ED)return; RP_ED.r=_rpTopRange_(); rpReDraw_(); }
+function rpReSave(){
+  var E=RP_ED; if(!E)return;
+  if(E.sid)RP_STU[E.sid]=E.r; else RP_GR[E.k]=E.r;
+  RP_GROPEN[E.k]=true; RP_ED=null;
+  closeModal('rpReModal');
+  rpDirty_(); rpRenderPaper();
+}
+/* ---- 4 押したら「この内容で出します」 ---- */
+function rpPaperAsk(){
+  var list=rpPrintList_();
+  _prnHost='report'; tmErr_('');
+  if(!list.length){ tmErr_('この絞り込みに合う生徒がいません。'); return; }
+  var PL=_rpPrnPlan_(list);
+  if(!PL.mats.length){ tmErr_('出す教材が1つも選ばれていません。上の「1 どの教材から出すか」でえらんでください。'); return; }
+  var qng=_rpQuNg_(PL.mats); if(qng){ tmErr_(qng); return; }
+  if(!_rpTypes_().length){ tmErr_('出す種別を1つ以上えらんでください。'); return; }
+  var kind=(_rpPaperStyle_()==='finish')?'仕上げプリント':'チェックプリント';
+  var SRC={t:'1の教材',g:'学年・中学校の範囲',s:'この生徒だけの範囲'}, none=[], oth=[];
+  var trs=PL.rows.map(function(o){
+    var s=o.s, asg=_rpAsgSet_(s), ks=_rpRngMids_(o.R.r), ok=ks.filter(function(m){ return asg[m]; });
+    var og=ok.filter(function(m){ return _rpOthGrade_(m,s.grade); }), pick={};
+    ok.forEach(function(m){ pick[m]=o.R.r[m]; });
+    if(!ok.length)none.push(s);
+    if(og.length)oth.push('<b>'+esc(s.name||'(無名)')+'</b>（'+esc(s.grade||'学年未設定')+'）'+og.map(function(m){ return esc(_rpMatName_(m)); }).join('・'));
+    return '<tr class="rp-plrow" data-sid="'+esc(String(s.student_id))+'" data-src="'+o.R.src+'"><td style="white-space:nowrap;"><b>'+esc(s.name||'(無名)')+'</b><br><span class="rp-mute">'+esc(_rpGrLabel_(_rpGrKey_(s)))+'</span></td>'
+      +'<td style="white-space:nowrap;">'+SRC[o.R.src]+'</td><td>'
+      +(ok.length?esc(_rpRngSumm_(pick)):'<span class="gr-badge w" style="margin-left:0;">なし＝紙が出ません</span>')
+      +((ks.length-ok.length)?'<br><span class="rp-mute">割り当てていないので出さない：'+(ks.length-ok.length)+'教材</span>':'')+'</td></tr>';
+  }).join('');
+  var h='<div class="rp-mute" style="margin-bottom:6px;font-size:12px;">「この内容で出す」を押すと、下の範囲から問題を集めて'+kind+'を組みます。紙に出すのは、その生徒に割り当てている教材（進行中・完走）の問題だけです。まちがいが0問の生徒には紙を出しません。</div>';
+  if(none.length)h+='<div class="tm-note rp-plnone" style="background:#fff7e6;border-color:#f0d08a;color:#8a5a00;margin-top:0;">⚠ 範囲に割り当てている教材が1つもないので<b>紙が出ない生徒 '+none.length+'名</b>：'
+    +none.map(function(s){ return esc(s.name||'(無名)'); }).join('、')+((none.length===PL.rows.length)?'<br>全員、紙が出ません。範囲か教材の割り当てを見直してください。':'')+'</div>';
+  if(oth.length)h+='<div class="tm-note rp-ploth" style="background:#fff1f1;border-color:#f3c2c2;color:#a33;">このあと「学年が合わない教材が入っています」の確認が出ます（'+oth.length+'名）：'+oth.join('／')+'</div>';
+  h+='<div class="rg-tblwrap"><table class="gr-tbl pl-tbl"><thead><tr><th>生徒</th><th>どの範囲で出すか</th><th>紙に出す教材</th></tr></thead><tbody>'+trs+'</tbody></table></div>';
+  $('rpPlanTtl').textContent='この内容で出します（'+PL.rows.length+'名）';
+  $('rpPlanBody').innerHTML=h;
+  var gb=$('rpPlanGo'); if(gb)gb.disabled=(none.length===PL.rows.length);
+  $('rpPlanModal').classList.add('show');
+}
+function rpPlanGo(){ closeModal('rpPlanModal'); rpPaperGo(); }
 function rpCard(n,l,c){return '<div class="rp-sumc"><div class="rp-sumn" style="'+(c?'color:'+c+';':'')+'">'+n+'</div><div class="rp-suml">'+esc(l)+'</div></div>';}
 /* ===== 【2026-09-15b・弱点集計 段2・段3】第N単元 × 形式（英検の教材のときだけ）=====
    正＝要件定義書_弱点集計とプリント §5 段2・段3。モック＝20260915_モック_弱点集計_段2_今の画面.html（川上さん承認）。
