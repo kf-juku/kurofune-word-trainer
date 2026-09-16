@@ -2331,7 +2331,34 @@ function showLoading(text,cancelable){
   var el=$('loadingOverlay');if(el)el.classList.add('show');
 }
 function hideLoading(){var el=$('loadingOverlay');if(el)el.classList.remove('show');var c=$('loadingCancel');if(c)c.style.display='none';}
-function call(b,_try){b.token=token;_try=_try||1;return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json();}).catch(function(){if(_try<3){return sleep(600*_try).then(function(){return call(b,_try+1);});}return {ok:false,error:'通信に失敗しました'};});}
+/* 【2026-09-16c】GASの返事の形を確かめてから受け取る
+   本番で、POST に doGet の返事（{ok:true,data:{service,method:'GET'}}）や HTML のエラーページが返ることがあった
+   （続けて・同時に呼んだとき）。直す前はそれを「成功・データなし」と受け取り、生徒0名・教材0件に見えた。
+   ・読むだけの action（CALL_READ_RE_）… doGet の返事・JSONでない返事・通信の失敗は、3回まで取り直す。だめなら ok:false。
+   ・書く action … doGet の返事・JSONでない返事は取り直さない（書けたか分からない＝二重に書くのを防ぐ）。ok:false で「読み込み直して確かめて」。
+     通信の失敗（fetch が失敗）は、いままでどおり取り直す（2026-09-16c では変えていない）。
+   ★action を足したら、読むだけなら CALL_READ_RE_ に足す（単体テスト 20260916c が分類漏れを見張る）。 */
+var CALL_READ_RE_=/^(dashboard|teacher_mistakes|teacher_login|abandon_summary|material_preview|materials_list|assignment_list|teams_list|notice_list|bug_list|quiz_board|quiz_delivery_dates|quiz_student_dates|report_sets_get|alert_config_get|cheer_config_get)$/;
+var CALL_BUSY_MSG_='サーバーが混み合っています。少し待ってから、もう一度お試しください。';
+var CALL_UNSURE_MSG_='サーバーの返事を受け取れませんでした。保存できたか分からないので、画面を読み込み直して確かめてください。';
+function _callIsGetEcho_(d){ return !!(d&&d.ok===true&&d.data&&typeof d.data==='object'&&d.data.method==='GET'&&d.data.service); }
+function call(b,_try){
+  b.token=token;_try=_try||1;
+  var canRetry=CALL_READ_RE_.test(String(b.action||''));
+  function again(){return sleep(600*_try).then(function(){return call(b,_try+1);});}
+  return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){
+    return r.text().then(function(t){
+      var d=null;try{d=JSON.parse(t);}catch(e){d=null;}
+      if(d&&typeof d==='object'&&!_callIsGetEcho_(d))return d;       /* ふつうの返事（ok:false・conflict も含む） */
+      if(!canRetry)return {ok:false,error:CALL_UNSURE_MSG_,busy:true};
+      if(_try<3)return again();
+      return {ok:false,error:CALL_BUSY_MSG_,busy:true};
+    });
+  },function(){
+    if(_try<3)return again();
+    return {ok:false,error:'通信に失敗しました'};
+  });
+}
 
 /* ツールチップ（JS制御・画面端対応） */
 (function(){var PAD=6,tip=null;
