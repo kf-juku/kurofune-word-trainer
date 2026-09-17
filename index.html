@@ -1403,6 +1403,35 @@
   /* 日本語訳は「ついで」ではなく、何を英語にするかを決める文。グレーの14pxだと読み飛ばされる
      （2026-09-09 川上さん指摘）。穴埋めは英文が主役なので17px、並べ替えは訳が問題文そのものなので21px */
   .sq-ja{text-align:center;color:var(--text);font-size:17px;line-height:1.6;margin-bottom:14px;}
+/* 英検の聞き取り 第1部型・第3部型 2026-09-17（承認モックの値） */
+.lx-talk{display:flex;flex-direction:column;gap:10px;margin:4px 0 14px;}
+.lx-bub{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:var(--bg);transition:background .2s,border-color .2s;}
+.lx-bub.b{flex-direction:row-reverse;}
+.lx-who{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;}
+.lx-who.a{background:#e0708a;}.lx-who.b{background:#4a7fd6;}
+.lx-wave{flex:1;height:10px;border-radius:5px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 10px);}
+.lx-wave.dim{opacity:.4;}
+.lx-qm{color:var(--sub);font-weight:800;}
+.lx-bub.now{border-color:var(--accent);background:var(--accent-soft);}
+.lx-bub.now .lx-wave{background:repeating-linear-gradient(90deg,var(--accent) 0 6px,transparent 6px 10px);opacity:1;}
+.lx-pic{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:0 0 12px;background:#fff;text-align:center;}
+.lx-pic img{display:block;width:100%;height:auto;max-height:46vh;object-fit:contain;}
+.lx-pic.noimg{min-height:120px;background:var(--bg);}
+.lx-opts{display:flex;flex-direction:column;gap:10px;}
+.lx-opt{display:flex;gap:8px;align-items:stretch;}
+.lx-play{width:52px;flex-shrink:0;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--accent);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;}
+.lx-play:disabled{opacity:.4;cursor:default;}
+.lx-play.sm{width:38px;height:38px;border-radius:11px;font-size:15px;}
+.lx-opt .lx-ch{flex:1;margin-bottom:0;font-size:21px;font-weight:800;min-height:56px;}
+.lx-opt .lx-ch:disabled:not(.correct):not(.wrong){opacity:.45;}
+.lx-opt.now .lx-ch{border-color:var(--accent);background:var(--accent-soft);opacity:1;}
+.lx-again{margin-top:14px;}
+.lx-st{font-size:12.5px;color:var(--sub);text-align:center;margin-top:10px;min-height:18px;}
+.lx-xh{font-size:12.5px;color:var(--sub);font-weight:700;margin:8px 0 4px;}
+.lx-xl{display:flex;gap:8px;align-items:flex-start;font-size:15px;line-height:1.55;margin:4px 0;}
+.lx-xl small{display:block;color:var(--sub);font-size:13px;}
+.lx-xl.ok b{color:var(--ok);}
+.lx-okm{color:var(--ok);font-weight:800;}
   /* 並べ替えは日本語訳が問題文そのもの。穴埋めのように英文が上に出ないので、ここを主役の大きさにする
      （2026-09-09 川上さん指摘「私は生徒です の方を目立つように」）。.sq-ja のあとに書いて上書きする */
   .ro-ja{color:var(--text);font-size:21px;font-weight:700;line-height:1.5;margin:10px 0 16px;}
@@ -2365,7 +2394,7 @@ function shRenderListenOnly_(lisN){
     var t=e.target&&e.target.closest?e.target:null;
     var pb=t&&t.closest?t.closest('.sh-play'):null; if(!pb)return;
     var pl=(_shSet.listen||{})[String(pb.getAttribute('data-lis')||'')];
-    if(pl)_sentPlay_(pl);
+    if(pl)_shPlay_(pl);
   });
   window.scrollTo(0,0);
 }
@@ -2406,7 +2435,7 @@ function shRenderMarks_(){
     if(pb){
       var no=String(pb.getAttribute('data-lis')||'');
       var pl=(_shSet.listen||{})[no];
-      if(pl)_sentPlay_(pl);
+      if(pl)_shPlay_(pl);
       return;
     }
     var b=t&&t.closest?t.closest('.sh-m'):null; if(!b)return;
@@ -4412,7 +4441,10 @@ function _startStepFor(s,w){ return _wIsEng(s,w) ? (s.mode==='daily'?1:2) : 3; }
    語の3ステップ（発音→意味→日本語→英語）には乗せない＝renderQz_ の頭で分岐して戻る（表・図と同じやり方）。
    採点の向きは e2j にそろえる。教材は direction=e2j なので、語も文も「意味」の正答率に入り、
    分母（total＝行数）とそろう。j2e にすると reverse 側に入って正答率が半分に見える。 */
-function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder';}
+function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder'||q==='listen_resp'||q==='listen_pic';}
+/* 英検の聞き取り 第1部型（会話の応答）・第3部型（絵に合う英文）2026-09-17 川上さん承認（20260917_モック_英検5級_聞き取り第1部型と第3部型.html）。
+   選択肢も音だけで出す＝本番と同じ。_isSentQ_ に入れて 1行1問・採点の向き e2j にそろえる（文の問題と同じ扱い） */
+function _isLx_(w){var q=String((w&&w.qtype)||'');return q==='listen_resp'||q==='listen_pic';}
 function _isOneShot_(w){var q=String((w&&w.qtype)||'');return q==='table_fill'||q==='image_fill'||_isSentQ_(w);} // 英語=毎日は発音1/復習は意味2、用語=英語3から
 /* 語の4択の誤答は、語の行からだけ作る 2026-09-09 川上さん指摘
    1行1問のタイプ（表・図・文の3種）は english / japanese が「語と意味」ではなく設問文なので、
@@ -4828,6 +4860,7 @@ function _wlAbc_(a){
    answered＝答え合わせのあとか。聞き取りだけ、答える前後で出し分ける 2026-09-11 */
 function _wlFor_(s,w,answered){
   try{
+    if(_isLx_(w))return {list:[],title:''};   /* 会話・絵の聞き取りは語の一覧を持たない（選択肢の文字が読めてしまう）2026-09-17 */
     if(_isSentQ_(w)){
       var qt=String(w.qtype||'');
       /* 聞き取り＝答える前に全語の訳が読めると、聞かずに答えの文を組める。答え合わせまで出さない
@@ -5369,7 +5402,7 @@ function renderIMG(ss){
    ・「音を聞く」ボタン（btn-listen）は出さない。文をそのまま読み上げると穴埋め・並び替えの答えが分かる */
 var _sentAu=null;
 function _sentSay_(t){try{if(!window.speechSynthesis||!t)return;var u=new SpeechSynthesisUtterance(String(t));u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
-function _sentStop_(){try{if(_sentAu){_sentAu.pause();_sentAu=null;}}catch(e){}try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
+function _sentStop_(){try{if(_sentAu){_sentAu.pause();_sentAu=null;}}catch(e){}try{_lxStop_();}catch(e){}try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
 /* mp3 がまだ置かれていない・読めないときは端末の読み上げに落とす＝音声をそろえる前でも出題できる（要件定義書 §6）
    【2026-09-09 川上さん確定】1文に複数の声を持たせ、**再生するたびに声が変わる**（A案）。
    payload の audios（配列）があればそこから1本選ぶ。無ければ従来どおり audio（単数）を使う
@@ -5427,6 +5460,8 @@ function _shufNot_(a){var b=shuffle(a);for(var k=0;k<20&&b.join('')===a.join('
 function renderSENT(ss){
   var s=ss||session,w=s.words[s.idx],X=_sentPack_(s,w),q=X.q,pl=X.pl,qt=String(w.qtype||'');
   hideListen_();
+  try{_lxStop_();}catch(_e){}
+  if(_isLx_(w)){renderLX_(s,w,q,pl);return;}
   var ask=$('sent-ask'),body=$('sent-body');
   $('sent-choices').innerHTML='';body.innerHTML='';
   $('step-sent').style.display='block';
@@ -5588,6 +5623,144 @@ function renderRO_(s,w,q,pl){
     afterAnswer(ok,(pl.en||_sentJoin_(toks)),w.kaisetsu,'',s.onNext);
     _sentAfterAudio_(pl);   /* 答え合わせで文を鳴らす 2026-09-11 */
   };
+}
+
+/* ===== 英検の聞き取り 第1部型（listen_resp）・第3部型（listen_pic）2026-09-17 =====
+   正＝要件定義書_英検教材 §17e・§17n、承認モック 20260917_モック_英検5級_聞き取り第1部型と第3部型.html（川上さん承認 2026-09-17）。
+   ・素材 dialog＝{"lines":[{sp,en,ja,audio}×2],"choices":[{en,ja,audio}×3]}／picture3＝{"img":…,"choices":[…]}。choices の先頭が正解
+   ・流れ＝（会話 A→B）→ 1・2・3 の応答（英文）を順に読む。**英文も選択肢の文字も出さない**（本番と同じ）
+   ・3つ読み終わるまで番号は押せない（川上さん確定）。押せるようになってから時間をはかる
+   ・自動で流すのは1回。聞き直しは「もう一回聞く」（全部）と ▶（その番号だけ）
+   ・答えたら、会話と3つの選択肢を英文と訳で出す。▶ は答えたあとも使える
+   ・mp3 が読めないときは端末の読み上げに落ちる（文の問題と同じ考え方） */
+var _lxRun=0,_lxAu=null;
+function _lxStop_(){_lxRun++;try{if(_lxAu){_lxAu.pause();_lxAu=null;}}catch(e){}}
+function _lxWait_(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function _lxSay_(t){return new Promise(function(res){
+  var done=false,fin=function(){if(done)return;done=true;res();};
+  try{
+    if(!window.speechSynthesis||!t){setTimeout(fin,600);return;}
+    var u=new SpeechSynthesisUtterance(String(t));u.lang='en-US';u.rate=0.9;u.onend=fin;u.onerror=fin;
+    speechSynthesis.cancel();speechSynthesis.speak(u);
+    setTimeout(fin,Math.max(2500,String(t).length*150));   /* onend が来ない端末でも止まらないように */
+  }catch(e){fin();}
+});}
+function _lxOne_(it,tok){return new Promise(function(res){
+  if(tok!==_lxRun){res();return;}
+  var done=false,fin=function(){if(done)return;done=true;res();};
+  var url=String((it&&it.audio)||'');
+  var fall=function(){if(done)return;_lxAu=null;if(tok!==_lxRun){fin();return;}_lxSay_(it&&it.en).then(fin);};
+  if(!url){fall();return;}
+  try{
+    var au=new Audio(url);_lxAu=au;
+    au.onended=fin;au.onerror=fall;
+    var p=au.play();if(p&&p['catch'])p['catch'](fall);
+    setTimeout(fin,15000);
+  }catch(e){fall();}
+});}
+/* steps＝[{it:{en,audio}, on:function(){…光らせる…}, gap:ms}]。途中で _lxStop_ されたら false で終わる */
+function _lxRunSeq_(steps){
+  _lxStop_();var tok=_lxRun,chain=Promise.resolve();
+  steps.forEach(function(st){
+    chain=chain.then(function(){
+      if(tok!==_lxRun)return;
+      try{if(st.on)st.on();}catch(e){}
+      return _lxOne_(st.it,tok).then(function(){return (tok===_lxRun)?_lxWait_(st.gap||0):null;});
+    });
+  });
+  return chain.then(function(){return tok===_lxRun;});
+}
+function renderLX_(s,w,q,pl){
+  var isResp=(String(w.qtype||'')==='listen_resp');
+  var ask=$('sent-ask'),body=$('sent-body'),box=$('sent-choices');
+  var lines=isResp?((pl&&pl.lines)||[]):[], chs=(pl&&pl.choices)||[];
+  $('step-sent').style.display='block';
+  hideQTimer();
+  if(chs.length<2){   /* 素材が取れない＝出題できない。落とさずに次へ進めるよう、答えだけ見せる */
+    ask.innerHTML='';body.innerHTML='<div class="sq-ja">'+esc(w.english||'')+'</div>';box.innerHTML='';
+    _quizAns(s,w,false,0,'e2j');afterAnswer(false,w.english||'','','',s.onNext);return;
+  }
+  ask.innerHTML=isResp
+    ?'<ruby>会話<rt class="uf">かいわ</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>最後<rt class="uf">さいご</rt></ruby>の<ruby>応答<rt class="uf">おうとう</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
+    :'<ruby>絵<rt class="uf">え</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>う<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
+  var order=shuffle(chs.map(function(c,i){return i;}));
+  var h='';
+  if(isResp){
+    h='<div class="lx-talk">'+lines.map(function(l,i){
+        var b=(String(l.sp)==='B');
+        return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+'">'+esc(String(l.sp||''))+'</span><span class="lx-wave"></span></div>';
+      }).join('')
+      +'<div class="lx-bub" id="lx-lq"><span class="lx-who a">A</span><span class="lx-wave dim"></span><b class="lx-qm">？</b></div></div>';
+  }else{
+    h='<div class="lx-pic"><img src="'+esc(String(pl.img||''))+'" alt="" onerror="this.parentNode.classList.add(\'noimg\');this.style.display=\'none\';"></div>';
+  }
+  body.innerHTML=h;
+  box.classList.remove('g2');
+  box.innerHTML='<div class="lx-opts">'+order.map(function(ci,j){
+      return '<div class="lx-opt" id="lx-o'+j+'"><button type="button" class="lx-play" data-j="'+j+'" disabled aria-label="'+(j+1)+'番を聞く"><i class="ti ti-player-play"></i></button>'
+        +'<button type="button" class="choice lx-ch" data-j="'+j+'" data-val="'+(j+1)+'" disabled>'+(j+1)+'</button></div>';
+    }).join('')+'</div>'
+    +'<button type="button" class="ex-spk lx-again" id="lx-again"><i class="ti ti-volume"></i><span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>'
+    +'<div class="lx-st" id="lx-st"></div>';
+  var answered=false,started=false,_t0=0,_tl=(s.mode==='note')?0:qSecFor('table_fill');
+  var st=$('lx-st');
+  var alive=function(){return s.words[s.idx]===w && $('scr-practice') && $('scr-practice').classList.contains('active');};
+  var clear=function(){[].forEach.call(document.querySelectorAll('.lx-bub.now,.lx-opt.now'),function(x){x.classList.remove('now');});};
+  var lit=function(id){return function(){if(!alive()){_lxStop_();return;}clear();var e=$(id);if(e)e.classList.add('now');};};
+  var setBtns=function(on){[].forEach.call(box.querySelectorAll('.lx-play'),function(b){b.disabled=!on;});
+    [].forEach.call(box.querySelectorAll('.lx-ch'),function(b){b.disabled=(!on||answered);});};
+  function playAll(){
+    var steps=[];
+    lines.forEach(function(l,i){steps.push({it:l,gap:350,on:lit('lx-l'+i)});});
+    order.forEach(function(ci,j){steps.push({it:chs[ci],gap:500,on:(function(jj){return function(){lit('lx-o'+jj)();var e=$('lx-lq');if(e)e.classList.add('now');if(st&&!answered)st.textContent=(jj+1)+'番を読んでいます';};})(j)});});
+    if(!answered){setBtns(false);stopQTimer();if(st)st.textContent=isResp?'会話を聞いています':'英文を聞いています';}
+    return _lxRunSeq_(steps).then(function(ok){
+      if(!ok||!alive())return;
+      clear();setBtns(true);
+      if(answered){if(st)st.textContent='';return;}
+      if(st)st.textContent='番号を選んでください';
+      if(!started){started=true;_t0=Date.now();}
+      if(_tl>0)startQTimer(_qtSecFinal_(_tl,[],true),function(){finish(false,null);});
+    });
+  }
+  function finish(ok,picked){
+    if(answered)return;answered=true;stopQTimer();_lxStop_();clear();
+    [].forEach.call(box.querySelectorAll('.lx-ch'),function(b){b.disabled=true;if(order[+b.getAttribute('data-j')]===0)b.classList.add('correct');});
+    if(picked&&!ok)picked.classList.add('wrong');
+    [].forEach.call(box.querySelectorAll('.lx-play'),function(b){b.disabled=false;});
+    if(st)st.textContent='';
+    if(ok){combo++;if(combo>maxCombo)maxCombo=combo;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
+    else{combo=0;sndWrong();}
+    ansCount++;
+    _quizAns(s,w,ok,(started?(Date.now()-_t0):0),'e2j');
+    afterAnswer(ok,(chs[0].en||w.english||''),w.kaisetsu,'',s.onNext);
+    /* 答え合わせ＝会話と3つの選択肢を英文と訳で出す。▶ で聞き直せる */
+    var xa=$('ex-audio');
+    if(xa){
+      var xh='';
+      if(isResp)xh+='<div class="lx-xh"><ruby>会話<rt class="uf">かいわ</rt></ruby></div>'+lines.map(function(l){
+          return '<div class="lx-xl"><b>'+esc(String(l.sp||''))+'：</b>'+esc(String(l.en||''))+'<small>'+_jaRubyIf_(String(l.ja||''))+'</small></div>';}).join('');
+      xh+='<div class="lx-xh"><ruby>選択肢<rt class="uf">せんたくし</rt></ruby></div>'+order.map(function(ci,j){
+          var c=chs[ci];
+          return '<div class="lx-xl'+(ci===0?' ok':'')+'"><button type="button" class="lx-play sm" data-x="'+j+'" aria-label="'+(j+1)+'番を聞く"><i class="ti ti-player-play"></i></button>'
+            +'<span><b>'+(j+1)+'</b>　'+esc(String(c.en||''))+(ci===0?' <span class="lx-okm">○</span>':'')+'<small>'+_jaRubyIf_(String(c.ja||''))+'</small></span></div>';}).join('');
+      xa.innerHTML=xh;xa.style.display='';
+      [].forEach.call(xa.querySelectorAll('.lx-play'),function(b){b.onclick=function(){_lxRunSeq_([{it:chs[order[+b.getAttribute('data-x')]]}]);};});
+    }
+  }
+  $('lx-again').onclick=function(){playAll();};
+  [].forEach.call(box.querySelectorAll('.lx-play'),function(b){
+    b.onclick=function(){var j=+b.getAttribute('data-j');_lxRunSeq_([{it:chs[order[j]],on:lit('lx-o'+j)}]).then(function(){clear();});};
+  });
+  [].forEach.call(box.querySelectorAll('.lx-ch'),function(b){
+    b.onclick=function(){if(b.disabled)return;var j=+b.getAttribute('data-j');finish(order[j]===0,b);};
+  });
+  playAll();
+}
+/* 紙の答え合わせページの音（段7）。第1部型・第3部型は seq（会話→選択肢の順）を順に鳴らす 2026-09-17 */
+function _shPlay_(pl){
+  if(pl&&pl.seq&&pl.seq.length){ try{_sentStop_();}catch(e){} _lxRunSeq_(pl.seq.map(function(x){return {it:{en:x.en,audio:(x.audios&&x.audios[0])||x.audio||''},gap:450};})); return; }
+  _sentPlay_(pl);
 }
 function nextWord(){var s=session;
   if(s.fixMode){_fixStep_(s);return;}                       /* ミス問モード中は待ち行列が次を決める 2026-08-26 */
@@ -7877,7 +8050,7 @@ function _pvBarSync_(){
   var b=$('pv-pos'); if(!b)return;
   var it=_PV_.list[_PV_.at]||{};
   var w=(_PV_.d&&(_PV_.d.words||[])[it.at])||{}, q=String(w.qtype||'');
-  var lb=it.card?'カード':(q==='listen'?'聞く':q==='sentence_fill'?'穴うめ':q==='reorder'?'語順'
+  var lb=it.card?'カード':(q==='listen'?'聞く':q==='listen_resp'?'会話':q==='listen_pic'?'絵':q==='sentence_fill'?'穴うめ':q==='reorder'?'語順'
     :q==='image_fill'?'図':q==='table_fill'?'表':(it.step===2?'意味':(it.step===3?'英語':'問題')));
   b.textContent=(_PV_.at+1)+' / '+_PV_.list.length+'　'+lb;
 }
