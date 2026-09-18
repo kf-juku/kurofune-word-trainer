@@ -1414,6 +1414,14 @@
 .lx-qm{color:var(--sub);font-weight:800;}
 .lx-bub.now{border-color:var(--accent);background:var(--accent-soft);}
 .lx-bub.now .lx-wave{background:repeating-linear-gradient(90deg,var(--accent) 0 6px,transparent 6px 10px);opacity:1;}
+/* 大問2型（dialog_fill）＝会話を文字で出し、応答の1行を4択で選ぶ。承認モック 20260918_モック_英検5級_大問2型.html（川上さん 2026-09-18）
+   話し手は本番と同じ役名の札（Boy: Girl: Teacher: …）。会話は左そろえ（右寄せは空欄のある文が読みにくい・確定46） */
+.df-talk{display:flex;flex-direction:column;gap:10px;margin:4px 0 14px;}
+.df-bub{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:var(--bg);}
+.df-who{min-width:58px;height:26px;padding:0 9px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12.5px;color:#fff;flex-shrink:0;}
+.df-who.a{background:#e0708a;}.df-who.b{background:#4a7fd6;}
+.df-line{flex:1;font-size:17px;font-weight:700;line-height:1.55;}
+.df-hole{display:inline-block;min-width:92px;height:18px;border-bottom:3px solid var(--accent);vertical-align:-2px;}
 .lx-pic{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:0 0 12px;background:#fff;text-align:center;}
 .lx-pic img{display:block;width:100%;height:auto;max-height:46vh;object-fit:contain;}
 .lx-pic.noimg{min-height:120px;background:var(--bg);}
@@ -4441,7 +4449,7 @@ function _startStepFor(s,w){ return _wIsEng(s,w) ? (s.mode==='daily'?1:2) : 3; }
    語の3ステップ（発音→意味→日本語→英語）には乗せない＝renderQz_ の頭で分岐して戻る（表・図と同じやり方）。
    採点の向きは e2j にそろえる。教材は direction=e2j なので、語も文も「意味」の正答率に入り、
    分母（total＝行数）とそろう。j2e にすると reverse 側に入って正答率が半分に見える。 */
-function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder'||q==='listen_resp'||q==='listen_pic';}
+function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder'||q==='listen_resp'||q==='listen_pic'||q==='dialog_fill';}
 /* 英検の聞き取り 第1部型（会話の応答）・第3部型（絵に合う英文）2026-09-17 川上さん承認（20260917_モック_英検5級_聞き取り第1部型と第3部型.html）。
    選択肢も音だけで出す＝本番と同じ。_isSentQ_ に入れて 1行1問・採点の向き e2j にそろえる（文の問題と同じ扱い） */
 function _isLx_(w){var q=String((w&&w.qtype)||'');return q==='listen_resp'||q==='listen_pic';}
@@ -5467,6 +5475,7 @@ function renderSENT(ss){
   $('step-sent').style.display='block';
   /* 文は読む・聞く時間が要るので、秒数は図・表と同じ枠（fig:true でさらに＋5秒）2026-09-02 の考え方をそのまま使う */
   var _tl=(s.mode==='note')?0:qSecFor('table_fill');
+  if(qt==='dialog_fill'){renderDF_(s,w,pl,_tl);return;}
   if(qt==='listen'){
     ask.innerHTML='<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>意味<rt class="uf">いみ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
     body.innerHTML='<button type="button" class="sq-spk" id="sent-spk"><i class="ti ti-volume"></i><span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
@@ -5756,6 +5765,56 @@ function renderLX_(s,w,q,pl){
     b.onclick=function(){if(b.disabled)return;var j=+b.getAttribute('data-j');finish(order[j]===0,b);};
   });
   playAll();
+}
+/* ===== 英検の大問2型（dialog_fill）2026-09-18 =====
+   正＝要件定義書_英検教材 §17p 確定40・46、承認モック 20260918_モック_英検5級_大問2型.html。
+   ・素材 dialog＝{"lines":[{sp,en,ja,audio}×2],"choices":[{en,ja,audio}×4]}。**choices の先頭が正解**
+   ・第1部型（listen_resp）と同じ素材の形を使い、選択肢を4つにして**文字で**出す（音は要らない）
+   ・空欄は lines の en にある「( )」。そこを下線にする
+   ・4択の組み立て・時間・コンボ・解説は buildChoices に任せる（穴うめ・語順と同じ）
+   ・答え合わせのあと、正解を入れた会話を1回鳴らす（確定46の①。mp3 が無ければ端末の読み上げ）*/
+var _DF_HOLE_=/[（(]\s*[）)]/;
+function _dfLineHtml_(l,i,fill){
+  var en=String((l&&l.en)||''),b=(i>0);
+  var txt=fill?en.replace(_DF_HOLE_,String(fill)):en;
+  var h=esc(txt).replace(_DF_HOLE_,'<span class="df-hole"></span>');
+  return '<div class="df-bub"><span class="df-who '+(b?'b':'a')+'">'+esc(String((l&&l.sp)||''))+'</span><span class="df-line">'+h+'</span></div>';
+}
+/* 答え合わせ＝正解を入れた会話を英文と訳で出し、1回鳴らす。▶ は答えたあとも押せる */
+function _dfAfter_(w,pl){
+  var lines=(pl&&pl.lines)||[],ans=String(w.english||'');
+  var full=lines.map(function(l,i){
+    var en=String((l&&l.en)||'');
+    return {sp:String((l&&l.sp)||''),en:(_DF_HOLE_.test(en)?en.replace(_DF_HOLE_,ans):en),
+            ja:String((l&&l.ja)||'').replace(_DF_HOLE_,String(_dfJaOf_(pl,ans)||'')),audio:(l&&l.audio)||''};
+  });
+  var xa=$('ex-audio'); if(!xa)return;
+  xa.innerHTML='<div class="lx-xh"><ruby>会話<rt class="uf">かいわ</rt></ruby></div>'
+    +full.map(function(l){return '<div class="lx-xl"><b>'+esc(l.sp)+'：</b>'+esc(l.en)+'<small>'+_jaRubyIf_(l.ja)+'</small></div>';}).join('')
+    +'<button type="button" class="ex-spk" id="df-spk"><i class="ti ti-volume"></i><span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
+  xa.style.display='';
+  var play=function(){_lxRunSeq_(full.map(function(l){return {it:l,gap:300};}));};
+  var b=$('df-spk'); if(b)b.onclick=play;
+  clearTimeout(_sentAfterT_);_sentAfterT_=setTimeout(play,600);   /* 正解音とぶつからないよう 600ms 置く（文の問題と同じ）*/
+}
+function _dfJaOf_(pl,en){
+  var c=(pl&&pl.choices)||[];
+  for(var i=0;i<c.length;i++)if(String(c[i].en||'').trim()===String(en||'').trim())return String(c[i].ja||'');
+  return '';
+}
+function renderDF_(s,w,pl,_tl){
+  var ask=$('sent-ask'),body=$('sent-body'),box=$('sent-choices');
+  var lines=(pl&&pl.lines)||[],chs=(pl&&pl.choices)||[];
+  $('step-sent').style.display='block';
+  if(!lines.length||chs.length<2){   /* 素材が取れない＝出題できない。落とさずに次へ進めるよう、答えだけ見せる */
+    ask.innerHTML='';body.innerHTML='<div class="sq-ja">'+esc(w.english||'')+'</div>';box.innerHTML='';
+    _quizAns(s,w,false,0,'e2j');afterAnswer(false,w.english||'','','',s.onNext);return;
+  }
+  ask.innerHTML='<ruby>会話<rt class="uf">かいわ</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>う<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
+  body.innerHTML='<div class="df-talk">'+lines.map(function(l,i){return _dfLineHtml_(l,i,null);}).join('')+'</div>';
+  buildChoices('sent-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
+    {fig:true,fixedChoices:chs.map(function(c){return String(c.en||'');}),timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext,
+     afterShow:function(){_dfAfter_(w,pl);}});
 }
 /* 紙の答え合わせページの音（段7）。第1部型・第3部型は seq（会話→選択肢の順）を順に鳴らす 2026-09-17 */
 function _shPlay_(pl){
