@@ -2852,9 +2852,20 @@ function _pqDedupKey_(it){
 /* 答え（プレーン文字）。形式によって「どっちが答えか」が変わる。
    ★穴うめ・語順・表は、いままでの英語の向き（english を問題・japanese を答え）と**逆**。
      これを見ていなかったのが §3-4 の「am → I に続く be動詞」＝問題として意味をなさない紙の正体。 */
+/* 紙の答えに添える別解（2026-09-20）。`qdata.alt` ＝パイプ区切りの文字列（例 "near" / "near|beside"）。
+   紙は選択肢を印字しないので、正しい別の語を書いた生徒が×にならないよう、答えの欄に併記する。
+   ★アプリには出さない。アプリは4択で、別解は選択肢に入っていない＝出すと混乱するだけ。
+   alt が無ければ空文字＝いままでどおりの答えになる（古いデータでも壊れない）。 */
+function _pqAltOf_(it){
+  var qd=_pqData_(it); var a=qd&&qd.alt; if(!a) return '';
+  var list=(typeof a==='string')?String(a).split('|'):(a.slice?a.slice():[]);
+  list=list.map(function(x){return String(x==null?'':x).trim();}).filter(function(x){return !!x;});
+  if(!list.length) return '';
+  return '（'+list.join('・')+' も可）';
+}
 function _pqAnswerOf_(it){
   var k=_pqKind_(it);
-  if(k==='fill'||k==='table') return String(it.english||'');    /* 答え＝入る1語・セルの文字 */
+  if(k==='fill'||k==='table') return String(it.english||'')+_pqAltOf_(it);    /* 答え＝入る1語・セルの文字（＋別解 2026-09-20）*/
   if(k==='order')            return String(it.english||'');     /* 答え＝正しい文 */
   if(k==='listen')           return _pqLisAText_(it);          /* 答え＝記号＋訳＋英文（段7）*/
   if(k==='lisx')             return _pqLxAText_(it);           /* 答え＝番号＋会話＋3つの英文（2026-09-17）*/
