@@ -2462,7 +2462,12 @@ function loadDash(){
     $('st-mistake').textContent=_students.reduce(function(a,s){return a+(s.mistake_active||0);},0);
     buildFilterChips();
     renderTable();
-  }).finally(function(){hideLoading();});
+  }).finally(function(){
+    hideLoading();
+    /* 【2026-09-19】教材一覧を裏で先に取っておく（型B「待たせない」＝速度と読み込みの正 §2b）。
+       ダッシュボードの返事が来てから投げる＝起動の待ち行列に割りこまない。 */
+    if(!bulkMaterials.length&&_bulkMatSt!=='loading')setTimeout(bulkLoadMaterials_,0);
+  });
 }
 
 function setKindFilter(k,el){
@@ -4463,6 +4468,7 @@ function _mSeries(t){t=String(t||'');
   if(/語彙力アップ/.test(t))return {k:'goi',label:'語彙力アップ'};
   var _nh=t.match(/教科書英単語 New Horizon 中([123])/);if(_nh){var _g=_nh[1],_j=/（日→英）|\(日→英\)/.test(t);return {k:'nh'+_g+'eng_'+(_j?'j2e':'e2j'),label:'教科書英単語 New Horizon 中'+_g+'（'+(_j?'日→英':'英→日')+'）'};} /* 英→日/日→英でシリーズを分ける 2026-07-29 */
   var _fd=t.match(/^FD 中学地理 中([123])/);if(_fd){return {k:'fd_chiri_j'+_fd[1],label:'FD 中学地理 中'+_fd[1]};} /* FD 中学地理：数字は学年。中1の教材が何冊でも同じシリーズ 2026-08-14 */
+  if(/^英検5級 単元別/.test(t))return {k:'eiken5_unit',label:'英検5級 単元別'}; /* ①文法編・②会話編を1つの本にまとめる 2026-09-19 */
   return null;
 }
 function _mWorst(list){var lo=false,mi=false,hi=false,allNa=true;list.forEach(function(m){var a=m.acc;if(a===''||a==null)return;allNa=false;if(a<_accLine())lo=true;else if(a<80)mi=true;else hi=true;});return allNa?'m-na':(lo?'m-low':(mi?'m-mid':'m-hi'));}
@@ -5270,7 +5276,7 @@ function _holdersMap(){
   return h;
 }
 function _bookPrefix(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>0)return t.slice(0,i).replace(/\s+$/,'');}return '';}
-function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&/^fd_chiri_j/.test(s.k)){var _fp=t.match(/^FD 中学地理 中[123]\s*/);return (_fp?t.slice(_fp[0].length):t)||t;}if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;if(s&&/^nh/.test(s.k)){var _mp=t.match(/^教科書英単語 New Horizon 中[123]\s*/);return (_mp?t.slice(_mp[0].length):t)||t;}return t;}
+function _chapShort(t){t=String(t||'');var m=t.match(/[0-9０-９]+\s*章/);if(m){var i=t.indexOf(m[0]);if(i>=0)return t.slice(i).replace(/^\s+/,'');}var s=_mSeries(t);if(s&&/^fd_chiri_j/.test(s.k)){var _fp=t.match(/^FD 中学地理 中[123]\s*/);return (_fp?t.slice(_fp[0].length):t)||t;}if(s&&s.k==='goi')return t.replace(/^\s*語彙力アップ\s*/,'')||t;if(s&&s.k==='eiken5_unit')return t.replace(/^\s*英検5級 単元別\s*/,'')||t;if(s&&/^nh/.test(s.k)){var _mp=t.match(/^教科書英単語 New Horizon 中[123]\s*/);return (_mp?t.slice(_mp[0].length):t)||t;}return t;}
 function _chapNum(t){t=String(t||'');var m=t.match(/([0-9０-９]+)\s*章/);if(!m)return 99999;var n=m[1].replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});return parseInt(n,10);}
 function _bookKey(m){var k=mtSeriesKey(m);return k?('S:'+k):('M:'+String(m.title||''));}
 function _bookLabel(m){return mtSeriesLabel(m);}
@@ -6700,6 +6706,33 @@ var Picker=(function(){
    クイックチップ＝学年・教室・中学校（07-04n実装→07-05gで消失→復活）。
    やってない子・指導必要チップは印刷のときだけ（川上さん指示 2026-07-05：割当に不要）。 */
 var bulkMat={}, bulkMaterials=[]; var bulkDeliver={}, bulkDelivDates={}, bulkDelivOpen={};
+/* 【2026-09-19】教材一覧の読み込みを「見えるように」する＋ダッシュボードのあとに先に取っておく。
+   Why: 川上さん報告＝まとめて割り当ての候補欄が空の箱に見えた。実測では約40秒後に87行が並んだ
+        （ページを開いた直後はダッシュボードの通信と順番待ちになるため）。
+   見せ方はレポート・印刷タブの .rp-load / .rp-spin（2026-09-14・UI標準 §22-B）をそのまま流用する。
+   置き場は既存の bulkMaterials（まとめて割り当て・まとめて印刷・教材ごとタブが共有）。
+   ★取得口は2か所（割り当て・印刷）に同じコードが重複していたので、この1本にまとめた。 */
+var _bulkMatSt='';   /* '' / 'loading' / 'error' */
+function _bulkMatPaint_(){
+  if(typeof renderBulkMaterials==='function')renderBulkMaterials();
+  if(typeof renderPrintMaterials==='function')renderPrintMaterials();
+}
+function bulkLoadMaterials_(){
+  if(_bulkMatSt==='loading')return;
+  _bulkMatSt='loading'; _bulkMatPaint_();
+  call({action:'materials_list'}).then(function(d){
+    if(!(d&&d.ok)){ _bulkMatSt='error'; _bulkMatPaint_(); return; }
+    bulkMaterials=(d.data.materials||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');});
+    _bulkMatSt=''; _bulkMatPaint_();
+  });
+}
+function _bulkMatEmptyHtml_(){
+  return (_bulkMatSt==='loading')
+      ? '<div class="pk-empty"><span class="rp-load"><span class="rp-spin"></span>教材を読み込み中…（10秒ほどかかります）</span></div>'
+    : (_bulkMatSt==='error')
+      ? '<div class="pk-empty"><span class="rp-loaderr">⚠ 教材の一覧を取れませんでした。</span> <button type="button" class="rp-allbtn" onclick="bulkLoadMaterials_()">↻ もう一度読み込む</button></div>'
+      : '<div class="pk-empty">教材がありません</div>';
+}
 /* 仕上げプリント（2026-08-30 段2）：テスト範囲＝印刷用の教材えらび。
    割り当ての bulkMat とは別に持つ（同じモーダルだが選ぶ目的が違うので混ぜない）。
    選ぶUIの部品は renderMatCand_ / renderMatSel_ をそのまま流用する＝新しく作らない。 */
@@ -6795,13 +6828,8 @@ function tmStepAssign_(body){
   var note=document.createElement('div');note.className='tm-note';note.textContent='開始＝先頭パート・1日1パート。すでに割り当て済みの生徒はスキップ。単元別対策は下で人ごとに確認テスト配信を設定できます。';body.appendChild(note);
   var dw=document.createElement('div');dw.id='bulkDelivWrap';dw.style.marginTop='10px';body.appendChild(dw);
   var si=$('bulkMatSearch');if(si)si.oninput=function(){renderBulkMaterials();};
-  if(!bulkMaterials.length){
-    $('bulkMatCand').innerHTML='<div class="pk-empty">読み込み中…</div>';
-    call({action:'materials_list'}).then(function(d){
-      bulkMaterials=(d&&d.ok?(d.data.materials||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}):[]);
-      renderBulkMaterials();
-    });
-  }else renderBulkMaterials();
+  if(!bulkMaterials.length)bulkLoadMaterials_();
+  else renderBulkMaterials();
 }
 function tmStepPrint_(body){
   var scope=localStorage.getItem('kwt_print_scope')||'active';
@@ -6875,13 +6903,8 @@ function tmStepPrint_(body){
     +'</div>';
   _tmToggleStyle_();
   var si=$('printMatSearch');if(si)si.oninput=function(){renderPrintMaterials();};
-  if(!bulkMaterials.length){
-    $('printMatCand').innerHTML='<div class="pk-empty">読み込み中…</div>';
-    call({action:'materials_list'}).then(function(d){
-      bulkMaterials=(d&&d.ok?(d.data.materials||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}):[]);
-      renderPrintMaterials();
-    });
-  }else renderPrintMaterials();
+  if(!bulkMaterials.length)bulkLoadMaterials_();
+  else renderPrintMaterials();
 }
 /* 紙の形の切り替え。種別チェックは「覚える一覧」のときだけ出す
    （仕上げプリントは範囲を教材で決めるので、種別で絞る意味がない＝川上さん確定 2026-08-31）*/
@@ -6908,7 +6931,7 @@ function setPrintStyle(k){
 function renderPrintMaterials(){
   var candEl=$('printMatCand'),selEl=$('printMatSel');
   if(!candEl||!selEl)return;
-  if(!bulkMaterials.length){candEl.innerHTML='<div class="pk-empty">教材がありません</div>';selEl.innerHTML='<div class="pk-empty">まだ選んでいません</div>';return;}
+  if(!bulkMaterials.length){candEl.innerHTML=_bulkMatEmptyHtml_();selEl.innerHTML='<div class="pk-empty">まだ選んでいません</div>';return;}
   var q=(($('printMatSearch')||{}).value||'').trim();
   renderMatCand_(candEl,{materials:bulkMaterials,assignedSet:null,pickedSet:printMat,openMap:_printMatOpen,search:q,keyPrefix:'print',
     onOne:function(id){if(printMat[id])delete printMat[id];else printMat[id]=1;renderPrintMaterials();tmUpdateFoot();},
@@ -7086,7 +7109,7 @@ function renderMatSel_(listEl,cfg){
 function renderBulkMaterials(){
   var candEl=$('bulkMatCand'),selEl=$('bulkMatSel');
   if(!candEl||!selEl)return;
-  if(!bulkMaterials.length){candEl.innerHTML='<div class="pk-empty">教材がありません</div>';selEl.innerHTML='<div class="pk-empty">まだ選んでいません</div>';return;}
+  if(!bulkMaterials.length){candEl.innerHTML=_bulkMatEmptyHtml_();selEl.innerHTML='<div class="pk-empty">まだ選んでいません</div>';return;}
   var q=(($('bulkMatSearch')||{}).value||'').trim();
   renderMatCand_(candEl,{materials:bulkMaterials,assignedSet:null,pickedSet:bulkMat,openMap:_bulkOpen,search:q,keyPrefix:'bulk',
     onOne:function(id){var m=bmById(id);if(bulkMat[id])delete bulkMat[id];else{bulkMat[id]=1;if(m&&m.content_type==='test')bulkEnsureDates(id);}renderBulkMaterials();if(typeof tmUpdateFoot==='function')tmUpdateFoot();},
