@@ -3044,7 +3044,7 @@ function prefetchParts_(cards){
     if(m.content_type==='test'&&m.graduated)return;
     if(_prefetch[m.part_id])return; // 取得中・取得済みは再取得しない
     _prefetch[m.part_id]=call({action:'student_today',part_id:m.part_id}).then(function(d){
-      if(d&&d.ok){_prefetch[m.part_id]=d;return d;}
+      if(d&&d.ok){_gradeSync_(d);/* 先読みでも学年をそろえる＝ホームを開いただけでふりがなが直る 2026-09-19 */_prefetch[m.part_id]=d;return d;}
       delete _prefetch[m.part_id];return null; // 失敗分はタップ時に通常取得へ
     });
   });
@@ -4424,7 +4424,20 @@ function startPractice(listId){
     });
     return;}
   call({action:'student_today',part_id:listId,start:1}).then(function(d){_startPracticeWith_(listId,d);});}
-function _startPracticeWith_(listId,d){if(!d.ok){_pendingResume=null;/* 【2026-08-21】失敗時に消さないと、次に別のパートを始めたとき古い中断が適用され、_resumeOrder_ が不一致→本物の中断記録が消える */toastH(d.error?esc(d.error):'<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>みに<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
+/* 学年は student_login のときにしか取れない作りだった（2026-07-22）。
+   そのため【7/22より前からログインしたままの小学生にはふりがなが出ない】（2026-09-19 実機で発覚。
+   川上さんの test-s1 は小5なのに localStorage に kwt_grade のキー自体が無かった）。
+   student_today の返りでそろえる。**サーバ側の読み込みは1回も増えない**＝studentToday は
+   もともと students シートを読んで mode を取っているので、grade を1つ足すだけ（川上さん確定・案A 2026-09-19）*/
+function _gradeSync_(d){
+  try{
+    var g=(d&&d.data&&d.data.grade!=null)?String(d.data.grade):null;
+    if(g===null||g===stuGrade)return;
+    stuGrade=g; try{localStorage.setItem('kwt_grade',g);}catch(e){}
+    applyFuriByGrade_(g);
+  }catch(e){}
+}
+function _startPracticeWith_(listId,d){_gradeSync_(d);if(!d.ok){_pendingResume=null;/* 【2026-08-21】失敗時に消さないと、次に別のパートを始めたとき古い中断が適用され、_resumeOrder_ が不一致→本物の中断記録が消える */toastH(d.error?esc(d.error):'<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>みに<ruby>失敗<rt class="uf">しっぱい</rt></ruby>しました');openHome();return;}var sj=d.data.subject||'english';var isEn=(sj==='english');
 /* 中断からの再開：出題順を前回と同じに戻す。問題が増減していたら再開せず最初から（教材が差し替わった場合）2026-08-20 */
 var _rs=_pendingResume;_pendingResume=null;
 if(_rs){var _ord=_resumeOrder_(d.data.words,_rs);if(_ord){d.data.words=_ord;}else{_abandonLog_(_rs,'changed');_rs=null;_resumeClear_();toastH('<ruby>教材<rt class="uf">きょうざい</rt></ruby>が<ruby>変<rt class="uf">か</rt></ruby>わったので<ruby>最初<rt class="uf">さいしょ</rt></ruby>から<ruby>始<rt class="uf">はじ</rt></ruby>めます');}}
@@ -4983,7 +4996,7 @@ function _ptEx_(line,gl,d,s,_no){
   if(m){ en=m[1]; tr=m[2]; }
   var toks=en.trim().split(/\s+/), gs=String(gl||'').split('|');
   /* 穴を埋めたときに鳴らす文＝答えが入った形。[[ ]] を外して行ごと持たせる 2026-09-11 */
-  var h='<div class="exline" data-en="'+esc(String(en).replace(/\[\[|\]\]/g,'').trim())+'">';
+  var h='<div class="exline" data-en="'+esc(_ptSayEn_(String(en).replace(/\[\[|\]\]/g,'')))+'">';
   for(var i=0;i<toks.length;i++){
     h+='<span class="exw"><span class="exen">'+_ptLine_(toks[i],d,s,_no)+'</span>'
       +'<span class="exja">'+_ptJa_(String(gs[i]||'').trim(),s)+'</span></span>';
@@ -4999,8 +5012,13 @@ function _ptEx_(line,gl,d,s,_no){
 var _ptAuMap_=null,_ptAuFor_=null;
 /* 直訳行のない行にも data-en を付ける。ただし英文の行だけ＝日本語が混ざる説明文は付けない
    （英語の声で日本語を読ませない）。［［］］と行末の（和訳）は外す */
+/* 読み上げ・鳴らす用の英文。行頭の話し手の札（Boy: Girl: Man: Woman: Teacher:）は外す。
+   付けたまま渡すと英語の声が「ガール、ユーアーウェルカム…」と札まで読む（2026-09-19 実機で確認）。
+   画面の表示は札を残したまま＝誰のせりふか分からなくなるので、音だけ外す */
+var _PT_SP_=/^\s*(?:Boy|Girl|Man|Woman|Teacher|Mother|Father|Student|A|B)\s*[:\uff1a]\s*/;
+function _ptSayEn_(t){ return String(t==null?'':t).replace(_PT_SP_,'').trim(); }
 function _ptEnAttr_(line){
-  var t=String(line||'').replace(/\[\[|\]\]/g,'');
+  var t=_ptSayEn_(String(line||'').replace(/\[\[|\]\]/g,''));
   t=t.replace(/\s*[（(][^（）()]*[）)]\s*$/,'').trim();
   if(!/[A-Za-z]/.test(t))return '';
   if(/[ぁ-んァ-ヶ一-龥ー、。「」]/.test(t))return '';
