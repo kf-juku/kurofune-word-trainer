@@ -939,6 +939,43 @@
 /* 【地雷 2026-09-09】.bl は max-width:calc(100% - 6px) を持つ。例文の列（.exw）の幅は中身の最大幅で決まるので、
    直訳が短いと列が細くなり、穴の中の答えが「i／s」のように1文字ずつ折り返した。例文の中では幅を縛らない */
 .exline .bl{max-width:none;white-space:nowrap;}
+/* ===== 語順の5色＝教材の共通ルール（川上さん確定 2026-09-21・要件定義書 §18-★ 決まり13）=====
+   だれ／する／なに／どこで／いつ。カードの :; 行と assets の payload.roles が同じ名前を使う。
+   【並べ替えの最中は色を出さない】＝どの語がどこに入るか分かってしまう（決まり13） */
+:root{--dare:#e0708a;--suru:#3f7fd6;--nani:#d98a2b;--doko:#5aa86b;--itsu:#8a6fd0;}
+.rl-dare{--rl:var(--dare)}.rl-suru{--rl:var(--suru)}.rl-nani{--rl:var(--nani)}
+.rl-doko{--rl:var(--doko)}.rl-itsu{--rl:var(--itsu)}
+/* ===== 語のまとまり（カードと問題で共通の1組。決まり14＝片方だけ直さない）===== */
+.wg{display:inline-flex;flex-direction:column;align-items:center;}
+.wg-ws{display:inline-flex;align-items:flex-end;column-gap:9px;}
+.wg-bar{display:block;height:3px;border-radius:2px;background:var(--rl,transparent);align-self:stretch;margin-top:4px;}
+.wg-rl{font-size:10px;font-weight:800;color:var(--rl,var(--sub));line-height:1.55;white-space:nowrap;}
+.ww{display:inline-flex;flex-direction:column;align-items:center;}
+.ww-en{font-weight:700;white-space:nowrap;min-height:30px;display:flex;align-items:center;justify-content:center;}
+.ww-ja{font-size:11px;color:var(--sub);font-weight:600;white-space:nowrap;min-height:1.25em;line-height:1.3;}
+.ww-pn{margin-left:-6px;}
+.wg.extr .ww-en{font-weight:500;color:var(--sub);}
+/* 問題（穴うめ）は文字を大きく＝カードの例文より主役 */
+.sqx{justify-content:center;column-gap:15px;row-gap:14px;margin:16px 0 4px;}
+.sqx .ww-en{font-size:23px;font-weight:800;min-height:36px;letter-spacing:-.01em;}
+.sqx .ww-ja{font-size:11.5px;margin-top:1px;}
+.sqx-all{text-align:center;font-size:16px;font-weight:700;margin:12px 0 16px;}
+/* ===== 読み確認（phonics）2026-09-21。値は承認モック 20260921_モック_架け橋_第1回1.html から =====
+   音のかたまり（.ph-split）は read / build / blend / spell で共通の部品。押すとその音だけ鳴る。 */
+.ph-w{text-align:center;font-size:34px;font-weight:800;margin:12px 0 10px;letter-spacing:.02em;}
+.ph-split{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;margin:10px 0 12px;}
+.ph-u{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:46px;padding:7px 9px;border-radius:10px;
+  border:1.5px solid var(--line);background:var(--bg);cursor:pointer;font-family:inherit;transition:all .15s;}
+.ph-u .ph-s{font-size:21px;font-weight:800;color:var(--ink);line-height:1.1;}
+.ph-u .ph-y{font-size:11px;font-weight:700;color:var(--sub);}
+.ph-u.v{border-color:var(--accent);background:var(--accent-soft);}   /* 母音はアクセント色で囲う */
+.ph-u.v .ph-s{color:var(--accent);}
+.ph-u.now{transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,.14);border-color:var(--accent);}
+.ph-u.lit{border-style:solid;}
+.ph-plus{font-size:15px;font-weight:800;color:var(--sub);padding:0 1px;}
+.ph-tip{text-align:center;font-size:11.5px;color:var(--sub);margin:-4px 0 10px;}
+.ph-act{display:flex;justify-content:center;gap:8px;margin:8px 0 12px;}
+.ph-act .sq-spk{margin:0;padding:14px 12px;font-size:14px;}
 .exline .bl .gh,.exline .bl .q{white-space:nowrap;}
 .exw.extr .exen{font-weight:500;color:var(--sub);}
 .bl{position:relative;display:inline-flex;align-items:center;justify-content:center;line-height:1.55;padding:0 8px;margin:0 2px;border-radius:7px;background:var(--accent-soft);border:1.5px dashed var(--accent);color:var(--accent);font-weight:800;cursor:pointer;vertical-align:1px;max-width:calc(100% - 6px);text-align:center;}
@@ -1399,7 +1436,15 @@
   .sq-spk:active{transform:scale(.99);}
   .sq-spk i{font-size:25px;}
   .sq-sent{font-size:25px;font-weight:700;text-align:center;line-height:1.5;margin:10px 0 6px;}
-  .sq-bl{display:inline-block;min-width:74px;border-bottom:3px solid var(--accent);margin:0 4px;vertical-align:-2px;}
+  /* 空欄＝カードの穴（.bl）と同じ見え方にそろえる。下線だけだとハイフンに見え、
+     答え合わせで語を入れたときに入ったことが分からない（2026-09-21 改修④） */
+  .sq-bl{display:inline-flex;align-items:center;justify-content:center;min-width:80px;height:34px;padding:0 10px;margin:0 4px;
+    border:2px dashed var(--accent);border-radius:9px;background:var(--accent-soft);color:var(--accent);
+    font-weight:800;font-size:20px;line-height:1;vertical-align:middle;}
+  .sq-blx{display:inline-flex;align-items:center;justify-content:center;min-width:80px;height:36px;padding:0 10px;
+    border:2px dashed var(--accent);border-radius:9px;background:var(--accent-soft);color:var(--accent);
+    font-weight:800;font-size:20px;line-height:1;}
+  .sq-bl.done,.sq-blx.done{border-style:solid;border-color:var(--ok);background:rgba(31,170,107,.14);color:var(--ok);}
   /* 日本語訳は「ついで」ではなく、何を英語にするかを決める文。グレーの14pxだと読み飛ばされる
      （2026-09-09 川上さん指摘）。穴埋めは英文が主役なので17px、並べ替えは訳が問題文そのものなので21px */
   .sq-ja{text-align:center;color:var(--text);font-size:17px;line-height:1.6;margin-bottom:14px;}
@@ -1601,6 +1646,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   .rb-next .rn-go{margin-left:auto;font-size:20px;color:#fff;}
   .bug-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
   .bug-chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:9px 12px;font-size:13.5px;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;}
+  .bug-chip .bug-lb{display:inline;}   /* 【地雷 2026-09-21】ここは class="bl" だった。.bl は問題の穴の見かけ（破線の枠・アクセント色）を持つ全体ルールなので、報告チップに破線の枠が二重に出ていた。名前を bug-lb に変えて切り離した */
   .bug-chip .tk{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line);display:inline-grid;place-items:center;font-size:11px;color:#fff;}
   .bug-chip.sel{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700;}
   .bug-chip.sel .tk{background:var(--accent);border-color:var(--accent);}
@@ -1777,6 +1823,8 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       <div class="qtimer" id="qtimer" style="display:none;"><div class="qbar"><i id="qbar-fill"></i></div><span class="qsec num" id="qsec">10<ruby>秒<rt class="uf">びょう</rt></ruby></span></div>
       <div class="card" id="step-listen" style="display:none;">
         <div class="word-en" id="w-en"></div><div class="reading" id="w-reading"></div>
+        <!-- 読み確認（phonics）の say だけ、ここに音のかたまりを出す 2026-09-21 -->
+        <div id="ph-splitbox" style="display:none;"></div>
         <!-- 発音フローの指示（①声に出して言う→②お手本を聞く）2026-07-30 -->
         <div class="pron-guide">
           <span class="pg-step"><span class="pg-no">1</span><span class="pg-t"><ruby>声<rt class="uf">こえ</rt></ruby>に<ruby>出<rt class="uf">だ</rt></ruby>して<ruby>言<rt class="uf">い</rt></ruby>う</span></span>
@@ -1948,13 +1996,13 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
       <p class="hint">うまく<ruby>動<rt class="uf">うご</rt></ruby>かないところがあれば<ruby>教<rt class="uf">おし</rt></ruby>えてください。<ruby>勘違<rt class="uf">かんちが</rt></ruby>いでも<ruby>大丈夫<rt class="uf">だいじょうぶ</rt></ruby>なので、<ruby>気軽<rt class="uf">きがる</rt></ruby>に<ruby>送<rt class="uf">おく</rt></ruby>ってください。</p>
       <label class="bug-lbl">どんな<ruby>不具合<rt class="uf">ふぐあい</rt></ruby>ですか？<span class="opt"><ruby>近<rt class="uf">ちか</rt></ruby>いものを<ruby>選<rt class="uf">えら</rt></ruby>ぶ（いくつでも）</span></label>
       <div class="bug-chips" id="bug-chips">
-        <button type="button" class="bug-chip" data-cat="音が鳴らない" onclick="bugPick(this)"><span class="tk"></span><span class="bl"><ruby>音<rt class="uf">おと</rt></ruby>が<ruby>鳴<rt class="uf">な</rt></ruby>らない</span></button>
-        <button type="button" class="bug-chip" data-cat="点数・結果が出ない／止まる" onclick="bugPick(this)"><span class="tk"></span><span class="bl"><ruby>点数<rt class="uf">てんすう</rt></ruby>・<ruby>結果<rt class="uf">けっか</rt></ruby>が<ruby>出<rt class="uf">で</rt></ruby>ない／<ruby>止<rt class="uf">と</rt></ruby>まる</span></button>
-        <button type="button" class="bug-chip" data-cat="画面が固まる・真っ白" onclick="bugPick(this)"><span class="tk"></span><span class="bl"><ruby>画面<rt class="uf">がめん</rt></ruby>が<ruby>固<rt class="uf">かた</rt></ruby>まる・<ruby>真<rt class="uf">ま</rt></ruby>っ<ruby>白<rt class="uf">しろ</rt></ruby></span></button>
-        <button type="button" class="bug-chip" data-cat="表示・文字がおかしい" onclick="bugPick(this)"><span class="tk"></span><span class="bl"><ruby>表示<rt class="uf">ひょうじ</rt></ruby>・<ruby>文字<rt class="uf">もじ</rt></ruby>がおかしい</span></button>
-        <button type="button" class="bug-chip" data-cat="ボタンが反応しない" onclick="bugPick(this)"><span class="tk"></span><span class="bl">ボタンが<ruby>反応<rt class="uf">はんのう</rt></ruby>しない</span></button>
-        <button type="button" class="bug-chip" data-cat="ログインできない" onclick="bugPick(this)"><span class="tk"></span><span class="bl">ログインできない</span></button>
-        <button type="button" class="bug-chip" data-cat="その他" onclick="bugPick(this)"><span class="tk"></span><span class="bl">その<ruby>他<rt class="uf">た</rt></ruby></span></button>
+        <button type="button" class="bug-chip" data-cat="音が鳴らない" onclick="bugPick(this)"><span class="tk"></span><span class="bug-lb"><ruby>音<rt class="uf">おと</rt></ruby>が<ruby>鳴<rt class="uf">な</rt></ruby>らない</span></button>
+        <button type="button" class="bug-chip" data-cat="点数・結果が出ない／止まる" onclick="bugPick(this)"><span class="tk"></span><span class="bug-lb"><ruby>点数<rt class="uf">てんすう</rt></ruby>・<ruby>結果<rt class="uf">けっか</rt></ruby>が<ruby>出<rt class="uf">で</rt></ruby>ない／<ruby>止<rt class="uf">と</rt></ruby>まる</span></button>
+        <button type="button" class="bug-chip" data-cat="画面が固まる・真っ白" onclick="bugPick(this)"><span class="tk"></span><span class="bug-lb"><ruby>画面<rt class="uf">がめん</rt></ruby>が<ruby>固<rt class="uf">かた</rt></ruby>まる・<ruby>真<rt class="uf">ま</rt></ruby>っ<ruby>白<rt class="uf">しろ</rt></ruby></span></button>
+        <button type="button" class="bug-chip" data-cat="表示・文字がおかしい" onclick="bugPick(this)"><span class="tk"></span><span class="bug-lb"><ruby>表示<rt class="uf">ひょうじ</rt></ruby>・<ruby>文字<rt class="uf">もじ</rt></ruby>がおかしい</span></button>
+        <button type="button" class="bug-chip" data-cat="ボタンが反応しない" onclick="bugPick(this)"><span class="tk"></span><span class="bug-lb">ボタンが<ruby>反応<rt class="uf">はんのう</rt></ruby>しない</span></button>
+        <button type="button" class="bug-chip" data-cat="ログインできない" onclick="bugPick(this)"><span class="tk"></span><span class="bug-lb">ログインできない</span></button>
+        <button type="button" class="bug-chip" data-cat="その他" onclick="bugPick(this)"><span class="tk"></span><span class="bug-lb">その<ruby>他<rt class="uf">た</rt></ruby></span></button>
       </div>
       <div class="bug-field">
         <label>どの<ruby>画面<rt class="uf">がめん</rt></ruby>で<ruby>起<rt class="uf">お</rt></ruby>きましたか？</label>
@@ -4463,7 +4511,11 @@ function _startStepFor(s,w){ return _wIsEng(s,w) ? (s.mode==='daily'?1:2) : 3; }
    語の3ステップ（発音→意味→日本語→英語）には乗せない＝renderQz_ の頭で分岐して戻る（表・図と同じやり方）。
    採点の向きは e2j にそろえる。教材は direction=e2j なので、語も文も「意味」の正答率に入り、
    分母（total＝行数）とそろう。j2e にすると reverse 側に入って正答率が半分に見える。 */
-function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder'||q==='listen_resp'||q==='listen_pic'||q==='dialog_fill';}
+function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder'||q==='listen_resp'||q==='listen_pic'||q==='dialog_fill'||q==='phonics';}
+/* phonics＝読み確認。1行1問・採点の向きは e2j。ここに入れると
+   _isOneShot_ / _ansWhichNow_ / _saveResumeNext_ / カードを隠す行 の4か所が一度にそろう
+   （2026-09-08⑭ の教訓。描画関数だけ足しても動かない）2026-09-21 */
+function _isPh_(w){return String((w&&w.qtype)||'')==='phonics';}
 /* 英検の聞き取り 第1部型（会話の応答）・第3部型（絵に合う英文）2026-09-17 川上さん承認（20260917_モック_英検5級_聞き取り第1部型と第3部型.html）。
    選択肢も音だけで出す＝本番と同じ。_isSentQ_ に入れて 1行1問・採点の向き e2j にそろえる（文の問題と同じ扱い） */
 function _isLx_(w){var q=String((w&&w.qtype)||'');return q==='listen_resp'||q==='listen_pic';}
@@ -4850,7 +4902,7 @@ function _wlOfCard_(d){
   var mm=body.match(/\{\{[^}]+\}\}/g)||[];
   for(var q=0;q<mm.length;q++){ var p=mm[q].replace(/[{}]/g,'').split('|'); _wlPush_(out,seen,p[0],p[1]||''); }
   for(var i=0;i<ls.length;i++){
-    var L=ls[i]; if(_PT_GL_.test(L))continue;
+    var L=ls[i]; if(_PT_GL_.test(L)||_PT_RL_.test(L))continue;   /* 役割行（:;）は語ではない 2026-09-21 */
     var nx=ls[i+1]; if(!(nx&&_PT_GL_.test(nx)))continue;
     var en=L.replace(_WL_MK_,'$1').replace(/\[\[|\]\]/g,'');
     var m=en.match(/^([\s\S]*?)\s*[（(][^（）()]*[）)]\s*$/); if(m)en=m[1];
@@ -4883,6 +4935,7 @@ function _wlAbc_(a){
 function _wlFor_(s,w,answered){
   try{
     if(_isLx_(w))return {list:[],title:''};   /* 会話・絵の聞き取りは語の一覧を持たない（選択肢の文字が読めてしまう）2026-09-17 */
+    if(_isPh_(w))return {list:[],title:''};   /* 読み確認は1語の問題。つづりも読みも答えそのもの 2026-09-21 */
     if(_isSentQ_(w)){
       var qt=String(w.qtype||'');
       /* 聞き取り＝答える前に全語の訳が読めると、聞かずに答えの文を組める。答え合わせまで出さない
@@ -4959,6 +5012,34 @@ function _ptRestore_(){
 function _ptNo_(n){ return (n>=1&&n<=20)?String.fromCharCode(0x2460+n-1):('('+n+')'); }
 function _ptYomi_(html){ return html.replace(/[（(]([ぁ-んァ-ヶーゝゞ・]+)[）)]/g,'<span class="yomi">（$1）</span>'); }
 var _PT_GL_=/^\s*::/;
+/* 「:; 」で始まる行＝そのすぐ上の英文の【語ごとの役割】（dare|suru|nani|doko|itsu）。
+   直訳の「:: 」の1行下に置く。知らないままだと文字として画面に出てしまう 2026-09-21 */
+var _PT_RL_=/^\s*:;/;
+/* ===== 語を役割でまとめる（決まり14＝カードと問題で同じ1組を呼ぶ）2026-09-21 =====
+   役割が続く語はひとかたまりにまとめ、その下に色の線と役割名を出す。
+   役割が空の語はまとめない＝いままでどおり1語ずつ（長い文が折り返せなくなるのを防ぐ）。
+   ★片方だけ直さない。ここを直したらカードと問題の両方に効く。 */
+var _RL_JA_={dare:'だれ',suru:'する',nani:'なに',doko:'どこで',itsu:'いつ'};
+function groupByRole(n,getRole){
+  var g=[],cur=null;
+  for(var i=0;i<n;i++){
+    var r=String(getRole(i)||'').trim();
+    if(cur&&cur.r===r&&r){cur.idx.push(i);}else{cur={r:r,idx:[i]};g.push(cur);}
+  }
+  return g;
+}
+function wgHtml(groups,cellHtml,noColor){
+  var h='';
+  (groups||[]).forEach(function(G){
+    var c=(!noColor&&G.r&&_RL_JA_[G.r])?G.r:'';
+    h+='<span class="wg'+(c?' rl-'+c:'')+'"><span class="wg-ws">';
+    G.idx.forEach(function(i){h+=cellHtml(i);});
+    h+='</span>';
+    if(c)h+='<span class="wg-bar"></span><span class="wg-rl">'+esc(_RL_JA_[c])+'</span>';
+    h+='</span>';
+  });
+  return h;
+}
 /* 穴（[[語]]）1つぶんのHTML。更新で描き直すとき、埋めた穴はそのまま復元する（やり直しにしない・飛ばせない） */
 function _ptBlank_(w,d,s,_no){
   var y=d.yomi[w]||'';
@@ -4990,18 +5071,18 @@ function _ptLine_(line,d,s,_no){
 /* 英文＋語ごとの直訳。英文を空白で切って、上に英語・下に日本語を並べる。
    直訳は「|」区切りで英語の語と同じ数だけ書く（空にすればその語には付かない）。
    行末の（和訳）は最後にまとめて置く 2026-09-09 */
-function _ptEx_(line,gl,d,s,_no){
+function _ptEx_(line,gl,rl,d,s,_no){
   var en=line, tr='';
   var m=String(line).match(/^([\s\S]*?)\s*[（(]([^（）()]*)[）)]\s*$/);
   if(m){ en=m[1]; tr=m[2]; }
-  var toks=en.trim().split(/\s+/), gs=String(gl||'').split('|');
+  var toks=en.trim().split(/\s+/), gs=String(gl||'').split('|'), rs=String(rl||'').split('|');
   /* 穴を埋めたときに鳴らす文＝答えが入った形。[[ ]] を外して行ごと持たせる 2026-09-11 */
-  var h='<div class="exline" data-en="'+esc(_ptSayEn_(String(en).replace(/\[\[|\]\]/g,'')))+'">';
-  for(var i=0;i<toks.length;i++){
-    h+='<span class="exw"><span class="exen">'+_ptLine_(toks[i],d,s,_no)+'</span>'
-      +'<span class="exja">'+_ptJa_(String(gs[i]||'').trim(),s)+'</span></span>';
-  }
-  if(tr)h+='<span class="exw extr"><span class="exen">（'+_ptJa_(tr,s)+'）</span><span class="exja"></span></span>';
+  var h='<div class="exline" data-en="'+esc(_ptSayEn_(String(en).replace(/\[\[|\]\]/g,'')))+'"'+_ptSpAttr_(en)+'>';
+  h+=wgHtml(groupByRole(toks.length,function(i){return rs[i];}),function(i){
+    return '<span class="ww"><span class="ww-en">'+_ptLine_(toks[i],d,s,_no)+'</span>'
+      +'<span class="ww-ja">'+_ptJa_(String(gs[i]||'').trim(),s)+'</span></span>';
+  });
+  if(tr)h+='<span class="wg extr"><span class="wg-ws"><span class="ww"><span class="ww-en">（'+_ptJa_(tr,s)+'）</span><span class="ww-ja"></span></span></span></span>';
   return h+'</div>';
 }
 /* ===== 文法解説カードの穴を埋めたら、その例文を1文まるごと鳴らす（川上さん確定 2026-09-11）=====
@@ -5017,12 +5098,19 @@ var _ptAuMap_=null,_ptAuFor_=null;
    画面の表示は札を残したまま＝誰のせりふか分からなくなるので、音だけ外す */
 var _PT_SP_=/^\s*(?:Boy|Girl|Man|Woman|Teacher|Mother|Father|Student|A|B)\s*[:\uff1a]\s*/;
 function _ptSayEn_(t){ return String(t==null?'':t).replace(_PT_SP_,'').trim(); }
+/* 行頭の札（Boy: など）を data-sp に残す。表示はいままでどおり札つき、音だけ札を外して性別で選ぶ */
+function _ptSpAttr_(line){
+  var m=String(line||'').match(_PT_SP_);
+  if(!m)return '';
+  var sp=m[0].replace(/[\s:\uff1a]/g,'');
+  return _spSex_(sp)?(' data-sp="'+esc(sp)+'"'):'';
+}
 function _ptEnAttr_(line){
   var t=_ptSayEn_(String(line||'').replace(/\[\[|\]\]/g,''));
   t=t.replace(/\s*[（(][^（）()]*[）)]\s*$/,'').trim();
   if(!/[A-Za-z]/.test(t))return '';
   if(/[ぁ-んァ-ヶ一-龥ー、。「」]/.test(t))return '';
-  return ' data-en="'+esc(t)+'"';
+  return ' data-en="'+esc(t)+'"'+_ptSpAttr_(line);
 }
 function _ptAuLookup_(s,en){
   en=String(en||'').trim(); if(!en)return null;
@@ -5042,7 +5130,9 @@ function _ptCardSay_(s,el){
   var en=(n&&n.getAttribute)?String(n.getAttribute('data-en')||''):'';
   if(!en)return;
   var pl=_ptAuLookup_(s,en);
-  if(pl)_sentPlay_(pl); else _sentSay_(en);
+  var sx=_spSex_((n&&n.getAttribute)?String(n.getAttribute('data-sp')||''):'');
+  /* 端末の読み上げ（mp3 が無いとき）は声の性別を選べない。そこは今のところそろえられない */
+  if(pl)_sentPlay_(pl,sx); else _sentSay_(en);
 }
 function _ptHtml_(s,d,kind){
   var url=_ptFig_(s,d);
@@ -5064,9 +5154,12 @@ function _ptHtml_(s,d,kind){
   var _ls=d.body.split('\n');
   for(var _li=0;_li<_ls.length;_li++){
     var line=_ls[_li]; if(!line.trim())continue;
-    if(_PT_GL_.test(line))continue;                       /* 直訳行が単独で残っていても出さない */
-    var nx=_ls[_li+1];
-    if(nx&&_PT_GL_.test(nx)){ h+=_ptEx_(line,nx.replace(_PT_GL_,''),d,s,_no); _li++; continue; }
+    if(_PT_GL_.test(line)||_PT_RL_.test(line))continue;   /* 直訳行・役割行が単独で残っていても出さない */
+    var nx=_ls[_li+1], nx2=_ls[_li+2];
+    if(nx&&_PT_GL_.test(nx)){
+      var _rl=(nx2&&_PT_RL_.test(nx2))?nx2.replace(_PT_RL_,''):'';
+      h+=_ptEx_(line,nx.replace(_PT_GL_,''),_rl,d,s,_no); _li+=(_rl?2:1); continue;
+    }
     h+='<p'+_ptEnAttr_(line)+'>'+_ptLine_(line,d,s,_no)+'</p>';
   }
   h+='</div><div class="pt-left"></div>'
@@ -5175,8 +5268,13 @@ function _ptShow_(s){
     if(!box){
       box=document.createElement('div'); box.className='pt-pick';
       box.innerHTML='<div class="pt-pl"></div><div class="pt-chs"></div>';
-      card.querySelector('.pt-body').insertAdjacentElement('afterend',box);
     }
+    /* 【決まり15・川上さん確定 2026-09-21】選択肢は、その穴のある行のすぐ下に出す。
+       画面を下へ送る案は取り消し＝解説を読み飛ばすきっかけになる。
+       読んでいる場所のまま答えられるように、箱を穴のある行の直後へ移す */
+    var host=(b&&b.closest)?(b.closest('.exline')||b.closest('p')):null;
+    if(!host)host=card.querySelector('.pt-body');
+    if(box.previousElementSibling!==host)host.insertAdjacentElement('afterend',box);
     var _pl=box.querySelector('.pt-pl');
     if(_pl)_pl.innerHTML='〔 '+_ptNo_(Number(b.getAttribute('data-n')||1))+' 〕に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語句<rt class="uf">ごく</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
     var chs=box.querySelector('.pt-chs');
@@ -5236,7 +5334,7 @@ function renderQz_(s){if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestor
      教室で中断したいときは一時停止ボタンで止める。秒数を変えるときは QSEC の1行だけ直す。 */
   var _tl=qSecFor(isEng?'english':(w.subject||s.subject||'english'));
   if(s.step===1){ // 発音（毎日学習の英語のみ）。正解音声は先に流さない・読みは出さない（答えバレ防止）
-    hideQTimer();$('w-en').textContent=w.english;var _wr=$('w-reading');if(_wr){_wr.textContent='';_wr.style.display='none';}$('step-listen').style.display='block';hideListen_();pronBegin_();return;
+    hideQTimer();$('w-en').textContent=w.english;var _wr=$('w-reading');if(_wr){_wr.textContent='';_wr.style.display='none';}_phSplitBoxHide_();$('step-listen').style.display='block';hideListen_();pronBegin_();return;
   }
   if(s.step===2){
     qPresentE2J(w);
@@ -5439,6 +5537,8 @@ function renderIMG(ss){
 var _sentAu=null;
 function _sentSay_(t){try{if(!window.speechSynthesis||!t)return;var u=new SpeechSynthesisUtterance(String(t));u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
 function _sentStop_(){try{if(_sentAu){_sentAu.pause();_sentAu=null;}}catch(e){}try{_lxStop_();}catch(e){}try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
+/* 読み確認のタイマー（音の足し算）も、次の問題に進むときに必ず止める 2026-09-21 */
+function _phStopIfAny_(){try{_phStopAll_();}catch(e){}}
 /* mp3 がまだ置かれていない・読めないときは端末の読み上げに落とす＝音声をそろえる前でも出題できる（要件定義書 §6）
    【2026-09-09 川上さん確定】1文に複数の声を持たせ、**再生するたびに声が変わる**（A案）。
    payload の audios（配列）があればそこから1本選ぶ。無ければ従来どおり audio（単数）を使う
@@ -5446,19 +5546,30 @@ function _sentStop_(){try{if(_sentAu){_sentAu.pause();_sentAu=null;}}catch(e){}t
    直前に鳴らした声は続けて選ばない＝「もう一回聞く」を押したのに同じ声、が起きない。
    声を問題のあいだ固定したくなったら、_sentPick_ の中で1問ぶん覚える形に変えれば
    呼び出し側（_sentPlay_）は触らずに済む。 */
-var _sentVoi=-1;
-function _sentPick_(pl){
-  var a=(pl&&pl.audios&&pl.audios.length)?pl.audios:null;
+/* 【2026-09-21 川上さん確定・案2】カードの行頭に Boy: / Girl: の札があるとき、その性別の声だけを使う。
+   いままでは札に関係なくランダムだったので「Boy:」の行が半分の確率で女性の声で読まれていた。
+   声を増やしたら _VOICE_SEX_ に1行足す。表に無い声・札のない行は、いままでどおりランダム。 */
+var _VOICE_SEX_=[['neural2-d','m'],['achernar','f']];
+function _voiceSex_(url){var u=String(url||'').toLowerCase();
+  for(var i=0;i<_VOICE_SEX_.length;i++){if(u.indexOf(_VOICE_SEX_[i][0])>=0)return _VOICE_SEX_[i][1];}
+  return '';}
+var _SP_SEX_={boy:'m',man:'m',father:'m',girl:'f',woman:'f',mother:'f'};
+function _spSex_(sp){return _SP_SEX_[String(sp||'').toLowerCase()]||'';}
+var _sentVoi='';
+function _sentPick_(pl,sex){
+  var a=(pl&&pl.audios&&pl.audios.length)?pl.audios.slice():null;
   if(!a)return String((pl&&pl.audio)||'');
-  if(a.length===1)return String(a[0]||'');
+  if(sex){var f=[],k;for(k=0;k<a.length;k++){if(_voiceSex_(a[k])===sex)f.push(a[k]);}
+    if(f.length)a=f;}                     /* その性別の声が1本も無ければ、絞らずに従来どおり */
+  if(a.length===1){_sentVoi=String(a[0]||'');return _sentVoi;}
   var i=Math.floor(Math.random()*a.length);if(i>=a.length)i=a.length-1;
-  if(i===_sentVoi)i=(i+1)%a.length;
-  _sentVoi=i;
-  return String(a[i]||'');
+  if(String(a[i]||'')===_sentVoi)i=(i+1)%a.length;   /* 直前と同じ声は続けない */
+  _sentVoi=String(a[i]||'');
+  return _sentVoi;
 }
-function _sentPlay_(pl){
+function _sentPlay_(pl,sex){
   _sentStop_();
-  var url=_sentPick_(pl);
+  var url=_sentPick_(pl,sex);
   if(!url){_sentSay_(pl&&pl.en);return;}
   try{
     var au=new Audio(url);_sentAu=au;
@@ -5485,6 +5596,28 @@ function _sentAfterAudio_(pl){
   clearTimeout(_sentAfterT_);
   _sentAfterT_=setTimeout(function(){_sentPlay_(pl);},600);
 }
+/* ===== 穴うめの文を語ごとに出す（決まり13・14）2026-09-21 =====
+   カードの例文と同じ groupByRole / wgHtml を呼ぶ。CSS も .wg / .ww の1組。
+   ・tokens は pl.en を切ったもの＝文頭の大文字がそのまま出る（payload の tokens は全部小文字）
+   ・記号（.,?!）は独立した列にせず、直前の語の右に小さく添える
+   ・blankText を渡すと空欄にその語が入る（答え合わせ）
+   ★roles を持たない教材（英検5級 文法編）はこの表示を使わない＝いままでどおり1行の文で出す */
+function _wordCols_(tokens,gloss,roles,blankAt,blankText,s){
+  var idx=[],pn={},i;
+  for(i=0;i<tokens.length;i++){
+    if(_sentIsPn_(tokens[i])){ if(idx.length)pn[idx[idx.length-1]]=tokens[i]; continue; }
+    idx.push(i);
+  }
+  var G=groupByRole(idx.length,function(k){return (roles||[])[idx[k]]||'';});
+  G.forEach(function(g){ g.idx=g.idx.map(function(k){return idx[k];}); });
+  return '<div class="exline sqx">'+wgHtml(G,function(i){
+    var en=(i===blankAt)
+      ? '<span class="sq-blx'+(blankText?' done':'')+'">'+(blankText?esc(blankText):'？')+'</span>'
+      : esc(tokens[i]);
+    return '<span class="ww"><span class="ww-en">'+en+(pn[i]?'<span class="ww-pn">'+esc(pn[i])+'</span>':'')
+      +'</span><span class="ww-ja">'+_ptJa_(String((gloss||[])[i]||'').trim(),s)+'</span></span>';
+  })+'</div>';
+}
 function _sentPack_(s,w){var q=tfParse(w);var a=((s&&s.assets)||{})[q.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}return {q:q,pl:pl};}
 /* T-shirt・P.E.・don't は1語として切る（ハイフンとアポストロフィで割らない）＝文のビルドと検査.py と同じ正規表現 */
 function _sentTok_(t){return String(t==null?'':t).match(/P\.E\.|[A-Za-z]+(?:[-'][A-Za-z]+)*|[.,?!]/g)||[];}
@@ -5497,6 +5630,7 @@ function renderSENT(ss){
   var s=ss||session,w=s.words[s.idx],X=_sentPack_(s,w),q=X.q,pl=X.pl,qt=String(w.qtype||'');
   hideListen_();
   try{_lxStop_();}catch(_e){}
+  try{_phStopIfAny_();}catch(_e){}
   if(_isLx_(w)){renderLX_(s,w,q,pl);return;}
   var ask=$('sent-ask'),body=$('sent-body');
   $('sent-choices').innerHTML='';body.innerHTML='';
@@ -5504,6 +5638,7 @@ function renderSENT(ss){
   /* 文は読む・聞く時間が要るので、秒数は図・表と同じ枠（fig:true でさらに＋5秒）2026-09-02 の考え方をそのまま使う */
   var _tl=(s.mode==='note')?0:qSecFor('table_fill');
   if(qt==='dialog_fill'){renderDF_(s,w,pl,_tl);return;}
+  if(qt==='phonics'){renderPH_(s,w,q,pl,_tl);return;}
   if(qt==='listen'){
     ask.innerHTML='<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>意味<rt class="uf">いみ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
     body.innerHTML='<button type="button" class="sq-spk" id="sent-spk"><i class="ti ti-volume"></i><span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
@@ -5520,22 +5655,184 @@ function renderSENT(ss){
   if(qt==='sentence_fill'){
     ask.innerHTML='<ruby>文<rt class="uf">ぶん</rt></ruby>に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語<rt class="uf">ご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
     /* 穴のある文は en から組む＝文頭の大文字がそのまま出る。tokens（全部小文字）は使わない */
-    var tk=_sentTok_(pl.en),bi=(q.blank|0),h='';
-    if(tk.length){
-      var _BL='\u0001';   /* 穴の目印。join したあとで下線に置き換える（記号の前の空白つめを先に効かせるため）*/
-      h=tk.map(function(t,i){return (i===bi)?_BL:esc(t);}).join(' ').replace(/\s+([.,?!])/g,'$1').replace(_BL,'<span class="sq-bl"></span>');
-    }else{
-      h=_boxBlank(esc(w.japanese||''));   /* 素材が取れないときだけ japanese 列の（　）を四角にして出す */
-    }
-    body.innerHTML='<div class="sq-sent">'+h+'</div><div class="sq-ja">'+_jaRuby_(pl.ja||'')+'</div>';
+    var tk=_sentTok_(pl.en),bi=(q.blank|0);
+    var _hasRl=!!(pl.roles&&pl.roles.length);   /* 役割を持つ教材（架け橋）だけ語ごとの表示にする */
+    /* fill＝空欄に入れる語。答え合わせで呼び直して、空けたままにしない（改修④）2026-09-21 */
+    var _sfBody=function(fill){
+      if(!tk.length)return '<div class="sq-sent">'+_boxBlank(esc(w.japanese||''))+'</div>'
+        +'<div class="sq-ja">'+_jaRuby_(pl.ja||'')+'</div>';   /* 素材が取れないときだけ japanese 列の（　）を四角にして出す */
+      if(_hasRl)return _wordCols_(tk,pl.gloss,pl.roles,bi,fill,s)+'<div class="sqx-all">'+_jaRuby_(pl.ja||'')+'</div>';
+      var _BL='\u0001';   /* 穴の目印。join したあとで四角に置き換える（記号の前の空白つめを先に効かせるため）*/
+      var h=tk.map(function(t,i){return (i===bi)?_BL:esc(t);}).join(' ').replace(/\s+([.,?!])/g,'$1')
+        .replace(_BL,'<span class="sq-bl'+(fill?' done':'')+'">'+(fill?esc(fill):'')+'</span>');
+      return '<div class="sq-sent">'+h+'</div><div class="sq-ja">'+_jaRuby_(pl.ja||'')+'</div>';
+    };
+    body.innerHTML=_sfBody('');
     buildChoices('sent-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
       {fig:true,fixedChoices:(q.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext,
-       afterShow:function(){_sentAfterAudio_(pl);}});   /* 答え合わせで文を鳴らす 2026-09-11 */
+       afterShow:function(){ try{body.innerHTML=_sfBody(w.english);}catch(_e){} _sentAfterAudio_(pl); }});   /* 空欄に答えを入れてから文を鳴らす 2026-09-11 / 2026-09-21 */
     return;
   }
   renderRO_(s,w,q,pl);
 }
 
+/* ===== 読み確認（phonics）2026-09-21 =====
+   正＝要件定義書_英検教材 §18、kakehashi スキル §6、承認モック 20260921_モック_架け橋_第1回1.html。
+   assets（kind=phonics）の payload：
+     {"word":"run","read":"ラン","topic":6,"topic_ja":"短母音 u",
+      "split":[["r","ル",0],["u","ア",1],["n","ン",0]],   ← [つづり, 音のカタカナ, 母音なら1]
+      "hint":"u は「ア」と読む","audio":"…/run.mp3",
+      "split_audio":["…/p_r.mp3","…/p_u.mp3","…/p_n.mp3"]}
+   words： qtype=phonics  qdata={"asset":"as-ph-run","mode":"read","choices":[…4つ…]}
+
+   ★1語につきアセット1本。出し方（mode）だけ変えて形式を変える。
+     read  ＝語を見せて読み方を4択（見て読める）      ← 架け橋で使う
+     build ＝文字も読みも伏せて音だけ → つづりを4択（聞いてつづれる） ← 架け橋で使う
+     blend ＝文字は見せたまま音を1つずつ → 語を4択   ← 前段階の教材用。消さない
+     spell ＝語まるごとの音 → つづりを4択            ← 前段階の教材用。消さない
+     say   ＝語を見て声に出す                        ← 採点の決め方が未確定。まだ実装していない
+   ★音のかたまりの部品（_phSplitHtml_）は全形式で共通。ここがあるので、
+     英検より前の段階の教材でも同じ画面が使える。語を足すのはアセット1本増やすだけ。
+   ★答え合わせは正解でも不正解でも同じ（川上さん確定 2026-09-21）。
+     伏せた文字と読みをもどしてから、音の足し算（1つずつ・750ms）→ 正式な発音 を自動で流す。 */
+var _PH_GAP_=750;
+var _phTimers_=[];
+function _phStopAll_(){ for(var i=0;i<_phTimers_.length;i++)clearTimeout(_phTimers_[i]); _phTimers_=[]; }
+function _phLater_(fn,ms){ _phTimers_.push(setTimeout(fn,ms)); }
+function _phSplit_(pl){ return (pl&&pl.split&&pl.split.length)?pl.split:[]; }
+/* 音のかたまり1つぶんの音。split_audio の mp3 が正。
+   mp3 がまだ無いときは、画面に出ているカタカナを日本語の声で読む
+   （英語の声に "r" と1文字渡すと「アール」と字の名前を読んでしまうため。川上さん指摘 2026-09-21）。
+   ほかの形式と同じで、素材が無くても出題できる状態にしておく（要件定義書 §6）。 */
+function _phSnd_(pl,i){
+  _sentStop_();
+  var a=(pl&&pl.split_audio)||[],u=String(a[i]||'');
+  if(u){ try{ var au=new Audio(u); _sentAu=au;
+      au.onerror=function(){_sentAu=null;_sayJa_(_phSplit_(pl)[i]&&_phSplit_(pl)[i][1]);};
+      var p=au.play(); if(p&&p['catch'])p['catch'](function(){_sentAu=null;_sayJa_(_phSplit_(pl)[i]&&_phSplit_(pl)[i][1]);});
+      return; }catch(e){}
+  }
+  var sp=_phSplit_(pl)[i]; _sayJa_(sp&&sp[1]);
+}
+function _sayJa_(t){try{if(!window.speechSynthesis||!t)return;var u=new SpeechSynthesisUtterance(String(t));u.lang='ja-JP';u.rate=0.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
+/* 語まるごとの音。audio の mp3 が正。無ければ端末の読み上げ（語なら字の名前にはならない） */
+function _phWhole_(pl){ _sentStop_(); if(pl&&pl.audio){_sentPlay_({audio:pl.audio,en:pl.word});return;} _sentSay_(pl&&pl.word); }
+function _phSplitHtml_(pl,opt){
+  var o=opt||{},sp=_phSplit_(pl);
+  return '<div class="ph-split">'+sp.map(function(x,i){
+    return '<button type="button" class="ph-u'+(x[2]?' v':'')+'" data-i="'+i+'">'
+      +'<span class="ph-s">'+(o.hideLetter?'●':esc(x[0]))+'</span>'
+      +'<span class="ph-y">'+(o.hideYomi?'♪':esc(x[1]))+'</span></button>'
+      +(i<sp.length-1?'<span class="ph-plus">+</span>':'');
+  }).join('')+'</div>';
+}
+function _phAsk_(mode){
+  return mode==='read' ?'<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>方<rt class="uf">かた</rt></ruby>が<ruby>正<rt class="uf">ただ</rt></ruby>しいものを<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
+    :mode==='blend'?'<ruby>音<rt class="uf">おと</rt></ruby>をつなげると、どの<ruby>語<rt class="uf">ご</rt></ruby>になる？'
+    :mode==='spell'?'<ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>語<rt class="uf">ご</rt></ruby>のつづりを<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
+    :'<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、つづりを<ruby>組<rt class="uf">く</rt></ruby>み<ruby>立<rt class="uf">た</rt></ruby>てよう';
+}
+function _phBody_(pl,mode){
+  var seq='<button type="button" class="sq-spk" id="ph-seq"><i class="ti ti-volume"></i><span><ruby>音<rt class="uf">おと</rt></ruby>を<ruby>順<rt class="uf">じゅん</rt></ruby>に<ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
+  var who='<button type="button" class="sq-spk" id="ph-whole"><i class="ti ti-volume"></i><span>つなげて<ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
+  if(mode==='read')  return '<div class="ph-w">'+esc(pl.word||'')+'</div>'+_phSplitHtml_(pl)
+    +'<div class="ph-tip"><ruby>音<rt class="uf">おと</rt></ruby>のかたまりを<ruby>押<rt class="uf">お</rt></ruby>すと、その<ruby>音<rt class="uf">おと</rt></ruby>だけ<ruby>鳴<rt class="uf">な</rt></ruby>る</div>';
+  if(mode==='blend') return _phSplitHtml_(pl)+'<div class="ph-act">'+seq+'</div>';
+  if(mode==='spell') return '<div class="ph-act">'+who+'</div>'+_phSplitHtml_(pl,{hideLetter:1});
+  /* build＝blend と spell の良いとこ取り（川上さん 2026-09-21）。文字も読みも伏せる。
+     伏せた四角が n 個並ぶので「いくつの音でできているか」だけが見えている。
+     1つずつ押して音を確かめ（blend の核）、それをつづりに直す（spell の核）。 */
+  return _phSplitHtml_(pl,{hideLetter:1,hideYomi:1})+'<div class="ph-act">'+seq+who+'</div>'
+    +'<div class="ph-tip"><ruby>四角<rt class="uf">しかく</rt></ruby>を1つずつ<ruby>押<rt class="uf">お</rt></ruby>すと、その<ruby>音<rt class="uf">おと</rt></ruby>だけ<ruby>鳴<rt class="uf">な</rt></ruby>る</div>';
+}
+function _phKai_(pl,mode){
+  var sp=_phSplit_(pl);
+  return String(pl.word||'')+'（'+String(pl.read||'')+'）　'+sp.map(function(x){return x[0];}).join(' + ')
+    +' → '+String(pl.read||'')+'　'+String(pl.hint||'')
+    +(pl.topic_ja?('　'+pl.topic_ja):'');
+}
+/* 音の足し算 → 正式な発音。答え合わせで自動で流し、あとから何度でも押せる */
+function _phReplay_(pl){
+  _phStopAll_();
+  var us=document.querySelectorAll('#sent-body .ph-u'),sp=_phSplit_(pl);
+  sp.forEach(function(x,i){ _phLater_(function(){
+    var b=us[i]; if(b){b.classList.add('now'); _phLater_(function(){b.classList.remove('now');},520);}
+    _phSnd_(pl,i); }, i*_PH_GAP_); });
+  _phLater_(function(){
+    Array.prototype.forEach.call(us,function(b){b.classList.add('now');});
+    _phLater_(function(){Array.prototype.forEach.call(us,function(b){b.classList.remove('now');});},900);
+    _phWhole_(pl);
+  }, sp.length*_PH_GAP_+450);
+}
+function _phSplitBoxHide_(){var sb=$('ph-splitbox');if(sb){sb.innerHTML='';sb.style.display='none';}}
+/* say＝語を見て声に出す。【川上さん確定 2026-09-21】既存の発音の画面（#step-listen）をそのまま使う。
+   ★採点＝声に出したら正解として数える。「発音は参考値で合否に含めない」という既存の確定ルール
+     （2026-06-22）をそのまま当てる。judgePron_ の結果は「いいね！読めてるね」の表示にだけ使う。
+   ・お手本の音は words の audio 列（語まるごとの mp3）。無ければ端末の読み上げに落ちる
+   ・音のかたまり（_phSplitHtml_）は read / build / blend / spell と同じ部品。押すとその音だけ鳴る */
+function _phSay_(s,w,pl){
+  var sc=$('step-sent'); if(sc)sc.style.display='none';
+  hideQTimer();
+  $('w-en').textContent=String(pl.word||w.english||'');
+  var wr=$('w-reading'); if(wr){wr.textContent='';wr.style.display='none';}
+  var sb=$('ph-splitbox');
+  if(sb){
+    sb.innerHTML=_phSplitHtml_(pl); sb.style.display='';
+    Array.prototype.forEach.call(sb.querySelectorAll('.ph-u'),function(b){
+      b.onclick=function(){ var i=+b.getAttribute('data-i');
+        b.classList.add('now'); setTimeout(function(){b.classList.remove('now');},450); _phSnd_(pl,i); };
+    });
+  }
+  $('step-listen').style.display='block'; hideListen_();
+  pronBegin_();
+}
+function renderPH_(s,w,q,pl,_tl){
+  _phSplitBoxHide_();
+  _phStopAll_();
+  var mode=String((q&&q.mode)||'read');
+  if(mode==='say'){_phSay_(s,w,pl);return;}
+  var ask=$('sent-ask'),body=$('sent-body');
+  ask.innerHTML=_phAsk_(mode);
+  body.innerHTML=_phBody_(pl,mode);
+  $('sent-choices').innerHTML='';
+  $('step-sent').style.display='block';
+  hideQTimer();   /* 音を何回も聞く形式なので時間で切らない（並べ替えと同じ考え方） */
+  function bindSplit(){
+    Array.prototype.forEach.call(body.querySelectorAll('.ph-u'),function(b){
+      b.onclick=function(){ var i=+b.getAttribute('data-i');
+        b.classList.add('now'); setTimeout(function(){b.classList.remove('now');},450); _phSnd_(pl,i); };
+    });
+  }
+  bindSplit();
+  var seq=$('ph-seq'); if(seq)seq.onclick=function(){ _phStopAll_();
+    _phSplit_(pl).forEach(function(x,i){ _phLater_(function(){
+      var us=body.querySelectorAll('.ph-u'),b=us[i];
+      if(b){b.classList.add('now'); _phLater_(function(){b.classList.remove('now');},500);} _phSnd_(pl,i); }, i*_PH_GAP_); }); };
+  var who=$('ph-whole'); if(who)who.onclick=function(){ _phStopAll_(); _phWhole_(pl); };
+  /* 音だけで答える形式（build / spell）は、押されたらすぐ1回鳴らす＝何をする画面か分かる */
+  if(mode==='build'||mode==='spell')_phLater_(function(){_phWhole_(pl);},400);
+  var correct=(mode==='read')?String(pl.read||''):String(pl.word||'');
+  buildChoices('sent-choices',correct,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
+    {fig:true,fixedChoices:((q&&q.choices)||[]),timeLimit:0,kaisetsu:_phKai_(pl,mode),next:s.onNext,
+     afterShow:function(){
+       /* 【川上さん確定 2026-09-21】正解でも不正解でも同じ。
+          伏せてあった文字と読みをもどしてから、音の足し算 → 正式な発音 の順に自動で流す */
+       var sp=_phSplit_(pl);
+       Array.prototype.forEach.call(body.querySelectorAll('.ph-u'),function(b,i){
+         if(!sp[i])return;
+         var a=b.querySelector('.ph-s'),c=b.querySelector('.ph-y');
+         if(a)a.textContent=sp[i][0]; if(c)c.textContent=sp[i][1];
+         b.classList.add('lit');
+       });
+       var xa=$('ex-audio');
+       if(xa){ xa.style.display='';
+         xa.innerHTML='<button type="button" class="ex-spk" id="ph-again"><i class="ti ti-volume"></i>'
+           +'<span><ruby>音<rt class="uf">おと</rt></ruby>の<ruby>足<rt class="uf">た</rt></ruby>し<ruby>算<rt class="uf">ざん</rt></ruby> → <ruby>正<rt class="uf">ただ</rt></ruby>しい<ruby>発音<rt class="uf">はつおん</rt></ruby> をもう<ruby>一回<rt class="uf">いっかい</rt></ruby></span></button>';
+         var ag=$('ph-again'); if(ag)ag.onclick=function(){_phReplay_(pl);};
+       }
+       _phReplay_(pl);
+     }});
+}
 /* 語順（reorder）＝語をタップして□に入れる／入れた語はドラッグで入れ替える。
    時間制限は付けない。並べている途中で切れると「並べ終える前に不正解」になり、何を間違えたのか分からない。
    【地雷1】setPointerCapture を掴んだチップに付けてはいけない。並べ替えで DOM を動かした瞬間に捕捉が外れ、
@@ -6385,7 +6682,7 @@ function judgePron_(heard,w){
 }
 /* 自己申告：認識でまだ1回も計上していない単語のみ attempts を1加算（重複加算しない） */
 function countSelfReportIfNeeded(){
-  var s=session;if(!s)return;var k=String(s.idx);
+  var s=_actSes()||session;if(!s)return;var k=String(s.idx);
   if(!s.pronDoneIdx[k]){s.pronAttempts++;s.pronDoneIdx[k]=true;}
 }
 /* ===== 発音ステップ新フロー（川上さん承認モック 2026-07-06：20260706_モック_発音ステップ改善.html）=====
@@ -6414,7 +6711,7 @@ function pronUI_(orbCls,orbIcon,msgCls,msg,sub,cnt){
 function pronShowHeard_(t){var su=$('pron-sub');if(su&&t)su.innerHTML='「<b>'+esc(t)+'</b>」って<ruby>聞<rt class="uf">き</rt></ruby>こえた';} // 認識が拾えているサイン（2026-07-08 メーター廃止の代わり）
 function pronBegin_(){ // 単語表示：正解音声なし→3・2・1→マイク自動起動
   pronStop_();pronTries=0;pronAdvanced=false;pronSkipping=false;
-  var s=session;if(!s)return;
+  var s=_actSes()||session;if(!s)return;
   if(!SR){ // 音声認識非対応端末：お手本を聞いて自動で次へ（自己申告扱い・attemptsのみ加算）
     countSelfReportIfNeeded();
     pronUI_('ok','ti-volume','ok','お<ruby>手本<rt class="uf">てほん</rt></ruby>の<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>こう','<ruby>聞<rt class="uf">き</rt></ruby>こえたらまねして<ruby>言<rt class="uf">い</rt></ruby>ってみよう','');
@@ -6427,7 +6724,7 @@ function pronBegin_(){ // 単語表示：正解音声なし→3・2・1→マイ
   pronCntIv=setInterval(function(){n--;var c=$('pron-cnt');if(c)c.textContent=n>0?n:'';if(n<=0){clearInterval(pronCntIv);pronCntIv=null;pronListen_();}},Math.round(PRON_READY_MS/3));
 }
 function pronListen_(){
-  var s=session;if(!s)return;var w=s.words[s.idx];
+  var s=_actSes()||session;if(!s)return;var w=s.words[s.idx];
   pronHeard=false;pronGotResult=false;pronErr=false;orbReactStop_();
   // 録音が「本当に始まる」前は準備中表示（プルプルさせない）→onstartでlisten表示に切替（2026-07-08）
   pronUI_('ready','ti-microphone','ready','マイクの<ruby>準備中<rt class="uf">じゅんびちゅう</rt></ruby>…',(pronTries>0?'もう<ruby>一回<rt class="uf">いっかい</rt></ruby>！ さっきのお<ruby>手本<rt class="uf">てほん</rt></ruby>みたいに':''),'');
@@ -6470,15 +6767,15 @@ function pronListen_(){
   }catch(e){pronBusy=false;orbReactStop_();pronOk_(true);} // マイク不可→お手本だけ流して進む
 }
 function pronOk_(second,heard){
-  var s=session;if(!s)return;
+  var s=_actSes()||session;if(!s)return;
   sndPronOk();
   pronUI_('ok','ti-check','ok',(second?'オッケー！':'いいね！<ruby>読<rt class="uf">よ</rt></ruby>めてる'),(heard?'「'+esc(heard)+'」って<ruby>聞<rt class="uf">き</rt></ruby>こえた　':'')+'<i class="ti ti-volume"></i> お<ruby>手本<rt class="uf">てほん</rt></ruby>の<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>流<rt class="uf">なが</rt></ruby>す','');
   clearTimeout(pronTimer);
-  clearTimeout(pronSpeakTimer);pronSpeakTimer=setTimeout(function(){try{if(session===s)speak(s.words[s.idx]);}catch(e){}},650); // 達成音のあとにお手本（スキップで消せるよう保持）2026-07-30
+  clearTimeout(pronSpeakTimer);pronSpeakTimer=setTimeout(function(){try{if((_actSes()||session)===s)speak(s.words[s.idx]);}catch(e){}},650); // 達成音のあとにお手本（スキップで消せるよう保持）2026-07-30
   pronTimer=setTimeout(pronNext_,PRON_AFTER_AUDIO+650);
 }
 function pronMiss_(heard){
-  var s=session;if(!s)return;
+  var s=_actSes()||session;if(!s)return;
   sndPronSoft();
   pronTries=1;
   pronUI_('miss','ti-volume','miss','この<ruby>音<rt class="uf">おと</rt></ruby>だ。よく<ruby>聞<rt class="uf">き</rt></ruby>こう',(heard?'「'+esc(heard)+'」かな？　':'')+'お<ruby>手本<rt class="uf">てほん</rt></ruby>のあと、もう<ruby>一回<rt class="uf">いっかい</rt></ruby>だけ<ruby>言<rt class="uf">い</rt></ruby>ってみよう','');
@@ -6487,7 +6784,7 @@ function pronMiss_(heard){
   pronTimer=setTimeout(pronListen_,PRON_MISS_WAIT);
 }
 function pronSilentNext_(){ // 声が検知できなかった：オッケーにせず、お手本を聞いて次へ（iOS等で無音でも誤OKになる対策 2026-07-13）
-  var s=session;if(!s)return;
+  var s=_actSes()||session;if(!s)return;
   sndPronSoft();
   pronUI_('ready','ti-volume','ready','お<ruby>手本<rt class="uf">てほん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>こう','<ruby>声<rt class="uf">こえ</rt></ruby>が<ruby>聞<rt class="uf">き</rt></ruby>こえなかった。<ruby>次<rt class="uf">つぎ</rt></ruby>はマイクに<ruby>向<rt class="uf">む</rt></ruby>かって<ruby>言<rt class="uf">い</rt></ruby>ってみよう','');
   speak(s.words[s.idx]);
@@ -6497,22 +6794,30 @@ function pronSilentNext_(){ // 声が検知できなかった：オッケーに�
 function pronNext_(){ // 発音→意味クイズへ（二重進行ガードつき）
   if(pronAdvanced)return;pronAdvanced=true;
   pronStop_();
-  var s=session;if(!s)return;
+  var s=_actSes()||session;if(!s)return;
+  var _w=s.words&&s.words[s.idx];
+  if(_isPh_(_w)){
+    /* 読み確認の say＝1行1問。意味クイズには進まず、正解として数えて次の行へ（川上さん確定 2026-09-21）*/
+    _phSplitBoxHide_();
+    try{_quizAns(s,_w,true,null,'e2j');}catch(e){}
+    try{(s.onNext||nextWord)();}catch(e){}
+    return;
+  }
   s.step=2;renderStep();
 }
-$('btn-sound').onclick=function(){var s=session;if(!s)return; // もう一回聞く：認識中はマイクを止めてから鳴らす（お手本をマイクが拾って勝手にOKになるズル防止 2026-07-08）
+$('btn-sound').onclick=function(){var s=_actSes()||session;if(!s)return; // もう一回聞く：認識中はマイクを止めてから鳴らす（お手本をマイクが拾って勝手にOKになるズル防止 2026-07-08）
   clearTimeout(pronWatch);pronWatch=null;try{if(pronRec)pronRec.abort();}catch(e){}pronRec=null;pronBusy=false;
   pronUI_('ready','ti-volume','ready','お<ruby>手本<rt class="uf">てほん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>こう','<ruby>聞<rt class="uf">き</rt></ruby>けたら「もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>言<rt class="uf">い</rt></ruby>う」を<ruby>押<rt class="uf">お</rt></ruby>そう','');
   speak(s.words[s.idx]);};
 $('btn-mic').onclick=function(){ // もう一回言う（やり直し回数もリセット・モックsayAgain準拠）
-  var s=session;if(!s)return;
+  var s=_actSes()||session;if(!s)return;
   clearTimeout(pronTimer);pronTimer=null;
   try{if(pronRec)pronRec.abort();}catch(e){}
   pronBusy=false;pronTries=0;
   pronListen_();
 };
 $('btn-skip').onclick=function(){ // スキップ：結果前は お手本を1回聞かせて次へ／結果後は もう聞いた扱いで即・次へ（連打で止まらない）2026-07-30
-  var s=session;if(!s)return;
+  var s=_actSes()||session;if(!s)return;
   if(pronAdvanced||pronSkipping)return; // 連打・二重進行を防ぐ（お手本ループ対策）
   pronSkipping=true;
   countSelfReportIfNeeded();
