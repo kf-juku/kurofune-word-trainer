@@ -5661,6 +5661,7 @@ function openMatPreview(mid){
         else if(w.qtype==='reorder')badge='<span class="qb snt">語順</span>';
         else if(w.qtype==='listen_resp')badge='<span class="qb snt">会話</span>';   /* 英検 第1部型 2026-09-17 */
         else if(w.qtype==='listen_pic')badge='<span class="qb snt">絵</span>';     /* 英検 第3部型 2026-09-17 */
+        else if(w.qtype==='phonics')badge='<span class="qb snt">読み確認</span>';  /* 架け橋 読み確認 2026-09-22 */
         h+='<div class="mp-word">';
         h+='<div class="mp-q"><span class="no">'+(i+1)+'</span><span style="flex:1"></span>'+badge+'</div>';
         // 答え（english）
@@ -5688,6 +5689,30 @@ function openMatPreview(mid){
             h+='<div class="mp-row"><span class="mpl">中身</span><span class="mp-ro-note">'+_lxh+'</span></div>';
             if(_lxp.img) h+='<div class="mp-fig"><img src="'+esc(String(_lxp.img))+'" alt="絵" loading="lazy" onclick="mpZoom_(this.src)" onerror="this.style.opacity=.25;this.style.cursor=\'default\';this.alt=\'画像が見つかりません（未pushの可能性）\';"></div>';
           }
+        }else if(w.qtype==='phonics'){
+          /* 架け橋 読み確認（phonics）2026-09-22。中身は素材(asset)と qdata にあり、この画面では直せないので読み取り専用で出す。
+             mode はサーバーが返す。古い GAS でも動くように、返って来なければ選択肢の字（カタカナかローマ字か）で見分ける。 */
+          var _php=null; try{ var _pha=(_mpAssets||{})[w.asset]; _php=_pha?JSON.parse(_pha.payload||'{}'):null; }catch(_e){ _php=null; }
+          var _phm=String(w.mode||'');
+          if(!_phm){ var _c0=String((w.choices&&w.choices[0])||''); _phm=(!_c0?'say':(/^[\x20-\x7e]+$/.test(_c0)?'build':'read')); }
+          var _phn=(_phm==='read')?'読み確認（つづり→読み）：英語の語を見せて、読み方のカタカナを4つから選ばせます。答え＝下の「問題文」のカタカナ'
+                  :(_phm==='build')?'読み確認（音の足し算）：音のかたまりを順に出してから、つづりを4つから選ばせます。答え＝上の「答え」のつづり'
+                  :'読み確認（声に出す）：語を見せて、生徒に声に出して読ませます。言えたら正解（選択肢はありません）';
+          h+='<div class="mp-row"><span class="mpl">出し方</span><span class="mp-ro-note">'+_phn+'</span></div>';
+          h+=mpEdRow_(w.id,'japanese','問題文',w.japanese);
+          if(_php){
+            var _phs=(_php.split||[]).map(function(sp){ return esc(String(sp[0]||''))+'｜'+(String(sp[1]||'')?esc(String(sp[1])):'（読まない）'); }).join(' ＋ ');
+            h+='<div class="mp-row"><span class="mpl">区切り</span><span class="mp-ro-note">'+_phs+'　／　'+esc(String(_php.topic_ja||''))+'</span></div>';
+            h+='<div class="mp-row"><span class="mpl">ヒント</span><span class="mp-ro-note">'+esc(String(_php.hint||''))+'</span></div>';
+          }else{
+            h+='<div class="mp-row"><span class="mpl">区切り</span><span class="mp-ro-note">素材（asset）が見つかりません：'+esc(String(w.asset||'(未設定)'))+'</span></div>';
+          }
+          if(w.choices&&w.choices.length){
+            h+='<div class="mp-row"><span class="mpl">選択肢</span><span class="mp-ro-note">'+w.choices.map(function(c,ci){ return (ci===0?'○ ':'× ')+esc(String(c)); }).join('<br>')+'</span></div>';
+          }
+          if(w.acceptable){
+            h+='<div class="mp-row"><span class="mpl">許容</span><span class="mp-ro-note">'+esc(String(w.acceptable))+'</span></div>';
+          }
         }else if(w.qtype==='reorder'){
           h+='<div class="mp-row"><span class="mpl">出し方</span><span class="mp-ro-note">語順：語をタップして□に並べさせます。語群は素材(asset)の tokens。全部小文字（I と固有名詞だけ大文字）</span></div>';
           h+=mpEdRow_(w.id,'japanese','問題文',w.japanese);
@@ -5697,7 +5722,7 @@ function openMatPreview(mid){
         // 答えの読み
         h+=mpEdRow_(w.id,'reading_hint','読み',w.reading_hint);
         // 選択肢の誤答（英→日＝文4択の choices_ja）＝インライン編集（1行1つ・3つ）。正解は「問題文」。2026-07-28
-        var _isSentQT=(w.qtype==='listen'||w.qtype==='sentence_fill'||w.qtype==='reorder');   /* 文の問題 2026-09-08 */
+        var _isSentQT=(w.qtype==='listen'||w.qtype==='sentence_fill'||w.qtype==='reorder'||w.qtype==='phonics');   /* 文の問題 2026-09-08 ／ 読み確認は誤答を qdata の choices で持つので空の「誤答3つ」を出さない 2026-09-22 */
         if(_isEng&&w.qtype!=='image_fill'&&w.qtype!=='table_fill'&&(!_isSentQT||w.qtype==='listen')){
           h+=mpEdRow_(w.id,'choices_ja','誤答3つ',(w.choices_ja||[]),'multiline');
         }
