@@ -413,6 +413,20 @@
   .pq-dfw{font-weight:800;margin-right:4px;}
   .pq-dfhole{display:inline-block;width:72px;border-bottom:1.4px solid #333;height:13px;vertical-align:-2px;}
   .pq-dfcho{margin-top:3px;font-size:12px;color:#222;}
+  /* 読み確認（phonics）2026-09-21。音のかたまりは生徒画面と同じ形。
+     mode で「文字を伏せる／読みを伏せる」が変わる＝画面と紙で同じ考え方 */
+  .pq-ph{display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin:5px 0 4px;}
+  .pq-phu{display:inline-flex;flex-direction:column;align-items:center;min-width:11mm;padding:2px 5px;border:1.2px solid #555;border-radius:5px;background:#fff;}
+  .pq-phu b{font-size:13px;font-weight:800;color:#000;line-height:1.25;}
+  .pq-phu i{font-size:9px;font-style:normal;color:#555;font-weight:700;line-height:1.2;}
+  .pq-phu.v{border-color:#000;background:#f2f4f7;}
+  .pq-phplus{font-size:11px;font-weight:800;color:#777;}
+  .pq-phw{font-size:17px;font-weight:800;letter-spacing:.01em;}
+  .pq-phline{display:inline-block;width:34mm;border-bottom:1.4px solid #333;height:15px;vertical-align:-3px;}
+  .pq-phchk{display:inline-block;width:5mm;height:5mm;border:1.4px solid #333;vertical-align:-1px;margin-left:4px;}
+  .fs-q .pq-phw{font-size:15px;}
+  .fs-q .pq-phline{width:24mm;}
+  .fs-lisans{margin-top:4px;font-size:11px;color:#333;}
   .fs-cho{margin-top:3px;}
   /* 聞き取りの区切り見出し（段7）。文章問題は2列のグリッドなので、全幅で置く */
   /* 【2026-09-15】聞き取りの見出しに音声のQRを置く（川上さん確定・刷って決めた）。
@@ -2653,10 +2667,14 @@ function _pqKind_(it){
   if(t==='listen')        return 'listen';                     /* 段7。いまは紙にしない（音が要る） */
   if(t==='listen_resp'||t==='listen_pic') return _pqPack_(it)?'lisx':'';   /* 英検 第1部型・第3部型（2026-09-17）*/
   if(t==='dialog_fill')   return _pqPack_(it)?'dial':'';   /* 英検 大問2型（2026-09-18）*/
+  if(t==='phonics')       return _pqPack_(it)?'ph':'';     /* 読み確認（2026-09-21・確定56）。素材が無いと音も読みも出せない */
   return '';
 }
 /* 聞き取りのなかま（訳4択の listen と、第1部型・第3部型の lisx）。紙で「最後にまとめる」「QRで音」の扱いが同じ */
-function _pqIsLis_(it){ var k=_pqKind_(it); return k==='listen'||k==='lisx'; }
+/* 【2026-09-21】読み確認（ph）もここに入れる＝仕上げプリントで「音を使う問題」を
+   紙の最後にまとめ、QRを1枚に1つにするため（確定56）。read は音が要らないが、
+   生徒から見て「読み確認はここ」とまとまっているほうが分かりやすく、QRも増えない。 */
+function _pqIsLis_(it){ var k=_pqKind_(it); return k==='listen'||k==='lisx'||k==='ph'; }
 /* 語群は「正しい並び」で持っている。紙でも必ず混ぜる（`要件定義書_英検教材` 確定25）。
    偶然そのままの並びになったら振り直す（5語なら120回に1回そのままになる）。 */
 function _pqShuffle_(tok){
@@ -2752,6 +2770,65 @@ function _pqChoices_(it){
   return (_pqChoCache[k]={list:a, ans:ans, mark:(PQ_MARKS_[ans]||String(ans+1))});
 }
 /* 問題の側。英文は出さない＝選択肢だけ */
+/* ===== 読み確認（phonics）の紙の部品 2026-09-21・確定56 =====
+   1語につきアセット1本（kind=phonics）＋ `qdata.mode` で形式が変わる。
+   ★紙では4択を出さない＝【書かせる】（`print-sheet-design`＝選択肢を出した時点で
+     「見分ける」練習に変わる）。`say` だけはチェック欄。
+   ★音を使うものは、聞き取りと同じ「紙の最後のまとまり」に入れて QR を1つにする
+     （川上さん 2026-09-21「仕上げプリントは音声はまとめて出題になっている」）。
+   ★チェックプリントは**先生が読み上げる**紙。音声ファイルもQRも使わない（聞き取りと同じ）。 */
+function _pqPhMode_(it){ var q=_pqData_(it)||{}; return String(q.mode||'read'); }
+function _pqPhBoxHtml_(pk,mode){
+  var sp=(pk&&pk.pl&&pk.pl.split)||[];
+  var hideL=(mode==='build'||mode==='spell');   /* つづりを答える形式は文字を伏せる */
+  var hideK=(mode!=='say');                     /* 読みは答えになりうるので say 以外は伏せる */
+  return '<div class="pq-ph">'+sp.map(function(x,i){
+    var lt=hideL?'●':(String(x[0]||'').trim()?esc(String(x[0])):'␣');
+    var kn=(hideK||!x[1])?'':('<i>'+esc(String(x[1]))+'</i>');
+    return '<span class="pq-phu'+(x[2]?' v':'')+'"><b>'+lt+'</b>'+kn+'</span>'
+      +((i<sp.length-1)?'<span class="pq-phplus">+</span>':'');
+  }).join('')+'</div>';
+}
+function _pqPhQHtml_(it,cls){
+  var pk=_pqPack_(it); if(!pk) return '';
+  var m=_pqPhMode_(it), w=String(pk.pl.word||it.english||'');
+  var head=(m==='read'||m==='say')?('<span class="pq-phw">'+esc(w)+'</span>'):'';
+  var line=(m==='say')?'言えた <span class="pq-phchk"></span>'
+       :((m==='read')?'読み方 <span class="pq-phline"></span>'
+       :((m==='blend')?'語 <span class="pq-phline"></span>':'つづり <span class="pq-phline"></span>'));
+  return head+_pqPhBoxHtml_(pk,m)+'<div class="'+cls+'-lisans">'+line+'</div>';
+}
+/* 音の足し算の原稿。チェックプリントでは先生がこれを読む */
+function _pqPhYomi_(pl){
+  var sp=(pl&&pl.split)||[], a=[];
+  for(var i=0;i<sp.length;i++){ if(sp[i][1]) a.push(String(sp[i][1])); }
+  return a.length?(a.join(' / ')+' → '+String((pl&&pl.read)||'')):'';
+}
+function _pqPhAText_(it){
+  var pk=_pqPack_(it); if(!pk) return String(it.english||'');
+  var m=_pqPhMode_(it), pl=pk.pl;
+  var ans=(m==='read')?String(pl.read||''):String(pl.word||'');
+  var sub=(m==='read')?String(pl.word||''):((m==='say')?String(pl.read||''):_pqPhYomi_(pl));
+  return ans+(sub?('　／　'+sub):'');
+}
+function _pqPhLead_(it){
+  var m=_pqPhMode_(it);
+  if(m==='read') return '読み確認（読み方をカタカナで書く）';
+  if(m==='say')  return '🔊 読み確認（お手本のあと、声に出して読む）';
+  if(m==='blend')return '🔊 読み確認（音をつなげると どの語か書く）';
+  return '🔊 読み確認（聞こえた音のつづりを書く）';
+}
+/* QRの先で鳴らす音。say＝語まるごと（お手本）だけ／それ以外＝音の足し算 → 語まるごと。
+   ★en（語そのもの）は入れない。つづりが答えになる形式があるので、
+     sheet_open が答えを返さない考え方をそのまま守る（2026-09-14 と同じ）。 */
+function _pqPhSeq_(pl,mode){
+  var out=[], sa=(pl&&pl.split_audio)||[], sp=(pl&&pl.split)||[];
+  if(mode!=='say'){
+    for(var i=0;i<sp.length;i++){ var u=String(sa[i]||''); if(u) out.push({en:'',audios:[u]}); }
+  }
+  var w=String((pl&&pl.audio)||''); if(w) out.push({en:'',audios:[w]});
+  return out;
+}
 function _pqLisQHtml_(it,cls){
   var c=_pqChoices_(it);
   if(!c) return '';
@@ -2869,6 +2946,7 @@ function _pqAnswerOf_(it){
   if(k==='order')            return String(it.english||'');     /* 答え＝正しい文 */
   if(k==='listen')           return _pqLisAText_(it);          /* 答え＝記号＋訳＋英文（段7）*/
   if(k==='lisx')             return _pqLxAText_(it);           /* 答え＝番号＋会話＋3つの英文（2026-09-17）*/
+  if(k==='ph')               return _pqPhAText_(it);            /* 答え＝読み／つづり ＋ 音の足し算の原稿（2026-09-21）*/
   if(k==='dial')             return _pqDfAText_(it);           /* 答え＝番号＋英文＋訳（2026-09-18）*/
   return null;                                                  /* 形式なし＝今までどおり */
 }
@@ -2900,6 +2978,7 @@ function unifiedStudentHtml_(st, opts){
     var _q=String(it.qtype||'');
     if((_q==='listen_resp'||_q==='listen_pic')&&_pqKind_(it)!=='lisx'){ _lsN++; return false; }   /* 素材が取れない第1部型・第3部型＝紙にできない（2026-09-17）*/
     if(_q==='dialog_fill'&&_pqKind_(it)!=='dial'){ _lsN++; return false; }   /* 素材が取れない大問2型＝会話も選択肢も無い。出すと答えの英文だけが刷られる（2026-09-18）*/
+    if(_q==='phonics'&&_pqKind_(it)!=='ph'){ _lsN++; return false; }   /* 素材が取れない読み確認＝音のかたまりも読みも無い（2026-09-21）*/
     if(_pqKind_(it)!=='listen') return true;
     if(!_pqChoices_(it)){ _lsN++; return false; }   /* 選択肢が無い＝紙にできない */
     return true;
@@ -2991,6 +3070,11 @@ function unifiedStudentHtml_(st, opts){
       /* 【2026-09-18】英検 大問2型。会話2行＋選択肢4つ。ここは番号で答える（右に答えがある紙なので・確定47）。 */
       qH='<div class="up-qtxt">'+n+'. 会話に合う英文をえらぶ</div>'+_pqDfQHtml_(it,'up')
         +'<div class="up-lisans">答え <span class="up-lisbox"></span></div>';
+    }else if(kind==='ph'){
+      /* 【2026-09-21・確定56】読み確認。チェックプリントは**先生が読み上げる**紙なので、
+         音声ファイルもQRも使わない。答えの欄（＝_pqAnswerOf_）に音の足し算の原稿が入る。
+         4択は出さず、答えは書かせる（`say` だけチェック欄）。 */
+      qH='<div class="up-qtxt">'+n+'. '+esc(_pqPhLead_(it))+'</div>'+_pqPhQHtml_(it,'up');
     }else if(kind==='listen'){
       /* 【2026-09-14・段7】先生が読み上げる。**英文は問題の側に出さない**（出したら読み取りになる）。
          答えの欄（＝_pqAnswerOf_）に 記号・訳・英文が入る＝そこが先生の読み上げ原稿。 */
@@ -3158,6 +3242,10 @@ function sheetKindOf_(it){
   if(_pk==='listen')return _pqChoices_(it)?'listen':'skip';
   if(_pk==='lisx')  return _pqLxOrder_(it)?'listen':'skip';   /* 第1部型・第3部型も聞き取りの列に並べる（2026-09-17）*/
   if(_pk==='dial')  return _pqDfOrder_(it)?'dial':'skip';      /* 英検 大問2型。音を使わないので文の問題と同じ扱い（2026-09-18）*/
+  /* 読み確認（phonics）2026-09-21・確定56。素材が取れないものだけ紙にできない（音も読みも無い）。
+     ここを外すと「英文 → 訳」の紙になり、run → ラン という意味のない問題が刷られる（2026-09-13j と同じ事故）。 */
+  if(String(it.qtype||'')==='phonics'&&_pk!=='ph') return 'skip';   /* 素材が取れない読み確認＝紙にできない */
+  if(_pk==='ph')    return 'ph';
   /* 英語で図があるものは表の穴うめ（table_fill）。英語に image_fill は1問も無いので、これで見分けられる */
   if(isEn && it.fig) return 'skip';
   if(!isEn && it.word_id && FS_PAPER_HOLD_[it.word_id]===String(it.japanese||'')) return 'skip';   /* 2026-09-15g */
@@ -3175,6 +3263,7 @@ function fsQuestionOf_(it){
   if(k==='order')return 'ならべかえて文を作る';
   if(k==='listen')return '🔊 聞き取り（QRで音を聞いて、合うものを記号で）';
   if(k==='lisx')  return (String(it.qtype||'')==='listen_pic')?'🔊 絵に合う英文（QRで音を聞いて、番号で）':'🔊 会話の応答（QRで音を聞いて、最後の応答を番号で）';
+  if(k==='ph')    return _pqPhLead_(it);
   if(k==='dial')  return '会話に合う英文を線の上に書く（選択肢を見ないで書けたら◎）';
   return fsIsEn_(it)?String(it.english||''):fsQText_(it.japanese);
 }
@@ -3272,8 +3361,13 @@ function fsPick_(items){
      QRを読んで音を聞かないと解けないので、スマホを出すのが1回で済むように後ろへ寄せる。
      区切りの見出し（__lisHead）を1つだけ先頭に入れる＝これは問題ではないので番号を取らない
      （fsFillQPages_ の採番と fsFlat_ で飛ばす）。 */
-  var lis=list.filter(function(it){return it._fsKind==='listen';});
-  if(lis.length){ texts=texts.concat([{__lisHead:true}]).concat(lis); }
+  /* 【2026-09-21】読み確認（ph）も同じまとまりに入れる＝QRは1枚に1つのまま */
+  var lis=list.filter(function(it){return it._fsKind==='listen'||it._fsKind==='ph';});
+  if(lis.length){
+    var _hasL=lis.some(function(x){return x._fsKind==='listen';});
+    var _hasP=lis.some(function(x){return x._fsKind==='ph';});
+    texts=texts.concat([{__lisHead:true,__lisL:_hasL,__lisP:_hasP}]).concat(lis);
+  }
   return {blocks:blocks,texts:texts};
 }
 /* 単位＝図ブロック（1〜3問）／文章問題（1問）。ページはこの単位で埋める */
@@ -3369,21 +3463,28 @@ function fsQBodyHtml_(it,no,ctx,pos){
        ★QRの中身が変わっても大きさは28mm固定なので、測るときと描くときで高さは変わらない。 */
     var _c=(ctx&&ctx.code)?String(ctx.code):'';
     var hs=(pos&&pos.row)?(' style="grid-row:'+pos.row+'"'):'';   /* 行だけ決める。列はCSSの全幅のまま */
+    /* 【2026-09-21】読み確認もこのまとまりに入るので、中身に合わせて言い換える */
+    var _nm=(it.__lisL&&it.__lisP)?'聞き取りと読み確認':(it.__lisP?'読み確認':'聞き取り');
+    var _how=(it.__lisL&&!it.__lisP)?'合うものを記号で答えてください。'
+        :((it.__lisP&&!it.__lisL)?'聞こえたとおりに書いてください。'
+        :'聞き取りは記号で、読み確認は聞こえたとおりに書いてください。');
     return '<div class="fs-lishead"'+hs+'>'+fsQrHtml_(_c,true)
-      +'<div class="fs-lh-t">🔊 <b>ここからは聞き取りです。</b>'
-      +'左のQRを読んで音を聞いてから、合うものを記号で答えてください。'
+      +'<div class="fs-lh-t">🔊 <b>ここからは'+esc(_nm)+'です。</b>'
+      +'左のQRを読んで音を聞いてから、'+esc(_how)
       +'<div class="fs-lh-c">QRが読めないときは、クロトレの「紙の答え合わせ」を開いて'
       +'セット番号 <b>'+esc(_c)+'</b> を入れると、同じ音が聞けます。</div></div></div>';
   }
   /* 【2026-09-13j・段E】語順は語群＋和訳を足す。【段7】聞き取りは選択肢を足す。
      ほかは今までどおり1行＋解答らん */
   var k=_pqKind_(it);
-  var ex=(k==='order')?_pqOrdHtml_(it,'fs'):((k==='listen')?_pqLisQHtml_(it,'fs'):((k==='lisx')?_pqLxQHtml_(it,'fs'):((k==='dial')?_pqDfQHtml_(it,'fs'):'')));
+  var ex=(k==='order')?_pqOrdHtml_(it,'fs'):((k==='listen')?_pqLisQHtml_(it,'fs'):((k==='lisx')?_pqLxQHtml_(it,'fs'):((k==='dial')?_pqDfQHtml_(it,'fs'):((k==='ph')?_pqPhQHtml_(it,'fs'):''))));
+  /* 読み確認は書く欄を自分で持っている（読み方／つづり／言えた□）＝共通の解答らんは出さない 2026-09-21 */
+  var _noLine=(k==='ph');
   /* 列と行を明示する（上の fsGridPos_ のコメントが理由）。
      図のかたまり（.fs-figblk）の中はグリッドではないので pos を渡さない＝付かない */
   var cs=(pos&&(pos.col===1||pos.col===2))?(' style="grid-column:'+pos.col+';grid-row:'+pos.row+'"'):'';
   return '<div class="fs-q"'+cs+'><div class="fs-n">'+no+'</div><div class="fs-b">'
-    +'<div class="fs-txt">'+esc(fsQuestionOf_(it))+'</div>'+ex+'<div class="fs-ansline"></div></div></div>';
+    +'<div class="fs-txt">'+esc(fsQuestionOf_(it))+'</div>'+ex+(_noLine?'':'<div class="fs-ansline"></div>')+'</div></div>';
 }
 /* 図の高さは「読み込めているか」に左右されないよう、mmで直接指定する。
    値は CSS の max-width:58mm / max-height（3問58・2問48・1問36mm）で決まる寸法をそのまま数値にしたものなので、
@@ -3730,6 +3831,13 @@ function fsListenMap_(b){
   var out={}, n=0;
   (b&&b.flat||[]).forEach(function(f){
     var it=f.item; if(!it||!_pqIsLis_(it))return;
+    if(_pqKind_(it)==='ph'){   /* 【2026-09-21】読み確認。音の足し算 → 語まるごと を順に鳴らす */
+      var pkp=_pqPack_(it); if(!pkp)return;
+      var mp=_pqPhMode_(it);
+      if(mp==='read')return;   /* 読み方を書く形式＝音を鳴らすと答えになる。QRには入れない */
+      var sp2=_pqPhSeq_(pkp.pl,mp); if(!sp2.length)return;
+      out[String(f.no)]={en:'',audios:[],seq:sp2}; n++; return;
+    }
     if(_pqKind_(it)==='lisx'){   /* 第1部型・第3部型＝会話→1→2→3 を順に鳴らす（2026-09-17）*/
       var sq=_pqLxSeq_(it); if(!sq.length)return;
       out[String(f.no)]={en:'',audios:[],seq:sq}; n++; return;
