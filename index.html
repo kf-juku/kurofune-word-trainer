@@ -5603,21 +5603,29 @@ function _sentAfterAudio_(pl){
    ・tokens は pl.en を切ったもの＝文頭の大文字がそのまま出る（payload の tokens は全部小文字）
    ・記号（.,?!）は独立した列にせず、直前の語の右に小さく添える
    ・blankText を渡すと空欄にその語が入る（答え合わせ）
+   ・blankN（qdata.blank_n）を2以上にすると blankAt から その語数ぶんを1つの穴にまとめる
+     ＝at school / in the park のような「かたまりの穴」。省略すると1語（今までどおり）
+     ★かたまりの穴の下には日本語を出さない。「〜で」「学校」が並ぶと答えが見えてしまう（2026-09-22 川上さん）
    ★roles を持たない教材（英検5級 文法編）はこの表示を使わない＝いままでどおり1行の文で出す */
-function _wordCols_(tokens,gloss,roles,blankAt,blankText,s){
+function _wordCols_(tokens,gloss,roles,blankAt,blankText,s,blankN){
+  var bn=Math.max(1,(blankN|0)||1);
   var idx=[],pn={},i;
   for(i=0;i<tokens.length;i++){
     if(_sentIsPn_(tokens[i])){ if(idx.length)pn[idx[idx.length-1]]=tokens[i]; continue; }
+    if(bn>1&&i>blankAt&&i<blankAt+bn) continue;   /* かたまりの穴の2語目以降は列を作らない 2026-09-22 */
     idx.push(i);
   }
   var G=groupByRole(idx.length,function(k){return (roles||[])[idx[k]]||'';});
   G.forEach(function(g){ g.idx=g.idx.map(function(k){return idx[k];}); });
   return '<div class="exline sqx">'+wgHtml(G,function(i){
-    var en=(i===blankAt)
+    var _isB=(i===blankAt);
+    var en=_isB
       ? '<span class="sq-blx'+(blankText?' done':'')+'">'+(blankText?esc(blankText):'？')+'</span>'
       : esc(tokens[i]);
+    /* かたまりの穴の下は空にする（1語の穴は今までどおり直訳を出す）2026-09-22 */
+    var _ja=(_isB&&bn>1)?'':_ptJa_(String((gloss||[])[i]||'').trim(),s);
     return '<span class="ww"><span class="ww-en">'+en+(pn[i]?'<span class="ww-pn">'+esc(pn[i])+'</span>':'')
-      +'</span><span class="ww-ja">'+_ptJa_(String((gloss||[])[i]||'').trim(),s)+'</span></span>';
+      +'</span><span class="ww-ja">'+_ja+'</span></span>';
   })+'</div>';
 }
 function _sentPack_(s,w){var q=tfParse(w);var a=((s&&s.assets)||{})[q.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}return {q:q,pl:pl};}
@@ -5657,15 +5665,16 @@ function renderSENT(ss){
   if(qt==='sentence_fill'){
     ask.innerHTML='<ruby>文<rt class="uf">ぶん</rt></ruby>に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語<rt class="uf">ご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
     /* 穴のある文は en から組む＝文頭の大文字がそのまま出る。tokens（全部小文字）は使わない */
-    var tk=_sentTok_(pl.en),bi=(q.blank|0);
+    var tk=_sentTok_(pl.en),bi=(q.blank|0),bn=Math.max(1,(q.blank_n|0)||1);   /* blank_n＝かたまりの穴の語数 2026-09-22 */
     var _hasRl=!!(pl.roles&&pl.roles.length);   /* 役割を持つ教材（架け橋）だけ語ごとの表示にする */
     /* fill＝空欄に入れる語。答え合わせで呼び直して、空けたままにしない（改修④）2026-09-21 */
     var _sfBody=function(fill){
       if(!tk.length)return '<div class="sq-sent">'+_boxBlank(esc(w.japanese||''))+'</div>'
         +'<div class="sq-ja">'+_jaRuby_(pl.ja||'')+'</div>';   /* 素材が取れないときだけ japanese 列の（　）を四角にして出す */
-      if(_hasRl)return _wordCols_(tk,pl.gloss,pl.roles,bi,fill,s)+'<div class="sqx-all">'+_jaRuby_(pl.ja||'')+'</div>';
+      if(_hasRl)return _wordCols_(tk,pl.gloss,pl.roles,bi,fill,s,bn)+'<div class="sqx-all">'+_jaRuby_(pl.ja||'')+'</div>';
       var _BL='\u0001';   /* 穴の目印。join したあとで四角に置き換える（記号の前の空白つめを先に効かせるため）*/
-      var h=tk.map(function(t,i){return (i===bi)?_BL:esc(t);}).join(' ').replace(/\s+([.,?!])/g,'$1')
+      var h=tk.map(function(t,i){return (bn>1&&i>bi&&i<bi+bn)?'':((i===bi)?_BL:esc(t));})
+        .filter(function(x){return x!=='';}).join(' ').replace(/\s+([.,?!])/g,'$1')
         .replace(_BL,'<span class="sq-bl'+(fill?' done':'')+'">'+(fill?esc(fill):'')+'</span>');
       return '<div class="sq-sent">'+h+'</div><div class="sq-ja">'+_jaRuby_(pl.ja||'')+'</div>';
     };
