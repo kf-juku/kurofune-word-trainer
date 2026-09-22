@@ -6424,18 +6424,57 @@ function _resumeOrder_(words,rs){
 }
 /* パートID→「教科 パート名」の索引。material_parts / quiz_list の返りから作る（中断カード・確認モーダルの表示用）2026-08-20 */
 var _partIdx={},_partIdxReady=false;
+/* 【2026-09-22 川上さん確定】教材ごとのパート一覧を part_order 順のまま覚える。
+   単元別の完了画面で「順番どおりの次のパート」を端末だけで決めるために要る（kwtGAS.gs は触らない）。
+   material_parts（kwtGAS.gs 3049行）は part_order で並べ替えて返すので、返ってきた順をそのまま持つ。 */
+var _matParts_={};
 function _buildPartIdx_(mats){
   try{(mats||[]).forEach(function(c){
     var sj='';try{sj=_subjGuess_(c)||'';}catch(e){}
+    var _mid=String(c.material_id||''),_ord=[]; /* この教材のパートを並び順に集める 2026-09-22 */
     (c.parts||[]).forEach(function(pt){
       var pid=String(pt.part_id||pt.id||'');if(!pid)return;
+      _ord.push({id:pid,passed:!!pt.passed,title:String(pt.title||pt.name||'')}); /* 2026-09-22 */
       _partIdx[pid]={subj:sj,part:String(pt.title||pt.name||''),mat:String(mtShortMt(c)||c.material_title||c.title||''),mid:String(c.material_id||''),
         /* 単元別の練習状況（確認テスト一覧に「練習ずみ 4日前／まだ練習していない」を出すため）2026-08-20。
            material_parts は content_type=test のパートに passed（80%合格）と last_pass_date を返す＝GAS改修は不要。 */
         isTest:(c.content_type==='test'),passed:!!pt.passed,attempted:!!pt.attempted,lastPass:String(pt.last_pass_date||'')};
-    });});_partIdxReady=true;}catch(e){}
+    });
+    if(_mid&&_ord.length)_matParts_[_mid]=_ord; /* 2026-09-22 */
+    });_partIdxReady=true;}catch(e){}
   /* 単元別の練習状況が後から届いた場合でも②のバッジを正しくする（quiz_list が先に返っていることがある） */
   try{ if(_quizData&&_quizData.materials)_setQuizSegCnt_(_quizData.materials); }catch(e){}
+}
+/* 【2026-09-22 川上さん確定】順番どおりの「次のパート」を返す。
+   確定した仕様＝「その教材に次のパートがある限り、選択肢として出す」。
+   **合格ずみかどうかは見ない。**kwtGAS.gs の next_part_id は「まだ合格していないパート」なので、
+   全部合格したあとは空になり、飛ばして先を合格した子には前のパートが返ることもある（nextUnitPart_ 2235行）。
+   ここは part_order のすぐ次だけを見るので、ボタンの文言と行き先がいつも一致する。
+   材料（material_parts）がまだ届いていない・最後のパートなら null を返す＝呼び出し側で next_part_id に落ちる。 */
+function _nextPartInMat_(partId){
+  try{
+    var cur=String(partId||'');if(!cur)return null;
+    var e=_partIdx[cur];if(!e||!e.mid)return null;
+    var a=_matParts_[String(e.mid)];if(!a||a.length<2)return null;
+    for(var i=0;i<a.length-1;i++){ if(a[i].id===cur) return (a[i+1].id===cur?null:a[i+1]); }
+    return null;
+  }catch(e2){return null;}
+}
+/* 単元別の完了画面に「次のパート」のボタンを出す。出したら true。
+   文言は行き先で出し分ける＝合格ずみのパートに「先取り」とは書かない（2026-09-22）。 */
+function _unitNextBtn_(curPartId,srvNextId){
+  try{
+    var nx=_nextPartInMat_(curPartId);
+    var pid=nx?nx.id:String(srvNextId||'');
+    if(!pid||pid===String(curPartId))return false;
+    var again=!!(nx&&nx.passed);
+    $('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span>'+(again
+      ?'<ruby>次<rt class="uf">つぎ</rt></ruby>のパートをもう<ruby>一度<rt class="uf">いちど</rt></ruby>'
+      :'<ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のパート）')+'</span>';
+    $('btn-next').className='btn sub';$('btn-next').style.display='flex';
+    $('btn-next').onclick=function(){startPractice(pid);};
+    return true;
+  }catch(e){return false;}
 }
 /* 何日前か（JST。todayStr_ と同じ基準） */
 function _daysAgo_(ymd){
@@ -7474,10 +7513,12 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     if(d.data.is_test){
       // 2026-07-07 grill確定：テスト配信も毎日学習と同じ80%で前進（満点前進は廃止）。おさらいの100%卒業案内はスライス3で追加。正＝機能仕様書_テスト配信 0章。
       if(d.data.passed){if(!_donePre){sndWin();flash();confetti(120);}
-        if(d.data.completed_material&&d.data.test_all_completed){setDoneBadge_('gold');$('done-result').innerHTML=doneUnitAllTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();} /* 単元別タブ全完走＝金トロフィー＋クラッカー 2026-08-08 */
-        else if(d.data.completed_material){setDoneBadge_('gold');confetti(180);$('done-result').innerHTML=doneMatClearTtl_();$('done-guide-area').innerHTML=doneClearGuide_();} /* 1章まるごと完走＝金にそろえる（全部完了＝金）2026-08-08 */
+        if(d.data.completed_material&&d.data.test_all_completed){setDoneBadge_('gold');$('done-result').innerHTML=doneUnitAllTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();
+          _unitNextBtn_(s.listId,'');} /* 単元別タブ全完走＝金トロフィー＋クラッカー 2026-08-08／全部合格したあとも「次のパート」は出す 2026-09-22 */
+        else if(d.data.completed_material){setDoneBadge_('gold');confetti(180);$('done-result').innerHTML=doneMatClearTtl_();$('done-guide-area').innerHTML=doneClearGuide_();
+          _unitNextBtn_(s.listId,'');} /* 1章まるごと完走＝金にそろえる（全部完了＝金）2026-08-08／同上 2026-09-22 */
         else{setDoneBadge_('ok');$('done-result').innerHTML=doneUnitPartTtl_(d.data.remaining_parts);$('done-guide-area').innerHTML=nextStepGuide_(false,s.listId); /* 今日のぶん完了＝緑 2026-08-08／単元別は「今日の分」ではなくパート単位の文言に 2026-08-22 */
-          if(d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span><ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のパート）</span>';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}}
+          _unitNextBtn_(s.listId,d.data.next_part_id);}} /* 行き先は part_order のすぐ次。材料が未着のときだけ next_part_id に落ちる 2026-09-22 */
       else{setDoneBadge_('accent');$('done-result').innerHTML='このパートは <b>まだ<ruby>合格<rt class="uf">ごうかく</rt></ruby>していない</b>。<br><span class=\"done-guide\">「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で <b>80%</b> とれたら、このパート<ruby>合格<rt class="uf">ごうかく</rt></ruby>！</span>';} /* 単元別は自分のペース＝「今日の分」の枠が無いのでパート単位の文言に 2026-08-22 */
     }else if(d.data.passed){if(!_donePre){sndWin();flash();confetti(120);} // 先に描いていたら鳴らし直さない 2026-09-02
       dailyMarkCleared_(s.listId);renderDoneDaily_(s.listId); /* 今日のデイリーの進みをホームと同じバーで出す（教材クリアでも同じ）2026-08-22 川上さん確定 */
