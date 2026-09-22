@@ -1502,6 +1502,8 @@
   .ro-chip.ghost{position:fixed;pointer-events:none;z-index:99;box-shadow:0 10px 26px rgba(10,108,255,.28);transform:scale(1.06);opacity:.96;cursor:grabbing;}
   .ro-slots.shake{animation:shake .3s;}
   .ro-hint{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--sub);font-size:12px;margin:-4px 0 12px;}
+  /* 1語不要の知らせ。設問文の右に小さく出す（2026-09-22・教材の正 §0c 決まり2） */
+  .ro-ex{display:inline-block;margin-left:10px;padding:2px 9px;border-radius:20px;background:rgba(224,87,75,.12);border:1px solid rgba(224,87,75,.3);color:#c0392b;font-size:12px;font-weight:800;vertical-align:2px;}
   .ro-hint svg{display:block;color:var(--accent);opacity:.85;}
   .ro-hint span{white-space:nowrap;}
   .ro-bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:48px;margin-bottom:4px;}
@@ -5843,10 +5845,20 @@ function renderPH_(s,w,q,pl,_tl){
 function renderRO_(s,w,q,pl){
   hideQTimer();
   var ask=$('sent-ask'),body=$('sent-body');
-  ask.innerHTML='<ruby>文<rt class="uf">ぶん</rt></ruby>になるように<ruby>並<rt class="uf">なら</rt></ruby>べよう';
-  var toks=(pl.tokens&&pl.tokens.length)?pl.tokens.slice():_sentTok_(pl.en);
+  /* 【2026-09-22 川上さん確定・教材の正 §0c 決まり2】強度は段階を踏む。いきなり全文を並べさせない。
+       段階3＝テーマのかたまりを1枚の札にした並べ替え。`qdata.tokens` にその問題だけの札を入れる。
+              例）I / study / English / [at school] の4枚。**画面は今までと同じ＝新しい出し方を作らない**
+       段階4＝1語ずつ（いままでどおり）。`qdata.tokens` が無ければ素材の tokens を使う
+     【1語不要】`qdata.extra` の語を語群に1枚だけ多く出す（川上さん「神奈川高校入試でも出るので必要」）。
+              □の数は正解の語数のままなので、判定も答え合わせも今までと同じ。
+              置いた札はタップで語群に戻せる（onUp の wasTap）ので、まちがえて置いても直せる。
+              ★2026-09-22 まで `qdata.extra` はデータに48本入っていたのに、ここで1行も読んでいなかった＝画面に出ていなかった */
+  var toks=(q&&q.tokens&&q.tokens.length)?q.tokens.slice():((pl.tokens&&pl.tokens.length)?pl.tokens.slice():_sentTok_(pl.en));
+  var extra=(q&&q.extra&&q.extra.length)?q.extra.slice():[];
+  ask.innerHTML='<ruby>文<rt class="uf">ぶん</rt></ruby>になるように<ruby>並<rt class="uf">なら</rt></ruby>べよう'
+    +(extra.length?'<span class="ro-ex">1<ruby>語<rt class="uf">ご</rt></ruby>あまります</span>':'');
   var N=toks.length,_t0=Date.now(),locked=false,drag=null;
-  var bank=_shufNot_(toks);
+  var bank=_shufNot_(toks.concat(extra));
   body.innerHTML='<div class="sq-ja ro-ja">'+_jaRuby_(pl.ja||'')+'</div>'
    +'<div class="ro-slots" id="ro-slots"></div>'
    +'<div class="ro-hint" id="ro-hint"><svg width="52" height="20" viewBox="0 0 52 20" fill="none" aria-hidden="true">'
