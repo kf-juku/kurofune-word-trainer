@@ -1658,6 +1658,16 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   .bug-lbl{font-size:13px;font-weight:700;display:block;margin:0 0 8px;}
   .bug-lbl .opt{font-size:11.5px;color:var(--sub);font-weight:500;margin-left:4px;}
   .bug-ta{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--ink);resize:vertical;min-height:60px;margin-bottom:16px;}
+/* 第1部型の1発話（確定50・52）2026-09-23 */
+.kw-sec{display:flex;align-items:baseline;gap:8px;margin:12px 0 6px;}
+.kw-secl{font-size:11.5px;font-weight:800;color:#fff;background:var(--sub);border-radius:6px;padding:2px 9px;display:inline-flex;align-items:center;gap:5px;}
+.kw-secl.pick{background:var(--accent);}
+.kw-secn{font-size:11.5px;color:var(--sub);font-weight:600;}
+.kw-gap{display:flex;align-items:center;gap:8px;margin:12px 0 2px;font-size:11px;font-weight:700;color:var(--sub);}
+.kw-gap span{flex:1;height:1px;background:var(--line);}
+.kw-opts{border:1.5px solid var(--accent);border-radius:16px;padding:11px;background:var(--accent-soft);}
+.kw-opts .lx-play,.kw-opts .lx-ch{background:var(--surface);}
+.kw-opts.now{box-shadow:0 0 0 3px rgba(10,108,255,.15);}
 </style>
 </head>
 <body>
@@ -6036,22 +6046,26 @@ function renderLX_(s,w,q,pl){
     _quizAns(s,w,false,0,'e2j');afterAnswer(false,w.english||'','','',s.onNext);return;
   }
   ask.innerHTML=isResp
-    ?'<ruby>会話<rt class="uf">かいわ</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>最後<rt class="uf">さいご</rt></ruby>の<ruby>応答<rt class="uf">おうとう</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
+    ?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、<b><ruby>返事<rt class="uf">へんじ</rt></ruby></b>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
     :'<ruby>絵<rt class="uf">え</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>う<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
   var order=shuffle(chs.map(function(c,i){return i;}));
   var h='';
   if(isResp){
-    h='<div class="lx-talk">'+lines.map(function(l,i){
+    /* 確定52（2026-09-23）＝本番の第1部は聞こえる英文が1つだけ。確定50（承認モック 20260921_モック_会話編_第1部型.html の③）の形：
+       「聞こえる英文」→「ここまでが英文」の線→「返事」の欄（番号を選ぶ）。3つ目の「？」の吹き出しはやめた */
+    h='<div class="kw-sec"><span class="kw-secl"><ruby>聞<rt class="uf">き</rt></ruby>こえる<ruby>英文<rt class="uf">えいぶん</rt></ruby></span></div>'
+      +'<div class="lx-talk">'+lines.map(function(l,i){
         var b=(String(l.sp)==='B');
         return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+'">'+esc(String(l.sp||''))+'</span><span class="lx-wave"></span></div>';
-      }).join('')
-      +'<div class="lx-bub" id="lx-lq"><span class="lx-who a">A</span><span class="lx-wave dim"></span><b class="lx-qm">？</b></div></div>';
+      }).join('')+'</div>'
+      +'<div class="kw-gap"><span></span><b>ここまでが<ruby>英文<rt class="uf">えいぶん</rt></ruby></b><span></span></div>'
+      +'<div class="kw-sec pick"><span class="kw-secl pick"><ruby>返事<rt class="uf">へんじ</rt></ruby></span><span class="kw-secn">1・2・3 を<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>合<rt class="uf">あ</rt></ruby>うものを<ruby>選<rt class="uf">えら</rt></ruby>ぶ</span></div>';
   }else{
     h='<div class="lx-pic"><img src="'+esc(String(pl.img||''))+'" alt="" onerror="this.parentNode.classList.add(\'noimg\');this.style.display=\'none\';"></div>';
   }
   body.innerHTML=h;
   box.classList.remove('g2');
-  box.innerHTML='<div class="lx-opts">'+order.map(function(ci,j){
+  box.innerHTML='<div class="lx-opts'+(isResp?' kw-opts':'')+'" id="lx-lq">'+order.map(function(ci,j){
       return '<div class="lx-opt" id="lx-o'+j+'"><button type="button" class="lx-play" data-j="'+j+'" disabled aria-label="'+(j+1)+'番を聞く"><i class="ti ti-player-play"></i></button>'
         +'<button type="button" class="choice lx-ch" data-j="'+j+'" data-val="'+(j+1)+'" disabled>'+(j+1)+'</button></div>';
     }).join('')+'</div>'
@@ -6060,15 +6074,15 @@ function renderLX_(s,w,q,pl){
   var answered=false,started=false,_t0=0,_tl=(s.mode==='note')?0:qSecFor('table_fill');
   var st=$('lx-st');
   var alive=function(){return s.words[s.idx]===w && $('scr-practice') && $('scr-practice').classList.contains('active');};
-  var clear=function(){[].forEach.call(document.querySelectorAll('.lx-bub.now,.lx-opt.now'),function(x){x.classList.remove('now');});};
+  var clear=function(){[].forEach.call(document.querySelectorAll('.lx-bub.now,.lx-opt.now,#lx-lq.now'),function(x){x.classList.remove('now');});};
   var lit=function(id){return function(){if(!alive()){_lxStop_();return;}clear();var e=$(id);if(e)e.classList.add('now');};};
   var setBtns=function(on){[].forEach.call(box.querySelectorAll('.lx-play'),function(b){b.disabled=!on;});
     [].forEach.call(box.querySelectorAll('.lx-ch'),function(b){b.disabled=(!on||answered);});};
   function playAll(){
     var steps=[];
-    lines.forEach(function(l,i){steps.push({it:l,gap:350,on:lit('lx-l'+i)});});
+    lines.forEach(function(l,i){steps.push({it:l,gap:(i===lines.length-1?1400:350),on:lit('lx-l'+i)});});   /* 英文と選択肢のあいだは 1400ms（確定50） */
     order.forEach(function(ci,j){steps.push({it:chs[ci],gap:500,on:(function(jj){return function(){lit('lx-o'+jj)();var e=$('lx-lq');if(e)e.classList.add('now');if(st&&!answered)st.textContent=(jj+1)+'番を読んでいます';};})(j)});});
-    if(!answered){setBtns(false);stopQTimer();if(st)st.textContent=isResp?'会話を聞いています':'英文を聞いています';}
+    if(!answered){setBtns(false);stopQTimer();if(st)st.textContent='英文を聞いています';}
     return _lxRunSeq_(steps).then(function(ok){
       if(!ok||!alive())return;
       clear();setBtns(true);
@@ -6093,7 +6107,7 @@ function renderLX_(s,w,q,pl){
     var xa=$('ex-audio');
     if(xa){
       var xh='';
-      if(isResp)xh+='<div class="lx-xh"><ruby>会話<rt class="uf">かいわ</rt></ruby></div>'+lines.map(function(l){
+      if(isResp)xh+='<div class="lx-xh"><ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>英文<rt class="uf">えいぶん</rt></ruby></div>'+lines.map(function(l){
           return '<div class="lx-xl"><b>'+esc(String(l.sp||''))+'：</b>'+esc(String(l.en||''))+'<small>'+_jaRubyIf_(String(l.ja||''))+'</small></div>';}).join('');
       xh+='<div class="lx-xh"><ruby>選択肢<rt class="uf">せんたくし</rt></ruby></div>'+order.map(function(ci,j){
           var c=chs[ci];

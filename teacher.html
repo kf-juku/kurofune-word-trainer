@@ -5681,7 +5681,7 @@ function openMatPreview(mid){
         }else if(w.qtype==='listen_resp'||w.qtype==='listen_pic'){
           var _lxp=null; try{ var _lxa=(_mpAssets||{})[w.asset]; _lxp=_lxa?JSON.parse(_lxa.payload||'{}'):null; }catch(_e){ _lxp=null; }
           h+='<div class="mp-row"><span class="mpl">出し方</span><span class="mp-ro-note">'+(w.qtype==='listen_resp'
-            ?'会話の応答（英検 第1部型）：A→B の会話のあと、A の応答を音だけで3つ読み、番号で選ばせます。英文は画面に出ません'
+            ?'会話の応答（英検 第1部型）：英文を1つ聞かせたあと、返事を音だけで3つ読み、番号で選ばせます。英文は画面に出ません（本番と同じ1発話・確定52）'
             :'絵に合う英文（英検 第3部型）：絵を見せて、英文を音だけで3つ読み、番号で選ばせます。英文は画面に出ません')+'</span></div>';
           if(_lxp){
             var _lxh=(_lxp.lines||[]).map(function(l){ return esc(String(l.sp||''))+'：'+esc(String(l.en||''))+'（'+esc(String(l.ja||''))+'）'; }).join('<br>');
