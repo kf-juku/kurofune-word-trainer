@@ -3062,9 +3062,9 @@ function unifiedStudentHtml_(st, opts){
       var gl=_pqGlossText_(it);
       if(gl) extra='<div class="up-kai">語の意味：'+esc(gl)+'</div>';
     }else if(kind==='lisx'){
-      /* 【2026-09-17】英検 第1部型・第3部型。先生が会話と3つの英文を読む（答えの欄が読み上げ原稿）。 */
+      /* 【2026-09-17】英検 第1部型・第3部型。先生が英文と3つの返事を読む（答えの欄が読み上げ原稿）。2026-09-23 第1部型を1発話にしたので見出しを「英文への返事」に */
       var _isPic=(String(it.qtype||'')==='listen_pic');
-      qH='<div class="up-qtxt">'+n+'. 🔊 '+(_isPic?'絵に合う英文':'会話の応答')+' <span class="pq-lead2">（先生が読みます。'+(_isPic?'絵に合うもの':'最後の応答として合うもの')+'を番号で答える）</span></div>'
+      qH='<div class="up-qtxt">'+n+'. 🔊 '+(_isPic?'絵に合う英文':'英文への返事')+' <span class="pq-lead2">（先生が読みます。'+(_isPic?'絵に合うもの':'返事として合うもの')+'を番号で答える）</span></div>'
         +_pqLxQHtml_(it,'up')+'<div class="up-lisans">答え <span class="up-lisbox"></span></div>';
     }else if(kind==='dial'){
       /* 【2026-09-18】英検 大問2型。会話2行＋選択肢4つ。ここは番号で答える（右に答えがある紙なので・確定47）。 */
@@ -3262,7 +3262,7 @@ function fsQuestionOf_(it){
   if(k==='fill') return String(it.japanese||'');            /* 穴あき英文＋和訳（紙用・§5b） */
   if(k==='order')return 'ならべかえて文を作る';
   if(k==='listen')return '🔊 聞き取り（QRで音を聞いて、合うものを記号で）';
-  if(k==='lisx')  return (String(it.qtype||'')==='listen_pic')?'🔊 絵に合う英文（QRで音を聞いて、番号で）':'🔊 会話の応答（QRで音を聞いて、最後の応答を番号で）';
+  if(k==='lisx')  return (String(it.qtype||'')==='listen_pic')?'🔊 絵に合う英文（QRで音を聞いて、番号で）':'🔊 英文への返事（QRで音を聞いて、合う返事を番号で）';
   if(k==='ph')    return _pqPhLead_(it);
   if(k==='dial')  return '会話に合う英文を線の上に書く（選択肢を見ないで書けたら◎）';
   return fsIsEn_(it)?String(it.english||''):fsQText_(it.japanese);
