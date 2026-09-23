@@ -1668,6 +1668,61 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 .kw-opts{border:1.5px solid var(--accent);border-radius:16px;padding:11px;background:var(--accent-soft);}
 .kw-opts .lx-play,.kw-opts .lx-ch{background:var(--surface);}
 .kw-opts.now{box-shadow:0 0 0 3px rgba(10,108,255,.15);}
+/* ===== 生徒向けの案内（チュートリアル）とデイリーの道 2026-09-23 川上さん確定（モック\20260923_モック_生徒向けチュートリアル_v3.html）=====
+   案内の色＝--guide（青緑）。金＝ごほうび・識別／青＝操作／紫＝確認テスト／緑赤＝合否／黄＝直している最中、のどれとも重ねない。
+   色だけに頼らず、案内には必ず電球と「ヒント」の名札を付ける。 */
+:root{--guide:#0b7f7b;--guide-soft:rgba(11,127,123,.12);--guide-ink:#fff;}
+[data-theme="dark"]{--guide:#2fb8b0;--guide-soft:rgba(47,184,176,.16);--guide-ink:#0d1017;}
+.dy-steps{display:flex;align-items:flex-start;margin-top:2px;}
+.dy-st{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;position:relative;text-align:center;background:none;border:0;padding:0;font-family:inherit;color:var(--ink);cursor:pointer;}
+.dy-st+.dy-st:before{content:"";position:absolute;top:19px;left:calc(-50% + 22px);right:calc(50% + 22px);height:2.5px;border-radius:2px;background:var(--n-track);} /* つなぎの線は右の項目の左側に描く（右へはみ出させない）*/
+.dy-st.lk:before{background:var(--ok);}
+.dy-si{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:20px;background:var(--neutral-bg);color:var(--sub);position:relative;transition:transform .15s;}
+.dy-st:active .dy-si{transform:scale(.92);}
+.dy-st.done .dy-si{background:var(--ok);color:#fff;}
+.dy-st.now .dy-si{background:var(--accent-soft);color:var(--accent);box-shadow:0 0 0 2.5px var(--accent);animation:dyPulse 1.6s ease-in-out infinite;}
+@keyframes dyPulse{0%,100%{box-shadow:0 0 0 2.5px var(--accent);}50%{box-shadow:0 0 0 6px rgba(10,108,255,.18);}}
+.dy-st.goal{cursor:default;}
+.dy-st.goal .dy-si{background:var(--n-goldsoft);color:var(--gold);}
+.dy-st.goal.done .dy-si{background:var(--gold);color:#fff;}
+.dy-ck{position:absolute;right:-1px;bottom:-1px;width:17px;height:17px;border-radius:50%;background:var(--surface);color:var(--ok);font-size:12px;display:none;place-items:center;}
+.dy-st.done:not(.goal) .dy-ck{display:grid;}
+.dy-l{display:block;font-size:11px;font-weight:800;margin-top:5px;line-height:1.3;}
+.dy-n{display:block;font-size:10px;color:var(--sub);line-height:1.35;}
+.dy-st.now .dy-l{color:var(--accent);}
+.dy-l .nw{white-space:nowrap;}
+html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画面で入りきらない＝そのときだけ折り返してよい */
+.dy-foot{font-size:10.5px;color:var(--sub);text-align:center;margin-top:8px;}
+.gd-host{position:relative;}
+.gd-mk{position:absolute;top:-3px;right:-7px;width:11px;height:11px;box-sizing:border-box;border-radius:50%;border:2.5px solid var(--guide);background:var(--surface);animation:gdMk 1.8s ease-in-out infinite;pointer-events:none;z-index:2;}
+.gd-mk.ava{right:auto;left:25px;top:-3px;}
+.head .streak>.gd-mk{top:-7px;right:-10px;}
+@keyframes gdMk{0%,100%{transform:scale(1);}50%{transform:scale(1.25);}}
+.gd-tip{position:fixed;z-index:95;box-sizing:border-box;background:var(--guide);color:var(--guide-ink);border-radius:14px;padding:11px 13px;display:flex;gap:11px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:gdIn .2s ease;cursor:pointer;}
+.gd-tip-ic{font-size:26px;flex-shrink:0;}
+.gd-tip-b{min-width:0;}
+.gd-tip-t{font-size:13.5px;font-weight:800;}
+.gd-tip-s{font-size:11.5px;opacity:.9;line-height:1.5;}
+.gd-tip-x{margin-left:auto;font-size:14px;opacity:.6;flex-shrink:0;}
+.gd-tip:after{content:"";position:absolute;width:14px;height:14px;background:var(--guide);transform:rotate(45deg);left:var(--ax,50%);margin-left:-7px;}
+.gd-tip.up:after{top:-6px;}
+.gd-tip.down:after{bottom:-6px;}
+.gd-hint{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--guide);background:var(--guide-soft);border-radius:20px;padding:2px 9px 2px 7px;}
+.gd-tip .gd-hint{background:rgba(255,255,255,.18);color:var(--guide-ink);margin-bottom:3px;}
+.gd-dim{position:fixed;inset:0;z-index:96;background:rgba(10,12,18,.55);display:flex;align-items:flex-end;justify-content:center;animation:gdIn .25s ease;}
+.gd-sheet{box-sizing:border-box;background:var(--surface);color:var(--ink);width:100%;max-width:430px;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;border-top:5px solid var(--guide);padding:20px 18px 22px;animation:gdUp .3s ease;}
+.gd-sheet .gd-hint{display:flex;width:max-content;margin:0 auto 6px;}
+.gd-h{font-size:17px;font-weight:800;text-align:center;}
+.gd-ss{font-size:12px;color:var(--sub);text-align:center;margin:2px 0 14px;}
+.gd-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.gd-g{background:var(--bg);border-radius:14px;padding:12px 10px;text-align:center;}
+.gd-gi{font-size:28px;height:34px;display:grid;place-items:center;}
+.gd-gt{font-size:13px;font-weight:800;margin-top:2px;}
+.gd-gs{font-size:10.5px;color:var(--sub);line-height:1.45;margin-top:2px;}
+.gd-btn{margin-top:14px;width:100%;border:0;background:var(--guide);color:var(--guide-ink);border-radius:13px;padding:12px;font:inherit;font-size:14px;font-weight:800;cursor:pointer;}
+@keyframes gdIn{from{opacity:0}to{opacity:1}}
+@keyframes gdUp{from{transform:translateY(40px)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.dy-st.now .dy-si,.gd-mk{animation:none;}}
 </style>
 </head>
 <body>
@@ -1776,6 +1831,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
             <div class="setrow" id="set-theme"><div class="sr-ic" id="set-theme-ic"><i class="ti ti-moon"></i></div><div class="sr-b"><div class="sr-t"><ruby>見<rt class="uf">み</rt></ruby>た<ruby>目<rt class="uf">め</rt></ruby>（テーマ）</div><div class="sr-s" id="set-theme-val">ライト</div></div><div class="sr-go"><ruby>切替<rt class="uf">きりかえ</rt></ruby> <i class="ti ti-repeat"></i></div></div>
             <div class="setrow static" id="set-furi"><div class="sr-ic"><i class="ti ti-a-b-2"></i></div><div class="sr-b"><div class="sr-t">ふりがな</div><div class="sr-s" id="set-furi-val"><ruby>学年<rt class="uf">がくねん</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>わせて<ruby>自動<rt class="uf">じどう</rt></ruby></div></div><div class="sr-go" id="set-furi-badge">—</div></div>
           </div>
+          <div class="setgrp" style="margin-top:10px;"><div class="setrow" id="set-guide"><div class="sr-ic" style="color:var(--guide)"><i class="ti ti-bulb"></i></div><div class="sr-b"><div class="sr-t"><ruby>使<rt class="uf">つか</rt></ruby>い<ruby>方<rt class="uf">かた</rt></ruby></div><div class="sr-s"><ruby>最初<rt class="uf">さいしょ</rt></ruby>の<ruby>案内<rt class="uf">あんない</rt></ruby>をもう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>見<rt class="uf">み</rt></ruby>る</div></div><div class="sr-go"><span><ruby>見<rt class="uf">み</rt></ruby>る</span> <i class="ti ti-chevron-right"></i></div></div></div>
           <div class="setrow-note" style="font-size:11px;color:var(--sub);text-align:center;margin:12px 4px 4px;line-height:1.5;"><ruby>小学生<rt class="uf">しょうがくせい</rt></ruby>は<ruby>漢字<rt class="uf">かんじ</rt></ruby>にふりがなが<ruby>付<rt class="uf">つ</rt></ruby>きます。ログアウトは<ruby>下<rt class="uf">した</rt></ruby>のメニューから。</div>
         </div>
         <div class="subview" id="sv-note">
@@ -2107,7 +2163,7 @@ function iconInnerHtml_(k){return (k&&ICON_SVG[k])?('<span class="kwt-ico">'+ICO
 /* アバター中身：アイコンがあればSVG、無ければ頭文字（従来どおり） */
 function iconAvatarHtml(icon,nickname){if(icon&&ICON_SVG[icon])return iconInnerHtml_(icon);return esc((nickname||'?').slice(0,1));}
 /* 自分のアイコンをヘッダーと設定行に反映 */
-function applyMyIcon_(){var h=$('hdr-ava');if(h){h.innerHTML=iconAvatarHtml(myIcon,nickname);h.style.display='';}try{syncIconRow_();}catch(e){}}
+function applyMyIcon_(){var h=$('hdr-ava');if(h){h.innerHTML=iconAvatarHtml(myIcon,nickname);h.style.display='';}try{syncIconRow_();}catch(e){}try{_gdMarks_();}catch(e){}}
 function syncIconRow_(){var ic=$('set-icon-ic'),val=$('set-icon-val');if(ic){ic.innerHTML=(myIcon&&ICON_SVG[myIcon])?iconInnerHtml_(myIcon):'<i class="ti ti-mood-smile"></i>';}if(val){val.innerHTML=(myIcon&&iconNameOf_(myIcon))?iconNameOf_(myIcon):'まだ<ruby>選<rt class="uf">えら</rt></ruby>んでいない';}}
 function renderIconGrid_(){var g=$('icon-grid');if(!g)return;var h='';ICON_LIST.forEach(function(o){if(o.locked&&unlockedIcons.indexOf(o.k)<0)return;h+='<div class="icpick rr'+(o.rar||1)+(myIcon===o.k?' on':'')+'" data-k="'+o.k+'"><div class="ici kwt-ico">'+ICON_SVG[o.k]+'</div><div class="icl">'+o.nm+'</div></div>';});h+='<div class="icpick'+(myIcon===''?' on':'')+'" data-k=""><div class="ici" style="display:grid;place-items:center;color:var(--sub)"><i class="ti ti-user"></i></div><div class="icl">なし</div></div>';g.innerHTML=h;g.querySelectorAll('.icpick').forEach(function(el){el.onclick=function(){openIconDetail_(el.getAttribute('data-k'));};});} /* タップ＝詳細シート（レア度・入手方法・豆知識）→「これにする」で決定 2026-07-28 */
 function openIconModal(){renderIconGrid_();var er=$('icon-err');if(er)er.textContent='';var mk=$('icon-mask');if(mk)mk.classList.add('show');try{localStorage.setItem('kwt_icon_seen',JSON.stringify(unlockedIcons||[]));}catch(e){}_newIcon=false;recordNavDotUpdate_();/* アイコンを見たら新アイコンを既読化 2026-07-26 */ /* 解放状態を最新化（再ログイン不要でフラグ/達成を反映）2026-07-25 */try{call({action:'icon_unlocks'}).then(function(d){if(d&&d.ok&&d.data){var u=d.data.unlocked_icons||[];unlockedIcons=u;try{localStorage.setItem('kwt_unlocks',JSON.stringify(u));}catch(e){}try{localStorage.setItem('kwt_icon_seen',JSON.stringify(unlockedIcons||[]));}catch(e){}_newIcon=false;recordNavDotUpdate_();renderIconGrid_();}});}catch(e){}}
@@ -2196,7 +2252,7 @@ var _prevScr='';
 /* 画面を切り替えるところ。アプリの自動更新のフックを2つだけ足している（2026-08-21 川上さん指摘）
    ・学習を始めた瞬間＝解いている数分のあいだに裏で新しい版がないか見ておく（入れ替えはしない）
    ・完了画面からホームに戻った直後＝1つ終わって画面が切り替わる瞬間なので、ここで入れ替えるのが一番ストレスが小さい */
-function show(scr){try{if(_ptHidden_)_ptRestore_();}catch(e){}var _p=_prevScr;_prevScr=scr;try{var _sf=$('sfmask');if(_sf)_sf.classList.remove('on');}catch(e){} /* ②のシートを持ち越さない 2026-09-06 */try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
+function show(scr){try{_gdTipClose_();}catch(eGt){}try{if(_ptHidden_)_ptRestore_();}catch(e){}var _p=_prevScr;_prevScr=scr;try{var _sf=$('sfmask');if(_sf)_sf.classList.remove('on');}catch(e){} /* ②のシートを持ち越さない 2026-09-06 */try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
 /* 学習マップのパート行のメタ：前回合格日・正答率・おさらいの進み（GAS material_parts が per-part で返す）2026-07-26 */
 function _mapMetaHtml_(l){
   if(!l||!l.last_pass_date)return ''; // 合格していないパートは出さない
@@ -3264,7 +3320,7 @@ $('nick-cancel').onclick=closeNickModal;
 $('nick-save').onclick=saveNick;
 $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};var _icx=$('icon-cancel');if(_icx)_icx.onclick=closeIconModal;var _icm=$('icon-mask');if(_icm)_icm.onclick=function(e){if(e.target===this)closeIconModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
-$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();try{shGoIfPending_();}catch(e){}});};
+$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;try{localStorage.setItem('kwt_sid',String(d.data.student.id||''));}catch(eSid){}/* 案内の済み印を生徒ごとに持つ。ログアウトでは消さない 2026-09-23 */nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();try{shGoIfPending_();}catch(e){}});};
 function doLogout_(){try{_sqFlush_();}catch(eSq){}/* 未送信があれば先に流す。1件ずつが自分のトークンを持つので token='' にしても届く 2026-09-02 */
   homeCacheClear_();try{var _rsLo=_resumeAny_();if(_rsLo)_abandonLog_(_rsLo,'logout',true);}catch(e){}try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');shPendLisSet_(false);}catch(e){}token='';show('scr-login');}
 $('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
@@ -3368,6 +3424,135 @@ function startOsaraiDirect_(){
   if(!_onHome)openHome();
   showSub('review');
 } // おさらいは教科タブ・おまかせを見せる画面へ（中身が見える＝氷山感を減らす）2026-07-26
+/* ===== 生徒向けの案内（チュートリアル）2026-09-23 川上さん確定（モック\20260923_モック_生徒向けチュートリアル_v3.html）=====
+   ① 最初の案内：初めてホームを開いたときに1回だけ。記録タブの設定「使い方」から見直せる（_gdIntro_）。
+   ②③ まだ押していない所に青緑の輪の印（_gdMarks_）。初めて押すと印が消えて一言の吹き出し（_gdTip_）。
+      下メニューは押した先に移ってから吹き出しを出す。上の炎・アイコン・ニックネームは、初回だけ吹き出しを出して動かさない（窓と吹き出しが重なるため）。
+   済みの印は端末の localStorage に生徒ごと（kwt_guide_<生徒id>）。ログアウトしても消さない＝共有タブレットで毎回出さない。
+   localStorage が使えない端末では何も出さない（毎回出てしまうため）。 */
+var GD_ITEMS={
+  unit:  {sel:'#ntab5-unit',  mk:'#ntab5-unit .ic',  ic:'ti-flag',      t:'<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>', s:'①<ruby>練習<rt class="uf">れんしゅう</rt></ruby>で<ruby>覚<rt class="uf">おぼ</rt></ruby>える → ②<ruby>確認<rt class="uf">かくにん</rt></ruby>テスト。80%<ruby>以上<rt class="uf">いじょう</rt></ruby>で<ruby>合格<rt class="uf">ごうかく</rt></ruby>', nav:1},
+  review:{sel:'#ntab5-review',mk:'#ntab5-review .ic',ic:'ti-notebook',  t:'<ruby>間違<rt class="uf">まちが</rt></ruby>いノート', s:'<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>語<rt class="uf">ご</rt></ruby>だけが<ruby>集<rt class="uf">あつ</rt></ruby>まる。ここを<ruby>減<rt class="uf">へ</rt></ruby>らすと<ruby>力<rt class="uf">ちから</rt></ruby>になる', nav:1},
+  record:{sel:'#ntab5-record',mk:'#ntab5-record .ic',ic:'ti-chart-line',t:'<ruby>記録<rt class="uf">きろく</rt></ruby>', s:'<ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップ・バッジ・<ruby>仲間<rt class="uf">なかま</rt></ruby>の<ruby>様子<rt class="uf">ようす</rt></ruby>が<ruby>見<rt class="uf">み</rt></ruby>られる', nav:1},
+  streak:{sel:'.head .streak',mk:'.head .streak',    ic:'ti-flame',     t:'<ruby>連続<rt class="uf">れんぞく</rt></ruby><ruby>記録<rt class="uf">きろく</rt></ruby>', s:'<ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>学習<rt class="uf">がくしゅう</rt></ruby>した<ruby>日数<rt class="uf">にっすう</rt></ruby>。<ruby>押<rt class="uf">お</rt></ruby>すと<ruby>詳<rt class="uf">くわ</rt></ruby>しく<ruby>見<rt class="uf">み</rt></ruby>られる'},
+  ava:   {sel:'#hdr-ava',     mk:'.greet .who',      ic:'ti-mood-smile',t:'アイコン', s:'<ruby>押<rt class="uf">お</rt></ruby>すと、<ruby>自分<rt class="uf">じぶん</rt></ruby>のアイコンを<ruby>選<rt class="uf">えら</rt></ruby>べる', cls:'ava'},
+  nick:  {sel:'#btn-nick-edit',mk:'#btn-nick-edit',  ic:'ti-pencil',    t:'ニックネーム', s:'<ruby>変<rt class="uf">か</rt></ruby>えられるのは<ruby>月<rt class="uf">つき</rt></ruby>3<ruby>回<rt class="uf">かい</rt></ruby>まで。<ruby>仲間<rt class="uf">なかま</rt></ruby>の<ruby>画面<rt class="uf">がめん</rt></ruby>にも<ruby>出<rt class="uf">で</rt></ruby>るので、<ruby>本名<rt class="uf">ほんみょう</rt></ruby>は<ruby>使<rt class="uf">つか</rt></ruby>わない'}
+};
+function _gdOk_(){try{localStorage.setItem('kwt_gd_t','1');localStorage.removeItem('kwt_gd_t');return true;}catch(e){return false;}}
+function _gdKey_(){var id='';try{id=localStorage.getItem('kwt_sid')||'';}catch(e){}return 'kwt_guide_'+(id||('t'+String(token||'').slice(0,16)));}
+function _gdGet_(){try{return JSON.parse(localStorage.getItem(_gdKey_())||'{}')||{};}catch(e){return {};}}
+function _gdSeen_(k){return _gdGet_()[k]===1;}
+function _gdSet_(k){try{var o=_gdGet_();o[k]=1;localStorage.setItem(_gdKey_(),JSON.stringify(o));}catch(e){}}
+function _gdMarks_(){
+  if(!_gdOk_())return;
+  var seen=_gdGet_();
+  Object.keys(GD_ITEMS).forEach(function(k){
+    var it=GD_ITEMS[k];var host=document.querySelector(it.mk);if(!host)return;
+    var cur=host.querySelector('.gd-mk[data-gd="'+k+'"]');
+    if(seen[k]===1){if(cur)cur.remove();return;}
+    if(cur)return;
+    host.classList.add('gd-host');
+    var m=document.createElement('span');m.className='gd-mk'+(it.cls?(' '+it.cls):'');m.setAttribute('data-gd',k);m.setAttribute('aria-hidden','true');
+    host.appendChild(m);
+  });
+}
+function _gdTipClose_(){var t=document.querySelector('.gd-tip');if(t)t.remove();}
+function _gdTip_(el,it){
+  _gdTipClose_();if(!el)return;
+  var r=el.getBoundingClientRect();if(!r.width&&!r.height)return; // 見えていない（画面が切り替わった）ときは出さない
+  var vw=window.innerWidth,vh=window.innerHeight,W=Math.min(vw,430)-24,L=Math.round((vw-W)/2);
+  var d=document.createElement('div');d.className='gd-tip';d.setAttribute('role','status');
+  d.innerHTML='<i class="ti '+it.ic+' gd-tip-ic"></i><div class="gd-tip-b"><span class="gd-hint"><i class="ti ti-bulb"></i>ヒント</span><div class="gd-tip-t">'+it.t+'</div><div class="gd-tip-s">'+it.s+'</div></div><i class="ti ti-x gd-tip-x"></i>';
+  d.style.left=L+'px';d.style.width=W+'px';
+  var ax=r.left+r.width/2-L;d.style.setProperty('--ax',Math.max(18,Math.min(W-18,ax))+'px');
+  if(r.top+r.height/2<vh/2){d.classList.add('up');d.style.top=Math.round(r.bottom+10)+'px';}
+  else{d.classList.add('down');d.style.bottom=Math.round(vh-r.top+10)+'px';}
+  document.body.appendChild(d);
+}
+/* 初めて押したとき＝印を消して一言。どのタップでも、出ている吹き出しは先に閉じる */
+document.addEventListener('click',function(e){
+  _gdTipClose_();
+  if(!e.target||!e.target.closest)return;
+  var home=$('scr-home');if(!home||!home.classList.contains('active'))return;
+  if(document.querySelector('.gd-dim'))return;
+  var ks=Object.keys(GD_ITEMS);
+  for(var i=0;i<ks.length;i++){
+    var k=ks[i],it=GD_ITEMS[k],el=e.target.closest(it.sel);if(!el)continue;
+    if(!_gdOk_()||_gdSeen_(k))return;
+    _gdSet_(k);_gdMarks_();
+    if(!it.nav){e.stopPropagation();e.preventDefault();}
+    setTimeout(function(){_gdTip_(document.querySelector(it.sel),it);},it.nav?80:0);
+    return;
+  }
+},true);
+function _gdIntro_(){
+  if(document.querySelector('.gd-dim'))return;
+  var C=[
+    {ic:'ti-anchor',c:'var(--gold)',t:'<ruby>毎日<rt class="uf">まいにち</rt></ruby>',s:'<ruby>今日<rt class="uf">きょう</rt></ruby>やる<ruby>分<rt class="uf">ぶん</rt></ruby>。<ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>終<rt class="uf">お</rt></ruby>えるとデイリークリア'},
+    {ic:'ti-flag',c:'var(--gold)',t:'<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>',s:'テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を<ruby>練習<rt class="uf">れんしゅう</rt></ruby>して、<ruby>確認<rt class="uf">かくにん</rt></ruby>テストで<ruby>仕上<rt class="uf">しあ</rt></ruby>げる'},
+    {ic:'ti-notebook',c:'var(--accent)',t:'<ruby>間違<rt class="uf">まちが</rt></ruby>いノート',s:'<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>語<rt class="uf">ご</rt></ruby>だけが<ruby>集<rt class="uf">あつ</rt></ruby>まる。ここを<ruby>減<rt class="uf">へ</rt></ruby>らすと<ruby>力<rt class="uf">ちから</rt></ruby>になる'},
+    {ic:'ti-chart-line',c:'var(--sub)',t:'<ruby>記録<rt class="uf">きろく</rt></ruby>',s:'<ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップ・バッジ・<ruby>仲間<rt class="uf">なかま</rt></ruby>の<ruby>様子<rt class="uf">ようす</rt></ruby>が<ruby>見<rt class="uf">み</rt></ruby>られる'}
+  ];
+  var d=document.createElement('div');d.className='gd-dim';
+  d.innerHTML='<div class="gd-sheet" role="dialog" aria-modal="true"><span class="gd-hint"><i class="ti ti-bulb"></i>はじめてのヒント</span>'
+    +'<div class="gd-h">クロトレの<ruby>見方<rt class="uf">みかた</rt></ruby></div>'
+    +'<div class="gd-ss"><ruby>下<rt class="uf">した</rt></ruby>のメニューは4つ。<ruby>迷<rt class="uf">まよ</rt></ruby>ったら「<ruby>毎日<rt class="uf">まいにち</rt></ruby>」から。</div>'
+    +'<div class="gd-grid">'+C.map(function(x){return '<div class="gd-g"><div class="gd-gi" style="color:'+x.c+'"><i class="ti '+x.ic+'"></i></div><div class="gd-gt">'+x.t+'</div><div class="gd-gs">'+x.s+'</div></div>';}).join('')+'</div>'
+    +'<button type="button" class="gd-btn"><ruby>始<rt class="uf">はじ</rt></ruby>める</button></div>';
+  d.querySelector('.gd-btn').onclick=function(){_gdSet_('intro');d.remove();};
+  document.body.appendChild(d);
+}
+/* ホームを開くたびに呼ぶ。最初の案内は、ほかの窓（ニックネーム・お知らせ・連続記録のお祝い など）が閉じてから出す */
+var _gdWaitN=0;
+function _gdBoot_(){
+  if(!_gdOk_())return;
+  setTimeout(function(){try{_gdMarks_();}catch(e){}},0);
+  if(_gdSeen_('intro'))return;
+  _gdWaitN=0;setTimeout(_gdIntroWait_,1200);
+}
+function _gdIntroWait_(){
+  if(_gdSeen_('intro')||document.querySelector('.gd-dim'))return;
+  var home=$('scr-home');if(!home||!home.classList.contains('active'))return; // 学習に入ったらやめる＝次にホームを開いたとき出す
+  if(document.querySelector('.modal-mask.show,.bd-mask.show,.stk-cele-mask.show,.ntc-mask.show,.rb-mask.show,.sfmask.on,.sfmask.show')){
+    if(++_gdWaitN<40)setTimeout(_gdIntroWait_,1500);return;
+  }
+  _gdIntro_();
+}
+/* ===== デイリーの道（毎日タブの上に常設）2026-09-23 川上さん確定（案B）=====
+   毎日学習 → おさらい → 集中攻略 → クリア。押すと、その項目から直接始まる（順番を飛ばしてよい）。
+   青く光る「今やる所」は、順番どおりで最初に残っている所。毎日学習が2教科以上なら、残っているうち上の教材から始める（選ぶ画面ははさまない）。
+   数え方は renderDailyList_ から値を受け取る＝ここでは数え直さない。 */
+function _dyRoad_(main,osDone,ntDone,doneN,total){
+  var mt=main.length,md=0;main.forEach(function(m){if(m.cleared_today)md++;});
+  var S=[
+    {k:'main',ic:'ti-anchor',l:'<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>',n:'<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby><br><span class="num">'+md+'/'+mt+'</span>',done:(md>=mt)},
+    {k:'os',ic:'ti-clock-bolt',l:'おさらい',n:'<ruby>覚<rt class="uf">おぼ</rt></ruby>えた<ruby>語<rt class="uf">ご</rt></ruby>',done:!!osDone},
+    {k:'nt',ic:'ti-notebook',l:'<span class="nw"><ruby>集中<rt class="uf">しゅうちゅう</rt></ruby><ruby>攻略<rt class="uf">こうりゃく</rt></ruby></span>',n:'<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>語<rt class="uf">ご</rt></ruby>',done:!!ntDone}
+  ];
+  var all=S[0].done&&S[1].done&&S[2].done,now=-1;
+  for(var i=0;i<S.length;i++){if(!S[i].done){now=i;break;}}
+  var h='';
+  S.forEach(function(x,i){
+    var lk=(i>0)&&x.done&&S[i-1].done; // 左の線は両隣が終わっているときだけ緑（飛ばして先に終えたとき、線だけ先に緑にしない）
+    h+='<button type="button" class="dy-st'+(x.done?' done':'')+(lk?' lk':'')+(i===now?' now':'')+'" data-dy="'+x.k+'"><span class="dy-si"><i class="ti '+x.ic+'"></i><span class="dy-ck"><i class="ti ti-check"></i></span></span><span class="dy-l">'+x.l+'</span><span class="dy-n">'+x.n+'</span></button>';
+  });
+  h+='<div class="dy-st goal'+(all?' done lk':'')+'"><span class="dy-si"><i class="ti ti-trophy"></i></span><span class="dy-l">クリア</span><span class="dy-n"></span></div>';
+  var el=document.createElement('div');el.className='dprog dy-road';
+  el.innerHTML='<div class="dprog-t"><span><ruby>今日<rt class="uf">きょう</rt></ruby>のデイリー</span><b>'+doneN+'<span class="tot"> / '+total+' できた</span></b></div>'
+    +'<div class="dy-steps">'+h+'</div>'
+    +'<div class="dy-foot"><ruby>押<rt class="uf">お</rt></ruby>すと、そこから<ruby>始<rt class="uf">はじ</rt></ruby>められる</div>';
+  Array.prototype.forEach.call(el.querySelectorAll('.dy-st[data-dy]'),function(b){
+    b.onclick=function(){var k=b.getAttribute('data-dy');_dyGo_(k,main,S[k==='main'?0:(k==='os'?1:2)].done);};
+  });
+  return el;
+}
+function _dyGo_(k,main,done){
+  var nm={main:'<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>',os:'おさらい',nt:'<ruby>集中<rt class="uf">しゅうちゅう</rt></ruby><ruby>攻略<rt class="uf">こうりゃく</rt></ruby>'}[k];
+  if(done){toastH(nm+'は<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>が<ruby>終<rt class="uf">お</rt></ruby>わっています');return;}
+  if(k==='main'){for(var i=0;i<main.length;i++){if(!main[i].cleared_today){startPractice(main[i].part_id);return;}}return;}
+  if(k==='os'){startOsaraiDirect_();return;}
+  if(k==='nt'){if(_noteRem>0)openNoteToday_();else showHomeTab('review');return;}
+}
 /* ===== 単元別タブの ①練習／②確認テスト 切り替え（2026-08-20 川上さん確定）=====
    確認テストは別ページ(sv-quiz)をやめてこのタブの②に一本化した。
    どこから来ても openQuizPane_() で②に着地する（中断カード・完了画面・出題の失敗時）。 */
@@ -3404,7 +3589,7 @@ function skelUnit_(){return _SKEL_LOADING_+'<div class="skel skel-book"></div><d
 /* 通信エラー時：毎日タブにキャッシュ表示が無ければ再試行カードを出す（あればトーストだけ＝既存表示を壊さない）2026-07-24 */
 function renderHomeError_(){
   var host=$('daily-list');
-  var hasContent=host&&host.querySelector&&host.querySelector('.focus,.fin-card,.dprog,.qrow');
+  var hasContent=host&&host.querySelector&&host.querySelector('.focus,.fin-card,.dprog,.dy-road,.qrow');
   if(host&&!hasContent){
     host.innerHTML='<div class="empty-note" style="flex-direction:column;text-align:center;align-items:center;gap:11px;"><i class="ti ti-wifi-off"></i><div><ruby>今<rt class="uf">いま</rt></ruby>つながりません。<br><ruby>電波<rt class="uf">でんぱ</rt></ruby>の<ruby>良<rt class="uf">よ</rt></ruby>い<ruby>所<rt class="uf">ところ</rt></ruby>でもう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>試<rt class="uf">ため</rt></ruby>してください。</div><button class="btn" id="home-retry" type="button" style="max-width:220px;">もう<ruby>一回<rt class="uf">いっかい</rt></ruby></button></div>';
     var rb=$('home-retry');if(rb)rb.onclick=function(){host.innerHTML=skelDaily_();try{homeCacheClear_();}catch(e){}loadHomeData_(true);};
@@ -3483,18 +3668,16 @@ function renderDailyList_(main){
   _dailyUndone=undone.length;setDailyNavNum_();
   // デイリー完全完了（毎日学習＋おさらい枠）→ やったこと。祝いカードは daily-fin(renderDaily)が出すので二重にしない 2026-07-26
   if(dailyComplete){
+    host.appendChild(_dyRoad_(main,osDone,ntDone,doneN,total)); // 全部終わった日も道を出す（全部緑＋トロフィー）2026-09-23
     var qh0=document.createElement('div');qh0.className='q-head done';qh0.innerHTML='<i class="ti ti-circle-check"></i> <span><ruby>今日<rt class="uf">きょう</rt></ruby>やったこと ・ もっとやりたい<ruby>人<rt class="uf">ひと</rt></ruby>は<ruby>先<rt class="uf">さき</rt></ruby>へ</span>';host.appendChild(qh0);
     main.forEach(function(m){host.appendChild(_dailyDoneCard_(m));});
     _appendCompletedMains_(host);
     return;
   }
   // 全体像：今日のデイリーの進み（毎日学習の各教材＋おさらい枠・終わったら緑）2026-07-26
-  var pg=document.createElement('div');pg.className='dprog';
-  var segs='';main.forEach(function(m){segs+='<i class="'+(m.cleared_today?'on':'')+'"></i>';});
-  segs+='<i class="'+(osDone?'on':'')+'" title="おさらい"></i>'; // おさらい枠のセグメント
-  segs+='<i class="'+(ntDone?'on':'')+'" title="間違いノート"></i>'; // 間違いノート枠のセグメント 2026-08-26
-  pg.innerHTML='<div class="dprog-t"><span><ruby>今日<rt class="uf">きょう</rt></ruby>のデイリー</span><b>'+doneN+'<span class="tot"> / '+total+' できた</span></b></div><div class="dprog-dots">'+segs+'</div>';
-  host.appendChild(pg);
+  /* 【2026-09-23】進みのバー（.dprog-dots）をデイリーの道に置きかえた（川上さん確定・案B）。
+     数え方は置きかえる前と同じ＝毎日学習の各教材＋おさらい枠(1)＋間違いノート枠(1)。見出しの「◯ / ◯ できた」もそのまま。 */
+  host.appendChild(_dyRoad_(main,osDone,ntDone,doneN,total));
   if(!mainAllDone){
     // 未完了の毎日学習が先
     var fi=0;for(var i=0;i<main.length;i++){if(!main[i].cleared_today){fi=i;break;}}
@@ -3682,6 +3865,7 @@ function openHome(){
   // 初回ログイン：ニックネーム未設定なら設定モーダルを自動表示（スキップ可・1ログイン1回だけ・川上さん確定 2026-07-04 機能仕様書_テスト配信 §5-2）
   if((!nickname||nickname==='きみ'||localStorage.getItem('kwt_nick_auto')==='1')&&!window._nickPrompted){window._nickPrompted=true;setTimeout(openNickModal,600);} // 自動付与された子にも初回1回だけ案内（§5-2踏襲・2026-07-05）
   $('btn-nick-edit').onclick=openNickModal;
+  try{_gdBoot_();}catch(eGd){} /* 案内（チュートリアル）の印と最初の案内 2026-09-23 */
   backToTiles();
   $('btn-back').onclick=goBack_; // 「もどる」＝1つ前の画面へ（履歴が無ければホーム）2026-07-24
   var _hl=$('hdr-logo');if(_hl){_hl.onclick=function(){try{showHomeTab('daily');}catch(e){}};_hl.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();try{showHomeTab('daily');}catch(e2){}}};} // 左上ロゴ→毎日学習の画面へ（川上さん 2026-07-24）
@@ -3697,7 +3881,8 @@ function openHome(){
   _bind('tile-overall',function(){showSub('overall');});
   _bind('tile-trio',function(){openTrioReview_();}); // 昨日の三連星をいつでも見返す 2026-07-28
   _bind('tile-notice',function(){showSub('notice');});
-  _bind('tile-sheet',function(){showSub('sheet');});   // 紙の答え合わせ（記録タブだけ・毎日タブには出さない）2026-09-01
+  _bind('tile-sheet',function(){showSub('sheet');});
+  _bind('set-guide',function(){_gdIntro_();}); // 記録タブの設定＝最初の案内をもう一度見る 2026-09-23   // 紙の答え合わせ（記録タブだけ・毎日タブには出さない）2026-09-01
   _bind('set-nick',openNickModal);
   _bind('set-icon',openIconModal);
   _bind('hdr-ava',openIconModal);
