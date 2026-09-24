@@ -4734,7 +4734,13 @@ function qPresentJ2E(w,isEng){ var _pl=isEng?'':_promptLabel_(w); $('j2e-label')
    正解を選び直して正解数を増やせた（正答率100%超えも可能だった）＝合格判定のズル。2026-08-20 川上さん報告で修正。
    ミス(pushMiss)は最初の採点で入り、以後この関数を素通りするので間違いノート判定は従来どおり残る。 */
 function _ansKey_(s,which){return s.idx+'_'+which;}
-function _ansWhichNow_(s){var w=(s&&s.words)?s.words[s.idx]:null;if(_isSentQ_(w))return 'e2j';var isFig=(w&&(w.qtype==='table_fill'||w.qtype==='image_fill'));return (!isFig&&s&&s.step===2)?'e2j':'j2e';}
+/* 【2026-09-24 表・図の採点の向き】表（table_fill）・図（image_fill）は 1行1問。採点の向きは教材の向きに合わせる。
+   英→日（e2j）の教材では e2j で数える。GAS は e2j の教材の正答率を meaning_score÷行数 で出すので、
+   j2e で数えると表の正解が正答率に入らず、全問正解でも 100% にならなかった（英検5級 文法編＝表7問＋文15問で最大68%）。
+   表だけのパート（tfOnly）は GAS が termOnly 扱い（reverse_score で数える）なので j2e のまま。理社・両方向の教材も j2e のまま。
+   正＝要件定義書_英検教材 §19d・changelog 2026-09-24t。呼ぶ場所＝_ansWhichNow_ と 表・図の buildChoices 3か所。 */
+function _figWhich_(s,w){ if(s&&s.tfOnly)return 'j2e'; return ((((w&&w.direction)||(s&&s.dir)||'')==='e2j')?'e2j':'j2e'); }
+function _ansWhichNow_(s){var w=(s&&s.words)?s.words[s.idx]:null;if(_isSentQ_(w))return 'e2j';var isFig=(w&&(w.qtype==='table_fill'||w.qtype==='image_fill'));if(isFig)return _figWhich_(s,w);return (s&&s.step===2)?'e2j':'j2e';}
 /* ===== ミス問モード（その場で全問正解するまで繰り返す）2026-08-26 =====
    正＝機能仕様書「おさらい改善と弱点集中」§1・§5-3。要件定義書 0.2版。
    ・1周目に間違えた「問題」だけをランダム順で出し直し、全部正解するまで続ける
@@ -5518,7 +5524,7 @@ function renderQz_(s){if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestor
     if(_tfRenderable_(w,s.assets)){renderTF(s);return;}
     // 表データが取れないときだけ文字版にフォールバック（描画不能で無表示にしない）
     var _qtf=tfParse(w);$('j2e-label').innerHTML='<ruby>正<rt class="uf">ただ</rt></ruby>しい<ruby>形<rt class="uf">かたち</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';$('j2e-ja').innerHTML=renderQ(w,furiQ);renderFuriBar(w);
-    buildChoices('j2e-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},{fig:true,fixedChoices:(_qtf.choices||[]),timeLimit:(s.mode==='note'?0:qSecFor('table_fill')),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',promptText:w.japanese,next:s.onNext,
+    buildChoices('j2e-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,_figWhich_(s,w));},{fig:true,fixedChoices:(_qtf.choices||[]),timeLimit:(s.mode==='note'?0:qSecFor('table_fill')),kaisetsu:w.kaisetsu,reading:w.reading_hint||'',promptText:w.japanese,next:s.onNext,
       afterShow:function(){showListen_(w,_wIsEng(s,w));}});   /* 答え合わせのあとだけ聞ける 2026-09-11 */
     /* 【答えバレ・2026-09-11】表が描けないときの文字版。ここも english が答えそのもの。
        renderTF を直したときに見落としていた（同じ設問の別の道）。出題中は出さず、答え合わせのあとに出す。 */
@@ -5665,7 +5671,7 @@ function renderTF(ss){
   $('tf-table').innerHTML=h;
   $('tf-ask').style.display='';$('tf-ask').innerHTML='<b style="color:var(--accent)">'+(TF_CIRC[myN]||myN)+'</b> に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>形<rt class="uf">かたち</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
   var _tl=qSecFor('table_fill'); // 表は読む時間が要るので教科によらず理社と同じ秒数。全画面共通 2026-08-20／fig:true でさらに＋5秒 2026-09-02
-  buildChoices('tf-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},
+  buildChoices('tf-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,_figWhich_(s,w));},
     {fig:true,fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,next:s.onNext,
      afterShow:function(){showListen_(w,_wIsEng(s,w));}});   /* 答え合わせのあとだけ聞ける 2026-09-11 */
   /* 【答えバレ・2026-09-11 川上さん報告】表の穴うめは english が答えそのもの（is / are）。
@@ -5720,7 +5726,7 @@ function renderIMG(ss){
   $('tf-table').innerHTML=h;
   $('tf-ask').innerHTML='';$('tf-ask').style.display='none'; /* 設問は図の上に表示済み 2026-07-16 */
   var _tl=qSecFor('table_fill'); // 図も読む時間が要るので理社と同じ秒数。全画面共通 2026-08-20／fig:true でさらに＋5秒 2026-09-02
-  buildChoices('tf-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'j2e');},
+  buildChoices('tf-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,_figWhich_(s,w));},
     {fig:true,fixedChoices:(qd.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,reading:w.reading_hint,promptText:w.japanese,next:s.onNext,
      afterShow:function(){showListen_(w,_wIsEng(s,w));}});   /* 答え合わせのあとだけ聞ける 2026-09-11 */
   $('step-tf').style.display='block';hideListen_();   /* 表と同じ理由＝english が答え */
