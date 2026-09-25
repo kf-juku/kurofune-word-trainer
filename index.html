@@ -7920,6 +7920,14 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     /* 【2026-09-02】ここから下はぜんぶ完了画面への描画。生徒が先に進んでいたら書かない。
        上の complete_extras はここより前に投げてあるので、先に進まれても裏取りは走る。 */
     if(!_doneAlive_(_mySeq)){_afterSaveSync_(_mySeq);return;}
+    /* 【2026-09-25】送り直しの返事（サーバーは記録ずみ＝duplicate）には合否の印が入っていない。
+       ここで下の分岐に進むと passed が無いので「まだ終わっていない・80%」の文に落ちていた（実機で発生）。
+       記録はできているので、完了の見出しのまま（先に描いていないときは端末で分かる見出しを出す）にして終わる。 */
+    if(d.data&&d.data.duplicate){
+      if(!_donePre){setDoneBadge_('ok');$('done-result').innerHTML=_isUnit_?doneUnitPartTtl_(''):doneDailyTtl_(dailyLeftAfter_(s.listId));
+        $('done-guide-area').innerHTML=nextStepGuide_(false,s.listId);$('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);loadStar();}
+      _afterSaveSync_(_mySeq);return;
+    }
     var dl=$('done-lap');if(dl){if(d.data.lap>=2){dl.style.display='';dl.querySelector('.hpill').innerHTML=d.data.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby>';}else{dl.style.display='none';}}
     if(s.fromReview){
       /* テスト配信おさらい（卒業方式）の完了画面。機能仕様書_テスト配信 0章§5。2026-07-08 スライス3 */
