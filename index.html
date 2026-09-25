@@ -7793,6 +7793,8 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   if(!_donePre)$('star-area').innerHTML=_savingHtml_()+tipHtml_(); // 先に描けなかったときだけ「記録を保存中…」を出す
   var _svT0=_perfNow_(); // 保存の往復を測る 2026-08-22
   var _scBody={action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,completed_all:true,retry_rounds:(s.retryRounds||1),/* 全問正解して終わった＝1周終えた。点は1周目の値 2026-08-26 */miss_word_ids:s.miss,word_ids:(s.words||[]).map(function(w){return w.id;}),mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:_elapsedMs_(s),rush_wrong_count:Object.keys(s._rushWords||{}).length};
+  /* 聞き取りの選び直しと「分かった／分からない語」（§17q 段2）＝1回目に間違えた聞き取りの問題だけ。無ければ送らない */
+  try{if(s._lxNotes){var _ln=Object.keys(s._lxNotes).map(function(k){var n=s._lxNotes[k]||{};return {word_id:k,retry_ok:n.retry_ok?1:0,self:n.self||''};});if(_ln.length)_scBody.listen_notes=_ln;}}catch(_eLn){}
   var _scSq=_sqAdd_(_scBody); /* 送る前に端末へ積む＝ここで閉じられても記録は消えない 2026-09-02 */
   call(_scBody).then(function(d){
     _perfPush_('save',_perfNow_()-_svT0);
