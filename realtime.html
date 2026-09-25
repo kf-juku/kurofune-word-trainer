@@ -249,6 +249,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
   .pq-lead2{font-size:11px;font-weight:600;color:#555;}
   .up-cho{margin-top:5px;}
   .up-lisans{margin-top:7px;font-size:12px;color:#333;}
+  .up-how{margin:6px 0 4px;padding:2px 9px;font-size:11.5px;font-weight:700;color:#1b4f9c;}   /* 解き方の1行（2026-09-25・4-41 ⑥）*/
   .up-lisbox{display:inline-block;width:46px;border-bottom:1.4px solid #333;height:15px;vertical-align:-3px;}
   /* 英検の聞き取り 第1部型・第3部型（2026-09-17）。選択肢は音だけ＝紙は番号の枠だけ。第3部型は絵を出す */
   .pq-lxn{display:inline-block;border:1.2px solid #333;border-radius:4px;padding:0 9px;margin:4px 10px 0 0;font-size:12px;font-weight:800;color:#000;}
@@ -852,6 +853,9 @@ function _pqLisQHtml_(it,cls){
   return '<div class="'+cls+'-cho">'+c.list.map(function(t,i){
       return '<span class="pq-cho"><b>'+(PQ_MARKS_[i]||(i+1))+'</b>'+esc(String(t))+'</span>'; }).join('')+'</div>';
 }
+/* 【2026-09-25・§17q 5-9／4-41 ⑥⑦】紙の見出しに刷る解き方の1行（生徒画面の解き方メモと同じ文） */
+var _PQ_HOW_={listen_resp:'解き方（英文への返事）：最初の英文をよく聞く → 全部聞く → 合う返事を選ぶ',
+              listen_pic:'解き方（絵に合う英文）：絵を見る → ちがうものを消す → 残りを選ぶ'};
 /* ===== 英検の聞き取り 第1部型（listen_resp）・第3部型（listen_pic）2026-09-17 =====
    承認モック＝20260917_モック_英検5級_聞き取り第1部型と第3部型.html（紙のタブ）。
    ・問題の側＝番号の枠（1・2・3）だけ。第3部型は絵も出す。**英文は出さない**
@@ -1013,7 +1017,7 @@ function unifiedStudentHtml_(st, opts){
     if(!_tblItems[aid]){ _tblItems[aid]=[]; _tblFirst[aid]=it; }
     _tblItems[aid].push(it);
   });
-  var curKey='', n=0, _tblAdd=0;   /* _tblAdd＝表をぜんぶ書かせるぶんの上乗せ（2026-09-13k）*/
+  var curKey='', n=0, _tblAdd=0, _howDone={};   /* _tblAdd＝表をぜんぶ書かせるぶんの上乗せ（2026-09-13k）／_howDone＝解き方の1行を出した形式（2026-09-25）*/
   items.forEach(function(it){
     var kind=_pqKind_(it);
     var pk=(kind==='table')?_pqPack_(it):null;
@@ -1021,7 +1025,7 @@ function unifiedStudentHtml_(st, opts){
     if(kind==='table' && _tblFirst[aid]!==it) return;              /* 2問目以降は表のところでまとめて出す */
     var key=(it.date||'')+'|'+(it.material_title||'');
     if(key!==curKey){
-      curKey=key;
+      curKey=key; _howDone={};
       var md=String(it.date||'').replace(/^\d{4}-0?/,'').replace(/-0?/,'/');   // 2026-07-24 → 7/24
       var lbl=(md?('<span class="up-gdate">'+esc(md)+'</span>'):'')+'<span class="up-gmat">'+esc(mtLabelMt(it)||'(教材)')+'</span>';
       h+='<div class="up-ghead">'+lbl+'</div>';
@@ -1079,9 +1083,12 @@ function unifiedStudentHtml_(st, opts){
       var gl=_pqGlossText_(it);
       if(gl) extra='<div class="up-kai">語の意味：'+esc(gl)+'</div>';
     }else if(kind==='lisx'){
-      /* 【2026-09-17】英検 第1部型・第3部型。先生が会話と3つの英文を読む（答えの欄が読み上げ原稿）。 */
+      /* 【2026-09-25・4-41 ⑥】まとまり（日付＋教材）の中で、その形式の最初の問題の前に解き方を1行だけ（1問ごとには刷らない） */
+      var _hq=String(it.qtype||'');
+      if(!_howDone[_hq]&&_PQ_HOW_[_hq]){ _howDone[_hq]=1; h+='<div class="up-how">'+esc(_PQ_HOW_[_hq])+'</div>'; }
+      /* 【2026-09-17】英検 第1部型・第3部型。先生が英文と3つの返事を読む（答えの欄が読み上げ原稿）。2026-09-23 第1部型を1発話にしたので見出しを「英文への返事」に */
       var _isPic=(String(it.qtype||'')==='listen_pic');
-      qH='<div class="up-qtxt">'+n+'. 🔊 '+(_isPic?'絵に合う英文':'会話の応答')+' <span class="pq-lead2">（先生が読みます。'+(_isPic?'絵に合うもの':'最後の応答として合うもの')+'を番号で答える）</span></div>'
+      qH='<div class="up-qtxt">'+n+'. 🔊 '+(_isPic?'絵に合う英文':'英文への返事')+' <span class="pq-lead2">（先生が読みます。'+(_isPic?'絵に合うもの':'返事として合うもの')+'を番号で答える）</span></div>'
         +_pqLxQHtml_(it,'up')+'<div class="up-lisans">答え <span class="up-lisbox"></span></div>';
     }else if(kind==='dial'){
       /* 【2026-09-18】英検 大問2型。会話2行＋選択肢4つ。ここは番号で答える（右に答えがある紙なので・確定47）。 */
