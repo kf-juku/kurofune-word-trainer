@@ -1485,6 +1485,34 @@
 .lx-xl small{display:block;color:var(--sub);font-size:13px;}
 .lx-xl.ok b{color:var(--ok);}
 .lx-okm{color:var(--ok);font-weight:800;}
+/* 聞き取りの答え合わせ（§17q・4-43/4-44）2026-09-25 */
+.lx-ic{width:1.15em;height:1.15em;flex-shrink:0;vertical-align:-.2em;}
+.lx-tip{display:none;margin-top:12px;border:1px solid var(--accent);background:var(--accent-soft);border-radius:14px;padding:10px 12px;font-size:13.5px;line-height:1.6;}
+.lx-tip.show{display:block;}.lx-tip b{color:var(--accent);}
+.lx-again.pulse{box-shadow:0 0 0 3px var(--accent);animation:lxpl 1.4s ease-in-out infinite;}
+@keyframes lxpl{50%{box-shadow:0 0 0 6px transparent;}}
+.lx-opt .lx-ch.tried{opacity:.35!important;border-style:dashed;text-decoration:line-through;}
+.lx-key{font-weight:500;margin-left:8px;font-size:12px;}
+.lx-xl{padding:4px 6px;border-radius:10px;}
+.lx-xl.now{background:var(--accent-soft);}
+.lx-xl.ok{box-shadow:inset 0 0 0 1px var(--ok);}
+.lx-xb{flex:1;min-width:0;}
+.lx-tg{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:800;color:#fff;background:#4a7fd6;flex-shrink:0;margin-top:2px;}
+.lx-no{font-weight:800;font-size:13px;color:var(--sub);margin-right:4px;}
+.lx-wgl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:flex-end;margin:2px 0;}
+.lx-wgl .wg-ws{column-gap:0;}
+.lx-wgl .ww{align-items:flex-start;border-bottom:2px solid var(--line);padding:0 1px 2px;}
+.lx-wgl .ww-en{font-size:15.5px;min-height:0;}
+.lx-wgl .ww.lxk{background:#fff3c4;border-radius:6px;border-bottom-color:var(--gold);padding:1px 4px 2px;}
+.lx-wgl .ww.lxk .ww-ja{color:inherit;}
+mark.lx-mk{background:#fff3c4;color:inherit;border-radius:3px;padding:0 2px;}
+@media (prefers-color-scheme:dark){.lx-wgl .ww.lxk,mark.lx-mk{background:#4a3f14;}}
+.lx-hide .lx-wgl .ww-en{filter:blur(6px);}
+.lx-self{margin-top:10px;}
+.lx-selfb{display:flex;flex-direction:column;gap:8px;}
+.lx-selfb button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;text-align:left;}
+.lx-selfb button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);}
+.lx-again.lx-ghost{opacity:.85;}
   /* 並べ替えは日本語訳が問題文そのもの。穴埋めのように英文が上に出ないので、ここを主役の大きさにする
      （2026-09-09 川上さん指摘「私は生徒です の方を目立つように」）。.sq-ja のあとに書いて上書きする */
   .ro-ja{color:var(--text);font-size:21px;font-weight:700;line-height:1.5;margin:10px 0 16px;}
@@ -5572,7 +5600,7 @@ function _rubyTag(t,y){return '<ruby>'+esc(t)+'<rt>'+esc(y)+'</rt></ruby>';}
    ★語を足したら 20260909_日本語のふりがな_検査.py を回す（教材の全文字列で取りこぼしを見る）*/
 var JA_RUBY_={
   '事務所':'じむしょ','大丈夫':'だいじょうぶ','看護師':'かんごし','芸術家':'げいじゅつか','誕生日':'たんじょうび','郵便局':'ゆうびんきょく','2匹':'にひき',
-  '3匹':'さんびき','何歳':'なんさい','俳優':'はいゆう','切符':'きっぷ','動詞':'どうし','女性':'じょせい','定規':'じょうぎ','寝室':'しんしつ','小舟':'こぶね',
+  '3匹':'さんびき','何歳':'なんさい','俳優':'はいゆう','切符':'きっぷ','動詞':'どうし','女性':'じょせい','定規':'じょうぎ','寝室':'しんしつ','紅茶':'こうちゃ','小舟':'こぶね',
   '帰宅':'きたく','帽子':'ぼうし','年齢':'ねんれい','彼女':'かのじょ','意識':'いしき','掃除':'そうじ','授業':'じゅぎょう','映画':'えいが','時刻':'じこく',
   '歴史':'れきし','毎晩':'まいばん','浜辺':'はまべ','牛乳':'ぎゅうにゅう','男性':'だんせい','留守':'るす','祖母':'そぼ','祖父':'そふ','簡単':'かんたん',
   '美術':'びじゅつ','複数':'ふくすう','訪ね':'たず','訪れ':'おとず','質問':'しつもん','趣味':'しゅみ','鉛筆':'えんぴつ','高価':'こうか','個':'こ',
@@ -5740,6 +5768,14 @@ function renderIMG(ss){
    ・「音を聞く」ボタン（btn-listen）は出さない。文をそのまま読み上げると穴埋め・並び替えの答えが分かる */
 var _sentAu=null;
 function _sentSay_(t){try{if(!window.speechSynthesis||!t)return;var u=new SpeechSynthesisUtterance(String(t));u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
+/* mp3 を鳴らす共通の口（2026-09-25 §17q 5-6）。mp3 が読めないと onerror と play() の失敗が両方来るので、
+   読み上げへの切り替え（onFail）は1回だけ呼ぶ。以前は4か所（_sentPlay_・_phSnd_・speak・_lxOne_）が別々に書いていて2回呼んでいた */
+function _auPlay_(url,onFail){
+  var fell=false,fail=function(){if(fell)return;fell=true;try{if(onFail)onFail();}catch(e){}};
+  var au=new Audio(url);au.onerror=fail;
+  var p=au.play();if(p&&p['catch'])p['catch'](fail);
+  return au;
+}
 function _sentStop_(){try{if(_sentAu){_sentAu.pause();_sentAu=null;}}catch(e){}try{_lxStop_();}catch(e){}try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
 /* 読み確認のタイマー（音の足し算）も、次の問題に進むときに必ず止める 2026-09-21 */
 function _phStopIfAny_(){try{_phStopAll_();}catch(e){}}
@@ -5776,9 +5812,7 @@ function _sentPlay_(pl,sex){
   var url=_sentPick_(pl,sex);
   if(!url){_sentSay_(pl&&pl.en);return;}
   try{
-    var au=new Audio(url);_sentAu=au;
-    au.onerror=function(){_sentAu=null;_sentSay_(pl.en);};
-    var p=au.play();if(p&&p['catch'])p['catch'](function(){_sentAu=null;_sentSay_(pl.en);});
+    _sentAu=_auPlay_(url,function(){_sentAu=null;_sentSay_(pl.en);});
   }catch(e){_sentSay_(pl&&pl.en);}
 }
 /* ===== 答え合わせで文を流す（要件定義書_英検教材 確定13「文は答え合わせで聞ける」）2026-09-11 =====
@@ -5920,9 +5954,7 @@ function _phSplit_(pl){ return (pl&&pl.split&&pl.split.length)?pl.split:[]; }
 function _phSnd_(pl,i){
   _sentStop_();
   var a=(pl&&pl.split_audio)||[],u=String(a[i]||'');
-  if(u){ try{ var au=new Audio(u); _sentAu=au;
-      au.onerror=function(){_sentAu=null;_sayJa_(_phSplit_(pl)[i]&&_phSplit_(pl)[i][1]);};
-      var p=au.play(); if(p&&p['catch'])p['catch'](function(){_sentAu=null;_sayJa_(_phSplit_(pl)[i]&&_phSplit_(pl)[i][1]);});
+  if(u){ try{ _sentAu=_auPlay_(u,function(){_sentAu=null;_sayJa_(_phSplit_(pl)[i]&&_phSplit_(pl)[i][1]);});
       return; }catch(e){}
   }
   var sp=_phSplit_(pl)[i]; _sayJa_(sp&&sp[1]);
@@ -6209,9 +6241,8 @@ function _lxOne_(it,tok){return new Promise(function(res){
   var fall=function(){if(done)return;_lxAu=null;if(tok!==_lxRun){fin();return;}_lxSay_(it&&it.en).then(fin);};
   if(!url){fall();return;}
   try{
-    var au=new Audio(url);_lxAu=au;
-    au.onended=fin;au.onerror=fall;
-    var p=au.play();if(p&&p['catch'])p['catch'](fall);
+    var au=_auPlay_(url,fall);_lxAu=au;
+    au.onended=fin;
     setTimeout(fin,15000);
   }catch(e){fall();}
 });}
@@ -6258,18 +6289,22 @@ function renderLX_(s,w,q,pl){
   body.innerHTML=h;
   box.classList.remove('g2');
   box.innerHTML='<div class="lx-opts'+(isResp?' kw-opts':'')+'" id="lx-lq">'+order.map(function(ci,j){
-      return '<div class="lx-opt" id="lx-o'+j+'"><button type="button" class="lx-play" data-j="'+j+'" disabled aria-label="'+(j+1)+'番を聞く"><i class="ti ti-player-play"></i></button>'
+      return '<div class="lx-opt" id="lx-o'+j+'"><button type="button" class="lx-play" data-j="'+j+'" disabled aria-label="'+(j+1)+'番を聞く">'+_LX_IC_.play+'</button>'
         +'<button type="button" class="choice lx-ch" data-j="'+j+'" data-val="'+(j+1)+'" disabled>'+(j+1)+'</button></div>';
     }).join('')+'</div>'
-    +'<button type="button" class="ex-spk lx-again" id="lx-again"><i class="ti ti-volume"></i><span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>'
+    +'<button type="button" class="ex-spk lx-again" id="lx-again">'+_LX_IC_.vol+'<span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>'
+    +'<div class="lx-tip" id="lx-tip"></div>'
     +'<div class="lx-st" id="lx-st"></div>';
   var answered=false,started=false,_t0=0,_tl=(s.mode==='note')?0:qSecFor('table_fill');
+  /* 直しの手順（§17q・4-43）：練習で1回目に間違えたら、英文を見せずにもう一度聞いて選び直す。
+     点数と記録は1回目の答え。確認テスト・間違いノートでは選び直さない（4-41 ④⑤） */
+  var canRetry=!s.quizMode&&s.mode!=='note',retried=false,first=null,tip=$('lx-tip');
   var st=$('lx-st');
   var alive=function(){return s.words[s.idx]===w && $('scr-practice') && $('scr-practice').classList.contains('active');};
-  var clear=function(){[].forEach.call(document.querySelectorAll('.lx-bub.now,.lx-opt.now,#lx-lq.now'),function(x){x.classList.remove('now');});};
+  var clear=function(){[].forEach.call(document.querySelectorAll('.lx-bub.now,.lx-opt.now,#lx-lq.now,.lx-xl.now'),function(x){x.classList.remove('now');});};
   var lit=function(id){return function(){if(!alive()){_lxStop_();return;}clear();var e=$(id);if(e)e.classList.add('now');};};
   var setBtns=function(on){[].forEach.call(box.querySelectorAll('.lx-play'),function(b){b.disabled=!on;});
-    [].forEach.call(box.querySelectorAll('.lx-ch'),function(b){b.disabled=(!on||answered);});};
+    [].forEach.call(box.querySelectorAll('.lx-ch'),function(b){b.disabled=(!on||answered||b.classList.contains('tried'));});};
   function playAll(){
     var steps=[];
     lines.forEach(function(l,i){steps.push({it:l,gap:(i===lines.length-1?1400:350),on:lit('lx-l'+i)});});   /* 英文と選択肢のあいだは 1400ms（確定50） */
@@ -6281,33 +6316,36 @@ function renderLX_(s,w,q,pl){
       if(answered){if(st)st.textContent='';return;}
       if(st)st.textContent='番号を選んでください';
       if(!started){started=true;_t0=Date.now();}
-      if(_tl>0)startQTimer(_qtSecFinal_(_tl,[],true),function(){finish(false,null);});
+      if(_tl>0&&!retried)startQTimer(_qtSecFinal_(_tl,[],true),function(){finish(false,null);});
     });
   }
   function finish(ok,picked){
-    if(answered)return;answered=true;stopQTimer();_lxStop_();clear();
+    if(answered)return;stopQTimer();_lxStop_();clear();
+    var ms=(started?(Date.now()-_t0):0);
+    if(first===null){
+      first=!!ok;ansCount++;
+      _quizAns(s,w,ok,ms,'e2j');   /* 点数と記録は1回目の答えで決まる */
+      if(!ok&&canRetry&&picked){
+        /* 手順1：もう一度聞いて選び直す。英文はまだ出さない。最初に選んだ番号は押せない。聞き終わるまで番号は押せない */
+        retried=true;combo=0;sndWrong();
+        picked.classList.add('tried');setBtns(false);
+        if(st)st.textContent='';
+        if(tip){tip.innerHTML='<b>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>選<rt class="uf">えら</rt></ruby>び<ruby>直<rt class="uf">なお</rt></ruby>そう</b>';tip.classList.add('show');}
+        var ag=$('lx-again');if(ag)ag.classList.add('pulse');
+        return;
+      }
+      if(ok){combo++;if(combo>maxCombo)maxCombo=combo;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
+      else{combo=0;sndWrong();}
+    }else if(ok){sndCorrect();}
+    answered=true;
     [].forEach.call(box.querySelectorAll('.lx-ch'),function(b){b.disabled=true;if(order[+b.getAttribute('data-j')]===0)b.classList.add('correct');});
     if(picked&&!ok)picked.classList.add('wrong');
     [].forEach.call(box.querySelectorAll('.lx-play'),function(b){b.disabled=false;});
-    if(st)st.textContent='';
-    if(ok){combo++;if(combo>maxCombo)maxCombo=combo;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
-    else{combo=0;sndWrong();}
-    ansCount++;
-    _quizAns(s,w,ok,(started?(Date.now()-_t0):0),'e2j');
-    afterAnswer(ok,(chs[0].en||w.english||''),w.kaisetsu,'',s.onNext);
-    /* 答え合わせ＝会話と3つの選択肢を英文と訳で出す。▶ で聞き直せる */
-    var xa=$('ex-audio');
-    if(xa){
-      var xh='';
-      if(isResp)xh+='<div class="lx-xh"><ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>英文<rt class="uf">えいぶん</rt></ruby></div>'+lines.map(function(l){
-          return '<div class="lx-xl"><b>'+esc(String(l.sp||''))+'：</b>'+esc(String(l.en||''))+'<small>'+_jaRubyIf_(String(l.ja||''))+'</small></div>';}).join('');
-      xh+='<div class="lx-xh"><ruby>選択肢<rt class="uf">せんたくし</rt></ruby></div>'+order.map(function(ci,j){
-          var c=chs[ci];
-          return '<div class="lx-xl'+(ci===0?' ok':'')+'"><button type="button" class="lx-play sm" data-x="'+j+'" aria-label="'+(j+1)+'番を聞く"><i class="ti ti-player-play"></i></button>'
-            +'<span><b>'+(j+1)+'</b>　'+esc(String(c.en||''))+(ci===0?' <span class="lx-okm">○</span>':'')+'<small>'+_jaRubyIf_(String(c.ja||''))+'</small></span></div>';}).join('');
-      xa.innerHTML=xh;xa.style.display='';
-      [].forEach.call(xa.querySelectorAll('.lx-play'),function(b){b.onclick=function(){_lxRunSeq_([{it:chs[order[+b.getAttribute('data-x')]]}]);};});
-    }
+    var ag2=$('lx-again');if(ag2){ag2.classList.remove('pulse');ag2.style.display='none';}
+    if(tip)tip.classList.remove('show');
+    if(st)st.textContent=retried?(ok?'選び直して正解！':''):'';
+    afterAnswer(first,(chs[0].en||w.english||''),w.kaisetsu,'',s.onNext);
+    _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok,{lit:lit,clear:clear,alive:alive,tip:tip});
   }
   $('lx-again').onclick=function(){playAll();};
   [].forEach.call(box.querySelectorAll('.lx-play'),function(b){
@@ -6317,6 +6355,77 @@ function renderLX_(s,w,q,pl){
     b.onclick=function(){if(b.disabled)return;var j=+b.getAttribute('data-j');finish(order[j]===0,b);};
   });
   playAll();
+}
+/* ===== 聞き取りの答え合わせ（§17q・4-43 直しの手順／4-44 英語の順の意味）2026-09-25 =====
+   正＝要件定義書_英検教材 §17q、承認モック モック\20260925_モック_英検5級_解き方と直し方.html。
+   ・素材に c（かたまり [英語,直訳,1?]）と line_kja／choice_kja（和訳の決め手）があれば、かたまりごとに意味を出す。無ければ今までどおり英文と訳
+   ・「英文を見ながら聞く」＝読んでいる行に色。選び直した問題は、この音を最後まで流してから「分かった／分からない語」を選ぶまで「次へ」を出さない
+   ・「英文を隠してもう一度聞く」＝英文だけぼかす（意味は見せたまま）
+   ・見た目は文法カードの英語の下に直訳（wgHtml・.ww）を使い回す（4-44 ⑤）
+   ・アイコンは画面に直接描く（4-44 ⑨。アイコン文字は端末によって□になる） */
+var _LX_IC_={
+  play:'<svg class="lx-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16l13 -8z"/></svg>',
+  vol:'<svg class="lx-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 8a5 5 0 0 1 0 8"/><path d="M17.7 5a9 9 0 0 1 0 14"/><path d="M6 15h-2a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h2l3.5 -4.5a.8 .8 0 0 1 1.5 .5v14a.8 .8 0 0 1 -1.5 .5l-3.5 -4.5"/></svg>',
+  hide:'<svg class="lx-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.4 5.4a9.6 9.6 0 0 1 2.6 -.4c4 0 7.3 2.3 9 7c-.5 1.3 -1.2 2.5 -2 3.4"/><path d="M6.6 6.6c-1.6 1.1 -2.9 2.9 -3.6 5.4c1.7 4.7 5 7 9 7c1.6 0 3.1 -.4 4.4 -1.1"/></svg>'
+};
+function _lxChunks_(c){
+  if(!c||!c.length)return '';
+  var G=c.map(function(x,i){return {idx:[i],r:''};});
+  return '<div class="lx-wgl">'+wgHtml(G,function(i){var x=c[i]||[];
+    return '<span class="ww'+(x[2]?' lxk':'')+'"><span class="ww-en">'+esc(String(x[0]||''))+'</span><span class="ww-ja">'+_jaRubyIf_(String(x[1]||''))+'</span></span>';},true)+'</div>';
+}
+function _lxJaMark_(ja,k){
+  ja=String(ja||'');k=String(k||'');var i=k?ja.indexOf(k):-1;
+  if(i<0)return _jaRubyIf_(ja);
+  return _jaRubyIf_(ja.slice(0,i))+'<mark class="lx-mk">'+_jaRubyIf_(k)+'</mark>'+_jaRubyIf_(ja.slice(i+k.length));
+}
+function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
+  var xa=$('ex-audio');if(!xa)return;
+  var hasC=!!(chs[0]&&chs[0].c&&chs[0].c.length);
+  var xh='<div class="lx-xh">'+(hasC?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby><span class="lx-key"><ruby>黄色<rt class="uf">きいろ</rt></ruby>＝<ruby>答<rt class="uf">こた</rt></ruby>えの<ruby>決<rt class="uf">き</rt></ruby>め<ruby>手<rt class="uf">て</rt></ruby></span>'
+    :(isResp?'<ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>英文<rt class="uf">えいぶん</rt></ruby>':'<ruby>選択肢<rt class="uf">せんたくし</rt></ruby>'))+'</div>';
+  if(isResp)lines.forEach(function(l,i){
+    xh+='<div class="lx-xl" id="lx-x-l'+i+'"><span class="lx-tg">'+esc(String(l.sp||''))+'</span><div class="lx-xb">'
+      +((hasC&&l.c)?_lxChunks_(l.c):'<b>'+esc(String(l.en||''))+'</b>')
+      +'<small>'+(hasC?_lxJaMark_(l.ja,pl.line_kja):_jaRubyIf_(String(l.ja||'')))+'</small></div></div>';
+  });
+  if(isResp&&!hasC)xh+='<div class="lx-xh"><ruby>選択肢<rt class="uf">せんたくし</rt></ruby></div>';
+  order.forEach(function(ci,j){var c=chs[ci]||{};
+    xh+='<div class="lx-xl'+(ci===0?' ok':'')+'" id="lx-x-c'+j+'"><button type="button" class="lx-play sm" data-x="'+j+'" aria-label="'+(j+1)+'番を聞く">'+_LX_IC_.play+'</button><div class="lx-xb">'
+      +'<span class="lx-no">'+(j+1)+(ci===0?' <span class="lx-okm">○</span>':'')+'</span>'
+      +((hasC&&c.c)?_lxChunks_(c.c):'<b>'+esc(String(c.en||''))+'</b>')
+      +'<small>'+((hasC&&ci===0)?_lxJaMark_(c.ja,pl.choice_kja):_jaRubyIf_(String(c.ja||'')))+'</small></div></div>';
+  });
+  xh+='<button type="button" class="ex-spk lx-again" id="lx-wt">'+_LX_IC_.play+'<span><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>見<rt class="uf">み</rt></ruby>ながら<ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
+  if(retried)xh+='<div class="lx-self" id="lx-self" hidden><div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>読<rt class="uf">よ</rt></ruby>んで、どうだった？</div><div class="lx-selfb">'
+    +'<button type="button" data-v="read"><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>読<rt class="uf">よ</rt></ruby>んだら<ruby>分<rt class="uf">わ</rt></ruby>かった</button>'
+    +'<button type="button" data-v="word"><ruby>読<rt class="uf">よ</rt></ruby>んでも<ruby>分<rt class="uf">わ</rt></ruby>からない<ruby>語<rt class="uf">ご</rt></ruby>があった</button></div></div>';
+  xh+='<button type="button" class="ex-spk lx-again lx-ghost" id="lx-hd" hidden>'+_LX_IC_.hide+'<span><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>隠<rt class="uf">かく</rt></ruby>してもう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
+  xa.innerHTML=xh;xa.style.display='';
+  var nx=$('ex-next'),selfDone=false,self=$('lx-self'),hd=$('lx-hd'),wt=$('lx-wt');
+  var steps=function(){var st=[];
+    if(isResp)lines.forEach(function(l,i){st.push({it:l,gap:900,on:H.lit('lx-x-l'+i)});});
+    order.forEach(function(ci,j){st.push({it:chs[ci],gap:400,on:H.lit('lx-x-c'+j)});});
+    return st;};
+  [].forEach.call(xa.querySelectorAll('.lx-play'),function(b){b.onclick=function(){var j=+b.getAttribute('data-x');
+    _lxRunSeq_([{it:chs[order[j]],on:H.lit('lx-x-c'+j)}]).then(function(){H.clear();});};});
+  if(retried){
+    if(nx)nx.style.display='none';   /* 選び直した問題＝英文を見ながら1回聞いて、どうだったかを選ぶまで次へ進めない（4-43 ②③） */
+    if(H.tip){H.tip.innerHTML='<b><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>見<rt class="uf">み</rt></ruby>ながら、もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>こう</b>';H.tip.classList.add('show');}
+    if(wt)wt.classList.add('pulse');
+  }
+  if(wt)wt.onclick=function(){wt.classList.remove('pulse');
+    _lxRunSeq_(steps()).then(function(done){H.clear();if(!done||!H.alive())return;
+      if(retried&&!selfDone){if(H.tip)H.tip.classList.remove('show');if(self){self.hidden=false;try{self.scrollIntoView({block:'nearest'});}catch(e){}}}
+      else if(hd)hd.hidden=false;});};
+  if(self)[].forEach.call(self.querySelectorAll('button'),function(b){b.onclick=function(){
+    [].forEach.call(self.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b);});
+    selfDone=true;
+    /* 段2で保存する（§17q 5-4・4-51 ⑦）。いまは画面の中だけに持つ */
+    (s._lxNotes||(s._lxNotes={}))[String(w.id)]={retry_ok:ok2?1:0,self:b.getAttribute('data-v')};
+    if(nx)nx.style.display='';if(hd)hd.hidden=false;};});
+  if(hd)hd.onclick=function(){xa.classList.add('lx-hide');
+    _lxRunSeq_(steps()).then(function(){H.clear();xa.classList.remove('lx-hide');});};
 }
 /* ===== 英検の大問2型（dialog_fill）2026-09-18 =====
    正＝要件定義書_英検教材 §17p 確定40・46、承認モック 20260918_モック_英検5級_大問2型.html。
@@ -6849,9 +6958,7 @@ function speak(w){
   var url=String(w.audio||'');
   if(!url){_wordSay_(w);return;}
   try{
-    var au=new Audio(url); _wordAu=au;
-    au.onerror=function(){_wordAu=null;_wordSay_(w);};
-    var p=au.play(); if(p&&p['catch'])p['catch'](function(){_wordAu=null;_wordSay_(w);});
+    _wordAu=_auPlay_(url,function(){_wordAu=null;_wordSay_(w);});
   }catch(e){_wordAu=null;_wordSay_(w);}
 }
 /* どの画面でも発音を聞けるボタン 2026-07-08：選択問題中でも現在の単語を再生 */
@@ -7175,7 +7282,8 @@ function showExplain(correct,kaisetsu,reading,ok){
     else{_kaiWaitMs=0;kaiTraceStop_();kai.classList.remove('trace');kai.textContent=kaisetsu;}
   }else{_kaiWaitMs=0;kaiTraceStop_();kai.classList.remove('trace');kai.style.display='none';}
   var _kimg=$('ex-img');if(_kimg){if(_kaiImgCur){_kimg.innerHTML=_kaiImgCur;_kimg.style.display='';}else{_kimg.innerHTML='';_kimg.style.display='none';}}
-  var _xa=$('ex-audio');if(_xa){_xa.innerHTML='';_xa.style.display='none';}   /* 文の音声ボタンは毎回消す＝前の問題のが残らない 2026-09-11 */
+  var _xa=$('ex-audio');if(_xa){_xa.innerHTML='';_xa.style.display='none';_xa.classList.remove('lx-hide');}
+  var _xn=$('ex-next');if(_xn)_xn.style.display='';   /* 聞き取りの選び直しで隠した「次へ」を戻す 2026-09-25 */   /* 文の音声ボタンは毎回消す＝前の問題のが残らない 2026-09-11 */
   var _bf=$('bug-fab');if(_bf)_bf.style.display='none'; /* 解説中はフローティング報告を隠す＝機能は解説内「まちがい報告」へ 2026-07-16 */
   $('explain').style.display='block';
   try{$('explain').scrollIntoView({behavior:'smooth',block:'end'});}catch(e){try{$('explain').scrollIntoView(false);}catch(e2){}}
