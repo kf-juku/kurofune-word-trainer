@@ -1509,6 +1509,8 @@ mark.lx-mk{background:#fff3c4;color:inherit;border-radius:3px;padding:0 2px;}
 @media (prefers-color-scheme:dark){.lx-wgl .ww.lxk,mark.lx-mk{background:#4a3f14;}}
 .lx-hide .lx-wgl .ww-en{filter:blur(6px);}
 .lx-self{margin-top:10px;}
+.lx-ximg{text-align:center;margin:2px 0 8px;}.lx-ximg img{max-height:130px;max-width:100%;border-radius:8px;border:1px solid var(--line);}
+.lx-wtip{margin:10px 0 -2px;font-size:13.5px;font-weight:800;color:var(--accent);text-align:center;}
 .lx-selfb{display:flex;flex-direction:column;gap:8px;}
 .lx-selfb button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;text-align:left;}
 .lx-selfb button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);}
@@ -5954,7 +5956,7 @@ function _renderSENT0_(ss){
     buildChoices('sent-choices',w.japanese,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
       {fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:(q.intro?0:_tl),kaisetsu:_kai,next:s.onNext,
        afterShow:function(){try{_wlSync_(s,w,true);}catch(e){}
-         if(pl.c&&pl.c.length){var xa=$('ex-audio');if(xa){xa.innerHTML='<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby></div><div class="lx-xl"><div class="lx-xb">'+_lxChunks_(pl.c)+'<small>'+_jaRubyIf_(String(pl.ja||''))+'</small></div></div>';xa.style.display='';}}}});   /* 聞いたあとに単語をみるを出す 2026-09-11 */
+         if(pl.c&&pl.c.length){var xa=$('ex-audio');if(xa){xa.innerHTML='<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby></div><div class="lx-xl"><div class="lx-xb">'+_lxChunks_(pl.c)+(_lxSameJa_(pl.c,pl.ja)?'':'<small>'+_jaRubyIf_(String(pl.ja||''))+'</small>')+'</div></div>';xa.style.display='';}}}});   /* 聞いたあとに単語をみるを出す 2026-09-11 */
     return;
   }
   if(qt==='sentence_fill'){
@@ -6432,7 +6434,7 @@ function _renderLXIntro_(s,w,q,pl,md){
   buildChoices('sent-choices',w.japanese,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
     {fig:true,fixedChoices:fixed,timeLimit:0,kaisetsu:w.kaisetsu,next:s.onNext,
      afterShow:function(){if(md==='pic_yn'&&l.en){var xa=$('ex-audio');if(xa){
-       xa.innerHTML='<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby></div><div class="lx-xl"><div class="lx-xb">'+((l.c&&l.c.length)?_lxChunks_(l.c):'<b>'+esc(String(l.en))+'</b>')+'<small>'+_jaRubyIf_(String(l.ja||''))+'</small></div></div>';xa.style.display='';}}}});
+       xa.innerHTML='<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby></div><div class="lx-xl"><div class="lx-xb">'+((l.c&&l.c.length)?_lxChunks_(l.c):'<b>'+esc(String(l.en))+'</b>')+(_lxSameJa_(l.c,l.ja)?'':'<small>'+_jaRubyIf_(String(l.ja||''))+'</small>')+'</div></div>';xa.style.display='';}}}});
   if(md==='pic_yn'){
     var bs=box.querySelectorAll('.choice'),lock=function(v){[].forEach.call(bs,function(b){if(!b.classList.contains('correct')&&!b.classList.contains('wrong'))b.disabled=v;});};
     var alive=function(){return s.words[s.idx]===w&&$('scr-practice')&&$('scr-practice').classList.contains('active');};
@@ -6458,6 +6460,12 @@ function _lxChunks_(c){
   return '<div class="lx-wgl">'+wgHtml(G,function(i){var x=c[i]||[];
     return '<span class="ww'+(x[2]?' lxk':'')+'"><span class="ww-en">'+esc(String(x[0]||''))+'</span><span class="ww-ja">'+_jaRubyIf_(String(x[1]||''))+'</span></span>';},true)+'</div>';
 }
+/* 【2026-09-25 川上さん「1 ア」】1かたまりの文で、直訳と全体の訳が同じ（句点だけの違い）なら全体の訳は出さない（同じ文が重なるため） */
+function _lxSameJa_(c,ja){
+  if(!c||c.length!==1)return false;
+  var n=function(t){return String(t||'').replace(/[。．.、，,\s！？!?]/g,'');};
+  return n((c[0]||[])[1])===n(ja);
+}
 function _lxJaMark_(ja,k){
   ja=String(ja||'');k=String(k||'');var i=k?ja.indexOf(k):-1;
   if(i<0)return _jaRubyIf_(ja);
@@ -6468,18 +6476,22 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
   var hasC=!!(chs[0]&&chs[0].c&&chs[0].c.length);
   var xh='<div class="lx-xh">'+(hasC?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby><span class="lx-key"><ruby>黄色<rt class="uf">きいろ</rt></ruby>＝<ruby>答<rt class="uf">こた</rt></ruby>えの<ruby>決<rt class="uf">き</rt></ruby>め<ruby>手<rt class="uf">て</rt></ruby></span>'
     :(isResp?'<ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>英文<rt class="uf">えいぶん</rt></ruby>':'<ruby>選択肢<rt class="uf">せんたくし</rt></ruby>'))+'</div>';
+  /* 【2026-09-25 川上さん「2 ア」】第3部型は答え合わせの上に絵を小さく出す（絵と見くらべて直すため） */
+  if(!isResp&&pl.img)xh='<div class="lx-ximg"><img src="'+esc(String(pl.img))+'" alt="" onerror="this.parentNode.style.display=\'none\'"></div>'+xh;
   if(isResp)lines.forEach(function(l,i){
     xh+='<div class="lx-xl" id="lx-x-l'+i+'"><span class="lx-tg">'+esc(String(l.sp||''))+'</span><div class="lx-xb">'
       +((hasC&&l.c)?_lxChunks_(l.c):'<b>'+esc(String(l.en||''))+'</b>')
-      +'<small>'+(hasC?_lxJaMark_(l.ja,pl.line_kja):_jaRubyIf_(String(l.ja||'')))+'</small></div></div>';
+      +((hasC&&l.c&&!pl.line_kja&&_lxSameJa_(l.c,l.ja))?'':'<small>'+(hasC?_lxJaMark_(l.ja,pl.line_kja):_jaRubyIf_(String(l.ja||'')))+'</small>')+'</div></div>';
   });
   if(isResp&&!hasC)xh+='<div class="lx-xh"><ruby>選択肢<rt class="uf">せんたくし</rt></ruby></div>';
   order.forEach(function(ci,j){var c=chs[ci]||{};
     xh+='<div class="lx-xl'+(ci===0?' ok':'')+'" id="lx-x-c'+j+'"><button type="button" class="lx-play sm" data-x="'+j+'" aria-label="'+(j+1)+'番を聞く">'+_LX_IC_.play+'</button><div class="lx-xb">'
       +'<span class="lx-no">'+(j+1)+(ci===0?' <span class="lx-okm">○</span>':'')+'</span>'
       +((hasC&&c.c)?_lxChunks_(c.c):'<b>'+esc(String(c.en||''))+'</b>')
-      +'<small>'+((hasC&&ci===0)?_lxJaMark_(c.ja,pl.choice_kja):_jaRubyIf_(String(c.ja||'')))+'</small></div></div>';
+      +((hasC&&c.c&&!(ci===0&&pl.choice_kja)&&_lxSameJa_(c.c,c.ja))?'':'<small>'+((hasC&&ci===0)?_lxJaMark_(c.ja,pl.choice_kja):_jaRubyIf_(String(c.ja||'')))+'</small>')+'</div></div>';
   });
+  /* 【2026-09-25 川上さん「3 ア」】選び直した問題は、押すまで次へ進めないので、ボタンの上に1行だけ案内する */
+  if(retried)xh+='<div class="lx-wtip" id="lx-wtip"><ruby>押<rt class="uf">お</rt></ruby>して、<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>見<rt class="uf">み</rt></ruby>ながらもう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>こう</div>';
   xh+='<button type="button" class="ex-spk lx-again" id="lx-wt">'+_LX_IC_.play+'<span><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>見<rt class="uf">み</rt></ruby>ながら<ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
   if(retried)xh+='<div class="lx-self" id="lx-self" hidden><div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>読<rt class="uf">よ</rt></ruby>んで、どうだった？</div><div class="lx-selfb">'
     +'<button type="button" data-v="read"><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>読<rt class="uf">よ</rt></ruby>んだら<ruby>分<rt class="uf">わ</rt></ruby>かった</button>'
@@ -6498,7 +6510,7 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
     if(H.tip){H.tip.innerHTML='<b><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>見<rt class="uf">み</rt></ruby>ながら、もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>こう</b>';H.tip.classList.add('show');}
     if(wt)wt.classList.add('pulse');
   }
-  if(wt)wt.onclick=function(){wt.classList.remove('pulse');
+  if(wt)wt.onclick=function(){wt.classList.remove('pulse');var _wtp=$('lx-wtip');if(_wtp)_wtp.style.display='none';
     _lxRunSeq_(steps()).then(function(done){H.clear();if(!done||!H.alive())return;
       if(retried&&!selfDone){if(H.tip)H.tip.classList.remove('show');if(self){self.hidden=false;try{self.scrollIntoView({block:'nearest'});}catch(e){}}}
       else if(hd)hd.hidden=false;});};
