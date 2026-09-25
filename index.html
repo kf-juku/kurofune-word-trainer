@@ -5565,7 +5565,7 @@ function _ptShow_(s){
   var f=card.querySelector('.bl:not(.done)'); if(f)openBl(f);
   return true;
 }
-function renderQz_(s){if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestore_();if(_ptShow_(_ps))return;}catch(e){}}/* 更新ボタンは要点カードのことを知らない。片づけて問題を描くと【要点を飛ばせてしまう】ので、終えていなければカードを描き直す（埋めた穴は復元する）2026-09-06③ */
+function renderQz_(s){try{clearTimeout(_sentAfterT_);_sentAfterT_=null;}catch(eSa){} /* 前の問題の答え合わせの音（600ms後）を取り消す。残すと次の聞き取りの音を止めて番号が押せなくなる 2026-09-25 */if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestore_();if(_ptShow_(_ps))return;}catch(e){}}/* 更新ボタンは要点カードのことを知らない。片づけて問題を描くと【要点を飛ばせてしまう】ので、終えていなければカードを描き直す（埋めた穴は復元する）2026-09-06③ */
   /* 英検5級：語を全部終えて文の問題に来た1回だけ、文法解説カードをはさむ。
      _ptShow_ の中で「文の問題かどうか」「もう出したか」を見るので、ここは呼ぶだけ 2026-09-09 */
   if(!_ptHidden_&&_ptKind_(s)==='sent'){try{if(_ptShow_(s))return;}catch(e){}}
