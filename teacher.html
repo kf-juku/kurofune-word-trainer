@@ -403,6 +403,7 @@
   .pq-lead2{font-size:11px;font-weight:600;color:#555;}
   .up-cho{margin-top:5px;}
   .up-lisans{margin-top:7px;font-size:12px;color:#333;}
+  .up-fix{margin-top:5px;font-size:11px;font-weight:700;color:#1b4f9c;}   /* 直しの手順の1行（2026-09-25・4-41 ⑥）*/
   .up-how{margin:6px 0 4px;padding:2px 9px;font-size:11.5px;font-weight:700;color:#1b4f9c;}   /* 解き方の1行（2026-09-25・4-41 ⑥）*/
   .up-lisbox{display:inline-block;width:46px;border-bottom:1.4px solid #333;height:15px;vertical-align:-3px;}
   /* 英検の聞き取り 第1部型・第3部型（2026-09-17）。選択肢は音だけ＝紙は番号の枠だけ。第3部型は絵を出す */
@@ -2869,6 +2870,7 @@ function _pqLisQHtml_(it,cls){
       return '<span class="pq-cho"><b>'+(PQ_MARKS_[i]||(i+1))+'</b>'+esc(String(t))+'</span>'; }).join('')+'</div>';
 }
 /* 【2026-09-25・§17q 5-9／4-41 ⑥⑦】紙の見出しに刷る解き方の1行（生徒画面の解き方メモと同じ文） */
+var _PQ_FIX_='間違えたら：英文を見ながらもう一度聞く → 分からない語に印';
 var _PQ_HOW_={listen_resp:'解き方（英文への返事）：最初の英文をよく聞く → 全部聞く → 合う返事を選ぶ',
               listen_pic:'解き方（絵に合う英文）：絵を見る → ちがうものを消す → 残りを選ぶ'};
 /* ===== 英検の聞き取り 第1部型（listen_resp）・第3部型（listen_pic）2026-09-17 =====
@@ -3100,7 +3102,8 @@ function unifiedStudentHtml_(st, opts){
     }else if(kind==='lisx'){
       /* 【2026-09-25・4-41 ⑥】まとまり（日付＋教材）の中で、その形式の最初の問題の前に解き方を1行だけ（1問ごとには刷らない） */
       var _hq=String(it.qtype||'');
-      if(!_howDone[_hq]&&_PQ_HOW_[_hq]){ _howDone[_hq]=1; h+='<div class="up-how">'+esc(_PQ_HOW_[_hq])+'</div>'; }
+      if(!_howDone[_hq]&&_PQ_HOW_[_hq]){ _howDone[_hq]=1; h+='<div class="up-how">'+esc(_PQ_HOW_[_hq])+'</div>';
+        extra='<div class="up-fix">'+esc(_PQ_FIX_)+'</div>'; }   /* 答えの欄の下に直しの手順を1行（4-41 ⑥・2026-09-25 川上さん「イ」）*/
       /* 【2026-09-17】英検 第1部型・第3部型。先生が英文と3つの返事を読む（答えの欄が読み上げ原稿）。2026-09-23 第1部型を1発話にしたので見出しを「英文への返事」に */
       var _isPic=(String(it.qtype||'')==='listen_pic');
       qH='<div class="up-qtxt">'+n+'. 🔊 '+(_isPic?'絵に合う英文':'英文への返事')+' <span class="pq-lead2">（先生が読みます。'+(_isPic?'絵に合うもの':'返事として合うもの')+'を番号で答える）</span></div>'
