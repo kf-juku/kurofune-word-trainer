@@ -235,6 +235,63 @@
   .sd-fold{margin-top:10px;border-top:1px solid var(--surface2);padding-top:8px;}
   .sd-fold summary{font-size:12px;color:var(--text-muted);cursor:pointer;}
   .pastrow{font-size:12px;padding:3px 0;color:var(--text);}
+  /* ===== ログイン用ペラ（1人＝A4両面の2ページ）2026-09-26 =====
+     承認モック＝モック\20260926_モック_ログイン用ペラ.html（生成＝ジョブス用\道具\20260926_ログイン用ペラ_モックを作る.py）。
+     紙は @page の余白12mm の内側＝186×273mm。1ページ＝272mm（両面の仕切りの数え方で2ページに収めるため1mm残す）。
+     クラスは .lp- 接頭辞（既存の印刷 .up-/.fs-/.print-/.rp- と分ける）。 */
+  .lp-page{width:186mm;height:272mm;padding:2mm 4mm;position:relative;overflow:hidden;box-sizing:border-box;color:#1f2937;background:#fff;
+    font-family:'Hiragino Kaku Gothic ProN','Yu Gothic','Meiryo','Noto Sans CJK JP',sans-serif;--lpsub:#6b7280;--lpline:#d1d5db;--lpgold:#b7791f;--lpacc:#c2410c;--lpguide:#0f766e;}
+  .lp-page *{box-sizing:border-box;}
+  .lp-page.lp-f{page-break-after:always;}
+  .lp-brand{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid #1f2937;padding-bottom:3mm}
+  .lp-brand .t{font-size:22pt;font-weight:800;letter-spacing:.02em}
+  .lp-brand .t small{font-size:10pt;font-weight:600;color:var(--lpsub);margin-left:3mm}
+  .lp-brand .s{font-size:9pt;color:var(--lpsub)}
+  .lp-who{margin-top:5mm;font-size:11pt;color:var(--lpsub)}
+  .lp-who b{font-size:20pt;color:#1f2937;margin-right:2mm}
+  .lp-acct{margin-top:4mm;display:flex;gap:8mm;align-items:stretch}
+  .lp-qrbox{width:52mm;border:1px solid var(--lpline);border-radius:3mm;padding:3mm;text-align:center}
+  .lp-qrbox svg{width:44mm;height:44mm;display:block;margin:0 auto}
+  .lp-qrbox .u{font-size:7.5pt;word-break:break-all;margin-top:2mm}
+  .lp-cred{flex:1;display:flex;flex-direction:column;gap:4mm}
+  .lp-cred .row{border:1.5px solid #1f2937;border-radius:3mm;padding:3mm 5mm}
+  .lp-cred .k{font-size:9.5pt;color:var(--lpsub)}
+  .lp-cred .v{font-family:'Consolas','Menlo','Noto Sans Mono CJK JP',monospace;font-size:22pt;font-weight:700;letter-spacing:.08em;word-break:break-all}
+  .lp-cred .warn{font-size:9pt;color:var(--lpacc);line-height:1.5}
+  .lp-page h2{font-size:13pt;margin:6.5mm 0 3mm;padding-left:3mm;border-left:5px solid var(--lpguide)}
+  .lp-page h2 .h2s{font-size:9pt;font-weight:600;color:var(--lpsub);margin-left:3mm}
+  .lp-steps{margin:0;padding:0;list-style:none;counter-reset:s}
+  .lp-steps li{counter-increment:s;position:relative;padding:2.5mm 0 2.5mm 11mm;font-size:11pt;line-height:1.6;border-bottom:1px dashed var(--lpline)}
+  .lp-steps li:before{content:counter(s);position:absolute;left:0;top:2.2mm;width:7.5mm;height:7.5mm;border-radius:50%;background:var(--lpguide);color:#fff;font-weight:700;text-align:center;line-height:7.5mm;font-size:10.5pt}
+  .lp-steps li small{display:block;color:var(--lpsub);font-size:9pt}
+  .lp-foot{position:absolute;left:4mm;right:4mm;bottom:1mm;font-size:8.5pt;color:var(--lpsub);display:flex;justify-content:space-between;white-space:nowrap}
+  .lp-menu{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
+  .lp-menu .m{border:1px solid var(--lpline);border-radius:3mm;padding:3mm 4mm;display:flex;gap:3mm;align-items:flex-start}
+  .lp-menu .m svg{flex:0 0 8mm;width:8mm;height:8mm}
+  .lp-menu .m b{display:block;font-size:11.5pt}
+  .lp-menu .m span{font-size:9.5pt;line-height:1.5}
+  .lp-road{display:flex;align-items:center;gap:2mm;margin:2mm 0 3mm}
+  .lp-road .n{border:1.5px solid var(--lpgold);border-radius:99px;padding:1.5mm 4mm;font-size:10.5pt;font-weight:700;white-space:nowrap}
+  .lp-road .n.end{background:var(--lpgold);color:#fff}
+  .lp-road .ar{color:var(--lpgold);font-weight:700}
+  .lp-pt{margin:1mm 0;padding-left:5mm;font-size:10.5pt;line-height:1.7}
+  .lp-flow{display:flex;gap:3mm;align-items:stretch;margin:2mm 0}
+  .lp-flow .b{flex:1;border:1px solid var(--lpline);border-radius:3mm;padding:2.5mm 3.5mm;font-size:10pt;line-height:1.5}
+  .lp-flow .b b{display:block;font-size:11pt}
+  .lp-flow .ar{align-self:center;font-weight:700;color:var(--lpgold)}
+  .lp-hs{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+  .lp-hs .os{border:1px solid var(--lpline);border-radius:3mm;padding:3mm;display:flex;gap:3mm}
+  .lp-hs .os .ph{flex:0 0 25mm}
+  .lp-hs .os .ph svg{width:25mm;height:auto;display:block}
+  .lp-hs .os .ttl{font-size:11pt;font-weight:800;margin-bottom:1.5mm}
+  .lp-hs .os .ttl small{font-weight:600;color:var(--lpsub);font-size:8.5pt;margin-left:1.5mm}
+  .lp-hs ol{margin:0;padding:0;list-style:none}
+  .lp-hs li{display:flex;gap:2mm;align-items:center;font-size:9.5pt;line-height:1.35;padding:.9mm 0;border-bottom:1px dashed var(--lpline)}
+  .lp-hs li:last-child{border-bottom:0}
+  .lp-hs li .no{flex:0 0 4.5mm;height:4.5mm;border-radius:50%;background:var(--lpacc);color:#fff;font-size:7.5pt;font-weight:700;text-align:center;line-height:4.5mm}
+  .lp-hs li svg{flex:0 0 7mm;width:7mm;height:7mm}
+  .lp-hs .fb{font-size:8.5pt;color:var(--lpsub);margin-top:1.5mm;line-height:1.45}
+  .lp-note{margin-bottom:8px;}
   /* 印刷（指導が必要な子のまちがえた問題）2026-07-02 */
   #printArea{display:none;}
   .p-filler{display:none;}   /* 両面印刷の仕切りページ。1ページで終わる生徒にだけJSで挿入。画面では出さず印刷時のみ 2026-07-28 */
@@ -1141,6 +1198,7 @@
     <div style="margin-bottom:12px;display:flex;gap:10px;">
       <button class="btn-primary" style="width:auto;" onclick="openTargetModal('assign')">📚 まとめて割り当てる</button>
       <button class="btn-primary btn-outlineK" style="width:auto;" onclick="openTargetModal('print')">🖨 まとめて印刷</button>
+      <button class="btn-primary btn-outlineK" style="width:auto;" onclick="openTargetModal('login')" title="新しく入った子に配る紙。1人＝A4両面（QR・URL・ID・パスワード・使い方）">🔑 ログイン用ペラ</button>
     </div>
 
     <div id="alFilterBar"><span id="alFilterLabel"></span><button class="afb-clear" onclick="clearAlertFilter()">✕ 絞り込みを解除</button></div>
@@ -4543,6 +4601,7 @@ function insertDuplexFillers_(host, done){
     var reps=[];
     units.forEach(function(u,i){
       if(i===units.length-1){ reps.push(null); return; } // 最後の生徒の裏には仕切り不要（後ろに別生徒が来ない）
+      if(String(u.className||'').split(/\s+/).indexOf('lp-unit')>=0){ reps.push(null); return; } // ログイン用ペラ＝1人ちょうど2ページ（表・裏）で作ってある＝仕切り不要 2026-09-26
       var isFs=String(u.className||'').split(/\s+/).indexOf('fs-unit')>=0;
       var box=document.createElement('div');
       if(isFs){
@@ -5170,7 +5229,7 @@ function saveCheerConfig(){
 /* 印刷モーダルの候補プール（exclude_print ON時は先生アカウントを候補から外す）2026-07-07 */
 function tmPool(){
   var arr=(_students||[]);
-  if(typeof tmMode!=='undefined'&&tmMode==='print'&&_cheerCfg&&_cheerCfg.exclude_print){arr=arr.filter(function(s){return !s.is_teacher_account;});}
+  if(typeof tmMode!=='undefined'&&(tmMode==='print'||tmMode==='login')&&_cheerCfg&&_cheerCfg.exclude_print){arr=arr.filter(function(s){return !s.is_teacher_account;});}
   return arr;
 }
 function _praiseLabel(t){return ({senshu:'先取り',unit:'単元別を終えた',quiz:'確認テスト合格',review:'おさらい前進',note:'間違いノート卒業'})[t]||t;}
@@ -6776,8 +6835,8 @@ function bugCardHtml_(r,i){
    cfg: {container, sel(外部オブジェクト・破壊的に更新), cand(()->配列),
          showStatus(印刷のみ状態チップ), rightTitle, max, badgeOf(id)->str, onAddGuard(id)->bool, onChange(ids)} */
 var Picker=(function(){
-  var C=null, els=null, filt={cls:{},grade:{},school:{},status:{}}, search='';
-  function reset(cfg){C=cfg;filt={cls:{},grade:{},school:{},status:{}};search='';render();}
+  var C=null, els=null, filt={cls:{},grade:{},school:{},status:{},newd:0}, search='';
+  function reset(cfg){C=cfg;filt={cls:{},grade:{},school:{},status:{},newd:0};search='';render();}
   function cand(){return (C.cand?C.cand():[])||[];}
   function sid_(s){return String(s.student_id!=null?s.student_id:(s.id!=null?s.id:''));}
   function candById(){var m={};cand().forEach(function(s){m[sid_(s)]=s;});return m;}
@@ -6787,6 +6846,7 @@ var Picker=(function(){
     if(anyOn(filt.cls)&&!filt.cls[String(s.class_name||'')])return false;
     if(anyOn(filt.grade)&&!filt.grade[String(s.grade||'')])return false;
     if(anyOn(filt.school)&&!filt.school[String(s.school||'')])return false;
+    if(C.showNew&&filt.newd&&!lpIsNew_(s,filt.newd))return false;   /* 入った時期 2026-09-26 */
     if(C.showStatus&&anyOn(filt.status)){
       var ok=false;
       if(filt.status.idle&&typeof isInactive==='function'&&isInactive(s))ok=true;
@@ -6815,6 +6875,18 @@ var Picker=(function(){
       chips.appendChild(statusChip('😴 やってない子','idle'));
       chips.appendChild(statusChip('📣 指導必要','help'));
       row.appendChild(chips);left.appendChild(row);
+    }
+    if(C.showNew&&cand().some(function(s){return !!s.created_at;})){   /* 入った時期（ログイン用ペラ）2026-09-26。GASが古く created_at が来ないときは出さない */
+      var nrow=document.createElement('div');nrow.className='pk-fgroup';
+      var nlb=document.createElement('span');nlb.className='pk-flabel';nlb.textContent='入った時期';nrow.appendChild(nlb);
+      var nch=document.createElement('div');nch.className='pk-chips';
+      [7,30,90].forEach(function(d){
+        var b=document.createElement('button');b.type='button';b.className='pk-chip'+(filt.newd===d?' on':'');
+        b.textContent=(filt.newd===d?'✓ ':'')+'🆕 '+d+'日以内';
+        b.onclick=function(){filt.newd=(filt.newd===d)?0:d;render();};
+        nch.appendChild(b);
+      });
+      nrow.appendChild(nch);left.appendChild(nrow);
     }
     var inp=document.createElement('input');inp.className='pk-search2';inp.placeholder='なまえで探す';inp.value=search;
     inp.oninput=function(){search=this.value;renderLists();};
@@ -6943,7 +7015,7 @@ function openTargetModal(mode,presetIds,presetMats,presetKind){
     else { (localStorage.getItem('kwt_print_mats')||'').split(',').forEach(function(id){id=String(id).trim();if(id)printMat[id]=1;}); } // 前回のテスト範囲を覚えておく
   }
   (presetIds||[]).forEach(function(id){tmSel[String(id)]=1;});
-  $('bulkTitle').textContent=(mode==='assign')?'まとめて割り当てる':'まとめて印刷';
+  $('bulkTitle').textContent=(mode==='assign')?'まとめて割り当てる':(mode==='login')?'ログイン用ペラを印刷':'まとめて印刷';
   $('bulkModal').classList.toggle('printmode',mode==='print');
   $('bulkErr').textContent='';
   $('bulkModal').classList.add('show');
@@ -6954,7 +7026,9 @@ function tmBack(){if(tmStep===2){tmStep=1;tmRender();}else{closeModal('bulkModal
 function tmNext(){
   if(tmStep===1){
     if(!Object.keys(tmSel).length){$('bulkErr').textContent='対象の生徒を選んでください';return;}
-    $('bulkErr').textContent='';tmStep=2;tmRender();return;
+    $('bulkErr').textContent='';
+    if(tmMode==='login'){lpPrint_();return;}   /* ログイン用ペラは教材をえらばない＝1段で印刷 2026-09-26 */
+    tmStep=2;tmRender();return;
   }
   if(tmMode==='assign')applyBulk();else tmPrint();
 }
@@ -6963,12 +7037,14 @@ function tmUniq(k){var m={};tmPool().forEach(function(s){var v=String(s[k]||'').
 function tmUpdateFoot(){
   $('tmSt1').className='tm-step'+(tmStep===1?' on':'');
   $('tmSt2').className='tm-step'+(tmStep===2?' on':'');
-  $('tmSt1').textContent=(tmMode==='print')?'1 だれの分を':'1 だれに';
+  $('tmSt1').textContent=(tmMode==='print'||tmMode==='login')?'1 だれの分を':'1 だれに';
+  $('tmSt2').style.display=(tmMode==='login')?'none':'';   /* ログイン用ペラは1段だけ 2026-09-26 */
   $('tmSt2').textContent=(tmMode==='print')?'2 印刷内容':'2 なにを';
   $('tmCount').textContent=Object.keys(tmSel).length+'名 選択中';
   $('tmBack').textContent=(tmStep===2)?'← 対象にもどる':'やめる';
   var go=$('tmGo');
-  if(tmStep===1){go.textContent='次へ';go.disabled=!Object.keys(tmSel).length;}
+  if(tmMode==='login'){var _ln=Object.keys(tmSel).length;go.textContent='🔑 '+_ln+'名分を印刷（A4両面）';go.disabled=!_ln;}
+  else if(tmStep===1){go.textContent='次へ';go.disabled=!Object.keys(tmSel).length;}
   else if(tmMode==='assign'){var _dc=0;bulkTestMids().forEach(function(mid){var dv=bulkDeliver[mid]||{};Object.keys(tmSel).forEach(function(sid){if(dv[sid])_dc++;});});go.textContent=Object.keys(tmSel).length+'名に割り当て'+(_dc?'＋テスト'+_dc+'件':'');go.disabled=!Object.keys(bulkMat).length;}
   else if(_printStyle_()==='finish'){go.textContent='🖨 仕上げプリントを作る';go.disabled=(tmStep===2&&!Object.keys(printMat).length);}
   else{go.textContent='🖨 印刷する';go.disabled=false;}
@@ -6981,12 +7057,14 @@ function tmRender(){
   tmUpdateFoot();
 }
 function tmStep1_(body){
+  if(tmMode==='login'){ var _ln=document.createElement('div');_ln.className='tm-note lp-note';_ln.innerHTML=LP_NOTE_HTML_;body.appendChild(_ln); body=body.appendChild(document.createElement('div')); }
   Picker.open({
     container:body,
     sel:tmSel,
     cand:function(){return tmPool();},
     showStatus:(tmMode==='print'),
-    rightTitle:(tmMode==='print')?'印刷する子':'割り当てる子',
+    showNew:(tmMode==='login'),   /* 「入った時期」チップ（ログイン用ペラ）2026-09-26 */
+    rightTitle:(tmMode==='print'||tmMode==='login')?'印刷する子':'割り当てる子',
     onChange:function(){tmUpdateFoot();}
   });
 }
@@ -7137,6 +7215,104 @@ function clearPrintMats(){
   renderPrintMaterials();
   tmUpdateFoot();
   toast('テスト範囲をクリアしました');
+}
+/* ===== ログイン用ペラ 2026-09-26（KWT_先生画面.md 末尾）=====
+   入口＝生徒一覧の「🔑 ログイン用ペラ」→ まとめて印刷と同じ「だれの分を」の窓（tmMode='login'）→ そのまま印刷。
+   GAS の login_sheets が「名前・学年・ID・パスワード」だけを返す（通塾日などは返さない＝川上さん確定）。
+   紙面は承認モック（モック\20260926_モック_ログイン用ペラ.html）と同じ。QR は qrModules_ を使い回す。 */
+var LP_URL_='https://kf-juku.github.io/kurofune-word-trainer/';
+var LP_NOTE_HTML_='🔑 <b>1人＝A4両面の2ページ</b>（表＝QR・ID・パスワード、裏＝使い方）。<b>両面印刷（長辺とじ）</b>で刷ってください。紙に出るのは<b>名前・学年・ID・パスワード</b>だけです。';
+function lpIsNew_(s,days){   /* created_at（YYYY-MM-DD）が今日から days 日以内か */
+  var c=String((s&&s.created_at)||'').slice(0,10); if(!/^\d{4}-\d{2}-\d{2}$/.test(c))return false;
+  var t=_rpToday(); var d=(Date.UTC(+t.slice(0,4),+t.slice(5,7)-1,+t.slice(8,10))-Date.UTC(+c.slice(0,4),+c.slice(5,7)-1,+c.slice(8,10)))/86400000;
+  return d>=0&&d<=days;
+}
+function lpQr_(){
+  var m=null; try{ m=qrModules_(LP_URL_); }catch(e){ m=null; }
+  if(!m) return '<div style="font-size:9pt;color:#a33;">QRを作れませんでした。下のURLを入力してください</div>';
+  var n=m.length,q=4,side=n+q*2,d='',r,c;
+  for(r=0;r<n;r++){ c=0; while(c<n){ if(!m[r][c]){c++;continue;} var st=c; while(c<n&&m[r][c])c++; d+='M'+(st+q)+' '+(r+q)+'h'+(c-st)+'v1h-'+(c-st)+'z'; } }
+  return '<svg width="44mm" height="44mm" viewBox="0 0 '+side+' '+side+'" shape-rendering="crispEdges" role="img" aria-label="'+esc(LP_URL_)+'"><rect width="'+side+'" height="'+side+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';
+}
+var LP_SVG_=(function(){
+  var K='#111827',O='#c2410c';
+  function box(i){return '<svg viewBox="0 0 28 28"><rect x="1" y="1" width="26" height="26" rx="6" fill="#f3f4f6" stroke="#9ca3af"/>'+i+'</svg>';}
+  return {
+    dots:box('<circle cx="8" cy="14" r="2" fill="'+K+'"/><circle cx="14" cy="14" r="2" fill="'+K+'"/><circle cx="20" cy="14" r="2" fill="'+K+'"/>'),
+    share:box('<path d="M10 12H8v10h12V12h-2" fill="none" stroke="'+K+'" stroke-width="1.8"/><path d="M14 17V5M10 9l4-4 4 4" fill="none" stroke="'+K+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'),
+    addhome:box('<rect x="7" y="7" width="14" height="14" rx="3" fill="none" stroke="'+K+'" stroke-width="1.8"/><path d="M14 10.5v7M10.5 14h7" stroke="'+K+'" stroke-width="1.8" stroke-linecap="round"/>'),
+    toggle:box('<rect x="5" y="9" width="18" height="10" rx="5" fill="#16a34a"/><circle cx="18" cy="14" r="4" fill="#fff"/>'),
+    vdots:box('<circle cx="14" cy="8" r="2" fill="'+K+'"/><circle cx="14" cy="14" r="2" fill="'+K+'"/><circle cx="14" cy="20" r="2" fill="'+K+'"/>'),
+    add:box('<rect x="4" y="9" width="20" height="10" rx="3" fill="#1a73e8"/><text x="14" y="16.6" font-size="6.5" fill="#fff" text-anchor="middle" font-family="sans-serif" font-weight="700">追加</text>'),
+    none:'<svg viewBox="0 0 28 28"></svg>',
+    ios:'<svg viewBox="0 0 100 190"><rect x="3" y="3" width="94" height="184" rx="14" fill="#fff" stroke="'+K+'" stroke-width="2.5"/><rect x="36" y="9" width="28" height="7" rx="3.5" fill="'+K+'"/><rect x="14" y="30" width="72" height="8" rx="2" fill="#e5e7eb"/><rect x="14" y="44" width="56" height="6" rx="2" fill="#e5e7eb"/><rect x="14" y="56" width="64" height="6" rx="2" fill="#e5e7eb"/><rect x="14" y="68" width="48" height="6" rx="2" fill="#e5e7eb"/><rect x="10" y="150" width="62" height="18" rx="9" fill="#f3f4f6" stroke="#9ca3af"/><text x="41" y="162" font-size="8" text-anchor="middle" fill="#6b7280" font-family="sans-serif">kf-juku.github.io</text><circle cx="84" cy="159" r="9" fill="#f3f4f6" stroke="#9ca3af"/><circle cx="80" cy="159" r="1.4" fill="'+K+'"/><circle cx="84" cy="159" r="1.4" fill="'+K+'"/><circle cx="88" cy="159" r="1.4" fill="'+K+'"/><circle cx="84" cy="159" r="13" fill="none" stroke="'+O+'" stroke-width="3"/><text x="84" y="138" font-size="11" text-anchor="middle" fill="'+O+'" font-weight="700" font-family="sans-serif">ここ</text></svg>',
+    and:'<svg viewBox="0 0 100 190"><rect x="3" y="3" width="94" height="184" rx="12" fill="#fff" stroke="'+K+'" stroke-width="2.5"/><circle cx="50" cy="12" r="3" fill="'+K+'"/><rect x="10" y="22" width="64" height="16" rx="8" fill="#f3f4f6" stroke="#9ca3af"/><text x="42" y="33" font-size="8" text-anchor="middle" fill="#6b7280" font-family="sans-serif">kf-juku.github.io</text><circle cx="86" cy="30" r="1.5" fill="'+K+'"/><circle cx="86" cy="34.5" r="1.5" fill="'+K+'"/><circle cx="86" cy="25.5" r="1.5" fill="'+K+'"/><circle cx="86" cy="30" r="10" fill="none" stroke="'+O+'" stroke-width="3"/><text x="80" y="58" font-size="11" text-anchor="middle" fill="'+O+'" font-weight="700" font-family="sans-serif">ここ</text><rect x="14" y="70" width="72" height="8" rx="2" fill="#e5e7eb"/><rect x="14" y="84" width="56" height="6" rx="2" fill="#e5e7eb"/><rect x="14" y="96" width="64" height="6" rx="2" fill="#e5e7eb"/><rect x="14" y="108" width="48" height="6" rx="2" fill="#e5e7eb"/></svg>',
+    anchor:'<svg viewBox="0 0 24 24" fill="none" stroke="#b7791f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v14M5 12H3a9 9 0 0 0 18 0h-2"/></svg>',
+    flag:'<svg viewBox="0 0 24 24" fill="none" stroke="#b7791f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>',
+    note:'<svg viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
+    chart:'<svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M4 15l5-5 4 4 7-7"/></svg>'
+  };
+})();
+function lpHtml_(st,qr){
+  var nm=esc(st.name||''), gr=esc(st.grade||''), id=esc(st.login_id||''), pw=esc(st.passcode||''), url=esc(LP_URL_), S=LP_SVG_;
+  var foot=nm+'（ID '+id+'）';
+  function ol(items){ return '<ol>'+items.map(function(x,i){ return '<li><span class="no">'+(i+1)+'</span>'+S[x[0]]+'<span>'+x[1]+'</span></li>'; }).join('')+'</ol>'; }
+  var front='<div class="lp-page lp-f">'
+   +'<div class="lp-brand"><div class="t">クロトレ<small>Kurofune Word Trainer</small></div><div class="s">進学塾クロフネ</div></div>'
+   +'<div class="lp-who"><b>'+nm+'</b>さん　'+gr+'</div>'
+   +'<div class="lp-acct"><div class="lp-qrbox">'+qr+'<div class="u">'+url+'</div></div>'
+   +'<div class="lp-cred"><div class="row"><div class="k">ID</div><div class="v">'+id+'</div></div>'
+   +'<div class="row"><div class="k">パスワード</div><div class="v">'+pw+'</div></div>'
+   +'<div class="warn">パスワードは人に見せない・教えない。<br>この紙はなくさないように保管してください。</div></div></div>'
+   +'<h2>はじめてログインするとき</h2><ol class="lp-steps">'
+   +'<li>スマホやタブレットのカメラで、左上のQRコードを読みこむ<small>読みこめないときは、QRコードの下のURLをブラウザに入力する</small></li>'
+   +'<li>IDとパスワードを入れて「始める」を押す<small>大文字・小文字、数字の0とアルファベットのOに注意</small></li>'
+   +'<li>最初に出る「クロトレの見方」を読んで「始める」を押す<small>あとから見直すときは「記録」→ 設定の「使い方」</small></li></ol>'
+   +'<h2>いつでも開けるようにしておく<small class="h2s">ホーム画面に置くと、次からアイコン1つで開ける</small></h2><div class="lp-hs">'
+   +'<div class="os"><div class="ph">'+S.ios+'</div><div><div class="ttl">iPhone<small>Safari</small></div>'
+   +ol([['dots','アドレスバーの右の「•••」を押す'],['share','「共有」を押す'],['addhome','下へ送って「ホーム画面に追加」'],['toggle','「Webアプリとして開く」はオンのまま「追加」']])
+   +'<div class="fb">「•••」が無いときは、アドレスバーを長押しして「共有」。置けないときは「共有」→「ブックマークを追加」</div></div></div>'
+   +'<div class="os"><div class="ph">'+S.and+'</div><div><div class="ttl">Android<small>Chrome</small></div>'
+   +ol([['vdots','右上の「︙」を押す'],['none','「ホーム画面に追加」を押す'],['add','「追加」を押す'],['none','「自動的に追加」を押す']])
+   +'<div class="fb">置けないときは「︙」の☆でブックマークに追加</div></div></div></div>'
+   +'<div class="lp-foot"><span>使い方は裏面へ →</span><span>'+foot+'</span></div></div>';
+  var menu=[['anchor','毎日','今日やる分。全部終えるとデイリークリア'],['flag','単元別','テスト範囲を練習して、確認テストで仕上げる'],['note','間違いノート','間違えた語だけが集まる。ここを減らすと力になる'],['chart','記録','学習マップ・バッジ・仲間の様子が見られる']];
+  var back='<div class="lp-page lp-b">'
+   +'<div class="lp-brand"><div class="t">クロトレの使い方</div><div class="s">迷ったら「毎日」から</div></div>'
+   +'<h2>画面の下のメニューは4つ</h2><div class="lp-menu">'+menu.map(function(m){ return '<div class="m">'+S[m[0]]+'<div><b>'+m[1]+'</b><span>'+m[2]+'</span></div></div>'; }).join('')+'</div>'
+   +'<h2>毎日やること：デイリークリアをめざそう</h2>'
+   +'<div class="lp-road"><span class="n">毎日学習</span><span class="ar">→</span><span class="n">おさらい</span><span class="ar">→</span><span class="n">集中攻略</span><span class="ar">→</span><span class="n end">クリア</span></div>'
+   +'<ul class="lp-pt"><li><b>毎日学習</b>：その日の新しい分。全問正解するまで出てくる</li><li><b>おさらい</b>：前に覚えた語が、忘れかけたころにもう一度出てくる</li><li><b>集中攻略</b>：間違えた語をまとめて解き直す</li><li>3つとも終えると<b>デイリークリア</b>。続けた日数が画面の上の炎（連続記録）に出る</li></ul>'
+   +'<h2>テスト前は「単元別」：確認テストで合格をめざそう</h2>'
+   +'<div class="lp-flow"><div class="b"><b>① 練習</b>単元を選んで練習し、覚える</div><div class="ar">→</div><div class="b"><b>② 確認テスト</b>正答率80%以上で合格</div></div>'
+   +'<h2>はじめに決めておくこと</h2><ul class="lp-pt"><li><b>ニックネーム</b>：最初は動物の名前が入っている。仲間の画面にも出るので、本名は使わない。変えられるのは月3回まで</li><li><b>アイコン</b>：画面の上のアイコンを押すと、自分のアイコンを選べる</li></ul>'
+   +'<h2>ログインできないとき</h2><ul class="lp-pt"><li>IDとパスワードを1文字ずつ見直す（前後に空白が入っていないか）</li><li>それでも入れないときは、この紙を持って先生に伝える</li></ul>'
+   +'<div class="lp-foot"><span>クロトレ　'+url+'</span><span>'+foot+'</span></div></div>';
+  return '<div class="p-unit lp-unit">'+front+back+'</div>';
+}
+function lpPrint_(){
+  var ids=Object.keys(tmSel);
+  if(!ids.length){ $('bulkErr').textContent='対象の生徒を選んでください'; return; }
+  showLoading(ids.length+'名ぶんのログイン用ペラを作っています…');
+  call({action:'login_sheets',student_ids:ids.join(',')}).then(function(d){
+    if(!d||!d.ok){
+      var er=String((d&&d.error)||'');
+      $('bulkErr').textContent=/不明なアクション/.test(er)?'サーバー（GAS）の更新がまだです。GASを再デプロイしてから、もう一度押してください。':('作れませんでした：'+(er||'通信に失敗しました'));
+      return;
+    }
+    var sts=(d.data&&d.data.students)||[];
+    var byId={}; sts.forEach(function(x){ byId[String(x.student_id)]=x; });
+    var order=tmPool().filter(function(s){ return tmSel[String(s.student_id)]; })   /* 並び＝学年→名前（窓の右側と同じ） */
+      .sort(function(a,b){ var g=gradeRank(a.grade)-gradeRank(b.grade); return g!==0?g:String(a.name||'').localeCompare(String(b.name||''),'ja'); });
+    var list=order.map(function(s){ return byId[String(s.student_id)]; }).filter(Boolean);
+    var noPw=list.filter(function(x){ return !x.login_id||!x.passcode; });
+    if(!list.length){ $('bulkErr').textContent='生徒の情報を読めませんでした（'+ids.length+'名）'; return; }
+    if(noPw.length){ $('bulkErr').innerHTML='IDかパスワードが空の生徒がいます：'+noPw.map(function(x){return esc(x.name);}).join('、')+'。students シートを確かめてください（印刷は止めました）'; return; }
+    var qr=lpQr_();
+    $('printArea').innerHTML=list.map(function(x){ return lpHtml_(x,qr); }).join('');
+    closeModal('bulkModal');
+    printWhenImagesReady_($('printArea'), _rpToday().replace(/-/g,'')+'_ログイン用ペラ_'+_cntOrName_(list.map(function(x){return x.name;})));
+  }).catch(function(){ $('bulkErr').textContent='通信に失敗しました。もう一度押してください'; }).finally(function(){ hideLoading(); });
 }
 function tmPrint(){
   var ids=Object.keys(tmSel);
