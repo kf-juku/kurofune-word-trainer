@@ -6187,7 +6187,7 @@ function renderRO_(s,w,q,pl){
   var toks=(q&&q.tokens&&q.tokens.length)?q.tokens.slice():((pl.tokens&&pl.tokens.length)?pl.tokens.slice():_sentTok_(pl.en));
   var extra=(q&&q.extra&&q.extra.length)?q.extra.slice():[];
   ask.innerHTML='<ruby>文<rt class="uf">ぶん</rt></ruby>になるように<ruby>並<rt class="uf">なら</rt></ruby>べよう'
-    +(extra.length?'<span class="ro-ex">1<ruby>語<rt class="uf">ご</rt></ruby>あまります</span>':'');
+    +(extra.length?'<span class="ro-ex">'+extra.length+'<ruby>語<rt class="uf">ご</rt></ruby>あまります</span>':'');   /* あまる札の数をそのまま出す（札の組み立ては2枚あまる）2026-09-26 */
   var N=toks.length,_t0=Date.now(),locked=false,drag=null;
   var bank=_shufNot_(toks.concat(extra));
   body.innerHTML='<div class="sq-ja ro-ja">'+_jaRuby_(pl.ja||'')+'</div>'
