@@ -3487,8 +3487,12 @@ function fsPick_(items){
   if(lis.length){
     var _hasL=lis.some(function(x){return x._fsKind==='listen';});
     var _hasP=lis.some(function(x){return x._fsKind==='ph';});
+    /* 【2026-09-27 川上さん確定・案A】つづりを書く読み確認（build・spell）は文字も読みも●で伏せてあり、
+       QRの先で鳴るのは単語まるごとの発音だけ（音のかたまりの mp3 は作らない＝2026-09-22 の決定）。
+       そのことと●の意味を、見出しに小さく1行だけ書く */
+    var _hasB=lis.some(function(x){ if(x._fsKind!=='ph') return false; var m=_pqPhMode_(x); return m==='build'||m==='spell'; });
     var _hq={}; lis.forEach(function(x){ var q=String(x.qtype||''); if(_PQ_HOW_[q])_hq[q]=1; });   /* 解き方の1行を出す形式（2026-09-25・4-41 ⑦） */
-    texts=texts.concat([{__lisHead:true,__lisL:_hasL,__lisP:_hasP,__lisHow:Object.keys(_PQ_HOW_).filter(function(q){ return _hq[q]; })}]).concat(lis);
+    texts=texts.concat([{__lisHead:true,__lisL:_hasL,__lisP:_hasP,__lisB:_hasB,__lisHow:Object.keys(_PQ_HOW_).filter(function(q){ return _hq[q]; })}]).concat(lis);
   }
   return {blocks:blocks,texts:texts};
 }
@@ -3595,6 +3599,7 @@ function fsQBodyHtml_(it,no,ctx,pos){
       +'左のQRを読んで音を聞いてから、'+esc(_how)
       +'<div class="fs-lh-c">QRが読めないときは、クロトレの「紙の答え合わせ」を開いて'
       +'セット番号 <b>'+esc(_c)+'</b> を入れると、同じ音が聞けます。</div>'
+      +(it.__lisB?'<div class="fs-lh-c">※ 読み確認の音は、単語まるごとの発音だけが流れます。● 1つが音の区切り1つです。</div>':'')
       +(it.__lisHow||[]).map(function(q){ return '<div class="fs-lh-how">'+esc(_PQ_HOW_[q]||'')+'</div>'; }).join('')+'</div></div>';
   }
   /* 【2026-09-13j・段E】語順は語群＋和訳を足す。【段7】聞き取りは選択肢を足す。
