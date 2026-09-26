@@ -2786,7 +2786,17 @@ function _pqTokens_(it){
   var k=String(it.word_id||'')||String(it.english||'');
   if(_pqOrdCache[k]) return _pqOrdCache[k];
   var pk=_pqPack_(it); if(!pk) return [];
-  return (_pqOrdCache[k]=_pqShuffle_(pk.pl.tokens||[]));
+  return (_pqOrdCache[k]=_pqShuffle_(_pqOrdSrc_(it,pk)));
+}
+/* 紙の札のもと（2026-09-27 川上さん確定）。生徒アプリ（student.html 6187・7848）と同じ選び方＝
+   qdata.tokens があればそれ（架け橋v2 の「札」「かたまり」、5級文法編の段階3）、無ければ素材の tokens。
+   ★前は素材の tokens だけを見ていたので、かたまり（a good student など）が紙では1語ずつに割れ、
+     同じ文の「全文」の問題と見分けがつかなかった。 */
+function _pqOrdSrc_(it,pk){
+  pk=pk||_pqPack_(it); if(!pk) return [];
+  var qt=pk.qd&&pk.qd.tokens;
+  if(qt&&qt.length) return qt.slice();
+  return (pk.pl.tokens||[]).slice();
 }
 /* 語群のチップ。紙なので枠だけ（押すものではない） */
 function _pqOrdHtml_(it,cls){
@@ -3020,7 +3030,18 @@ function _pqLisAText_(it){
    直し＝鍵に qtype を足す。別のパートの同じ用語は今までどおり1回にまとまる。 */
 function _pqDedupKey_(it){
   return String((it&&it.english)||'')+'|~|'+String((it&&it.japanese)||'')
-    +'|~|'+String((it&&it.subject)||'')+'|~|'+String((it&&it.qtype)||'');
+    +'|~|'+String((it&&it.subject)||'')+'|~|'+String((it&&it.qtype)||'')+_pqDedupExtra_(it);
+}
+/* 【2026-09-27】形式によっては english・japanese が同じでも別の問題になる。そのぶんを鍵に足す。
+   ・表（table_fill）＝どの表のどのマスか。架け橋v2 は設問が「語順の表の（　）に入る語」で共通なので、
+     別の表でも答えの語が同じだと1問に減っていた（全体で68問）
+   ・語順（reorder）で qdata.tokens があるもの＝札の分け方。かたまりの問題と全文の問題を別にする
+   それ以外は何も足さない＝今までと同じ鍵。 */
+function _pqDedupExtra_(it){
+  var t=String((it&&it.qtype)||''); if(t!=='table_fill'&&t!=='reorder') return '';
+  var qd=_pqData_(it); if(!qd) return '';
+  if(t==='table_fill') return '|~|'+String(qd.asset||'')+'#'+String(qd.r)+','+String(qd.c);
+  return (qd.tokens&&qd.tokens.length)?('|~|'+qd.tokens.join('\u0001')):'';
 }
 /* 答え（プレーン文字）。形式によって「どっちが答えか」が変わる。
    ★穴うめ・語順・表は、いままでの英語の向き（english を問題・japanese を答え）と**逆**。
