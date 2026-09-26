@@ -6367,7 +6367,8 @@ function renderLX_(s,w,q,pl){
   if(isResp){
     /* 確定52（2026-09-23）＝本番の第1部は聞こえる英文が1つだけ。確定50（承認モック 20260921_モック_会話編_第1部型.html の③）の形：
        「聞こえる英文」→「ここまでが英文」の線→「返事」の欄（番号を選ぶ）。3つ目の「？」の吹き出しはやめた */
-    h='<div class="kw-sec"><span class="kw-secl"><ruby>聞<rt class="uf">き</rt></ruby>こえる<ruby>英文<rt class="uf">えいぶん</rt></ruby></span></div>'
+    h=(pl.img?'<div class="lx-pic"><img src="'+esc(String(pl.img))+'" alt="" onerror="this.parentNode.classList.add(\'noimg\');this.style.display=\'none\';"></div>':'')   /* 第1部型にも絵（本番どおり・2026-09-26 §19d B13／4級 4-62）。素材に img が無い問題は今までどおり */
+     +'<div class="kw-sec"><span class="kw-secl"><ruby>聞<rt class="uf">き</rt></ruby>こえる<ruby>英文<rt class="uf">えいぶん</rt></ruby></span></div>'
       +'<div class="lx-talk">'+lines.map(function(l,i){
         var b=(String(l.sp)==='B');
         return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+'">'+esc(String(l.sp||''))+'</span>'+(q.show_line?'<span class="lx-en">'+esc(String(l.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div>';
@@ -6506,7 +6507,7 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
   var xh='<div class="lx-xh">'+(hasC?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby><span class="lx-key"><ruby>黄色<rt class="uf">きいろ</rt></ruby>＝<ruby>答<rt class="uf">こた</rt></ruby>えの<ruby>決<rt class="uf">き</rt></ruby>め<ruby>手<rt class="uf">て</rt></ruby></span>'
     :(isResp?'<ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>英文<rt class="uf">えいぶん</rt></ruby>':'<ruby>選択肢<rt class="uf">せんたくし</rt></ruby>'))+'</div>';
   /* 【2026-09-25 川上さん「2 ア」】第3部型は答え合わせの上に絵を小さく出す（絵と見くらべて直すため） */
-  if(!isResp&&pl.img)xh='<div class="lx-ximg"><img src="'+esc(String(pl.img))+'" alt="" onerror="this.parentNode.style.display=\'none\'"></div>'+xh;
+  if(pl.img)xh='<div class="lx-ximg"><img src="'+esc(String(pl.img))+'" alt="" onerror="this.parentNode.style.display=\'none\'"></div>'+xh;
   if(isResp)lines.forEach(function(l,i){
     xh+='<div class="lx-xl" id="lx-x-l'+i+'"><span class="lx-tg">'+esc(String(l.sp||''))+'</span><div class="lx-xb">'
       +((hasC&&l.c)?_lxChunks_(l.c):'<b>'+esc(String(l.en||''))+'</b>')
