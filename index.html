@@ -5894,6 +5894,14 @@ function _sentAfterAudio_(pl){
      ＝at school / in the park のような「かたまりの穴」。省略すると1語（今までどおり）
      ★かたまりの穴の下には日本語を出さない。「〜で」「学校」が並ぶと答えが見えてしまう（2026-09-22 川上さん）
    ★roles を持たない教材（英検5級 文法編）はこの表示を使わない＝いままでどおり1行の文で出す */
+/* 文ぜんぶが穴か（文末の記号だけが残る）2026-09-28 */
+function _sfWhole_(tk,bi,bn){
+  if(!tk||!tk.length)return false;
+  var last=tk.length-1; if(!_sentIsPn_(tk[last]))return false;
+  var ws=[];for(var i=0;i<tk.length;i++){if(!_sentIsPn_(tk[i]))ws.push(i);}
+  return !!ws.length&&bi===ws[0]&&(bi+Math.max(1,bn|0)-1)>=ws[ws.length-1];
+}
+function _sfAddP_(t,p){ t=String(t==null?'':t).replace(/\s+$/,''); return (p&&!/[.,?!]$/.test(t))?(t+p):t; }
 function _wordCols_(tokens,gloss,roles,blankAt,blankText,s,blankN){
   var bn=Math.max(1,(blankN|0)||1);
   var idx=[],pn={},i;
@@ -6002,6 +6010,13 @@ function _renderSENT0_(ss){
     /* 穴のある文は en から組む＝文頭の大文字がそのまま出る。tokens（全部小文字）は使わない */
     var tk=_sentTok_(pl.en),bi=(q.blank|0),bn=Math.max(1,(q.blank_n|0)||1);   /* blank_n＝かたまりの穴の語数 2026-09-22 */
     var _hasRl=!!(pl.roles&&pl.roles.length);   /* 役割を持つ教材（架け橋）だけ語ごとの表示にする */
+    /* 【2026-09-28 川上さん】文ぜんぶが穴（「見抜く」の段）のときは、選択肢の英文にも文末の . ? を付ける。
+       生徒は選択肢の英文を見て答えるので、ピリオドの無い英文を見慣れさせない（ピリオドの書き忘れを誘発しない）。
+       文の側は（　）だけにして、記号を穴の外に出さない（前は「.」が穴の四角に重なって見えなかった）。 */
+    var _sfW=_sfWhole_(tk,bi,bn), _sfP=_sfW?tk[tk.length-1]:'';
+    var _sfAns=_sfW?_sfAddP_(w.english,_sfP):w.english;
+    var _sfCh=(q.choices||[]).map(function(c){return _sfW?_sfAddP_(c,_sfP):c;});
+    if(_sfW){ _hasRl=false; tk=tk.slice(0,tk.length-1); }   /* 語ごとの表示（役割の見出し）も出さない＝1つの四角だけ */
     /* fill＝空欄に入れる語。答え合わせで呼び直して、空けたままにしない（改修④）2026-09-21 */
     var _sfBody=function(fill){
       if(!tk.length)return '<div class="sq-sent">'+_boxBlank(esc(w.japanese||''))+'</div>'
@@ -6014,9 +6029,9 @@ function _renderSENT0_(ss){
       return '<div class="sq-sent">'+h+'</div><div class="sq-ja">'+_jaRuby_(pl.ja||'')+'</div>';
     };
     body.innerHTML=_sfBody('');
-    buildChoices('sent-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
-      {fig:true,fixedChoices:(q.choices||[]),timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext,
-       afterShow:function(){ try{body.innerHTML=_sfBody(w.english);}catch(_e){} _sentAfterAudio_(pl); }});   /* 空欄に答えを入れてから文を鳴らす 2026-09-11 / 2026-09-21 */
+    buildChoices('sent-choices',_sfAns,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
+      {fig:true,fixedChoices:_sfCh,timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext,
+       afterShow:function(){ try{body.innerHTML=_sfBody(_sfAns);}catch(_e){} _sentAfterAudio_(pl); }});   /* 空欄に答えを入れてから文を鳴らす 2026-09-11 / 2026-09-21 */
     return;
   }
   renderRO_(s,w,q,pl);

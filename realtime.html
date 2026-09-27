@@ -737,6 +737,18 @@ function _pqOrdSrc_(it,pk){
    紙は本番と同じ＝語群に①②③…の番号、枠の外の語（qdata.pre・post）と（　）、「1番目［　］3番目［　］」の記入欄。答え＝番号の組＋完成文。
    アプリ（student.html）では番号を出さない（押し間違い・深読みを避ける）。番号で答えるのは紙だけ */
 var _PQ_CIRC_='①②③④⑤⑥⑦⑧';
+/* 【2026-09-28 川上さん】文ぜんぶが穴（架け橋の「見抜く」）のとき、紙も文末の . ? を答えに入れ、問題の（　）のうしろに記号を残さない。
+   ピリオドの無い英文を見慣れさせない（student.html の _sfWhole_ と同じ判定） */
+function _pqFillWholeP_(it){
+  var pk=_pqPack_(it); if(!pk||!pk.pl||!pk.pl.en) return '';
+  var tk=String(pk.pl.en).match(/P\.E\.|[A-Za-z]+(?:[-'][A-Za-z]+)*|[.,?!]/g)||[]; if(!tk.length) return '';
+  var isP=function(t){return /^[.,?!]$/.test(t);}, last=tk[tk.length-1]; if(!isP(last)) return '';
+  var ws=[]; for(var i=0;i<tk.length;i++){ if(!isP(tk[i])) ws.push(i); }
+  var bi=(pk.qd.blank|0), bn=Math.max(1,(pk.qd.blank_n|0)||1);
+  return (ws.length&&bi===ws[0]&&(bi+bn-1)>=ws[ws.length-1])?last:'';
+}
+function _pqFillQ_(it){ var j=String(it.japanese||''), p=_pqFillWholeP_(it); return p?j.replace(/^（\s*）\s*[.,?!]/,'（　）'):j; }
+function _pqFillAns_(it){ var e=String(it.english||'').replace(/\s+$/,''), p=_pqFillWholeP_(it); return (p&&!/[.,?!]$/.test(e))?(e+p):e; }
 function _pqOrdAsk_(it){ var p=_pqPosOf_(it); return p?('ならべかえて、'+p[0]+'番目と'+p[1]+'番目の番号を書く'):'ならべかえて文を作る'; }
 function _pqSeedShuf_(tok,key){
   var a=(tok||[]).slice(), h=2166136261; key=String(key||'');
@@ -1037,7 +1049,8 @@ function _pqAltOf_(it){
 }
 function _pqAnswerOf_(it){
   var k=_pqKind_(it);
-  if(k==='fill'||k==='table') return String(it.english||'')+_pqAltOf_(it);    /* 答え＝入る1語・セルの文字（＋別解 2026-09-20）*/
+  if(k==='fill') return _pqFillAns_(it)+_pqAltOf_(it);    /* 文ぜんぶの穴は文末の記号まで答えにする 2026-09-28 */
+  if(k==='table') return String(it.english||'')+_pqAltOf_(it);    /* 答え＝入る1語・セルの文字（＋別解 2026-09-20）*/
   if(k==='order')            return (_pqPosOf_(it)?(_pqPosAns_(it)+'　'):'')+String(it.english||'');     /* 答え＝正しい文（本番の形は番号の組＋文 2026-09-28）*/
   if(k==='listen')           return _pqLisAText_(it);          /* 答え＝記号＋訳＋英文（段7）*/
   if(k==='lisx')             return _pqLxAText_(it);           /* 答え＝番号＋会話＋3つの英文（2026-09-17）*/
@@ -1151,7 +1164,7 @@ function unifiedStudentHtml_(st, opts){
     if(kind==='fill'){
       /* 穴あき英文＋和訳は japanese にそのまま入っている（`要件定義書_英検教材` §5b＝紙用）。
          選択肢は紙に出さない（`print-sheet-design`＝出した時点で「見分ける」練習に変わる）。 */
-      qH='<div class="up-qtxt">'+n+'. '+esc(String(it.japanese||''))+'</div>';
+      qH='<div class="up-qtxt">'+n+'. '+esc(_pqFillQ_(it))+'</div>';
     }else if(kind==='order'){
       qH='<div class="up-qtxt">'+n+'. '+esc(_pqOrdAsk_(it))+'</div>'+_pqOrdHtml_(it,'up');
       var gl=_pqGlossText_(it);
