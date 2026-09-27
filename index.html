@@ -1492,6 +1492,11 @@
 .lx-again.pulse{box-shadow:0 0 0 3px var(--accent);animation:lxpl 1.4s ease-in-out infinite;}
 @keyframes lxpl{50%{box-shadow:0 0 0 6px transparent;}}
 .lx-opt .lx-ch.tried{opacity:.35!important;border-style:dashed;text-decoration:line-through;}
+/* 第2部型（listen_print）＝選択肢は文字。音のあいだも見せ、質問が読み終わってから押せる（4-36 ⑩）2026-09-27 */
+.lx-opt .lx-ch.lx-pr{font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px;text-align:left;justify-content:flex-start;padding:10px 14px;}
+.lx-opt .lx-ch.lx-pr:disabled:not(.correct):not(.wrong):not(.tried){opacity:.75;}
+.lx-prn{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--bg);border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--sub);}
+.lx-who.q{background:#6b7280;}
 .lx-key{font-weight:500;margin-left:8px;font-size:12px;}
 .lx-xl{padding:4px 6px;border-radius:10px;}
 .lx-xl.now{background:var(--accent-soft);}
@@ -4775,14 +4780,14 @@ function _startStepFor(s,w){ return _wIsEng(s,w) ? (s.mode==='daily'?1:2) : 3; }
    語の3ステップ（発音→意味→日本語→英語）には乗せない＝renderQz_ の頭で分岐して戻る（表・図と同じやり方）。
    採点の向きは e2j にそろえる。教材は direction=e2j なので、語も文も「意味」の正答率に入り、
    分母（total＝行数）とそろう。j2e にすると reverse 側に入って正答率が半分に見える。 */
-function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder'||q==='listen_resp'||q==='listen_pic'||q==='dialog_fill'||q==='phonics';}
+function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder'||q==='listen_resp'||q==='listen_pic'||q==='listen_print'||q==='dialog_fill'||q==='phonics';}
 /* phonics＝読み確認。1行1問・採点の向きは e2j。ここに入れると
    _isOneShot_ / _ansWhichNow_ / _saveResumeNext_ / カードを隠す行 の4か所が一度にそろう
    （2026-09-08⑭ の教訓。描画関数だけ足しても動かない）2026-09-21 */
 function _isPh_(w){return String((w&&w.qtype)||'')==='phonics';}
 /* 英検の聞き取り 第1部型（会話の応答）・第3部型（絵に合う英文）2026-09-17 川上さん承認（20260917_モック_英検5級_聞き取り第1部型と第3部型.html）。
    選択肢も音だけで出す＝本番と同じ。_isSentQ_ に入れて 1行1問・採点の向き e2j にそろえる（文の問題と同じ扱い） */
-function _isLx_(w){var q=String((w&&w.qtype)||'');return q==='listen_resp'||q==='listen_pic';}
+function _isLx_(w){var q=String((w&&w.qtype)||'');return q==='listen_resp'||q==='listen_pic'||q==='listen_print';}   /* listen_print＝第2部型（会話と質問・選択肢は文字）2026-09-27 §17r 5r-12 */
 function _isOneShot_(w){var q=String((w&&w.qtype)||'');return q==='table_fill'||q==='image_fill'||_isSentQ_(w);} // 英語=毎日は発音1/復習は意味2、用語=英語3から
 /* 語の4択の誤答は、語の行からだけ作る 2026-09-09 川上さん指摘
    1行1問のタイプ（表・図・文の3種）は english / japanese が「語と意味」ではなく設問文なので、
@@ -5921,9 +5926,10 @@ function _shufNot_(a){var b=shuffle(a);for(var k=0;k<20&&b.join('')===a.join('
    正＝承認モック モック\20260925_モック_英検5級_解き方と直し方.html */
 var _LX_FCARD_={
   r:{t:'英文を聞いて、返事を選ぶ',s:['最初の英文をよく聞く','1・2・3 を全部聞く','英文に合う返事を選ぶ'],ex:['Where is my bag?（わたしのかばんはどこ？）→ 場所を答える','','']},
+  l2:{t:'会話を聞いて、質問に答える',s:['先に選択肢を読む','質問の最初の語をつかむ','分からなければ、そこだけもう一回'],ex:['','What time?（何時？）→ 時刻を聞く','']},   /* 第2部型（4-46 ②と同じ文面）2026-09-27 */
   p:{t:'絵に合う英文を選ぶ',s:['先に絵を見て、だれが何をしているかつかむ','1・2・3 を聞き、絵とちがうものを消す','残った1つを選ぶ'],ex:['','絵は「走っている」→ swimming（泳いでいる）はちがう','']}
 };
-var _LX_MEMO_={listen_resp:'最初の英文をよく聞く → 全部聞く → 合う返事を選ぶ',listen_pic:'絵を見る → ちがうものを消す → 残りを選ぶ'};
+var _LX_MEMO_={listen_resp:'最初の英文をよく聞く → 全部聞く → 合う返事を選ぶ',listen_pic:'絵を見る → ちがうものを消す → 残りを選ぶ',listen_print:'先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ'};
 function _isIntroW_(w){try{var q=tfParse(w);return !!(q&&(q.intro===1||q.intro==='1'||q.intro===true));}catch(e){return false;}}
 function _qlDropIntro_(d){
   try{((d&&d.data&&d.data.materials)||[]).forEach(function(g){if(g&&g.parts)g.parts=g.parts.filter(function(p){return !/-in$/.test(String((p&&p.part_id)||''));});});}catch(e){}
@@ -6351,15 +6357,19 @@ function renderLX_(s,w,q,pl){
   var _md=String((q&&q.mode)||'');
   if(_md==='pic_ja'||_md==='pic_yn'){_renderLXIntro_(s,w,q,pl,_md);return;}
   var isResp=(String(w.qtype||'')==='listen_resp');
+  /* 第2部型（listen_print）2026-09-27 §17r 5r-12・承認モック 20260924_モック_英検4級_新形式3つ.html ①
+     ＝会話（lines）→ Question（pl.q）を順に鳴らす。選択肢は文字で最初から見せ、質問が読み終わってから押せる（4-36 ⑩）。選択肢の音は鳴らさない */
+  var isPrint=(String(w.qtype||'')==='listen_print'),qq=isPrint?((pl&&pl.q)||{}):null;
   var ask=$('sent-ask'),body=$('sent-body'),box=$('sent-choices');
-  var lines=isResp?((pl&&pl.lines)||[]):[], chs=(pl&&pl.choices)||[];
+  var lines=(isResp||isPrint)?((pl&&pl.lines)||[]):[], chs=(pl&&pl.choices)||[];
   $('step-sent').style.display='block';
   hideQTimer();
   if(chs.length<2){   /* 素材が取れない＝出題できない。落とさずに次へ進めるよう、答えだけ見せる */
     ask.innerHTML='';body.innerHTML='<div class="sq-ja">'+esc(w.english||'')+'</div>';box.innerHTML='';
     _quizAns(s,w,false,0,'e2j');afterAnswer(false,w.english||'','','',s.onNext);return;
   }
-  ask.innerHTML=isResp
+  ask.innerHTML=isPrint?'<ruby>会話<rt class="uf">かいわ</rt></ruby>と<ruby>質問<rt class="uf">しつもん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、<b><ruby>答<rt class="uf">こた</rt></ruby>え</b>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
+    :isResp
     ?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、<b><ruby>返事<rt class="uf">へんじ</rt></ruby></b>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
     :'<ruby>絵<rt class="uf">え</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>う<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
   var order=shuffle(chs.map(function(c,i){return i;}));
@@ -6375,12 +6385,21 @@ function renderLX_(s,w,q,pl){
       }).join('')+'</div>'
       +'<div class="kw-gap"><span></span><b>ここまでが<ruby>英文<rt class="uf">えいぶん</rt></ruby></b><span></span></div>'
       +'<div class="kw-sec pick"><span class="kw-secl pick"><ruby>返事<rt class="uf">へんじ</rt></ruby></span><span class="kw-secn">1・2・3 を<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>合<rt class="uf">あ</rt></ruby>うものを<ruby>選<rt class="uf">えら</rt></ruby>ぶ</span></div>';
+  }else if(isPrint){
+    h='<div class="kw-sec"><span class="kw-secl"><ruby>聞<rt class="uf">き</rt></ruby>こえる<ruby>英文<rt class="uf">えいぶん</rt></ruby></span></div>'
+      +'<div class="lx-talk">'+lines.map(function(l,i){
+        var b=(String(l.sp)==='B'||String(l.sp)==='★');
+        return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+'">'+esc(String(l.sp||''))+'</span>'+(q.show_line?'<span class="lx-en">'+esc(String(l.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div>';
+      }).join('')
+      +'<div class="lx-bub" id="lx-lqq"><span class="lx-who q">Q</span>'+(q.show_line?'<span class="lx-en">'+esc(String(qq.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div></div>'
+      +'<div class="kw-sec pick"><span class="kw-secl pick"><ruby>答<rt class="uf">こた</rt></ruby>え</span><span class="kw-secn"><ruby>質問<rt class="uf">しつもん</rt></ruby>が<ruby>終<rt class="uf">お</rt></ruby>わったら、<ruby>合<rt class="uf">あ</rt></ruby>うものを<ruby>選<rt class="uf">えら</rt></ruby>ぶ</span></div>';
   }else{
     h='<div class="lx-pic"><img src="'+esc(String(pl.img||''))+'" alt="" onerror="this.parentNode.classList.add(\'noimg\');this.style.display=\'none\';"></div>';
   }
   body.innerHTML=h;
   box.classList.remove('g2');
-  box.innerHTML='<div class="lx-opts'+(isResp?' kw-opts':'')+'" id="lx-lq">'+order.map(function(ci,j){
+  box.innerHTML='<div class="lx-opts'+((isResp||isPrint)?' kw-opts':'')+'" id="lx-lq">'+order.map(function(ci,j){
+      if(isPrint)return '<div class="lx-opt" id="lx-o'+j+'"><button type="button" class="choice lx-ch lx-pr" data-j="'+j+'" data-val="'+(j+1)+'" disabled><span class="lx-prn">'+(j+1)+'</span><span class="lx-prt">'+esc(String((chs[ci]||{}).en||''))+'</span></button></div>';
       return '<div class="lx-opt" id="lx-o'+j+'"><button type="button" class="lx-play" data-j="'+j+'" disabled aria-label="'+(j+1)+'番を聞く">'+_LX_IC_.play+'</button>'
         +'<button type="button" class="choice lx-ch" data-j="'+j+'" data-val="'+(j+1)+'" disabled>'+(j+1)+'</button></div>';
     }).join('')+'</div>'
@@ -6400,14 +6419,15 @@ function renderLX_(s,w,q,pl){
     [].forEach.call(box.querySelectorAll('.lx-ch'),function(b){b.disabled=(!on||answered||b.classList.contains('tried'));});};
   function playAll(){
     var steps=[];
-    lines.forEach(function(l,i){steps.push({it:l,gap:(i===lines.length-1?1400:350),on:lit('lx-l'+i)});});   /* 英文と選択肢のあいだは 1400ms（確定50） */
-    order.forEach(function(ci,j){steps.push({it:chs[ci],gap:500,on:(function(jj){return function(){lit('lx-o'+jj)();var e=$('lx-lq');if(e)e.classList.add('now');if(st&&!answered)st.textContent=(jj+1)+'番を読んでいます';};})(j)});});
+    lines.forEach(function(l,i){steps.push({it:l,gap:(i===lines.length-1?(isPrint?800:1400):350),on:lit('lx-l'+i)});});   /* 英文と選択肢のあいだは 1400ms（確定50） */
+    if(isPrint){steps.push({it:qq,gap:0,on:lit('lx-lqq')});}   /* 第2部型＝会話のあとに Question。選択肢は読まない */
+    else order.forEach(function(ci,j){steps.push({it:chs[ci],gap:500,on:(function(jj){return function(){lit('lx-o'+jj)();var e=$('lx-lq');if(e)e.classList.add('now');if(st&&!answered)st.textContent=(jj+1)+'番を読んでいます';};})(j)});});
     if(!answered){setBtns(false);stopQTimer();if(st)st.textContent='英文を聞いています';}
     return _lxRunSeq_(steps).then(function(ok){
       if(!ok||!alive())return;
       clear();setBtns(true);
       if(answered){if(st)st.textContent='';return;}
-      if(st)st.textContent='番号を選んでください';
+      if(st)st.textContent=isPrint?'答えを選んでください':'番号を選んでください';
       if(!started){started=true;_t0=Date.now();}
       if(_tl>0&&!retried)startQTimer(_qtSecFinal_(_tl,[],true),function(){finish(false,null);});
     });
@@ -6439,7 +6459,7 @@ function renderLX_(s,w,q,pl){
     if(tip)tip.classList.remove('show');
     if(st)st.textContent=retried?(ok?'選び直して正解！':''):'';
     afterAnswer(first,(chs[0].en||w.english||''),w.kaisetsu,'',s.onNext);
-    _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok,{lit:lit,clear:clear,alive:alive,tip:tip});
+    _lxExplain_(s,w,pl,(isResp||isPrint),lines,chs,order,retried,ok,{lit:lit,clear:clear,alive:alive,tip:tip,print:isPrint,q:qq});
   }
   $('lx-again').onclick=function(){playAll();};
   [].forEach.call(box.querySelectorAll('.lx-play'),function(b){
@@ -6513,9 +6533,13 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
       +((hasC&&l.c)?_lxChunks_(l.c):'<b>'+esc(String(l.en||''))+'</b>')
       +((hasC&&l.c&&!pl.line_kja&&_lxSameJa_(l.c,l.ja))?'':'<small>'+(hasC?_lxJaMark_(l.ja,pl.line_kja):_jaRubyIf_(String(l.ja||'')))+'</small>')+'</div></div>';
   });
+  var qq=(H&&H.print)?(H.q||{}):null;   /* 第2部型＝会話のあとに Question の行（2026-09-27） */
+  if(qq&&(qq.en||qq.c))xh+='<div class="lx-xl" id="lx-x-q"><span class="lx-tg" style="background:#6b7280">Q</span><div class="lx-xb">'
+      +((hasC&&qq.c)?_lxChunks_(qq.c):'<b>'+esc(String(qq.en||''))+'</b>')
+      +((hasC&&qq.c&&_lxSameJa_(qq.c,qq.ja))?'':'<small>'+_jaRubyIf_(String(qq.ja||''))+'</small>')+'</div></div>';
   if(isResp&&!hasC)xh+='<div class="lx-xh"><ruby>選択肢<rt class="uf">せんたくし</rt></ruby></div>';
   order.forEach(function(ci,j){var c=chs[ci]||{};
-    xh+='<div class="lx-xl'+(ci===0?' ok':'')+'" id="lx-x-c'+j+'"><button type="button" class="lx-play sm" data-x="'+j+'" aria-label="'+(j+1)+'番を聞く">'+_LX_IC_.play+'</button><div class="lx-xb">'
+    xh+='<div class="lx-xl'+(ci===0?' ok':'')+'" id="lx-x-c'+j+'">'+(qq?'':'<button type="button" class="lx-play sm" data-x="'+j+'" aria-label="'+(j+1)+'番を聞く">'+_LX_IC_.play+'</button>')+'<div class="lx-xb">'
       +'<span class="lx-no">'+(j+1)+(ci===0?' <span class="lx-okm">○</span>':'')+'</span>'
       +((hasC&&c.c)?_lxChunks_(c.c):'<b>'+esc(String(c.en||''))+'</b>')
       +((hasC&&c.c&&!(ci===0&&pl.choice_kja)&&_lxSameJa_(c.c,c.ja))?'':'<small>'+((hasC&&ci===0)?_lxJaMark_(c.ja,pl.choice_kja):_jaRubyIf_(String(c.ja||'')))+'</small>')+'</div></div>';
@@ -6531,7 +6555,8 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
   var nx=$('ex-next'),selfDone=false,self=$('lx-self'),hd=$('lx-hd'),wt=$('lx-wt');
   var steps=function(){var st=[];
     if(isResp)lines.forEach(function(l,i){st.push({it:l,gap:900,on:H.lit('lx-x-l'+i)});});
-    order.forEach(function(ci,j){st.push({it:chs[ci],gap:400,on:H.lit('lx-x-c'+j)});});
+    if(qq)st.push({it:qq,gap:0,on:H.lit('lx-x-q')});   /* 第2部型は選択肢を読まない */
+    else order.forEach(function(ci,j){st.push({it:chs[ci],gap:400,on:H.lit('lx-x-c'+j)});});
     return st;};
   [].forEach.call(xa.querySelectorAll('.lx-play'),function(b){b.onclick=function(){var j=+b.getAttribute('data-x');
     _lxRunSeq_([{it:chs[order[j]],on:H.lit('lx-x-c'+j)}]).then(function(){H.clear();});};});
@@ -7865,6 +7890,14 @@ function _qrvItem_(s,w,mine){
           +'<small>'+(hasC?_lxJaMark_(l.ja,pl.line_kja):_jaRubyIf_(String(l.ja||'')))+'</small></div></div>';}).join('')+'</div>';
     h+=_qrvAns_(mine,String(c0.en||w.english||''),(mine?_qrvChJa_(chs,mine):''),String(c0.ja||''))+_qrvKai_(w.kaisetsu);
     play=function(){var st=ls.map(function(l){return {it:l,gap:350};});if(c0.en)st.push({it:c0,gap:0});_lxRunSeq_(st);};
+  }else if(qt==='listen_print'){   /* 第2部型（会話と質問）2026-09-27：会話＋Question＋答え。音は会話→質問の順 */
+    var chs2=pl.choices||[],c02=chs2[0]||{},ls2=(pl.lines||[]),qq2=pl.q||{},hasC2=!!(c02.c&&c02.c.length||(ls2[0]&&ls2[0].c));
+    h+=_qrvAgain_();
+    h+='<div class="qrv-talk">'+ls2.concat([{sp:'Q',en:qq2.en,ja:qq2.ja,c:qq2.c}]).map(function(l){
+        return '<div class="qrv-line"><span class="lx-tg">'+esc(String(l.sp||''))+'</span><div class="lx-xb">'+((hasC2&&l.c)?_lxChunks_(l.c):esc(String(l.en||'')))
+          +'<small>'+(hasC2&&l.sp!=='Q'?_lxJaMark_(l.ja,pl.line_kja):_jaRubyIf_(String(l.ja||'')))+'</small></div></div>';}).join('')+'</div>';
+    h+=_qrvAns_(mine,String(c02.en||w.english||''),(mine?_qrvChJa_(chs2,mine):''),String(c02.ja||''))+_qrvKai_(w.kaisetsu);
+    play=function(){var st=ls2.map(function(l){return {it:l,gap:350};});if(qq2.en||qq2.audio)st.push({it:qq2,gap:0});_lxRunSeq_(st);};
   }else if(qt==='phonics'){
     h='<div class="qrv-q">'+esc(pl.word||'')+'<small>'+esc(pl.read||'')+'</small></div>'+_qrvAns_(mine,String(w.english||''))+_qrvKai_(w.kaisetsu||_phKai_(pl,String(q.mode||'')));
     play=function(){_phWhole_(pl);};
@@ -9040,7 +9073,7 @@ function _pvBarSync_(){
   var b=$('pv-pos'); if(!b)return;
   var it=_PV_.list[_PV_.at]||{};
   var w=(_PV_.d&&(_PV_.d.words||[])[it.at])||{}, q=String(w.qtype||'');
-  var lb=it.card?'カード':(q==='listen'?'聞く':q==='listen_resp'?'会話':q==='listen_pic'?'絵':q==='sentence_fill'?'穴うめ':q==='reorder'?'語順'
+  var lb=it.card?'カード':(q==='listen'?'聞く':q==='listen_resp'?'会話':q==='listen_pic'?'絵':q==='listen_print'?'会話と質問':q==='sentence_fill'?'穴うめ':q==='reorder'?'語順'
     :q==='image_fill'?'図':q==='table_fill'?'表':(it.step===2?'意味':(it.step===3?'英語':'問題')));
   b.textContent=(_PV_.at+1)+' / '+_PV_.list.length+'　'+lb;
 }

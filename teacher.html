@@ -2757,7 +2757,7 @@ function _pqKind_(it){
   if(t==='reorder')       return _pqPack_(it)?'order':'';
   if(t==='table_fill')    return _pqPack_(it)?'table':'';
   if(t==='listen')        return 'listen';                     /* 段7。いまは紙にしない（音が要る） */
-  if(t==='listen_resp'||t==='listen_pic') return _pqPack_(it)?'lisx':'';   /* 英検 第1部型・第3部型（2026-09-17）*/
+  if(t==='listen_resp'||t==='listen_pic'||t==='listen_print') return _pqPack_(it)?'lisx':'';   /* 英検 第1部型・第3部型（2026-09-17）・第2部型 listen_print（2026-09-27）*/
   if(t==='dialog_fill')   return _pqPack_(it)?'dial':'';   /* 英検 大問2型（2026-09-18）*/
   if(t==='phonics')       return _pqPack_(it)?'ph':'';     /* 読み確認（2026-09-21・確定56）。素材が無いと音も読みも出せない */
   return '';
@@ -2940,7 +2940,8 @@ function _pqLisQHtml_(it,cls){
 /* 【2026-09-25・§17q 5-9／4-41 ⑥⑦】紙の見出しに刷る解き方の1行（生徒画面の解き方メモと同じ文） */
 var _PQ_FIX_='間違えたら：英文を見ながらもう一度聞く → 分からない語に印';
 var _PQ_HOW_={listen_resp:'解き方（英文への返事）：最初の英文をよく聞く → 全部聞く → 合う返事を選ぶ',
-              listen_pic:'解き方（絵に合う英文）：絵を見る → ちがうものを消す → 残りを選ぶ'};
+              listen_pic:'解き方（絵に合う英文）：絵を見る → ちがうものを消す → 残りを選ぶ',
+              listen_print:'解き方（会話と質問）：先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ'};
 /* ===== 英検の聞き取り 第1部型（listen_resp）・第3部型（listen_pic）2026-09-17 =====
    承認モック＝20260917_モック_英検5級_聞き取り第1部型と第3部型.html（紙のタブ）。
    ・問題の側＝番号の枠（1・2・3）だけ。第3部型は絵も出す。**英文は出さない**
@@ -2955,10 +2956,13 @@ function _pqLxOrder_(it){
   var a=chs.map(function(c,i){ return i; });
   for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
   var ans=a.indexOf(0);
-  return (_pqChoCache[k]={order:a, chs:chs, lines:(pk.pl.lines||[]), img:String(pk.pl.img||''), ans:ans, mark:String(ans+1)});
+  return (_pqChoCache[k]={order:a, chs:chs, lines:(pk.pl.lines||[]), img:String(pk.pl.img||''), ans:ans, mark:String(ans+1),
+    q:(pk.pl.q||null), print:(String(it.qtype||'')==='listen_print')});   /* 第2部型＝会話→Question・選択肢は文字（2026-09-27）*/
 }
 function _pqLxQHtml_(it,cls){
   var o=_pqLxOrder_(it); if(!o) return '';
+  /* 第2部型は本番どおり選択肢を印刷する（音は会話と質問だけ）2026-09-27 */
+  if(o.print) return '<div class="pq-dfcho">'+o.order.map(function(ci,j){ return (j+1)+' '+esc(String((o.chs[ci]||{}).en||'')); }).join('　／　')+'</div>';
   return (o.img?('<div class="pq-lxpic"><img src="'+esc(o.img)+'" alt="" onerror="this.style.visibility=\'hidden\'"></div>'):'')
     +'<div class="'+cls+'-cho">'+o.order.map(function(ci,j){ return '<span class="pq-lxn">'+(j+1)+'</span>'; }).join('')+'</div>';
 }
@@ -2966,6 +2970,7 @@ function _pqLxAText_(it){
   var o=_pqLxOrder_(it); if(!o) return String(it.english||'');
   var t=o.mark;
   if(o.lines.length) t+='　／　'+o.lines.map(function(l){ return String(l.sp||'')+': '+String(l.en||''); }).join('　');
+  if(o.q&&o.q.en) t+='　Question: '+String(o.q.en);   /* 第2部型 2026-09-27 */
   t+='　／　'+o.order.map(function(ci,j){ return (j+1)+' '+String((o.chs[ci]||{}).en||''); }).join('　');
   return t;
 }
@@ -2974,6 +2979,7 @@ function _pqLxSeq_(it){
   var o=_pqLxOrder_(it); if(!o) return [];
   var seq=[];
   o.lines.forEach(function(l){ seq.push({en:String(l.en||''),audios:(l.audio?[String(l.audio)]:[])}); });
+  if(o.print){ if(o.q) seq.push({en:String(o.q.en||''),audios:(o.q.audio?[String(o.q.audio)]:[])}); return seq; }   /* 第2部型＝会話→Question。選択肢は紙に印刷してあるので鳴らさない */
   o.order.forEach(function(ci){ var c=o.chs[ci]||{}; seq.push({en:String(c.en||''),audios:(c.audio?[String(c.audio)]:[])}); });
   return seq;
 }
@@ -3093,7 +3099,7 @@ function unifiedStudentHtml_(st, opts){
   var _lsN=0;
   items=items.filter(function(it){
     var _q=String(it.qtype||'');
-    if((_q==='listen_resp'||_q==='listen_pic')&&_pqKind_(it)!=='lisx'){ _lsN++; return false; }   /* 素材が取れない第1部型・第3部型＝紙にできない（2026-09-17）*/
+    if((_q==='listen_resp'||_q==='listen_pic'||_q==='listen_print')&&_pqKind_(it)!=='lisx'){ _lsN++; return false; }   /* 素材が取れない第1部型・第3部型＝紙にできない（2026-09-17）*/
     if(_q==='dialog_fill'&&_pqKind_(it)!=='dial'){ _lsN++; return false; }   /* 素材が取れない大問2型＝会話も選択肢も無い。出すと答えの英文だけが刷られる（2026-09-18）*/
     if(_q==='phonics'&&_pqKind_(it)!=='ph'){ _lsN++; return false; }   /* 素材が取れない読み確認＝音のかたまりも読みも無い（2026-09-21）*/
     if(_pqKind_(it)!=='listen') return true;
@@ -3184,8 +3190,8 @@ function unifiedStudentHtml_(st, opts){
       if(!_howDone[_hq]&&_PQ_HOW_[_hq]){ _howDone[_hq]=1; h+='<div class="up-how">'+esc(_PQ_HOW_[_hq])+'</div>';
         extra='<div class="up-fix">'+esc(_PQ_FIX_)+'</div>'; }   /* 答えの欄の下に直しの手順を1行（4-41 ⑥・2026-09-25 川上さん「イ」）*/
       /* 【2026-09-17】英検 第1部型・第3部型。先生が英文と3つの返事を読む（答えの欄が読み上げ原稿）。2026-09-23 第1部型を1発話にしたので見出しを「英文への返事」に */
-      var _isPic=(String(it.qtype||'')==='listen_pic');
-      qH='<div class="up-qtxt">'+n+'. 🔊 '+(_isPic?'絵に合う英文':'英文への返事')+' <span class="pq-lead2">（先生が読みます。'+(_isPic?'絵に合うもの':'返事として合うもの')+'を番号で答える）</span></div>'
+      var _isPic=(String(it.qtype||'')==='listen_pic'), _isPr=(String(it.qtype||'')==='listen_print');
+      qH='<div class="up-qtxt">'+n+'. 🔊 '+(_isPr?'会話と質問':(_isPic?'絵に合う英文':'英文への返事'))+' <span class="pq-lead2">（先生が読みます。'+(_isPr?'質問の答えとして合うもの':(_isPic?'絵に合うもの':'返事として合うもの'))+'を番号で答える）</span></div>'
         +_pqLxQHtml_(it,'up')+'<div class="up-lisans">答え <span class="up-lisbox"></span></div>';
     }else if(kind==='dial'){
       /* 【2026-09-18】英検 大問2型。会話2行＋選択肢4つ。ここは番号で答える（右に答えがある紙なので・確定47）。 */
@@ -3353,7 +3359,7 @@ function sheetKindOf_(it){
   /* 【2026-09-13j・段E】qtype を見て紙の形を決める。ここが「英文→訳」に化けていた原因（§3-4）。
      ★qtype が来ていない古いGASでは _pqKind_ が '' を返す＝下の今までどおりの判定に落ちる。 */
   var _pk=_pqKind_(it);
-  if((String(it.qtype||'')==='listen_resp'||String(it.qtype||'')==='listen_pic')&&_pk!=='lisx') return 'skip';   /* 素材が無い＝音も選択肢も無い（2026-09-17）*/
+  if((String(it.qtype||'')==='listen_resp'||String(it.qtype||'')==='listen_pic'||String(it.qtype||'')==='listen_print')&&_pk!=='lisx') return 'skip';   /* 素材が無い＝音も選択肢も無い（2026-09-17）*/
   if(String(it.qtype||'')==='dialog_fill'&&_pk!=='dial') return 'skip';   /* 素材が無い＝会話も選択肢も無い（2026-09-18）*/
   if(_pk==='fill')  return 'fill';
   if(_pk==='order') return 'order';
@@ -3383,7 +3389,7 @@ function fsQuestionOf_(it){
   if(k==='fill') return String(it.japanese||'');            /* 穴あき英文＋和訳（紙用・§5b） */
   if(k==='order')return 'ならべかえて文を作る';
   if(k==='listen')return '🔊 聞き取り（QRで音を聞いて、合うものを記号で）';
-  if(k==='lisx')  return (String(it.qtype||'')==='listen_pic')?'🔊 絵に合う英文（QRで音を聞いて、番号で）':'🔊 英文への返事（QRで音を聞いて、合う返事を番号で）';
+  if(k==='lisx')  return (String(it.qtype||'')==='listen_print')?'🔊 会話と質問（QRで音を聞いて、合うものを番号で）':(String(it.qtype||'')==='listen_pic')?'🔊 絵に合う英文（QRで音を聞いて、番号で）':'🔊 英文への返事（QRで音を聞いて、合う返事を番号で）';
   if(k==='ph')    return _pqPhLead_(it);
   if(k==='dial')  return '会話に合う英文を線の上に書く（選択肢を見ないで書けたら◎）';
   return fsIsEn_(it)?String(it.english||''):fsQText_(it.japanese);
@@ -5790,6 +5796,7 @@ function openMatPreview(mid){
         else if(w.qtype==='reorder')badge='<span class="qb snt">語順</span>';
         else if(w.qtype==='listen_resp')badge='<span class="qb snt">会話</span>';   /* 英検 第1部型 2026-09-17 */
         else if(w.qtype==='listen_pic')badge='<span class="qb snt">絵</span>';     /* 英検 第3部型 2026-09-17 */
+        else if(w.qtype==='listen_print')badge='<span class="qb snt">会話と質問</span>';   /* 英検 第2部型 2026-09-27 */
         else if(w.qtype==='phonics')badge='<span class="qb snt">読み確認</span>';  /* 架け橋 読み確認 2026-09-22 */
         h+='<div class="mp-word">';
         h+='<div class="mp-q"><span class="no">'+(i+1)+'</span><span style="flex:1"></span>'+badge+'</div>';
@@ -5807,13 +5814,14 @@ function openMatPreview(mid){
         }else if(w.qtype==='sentence_fill'){
           h+='<div class="mp-row"><span class="mpl">出し方</span><span class="mp-ro-note">穴うめ：英文の1語を空欄にして、入る語を4つから選ばせます。空欄の場所は qdata の blank（何語目か）で決まります</span></div>';
           h+=mpEdRow_(w.id,'japanese','問題文',w.japanese);
-        }else if(w.qtype==='listen_resp'||w.qtype==='listen_pic'){
+        }else if(w.qtype==='listen_resp'||w.qtype==='listen_pic'||w.qtype==='listen_print'){
           var _lxp=null; try{ var _lxa=(_mpAssets||{})[w.asset]; _lxp=_lxa?JSON.parse(_lxa.payload||'{}'):null; }catch(_e){ _lxp=null; }
-          h+='<div class="mp-row"><span class="mpl">出し方</span><span class="mp-ro-note">'+(w.qtype==='listen_resp'
+          h+='<div class="mp-row"><span class="mpl">出し方</span><span class="mp-ro-note">'+(w.qtype==='listen_print'?'会話と質問（英検 第2部型）：会話と Question を音で聞かせ、印刷された4つの英文から選ばせます（選択肢は最初から見える）':'')+(w.qtype==='listen_print'?'':(w.qtype==='listen_resp'
             ?'会話の応答（英検 第1部型）：英文を1つ聞かせたあと、返事を音だけで3つ読み、番号で選ばせます。英文は画面に出ません（本番と同じ1発話・確定52）'
-            :'絵に合う英文（英検 第3部型）：絵を見せて、英文を音だけで3つ読み、番号で選ばせます。英文は画面に出ません')+'</span></div>';
+            :'絵に合う英文（英検 第3部型）：絵を見せて、英文を音だけで3つ読み、番号で選ばせます。英文は画面に出ません'))+'</span></div>';
           if(_lxp){
             var _lxh=(_lxp.lines||[]).map(function(l){ return esc(String(l.sp||''))+'：'+esc(String(l.en||''))+'（'+esc(String(l.ja||''))+'）'; }).join('<br>');
+            if(_lxp.q&&_lxp.q.en) _lxh+=(_lxh?'<br>':'')+'Question：'+esc(String(_lxp.q.en||''))+'（'+esc(String(_lxp.q.ja||''))+'）';   /* 第2部型 2026-09-27 */
             _lxh+=(_lxh?'<br>':'')+(_lxp.choices||[]).map(function(c,ci){ return (ci===0?'○ ':'× ')+esc(String(c.en||''))+'（'+esc(String(c.ja||''))+'）'; }).join('<br>');
             h+='<div class="mp-row"><span class="mpl">中身</span><span class="mp-ro-note">'+_lxh+'</span></div>';
             if(_lxp.img) h+='<div class="mp-fig"><img src="'+esc(String(_lxp.img))+'" alt="絵" loading="lazy" onclick="mpZoom_(this.src)" onerror="this.style.opacity=.25;this.style.cursor=\'default\';this.alt=\'画像が見つかりません（未pushの可能性）\';"></div>';
@@ -9382,7 +9390,7 @@ var RPWK_DEF_=[
   {k:'go',g:1,l:'語',p:1},{k:'table_fill',g:1,l:'表',p:1},{k:'listen',g:1,l:'聞き取り',p:1},
   {k:'sentence_fill',g:2,l:'穴うめ',x:'筆記1',p:1},{k:'dialog_fill',g:2,l:'会話の空所',x:'筆記2',p:1},{k:'reorder',g:2,l:'語順',x:'筆記3',p:1},
   {k:'r4a',g:2,l:'掲示',x:'筆記4A',p:0},{k:'r4b',g:2,l:'メール',x:'筆記4B',p:0},{k:'r4c',g:2,l:'説明文',x:'筆記4C',p:0},
-  {k:'listen_resp',g:3,l:'会話の応答',x:'第1部',p:1},{k:'l2',g:3,l:'会話と質問',x:'第2部',p:0},
+  {k:'listen_resp',g:3,l:'会話の応答',x:'第1部',p:1},{k:'l2',g:3,l:'会話と質問',x:'第2部',p:1},
   {k:'listen_pic',g:3,l:'絵と英文',x:'第3部',p:1},{k:'l3',g:3,l:'話と質問',x:'第3部',p:0}];
 var RPWK_GN_={1:'練習の形',2:'筆記',3:'リスニング'};
 var RPWK_INTRO_={listen_resp:1,listen_pic:1,r4a:1,r4b:1,r4c:1,l2:1,l3:1};   /* 導入パートがある形式（4-42・5-2） */
