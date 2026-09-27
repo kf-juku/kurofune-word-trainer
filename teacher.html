@@ -2999,13 +2999,20 @@ function _pqDfOrder_(it){
   var ans=a.indexOf(0);
   return (_pqChoCache[k]={order:a, chs:chs, lines:(pk.pl.lines||[]), ans:ans, mark:String(ans+1)});
 }
+/* 【2026-09-27】英検 大問1型＝同じ dialog_fill で、選択肢が1語ずつのもの（語を入れる）。
+   選択肢がみな空白なしの1語なら「語」、そうでなければ大問2型の「英文」。話し手が空の行（1文だけの問題）は「A:」を付けない */
+function _pqDfIsWord_(it){
+  var pk=_pqPack_(it); var chs=(pk&&pk.pl.choices)||[]; if(chs.length<2) return false;
+  for(var i=0;i<chs.length;i++){ if(/\s/.test(String((chs[i]||{}).en||'').trim())) return false; }
+  return true;
+}
 function _pqDfQHtml_(it,cls){
   var o=_pqDfOrder_(it); if(!o) return '';
   var h=o.lines.map(function(l){
     var en=String(l.en||''), who=esc(String(l.sp||''));
     var parts=en.split(_DF_HOLE_P_);
     var body=(parts.length>1)?(esc(parts[0])+'<span class="pq-dfhole"></span>'+esc(parts.slice(1).join(''))):esc(en);
-    return '<div class="pq-dfl"><span class="pq-dfw">'+who+':</span>'+body+'</div>';
+    return '<div class="pq-dfl">'+(who?'<span class="pq-dfw">'+who+':</span>':'')+body+'</div>';
   }).join('');
   h+='<div class="pq-dfcho">'+o.order.map(function(ci,j){
       return (j+1)+' '+esc(String((o.chs[ci]||{}).en||'')); }).join('　／　')+'</div>';
@@ -3195,7 +3202,7 @@ function unifiedStudentHtml_(st, opts){
         +_pqLxQHtml_(it,'up')+'<div class="up-lisans">答え <span class="up-lisbox"></span></div>';
     }else if(kind==='dial'){
       /* 【2026-09-18】英検 大問2型。会話2行＋選択肢4つ。ここは番号で答える（右に答えがある紙なので・確定47）。 */
-      qH='<div class="up-qtxt">'+n+'. 会話に合う英文をえらぶ</div>'+_pqDfQHtml_(it,'up')
+      qH='<div class="up-qtxt">'+n+'. '+(_pqDfIsWord_(it)?'（　）に入る語をえらぶ':'会話に合う英文をえらぶ')+'</div>'+_pqDfQHtml_(it,'up')
         +'<div class="up-lisans">答え <span class="up-lisbox"></span></div>';
     }else if(kind==='ph'){
       /* 【2026-09-21・確定56】読み確認。チェックプリントは**先生が読み上げる**紙なので、
@@ -3391,7 +3398,7 @@ function fsQuestionOf_(it){
   if(k==='listen')return '🔊 聞き取り（QRで音を聞いて、合うものを記号で）';
   if(k==='lisx')  return (String(it.qtype||'')==='listen_print')?'🔊 会話と質問（QRで音を聞いて、合うものを番号で）':(String(it.qtype||'')==='listen_pic')?'🔊 絵に合う英文（QRで音を聞いて、番号で）':'🔊 英文への返事（QRで音を聞いて、合う返事を番号で）';
   if(k==='ph')    return _pqPhLead_(it);
-  if(k==='dial')  return '会話に合う英文を線の上に書く（選択肢を見ないで書けたら◎）';
+  if(k==='dial')  return _pqDfIsWord_(it)?'（　）に入る語を線の上に書く（選択肢を見ないで書けたら◎）':'会話に合う英文を線の上に書く（選択肢を見ないで書けたら◎）';
   return fsIsEn_(it)?String(it.english||''):fsQText_(it.japanese);
 }
 /* 【2026-09-13j・段E】穴うめ・語順・表は、いままでの英語の向きと**逆**（english が答え）。

@@ -6590,7 +6590,14 @@ function _dfLineHtml_(l,i,fill){
   var en=String((l&&l.en)||''),b=(i>0);
   var txt=fill?en.replace(_DF_HOLE_,String(fill)):en;
   var h=esc(txt).replace(_DF_HOLE_,'<span class="df-hole"></span>');
-  return '<div class="df-bub"><span class="df-who '+(b?'b':'a')+'">'+esc(String((l&&l.sp)||''))+'</span><span class="df-line">'+h+'</span></div>';
+  var sp=String((l&&l.sp)||'');   /* 話し手が空＝1文だけの問題（大問1型）。名札を出さない 2026-09-27 */
+  return '<div class="df-bub">'+(sp?'<span class="df-who '+(b?'b':'a')+'">'+esc(sp)+'</span>':'')+'<span class="df-line">'+h+'</span></div>';
+}
+/* 【2026-09-27】英検 大問1型＝選択肢がみな1語（空白なし）の dialog_fill。問いかけを「（　）に入る語」にする */
+function _dfIsWord_(pl){
+  var c=(pl&&pl.choices)||[]; if(c.length<2)return false;
+  for(var i=0;i<c.length;i++){ if(/\s/.test(String((c[i]&&c[i].en)||'').trim()))return false; }
+  return true;
 }
 /* 答え合わせ＝正解を入れた会話を英文と訳で出し、1回鳴らす。▶ は答えたあとも押せる */
 function _dfAfter_(w,pl){
@@ -6601,8 +6608,9 @@ function _dfAfter_(w,pl){
             ja:String((l&&l.ja)||'').replace(_DF_HOLE_,String(_dfJaOf_(pl,ans)||'')),audio:(l&&l.audio)||''};
   });
   var xa=$('ex-audio'); if(!xa)return;
-  xa.innerHTML='<div class="lx-xh"><ruby>会話<rt class="uf">かいわ</rt></ruby></div>'
-    +full.map(function(l){return '<div class="lx-xl"><b>'+esc(l.sp)+'：</b>'+esc(l.en)+'<small>'+_jaRubyIf_(l.ja)+'</small></div>';}).join('')
+  var one=(full.length===1&&!full[0].sp);   /* 1文だけの問題（大問1型）＝見出しは「英文」、名札なし */
+  xa.innerHTML='<div class="lx-xh">'+(one?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>':'<ruby>会話<rt class="uf">かいわ</rt></ruby>')+'</div>'
+    +full.map(function(l){return '<div class="lx-xl">'+(l.sp?'<b>'+esc(l.sp)+'：</b>':'')+esc(l.en)+'<small>'+_jaRubyIf_(l.ja)+'</small></div>';}).join('')
     +'<button type="button" class="ex-spk" id="df-spk"><i class="ti ti-volume"></i><span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
   xa.style.display='';
   var play=function(){_lxRunSeq_(full.map(function(l){return {it:l,gap:300};}));};
@@ -6622,7 +6630,9 @@ function renderDF_(s,w,pl,_tl){
     ask.innerHTML='';body.innerHTML='<div class="sq-ja">'+esc(w.english||'')+'</div>';box.innerHTML='';
     _quizAns(s,w,false,0,'e2j');afterAnswer(false,w.english||'','','',s.onNext);return;
   }
-  ask.innerHTML='<ruby>会話<rt class="uf">かいわ</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>う<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
+  ask.innerHTML=_dfIsWord_(pl)
+    ?'（　）に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語<rt class="uf">ご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
+    :'<ruby>会話<rt class="uf">かいわ</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>う<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
   body.innerHTML='<div class="df-talk">'+lines.map(function(l,i){return _dfLineHtml_(l,i,null);}).join('')+'</div>';
   buildChoices('sent-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
     {fig:true,fixedChoices:chs.map(function(c){return String(c.en||'');}),timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext,
@@ -7878,7 +7888,7 @@ function _qrvItem_(s,w,mine){
     var full=lines.map(function(l){var en=String((l&&l.en)||'');return {sp:String((l&&l.sp)||''),en:(_DF_HOLE_.test(en)?en.replace(_DF_HOLE_,ans):en),audio:(l&&l.audio)||''};});
     h='<div class="qrv-talk">'+lines.map(function(l,i){var en=String((l&&l.en)||''),ja=String((l&&l.ja)||'');
         var eh=_DF_HOLE_.test(en)?esc(en).replace(_DF_HOLE_,'<span class="qrv-blank">'+esc(ans)+'</span>'):esc(en);
-        return '<div class="qrv-line"><span class="df-who '+(i>0?'b':'a')+'">'+esc(String((l&&l.sp)||''))+'</span><div>'+eh+'<small>'+_jaRubyIf_(ja.replace(_DF_HOLE_,aja))+'</small></div></div>';}).join('')+'</div>'
+        return '<div class="qrv-line">'+((l&&l.sp)?'<span class="df-who '+(i>0?'b':'a')+'">'+esc(String(l.sp))+'</span>':'')+'<div>'+eh+'<small>'+_jaRubyIf_(ja.replace(_DF_HOLE_,aja))+'</small></div></div>';}).join('')+'</div>'
       +_qrvAns_(mine,ans,(mine?_dfJaOf_(pl,mine):''),aja)+_qrvKai_(w.kaisetsu);
     play=function(){_lxRunSeq_(full.map(function(l){return {it:l,gap:300};}));};
   }else if(qt==='listen_resp'||qt==='listen_pic'){
