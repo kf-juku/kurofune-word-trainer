@@ -1586,9 +1586,28 @@ mark.lx-mk{background:#fff3c4;color:inherit;border-radius:3px;padding:0 2px;}
    カード本文と問題文には日本語も色も足さない。語の意味と音はここにまとめる。
    一覧は人が書かない＝カードの :: 直訳と {{英語|日本語}}、文の tokens/gloss から導く。 */
 .wl-bar{display:flex;justify-content:flex-end;margin:2px 0 7px}
-.wl-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 13px;border:none;border-radius:12px;
-  background:var(--accent);color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;
-  box-shadow:0 3px 10px rgba(10,108,255,.28);cursor:pointer}
+.wl-btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px 0 10px;border:1.5px solid var(--accent);border-radius:12px;
+  background:var(--accent-soft);color:var(--accent);font-family:inherit;font-size:13px;font-weight:800;cursor:pointer}   /* §17s-9 枠つきの薄い青＋語の数 2026-09-28 */
+.wl-btn .wl-n{font-family:'Manrope',sans-serif;font-size:11px;font-weight:800;background:var(--accent);color:#fff;border-radius:8px;padding:1px 6px;line-height:1.5}
+/* ===== 押すと開くカード（§17s）2026-09-28 ===== */
+.tk{cursor:pointer;-webkit-tap-highlight-color:transparent;background:rgba(120,128,145,.13);border-radius:6px;padding:1px 5px;white-space:nowrap;color:inherit;font-weight:inherit}
+[data-theme="dark"] .tk{background:rgba(255,255,255,.10)}
+.tk .tk-ic{font-size:.8em;margin-left:3px;color:var(--sub);vertical-align:-1px}
+.tkw{cursor:pointer;border-radius:6px;-webkit-tap-highlight-color:transparent}
+.tk.on,.tkw.on{background:var(--accent-soft);color:var(--accent)}
+.tk-lsp{display:none;border:none;background:none;color:var(--sub);width:32px;height:32px;border-radius:10px;font-size:18px;cursor:pointer;flex:none;align-self:center;padding:0;vertical-align:middle;font-family:inherit}
+.exline.ready>.tk-lsp,p.exp.ready>.tk-lsp{display:inline-flex;align-items:center;justify-content:center}
+.tk-pop{position:absolute;z-index:70;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(20,24,40,.18);padding:12px 12px 12px 14px;display:flex;align-items:center;gap:12px;animation:tkIn .14s ease-out;box-sizing:border-box}
+@keyframes tkIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.tk-pop::before{content:'';position:absolute;top:-7px;left:var(--ax,40px);width:12px;height:12px;background:var(--surface);border-left:1px solid var(--line);border-top:1px solid var(--line);transform:rotate(45deg)}
+.tk-pop .tk-tx{flex:1;min-width:0}
+.tk-pop .tk-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-size:19px;font-weight:800;line-height:1.35;word-break:break-word}
+.tk-pop .tk-ja{font-size:14px;color:var(--sub);font-weight:600;margin-top:2px;line-height:1.5}
+.tk-pop .tk-sp{flex:none;width:44px;height:44px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:21px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tk-coach{position:absolute;z-index:71;max-width:calc(100vw - 16px);background:var(--ink);color:var(--surface);font-size:12.5px;font-weight:700;border-radius:10px;padding:8px 12px;box-shadow:0 6px 18px rgba(0,0,0,.2);animation:tkIn .2s ease-out;box-sizing:border-box}
+.tk-coach::before{content:'';position:absolute;top:-6px;left:var(--ax,16px);border:6px solid transparent;border-top:none;border-bottom-color:var(--ink)}
+.tk-coach b{color:var(--gold)}
+
 .wl-btn i{font-size:15px}
 .wl-btn:active{transform:scale(.96)}
 .wl-btn.pulse{animation:wlpulse 1.1s ease-in-out 2}
@@ -5110,6 +5129,129 @@ function _sumRender_(s){
    中断からの再開でも出さない。 */
 var _ptHidden_=null;
 var _PT_YOMI_=/[（(]([ぁ-んァ-ヶーゝゞ・]+)[）)]/;
+/* ===== 押すと開くカード（要件定義書_英検教材 §17s・承認モック モック\20260928_モック_カードの英語を押すと開く.html の案I）2026-09-28 =====
+   ・押せる英語＝うすい灰色の下地＋灰色のスピーカー印。字は本文と同じ色・同じ太さ（青や太字にしない＝「大事な語」に見せない）
+   ・押すと下に小さなカード（英語・日本語・スピーカー）が開き、音が1回鳴る。外を押すと閉じる
+   ・カードの本文の {{英語|日本語}} は、_ptParse_ で印（＋番号の1文字＋）に置きかえ、描いたあと _tkRender_ で差しかえる。
+     意味の日本語を、ふりがなの辞書や（よみ）の置換に通さないため
+   ・例文・会話の行は、穴が全部埋まったら行末にスピーカー（押すと1文＋和訳）。× の行は押せない（§17s-2・3）
+   ・答え合わせ＝正解の英語・解説の中の英語・聞き取りのかたまりを押せる。意味はこの回の素材（tokens/gloss）と語とカードから引く
+   ・吹き出し＝カードと答え合わせで、それぞれ1日1回（localStorage kwt_tk_coach_card / _ans ＝その日の日付）（§17s-6） */
+var _TKS_=[], _TK_POP_=null, _TK_ON_=null, _TK_COACH_MEM_={};
+var _TK_LSP_='<button type="button" class="tk-lsp" aria-label="聞く"><i class="ti ti-volume"></i></button>';
+var _TK_RE_=/([-])/g;
+function _tkPut_(en,ja){ _TKS_.push([String(en).trim(),String(ja==null?'':ja).trim()]); return ''+String.fromCharCode(0xE100+_TKS_.length-1)+''; }
+function _tkMark_(t){ _TKS_=[]; return String(t==null?'':t).replace(/\{\{([^|}]+)\|([^}]*)\}\}/g,function(_,en,ja){return _tkPut_(en,ja);}); }
+/* 導入パートの形式カードの例＝「Where is my bag?（私のかばんはどこ？）」の形 */
+function _tkMarkEx_(t){ _TKS_=[]; return String(t==null?'':t).replace(/([A-Za-z][A-Za-z0-9 ,'’.?!]*?[A-Za-z0-9?.!])（([^（）]+)）/g,function(_,en,ja){return _tkPut_(en,ja);}); }
+function _tkPlain_(t){ return String(t==null?'':t).replace(_TK_RE_,function(_,c){var x=_TKS_[c.charCodeAt(0)-0xE100];return x?x[0]:'';}); }
+function _tkHtml_(en,ja,noIc){ return '<span class="tk" role="button" tabindex="0" data-en="'+esc(en)+'" data-ja="'+esc(ja||'')+'">'+esc(en)+(noIc?'':'<i class="ti ti-volume tk-ic" aria-hidden="true"></i>')+'</span>'; }
+function _tkRender_(h){ return String(h).replace(_TK_RE_,function(_,c){var x=_TKS_[c.charCodeAt(0)-0xE100];return x?_tkHtml_(x[0],x[1]):'';}); }
+/* 意味の辞書（この回ぶん）。文の素材の tokens/gloss → 語の問題の english/japanese → カードの {{ }} の順 */
+function _tkKey_(t){ return String(t==null?'':t).toLowerCase().replace(/’/g,"'").replace(/[^a-z0-9' ]/g,' ').replace(/\s+/g,' ').trim(); }
+function _tkDict_(){
+  var s=_actSes()||session; if(!s)return {};
+  if(s._tkDict)return s._tkDict;
+  var D={}, A=s.assets||{};
+  function put(k,v){ k=_tkKey_(k); v=String(v==null?'':v).trim(); if(k&&v&&!D[k])D[k]=v; }
+  for(var id in A){
+    var p={}; try{p=JSON.parse((A[id]||{}).payload||'{}')||{};}catch(e){continue;}
+    var tk=p.tokens||[], gl=p.gloss||[];
+    for(var i=0;i<tk.length;i++)put(tk[i],gl[i]);
+    if(p.en&&p.ja)put(p.en,p.ja);
+  }
+  (s.words||[]).forEach(function(w){ if(w&&!w.qtype&&w.english&&w.japanese)put(w.english,w.japanese); });
+  try{ var d=_ptParse_(s.point); if(d&&d.raw)(d.raw.match(/\{\{[^}]+\}\}/g)||[]).forEach(function(m){var a=m.slice(2,-2).split('|');put(a[0],a[1]);}); }catch(e){}
+  s._tkDict=D; return D;
+}
+function _tkLook_(en){ var D=_tkDict_(); return D[_tkKey_(en)]||''; }
+/* 答え合わせの「正解」の英語。1語なら印つき、文なら語ごとに押せる（印は付けない＝並ぶとうるさいので） */
+function _tkAnsHtml_(t){
+  t=String(t==null?'':t);
+  if(!/[A-Za-z]/.test(t)||/[ぁ-んァ-ヶ一-龥]/.test(t))return _jaRubyIf_(t);
+  var parts=t.split(/(\s+)/), many=parts.filter(function(x){return /[A-Za-z]/.test(x);}).length>1;
+  return parts.map(function(x){
+    if(!/[A-Za-z]/.test(x))return esc(x);
+    var m=x.match(/^([^A-Za-z0-9']*)([A-Za-z0-9'’]+(?:[-][A-Za-z0-9']+)*)([^A-Za-z0-9']*)$/);
+    if(!m)return esc(x);
+    return esc(m[1])+_tkHtml_(m[2],_tkLook_(m[2]),many)+esc(m[3]);
+  }).join('');
+}
+/* 解説の中の英語。{{英語|日本語}} があればそれ、無ければ英語のつながり（Tom and I など）を1つにして押せる */
+function _tkKaiHtml_(t){
+  t=String(t==null?'':t); var out='', last=0, m;
+  var re=/\{\{([^|}]+)\|([^}]*)\}\}|[A-Za-z][A-Za-z'’]*(?: [A-Za-z][A-Za-z'’]*)*/g;
+  while((m=re.exec(t))){
+    out+=esc(t.slice(last,m.index));
+    if(m[1]!==undefined)out+=_tkHtml_(m[1],m[2]); else out+=_tkHtml_(m[0],_tkLook_(m[0]));
+    last=m.index+m[0].length;
+  }
+  return out+esc(t.slice(last));
+}
+function _tkReadyLines_(root){
+  if(!root)return;
+  Array.prototype.forEach.call(root.querySelectorAll('.exline, p.exp'),function(x){
+    if(!x.querySelector('.bl:not(.done)'))x.classList.add('ready');
+  });
+}
+function _tkClose_(){
+  if(_TK_POP_){ try{_TK_POP_.remove();}catch(e){} _TK_POP_=null; }
+  if(_TK_ON_){ _TK_ON_.classList.remove('on'); _TK_ON_=null; }
+}
+function _tkSay_(en,sp){
+  var s=_actSes()||session, pl=null;
+  try{ pl=_ptAuLookup_(s,en); }catch(e){}
+  if(pl){ try{ _sentPlay_(pl,_spSex_(sp||'')); return; }catch(e){} }
+  _sentSay_(en);
+}
+function _tkOpen_(el,en,ja,sp){
+  _tkClose_(); en=String(en||'').trim(); if(!en)return;
+  var box=(el.closest&&el.closest('.pointcard,.lx-fcard,#explain,.card'))||null;
+  var r=el.getBoundingClientRect(), vw=document.documentElement.clientWidth||window.innerWidth;
+  var left=12, width=Math.min(406,vw-24);
+  if(box){ var br=box.getBoundingClientRect(); if(br.width>220){ left=br.left+10; width=br.width-20; } }
+  var p=document.createElement('div'); p.className='tk-pop'; p.setAttribute('role','dialog');
+  p.innerHTML='<div class="tk-tx"><div class="tk-en">'+esc(en)+'</div>'+(ja?'<div class="tk-ja">'+_jaRubyIf_(ja)+'</div>':'')+'</div>'
+    +'<button type="button" class="tk-sp" aria-label="もう一回聞く"><i class="ti ti-volume"></i></button>';
+  p.style.left=(left+window.scrollX)+'px'; p.style.width=width+'px'; p.style.top=(r.bottom+window.scrollY+9)+'px';
+  p.style.setProperty('--ax',Math.max(12,Math.min(width-28,r.left+r.width/2-left-6))+'px');
+  p.querySelector('.tk-sp').onclick=function(){ _tkSay_(en,sp); };
+  document.body.appendChild(p); _TK_POP_=p;
+  if(el.classList.contains('tk')||el.classList.contains('tkw')){ el.classList.add('on'); _TK_ON_=el; }
+  _tkSay_(en,sp);
+}
+document.addEventListener('click',function(e){
+  var t=e.target; if(!t||!t.closest){ _tkClose_(); return; }
+  if(t.closest('.tk-pop'))return;
+  var c=t.closest('.tk,.tkw');
+  if(c){ e.stopPropagation(); if(c===_TK_ON_){ _tkClose_(); return; } _tkOpen_(c,c.getAttribute('data-en'),c.getAttribute('data-ja'),''); return; }
+  var ls=t.closest('.tk-lsp');
+  if(ls){ e.stopPropagation(); var ln=ls.closest('[data-en]'); if(ln)_tkOpen_(ls,ln.getAttribute('data-en'),ln.getAttribute('data-ja'),ln.getAttribute('data-sp')); return; }
+  if(_TK_POP_)_tkClose_();
+},true);
+function _tkToday_(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+/* 吹き出し。kind＝'card'（解説カード・形式カード）／'ans'（答え合わせ）。それぞれ1日1回 */
+function _tkCoach_(kind,root){
+  if(!root)return;
+  var t=root.querySelector('.tk,.tkw'); if(!t)return;
+  var r=t.getBoundingClientRect(); if(!r.width)return;   /* まだ見えていない＝出さない（今日の1回を使わない） */
+  var key='kwt_tk_coach_'+kind, today=_tkToday_(), seen='';
+  try{ seen=localStorage.getItem(key)||''; }catch(e){ seen=_TK_COACH_MEM_[kind]||''; }
+  if(seen===today)return;
+  try{ localStorage.setItem(key,today); }catch(e){} _TK_COACH_MEM_[kind]=today;
+  var old=document.querySelector('.tk-coach'); if(old)old.remove();
+  var c=document.createElement('div'); c.className='tk-coach';
+  c.innerHTML='<ruby>分<rt class="uf">わ</rt></ruby>からない<ruby>英語<rt class="uf">えいご</rt></ruby>は<b><ruby>押<rt class="uf">お</rt></ruby>す</b>と、<ruby>意味<rt class="uf">いみ</rt></ruby>と<ruby>音<rt class="uf">おと</rt></ruby>が<ruby>出<rt class="uf">で</rt></ruby>る';
+  var vw=document.documentElement.clientWidth||window.innerWidth;
+  c.style.top=(r.bottom+window.scrollY+8)+'px';
+  document.body.appendChild(c);
+  var cw=c.offsetWidth||260, lf=Math.max(8,Math.min(vw-cw-8,r.left-10));
+  c.style.left=(lf+window.scrollX)+'px';
+  c.style.setProperty('--ax',Math.max(10,Math.min(cw-22,r.left+Math.min(r.width,40)/2-lf-6))+'px');
+  var kill=function(){ try{c.remove();}catch(e){} document.removeEventListener('click',kill,true); };
+  setTimeout(function(){ document.addEventListener('click',kill,true); },0);
+  setTimeout(kill,12000);
+}
 function _ptParse_(txt){
   var t=String(txt||''); if(!t.trim())return null;
   var i=t.indexOf('\n---\n'); var body=(i<0?t:t.slice(0,i)); var cs=(i<0?'':t.slice(i+5));
@@ -5128,7 +5270,7 @@ function _ptParse_(txt){
   if(!blanks.length)return null;
   /* {{英語|日本語}}＝説明文の中で意味を出したい語。本文には英語だけ出し、日本語は「単語をみる」へ回す
      （確定11＝カード本文に日本語も色も足さない）。raw は一覧を導くために元のまま持つ 2026-09-10 */
-  var raw=body; body=body.replace(_WL_MK_,'$1');
+  var raw=body; body=_tkMark_(body);   /* 2026-09-28 §17s＝押すと開くカード。本文には印を置き、描いたあとで押せる英語に差しかえる */
   return {body:body,raw:raw,blanks:blanks,ch:map,yomi:yomi,fig:fig};
 }
 /* カードに出す図（2026-09-06③ 川上さん確定）。
@@ -5270,6 +5412,7 @@ function _wlSync_(s,w,answered){
   var r=_wlFor_(s,w,answered);
   if(!r.list.length){ bar.style.display='none'; btn.onclick=null; return; }
   bar.style.display='flex';
+  try{var _wn=btn.querySelector('.wl-n'); if(!_wn){_wn=document.createElement('span');_wn.className='wl-n';btn.appendChild(_wn);} _wn.textContent=String(r.list.length);}catch(_e){}   /* 語の数（§17s-9）2026-09-28 */
   btn.onclick=function(){ btn.classList.remove('pulse'); _wlOpen_(r.list,r.title); };
   /* 気づかれないので、最初の3画面だけ2回だけ脈打つ（2026-09-09o 川上さん指摘）。ずっと動くとちらつく */
   btn.classList.remove('pulse');
@@ -5285,6 +5428,7 @@ function _ptHide_(){
   });
 }
 function _ptRestore_(){
+  _tkClose_();
   (_ptHidden_||[]).forEach(function(a){ a[0].style.display=a[1]; });
   _ptHidden_=null;
   var w=$('pt-wrap'); if(w){ w.innerHTML=''; w.style.display='none'; }
@@ -5360,13 +5504,13 @@ function _ptEx_(line,gl,rl,d,s,_no){
   if(m){ en=m[1]; tr=m[2]; }
   var toks=en.trim().split(/\s+/), gs=String(gl||'').split('|'), rs=String(rl||'').split('|');
   /* 穴を埋めたときに鳴らす文＝答えが入った形。[[ ]] を外して行ごと持たせる 2026-09-11 */
-  var h='<div class="exline" data-en="'+esc(_ptSayEn_(String(en).replace(/\[\[|\]\]/g,'')))+'"'+_ptSpAttr_(en)+'>';
+  var h='<div class="exline" data-en="'+esc(_ptSayEn_(_tkPlain_(String(en)).replace(/\[\[|\]\]/g,'')))+'" data-ja="'+esc(tr)+'"'+_ptSpAttr_(en)+'>';
   h+=wgHtml(groupByRole(toks.length,function(i){return rs[i];}),function(i){
     return '<span class="ww"><span class="ww-en">'+_ptLine_(toks[i],d,s,_no)+'</span>'
       +'<span class="ww-ja">'+_ptJa_(String(gs[i]||'').trim(),s)+'</span></span>';
   });
   if(tr)h+='<span class="wg extr"><span class="wg-ws"><span class="ww"><span class="ww-en">（'+_ptJa_(tr,s)+'）</span><span class="ww-ja"></span></span></span></span>';
-  return h+'</div>';
+  return h+_TK_LSP_+'</div>';
 }
 /* ===== 文法解説カードの穴を埋めたら、その例文を1文まるごと鳴らす（川上さん確定 2026-09-11）=====
    正解でも不正解でも鳴らす。埋まった形（答えが入った文）を音で確かめさせるため。
@@ -5389,7 +5533,7 @@ function _ptSpAttr_(line){
   return _spSex_(sp)?(' data-sp="'+esc(sp)+'"'):'';
 }
 function _ptEnAttr_(line){
-  var t=_ptSayEn_(String(line||'').replace(/\[\[|\]\]/g,''));
+  var t=_ptSayEn_(_tkPlain_(String(line||'')).replace(/\[\[|\]\]/g,''));
   t=t.replace(/\s*[（(][^（）()]*[）)]\s*$/,'').trim();
   if(!/[A-Za-z]/.test(t))return '';
   if(/[ぁ-んァ-ヶ一-龥ー、。「」]/.test(t))return '';
@@ -5443,13 +5587,17 @@ function _ptHtml_(s,d,kind){
       var _rl=(nx2&&_PT_RL_.test(nx2))?nx2.replace(_PT_RL_,''):'';
       h+=_ptEx_(line,nx.replace(_PT_GL_,''),_rl,d,s,_no); _li+=(_rl?2:1); continue;
     }
-    h+='<p'+_ptEnAttr_(line)+'>'+_ptLine_(line,d,s,_no)+'</p>';
+    var _ea=_ptEnAttr_(line), _isNg=/^\s*×/.test(line);
+    if(_ea&&!_isNg){
+      var _tm=String(line).match(/[（(]([^（）()]*)[）)]\s*$/);
+      h+='<p class="exp"'+_ea+' data-ja="'+esc(_tm?_tm[1]:'')+'">'+_ptLine_(line,d,s,_no)+_TK_LSP_+'</p>';
+    }else h+='<p>'+_ptLine_(line,d,s,_no)+'</p>';
   }
   h+='</div><div class="pt-left"></div>'
    +'<div class="pt-go"><button class="btn" id="pt-go" type="button" disabled>'
      +(_sent?'<ruby>文<rt class="uf">ぶん</rt></ruby>に<ruby>進<rt class="uf">すす</rt></ruby>む':'はじめる')
    +'</button></div></div>';
-  return h;
+  return _tkRender_(h);
 }
 /* この教材にカードを出すか、出すならどこに挟むかを決める 2026-09-09
      'head' ＝ 単元別（社会）。いちばん最初に1枚。文言は「要点／はじめる前に」
@@ -5484,9 +5632,10 @@ function _ptShow_(s){
   }
   var d=_ptParse_(s.point); if(!d)return false;
   var wrap=$('pt-wrap'); if(!wrap)return false;
-  wrap.innerHTML=_ptHtml_(s,d,kind); wrap.style.display='block'; try{_wlSync_(s,null);}catch(e){}  /* カードの一覧＝カードのデータから 2026-09-10 */ /* CSSで #pt-wrap{display:none} にしてあるので '' では戻らない */
+  wrap.innerHTML=_ptHtml_(s,d,kind); wrap.style.display='block'; try{_wlHide_();}catch(e){}   /* カードでは「単語をみる」を出さない＝英語を直接押せる（§17s-7）2026-09-28 */  /* カードの一覧＝カードのデータから 2026-09-10 */ /* CSSで #pt-wrap{display:none} にしてあるので '' では戻らない */
   _ptHide_();
   var card=wrap.querySelector('.pointcard'), busy=false;
+  try{_tkReadyLines_(card);_tkCoach_('card',card);}catch(_e){}
   function sync(){
     var _r={}; Array.prototype.forEach.call(card.querySelectorAll('.bl:not(.done)'),function(x){_r[x.getAttribute('data-a')]=1;});
     var rest=Object.keys(_r).length;   /* 同じ番号の穴は1つと数える 2026-09-07 */
@@ -5532,6 +5681,7 @@ function _ptShow_(s){
       });
       (s._ptFilled||(s._ptFilled={}))[_a]=ok?'ok':'miss';
       try{_ptCardSay_(s,b);}catch(_e){}   /* 埋まった例文を1文まるごと鳴らす 2026-09-11 */
+      try{_tkReadyLines_(card);}catch(_e){}   /* 穴が全部埋まった行だけ、行末のスピーカーを出す（§17s-2）2026-09-28 */
       setTimeout(function(){ if(fb.parentNode)fb.parentNode.removeChild(fb); busy=false; after(); },520);
     }, ok?680:820);
   }
@@ -5955,9 +6105,10 @@ function _lxCard_(s,w,q){
   $('step-sent').style.display='block';
   $('sent-ask').innerHTML='';
   $('sent-body').innerHTML='<div class="lx-fcard"><div class="lx-ft">'+_jaRubyIf_(C.t)+'</div><ol>'+C.s.map(function(x,i){
-      return '<li>'+_jaRubyIf_(x)+(C.ex[i]?'<span class="lx-fex">'+_jaRubyIf_('例　'+C.ex[i])+'</span>':'')+'</li>';}).join('')+'</ol></div>';
+      return '<li>'+_jaRubyIf_(x)+(C.ex[i]?'<span class="lx-fex">'+_tkRender_(_jaRubyIf_(_tkMarkEx_('例　'+C.ex[i])))+'</span>':'')+'</li>';}).join('')+'</ol></div>';
   $('sent-choices').innerHTML='<button type="button" class="ex-next lx-go" id="lx-go">始める</button>';
-  $('lx-go').onclick=function(){(s._cardDone||(s._cardDone={}))[String(w.id)]=1;renderSENT(s);};
+  $('lx-go').onclick=function(){_tkClose_();(s._cardDone||(s._cardDone={}))[String(w.id)]=1;renderSENT(s);};
+  try{_tkCoach_('card',$('sent-body'));}catch(_e){}
 }
 function _lxDecor_(s,w,q){
   var ask=$('sent-ask');if(!ask||!q)return;var h='';
@@ -6536,7 +6687,7 @@ function _lxChunks_(c){
   if(!c||!c.length)return '';
   var G=c.map(function(x,i){return {idx:[i],r:''};});
   return '<div class="lx-wgl">'+wgHtml(G,function(i){var x=c[i]||[];
-    return '<span class="ww'+(x[2]?' lxk':'')+'"><span class="ww-en">'+esc(String(x[0]||''))+'</span><span class="ww-ja">'+_jaRubyIf_(String(x[1]||''))+'</span></span>';},true)+'</div>';
+    return '<span class="ww tkw'+(x[2]?' lxk':'')+'" role="button" tabindex="0" data-en="'+esc(String(x[0]||''))+'" data-ja="'+esc(String(x[1]||''))+'"><span class="ww-en">'+esc(String(x[0]||''))+'</span><span class="ww-ja">'+_jaRubyIf_(String(x[1]||''))+'</span></span>';},true)+'</div>';
 }
 /* 【2026-09-25 川上さん「1 ア」】1かたまりの文で、直訳と全体の訳が同じ（句点だけの違い）なら全体の訳は出さない（同じ文が重なるため） */
 function _lxSameJa_(c,ja){
@@ -7464,12 +7615,13 @@ function afterAnswer(ok,correct,kaisetsu,reading,next){
 }
 function showExplain(correct,kaisetsu,reading,ok){
   var _mk=(ok===true)?'<span style="color:#1fa971;font-weight:800;">⭕ </span>':((ok===false)?'<span style="color:#e0574b;font-weight:800;">❌ </span>':'');
-  $('ex-ans').innerHTML=_mk+'<span class="ex-lbl"><ruby>正解<rt class="uf">せいかい</rt></ruby></span><b>'+_jaRubyIf_(correct)+'</b>'+(reading?'<span style="font-size:13px;color:var(--sub);font-weight:400;">（'+esc(reading)+'）</span>':'');
+  _tkClose_();
+  $('ex-ans').innerHTML=_mk+'<span class="ex-lbl"><ruby>正解<rt class="uf">せいかい</rt></ruby></span><b>'+(_isEigo_()?_tkAnsHtml_(correct):_jaRubyIf_(correct))+'</b>'+(reading?'<span style="font-size:13px;color:var(--sub);font-weight:400;">（'+esc(reading)+'）</span>':'');
   var kai=$('ex-kai');
   if(kaisetsu){
     kai.style.display='';
     if(ok===false){var _ms=Math.min(5000,Math.max(1200,String(kaisetsu).length*85));_kaiWaitMs=_ms;kaiTraceStart_(kai,kaisetsu,_ms);} // 不正解だけ下線なぞり。速さは文字数に応じて可変（約85ms/字・1.2〜5秒でクランプ）。正解はテンポ維持 2026-07-26
-    else{_kaiWaitMs=0;kaiTraceStop_();kai.classList.remove('trace');kai.textContent=kaisetsu;}
+    else{_kaiWaitMs=0;kaiTraceStop_();kai.classList.remove('trace');if(_isEigo_())kai.innerHTML=_tkKaiHtml_(kaisetsu);else kai.textContent=kaisetsu;}
   }else{_kaiWaitMs=0;kaiTraceStop_();kai.classList.remove('trace');kai.style.display='none';}
   var _kimg=$('ex-img');if(_kimg){if(_kaiImgCur){_kimg.innerHTML=_kaiImgCur;_kimg.style.display='';}else{_kimg.innerHTML='';_kimg.style.display='none';}}
   var _xa=$('ex-audio');if(_xa){_xa.innerHTML='';_xa.style.display='none';_xa.classList.remove('lx-hide');}
@@ -7477,6 +7629,7 @@ function showExplain(correct,kaisetsu,reading,ok){
   var _bf=$('bug-fab');if(_bf)_bf.style.display='none'; /* 解説中はフローティング報告を隠す＝機能は解説内「まちがい報告」へ 2026-07-16 */
   $('explain').style.display='block';
   try{$('explain').scrollIntoView({behavior:'smooth',block:'end'});}catch(e){try{$('explain').scrollIntoView(false);}catch(e2){}}
+  if(ok===false&&_isEigo_())setTimeout(function(){try{_tkCoach_('ans',$('explain'));}catch(_e){}},80);   /* 間違えたときだけ・1日1回（§17s-6）。聞き取りの英文はこのあとで描かれるので少し待つ */
 }
 /* 解説なぞり（下線が伸びる）2026-07-26：不正解時、解説を1文字ずつ span 化し、読み進む所に金の下線を左から流す。時間で自動進行（クリック不要）。次へボタンには触れない＝目線を解説に留める */
 var _kaiTId=null;var _kaiWaitMs=0; // _kaiWaitMs＝不正解の「つぎへ」解禁までの時間＝解説なぞりの所要時間に合わせる 2026-07-26
@@ -7490,10 +7643,11 @@ function kaiTraceStart_(el,text,ms){
   _kaiTId=setInterval(function(){
     if(i>0&&cs[i-1])cs[i-1].classList.remove('cur');
     if(i<cs.length){cs[i].classList.add('read','cur');i++;}
-    else{kaiTraceStop_();if(cs[cs.length-1])cs[cs.length-1].classList.remove('cur');}
+    else{kaiTraceStop_();if(cs[cs.length-1])cs[cs.length-1].classList.remove('cur');
+      if(_isEigo_()&&/[A-Za-z]/.test(text)){el.classList.remove('trace');el.innerHTML=_tkKaiHtml_(text);}}   /* なぞり終わったら英語を押せる形に（§17s-7③）2026-09-28 */
   },per);
 }
-function hideExplain(){kaiTraceStop_();try{_sentStop_();}catch(_e){}/* 「つぎへ」で解説を閉じたら文の音声も止める 2026-09-11 */var e=$('explain');if(e)e.style.display='none';try{refreshBugFab();}catch(_e){var _bf=$('bug-fab');if(_bf)_bf.style.display='';}}
+function hideExplain(){_tkClose_();kaiTraceStop_();try{_sentStop_();}catch(_e){}/* 「つぎへ」で解説を閉じたら文の音声も止める 2026-09-11 */var e=$('explain');if(e)e.style.display='none';try{refreshBugFab();}catch(_e){var _bf=$('bug-fab');if(_bf)_bf.style.display='';}}
 /* いま出しているのが最後の1問か。ミス問モード中は「まだ続く」ので false。
    ここが true でも実際にはミス問が始まることがあるが、その場合でも
    「正解した問題のボタンが0.6秒早く押せる」だけなので害はない。 2026-09-02 */
