@@ -235,6 +235,11 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 /* PQCSS:BEGIN */
   /* ===== 【2026-09-13j・段E】問題の形式ごとの紙の部品（チェックプリント・仕上げプリント共通）=====
      語群（並べ替え）・表（穴あき）・答えの番号。どちらの紙でも同じ見た目にする＝2か所に別々の見た目を作らない */
+  .pq-pw{display:inline-block;margin:0 14px 3px 0;font-size:12.5px;}
+  .pq-frame{font-size:14px;margin:6px 0 4px;letter-spacing:.02em;}
+  .pq-box{display:inline-block;width:52px;border-bottom:1px solid #333;margin:0 3px;height:1em;}
+  .pq-posans{font-size:12.5px;margin-top:6px;}
+  .pq-pbx{display:inline-block;width:34px;height:22px;border:1px solid #333;vertical-align:middle;margin:0 14px 0 5px;}
   .pq-tok{display:inline-block;border:1.2px solid #555;border-radius:5px;padding:1px 8px;margin:0 5px 5px 0;
           font-size:13px;font-weight:700;color:#000;background:#fff;white-space:nowrap;}
   .pq-ano{display:inline-block;min-width:15px;margin-right:6px;font-size:11px;font-weight:800;color:#555;}
@@ -713,6 +718,8 @@ function _pqTokens_(it){
   var k=String(it.word_id||'')||String(it.english||'');
   if(_pqOrdCache[k]) return _pqOrdCache[k];
   var pk=_pqPack_(it); if(!pk) return [];
+  /* 本番の形（番号で答える）は、問題用紙と解答用紙を別の日に刷っても番号がずれないよう、word_id で決まった並びにする 2026-09-28 */
+  if(_pqPosOf_(it,pk)) return (_pqOrdCache[k]=_pqSeedShuf_(_pqOrdSrc_(it,pk),k));
   return (_pqOrdCache[k]=_pqShuffle_(_pqOrdSrc_(it,pk)));
 }
 /* 紙の札のもと（2026-09-27 川上さん確定）。生徒アプリ（student.html 6187・7848）と同じ選び方＝
@@ -726,8 +733,39 @@ function _pqOrdSrc_(it,pk){
   return (pk.pl.tokens||[]).slice();
 }
 /* 語群のチップ。紙なので枠だけ（押すものではない） */
+/* 【2026-09-28 川上さん確定・モック 20260928_モック_英検_並べ替え_本番の形_v2】英検の並べ替えの本番の形（qdata.pos がある問題）。
+   紙は本番と同じ＝語群に①②③…の番号、枠の外の語（qdata.pre・post）と（　）、「1番目［　］3番目［　］」の記入欄。答え＝番号の組＋完成文。
+   アプリ（student.html）では番号を出さない（押し間違い・深読みを避ける）。番号で答えるのは紙だけ */
+var _PQ_CIRC_='①②③④⑤⑥⑦⑧';
+function _pqOrdAsk_(it){ var p=_pqPosOf_(it); return p?('ならべかえて、'+p[0]+'番目と'+p[1]+'番目の番号を書く'):'ならべかえて文を作る'; }
+function _pqSeedShuf_(tok,key){
+  var a=(tok||[]).slice(), h=2166136261; key=String(key||'');
+  for(var i=0;i<key.length;i++){ h^=key.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+  var rnd=function(){ h^=h<<13; h>>>=0; h^=h>>>17; h^=h<<5; h>>>=0; return h/4294967296; };
+  for(var g=0; g<50; g++){
+    for(var j=a.length-1;j>0;j--){ var r=Math.floor(rnd()*(j+1)); var t=a[j]; a[j]=a[r]; a[r]=t; }
+    if(a.join('\u0001')!==(tok||[]).join('\u0001')) return a;
+  }
+  return a.slice().reverse();
+}
+function _pqPosOf_(it,pk){ pk=pk||_pqPack_(it); var p=pk&&pk.qd&&pk.qd.pos; return (p&&p.length===2)?p:null; }
+function _pqPosAns_(it){
+  var pk=_pqPack_(it), pos=_pqPosOf_(it,pk); if(!pos) return '';
+  var shown=_pqTokens_(it), right=(pk.qd.tokens||[]);
+  var nums=pos.map(function(i){ var k=shown.indexOf(right[i-1]); return k<0?'?':_PQ_CIRC_.charAt(k); });
+  return nums.join('-');
+}
 function _pqOrdHtml_(it,cls){
   var toks=_pqTokens_(it), pk=_pqPack_(it);
+  var pos=_pqPosOf_(it,pk);
+  if(pos){
+    var ja0=String(pk.pl.ja||it.japanese||''), pre=String(pk.qd.pre||''), post=String(pk.qd.post||'');
+    var bx='<span class="pq-box"></span>', n=(pk.qd.tokens||[]).length;
+    return (ja0?('<div class="'+cls+'-ja pq-posja">'+esc(ja0)+'</div>'):'')
+      +'<div class="'+cls+'-toks pq-posw">'+toks.map(function(t,i){ return '<span class="pq-pw">'+_PQ_CIRC_.charAt(i)+' '+esc(String(t))+'</span>'; }).join('')+'</div>'
+      +'<div class="pq-frame">'+(pre?esc(pre)+' ':'')+new Array(n+1).join(bx)+(post?' '+esc(post):'')+'</div>'
+      +'<div class="pq-posans">'+pos[0]+'番目<span class="pq-pbx"></span>'+pos[1]+'番目<span class="pq-pbx"></span></div>';
+  }
   var ja=pk?String(pk.pl.ja||it.japanese||''):String(it.japanese||'');
   return '<div class="'+cls+'-toks">'+toks.map(function(t){
       return '<span class="pq-tok">'+esc(String(t))+'</span>'; }).join('')+'</div>'
@@ -1000,7 +1038,7 @@ function _pqAltOf_(it){
 function _pqAnswerOf_(it){
   var k=_pqKind_(it);
   if(k==='fill'||k==='table') return String(it.english||'')+_pqAltOf_(it);    /* 答え＝入る1語・セルの文字（＋別解 2026-09-20）*/
-  if(k==='order')            return String(it.english||'');     /* 答え＝正しい文 */
+  if(k==='order')            return (_pqPosOf_(it)?(_pqPosAns_(it)+'　'):'')+String(it.english||'');     /* 答え＝正しい文（本番の形は番号の組＋文 2026-09-28）*/
   if(k==='listen')           return _pqLisAText_(it);          /* 答え＝記号＋訳＋英文（段7）*/
   if(k==='lisx')             return _pqLxAText_(it);           /* 答え＝番号＋会話＋3つの英文（2026-09-17）*/
   if(k==='ph')               return _pqPhAText_(it);            /* 答え＝読み／つづり ＋ 音の足し算の原稿（2026-09-21）*/
@@ -1115,7 +1153,7 @@ function unifiedStudentHtml_(st, opts){
          選択肢は紙に出さない（`print-sheet-design`＝出した時点で「見分ける」練習に変わる）。 */
       qH='<div class="up-qtxt">'+n+'. '+esc(String(it.japanese||''))+'</div>';
     }else if(kind==='order'){
-      qH='<div class="up-qtxt">'+n+'. '+esc('ならべかえて文を作る')+'</div>'+_pqOrdHtml_(it,'up');
+      qH='<div class="up-qtxt">'+n+'. '+esc(_pqOrdAsk_(it))+'</div>'+_pqOrdHtml_(it,'up');
       var gl=_pqGlossText_(it);
       if(gl) extra='<div class="up-kai">語の意味：'+esc(gl)+'</div>';
     }else if(kind==='lisx'){
