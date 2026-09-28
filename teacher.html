@@ -6875,6 +6875,11 @@ function bugCliSummary_(dg){ // diag(JSON文字列)からエラー件数・画�
     return {app:o.app||'',screen:o.screen||'',view:o.view||'',htab:o.htab||'',online:o.online,vw:o.vw,vh:o.vh,ua:o.ua||'',errs:(o.errs||[]),net:(o.net||{}),state:o.state||{}};
   }catch(e){return null;}
 }
+function bugAutoTitle_(msg){ // 自動検知の報告の題。kwtGAS.gs の bugAutoTitle_ と同じ 2026-09-29
+  var t=String(msg||'').split('\n')[0].replace(/^【[^】]*】/,'').replace(/^★/,'').trim();
+  var k=t.indexOf('。');if(k>0)t=t.slice(0,k);
+  return t.length>50?t.slice(0,50)+'…':(t||'（題なし）');
+}
 function bugCardHtml_(r,i){
   var cli=bugCliSummary_(r.diag);
   var srv=bugSrvSummary_(r.server_diag);
@@ -6882,7 +6887,10 @@ function bugCardHtml_(r,i){
   var id='bugd_'+i;
   var h='<div style="border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-bottom:9px;">';
   h+='<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">';
-  h+='<b style="font-size:14px;">'+esc(r.name||'')+'</b>';
+  /* 通し番号（GAS の bug_list が返す no＝シートの上から何件目か）と、自動検知の題 2026-09-29 */
+  if(r.no)h+='<span style="font-size:12px;font-weight:700;background:#1e293b;color:#fff;border-radius:6px;padding:1px 8px;">No.'+esc(String(r.no))+'</span>';
+  var _bauto=String(r.category||'').indexOf('自動検知')>=0;
+  h+='<b style="font-size:14px;">'+esc(_bauto?('自動検知：'+bugAutoTitle_(r.message)):(r.name||''))+'</b>';
   h+='<span style="font-size:12px;color:#64748b;">'+esc(r.created_at||'').replace('T',' ')+'</span>';
   if(r.screen)h+='<span style="font-size:11px;background:#eef2ff;color:#3730a3;border-radius:6px;padding:1px 7px;">画面：'+esc(r.screen)+'</span>';
   h+='<span style="font-size:11px;background:#f1f5f9;color:#334155;border-radius:6px;padding:1px 7px;">版 '+esc(r.app_version||'不明')+'</span>';
