@@ -928,6 +928,27 @@
 .pt-body{font-size:14px;line-height:2.3;font-weight:500;}
 .pt-body p{margin:0 0 10px;}
 .pt-body p:last-child{margin-bottom:0;}
+/* 早見表の段（2026-09-29 §17s-22・モック\20260929_モック_早見表_たずねる文のまとめ_v2.html の案B改）。
+   カードの本文に ▼見出し｜ひとこと の行と「ラベル｜文」の行を書くと、動詞の種類ごとの枠になる。
+   文の中の _語_ ＝変わる所（下線）、*語* ＝疑問詞（太字）、行末の（和訳）は小さく下に。ラベルの頭の -- ＝上に点線。
+   ①〜⑨ で始まる行が続くと、番号つきの手順になる。色は足さない（下線・太さ・点線だけ） */
+.pt-hb{margin:6px 0 12px;display:flex;flex-direction:column;gap:8px;line-height:1.5;}
+.pt-hbk{border:1px solid var(--line);border-radius:12px;padding:8px 11px 9px;}
+.pt-hbh{font-size:12.5px;font-weight:800;margin-bottom:3px;}
+.pt-hbh small{font-size:11px;color:var(--sub);font-weight:700;margin-left:8px;}
+.pt-hbr{display:grid;grid-template-columns:54px minmax(0,1fr);column-gap:8px;row-gap:3px;font-size:13.5px;}
+.pt-hbr .lb{font-size:11px;font-weight:800;color:var(--sub);padding-top:2px;}
+.pt-hbr .en{font-weight:600;min-width:0;}
+.pt-hbr .en b{font-weight:800;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;}
+.pt-hbr .en b.qd{text-decoration:none;}
+.pt-hbr .plus{color:var(--sub);font-weight:700;margin:0 3px;}
+.pt-hbr .ja{display:block;font-size:11px;color:var(--sub);font-weight:500;}
+.pt-hbr .sep{padding-top:5px;margin-top:2px;border-top:1px dashed var(--line);}
+.pt-vs{list-style:none;margin:4px 0 12px;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;line-height:1.55;}
+.pt-vs li{display:flex;align-items:flex-start;gap:8px;}
+.pt-vs li>span{flex:1;min-width:0;}
+.pt-vs li.sep{padding-top:6px;border-top:1px dashed var(--line);}
+.pt-vs i{font-style:normal;font-size:11px;font-weight:800;width:19px;height:19px;flex:0 0 auto;border-radius:50%;background:var(--ink);color:var(--surface);display:inline-flex;align-items:center;justify-content:center;margin-top:1px;}
 /* 読み仮名＝答えの語すべてに（よみ）を常時表示。粒度は解説と同じ「語全体」（§3共通） */
 .pt-body .yomi{font-size:10.5px;color:var(--sub);font-weight:600;}
 /* 例文と、その語の下に付ける直訳（2026-09-09 川上さん指定の形）。
@@ -5564,6 +5585,40 @@ function _ptCardSay_(s,el){
   /* 端末の読み上げ（mp3 が無いとき）は声の性別を選べない。そこは今のところそろえられない */
   if(pl)_sentPlay_(pl,sx); else _sentSay_(en);
 }
+/* 早見表の段・番号つき手順（2026-09-29）。_ptHtml_ から呼ぶ。返り値＝{h:HTML, i:最後に読んだ行の番号} */
+var _PT_HB_=/^\s*▼/, _PT_ST_=/^\s*(?:--)?[①-⑨]/;
+function _ptHbEn_(t,s){
+  var tr='', m=String(t).match(/^([\s\S]*?)\s*[（(]([^（）()]*)[）)]\s*$/);
+  if(m){ t=m[1]; tr=m[2]; }
+  var x=esc(String(t).trim()).replace(/\*([^*]+)\*/g,'<b class="qd">$1</b>').replace(/_([^_]+)_/g,'<b>$1</b>').replace(/＋/g,'<span class="plus">＋</span>');
+  return x+(tr?'<small class="ja">（'+_ptJa_(tr,s)+'）</small>':'');
+}
+function _ptHbHtml_(ls,i,s){
+  var h='<div class="pt-hb">', open=false;
+  for(;i<ls.length;i++){
+    var L=ls[i];
+    if(_PT_HB_.test(L)){
+      if(open)h+='</div></div>';
+      var hd=L.replace(_PT_HB_,'').split('｜');
+      h+='<div class="pt-hbk"><div class="pt-hbh">'+_ptJa_(hd[0].trim(),s)+(hd[1]?'<small>'+_ptJa_(hd[1].trim(),s)+'</small>':'')+'</div><div class="pt-hbr">';
+      open=true; continue;
+    }
+    if(!open||L.indexOf('｜')<0)break;
+    var sep=/^\s*--/.test(L), p=L.replace(/^\s*--/,'').split('｜'), lb=p.shift();
+    h+='<span class="lb'+(sep?' sep':'')+'">'+_ptJa_(lb.trim(),s)+'</span><span class="en'+(sep?' sep':'')+'">'+_ptHbEn_(p.join('｜'),s)+'</span>';
+  }
+  if(open)h+='</div></div>';
+  return {h:h+'</div>',i:i-1};
+}
+function _ptStepsHtml_(ls,i,s){
+  var h='<ol class="pt-vs">';
+  for(;i<ls.length&&_PT_ST_.test(ls[i]);i++){
+    var L=ls[i], sep=/^\s*--/.test(L); L=L.replace(/^\s*--/,'').trim();
+    var n='①②③④⑤⑥⑦⑧⑨'.indexOf(L.charAt(0))+1;
+    h+='<li'+(sep?' class="sep"':'')+'><i>'+n+'</i><span>'+_ptJa_(L.slice(1).trim(),s)+'</span></li>';
+  }
+  return {h:h+'</ol>',i:i-1};
+}
 function _ptHtml_(s,d,kind){
   var url=_ptFig_(s,d);
   /* 見出しは入口で変える。単元別（社会）＝「要点／はじめる前に」、
@@ -5585,6 +5640,8 @@ function _ptHtml_(s,d,kind){
   for(var _li=0;_li<_ls.length;_li++){
     var line=_ls[_li]; if(!line.trim())continue;
     if(_PT_GL_.test(line)||_PT_RL_.test(line))continue;   /* 直訳行・役割行が単独で残っていても出さない */
+    if(_PT_HB_.test(line)){ var _hb=_ptHbHtml_(_ls,_li,s); h+=_hb.h; _li=_hb.i; continue; }   /* 早見表の段 2026-09-29 */
+    if(_PT_ST_.test(line)){ var _st=_ptStepsHtml_(_ls,_li,s); h+=_st.h; _li=_st.i; continue; }   /* 番号つき手順 2026-09-29 */
     var nx=_ls[_li+1], nx2=_ls[_li+2];
     if(nx&&_PT_GL_.test(nx)){
       var _rl=(nx2&&_PT_RL_.test(nx2))?nx2.replace(_PT_RL_,''):'';
