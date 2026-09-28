@@ -1080,7 +1080,7 @@
   .ex-ans b{color:var(--ok);}
   /* 「正解」は漢字の小さめラベル＝答えの用語の読みがなと誤読させない（ひらがな「せいかい」だと読みがなに見える）2026-07-26 */
   .ex-ans .ex-lbl{display:inline-block;font-size:11px;font-weight:800;color:var(--sub);background:rgba(31,170,107,.12);border-radius:6px;padding:1px 7px;margin-right:6px;vertical-align:2px;}
-  .ex-kai{font-size:13.5px;line-height:1.6;color:var(--sub);margin-bottom:7px;}
+  .ex-kai{font-size:13.5px;line-height:1.6;color:var(--sub);margin-bottom:7px;white-space:pre-line;}/* 解説の改行をそのまま出す（型→当てはめ→ポイントの3行）2026-09-28 川上さん案A */
   /* 解説なぞり（不正解時・下線が伸びる）2026-07-26：文字は最初から読める色のまま、読み進む所に金の下線が流れる＝目で追わせる。次へボタンには何もしない（目線を奪わない） */
   .ex-kai.trace{color:var(--ink);}
   .ex-kai .kc{transition:background-color .12s linear;border-radius:3px;}
@@ -7640,7 +7640,7 @@ function kaiTraceStop_(){if(_kaiTId){clearInterval(_kaiTId);_kaiTId=null;}}
 function kaiTraceStart_(el,text,ms){
   kaiTraceStop_();el.classList.add('trace');
   var chars=String(text).split('');
-  el.innerHTML=chars.map(function(ch){return '<span class="kc">'+((ch===' '||ch==='\n'||ch==='\t')?'&nbsp;':esc(ch))+'</span>';}).join('');
+  el.innerHTML=chars.map(function(ch){if(ch==='\n')return '<span class="kc"></span><br>';/* 改行はなぞりの間も改行のまま 2026-09-28 */return '<span class="kc">'+((ch===' '||ch==='\t')?'&nbsp;':esc(ch))+'</span>';}).join('');
   var cs=el.querySelectorAll('.kc');if(!cs.length)return;
   var per=Math.max(26,ms/cs.length),i=0;
   _kaiTId=setInterval(function(){
