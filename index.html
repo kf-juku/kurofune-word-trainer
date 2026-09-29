@@ -6440,6 +6440,13 @@ function renderRO_(s,w,q,pl){
        qdata.pre・qdata.post＝枠の外に固定で出す語（例 post:"now?"）。生徒が動かすのは qdata.tokens の札だけ。
        番号（5級＝1番目と3番目、4級＝2番目と4番目＝qdata.pos）はアプリでは出さない（押し間違い・深読みを避ける）。番号で答えるのは紙だけ */
   var fxPre=String((q&&q.pre)||'').trim(),fxPost=String((q&&q.post)||'').trim();
+  /* 【2026-09-29 川上さん確定・要件定義書_英検教材 §18p】架け橋の札（2語だけ並べる段）：素材の en が文の全部で、qdata.tokens がその頭の数語だけのときは、
+       残りを枠のうしろに固定で出す（「□ □ English at school.」）。日本語のかっこはそのまま。答え合わせの英文・音声も文の全部（素材の en・audios）。
+       qdata.post があるとき（英検の本番の形）はそちらが先 */
+  if(!fxPre&&!fxPost&&q&&q.tokens&&q.tokens.length&&pl&&pl.en){
+    var _ft=_sentTok_(pl.en),_fq=_sentTok_(q.tokens.join(' ')),_fn=_fq.length;   /* 札が2語以上のかたまりでも語の数で比べる */
+    if(_ft.length>_fn&&_ft.slice(0,_fn).join(' ').toLowerCase()===_fq.join(' ').toLowerCase())fxPost=_sentJoin_(_ft.slice(_fn));
+  }
   body.innerHTML='<div class="sq-ja ro-ja">'+_jaRuby_(pl.ja||'')+'</div>'
    +'<div class="ro-slots'+((fxPre||fxPost)?' fx':'')+'" id="ro-slots">'
      +(fxPre?'<span class="ro-fx pre">'+esc(fxPre)+'</span>':'')+(fxPost?'<span class="ro-fx post">'+esc(fxPost)+'</span>':'')+'</div>'
