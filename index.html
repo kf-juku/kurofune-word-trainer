@@ -1104,7 +1104,8 @@
   .ex-ans{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;}
   .ex-ans b{color:var(--ok);}
   /* 「正解」は漢字の小さめラベル＝答えの用語の読みがなと誤読させない（ひらがな「せいかい」だと読みがなに見える）2026-07-26 */
-  .ex-ans .ex-lbl{display:inline-block;font-size:11px;font-weight:800;color:var(--sub);background:rgba(31,170,107,.12);border-radius:6px;padding:1px 7px;margin-right:6px;vertical-align:2px;}
+  .ex-ans .ex-lbl,.ex-heard .ex-lbl{display:inline-block;font-size:11px;font-weight:800;color:var(--sub);background:rgba(31,170,107,.12);border-radius:6px;padding:1px 7px;margin-right:6px;vertical-align:2px;}
+  .ex-heard{font-size:14.5px;line-height:1.6;margin:0 0 5px;padding-left:2px;}.ex-heard .ex-lbl{background:rgba(59,130,246,.12);}.ex-heard b{font-weight:700;color:var(--ink,#1f2937);}/* 聞こえた英文 2026-09-29 */
   .ex-kai{font-size:13.5px;line-height:1.6;color:var(--sub);margin-bottom:7px;white-space:pre-line;}/* 解説の改行をそのまま出す（型→当てはめ→ポイントの3行）2026-09-28 川上さん案A */
   /* 解説なぞり（不正解時・下線が伸びる）2026-07-26：文字は最初から読める色のまま、読み進む所に金の下線が流れる＝目で追わせる。次へボタンには何もしない（目線を奪わない） */
   .ex-kai.trace{color:var(--ink);}
@@ -2044,6 +2045,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
       <button class="listen-btn" id="btn-listen" type="button" style="display:none;"><i class="ti ti-volume"></i> <span><ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く</span></button>
       <div class="explain" id="explain" style="display:none;">
         <div class="ex-ans" id="ex-ans"></div>
+        <div class="ex-heard" id="ex-heard" style="display:none;"></div><!-- 聞き取りの「聞こえた英文」。解説の有無に関係なく必ず出す 2026-09-29 -->
         <div class="ex-kai" id="ex-kai"></div>
         <div class="ex-fig" id="ex-img" style="display:none;"></div>
         <div class="ex-audio" id="ex-audio" style="display:none;"></div><!-- 文の音声（答え合わせ）2026-09-11 -->
@@ -6211,12 +6213,15 @@ function _renderSENT0_(ss){
     $('sent-spk').onclick=function(){_sentPlay_(pl);};
     _sentPlay_(pl);
     /* 答え合わせに、いま流れた英文を出す（2026-09-09 川上さん指摘）。
-       聞き取りは音が消えると何を言われたのか確かめようがない。教材の kaisetsu があればそちらを優先する */
-    var _kai=w.kaisetsu||(pl.en?('英文　'+pl.en):'');
-    if(pl.c&&pl.c.length)_kai=w.kaisetsu||'';   /* かたまりを出す素材（導入パート）は、英文を下の枠に出すので解説の「英文」行は要らない 2026-09-25 */
+       【2026-09-29 川上さん】聞き取りは、形式に関係なく流れた英文を必ず出す。前は「解説があれば解説を優先」にしていたため、
+       2026-09-28 に解説を入れた問題すべてで英文が消えた。英文は解説と別の枠（#ex-heard・解説の上）に出し、解説に左右されない。
+       かたまりを出す素材（ウォームアップ）は、英文を下の枠にかたまりごとに出すので、上の枠は使わない */
+    var _kai=w.kaisetsu||'';
+    var _heard=(pl.c&&pl.c.length)?'':String(pl.en||'');
     buildChoices('sent-choices',w.japanese,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
       {fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:(q.intro?0:_tl),kaisetsu:_kai,next:s.onNext,
        afterShow:function(){try{_wlSync_(s,w,true);}catch(e){}
+         if(_heard){var xh=$('ex-heard');if(xh){xh.innerHTML='<span class="ex-lbl"><ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>英文<rt class="uf">えいぶん</rt></ruby></span><b>'+_tkAnsHtml_(_heard)+'</b>';xh.style.display='';}}
          if(pl.c&&pl.c.length){var xa=$('ex-audio');if(xa){xa.innerHTML='<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby></div><div class="lx-xl"><div class="lx-xb">'+_lxChunks_(pl.c)+(_lxSameJa_(pl.c,pl.ja)?'':'<small>'+_jaRubyIf_(String(pl.ja||''))+'</small>')+'</div></div>';xa.style.display='';}}}});   /* 聞いたあとに単語をみるを出す 2026-09-11 */
     return;
   }
@@ -7688,6 +7693,7 @@ function showExplain(correct,kaisetsu,reading,ok){
     else{_kaiWaitMs=0;kaiTraceStop_();kai.classList.remove('trace');if(_isEigo_())kai.innerHTML=_tkKaiHtml_(kaisetsu);else kai.textContent=kaisetsu;}
   }else{_kaiWaitMs=0;kaiTraceStop_();kai.classList.remove('trace');kai.style.display='none';}
   var _kimg=$('ex-img');if(_kimg){if(_kaiImgCur){_kimg.innerHTML=_kaiImgCur;_kimg.style.display='';}else{_kimg.innerHTML='';_kimg.style.display='none';}}
+  var _xh=$('ex-heard');if(_xh){_xh.innerHTML='';_xh.style.display='none';}   /* 前の問題の「聞こえた英文」を残さない 2026-09-29 */
   var _xa=$('ex-audio');if(_xa){_xa.innerHTML='';_xa.style.display='none';_xa.classList.remove('lx-hide');}
   var _xn=$('ex-next');if(_xn)_xn.style.display='';   /* 聞き取りの選び直しで隠した「次へ」を戻す 2026-09-25 */   /* 文の音声ボタンは毎回消す＝前の問題のが残らない 2026-09-11 */
   var _bf=$('bug-fab');if(_bf)_bf.style.display='none'; /* 解説中はフローティング報告を隠す＝機能は解説内「まちがい報告」へ 2026-07-16 */
