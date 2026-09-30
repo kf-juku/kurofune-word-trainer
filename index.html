@@ -1839,6 +1839,40 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 @keyframes gdIn{from{opacity:0}to{opacity:1}}
 @keyframes gdUp{from{transform:translateY(40px)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){.dy-st.now .dy-si,.gd-mk{animation:none;}}
+
+/* ===== 英検4級の読解（qtype reading）2026-09-30 要件定義書_英検教材 4-80・4-83・4-86・4-96〜4-99
+   承認モック＝モック\20260930_モック_英検4級_読解編_全19パート.html・20260929_モック_英検4級_読解ウォームアップ.html ===== */
+.rd-box{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0 8px;max-height:46vh;overflow:auto;text-align:left;-webkit-overflow-scrolling:touch}
+[data-theme="dark"] .rd-box{border-color:rgba(255,255,255,.14)}
+.rd-ttl{margin:0 0 6px;font-size:16.5px;font-weight:800;text-align:center;border-radius:4px;padding:1px 4px}
+.rd-ln{padding:2px 4px;border-radius:4px;font-size:15.5px;line-height:1.65}
+.rd-ln.h{font-size:13px;color:var(--sub);padding:0 4px;line-height:1.5}
+.rd-ln.pi{text-indent:1em}
+.rd-ln.tg{outline:2px solid var(--accent);outline-offset:1px}
+.rd-para{margin:0 0 8px;text-indent:1em;line-height:1.75}
+.rd-para .rd-ln{display:inline;padding:1px 2px}
+.rd-gap{height:8px}
+.rd-sep{border-top:1px dashed var(--sub);opacity:.5;margin:10px 0 6px}
+.rd-hl{background:#fff1a8;color:#3b3200}
+[data-theme="dark"] .rd-hl{background:#5a4d10;color:#fff3c4}
+.rd-tr{font-size:13px;color:var(--sub);margin:0 0 6px 4px;cursor:pointer;border-radius:4px;padding:0 2px}
+.rd-tr .rd-fg{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:10px;padding:0 6px;margin-left:6px;color:var(--accent);white-space:nowrap}
+.rd-wg{flex-wrap:wrap;gap:4px 10px;margin:2px 0 6px 4px}
+.rd-wg span{display:flex;flex-direction:column;align-items:flex-start;background:var(--accent-soft);border-radius:6px;padding:2px 6px}
+.rd-wg b{font-weight:600;font-size:13.5px}.rd-wg em{font-style:normal;font-size:12px;color:var(--sub)}
+.rd-w{border-bottom:1px dotted var(--sub);border-radius:0}
+.rd-note{font-size:12px;color:var(--sub);margin:-2px 0 8px}
+.rd-tag{display:inline-block;font-size:12px;padding:1px 9px;border-radius:10px;background:var(--accent-soft);color:var(--accent);font-weight:700;margin:2px 0 4px}
+.rd-q{font-weight:700;font-size:16px;margin:2px 0 8px;text-align:left}
+.rd-qja{font-size:13px;color:var(--sub);margin:-4px 0 8px;text-align:left}
+.choice.rd-ch{flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;font-size:15.5px;padding:12px 14px;margin-bottom:8px}
+.choice.rd-ch small{display:block;color:var(--sub);font-size:12.5px;margin-top:2px}
+.choice.rd-ch.tried{opacity:.4;border-style:dashed;text-decoration:line-through}
+.rd-retry{margin:4px 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:14px;text-align:left}
+.rd-retry b{color:var(--ng);margin-right:6px}
+.rd-opts{background:var(--accent-soft);border-radius:10px;padding:6px 12px;margin:2px 0 10px;text-align:left}
+.rd-opt{padding:3px 0;font-size:15.5px}
+.rd-opt .rd-on{display:inline-block;min-width:1.6em;color:var(--sub);font-weight:700}
 </style>
 </head>
 <body>
@@ -4831,7 +4865,7 @@ function _startStepFor(s,w){ return _wIsEng(s,w) ? (s.mode==='daily'?1:2) : 3; }
    語の3ステップ（発音→意味→日本語→英語）には乗せない＝renderQz_ の頭で分岐して戻る（表・図と同じやり方）。
    採点の向きは e2j にそろえる。教材は direction=e2j なので、語も文も「意味」の正答率に入り、
    分母（total＝行数）とそろう。j2e にすると reverse 側に入って正答率が半分に見える。 */
-function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder'||q==='listen_resp'||q==='listen_pic'||q==='listen_print'||q==='dialog_fill'||q==='phonics';}
+function _isSentQ_(w){var q=String((w&&w.qtype)||'');return q==='listen'||q==='sentence_fill'||q==='reorder'||q==='listen_resp'||q==='listen_pic'||q==='listen_print'||q==='dialog_fill'||q==='phonics'||q==='reading';}   /* reading＝英検4級の読解 2026-09-30 */
 /* phonics＝読み確認。1行1問・採点の向きは e2j。ここに入れると
    _isOneShot_ / _ansWhichNow_ / _saveResumeNext_ / カードを隠す行 の4か所が一度にそろう
    （2026-09-08⑭ の教訓。描画関数だけ足しても動かない）2026-09-21 */
@@ -6194,12 +6228,141 @@ function renderSENT(ss){
   _renderSENT0_(ss);
   try{_lxDecor_(s,w,q);}catch(e){}
 }
+/* ===== 英検4級の読解（qtype reading）2026-09-30 =====
+   正＝要件定義書_英検教材 4-80・4-83・4-86・4-96〜4-99。承認モック＝モック\20260930_モック_英検4級_読解編_全19パート.html
+   （ふつうのパート）・20260929_モック_英検4級_読解ウォームアップ.html（ウォームアップ）。
+   words：english＝正解（rc は日本語・rq は英語）／japanese＝質問。qdata＝{asset,kind:'rc'|'rq',q,q_ja?,choices（先頭が正解。
+   rc＝文字列・rq＝{en,ja}）,loc（答えのある行。数かリスト。-1＝題名）,tg?（ウォームアップで青い枠を付ける行）,tap?,point?,intro?}
+   assets kind=passage：payload＝{kind:'掲示'|'メール'|'説明文',title,lines:[{en,ja,chunks,p}],gloss?}
+   ・本文→質問→選択肢の順（本文を読んでから質問）。時間ははからない
+   ・練習で1回目に間違えたら選び直す（点数と記録は1回目）。確認テスト・間違いノートは選び直さない
+   ・答えたら、答えのある行を黄色にし、全文の訳と英語の順の意味を出す。黄色の行が枠の外なら枠の中を動かし、枠が画面の外ならページも動かす（4-96）
+   ・本文の語を押すと意味（4-86）。押せるのは _RD_TAP_ が真のときだけ（いまはウォームアップ＝qdata.tap）。切り替えるならこの1行 */
+function _RD_TAP_(s,w,q){ return !!(q&&q.tap); }
+function _rdLocs_(q){ var L=q&&q.loc; if(L==null||L==='')return []; return (Array.isArray(L)?L:[L]).map(function(x){return +x;}); }
+function _rdWords_(t,gl){
+  t=String(t==null?'':t); if(!gl)return esc(t);
+  var out='',re=/[A-Za-z][A-Za-z']*/g,m,last=0;
+  while((m=re.exec(t))){
+    var k=m[0].toLowerCase(),g=gl[k]||gl[k.replace(/'s$/,'')]||'';
+    out+=esc(t.slice(last,m.index))+(g?'<span class="tkw rd-w" role="button" tabindex="0" data-en="'+esc(m[0])+'" data-ja="'+esc(g)+'">'+esc(m[0])+'</span>':esc(m[0]));
+    last=re.lastIndex;
+  }
+  return out+esc(t.slice(last));
+}
+function _rdPassage_(pl,locs,tg,after,gl){
+  var kind=String(pl.kind||''),mail=(kind==='メール'),essay=(kind==='説明文'),lines=pl.lines||[],h='<div class="rd-box" id="rd-box">';
+  if(!mail&&pl.title)h+='<div class="rd-ttl'+(after&&locs.indexOf(-1)>=0?' rd-hl':'')+(tg===-1?' tg':'')+'" id="rd-l-1">'+_rdWords_(pl.title,gl)+'</div>';
+  var inline=essay&&!after,openP=false,nFrom=0;
+  lines.forEach(function(l,k){
+    var en=String((l&&l.en)||''),hd=mail&&/^(From|To|Date|Subject):/.test(en),on=after&&locs.indexOf(k)>=0;
+    var cls='rd-ln'+(hd?' h':'')+(on?' rd-hl':'')+(k===tg?' tg':'');
+    if(mail&&/^From:/.test(en)&&(nFrom++)>0)h+='<div class="rd-sep"></div>';
+    if(inline){
+      if(l.p||!openP){ if(openP)h+='</p>'; h+='<p class="rd-para">'; openP=true; }
+      h+='<span class="'+cls+'" id="rd-l'+k+'">'+_rdWords_(en,gl)+'</span> '; return;
+    }
+    if(essay&&l.p&&k>0)h+='<div class="rd-gap"></div>';
+    h+='<div class="'+cls+(essay&&l.p?' pi':'')+'" id="rd-l'+k+'">'+_rdWords_(en,gl)+'</div>';
+    if(after){
+      h+='<div class="rd-tr'+(on?' rd-hl':'')+'" data-k="'+k+'">'+_jaRubyIf_(String(l.ja||''))+'<span class="rd-fg">'+rb('英語','えいご')+'の'+rb('順','じゅん')+'で</span></div>'
+        +'<div class="rd-wg" id="rd-wg'+k+'" style="display:'+(on?'flex':'none')+'">'+((l.chunks||[]).map(function(c){return '<span><b>'+esc(String(c.en||''))+'</b><em>'+_jaRubyIf_(String(c.ja||''))+'</em></span>';}).join(''))+'</div>';
+    }
+  });
+  if(openP)h+='</p>';
+  return h+'</div>';
+}
+/* 答えのありかへ動かす（4-96）。before＝青い枠（ウォームアップ）の行を枠の中で見せるだけ（ページは動かさない） */
+function _rdScroll_(after){
+  var bx=$('rd-box'); if(!bx)return;
+  var t=bx.querySelector(after?'.rd-ttl.rd-hl,.rd-ln.rd-hl':'.tg'); if(!t)return;
+  var top=t.getBoundingClientRect().top-bx.getBoundingClientRect().top+bx.scrollTop-8;
+  try{ bx.scrollTo({top:Math.max(0,top),behavior:after?'smooth':'auto'}); }catch(e){ bx.scrollTop=Math.max(0,top); }
+  if(!after)return;
+  var r=bx.getBoundingClientRect(),vh=window.innerHeight||document.documentElement.clientHeight;
+  if(r.top<0||r.top>vh*0.5){ var y=(window.scrollY||window.pageYOffset||0)+r.top-72; try{ window.scrollTo({top:Math.max(0,y),behavior:'smooth'}); }catch(e){ window.scrollTo(0,Math.max(0,y)); } }
+}
+function renderRD_(s,w,q,pl){
+  var ask=$('sent-ask'),body=$('sent-body'),box=$('sent-choices');
+  $('step-sent').style.display='block'; hideQTimer(); try{_wlHide_();}catch(e){}
+  box.classList.remove('g2'); ask.innerHTML='';
+  var rc=(String(q.kind||'')!=='rq');
+  var chs=(q.choices||[]).map(function(c){return (c&&typeof c==='object')?{en:String(c.en||''),ja:String(c.ja||'')}:{en:String(c==null?'':c),ja:''};});
+  if(chs.length<2||!(pl&&pl.lines&&pl.lines.length)){   /* 素材が取れない＝出題できない。落とさずに次へ進めるよう、答えだけ見せる */
+    body.innerHTML='<div class="sq-ja">'+_jaRubyIf_(String(w.english||''))+'</div>';box.innerHTML='';
+    _quizAns(s,w,false,0,'e2j');afterAnswer(false,w.english||'','','',s.onNext);return;
+  }
+  var locs=_rdLocs_(q),tg=(q.tg==null||q.tg==='')?-99:+q.tg,gl=(_RD_TAP_(s,w,q)&&pl.gloss)?pl.gloss:null;
+  var qh=function(after){
+    return '<span class="rd-tag">'+(rc?_jaRubyIf_('内容をつかむ質問'):_jaRubyIf_('英検と同じ形の質問'))+'</span>'
+      +'<div class="rd-q">'+(rc?_jaRubyIf_(String(q.q||w.japanese||'')):esc(String(q.q||w.japanese||'')))+'</div>'
+      +(after&&!rc&&q.q_ja?'<div class="rd-qja">'+_jaRubyIf_(String(q.q_ja))+'</div>':'');
+  };
+  var draw=function(after){
+    body.innerHTML=_rdPassage_(pl,locs,after?-99:tg,after,gl)
+      +(after?'<div class="rd-note">'+_jaRubyIf_('訳を押すと、英語の順番どおりの意味が見られます。')+'</div>':(gl?'<div class="rd-note">'+_jaRubyIf_('下線のある語を押すと、意味が出ます。')+'</div>':''))
+      +qh(after);
+    [].forEach.call(body.querySelectorAll('.rd-tr'),function(el){ el.onclick=function(){ var g=$('rd-wg'+el.getAttribute('data-k')); if(g)g.style.display=(g.style.display==='none')?'flex':'none'; }; });
+  };
+  draw(false);
+  try{ _rdScroll_(false); }catch(e){}
+  var order=shuffle(chs.map(function(c,i){return i;}));
+  box.innerHTML=order.map(function(ci,j){
+      return '<button type="button" class="choice rd-ch" data-j="'+j+'" data-val="'+esc(chs[ci].en)+'">'+(rc?_jaRubyIf_(chs[ci].en):esc(chs[ci].en))+'</button>';
+    }).join('')+'<div class="rd-retry" id="rd-retry" style="display:none"></div>';
+  var answered=false,first=null,retried=false,t0=Date.now(),canRetry=!s.quizMode&&s.mode!=='note';
+  var alive=function(){return s.words[s.idx]===w;};
+  function finish(ok,b){
+    if(answered||!alive())return;
+    var tip=$('rd-retry');
+    if(first===null){
+      first=!!ok; ansCount++;
+      _qrvPick_=b?String((chs[order[+b.getAttribute('data-j')]]||{}).en||''):'';
+      _quizAns(s,w,ok,Date.now()-t0,'e2j');   /* 点数と記録は1回目の答えで決まる */
+      if(!ok&&canRetry&&b){
+        retried=true; combo=0; sndWrong();
+        b.classList.add('tried'); b.disabled=true;
+        if(tip){ tip.innerHTML='<b>'+_jaRubyIf_('もう一度')+'</b>'+_jaRubyIf_('質問をもう一度読み、本文を最初から読み直して、選び直そう。'); tip.style.display=''; }
+        return;
+      }
+      if(ok){combo++;if(combo>maxCombo)maxCombo=combo;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
+      else{combo=0;sndWrong();}
+    }else if(ok){ sndCorrect(); }
+    answered=true;
+    [].forEach.call(box.querySelectorAll('.rd-ch'),function(x){
+      x.disabled=true; var ci=order[+x.getAttribute('data-j')];
+      if(ci===0)x.classList.add('correct');
+      if(!rc&&chs[ci].ja)x.insertAdjacentHTML('beforeend','<small>'+_jaRubyIf_(chs[ci].ja)+'</small>');
+    });
+    if(b&&!ok)b.classList.add('wrong');
+    if(tip){ if(retried&&ok){ tip.innerHTML=_jaRubyIf_('選び直して正解！'); tip.style.display=''; } else tip.style.display='none'; }
+    draw(true);
+    afterAnswer(first,chs[0].en||w.english||'',w.kaisetsu,'',s.onNext);
+    /* showExplain は解説を画面の下にそろえてページを動かす（smooth）。読解は答えのありかを先に見せる（4-96）ので、その動きを止めてから本文の枠へ動かす */
+    try{ window.scrollTo(window.scrollX||0,window.scrollY||window.pageYOffset||0); }catch(e){}
+    try{ _rdScroll_(true); }catch(e){}
+  }
+  [].forEach.call(box.querySelectorAll('.rd-ch'),function(b){ b.onclick=function(){ if(b.disabled)return; finish(order[+b.getAttribute('data-j')]===0,b); }; });
+}
+/* 「選択肢だけ読む」（listen_print の mode opt_ja）2026-09-30。承認モック＝モック\20260930_モック_英検4級_聞き取りウォームアップ.html
+   英語の選択肢4つ（素材 opts の choices）を文字で見せ、質問は何をたずねていそうかを日本語の4択（qdata.choices_ja・先頭が正解＝words.english）で選ぶ。音は鳴らさない */
+function _renderLXOpt_(s,w,q,pl){
+  var ask=$('sent-ask'),body=$('sent-body'),box=$('sent-choices');
+  $('step-sent').style.display='block'; hideQTimer(); box.classList.remove('g2'); ask.innerHTML='';
+  var chs=(pl&&pl.choices)||[];
+  body.innerHTML='<span class="rd-tag">'+_jaRubyIf_('英語の選択肢（音はありません）')+'</span>'
+    +'<div class="rd-opts">'+chs.map(function(c,k){return '<div class="rd-opt"><span class="rd-on">'+(k+1)+'</span>'+esc(String((c&&c.en)||''))+'</div>';}).join('')+'</div>'
+    +'<div class="rd-q">'+_jaRubyIf_(String(q.q||w.japanese||''))+'</div>';
+  buildChoices('sent-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
+    {fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:0,kaisetsu:w.kaisetsu,next:s.onNext});
+}
 function _renderSENT0_(ss){
   var s=ss||session,w=s.words[s.idx],X=_sentPack_(s,w),q=X.q,pl=X.pl,qt=String(w.qtype||'');
   hideListen_();
   try{_lxStop_();}catch(_e){}
   try{_phStopIfAny_();}catch(_e){}
   if(_isLx_(w)){renderLX_(s,w,q,pl);return;}
+  if(qt==='reading'){renderRD_(s,w,q,pl);return;}   /* 英検4級の読解 2026-09-30 */
   var ask=$('sent-ask'),body=$('sent-body');
   $('sent-choices').innerHTML='';body.innerHTML='';
   $('step-sent').style.display='block';
@@ -6611,6 +6774,7 @@ function _lxRunSeq_(steps){
 function renderLX_(s,w,q,pl){
   var _md=String((q&&q.mode)||'');
   if(_md==='pic_ja'||_md==='pic_yn'){_renderLXIntro_(s,w,q,pl,_md);return;}
+  if(_md==='opt_ja'){_renderLXOpt_(s,w,q,pl);return;}   /* 選択肢だけ読む（音なし）2026-09-30 */
   var isResp=(String(w.qtype||'')==='listen_resp');
   /* 第2部型（listen_print）2026-09-27 §17r 5r-12・承認モック 20260924_モック_英検4級_新形式3つ.html ①
      ＝会話（lines）→ Question（pl.q）を順に鳴らす。選択肢は文字で最初から見せ、質問が読み終わってから押せる（4-36 ⑩）。選択肢の音は鳴らさない */
@@ -8167,6 +8331,12 @@ function _qrvItem_(s,w,mine){
           +'<small>'+(hasC2&&l.sp!=='Q'?_lxJaMark_(l.ja,pl.line_kja):_jaRubyIf_(String(l.ja||'')))+'</small></div></div>';}).join('')+'</div>';
     h+=_qrvAns_(mine,String(c02.en||w.english||''),(mine?_qrvChJa_(chs2,mine):''),String(c02.ja||''))+_qrvKai_(w.kaisetsu);
     play=function(){var st=ls2.map(function(l){return {it:l,gap:350};});if(qq2.en||qq2.audio)st.push({it:qq2,gap:0});_lxRunSeq_(st);};
+  }else if(qt==='reading'){   /* 英検4級の読解 2026-09-30：質問・答えのある行（黄色）と訳・あなた／正解・解説 */
+    var rch=(q.choices||[]).map(function(c){return (c&&typeof c==='object')?c:{en:String(c==null?'':c),ja:''};}),r0=rch[0]||{},rl=pl.lines||[],rrq=(String(q.kind||'')==='rq');
+    var rhl=_rdLocs_(q).map(function(k){return k===-1?{en:pl.title,ja:''}:rl[k];}).filter(function(x){return x&&x.en;});
+    h='<div class="qrv-q">'+(rrq?esc(String(q.q||''))+'<small>'+_jaRubyIf_(String(q.q_ja||''))+'</small>':_jaRubyIf_(String(q.q||w.japanese||'')))+'</div>'
+      +(rhl.length?'<div class="qrv-talk">'+rhl.map(function(l){return '<div class="qrv-line"><div class="lx-xb"><mark class="lx-mk">'+esc(String(l.en||''))+'</mark>'+(l.ja?'<small>'+_jaRubyIf_(String(l.ja))+'</small>':'')+'</div></div>';}).join('')+'</div>':'')
+      +_qrvAns_(mine,String(r0.en||w.english||''),(rrq&&mine?_qrvChJa_(rch,mine):''),String(r0.ja||''),!rrq)+_qrvKai_(w.kaisetsu);
   }else if(qt==='phonics'){
     h='<div class="qrv-q">'+esc(pl.word||'')+'<small>'+esc(pl.read||'')+'</small></div>'+_qrvAns_(mine,String(w.english||''))+_qrvKai_(w.kaisetsu||_phKai_(pl,String(q.mode||'')));
     play=function(){_phWhole_(pl);};
@@ -9342,7 +9512,7 @@ function _pvBarSync_(){
   var b=$('pv-pos'); if(!b)return;
   var it=_PV_.list[_PV_.at]||{};
   var w=(_PV_.d&&(_PV_.d.words||[])[it.at])||{}, q=String(w.qtype||'');
-  var lb=it.card?'カード':(q==='listen'?'聞く':q==='listen_resp'?'会話':q==='listen_pic'?'絵':q==='listen_print'?'会話と質問':q==='sentence_fill'?'穴うめ':q==='reorder'?'語順'
+  var lb=it.card?'カード':(q==='listen'?'聞く':q==='listen_resp'?'会話':q==='listen_pic'?'絵':q==='listen_print'?'会話と質問':q==='reading'?'読解':q==='sentence_fill'?'穴うめ':q==='reorder'?'語順'
     :q==='image_fill'?'図':q==='table_fill'?'表':(it.step===2?'意味':(it.step===3?'英語':'問題')));
   b.textContent=(_PV_.at+1)+' / '+_PV_.list.length+'　'+lb;
 }
