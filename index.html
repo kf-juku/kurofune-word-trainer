@@ -6935,10 +6935,18 @@ function _lxSameJa_(c,ja){
   var n=function(t){return String(t||'').replace(/[。．.、，,\s！？!?]/g,'');};
   return n((c[0]||[])[1])===n(ja);
 }
+/* 【2026-10-01 4-104】和訳の決め手（line_kja／choice_kja）は文字列でも配列でもよい。決め手が2行以上にまたがる問題は配列で渡し、その行にある分だけ黄色にする */
 function _lxJaMark_(ja,k){
-  ja=String(ja||'');k=String(k||'');var i=k?ja.indexOf(k):-1;
-  if(i<0)return _jaRubyIf_(ja);
-  return _jaRubyIf_(ja.slice(0,i))+'<mark class="lx-mk">'+_jaRubyIf_(k)+'</mark>'+_jaRubyIf_(ja.slice(i+k.length));
+  ja=String(ja||'');var ks=(Array.isArray(k)?k:[k]).map(function(x){return String(x||'');}).filter(function(x){return x&&ja.indexOf(x)>=0;});
+  if(!ks.length)return _jaRubyIf_(ja);
+  var out='',pos=0;
+  while(pos<ja.length){
+    var best=-1,bk='';
+    ks.forEach(function(x){var i=ja.indexOf(x,pos);if(i>=0&&(best<0||i<best||(i===best&&x.length>bk.length))){best=i;bk=x;}});
+    if(best<0)break;
+    out+=_jaRubyIf_(ja.slice(pos,best))+'<mark class="lx-mk">'+_jaRubyIf_(bk)+'</mark>';pos=best+bk.length;
+  }
+  return out+_jaRubyIf_(ja.slice(pos));
 }
 function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
   var xa=$('ex-audio');if(!xa)return;
