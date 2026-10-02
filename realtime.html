@@ -762,7 +762,7 @@ var _PQ_CIRC_='①②③④⑤⑥⑦⑧';
    ピリオドの無い英文を見慣れさせない（student.html の _sfWhole_ と同じ判定） */
 function _pqFillWholeP_(it){
   var pk=_pqPack_(it); if(!pk||!pk.pl||!pk.pl.en) return '';
-  var tk=String(pk.pl.en).match(/P\.E\.|[A-Za-z]+(?:[-'][A-Za-z]+)*|[.,?!]/g)||[]; if(!tk.length) return '';
+  var tk=String(pk.pl.en).match(/P\.E\.|[ap]\.m\.|[0-9]+(?:[:.,][0-9]+)*(?:st|nd|rd|th)?|[A-Za-z]+(?:[-'][A-Za-z]+)*|[.,?!]/g)||[]; if(!tk.length) return '';
   var isP=function(t){return /^[.,?!]$/.test(t);}, last=tk[tk.length-1]; if(!isP(last)) return '';
   var ws=[]; for(var i=0;i<tk.length;i++){ if(!isP(tk[i])) ws.push(i); }
   var bi=(pk.qd.blank|0), bn=Math.max(1,(pk.qd.blank_n|0)||1);

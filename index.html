@@ -6175,7 +6175,7 @@ function _wordCols_(tokens,gloss,roles,blankAt,blankText,s,blankN){
 }
 function _sentPack_(s,w){var q=tfParse(w);var a=((s&&s.assets)||{})[q.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}return {q:q,pl:pl};}
 /* T-shirt・P.E.・don't は1語として切る（ハイフンとアポストロフィで割らない）＝文のビルドと検査.py と同じ正規表現 */
-function _sentTok_(t){return String(t==null?'':t).match(/P\.E\.|[A-Za-z]+(?:[-'][A-Za-z]+)*|[.,?!]/g)||[];}
+function _sentTok_(t){return String(t==null?'':t).match(/P\.E\.|[ap]\.m\.|[0-9]+(?:[:.,][0-9]+)*(?:st|nd|rd|th)?|[A-Za-z]+(?:[-'][A-Za-z]+)*|[.,?!]/g)||[];}
 function _sentJoin_(a){return (a||[]).join(' ').replace(/\s+([.,?!])/g,'$1');}
 function _sentIsPn_(t){return /^[.,?!]$/.test(String(t));}
 /* シャッフルが偶然そのままの並びになると、並べ替えが「押すだけ」で正解になる。ずれるまで振り直す 2026-09-08 */
