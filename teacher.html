@@ -442,7 +442,7 @@
   .up-a{width:48%;padding:8px 11px;}
   .up-ans{font-size:15px;font-weight:800;color:#000;}
   .up-read{font-size:12px;color:#0a7a45;font-weight:700;margin-top:2px;}
-  .up-kai{font-size:11.5px;color:#333;margin-top:5px;border-top:1px dashed #ccc;padding-top:4px;line-height:1.5;}
+  .up-kai{font-size:11.5px;color:#333;margin-top:5px;border-top:1px dashed #ccc;padding-top:4px;line-height:1.5;white-space:pre-line;}
   .up-none{color:#0a7a45;font-weight:700;font-size:12px;margin-top:8px;}
   /* ===== 【2026-09-13j・段E】問題の形式ごとの紙の部品（チェックプリント・仕上げプリント共通）=====
      語群（並べ替え）・表（穴あき）・答えの番号。どちらの紙でも同じ見た目にする＝2か所に別々の見た目を作らない */
@@ -3921,11 +3921,11 @@ function fsAnsRowHtml_(it,no){
      問題の側に出すと、並べ替える前に訳が全部見えて練習にならない */
   var kai=String(it.kaisetsu||'');
   if(_pqKind_(it)==='order'){ var gl=_pqGlossText_(it); if(gl) kai=(kai?(kai+'　'):'')+gl; }
-  var kaiH=esc(kai);
+  var kaiH=esc(kai).replace(/\n/g,'<br>');   /* 解説は3行。改行を紙でも残す（2026-10-02） */
   if(_pqKind_(it)==='read'){   /* 読解（2026-09-30・4-54④）＝解説＋質問の意味（rq）＋答えのありか（黄色）。問題用紙には出さない */
     var _qja=_pqRdQJa_(it), _loc=_pqRdLocText_(it);
     kaiH=(_loc?('<div class="fs-rdloc"><span class="pq-rdlocl">答えのありか</span><span class="pq-rdloc">'+esc(_loc)+'</span></div>'):'')
-      +(_qja?('<div>質問の意味：'+esc(_qja)+'</div>'):'')+(kai?('<div>'+esc(kai)+'</div>'):'');
+      +(_qja?('<div>質問の意味：'+esc(_qja)+'</div>'):'')+(kai?('<div>'+esc(kai).replace(/\n/g,'<br>')+'</div>'):'');
   }
   return '<tr><td class="fs-tn">'+no+'</td><td class="fs-ta">'+esc(fsAnswerOf_(it))+rd+'</td>'
     +'<td>'+kaiH+'</td><td class="fs-mk"><span class="fs-mkbox"></span></td></tr>';
