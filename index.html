@@ -980,6 +980,8 @@
    幅320px以下で長い和訳がカードの右にはみ出していた。入るときは今までどおり1行＝360px以上の見た目は変えない */
 .wg.extr,.wg.extr .wg-ws,.wg.extr .ww{max-width:100%;min-width:0;}
 .wg.extr .ww-en{white-space:normal;}
+/* 【A⑤ 2026-10-02】和訳が2行に折り返すと、ふりがな付きの漢字（ruby）だけが flex の別の段に割れていた。ふつうの文の流れにする */
+.wg.extr .ww-en{display:block;}
 /* 問題（穴うめ）は文字を大きく＝カードの例文より主役 */
 .sqx{justify-content:center;column-gap:15px;row-gap:14px;margin:16px 0 4px;}
 .sqx .ww-en{font-size:23px;font-weight:800;min-height:36px;letter-spacing:-.01em;}
@@ -1150,6 +1152,8 @@
   /* 川上さん承認(2026-07-05 モック)：4択は最長選択肢が10文字以内なら2×2グリッド、超えたら1列 */
   .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
   .g2 .choice{margin-bottom:0;min-height:56px;padding:12px 10px;font-size:17px;text-align:center;line-height:1.45;}
+  /* 【A⑤ 2026-10-02】幅320px以下で長い語（Wednesday など）の右の列がカードの余白まで出ていた */
+  @media (max-width:340px){.g2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}.g2 .choice{font-size:14.5px;padding:12px 5px;}}
   @keyframes pop{0%{transform:scale(1);}40%{transform:scale(1.06);}100%{transform:scale(1);}}
   @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
 
@@ -1453,6 +1457,8 @@
   .fic.mic{background:rgba(31,170,107,.14);color:var(--ok);}
   .fic.skip{background:var(--ring-track);color:var(--sub);}
   .fbtn:active{transform:translateY(2px) scale(.98);}
+  /* 【A⑤ 2026-10-02】幅320px以下で「スキップ」がカードの右にはみ出し、長い語（grandmother など）が画面の外に出ていた */
+  @media (max-width:340px){.pron-foot .fbtn{min-width:0;}.pron-foot .fbtn-t{white-space:normal;}#w-en.word-en,#e2j-en.word-en{font-size:32px;overflow-wrap:anywhere;}}
   #btn-mic.rec{background:var(--ng);}
 /* ===== 文の問題（listen / sentence_fill / reorder）2026-09-08 =====
    正＝要件定義書_英検教材_Kurofune-Word-Trainer.md §5・§7／教材作成基準 §2-6。
@@ -1480,6 +1486,10 @@
 .lx-bub.b{flex-direction:row-reverse;}
 .lx-who{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;}
 .lx-who.a{background:#e0708a;}.lx-who.b{background:#4a7fd6;}
+/* 【A⑤ 2026-10-02】長い役名（Woman・Mother・Grandmother…）が丸からはみ出していた。丸は広げず、長い名前だけ文字を小さくする（_whoC_） */
+.lx-who.n6{font-size:9.5px;letter-spacing:-.03em;}
+.lx-who.n8{font-size:7.5px;letter-spacing:-.03em;}
+.lx-who.n9{font-size:8px;letter-spacing:-.02em;flex-direction:column;line-height:1.05;}
 .lx-wave{flex:1;height:10px;border-radius:5px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 10px);}
 .lx-wave.dim{opacity:.4;}
 .lx-qm{color:var(--sub);font-weight:800;}
@@ -1493,6 +1503,9 @@
 .df-who.a{background:#e0708a;}.df-who.b{background:#4a7fd6;}
 .df-line{flex:1;font-size:17px;font-weight:700;line-height:1.55;}
 .df-hole{display:inline-block;min-width:92px;height:18px;border-bottom:3px solid var(--accent);vertical-align:-2px;}
+/* 【A⑤ 2026-10-02】Grandmother などの長い札で英文が細くなり、答えの線が吹き出しの外に出ていた */
+.df-who.n8,.df-who.n9{font-size:10.5px;padding:0 6px;}
+.df-hole{min-width:min(92px,100%);}
 .lx-pic{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:0 0 12px;background:#fff;text-align:center;}
 .lx-pic img{display:block;width:100%;height:auto;max-height:46vh;object-fit:contain;}
 .lx-pic.noimg{min-height:120px;background:var(--bg);}
@@ -1534,6 +1547,9 @@
 .lx-wgl .wg-ws{column-gap:0;}
 .lx-wgl .ww{align-items:flex-start;border-bottom:2px solid var(--line);padding:0 1px 2px;}
 .lx-wgl .ww-en{font-size:15.5px;min-height:0;}
+/* 【A⑤ 2026-10-02】長いかたまり（英文・直訳）が1行のまま画面の右へ突き抜けていた。入らないときだけ折り返す */
+.lx-wgl .wg,.lx-wgl .wg-ws,.lx-wgl .ww{max-width:100%;min-width:0;}
+.lx-wgl .ww-en,.lx-wgl .ww-ja{white-space:normal;overflow-wrap:anywhere;}
 .lx-wgl .ww.lxk{background:#fff3c4;border-radius:6px;border-bottom-color:var(--gold);padding:1px 4px 2px;}
 .lx-wgl .ww.lxk .ww-ja{color:inherit;}
 mark.lx-mk{background:#fff3c4;color:inherit;border-radius:3px;padding:0 2px;}
@@ -1589,6 +1605,8 @@ mark.lx-mk{background:#fff3c4;color:inherit;border-radius:3px;padding:0 2px;}
 .ro-slots.fx{gap:4px;padding:10px 4px;}
 .ro-slots.fx .ro-sl,.ro-slots.fx .ro-chip{min-width:42px;}
 .ro-slots.fx .ro-chip{padding:0 8px;font-size:16px;}
+/* 【A⑤ 2026-10-02】枠の外の語が長い文のとき、1行のまま枠と画面からはみ出していた。入らないときだけ折り返す */
+.ro-slots.fx .ro-fx{white-space:normal;max-width:100%;overflow-wrap:anywhere;text-align:center;}
 @media (max-width:380px){.ro-slots.fx .ro-chip{padding:0 6px;font-size:15px;}.ro-slots.fx .ro-sl,.ro-slots.fx .ro-chip{min-width:38px;}.ro-fx{font-size:16px;}}
 .ro-sl{min-width:58px;height:48px;border:2px dashed var(--line);border-radius:12px;box-sizing:border-box;}
   .ro-chip{height:48px;min-width:58px;padding:0 14px;display:flex;align-items:center;justify-content:center;font-family:inherit;font-size:17px;font-weight:700;border:none;border-radius:12px;background:var(--accent-soft);color:var(--accent);cursor:grab;touch-action:none;user-select:none;box-sizing:border-box;transition:opacity .12s;}
@@ -1619,6 +1637,8 @@ mark.lx-mk{background:#fff3c4;color:inherit;border-radius:3px;padding:0 2px;}
 .tk{cursor:pointer;-webkit-tap-highlight-color:transparent;background:rgba(120,128,145,.13);border-radius:6px;padding:1px 5px;white-space:nowrap;color:inherit;font-weight:inherit}
 [data-theme="dark"] .tk{background:rgba(255,255,255,.10)}
 .tk .tk-ic{font-size:.8em;margin-left:3px;color:var(--sub);vertical-align:-1px}
+/* 【A⑤ 2026-10-02】スマホの幅（400px以下）で、解説とポイントの中の英文の札が1行のまま枠の外に出ていた（360pxでも例文の後ろの「.」がはみ出す）。入らないときは札の中で折り返す */
+@media (max-width:400px){.ex-kai .tk,.pt-body .tk{white-space:normal}}
 .tkw{cursor:pointer;border-radius:6px;-webkit-tap-highlight-color:transparent}
 .tk.on,.tkw.on{background:var(--accent-soft);color:var(--accent)}
 .tk-lsp{display:none;border:none;background:none;color:var(--sub);width:32px;height:32px;border-radius:10px;font-size:18px;cursor:pointer;flex:none;align-self:center;padding:0;vertical-align:middle;font-family:inherit}
@@ -1671,6 +1691,8 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
 .tf-hole{display:inline-block;min-width:52px;padding:2px 6px;border-radius:8px;font-family:'Manrope','Noto Sans JP',sans-serif;font-weight:800;font-size:16px;border-bottom:2px solid var(--ring-track);color:var(--sub)}
 .tf-hole.cur{background:var(--accent-soft);border-bottom-color:var(--accent);color:var(--accent);animation:tfpulse 1.2s infinite}
 .tf-hole.ok{border-bottom-color:transparent;color:var(--ok)}
+/* 【A⑤ 2026-10-02】幅320px以下で4列の表の右の列がカードの外に出ていた。狭い画面だけ詰める */
+@media (max-width:340px){table.tf-table{font-size:12.5px}table.tf-table th,table.tf-table td{padding:8px 2px}table.tf-table th{font-size:10px}table.tf-table td.tf-rowh{font-size:10.5px;width:auto}.tf-hole{min-width:34px;font-size:13px;padding:2px 3px}}
 @keyframes tfpulse{50%{opacity:.55}}
 /* ===== 図問題（image_fill・番号方式）2026-07-12：表穴埋めの素材保持フロー流用 ===== */
 .imgq-fig{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;position:relative;overflow:hidden;height:min(46vh,360px);touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
@@ -1866,6 +1888,8 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 .rd-q{font-weight:700;font-size:16px;margin:2px 0 8px;text-align:left}
 .rd-qja{font-size:13px;color:var(--sub);margin:-4px 0 8px;text-align:left}
 .choice.rd-ch{flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;font-size:15.5px;padding:12px 14px;margin-bottom:8px}
+/* 【A⑤ 2026-10-02】選択肢が折り返すと、ふりがな付きの漢字（ruby）だけが flex の別の段に割れていた（「疲」だけが1行目）。ふつうの文の流れにする */
+.choice.rd-ch{display:block}
 .choice.rd-ch small{display:block;color:var(--sub);font-size:12.5px;margin-top:2px}
 .choice.rd-ch.tried{opacity:.4;border-style:dashed;text-decoration:line-through}
 .rd-retry{margin:4px 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:14px;text-align:left}
@@ -6771,6 +6795,9 @@ function _lxRunSeq_(steps){
   });
   return chain.then(function(){return tok===_lxRun;});
 }
+/* 【A⑤ 2026-10-02】役名の長さで文字の大きさを変える（丸・札は広げない）。9字以上は2行（Grand／mother） */
+function _whoC_(sp){var n=String(sp==null?'':sp).length;return n<=4?'':n<=6?' n6':n<=8?' n8':' n9';}
+function _whoT_(sp){var t=String(sp==null?'':sp);if(t.length<9)return esc(t);var m=Math.floor(t.length/2);return '<span>'+esc(t.slice(0,m))+'</span><span>'+esc(t.slice(m))+'</span>';}
 function renderLX_(s,w,q,pl){
   var _md=String((q&&q.mode)||'');
   if(_md==='pic_ja'||_md==='pic_yn'){_renderLXIntro_(s,w,q,pl,_md);return;}
@@ -6800,7 +6827,7 @@ function renderLX_(s,w,q,pl){
      +'<div class="kw-sec"><span class="kw-secl"><ruby>聞<rt class="uf">き</rt></ruby>こえる<ruby>英文<rt class="uf">えいぶん</rt></ruby></span></div>'
       +'<div class="lx-talk">'+lines.map(function(l,i){
         var b=(String(l.sp)==='B');
-        return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+'">'+esc(String(l.sp||''))+'</span>'+(q.show_line?'<span class="lx-en">'+esc(String(l.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div>';
+        return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+_whoC_(l.sp)+'">'+_whoT_(l.sp)+'</span>'+(q.show_line?'<span class="lx-en">'+esc(String(l.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div>';
       }).join('')+'</div>'
       +'<div class="kw-gap"><span></span><b>ここまでが<ruby>英文<rt class="uf">えいぶん</rt></ruby></b><span></span></div>'
       +'<div class="kw-sec pick"><span class="kw-secl pick"><ruby>返事<rt class="uf">へんじ</rt></ruby></span><span class="kw-secn">1・2・3 を<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>合<rt class="uf">あ</rt></ruby>うものを<ruby>選<rt class="uf">えら</rt></ruby>ぶ</span></div>';
@@ -6808,7 +6835,7 @@ function renderLX_(s,w,q,pl){
     h='<div class="kw-sec"><span class="kw-secl"><ruby>聞<rt class="uf">き</rt></ruby>こえる<ruby>英文<rt class="uf">えいぶん</rt></ruby></span></div>'
       +'<div class="lx-talk">'+lines.map(function(l,i){
         var b=(String(l.sp)==='B'||String(l.sp)==='★');
-        return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+'">'+esc(String(l.sp||''))+'</span>'+(q.show_line?'<span class="lx-en">'+esc(String(l.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div>';
+        return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+_whoC_(l.sp)+'">'+_whoT_(l.sp)+'</span>'+(q.show_line?'<span class="lx-en">'+esc(String(l.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div>';
       }).join('')
       +'<div class="lx-bub" id="lx-lqq"><span class="lx-who q">Q</span>'+(q.show_line?'<span class="lx-en">'+esc(String(qq.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div></div>'
       +'<div class="kw-sec pick"><span class="kw-secl pick"><ruby>答<rt class="uf">こた</rt></ruby>え</span><span class="kw-secn"><ruby>質問<rt class="uf">しつもん</rt></ruby>が<ruby>終<rt class="uf">お</rt></ruby>わったら、<ruby>合<rt class="uf">あ</rt></ruby>うものを<ruby>選<rt class="uf">えら</rt></ruby>ぶ</span></div>';
@@ -7018,7 +7045,7 @@ function _dfLineHtml_(l,i,fill){
   var txt=fill?en.replace(_DF_HOLE_,String(fill)):en;
   var h=esc(txt).replace(_DF_HOLE_,'<span class="df-hole"></span>');
   var sp=String((l&&l.sp)||'');   /* 話し手が空＝1文だけの問題（大問1型）。名札を出さない 2026-09-27 */
-  return '<div class="df-bub">'+(sp?'<span class="df-who '+(b?'b':'a')+'">'+esc(sp)+'</span>':'')+'<span class="df-line">'+h+'</span></div>';
+  return '<div class="df-bub">'+(sp?'<span class="df-who '+(b?'b':'a')+_whoC_(sp)+'">'+esc(sp)+'</span>':'')+'<span class="df-line">'+h+'</span></div>';
 }
 /* 【2026-09-27】英検 大問1型＝選択肢がみな1語（空白なし）の dialog_fill。問いかけを「（　）に入る語」にする */
 function _dfIsWord_(pl){

@@ -527,7 +527,7 @@
   .up-ja{font-size:12px;color:#333;margin-top:2px;}
   .up-tbl{border-collapse:collapse;width:100%;margin-top:5px;table-layout:fixed;}
   .up-tbl th,.up-tbl td{border:1px solid #7d8794;padding:3px 5px;font-size:11.5px;text-align:center;
-                        line-height:1.45;overflow-wrap:anywhere;}
+                        line-height:1.45;overflow-wrap:anywhere;white-space:normal;}   /* 画面全体の th,td{white-space:nowrap} を打ち消す＝長いマスがとなりのマスや穴の番号に重ならない（2026-10-02）*/
   .up-tbl thead th{background:#eef0f3;font-weight:700;}
   .up-tbl tbody th{background:#f6f7f9;font-weight:700;}
   .up-tbl td.pq-hole{height:24px;}
@@ -535,7 +535,7 @@
   .fs-ja{font-size:11px;color:#333;margin-top:2px;}
   .fs-toks .pq-tok{font-size:11.5px;padding:0 6px;margin:0 4px 4px 0;}
   .fs-tbl{border-collapse:collapse;width:100%;table-layout:fixed;}
-  .fs-tbl th,.fs-tbl td{border:1px solid #7d8794;padding:2px 4px;font-size:10.5px;text-align:center;line-height:1.4;overflow-wrap:anywhere;}
+  .fs-tbl th,.fs-tbl td{border:1px solid #7d8794;padding:2px 4px;font-size:10.5px;text-align:center;line-height:1.4;overflow-wrap:anywhere;white-space:normal;}   /* 画面全体の nowrap を打ち消す（2026-10-02）*/
   .fs-tbl thead th{background:#eef0f3;font-weight:700;}
   .fs-tbl tbody th{background:#f6f7f9;font-weight:700;}
   .fs-tblblk{align-items:flex-start;}
@@ -3052,7 +3052,7 @@ function _pqLxQHtml_(it,cls){
 function _pqLxAText_(it){
   var o=_pqLxOrder_(it); if(!o) return String(it.english||'');
   var t=o.mark;
-  if(o.lines.length) t+='　／　'+o.lines.map(function(l){ return String(l.sp||'')+': '+String(l.en||''); }).join('　');
+  if(o.lines.length) t+='　／　'+o.lines.map(function(l){ var _sp=String(l.sp||'').trim(); return (_sp?(_sp+': '):'')+String(l.en||'');   /* 第3部型（1人が話す）は sp が空＝「: 」を付けない（2026-10-02）*/ }).join('　');
   if(o.q&&o.q.en) t+='　Question: '+String(o.q.en);   /* 第2部型 2026-09-27 */
   t+='　／　'+o.order.map(function(ci,j){ return (j+1)+' '+String((o.chs[ci]||{}).en||''); }).join('　');
   return t;
@@ -3522,7 +3522,10 @@ var FS_CODE_TMP_='XX-9999';    /* 測るときだけ使う仮のセット番号�
 var FS_SHEET_URL_='https://kf-juku.github.io/kurofune-word-trainer/?sheet=';  /* QRの中身（川上さん確定 2026-08-30）*/
 var FS_FIGBLK_PER_PAGE_=3;     /* 1ページに置ける図ブロック数 */
 var FS_FIG_PER_BLK_=3;         /* 1ブロックにぶら下げる問題数 */
-var FS_TBL_PER_BLK_=8;         /* 表（table_fill）は素材が1枚なので上限を別に持つ 2026-09-13j・段E */
+var FS_TBL_PER_BLK_=16;        /* 表（table_fill）は素材が1枚なので上限を別に持つ 2026-09-13j・段E。
+                                  【2026-10-02】8→16。英検4級の英単語の表（人称代名詞11穴・13穴）で9つ目からの穴が紙から落ちていた。
+                                  紙の番号＝flat＝print_sets の word_ids はかたまりの items から作るので、上げても1対1は崩れない。
+                                  16穴のかたまりでも1ページの高さ（FS_PAGE_MM_）に余裕で入ることを実測ずみ（4級の最大13穴）。 */
 var FS_FIG_BLK_MAX_=12;        /* 問題4ページ×1ページ3ブロック 2026-09-02 */
 var FS_QPAGE_MAX_=4;           /* 問題は最大4ページ＝両面2枚（川上さん確定 2026-09-02） */
 var FS_APAGE_MAX_=4;           /* 答えも最大4ページ＝両面2枚。1人ぶんは最大で用紙4枚 */
