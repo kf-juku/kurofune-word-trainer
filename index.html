@@ -1487,9 +1487,8 @@
 .lx-who{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;}
 .lx-who.a{background:#e0708a;}.lx-who.b{background:#4a7fd6;}
 /* 【A⑤ 2026-10-02】長い役名（Woman・Mother・Grandmother…）が丸からはみ出していた。丸は広げず、長い名前だけ文字を小さくする（_whoC_） */
-.lx-who.n6{font-size:9.5px;letter-spacing:-.03em;}
-.lx-who.n8{font-size:7.5px;letter-spacing:-.03em;}
-.lx-who.n9{font-size:8px;letter-spacing:-.02em;flex-direction:column;line-height:1.05;}
+/* 2026-10-03 7.5px・8px は小さすぎた → 6字以上は丸を横長の札にして 11px（丸の高さ34pxはそのまま） */
+.lx-who.n6,.lx-who.n8,.lx-who.n9{width:auto;min-width:34px;padding:0 8px;border-radius:17px;font-size:11px;letter-spacing:-.01em;white-space:nowrap;}
 .lx-wave{flex:1;height:10px;border-radius:5px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 10px);}
 .lx-wave.dim{opacity:.4;}
 .lx-qm{color:var(--sub);font-weight:800;}
@@ -6237,8 +6236,10 @@ function _lxCard_(s,w,q){
 function _lxDecor_(s,w,q){
   var ask=$('sent-ask');if(!ask||!q)return;var h='';
   if(q.point&&q.point.length){
-    h='<div class="lx-point"><span class="lx-pn">'+esc(String(q.point[0]))+'</span><span>'+_jaRubyIf_(String(q.point[1]||''))
-      +(q.point[2]?'<span class="lx-fex">'+_jaRubyIf_('例　'+q.point[2])+'</span>':'')+'</span></div>';
+    /* 2026-10-03 {{英語|日本語}} を押せる英語にする（ポイントのカードと同じ書き方） */
+    _TKS_=[];var _br=function(t){return String(t).replace(/\{\{([^|}]+)\|([^}]*)\}\}/g,function(_,en,ja){return _tkPut_(en,ja);});};
+    h='<div class="lx-point"><span class="lx-pn">'+esc(String(q.point[0]))+'</span><span>'+_tkRender_(_jaRubyIf_(_br(q.point[1]||'')))
+      +(q.point[2]?'<span class="lx-fex">'+_tkRender_(_jaRubyIf_(_br('例　'+q.point[2])))+'</span>':'')+'</span></div>';
   }else if(q.memo&&!s.quizMode&&s.mode!=='note'){
     var qt=String(w.qtype||''),m=_LX_MEMO_[qt];s._memoShown=s._memoShown||{};
     if(m&&(!s._memoShown[qt]||s._memoShown[qt]===String(w.id))){s._memoShown[qt]=String(w.id);
@@ -6797,7 +6798,7 @@ function _lxRunSeq_(steps){
 }
 /* 【A⑤ 2026-10-02】役名の長さで文字の大きさを変える（丸・札は広げない）。9字以上は2行（Grand／mother） */
 function _whoC_(sp){var n=String(sp==null?'':sp).length;return n<=4?'':n<=6?' n6':n<=8?' n8':' n9';}
-function _whoT_(sp){var t=String(sp==null?'':sp);if(t.length<9)return esc(t);var m=Math.floor(t.length/2);return '<span>'+esc(t.slice(0,m))+'</span><span>'+esc(t.slice(m))+'</span>';}
+function _whoT_(sp){return esc(String(sp==null?'':sp));}   /* 2026-10-03 横長の札にしたので2行に割らない */
 function renderLX_(s,w,q,pl){
   var _md=String((q&&q.mode)||'');
   if(_md==='pic_ja'||_md==='pic_yn'){_renderLXIntro_(s,w,q,pl,_md);return;}
@@ -7064,7 +7065,7 @@ function _dfAfter_(w,pl){
   var xa=$('ex-audio'); if(!xa)return;
   var one=(full.length===1&&!full[0].sp);   /* 1文だけの問題（大問1型）＝見出しは「英文」、名札なし */
   xa.innerHTML='<div class="lx-xh">'+(one?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>':'<ruby>会話<rt class="uf">かいわ</rt></ruby>')+'</div>'
-    +full.map(function(l){return '<div class="lx-xl">'+(l.sp?'<b>'+esc(l.sp)+'：</b>':'')+esc(l.en)+'<small>'+_jaRubyIf_(l.ja)+'</small></div>';}).join('')
+    +full.map(function(l){return '<div class="lx-xl"><div class="lx-xb">'+(l.sp?'<b>'+esc(l.sp)+'：</b>':'')+esc(l.en)+'<small>'+_jaRubyIf_(l.ja)+'</small></div></div>';}).join('')   /* 2026-10-03 名札・英文・訳を1つの箱に（横に3つ並んで280pxではみ出していた） */
     +'<button type="button" class="ex-spk" id="df-spk"><i class="ti ti-volume"></i><span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
   xa.style.display='';
   var play=function(){_lxRunSeq_(full.map(function(l){return {it:l,gap:300};}));};
