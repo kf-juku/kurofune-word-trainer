@@ -1652,6 +1652,25 @@ mark.lx-mk{background:#fff3c4;color:inherit;border-radius:3px;padding:0 2px;}
 .tk-coach{position:absolute;z-index:71;max-width:calc(100vw - 16px);background:var(--ink);color:var(--surface);font-size:12.5px;font-weight:700;border-radius:10px;padding:8px 12px;box-shadow:0 6px 18px rgba(0,0,0,.2);animation:tkIn .2s ease-out;box-sizing:border-box}
 .tk-coach::before{content:'';position:absolute;top:-6px;left:var(--ax,16px);border:6px solid transparent;border-top:none;border-bottom-color:var(--ink)}
 .tk-coach b{color:var(--gold)}
+/* ===== 誘導のポップ（案A コーラル）と完了画面の名言 2026-10-03 =====
+   正＝ジョブス用\仕様書\要件定義書_誘導のポップと名言_Kurofune-Word-Trainer.md。モック＝20261003_モック_ポップと名言.html */
+.nv-pop{position:absolute;z-index:71;max-width:min(340px,calc(100vw - 16px));display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:18px;font-size:14.5px;font-weight:800;line-height:1.5;color:#fff;background:linear-gradient(135deg,#ff8a7a,#ffb36b);box-shadow:0 10px 24px rgba(0,0,0,.16);animation:nvIn .45s cubic-bezier(.2,1.4,.4,1) both;box-sizing:border-box;cursor:pointer}
+.nv-pop::before{content:'';position:absolute;top:-8px;left:var(--ax,16px);border:9px solid transparent;border-top:none;border-bottom-color:#ff8f78}
+.nv-pop>i{font-size:22px;flex:none}
+html.furi-on .nv-pop rt.uf{color:rgba(255,255,255,.92)}
+@keyframes nvIn{from{opacity:0;transform:translateY(-6px) scale(.96)}to{opacity:1;transform:none}}
+.qt-card{position:relative;background:#fffaf0;border:1px solid #f1e2bf;border-radius:16px;padding:16px 16px 14px 18px;text-align:left;margin-top:14px}
+.qt-mark{position:absolute;left:10px;top:-6px;font:900 44px/1 Georgia,serif;color:#e7c67c}
+.qt-text{font-size:17px;font-weight:800;line-height:2.05;color:#2b2416;margin:4px 0 2px 10px}
+.qt-text rt,.qt-who rt{font-size:9px;font-weight:500;color:#8a7a55}
+.qt-mean{font-size:12.5px;line-height:1.9;color:#5b4f37;margin:4px 0 8px 10px;padding-left:8px;border-left:3px solid #f0d89b}
+.qt-who{font-size:13.5px;color:#2b2416;margin-left:10px;line-height:2}
+.qt-who span{font-size:12px;color:#8a7a55;margin-left:4px}
+.qt-bio{font-size:12px;color:#8a7a55;margin-left:10px;line-height:1.9}
+[data-theme="dark"] .qt-card{background:#2a2518;border-color:#4a3f26}
+[data-theme="dark"] .qt-text,[data-theme="dark"] .qt-who{color:#f3e9d2}
+[data-theme="dark"] .qt-mean{color:#d9ccb0;border-left-color:#7a6633}
+[data-theme="dark"] .qt-bio,[data-theme="dark"] .qt-who span,[data-theme="dark"] .qt-text rt,[data-theme="dark"] .qt-who rt{color:#b9a982}
 
 .wl-btn i{font-size:15px}
 .wl-btn:active{transform:scale(.96)}
@@ -2131,6 +2150,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
       <div id="done-sum"></div><!-- ③ 終わったあとのまとめ 2026-09-06 -->
       <div id="today-did-area"></div>
       <div id="star-area"></div>
+      <div id="done-quote-area"></div><!-- 名言（流れ星などで消えない専用の枠）2026-10-03 -->
       <div id="done-guide-area"></div>
       <div style="margin-top:14px;">
         <button class="btn gold" id="btn-next" style="display:none;"><i class="ti ti-arrow-right"></i> <span><ruby>次<rt class="uf">つぎ</rt></ruby>のDAYへ<ruby>進<rt class="uf">すす</rt></ruby>む</span></button>
@@ -2500,6 +2520,7 @@ function noticeCeleGo_(){
   if(_ntCeleRan)return;_ntCeleRan=true;
   try{checkStreakCele_();}catch(e){}
   try{maybeShowTrio_();}catch(e){}
+  try{_nvPopStart_();}catch(e){}   /* 誘導のポップ＝お知らせ・お祝い・三連星が終わってから 2026-10-03 */
 }
 function noticeThenCele_(){
   setTimeout(function(){if(!_ntShowing)noticeCeleGo_();},3000);
@@ -4162,6 +4183,7 @@ function loadHomeData_(showSkel){
       _noteTgt=(d.data.note.target||null);_noteRem=(d.data.note.remaining|0);
       _ntFramesSet_(d.data.note.frames); /* 集中攻略の枠 2026-10-03 */
     } }catch(eNt){}
+    try{_nvSetDcy_(d.data.daily_clear_y);}catch(eDy){} /* 昨日デイリークリアしたか（ポップと名言の「再スタート」）2026-10-03 */
     /* 【2026-08-28】先生からのお知らせ（一斉指示）。studentHome に相乗りで届く未確認ぶん。
        キャッシュ描画（_cached）では渡さない＝確認ずみのお知らせが一瞬また出るのを防ぐ。 */
     if(!_cached){try{noticeSetPending_(d.data.notices||[]);}catch(eNc){}}
@@ -5369,6 +5391,124 @@ document.addEventListener('click',function(e){
   if(ls){ e.stopPropagation(); var ln=ls.closest('[data-en]'); if(ln)_tkOpen_(ls,ln.getAttribute('data-en'),ln.getAttribute('data-ja'),ln.getAttribute('data-sp')); return; }
   if(_TK_POP_)_tkClose_();
 },true);
+/* ===== 誘導のポップ と 完了画面の名言 2026-10-03（川上さん確定）=====
+   正＝ジョブス用\仕様書\要件定義書_誘導のポップと名言_Kurofune-Word-Trainer.md（§2 ポップ・§3 名言）
+   ★文言と名言は下の2つの一覧（NV_POP_LINES_・NV_QUOTES_）だけに置く。行を足し引きするだけで増減できる。
+   ★書き方：漢字(よみ) と書くとふりがなになる（半角のかっこ）。名言と名前のふりがなは学年に関係なく毎回出す。
+   ★名言を足すときは、出典を確かめたものだけ。要件定義書 §3-3 の表にも同じ行を足す。 */
+var NV_POP_LINES_={
+  /* 1．昨日デイリークリアできなかった（毎日学習の丸を指す） */
+  main:['デイリークリアしよう','今日(きょう)はデイリークリアしよう','毎日(まいにち)学習(がくしゅう)からやろう','毎日(まいにち)学習(がくしゅう)から1個(こ)ずつやって、デイリークリアしよう','今日(きょう)のデイリー、全部(ぜんぶ)やろう','1個(こ)ずつやって、トロフィーまで行(い)こう'],
+  /* 2．集中攻略の枠が2つ以上（{n}＝残りの枠の数・{t}＝次の枠のテーマ） */
+  nt:['集中(しゅうちゅう)攻略(こうりゃく)をやろう','間違(まちが)いノートを減(へ)らそう','集中(しゅうちゅう)攻略(こうりゃく)を{n}つやって、デイリークリアしよう','1テーマずつやろう','{t}からやろう'],
+  /* 3．おさらいの期限が来た語が100語以上（{r}＝今日の残りの語数。ふつうは20） */
+  os:['おさらいをやろう','おさらいを{r}語(ご)やろう','おさらいをやって、デイリークリアしよう','覚(おぼ)えた語(ご)をおさらいしよう','今日(きょう)の{r}語(ご)をやろう']
+};
+var NV_OS_MIN_=100;   /* おさらいの期限が来た語がこの数以上で 3 のポップ */
+/* k＝種類（re＝再スタート／miss＝間違い／acc＝積み重ね）・q＝名言・m＝意味（古い言い回しと漢文だけ）・n＝名前・y＝生没年・b＝何をした人か。id は変えない（直近5つを避けるのに使う） */
+var NV_QUOTES_=[
+ {id:'re1',k:'re',q:'今日(きょう)は昨日(きのう)の我(われ)に勝(か)ち',m:'今日(きょう)の自分(じぶん)は、昨日(きのう)の自分(じぶん)より上(うえ)を行(い)く',n:'宮本(みやもと)武蔵(むさし)',y:'1584?〜1645',b:'江戸(えど)時代(じだい)はじめの剣術家(けんじゅつか)。『五輪書(ごりんのしょ)』を書(か)いた'},
+ {id:'re2',k:'re',q:'根気(こんき)づくでお出(い)でなさい。世(よ)の中(なか)は根気(こんき)の前(まえ)に頭(あたま)を下(さ)げることを知(し)っています',m:'あせらず、ねばり強(づよ)く続(つづ)けていくこと。世(よ)の中(なか)は、続(つづ)けた人(ひと)を認(みと)める',n:'夏目(なつめ)漱石(そうせき)',y:'1867〜1916',b:'小説家(しょうせつか)。『坊(ぼ)っちゃん』『こころ』を書(か)いた'},
+ {id:'re3',k:'re',q:'飛(と)べないなら走(はし)れ。走(はし)れないなら歩(ある)け。歩(ある)けないなら這(は)え。とにかく進(すす)み続(つづ)けよう',m:'',n:'キング牧師(ぼくし)',y:'1929〜1968',b:'アメリカで黒人(こくじん)差別(さべつ)をなくす運動(うんどう)を率(ひき)いた'},
+ {id:'re4',k:'re',q:'人生(じんせい)は自転車(じてんしゃ)に乗(の)るのと同(おな)じ。倒(たお)れないためには、走(はし)り続(つづ)けなければならない',m:'',n:'アインシュタイン',y:'1879〜1955',b:'相対性(そうたいせい)理論(りろん)を考(かんが)えた物理(ぶつり)学者(がくしゃ)'},
+ {id:'re5',k:'re',q:'才能(さいのう)とは、継続(けいぞく)できる情熱(じょうねつ)である',m:'',n:'羽生(はぶ)善治(よしはる)',y:'1970〜',b:'将棋(しょうぎ)で史上(しじょう)初(はつ)の永世(えいせい)七冠(ななかん)になった'},
+ {id:'re6',k:'re',q:'努力(どりょく)できることが才能(さいのう)である',m:'',n:'松井(まつい)秀喜(ひでき)',y:'1974〜',b:'ヤンキースでワールドシリーズMVPになった野球(やきゅう)選手(せんしゅ)'},
+ {id:'re7',k:'re',q:'一簣(いっき)を覆(くつがえ)すと雖(いえど)も、進(すす)むは吾(わ)が往(ゆ)くなり',m:'土(つち)をひとかご運(はこ)んだだけでも、前(まえ)に進(すす)んだのは自分(じぶん)だ',n:'孔子(こうし)',y:'前551?〜前479',b:'中国(ちゅうごく)の思想家(しそうか)。言葉(ことば)が『論語(ろんご)』に残(のこ)る'},
+ {id:'mi1',k:'miss',q:'過(あやま)ちて改(あらた)めざる、是(これ)を過(あやま)ちと謂(い)う',m:'間違(まちが)いを直(なお)さないことが、本当(ほんとう)の間違(まちが)いだ',n:'孔子(こうし)',y:'前551?〜前479',b:'中国(ちゅうごく)の思想家(しそうか)。言葉(ことば)が『論語(ろんご)』に残(のこ)る'},
+ {id:'mi2',k:'miss',q:'過(あやま)ちては則(すなわ)ち改(あらた)むるに憚(はばか)ること勿(なか)れ',m:'間違(まちが)えたときは、ためらわずに直(なお)せばいい',n:'孔子(こうし)',y:'前551?〜前479',b:'中国(ちゅうごく)の思想家(しそうか)。言葉(ことば)が『論語(ろんご)』に残(のこ)る'},
+ {id:'mi3',k:'miss',q:'失敗(しっぱい)は、もっと賢(かしこ)くやり直(なお)すためのチャンスにすぎない',m:'',n:'ヘンリー・フォード',y:'1863〜1947',b:'自動車(じどうしゃ)を大量(たいりょう)に作(つく)る方法(ほうほう)を広(ひろ)めた'},
+ {id:'mi4',k:'miss',q:'一度(いちど)も間違(まちが)えない人(ひと)は、何(なに)もしない人(ひと)だけだ',m:'',n:'セオドア・ルーズベルト',y:'1858〜1919',b:'アメリカの第(だい)26代(だい)大統領(だいとうりょう)'},
+ {id:'mi5',k:'miss',q:'何(なに)かに失敗(しっぱい)せずに生(い)きることなど、できない',m:'',n:'J.K.ローリング',y:'1965〜',b:'『ハリー・ポッター』を書(か)いた作家(さっか)'},
+ {id:'mi6',k:'miss',q:'結果(けっか)なら山(やま)ほど出(で)た。うまくいかない方法(ほうほう)が何千(なんぜん)も分(わ)かったんだ',m:'',n:'エジソン',y:'1847〜1931',b:'電球(でんきゅう)や蓄音機(ちくおんき)を作(つく)った発明家(はつめいか)'},
+ {id:'ac1',k:'acc',q:'学(まな)びて時(とき)に之(これ)を習(なら)う、亦(ま)た説(よろこ)ばしからずや',m:'習(なら)ったことを時々(ときどき)くり返(かえ)して身(み)につける。それが楽(たの)しい',n:'孔子(こうし)',y:'前551?〜前479',b:'中国(ちゅうごく)の思想家(しそうか)。言葉(ことば)が『論語(ろんご)』に残(のこ)る'},
+ {id:'ac2',k:'acc',q:'日(ひ)に其(そ)の亡(な)き所(ところ)を知(し)り、月(つき)に其(そ)の能(よ)くする所(ところ)を忘(わす)るること無(な)し',m:'毎日(まいにち)知(し)らないことを知(し)り、毎月(まいつき)、覚(おぼ)えたことを忘(わす)れないでいる',n:'子夏(しか)',y:'前507〜前420?',b:'孔子(こうし)の弟子(でし)。言葉(ことば)が『論語(ろんご)』に残(のこ)る'},
+ {id:'ac3',k:'acc',q:'故(ふる)きを温(あたた)めて新(あたら)しきを知(し)る',m:'前(まえ)に習(なら)ったことをもう一度(いちど)学(まな)ぶと、新(あたら)しいことが分(わ)かる',n:'孔子(こうし)',y:'前551?〜前479',b:'中国(ちゅうごく)の思想家(しそうか)。言葉(ことば)が『論語(ろんご)』に残(のこ)る'},
+ {id:'ac4',k:'acc',q:'小(ち)っちゃいことを重(かさ)ねることが、とんでもないところにたどり着(つ)くただ一(ひと)つの道(みち)',m:'',n:'イチロー',y:'1973〜',b:'メジャーリーグで年間(ねんかん)262安打(あんだ)の記録(きろく)を作(つく)った'},
+ {id:'ac5',k:'acc',q:'千日(せんにち)の稽古(けいこ)を鍛(たん)とし、万日(まんにち)の稽古(けいこ)を錬(れん)とす',m:'千日(せんにち)の練習(れんしゅう)で鍛(きた)え、一万日(いちまんにち)の練習(れんしゅう)で磨(みが)き上(あ)げる',n:'宮本(みやもと)武蔵(むさし)',y:'1584?〜1645',b:'江戸(えど)時代(じだい)はじめの剣術家(けんじゅつか)。『五輪書(ごりんのしょ)』を書(か)いた'},
+ {id:'ac6',k:'acc',q:'跬歩(きほ)を積(つ)まざれば、以(もっ)て千里(せんり)に至(いた)る無(な)し',m:'小(ちい)さな一歩(いっぽ)を重(かさ)ねなければ、遠(とお)くまでは行(い)けない',n:'荀子(じゅんし)',y:'前298?〜前235?',b:'中国(ちゅうごく)の思想家(しそうか)。『荀子(じゅんし)』を残(のこ)した'}
+];
+/* 漢字(よみ) → ruby。uf＝学年で出し分けるふりがな（小学生だけ出る）／uf なし＝いつも出す */
+function _nvRuby_(s,uf){return String(s||'').replace(/([一-鿿々〆ヶ]+)\(([^()]+)\)/g,function(_,a,b){return '<ruby>'+a+'<rt'+(uf?' class="uf"':'')+'>'+b+'</rt></ruby>';});}
+function _nvPlain_(s){return String(s||'').replace(/\(([^()]+)\)/g,'');}
+/* 昨日デイリークリアしたか。サーバーは {date:昨日, v:true/false} で返す。日付が昨日でない（古いキャッシュ）は使わない */
+var _nvDcy_=null;
+function _nvSetDcy_(o){ if(o&&o.date===yesterdayStr_())_nvDcy_=!!o.v; }
+/* ---- ホームのポップ（§2）：1日1回・お知らせ等が終わってから・上の順で最初の1つ ---- */
+var _nvPopN_=0;
+function _nvPopStart_(){ _nvPopN_=0; setTimeout(_nvPopTry_,1500); }
+function _nvPopTry_(){
+  var day=todayStr_(),seen='';try{seen=localStorage.getItem('kwt_nv_pop_day')||'';}catch(e){}
+  if(seen===day)return;
+  var home=$('scr-home');if(!home||!home.classList.contains('active'))return;   /* 学習に入ったらやめる＝次にホームを開いたとき */
+  var busy=!!document.querySelector('.modal-mask.show,.bd-mask.show,.stk-cele-mask.show,.ntc-mask.show,.rb-mask.show,.sfmask.on,.sfmask.show,.trio-ov,.gd-dim,.gd-tip,.nv-pop')||!!window._trioBusy||(typeof _ntShowing!=='undefined'&&_ntShowing);
+  var ready=(_nvDcy_!==null)&&_srsReady&&_srsReady.loaded;
+  var road=document.querySelector('#daily-list .dy-road');
+  if(busy||!ready||!road||_homeTab!=='daily'){ if(++_nvPopN_<40)setTimeout(_nvPopTry_,1000); return; }
+  var pk=_nvPopPick_(road);
+  try{localStorage.setItem('kwt_nv_pop_day',day);}catch(e){}
+  if(pk)_nvPopShow_(pk);
+}
+function _nvPopPick_(road){
+  var st=function(k){return road.querySelector('.dy-st[data-dy="'+k+'"]');};
+  var open=function(el){return !!(el&&!el.classList.contains('done'));};
+  var goal=road.querySelector('.dy-st.goal');if(!goal||goal.classList.contains('done'))return null;   /* 今日のデイリーを終えた日は出さない */
+  if(_nvDcy_===false){
+    if(open(st('main')))return {kind:'main',el:st('main')};
+    var nw=road.querySelector('.dy-st.now');if(nw)return {kind:'main',el:nw,noMain:true};   /* 毎日学習はもう済み＝次の丸を指し、「毎日学習」を含む文は使わない */
+  }
+  var nc=_ntCount_();
+  if(nc.tot>=2&&open(st('nt'))){var nx=_ntNext_();return {kind:'nt',el:st('nt'),n:Math.max(1,nc.tot-nc.done),t:(nx?noteTargetPlain_(nx):'')};}
+  if((_osaraiDue|0)>=NV_OS_MIN_&&open(st('os')))return {kind:'os',el:st('os'),r:((_revNum&&_revNum.osarai)|0)||20};
+  return null;
+}
+function _nvPickLine_(pk){
+  var all=NV_POP_LINES_[pk.kind]||[],idx=[];
+  all.forEach(function(l,i){var p=_nvPlain_(l);if(pk.noMain&&p.indexOf('毎日学習')>=0)return;if(p.indexOf('{t}')>=0&&!pk.t)return;idx.push(i);});
+  if(!idx.length)return '';
+  var key='kwt_nv_pop_recent_'+pk.kind,rec=[];try{rec=JSON.parse(localStorage.getItem(key)||'[]')||[];}catch(e){}
+  var avoid=rec.slice(-Math.min(3,idx.length-1));   /* 直近に出したものは避ける */
+  var cand=idx.filter(function(i){return avoid.indexOf(i)<0;});if(!cand.length)cand=idx;
+  var i=cand[Math.floor(Math.random()*cand.length)];
+  rec.push(i);rec=rec.slice(-5);try{localStorage.setItem(key,JSON.stringify(rec));}catch(e){}
+  return all[i];
+}
+function _nvPopShow_(pk){
+  var line=_nvPickLine_(pk);if(!line)return;
+  var html=_nvRuby_(line,true).replace('{n}',String(pk.n||'')).replace('{r}',String(pk.r||'')).replace('{t}',esc(pk.t||''));
+  var ic={main:'ti-sparkles',nt:'ti-target',os:'ti-clock-bolt'}[pk.kind]||'ti-sparkles';
+  var el=pk.el;try{el.scrollIntoView({block:'nearest'});}catch(e){}
+  var r=el.getBoundingClientRect();if(!r.width)return;
+  var old=document.querySelector('.nv-pop');if(old)old.remove();
+  var c=document.createElement('div');c.className='nv-pop';c.setAttribute('data-kind',pk.kind);
+  c.innerHTML='<i class="ti '+ic+'"></i><span>'+html+'</span>';
+  var vw=document.documentElement.clientWidth||window.innerWidth;
+  c.style.top=(r.bottom+window.scrollY+10)+'px';
+  document.body.appendChild(c);
+  var cw=c.offsetWidth||300,cx=r.left+r.width/2,lf=Math.max(8,Math.min(vw-cw-8,cx-cw/2));
+  c.style.left=(lf+window.scrollX)+'px';
+  c.style.setProperty('--ax',Math.max(12,Math.min(cw-30,cx-lf-9))+'px');
+  var kill=function(){try{c.remove();}catch(e){}document.removeEventListener('click',kill,true);};
+  setTimeout(function(){document.addEventListener('click',kill,true);},0);   /* どこかを押すと消える（押した操作はそのまま効く） */
+  setTimeout(kill,12000);
+}
+/* ---- 完了画面の名言（§3）：種類＝再スタート＞間違い＞積み重ね。直近5つは出さない ---- */
+function doneQuoteShow_(missed){
+  var host=$('done-quote-area');if(!host)return;
+  var day=todayStr_(),first='';
+  try{first=localStorage.getItem('kwt_qt_first_day')||'';localStorage.setItem('kwt_qt_first_day',day);}catch(e){first=day;}
+  var kind=(_nvDcy_===false&&first!==day)?'re':(missed?'miss':'acc');
+  var rec=[];try{rec=JSON.parse(localStorage.getItem('kwt_qt_recent')||'[]')||[];}catch(e){}
+  var pool=NV_QUOTES_.filter(function(q){return q.k===kind;});
+  var cand=pool.filter(function(q){return rec.indexOf(q.id)<0;});if(!cand.length)cand=pool;
+  if(!cand.length){host.innerHTML='';return;}
+  var q=cand[Math.floor(Math.random()*cand.length)];
+  rec.push(q.id);rec=rec.slice(-5);try{localStorage.setItem('kwt_qt_recent',JSON.stringify(rec));}catch(e){}
+  host.innerHTML='<div class="qt-card" data-qid="'+q.id+'"><div class="qt-mark">“</div>'
+    +'<div class="qt-text">'+_nvRuby_(q.q,false)+'</div>'
+    +(q.m?'<div class="qt-mean">'+_nvRuby_('意味(いみ)：'+q.m,true)+'</div>':'')
+    +'<div class="qt-who"><b>'+_nvRuby_(q.n,false)+'</b><span>（'+q.y+'）</span></div>'
+    +'<div class="qt-bio">'+_nvRuby_(q.b,true)+'</div></div>';
+}
 function _tkToday_(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
 /* 吹き出し。kind＝'card'（解説カード・形式カード）／'ans'（答え合わせ）。それぞれ1日1回 */
 function _tkCoach_(kind,root){
@@ -8320,6 +8460,7 @@ function _doneResetCommon_(){
   var a=$('today-did-area');if(a)a.innerHTML='';
   var dd=$('done-daily-area');if(dd)dd.innerHTML=''; // 前のモードのデイリーバーを残さない 2026-08-22
   var sm=$('done-sum');if(sm)sm.innerHTML='';        // 前のモードのまとめを残さない 2026-09-06
+  var qa=$('done-quote-area');if(qa)qa.innerHTML='';  // 前の回の名言を残さない 2026-10-03
   var l=$('done-lap');if(l)l.style.display='none';
   var b=$('btn-home');if(b){b.innerHTML='<span>ホームへ<ruby>戻<rt class="uf">もど</rt></ruby>る</span>';b.onclick=function(){openHome();};}
 }
@@ -8462,6 +8603,7 @@ function finishQuizSubmit_(){
   animNum($('score-anim'),score,450); /* 数え上がりは残す（ただの演出で、これがあっても待たされない）。0.9秒→0.45秒 2026-09-02 川上さん確定 */
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（確認テストにも）2026-08-08
   try{_sumRender_(s);}catch(e){}  /* ③ 終わったあとのまとめ 2026-09-06 */
+  try{doneQuoteShow_((s.miss||[]).length>0);}catch(eQt){}  /* 名言 2026-10-03 */
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
   /* 2026-09-02：保存を待たずに押せる（閉じても送り直しが効く）。ボタンを止める処理は無くした。 */
   $('btn-retry').style.display='flex';$('btn-next').style.display='none';
@@ -8526,6 +8668,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);
   _doneResetCommon_();var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
   try{_sumRender_(s);}catch(e){}  /* ③ 終わったあとのまとめ（_doneResetCommon_ のあとに出す）2026-09-06 */
+  try{doneQuoteShow_((s.miss||[]).length>0);}catch(eQt){}  /* 名言（1回目に間違いがあった回＝間違い）2026-10-03 */
   var _isUnit_=(s.content_type==='test'); // 単元別（テスト配信）かどうかは端末で分かる
   var _donePre=false;                      // 保存より先に描いたか
   $('star-area').innerHTML=tipHtml_();     // 豆知識は先に出す。流れ星が届いたら入れかわる
@@ -8833,7 +8976,7 @@ function finishNote(){
      教科カードから3語だけ直した回で枠を埋めたことにすると、画面とサーバーの判定が食い違う。 */
   if(noteSes&&noteSes.today){_ntFinishToday_(noteSes);}   /* 枠が2つ以上なら、その枠だけ済 2026-10-03 */
   renderDaily();
-  var s=noteSes;$('prog').style.width='100%';show('scr-done');_doneResetCommon_();hideQTimer();hideExplain();var _dgn0=$('done-guide-area');if(_dgn0)_dgn0.innerHTML='';
+  var s=noteSes;$('prog').style.width='100%';show('scr-done');_doneResetCommon_();try{doneQuoteShow_(((s&&s.miss)||[]).length>0);}catch(eQt){} /* 名言 2026-10-03 */hideQTimer();hideExplain();var _dgn0=$('done-guide-area');if(_dgn0)_dgn0.innerHTML='';
   $('btn-next').style.display='none';$('btn-retry').style.display='none';
   var _db=$('done-badge');if(_db)_db.style.display='';
   $('done-badge').style.display='';$('done-badge').classList.remove('dib-gold','dib-ok','dib-accent');$('done-badge').innerHTML='<i class="ti ti-notebook" style="color:var(--sub)"></i>';
@@ -9084,7 +9227,7 @@ function submitSrsWord(){
   if(willGrad){setTimeout(adv,750);}else{adv();} // 卒業時だけ一拍おいて次へ（読み込みではなく演出を見せるため）
 }
 function finishSrs(){
-  var s=srsSes;$('prog').style.width='100%';show('scr-done');_doneResetCommon_();hideQTimer();hideExplain();var _dgs=$('done-guide-area');if(_dgs)_dgs.innerHTML='';
+  var s=srsSes;$('prog').style.width='100%';show('scr-done');_doneResetCommon_();try{doneQuoteShow_((s.miss||[]).length>0);}catch(eQt){} /* 名言（おさらいは間違いが無ければ積み重ね）2026-10-03 */hideQTimer();hideExplain();var _dgs=$('done-guide-area');if(_dgs)_dgs.innerHTML='';
   var _sa=$('star-area');if(_sa)_sa.innerHTML=missWordsHtml(s.miss,s.words);
   setDoneBadge_('ok'); // おさらい本日分＝個別完了＝緑チェック 2026-08-08
   $('done-result').innerHTML='おさらい<ruby>完了<rt class="uf">かんりょう</rt></ruby>！'; // 表記は漢字（川上さん指示 2026-07-05）
