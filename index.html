@@ -3237,8 +3237,8 @@ function homeCacheClear_(){try{localStorage.removeItem(HOME_CACHE_KEY);}catch(e)
 var CLEARED_KEY_='kwt_cleared_today_v1';
 function clearedTodayGet_(){
   try{var o=JSON.parse(localStorage.getItem(CLEARED_KEY_)||'{}');
-      if(!o||o.d!==todayStr_())return {d:todayStr_(),parts:[],mats:[],os:false,nt:false};
-      return {d:o.d,parts:o.parts||[],mats:o.mats||[],os:!!o.os,nt:!!o.nt};}catch(e){return {d:todayStr_(),parts:[],mats:[],os:false,nt:false};}
+      if(!o||o.d!==todayStr_())return {d:todayStr_(),parts:[],mats:[],os:false,nt:false,ntf:[]};
+      return {d:o.d,parts:o.parts||[],mats:o.mats||[],os:!!o.os,nt:!!o.nt,ntf:o.ntf||[]};}catch(e){return {d:todayStr_(),parts:[],mats:[],os:false,nt:false,ntf:[]};}
 }
 /* おさらい枠・間違いノート枠が「今日の分を終えた」ことを覚える 2026-09-03 */
 function clearedTodayFlag_(key){
@@ -3551,10 +3551,11 @@ function subjColor_(s){var _soc={bg:'rgba(240,160,32,.14)',fg:'#e08a12'};/* 歴�
 /* 弱点集中：今日の10語カード（機能仕様書 §5-1）。
    **画面の形は毎日同じ。**変わるのは見出しと数だけ＝「的あり／なし」で画面を2つ作らない。
    毎日学習の「次はこれ」と同じ .focus を使う＝間違いノートの識別色も accent（青）で一致している（§18）。 */
-function _noteTodayCard_(t,remain,done){
+function _noteTodayCard_(t,remain,done,k,tot){   /* k / tot＝何番目の枠か（集中攻略の枠 2026-10-03）。枠が1つなら渡さない */
   var el=document.createElement('div');el.className='focus';
   var rem=(remain||0);
-  var n=Math.min(10,rem);
+  var n=(t&&t.size)?t.size:Math.min(10,rem);
+  var _ktot=((tot|0)>=2)?('（'+k+' / '+tot+'）'):'';
   var nm=noteTargetPlain_(t);
   /* 「集中攻略」は1語として扱う＝ふりがなONだと ruby が2つに割れて「集中／攻略」で折り返す（実測 2026-08-26）。 */
   var ttl=nm?(esc(nm)+'を<span style="white-space:nowrap">'+rb('集中','しゅうちゅう')+rb('攻略','こうりゃく')+'</span>')
@@ -3565,12 +3566,12 @@ function _noteTodayCard_(t,remain,done){
      このカードだけ「今日の10語」としか出ておらず、間違いノートだと分からなかった（川上さん報告）。 */
   var _ntNm=rb('間違','まちが')+'いノート';
   var label=done?('<i class="ti ti-circle-check"></i> '+_ntNm+' ・ '+rb('今日','きょう')+'の'+rb('分','ぶん')+'、'+rb('終','お')+'わり！')
-                :(_ntNm+' ・ '+rb('今日','きょう')+'の10'+rb('語','ご'));
+                :(_ntNm+' ・ '+rb('今日','きょう')+'の10'+rb('語','ご')+_ktot);
   el.innerHTML='<div class="f-label"><span>'+label+'</span></div>'
     +'<div class="f-main"><div><div class="f-title">'+ttl+'</div>'
     +'<div class="f-sub">'+n+rb('語','ご')+' ・ のこり '+rem+rb('語','ご')+'</div></div></div>'
     +'<button class="f-btn"><span>'+(done?('もう'+rb('一回','いっかい')+'やる'):(rb('始','はじ')+'める'))+'</span> <i class="ti ti-arrow-right"></i></button>';
-  el.onclick=function(){openNoteToday_();};
+  el.onclick=function(){openNoteToday_(((tot|0)>=2)?k:0);};
   return el;
 }
 function subjCard_(subject,count,onClick,sub,reddot){
@@ -3593,6 +3594,55 @@ function setNavDot_(tab,on){var e=$('bdg-'+tab);if(!e)return;e.classList.add('do
 var _revNum={osarai:0,note:0};var _osaraiDue=0; // 期限が来たおさらいの総数（完了画面の「次の一手」用）2026-08-05
 /* 【2026-08-27】弱点集中の的と残り語数。間違いノートタブだけでなく毎日タブの「次はこれ」でも使うので保持する。 */
 var _noteTgt=null,_noteRem=0;
+/* ===== 集中攻略の枠 2026-10-03（川上さん確定・モック\20261003_モック_集中攻略の枠.html）=====
+   残り100語以上で2枠・250語以上で3枠（上限3）。1枠＝テーマ1つ＋10語。枠の数・中身はサーバーがその日の最初に決める。
+   ★枠を数える場所はここだけ（_ntCount_）。道の丸・デイリーの数・下メニューの数字・完了画面の進みのバーが全部これを使う。
+   枠が1つの子は今までどおり＝dailyState.note だけで決まる。 */
+var _noteFrames=[];
+function _ntFramesSet_(arr){_noteFrames=(arr&&arr.length)?arr.slice():[];}
+function _ntFrames_(){
+  var all=(dailyState.note===true),loc=[];try{loc=clearedTodayGet_().ntf||[];}catch(e){}
+  return _noteFrames.map(function(f){var o={};for(var k in f)o[k]=f[k];o.done=all||!!f.done||loc.indexOf(f.k)>=0;return o;});
+}
+function _ntCount_(){
+  var fr=_ntFrames_();
+  if(fr.length>=2){var d=0;fr.forEach(function(f){if(f.done)d++;});return {tot:fr.length,done:d,frames:fr};}
+  return {tot:1,done:(dailyState.note===true)?1:0,frames:fr};
+}
+function _ntNext_(){var fr=_ntFrames_();for(var i=0;i<fr.length;i++){if(!fr[i].done)return fr[i];}return null;}
+/* 枠を1つ終えた（端末に覚える）。全部の枠が済になったら間違いノート枠＝済 */
+function _ntMarkFrameDone_(k){
+  try{var o=clearedTodayGet_();o.ntf=o.ntf||[];if(o.ntf.indexOf(k)<0)o.ntf.push(k);localStorage.setItem(CLEARED_KEY_,JSON.stringify(o));}catch(e){}
+  var nc=_ntCount_();if(nc.done>=nc.tot)dailySetNote_(true);
+}
+/* 今日の10語を終えたとき（finishNote）。枠が1つ＝今までどおり済／2つ以上＝その枠だけ済／おかわり（frame 0）＝何もしない */
+function _ntFinishToday_(s){
+  if(_noteFrames.length<2){dailySetNote_(true);return;}
+  var k=(s&&s.target&&s.target.frame)|0;if(k>0)_ntMarkFrameDone_(k);
+}
+/* 毎日タブの「次はこれ」と「集中攻略の残り」（毎日学習の残り＝案Aと同じ形） */
+function _appendNoteFocus_(host,ntDone){
+  var nc=_ntCount_();
+  if(nc.tot<2){host.appendChild(_noteTodayCard_(_noteTgt,_noteRem,ntDone));return;}
+  var nx=_ntNext_();
+  if(!nx){host.appendChild(_noteTodayCard_(nc.frames[nc.frames.length-1],_noteRem,true,nc.tot,nc.tot));return;}
+  host.appendChild(_noteTodayCard_(nx,_noteRem,false,nx.k,nc.tot));
+  var rest=nc.frames.filter(function(f){return !f.done&&f.k!==nx.k;});
+  if(!rest.length)return;
+  var qh=document.createElement('div');qh.className='q-head';qh.innerHTML='<ruby>集中<rt class="uf">しゅうちゅう</rt></ruby><ruby>攻略<rt class="uf">こうりゃく</rt></ruby>の<ruby>残<rt class="uf">のこ</rt></ruby>り（'+rest.length+'）';host.appendChild(qh);
+  var q=document.createElement('div');q.className='queue';
+  rest.forEach(function(f){
+    var el=document.createElement('div');el.className='qrow';
+    el.innerHTML='<div class="q-node">'+f.k+'</div><div class="q-body"><div class="q-top"><span class="q-nm">'+_ntFrameTitle_(f)+'</span></div><div class="q-sub">'+(f.size||10)+rb('語','ご')+'</div></div><div class="q-go"><i class="ti ti-arrow-right"></i></div>';
+    el.onclick=function(){openNoteToday_(f.k);};
+    q.appendChild(el);
+  });
+  host.appendChild(q);
+}
+function _ntFrameTitle_(f){
+  var nm=noteTargetPlain_(f);
+  return nm?(esc(nm)+'を<span style="white-space:nowrap">'+rb('集中','しゅうちゅう')+rb('攻略','こうりゃく')+'</span>'):('<ruby>前<rt class="uf">まえ</rt></ruby>に まちがえた'+(f.size||10)+rb('語','ご'));
+}
 var _srsReady={words:[],assets:{},loaded:false}; // おさらいの今日分を先読みしておき、タイル/フォーカスから直接開始＝中間ページを挟まない 2026-07-26
 /* 【2026-08-27 川上さん報告】完了画面の誘導ボタンから押しても効かなかった。
    `showSub` は**ホーム画面の中のタブを切り替える**関数なので、ホーム以外（完了画面・学習画面）から呼ぶと
@@ -3702,11 +3752,12 @@ function _gdIntroWait_(){
    青く光る「今やる所」は、順番どおりで最初に残っている所。毎日学習が2教科以上なら、残っているうち上の教材から始める（選ぶ画面ははさまない）。
    数え方は renderDailyList_ から値を受け取る＝ここでは数え直さない。 */
 function _dyRoad_(main,osDone,ntDone,doneN,total){
+  var _ntc=_ntCount_();
   var mt=main.length,md=0;main.forEach(function(m){if(m.cleared_today)md++;});
   var S=[
     {k:'main',ic:'ti-anchor',l:'<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>',n:'<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby><br><span class="num">'+md+'/'+mt+'</span>',done:(md>=mt)},
     {k:'os',ic:'ti-clock-bolt',l:'おさらい',n:'<ruby>覚<rt class="uf">おぼ</rt></ruby>えた<ruby>語<rt class="uf">ご</rt></ruby>',done:!!osDone},
-    {k:'nt',ic:'ti-notebook',l:'<span class="nw"><ruby>集中<rt class="uf">しゅうちゅう</rt></ruby><ruby>攻略<rt class="uf">こうりゃく</rt></ruby></span>',n:'<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>語<rt class="uf">ご</rt></ruby>',done:!!ntDone}
+    {k:'nt',ic:'ti-notebook',l:'<span class="nw"><ruby>集中<rt class="uf">しゅうちゅう</rt></ruby><ruby>攻略<rt class="uf">こうりゃく</rt></ruby></span>',n:'<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>語<rt class="uf">ご</rt></ruby>'+(_ntc.tot>=2?('<br><span class="num">'+_ntc.done+'/'+_ntc.tot+'</span>'):''),done:!!ntDone} /* 枠が2つ以上なら 0/3 を出す 2026-10-03 */
   ];
   var all=S[0].done&&S[1].done&&S[2].done,now=-1;
   for(var i=0;i<S.length;i++){if(!S[i].done){now=i;break;}}
@@ -3730,7 +3781,7 @@ function _dyGo_(k,main,done){
   if(done){toastH(nm+'は<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>が<ruby>終<rt class="uf">お</rt></ruby>わっています');return;}
   if(k==='main'){for(var i=0;i<main.length;i++){if(!main[i].cleared_today){startPractice(main[i].part_id);return;}}return;}
   if(k==='os'){startOsaraiDirect_();return;}
-  if(k==='nt'){if(_noteRem>0)openNoteToday_();else showHomeTab('review');return;}
+  if(k==='nt'){if(_noteRem>0){var _nx=_ntNext_();openNoteToday_(_nx?_nx.k:0);}else showHomeTab('review');return;}
 }
 /* ===== 単元別タブの ①練習／②確認テスト 切り替え（2026-08-20 川上さん確定）=====
    確認テストは別ページ(sv-quiz)をやめてこのタブの②に一本化した。
@@ -3751,7 +3802,7 @@ var _dailyUndone=0;
 var _dailyMain=null; // デイリー進捗をおさらい取得後に描き直すため、直近のmainを保持 2026-07-26
 var _dailyCompletedMains=[]; // 完走した毎日学習(main・sm_status=completed)。毎日タブに「学習マップで復習」バナーを出す判定に使う 2026-08-08。material_parts から供給
 // 毎日タブ＝毎日学習の未完了＋おさらい残りの合計（2026-07-25 おさらいを毎日タブへ移設＝デイリーの構成要素）
-function setDailyNavNum_(){var osDone=(dailyState.review===true),ntDone=(dailyState.note===true);setBadge_('daily',(_dailyUndone||0)+(osDone?0:1)+(ntDone?0:1));} /* 間違いノート枠を数に入れる 2026-08-26 */ // デイリーの残り「個数」＝毎日学習の未完＋おさらい枠(1)。おさらいの残り語数(最大20)を足さない＝分母4と一致（2026-07-26）
+function setDailyNavNum_(){var osDone=(dailyState.review===true),_nc=_ntCount_();setBadge_('daily',(_dailyUndone||0)+(osDone?0:1)+(_nc.tot-_nc.done));} /* 集中攻略の枠の数ぶん 2026-10-03 */ /* 間違いノート枠を数に入れる 2026-08-26 */ // デイリーの残り「個数」＝毎日学習の未完＋おさらい枠(1)。おさらいの残り語数(最大20)を足さない＝分母4と一致（2026-07-26）
 // 間違いノートタブ＝間違いノート残りのみ（2026-07-25 おさらいは毎日タブへ）
 function setReviewNavNum_(){setNavDot_('review',(_revNum.note||0)>0);} // 間違いノート＝自主ペースの復習なので数字(9+)ではなく赤●で「たまってるよ」。実数は中の教科カードで見える 2026-07-26
 var _homeTab='daily',_quizMiss=0;
@@ -3837,8 +3888,9 @@ function renderDailyList_(main){
   /* 【2026-08-26】間違いノート枠＝デイリーの一部（残0 or 今日10語。判定はサーバー・§5-2）。
      未取得(null)なら「まだ」扱い＝おさらい枠と同じ。 */
   var ntKnown=(dailyState.note!==null), ntDone=(dailyState.note===true);
-  var total=main.length+2;                 // 毎日学習の各教材 ＋ おさらい枠(1) ＋ 間違いノート枠(1)
-  var doneN=mainDoneN+(osDone?1:0)+(ntDone?1:0);
+  var _ntc=_ntCount_();                    // 集中攻略の枠（1〜3）2026-10-03
+  var total=main.length+1+_ntc.tot;        // 毎日学習の各教材 ＋ おさらい枠(1) ＋ 集中攻略の枠
+  var doneN=mainDoneN+(osDone?1:0)+_ntc.done;
   var dailyComplete=mainAllDone&&osDone&&ntDone;
   if(sub){
     if(dailyComplete)sub.innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>のデイリー、<ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>完了<rt class="uf">かんりょう</rt></ruby>！';
@@ -3863,7 +3915,7 @@ function renderDailyList_(main){
     var fi=0;for(var i=0;i<main.length;i++){if(!main[i].cleared_today){fi=i;break;}}
     host.appendChild(_dailyFocus_(main[fi]));
     var upNext=main.filter(function(m,i){return i!==fi&&!m.cleared_today;});
-    if(upNext.length){var qh=document.createElement('div');qh.className='q-head';qh.innerHTML='この<ruby>後<rt class="uf">あと</rt></ruby>';host.appendChild(qh);var q=document.createElement('div');q.className='queue';upNext.forEach(function(m){q.appendChild(_dailyQueueRow_(m));});host.appendChild(q);}
+    if(upNext.length){var qh=document.createElement('div');qh.className='q-head';qh.innerHTML='<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>の<ruby>残<rt class="uf">のこ</rt></ruby>り（'+upNext.length+'）'; /* 【2026-10-03 川上さん確定・案A】見出し「この後」は、デイリーの道の「毎日学習 ◯/◯」と同じ教材を数えていて、おさらい・集中攻略が後に無いように見えた。道の1つ目の内訳だと読める名前にした */host.appendChild(qh);var q=document.createElement('div');q.className='queue';upNext.forEach(function(m){q.appendChild(_dailyQueueRow_(m));});host.appendChild(q);}
   }else if(!osDone){
     // 毎日学習は全部おわり・おさらい枠が残り → つぎは おさらい 2026-07-26
     host.appendChild(_osaraiFocus_());
@@ -3872,7 +3924,7 @@ function renderDailyList_(main){
        以前は osDone を見ずに _osaraiFocus_() を出していたので、終わったおさらいが「次はこれ」で出続け、
        間違いノートには一度も誘導していなかった（川上さん報告）。
        間違いノートタブと同じ集中攻略カード（_noteTodayCard_）を流用する＝新しい部品を作らない。 */
-    host.appendChild(_noteTodayCard_(_noteTgt,_noteRem,ntDone));
+    _appendNoteFocus_(host,ntDone);   // 集中攻略の枠が2つ以上なら「集中攻略の残り」も 2026-10-03
   }
   // きょう できた＝終わった分を「がんばったね」の枠でまとめる 2026-07-24
   var doneItems=main.filter(function(m){return m.cleared_today;});
@@ -4108,6 +4160,7 @@ function loadHomeData_(showSkel){
       /* 【2026-08-27】的と残りもここで受け取る。間違いノートタブを開いていない生徒でも
          毎日タブの「次はこれ」に集中攻略カードを出せるようにする（loadNotes を待たない）。 */
       _noteTgt=(d.data.note.target||null);_noteRem=(d.data.note.remaining|0);
+      _ntFramesSet_(d.data.note.frames); /* 集中攻略の枠 2026-10-03 */
     } }catch(eNt){}
     /* 【2026-08-28】先生からのお知らせ（一斉指示）。studentHome に相乗りで届く未確認ぶん。
        キャッシュ描画（_cached）では渡さない＝確認ずみのお知らせが一瞬また出るのを防ぐ。 */
@@ -8107,6 +8160,8 @@ function nextStepGuide_(preferNote,justPartId){
   };
   var mkNote=function(cls){
     if(ntDone)return '';
+    var _nc=_ntCount_(),_nx=_ntNext_();
+    if(_nc.tot>=2&&_nx)return '<button class="gbtn '+cls+'" onclick="openNoteToday_('+_nx.k+');"><i class="ti ti-notebook"></i> <span>'+rb('集中','しゅうちゅう')+rb('攻略','こうりゃく')+'をやる（'+_nx.k+' / '+_nc.tot+'）</span></button>'; /* 集中攻略の枠 2026-10-03 */
     return '<button class="gbtn '+cls+'" onclick="openNoteToday_();"><i class="ti ti-notebook"></i> <span>'+rb('間違','まちが')+'いノートを'+rb('直','なお')+'す（'+_noteBtnN_()+rb('語','ご')+'）</span></button>';
   };
   var makers=preferNote?[mkNote,mkMain,mkOsarai]:[mkMain,mkOsarai,mkNote];
@@ -8163,8 +8218,8 @@ function dailyProgAfter_(justPartId){
   }
   var os=(dailyState.review===true); // おさらい枠（未取得のときも「まだ」扱い＝ホームと同じ）
   segs+='<i class="'+(os?'on':'')+'" title="おさらい"></i>';total++;if(os)done++;
-  var nt=(dailyState.note===true);   // 間違いノート枠 2026-08-26
-  segs+='<i class="'+(nt?'on':'')+'" title="間違いノート"></i>';total++;if(nt)done++;
+  var _nc=_ntCount_();               // 間違いノート枠 2026-08-26／集中攻略の枠の数ぶん 2026-10-03
+  for(var _j=0;_j<_nc.tot;_j++){var nt=_j<_nc.done;segs+='<i class="'+(nt?'on':'')+'" title="'+rb('集中','しゅうちゅう')+rb('攻略','こうりゃく')+'"></i>';total++;if(nt)done++;}
   return {done:done,total:total,segs:segs};
 }
 function dailyLeftAfter_(justPartId){
@@ -8683,6 +8738,7 @@ function loadNotes(){
   var nt=$('note-total');if(nt)nt.innerHTML='';
     /* 【2026-08-27】的と残りを保持＝毎日タブの「次はこれ」でも同じ値を使う（数える場所を1つにする）。 */
     _noteTgt=(d.data.target||null);_noteRem=(d.data.total_active!=null)?(d.data.total_active|0):totalN;
+    _ntFramesSet_(d.data.frames); /* 集中攻略の枠 2026-10-03 */
     dailySetNote_(!!d.data.today_done);renderDaily(); /* 【2026-08-26】間違いノートもデイリーの枠になった（残0 or 今日10語）。判定はサーバー（§5-2）*/
     if(_dailyMain)renderDailyList_(_dailyMain); /* 【2026-08-27】的が届いたら毎日タブも描き直す（loadReviewSrs と同じ形）*/
     var dn=$('dot-note');if(dn)dn.style.display=totalN>0?'block':'none';
@@ -8692,7 +8748,10 @@ function loadNotes(){
     if(!host)return;host.innerHTML='';
     if(!totalN){host.innerHTML='<div class="note-card empty"><div class="note-ic" style="background:rgba(31,170,107,.12);color:var(--ok)"><i class="ti ti-circle-check"></i></div><div class="t"><div class="ttl"><ruby>間違<rt class="uf">まちが</rt></ruby>いゼロ！</div><div class="sub"><ruby>今<rt class="uf">いま</rt></ruby>は<ruby>直<rt class="uf">なお</rt></ruby>す<ruby>単語<rt class="uf">たんご</rt></ruby>はありません</div></div></div>';return;}
     /* 弱点集中：今日の10語（§5-1）。**教科カードは消さずにこの下へ残す**＝別の入口として並べる。2026-08-26 */
-    host.appendChild(_noteTodayCard_(_noteTgt,_noteRem,!!d.data.today_done));
+    /* 【2026-10-03 集中攻略の枠】枠が2つ以上なら全部の枠を並べる（終わった枠は緑）。毎日タブと同じ _ntCount_ を使う */
+    var _ncN=_ntCount_();
+    if(_ncN.tot>=2)_ncN.frames.forEach(function(f){host.appendChild(_noteTodayCard_(f,_noteRem,!!f.done,f.k,_ncN.tot));});
+    else host.appendChild(_noteTodayCard_(_noteTgt,_noteRem,!!d.data.today_done));
     // 教科ごとのカード（アイコン＋色＋教科名＋残り数）。「間違いノート」「2回連続正解で卒業」の繰り返しはやめる（タブ名とヘッダで文脈は分かる）2026-07-26
     var _qh=document.createElement('div');_qh.className='q-head';
     _qh.innerHTML=rb('教科','きょうか')+'で'+rb('選','えら')+'ぶ';host.appendChild(_qh);
@@ -8772,7 +8831,7 @@ function finishNote(){
   try{localStorage.setItem('kwt_note_done',todayStr_());}catch(e){}
   /* 【2026-08-26】デイリーの枠が埋まるのは「今日の10語」をやり切ったときだけ。
      教科カードから3語だけ直した回で枠を埋めたことにすると、画面とサーバーの判定が食い違う。 */
-  if(noteSes&&noteSes.today){dailySetNote_(true);}
+  if(noteSes&&noteSes.today){_ntFinishToday_(noteSes);}   /* 枠が2つ以上なら、その枠だけ済 2026-10-03 */
   renderDaily();
   var s=noteSes;$('prog').style.width='100%';show('scr-done');_doneResetCommon_();hideQTimer();hideExplain();var _dgn0=$('done-guide-area');if(_dgn0)_dgn0.innerHTML='';
   $('btn-next').style.display='none';$('btn-retry').style.display='none';
@@ -8843,8 +8902,14 @@ function finishNote(){
     $('btn-retry').style.display='flex';
     /* 10語で止めない＝もっとやりたい子はそのまま続けられる（おさらいの「おかわり」と同じ・§5-2）2026-08-26 */
     if(s&&s.today){
+      var _nxF=(_ntCount_().tot>=2)?_ntNext_():null;   /* 次の枠があれば そこへ進む（集中攻略の枠 2026-10-03）*/
+      if(_nxF){
+        $('btn-retry').innerHTML='<i class="ti ti-arrow-right"></i> <span>'+rb('次','つぎ')+'の'+rb('集中','しゅうちゅう')+rb('攻略','こうりゃく')+'へ（'+_nxF.k+' / '+_ntCount_().tot+'）</span>';
+        $('btn-retry').onclick=function(){openNoteToday_(_nxF.k);};
+      }else{
       $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> <span>'+rb('続','つづ')+'けて'+rb('直','なお')+'す</span>';
       $('btn-retry').onclick=function(){openNoteToday_();};
+      }
     }else{
       $('btn-retry').innerHTML='<i class="ti ti-refresh"></i> <span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる</span>';
       $('btn-retry').onclick=function(){noteRetry(s.subject);};
@@ -8858,11 +8923,13 @@ function noteGradCardHtml_(words){
 /* 間違いノートの「もう一回」：最新のactiveを取り直して再開（卒業済みは除外される） */
 /* 弱点集中：その日の10語を始める（§2-7）。毎日タブのデイリー枠と間違いノートのタブ、
    どちらから開いても同じ的・同じ10語になる（サーバーが その日の的を1つ決めて持っているため）。2026-08-26 */
-function openNoteToday_(){
+function openNoteToday_(k){   /* k＝何番目の枠か（集中攻略の枠 2026-10-03）。無ければサーバーが まだ済でない最初の枠を選ぶ */
   showPracticeLoading_(); /* 通信は10秒以上かかることがある＝先にスピナーを出す（2026-08-21⑯と同じ理由）*/
-  call({action:'mistake_set',mode:'today'}).then(function(d){
+  var _req={action:'mistake_set',mode:'today'};if((k|0)>0)_req.frame=(k|0);
+  call(_req).then(function(d){
     if(_netNG_(d)){openHome();showSub('note');toastH(_NET_NG_MSG_);return;}   /* 通信失敗＝「無い」と言わない */
     if(d.data&&d.data.words&&d.data.words.length){
+      if(d.data.frames)_ntFramesSet_(d.data.frames);
       startNote(String(d.data.subject||'english'),d.data.words,d.data.assets,
         {today:true,target:(d.data.target||null),remaining:d.data.total_active});
       return;
