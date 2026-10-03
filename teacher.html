@@ -1281,6 +1281,10 @@
         <span class="filter-label" id="schoolLabel" style="display:none;">中学校</span>
         <span id="schoolChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
       </div>
+      <div class="filter-grp"><!-- 受講コース 2026-10-03 -->
+        <span class="filter-label" id="courseLabel" style="display:none;">受講</span>
+        <span id="courseChips" style="display:inline-flex;gap:5px;flex-wrap:wrap;"></span>
+      </div>
       <!-- 【2026-09-13d・段A】学習の種類・教材で絞る。原則16の並び（教室→学年→中学校）の下に、.filter-grp で1行ずつ足す -->
       <div class="filter-grp">
         <span class="filter-label">学習の種類</span>
@@ -2660,6 +2664,13 @@ function fmtDate(s){
 
 /* 学年・教室フィルタ＋学年ソート 2026-07-02 川上さん指示：学年ソート＋学年の複数選択・教室(class_name)フィルタ */
 var _gradeSel={};var _classSel={};var _schoolSel={};var _sortKey='next',_sortDir=-1;
+/* 【2026-10-03】受講コース（英検対策・受験特訓）の絞り込み。元は会員管理の土曜コマ（GAS が同期のときに students.courses へ写す）。
+   どの画面も「受講」の段は同じ決まり＝同じ段の中は OR・学年や学校とは AND。値は表示名（英検対策／受験特訓）でそろえる。 */
+var _courseSel={};
+var COURSE_LBL_={eiken:'英検対策',juken:'受験特訓'};
+function courseLabels_(s){return ((s&&s.courses)||[]).map(function(c){return COURSE_LBL_[c];}).filter(Boolean);}
+function courseOpts_(list){var have={};(list||[]).forEach(function(s){courseLabels_(s).forEach(function(l){have[l]=1;});});return ['英検対策','受験特訓'].filter(function(l){return have[l];});}
+function courseHit_(s,on){var ks=Object.keys(on||{}).filter(function(k){return on[k];});if(!ks.length)return true;var ls=courseLabels_(s);return ks.some(function(k){return ls.indexOf(k)>=0;});}
 /* 【2026-09-13d・段A】学習の種類（1つだけ選ぶ）と 教材（いくつでも選ぶ）。
    絞り込みは「誰を出すか」を絞るだけ。期限は関係ない（期限つきの範囲はレポート・印刷タブ）。
    教材の単位は _bookKey/_bookLabel ＝ シリーズ（本）。章が何冊あっても1つのチップにまとまる。 */
@@ -2698,6 +2709,16 @@ function buildFilterChips(){
     b.onclick=function(){toggleSelChip(_schoolSel,sc,b);};
     sw.appendChild(b);
   });
+  var crw=$('courseChips');
+  if(crw){ var crs=courseOpts_(_students); crw.innerHTML='';
+    Object.keys(_courseSel).forEach(function(k){ if(crs.indexOf(k)<0) delete _courseSel[k]; });
+    $('courseLabel').style.display=crs.length?'':'none';
+    crs.forEach(function(c){
+      var b=document.createElement('button');
+      b.className='filter-chip'+(_courseSel[c]?' active':'');b.type='button';b.textContent=c;
+      b.onclick=function(){toggleSelChip(_courseSel,c,b);};
+      crw.appendChild(b);
+    }); }
   buildMatChips_();
 }
 /* 【2026-09-13d・段A】教材のチップ。割り当てられている教材から作る（誰にも割り当てられていない教材は出さない）。
@@ -5100,6 +5121,7 @@ function renderTable(){
     if(gsel.length&&gsel.indexOf(String(s.grade))<0)return false;
     if(csel.length&&csel.indexOf(String(s.class_name))<0)return false;
     if(scsel.length&&scsel.indexOf(String(s.school))<0)return false;
+    if(!courseHit_(s,_courseSel))return false;   /* 受講コース 2026-10-03 */
     if(search&&String(s.name).indexOf(search)<0&&String(s.nickname).indexOf(search)<0)return false;
     if(_alertFilter&&!alertBucketMatch(s,_alertFilter))return false;
     /* 【2026-09-13d・段A】学習の種類・教材。どちらも「その教材を割り当てられている子」を残すだけ */
@@ -6525,12 +6547,12 @@ function renderQuizMatSel(){
   }).join('');
 }
 /* 点数表の絞り込み（学年/教室/中学校＋名前＋配信済みだけ）＋トークン列 2026-08-07 スライス4 */
-var _qbGrade='all',_qbCls='all',_qbSch='all',_qbOnly=false,_qbQ='';
+var _qbGrade='all',_qbCls='all',_qbSch='all',_qbCrs='all',_qbOnly=false,_qbQ='';
 var _qbSort={key:'name',dir:1};
 /* 並び替えは「最終配信日」だけ＝配信日昇順→降順→名前順(既定)を1ボタンで循環。名前順の並び替えは実用性が薄いので見出しクリックからは外した（既定で名前順） */
 function qbSortBy(key){ if(key==='del'){ if(_qbSort.key!=='del')_qbSort={key:'del',dir:1}; else if(_qbSort.dir>0)_qbSort.dir=-1; else _qbSort={key:'name',dir:1}; } renderQuizBoard(); }
 function _qbSortAr(key){ return _qbSort.key===key?'<span class="sortar">'+(_qbSort.dir>0?'▲':'▼')+'</span>':''; }
-function _qbAttrs(){ var m={}; (_students||[]).forEach(function(s){m[String(s.student_id)]={grade:s.grade||'',cls:s.class_name||'',sch:s.school||''};}); return m; }
+function _qbAttrs(){ var m={}; (_students||[]).forEach(function(s){m[String(s.student_id)]={grade:s.grade||'',cls:s.class_name||'',sch:s.school||'',crs:courseLabels_(s)};}); return m; }
 function _qbDistinct(f){ var set={},arr=[]; (_students||[]).forEach(function(s){var v=f(s);if(v&&!set[v]){set[v]=1;arr.push(v);}}); return arr; }
 function _qbChips(kind,cur,opts){ var mk=function(v,l){return '<button class="filter-chip'+(cur===v?' active':'')+'" onclick="setQB(\''+kind+'\',\''+String(v).replace(/['"\\]/g,'')+'\')">'+esc(l)+'</button>';}; return mk('all','すべて')+opts.map(function(o){return mk(o,o);}).join(''); }
 function renderQBFilters(){
@@ -6541,22 +6563,25 @@ function renderQBFilters(){
   if(cls.length)h+='<div class="filter-grp"><span class="filter-label">教室</span>'+_qbChips('c',_qbCls,cls)+'</div>';
   h+='<div class="filter-grp"><span class="filter-label">学年</span>'+_qbChips('g',_qbGrade,grades)+'</div>';
   if(sch.length)h+='<div class="filter-grp"><span class="filter-label">中学校</span>'+_qbChips('s',_qbSch,sch)+'</div>';
+  var crs=courseOpts_(_students); if(_qbCrs!=='all'&&crs.indexOf(_qbCrs)<0)_qbCrs='all';
+  if(crs.length)h+='<div class="filter-grp"><span class="filter-label">受講</span>'+_qbChips('r',_qbCrs,crs)+'</div>';   /* 受講コース 2026-10-03 */
   el.innerHTML=h;
 }
-function setQB(k,v){ if(k==='g')_qbGrade=v;else if(k==='c')_qbCls=v;else _qbSch=v; renderQBFilters(); renderQuizBoard(); }
+function setQB(k,v){ if(k==='g')_qbGrade=v;else if(k==='c')_qbCls=v;else if(k==='r')_qbCrs=v;else _qbSch=v; renderQBFilters(); renderQuizBoard(); }
 function renderQBStrip(){
   var strip=$('qbFstrip'); if(!strip)return; var toks=[];
   if(_qbCls!=='all')toks.push({k:'c',lbl:'教室 '+_qbCls});
   if(_qbGrade!=='all')toks.push({k:'g',lbl:'学年 '+_qbGrade});
   if(_qbSch!=='all')toks.push({k:'s',lbl:'中学校 '+_qbSch});
+  if(_qbCrs!=='all')toks.push({k:'r',lbl:'受講 '+_qbCrs});
   if(_qbQ.trim())toks.push({k:'q',lbl:'名前「'+_qbQ.trim()+'」'});
   if(_qbOnly)toks.push({k:'o',lbl:'配信済みだけ'});
   if(!toks.length){strip.style.display='none';strip.innerHTML='';return;}
   strip.style.display='flex';
   strip.innerHTML='<span class="qfstrip-lbl">適用中の絞り込み：</span>'+toks.map(function(t){return '<span class="qftok">'+esc(t.lbl)+'<button class="qftok-x" onclick="removeQB(\''+t.k+'\')" title="この条件を外す">✕</button></span>';}).join('')+'<button class="qfstrip-clear" onclick="clearQB()">すべて解除</button>';
 }
-function removeQB(k){ if(k==='g')_qbGrade='all';else if(k==='c')_qbCls='all';else if(k==='s')_qbSch='all';else if(k==='q')_qbQ='';else if(k==='o')_qbOnly=false; renderQBFilters(); renderQuizBoard(); }
-function clearQB(){ _qbGrade='all';_qbCls='all';_qbSch='all';_qbQ='';_qbOnly=false; renderQBFilters(); renderQuizBoard(); }
+function removeQB(k){ if(k==='g')_qbGrade='all';else if(k==='c')_qbCls='all';else if(k==='s')_qbSch='all';else if(k==='r')_qbCrs='all';else if(k==='q')_qbQ='';else if(k==='o')_qbOnly=false; renderQBFilters(); renderQuizBoard(); }
+function clearQB(){ _qbGrade='all';_qbCls='all';_qbSch='all';_qbCrs='all';_qbQ='';_qbOnly=false; renderQBFilters(); renderQuizBoard(); }
 function renderQuizBoard(){
   var el=$('qtBoard');if(!el)return;
   var mids=(_quizSelMats&&_quizSelMats.length)?_quizSelMats.slice():(_quizCurMat?[_quizCurMat]:[]);
@@ -6581,6 +6606,7 @@ function renderQuizBoard(){
     if(_qbGrade!=='all'&&a.grade!==_qbGrade)return false;
     if(_qbCls!=='all'&&a.cls!==_qbCls)return false;
     if(_qbSch!=='all'&&a.sch!==_qbSch)return false;
+    if(_qbCrs!=='all'&&(a.crs||[]).indexOf(_qbCrs)<0)return false;   /* 受講コース 2026-10-03 */
     if(qq&&String(stuMap[sid]).indexOf(qq)<0)return false;
     if(_qbOnly&&!delivered[sid])return false;
     return true;
@@ -6715,7 +6741,7 @@ function saveRoster(){
 function jumpToMaterial(mid){ if(!mid)return; switchTab('mat'); setTimeout(function(){openRosterMaterial(String(mid));},80); }
 
 /* ===== 名簿＋確認テスト配信（2列チェック・単元別対策）2026-07-13 ===== */
-var _rtMid=null,_rtSelA={},_rtSelB={},_rtA0={},_rtDeliver={},_rtDates={},_rtFilt={grade:{},cls:{},school:{}},_rtSearch='';
+var _rtMid=null,_rtSelA={},_rtSelB={},_rtA0={},_rtDeliver={},_rtDates={},_rtFilt={grade:{},cls:{},school:{},crs:{}},_rtSearch='';
 /* 配信のしかた 2026-09-11。'new'＝まだ配信していないパートだけ作る（受けたぶんは残す）／
    'all'＝今までどおり全パートの配信日を今にする（全部が未受験に戻る）。既定は 'new'。 */
 var _rtMode='new';
@@ -6735,6 +6761,7 @@ function _rtMatch(s){
   if(_rtAnyOn(_rtFilt.grade)&&!_rtFilt.grade[String(s.grade||'')])return false;
   if(_rtAnyOn(_rtFilt.cls)&&!_rtFilt.cls[String(s.class_name||'')])return false;
   if(_rtAnyOn(_rtFilt.school)&&!_rtFilt.school[String(s.school||'')])return false;
+  if(!courseHit_(s,_rtFilt.crs))return false;   /* 受講コース 2026-10-03 */
   if(_rtSearch){if(String(s.name||'').indexOf(_rtSearch)<0&&String(s.nickname||'').indexOf(_rtSearch)<0)return false;}
   return true;
 }
@@ -6744,7 +6771,7 @@ function openRosterTest(mid){
   var m=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===_rtMid)m=x;});
   $('rtTitle').textContent=(mtLabel(m)||'教材')+' ｜ 名簿と確認テスト配信';
   $('rtErr').textContent='';
-  _rtFilt={grade:{},cls:{},school:{}};_rtSearch='';
+  _rtFilt={grade:{},cls:{},school:{},crs:{}};_rtSearch='';
   _rtSelA={};_rtA0={};
   (_students||[]).forEach(function(s){(s.materials_view||[]).forEach(function(mm){if(String(mm.material_id)===_rtMid){var id=_rtSid(s);_rtSelA[id]=1;_rtA0[id]=1;}});});
   _rtSelB={};_rtDeliver={};_rtDates={};_rtMode='new';
@@ -6764,6 +6791,7 @@ function rtRenderFbar(){
   if(c.length)h+='<span class="rt-flabel">教室</span>'+c.map(function(v){return rtChip_('cls',v);}).join('');
   if(g.length)h+='<span class="rt-flabel">学年</span>'+g.map(function(v){return rtChip_('grade',v);}).join('');
   if(sc.length)h+='<span class="rt-flabel">中学校</span>'+sc.map(function(v){return rtChip_('school',v);}).join('');
+  var crs=courseOpts_(_students); if(crs.length)h+='<span class="rt-flabel">受講</span>'+crs.map(function(v){return rtChip_('crs',v);}).join('');   /* 受講コース 2026-10-03 */
   h+='<input class="rt-search" id="rtSearch" placeholder="なまえで探す" oninput="_rtSearch=this.value;rtRender();" value="'+esc(_rtSearch)+'">';
   $('rtFbar').innerHTML=h;
 }
@@ -6961,8 +6989,8 @@ function openMembers(id){
   $('mmErr').textContent='';
   // 候補メタ（学年・中学校・教室）：_students優先、無ければ_unassigned・各チームメンバーで補完
   _memMeta={};
-  (_students||[]).forEach(function(s){_memMeta[String(s.student_id)]={name:s.name,nickname:s.nickname,grade:s.grade||'',school:s.school||'',class_name:s.class_name||''};});
-  (_unassigned||[]).forEach(function(u){var k=String(u.student_id);if(!_memMeta[k])_memMeta[k]={name:u.name,nickname:u.nickname,grade:u.grade||'',school:u.school||'',class_name:u.class_name||''};});
+  (_students||[]).forEach(function(s){_memMeta[String(s.student_id)]={name:s.name,nickname:s.nickname,grade:s.grade||'',school:s.school||'',class_name:s.class_name||'',courses:s.courses||[]};});
+  (_unassigned||[]).forEach(function(u){var k=String(u.student_id);if(!_memMeta[k])_memMeta[k]={name:u.name,nickname:u.nickname,grade:u.grade||'',school:u.school||'',class_name:u.class_name||'',courses:u.courses||[]};});
   _memOther={};
   _teams.forEach(function(tt){tt.members.forEach(function(m){var k=String(m.student_id);
     if(!_memMeta[k])_memMeta[k]={name:m.name,nickname:m.nickname,grade:m.grade||'',school:'',class_name:''};
@@ -6978,7 +7006,7 @@ function renderMemEditor(){
   Picker.open({
     container:host,
     sel:_memSel,
-    cand:function(){return Object.keys(_memMeta).map(function(k){var m=_memMeta[k];return {student_id:k,name:m.name,nickname:m.nickname,grade:m.grade||'',class_name:m.class_name||'',school:m.school||''};});},
+    cand:function(){return Object.keys(_memMeta).map(function(k){var m=_memMeta[k];return {student_id:k,name:m.name,nickname:m.nickname,grade:m.grade||'',class_name:m.class_name||'',school:m.school||'',courses:m.courses||[]};});},
     showStatus:false,
     rightTitle:'このチーム',
     badgeOf:function(id){return _memOther[id]?('「'+_memOther[id]+'」に所属'):'';},
@@ -7170,8 +7198,8 @@ function bugCardHtml_(r,i){
    cfg: {container, sel(外部オブジェクト・破壊的に更新), cand(()->配列),
          showStatus(印刷のみ状態チップ), rightTitle, max, badgeOf(id)->str, onAddGuard(id)->bool, onChange(ids)} */
 var Picker=(function(){
-  var C=null, els=null, filt={cls:{},grade:{},school:{},status:{},newd:0}, search='';
-  function reset(cfg){C=cfg;filt={cls:{},grade:{},school:{},status:{},newd:0};search='';render();}
+  var C=null, els=null, filt={cls:{},grade:{},school:{},crs:{},status:{},newd:0}, search='';
+  function reset(cfg){C=cfg;filt={cls:{},grade:{},school:{},crs:{},status:{},newd:0};search='';render();}
   function cand(){return (C.cand?C.cand():[])||[];}
   function sid_(s){return String(s.student_id!=null?s.student_id:(s.id!=null?s.id:''));}
   function candById(){var m={};cand().forEach(function(s){m[sid_(s)]=s;});return m;}
@@ -7181,6 +7209,7 @@ var Picker=(function(){
     if(anyOn(filt.cls)&&!filt.cls[String(s.class_name||'')])return false;
     if(anyOn(filt.grade)&&!filt.grade[String(s.grade||'')])return false;
     if(anyOn(filt.school)&&!filt.school[String(s.school||'')])return false;
+    if(!courseHit_(s,filt.crs))return false;   /* 受講コース 2026-10-03 */
     if(C.showNew&&filt.newd&&!lpIsNew_(s,filt.newd))return false;   /* 入った時期 2026-09-26 */
     if(C.showStatus&&anyOn(filt.status)){
       var ok=false;
@@ -7203,6 +7232,7 @@ var Picker=(function(){
     addGroup(left,'教室','cls',uniq('class_name'));
     addGroup(left,'学年','grade',uniq('grade'));
     addGroup(left,'中学校','school',uniq('school'));
+    addGroup(left,'受講','crs',courseOpts_(cand()));   /* 受講コース 2026-10-03 */
     if(C.showStatus){
       var row=document.createElement('div');row.className='pk-fgroup';
       var lb=document.createElement('span');lb.className='pk-flabel';lb.textContent='状態';row.appendChild(lb);
@@ -8232,7 +8262,7 @@ if(token){openDash();}
    ・学習日・今週の伸びは dashboard の study_days（直近14日）から。GAS未反映のときは「–」で出す（画面は壊さない）
    ・保存セット（教材・絞り込み・期限）は report_sets_get/set で先生全員で共有
    ============================================================ */
-var RP_SEL=[], RP_F={cls:'all',grade:'all',sch:'all'}, RP_SORT={key:'prog',dir:1};
+var RP_SEL=[], RP_F={cls:'all',grade:'all',sch:'all',crs:'all'}, RP_SORT={key:'prog',dir:1};
 var RP_ONLY_SHORT=false, RP_ONLY_NG=false, RP_ONLY_MISS=false, RP_OPEN={}, RP_MOPEN={}, RP_OPENNA={};
 var RP_MISS_MIN=10;   /* 未受験が「たまっている」とみなす件数 */
 var RP_STALE_DAYS=7;   /* この日数うごいていない子は赤で示す（川上さん 2026-08-17：14日→7日）*/
@@ -8504,7 +8534,7 @@ function rpSetPick(v){
 function rpLoadSet(i){
   var s=RP_SETS[i]; if(!s)return;
   RP_SEL=(s.mats||[]).slice(); _rpStdCache={};
-  RP_F={cls:(s.f&&s.f.cls)||'all',grade:(s.f&&s.f.grade)||'all',sch:(s.f&&s.f.sch)||'all'};
+  RP_F={cls:(s.f&&s.f.cls)||'all',grade:(s.f&&s.f.grade)||'all',sch:(s.f&&s.f.sch)||'all',crs:(s.f&&s.f.crs)||'all'};   /* crs＝受講コース 2026-10-03（前の保存には無い＝すべて） */
   RP_DL=s.dl||''; var d=$('rpDl'); if(d)d.value=RP_DL;
   RP_CUR=i; RP_LAST=i; RP_DIRTY=false;
   /* 【2026-09-14・段F】セットを切り替えたら、プリント側の選び直しも捨てて「レポートと同じ」に戻す。
@@ -8630,6 +8660,7 @@ function _rpPdfName_(list){
     if(RP_F.cls!=='all')a.push(_rpFnSafe_(RP_F.cls));
     if(RP_F.grade!=='all')a.push(_rpFnSafe_(RP_F.grade));
     if(RP_F.sch!=='all')a.push(_rpFnSafe_(RP_F.sch));
+    if(RP_F.crs&&RP_F.crs!=='all')a.push(_rpFnSafe_(RP_F.crs));
     var q=((($('rpName')||{}).value)||'').trim(); if(q)a.push(_rpFnSafe_(q));
   }
   return a.filter(function(x){return !!x;}).join('_')+'.pdf';
@@ -8640,7 +8671,7 @@ function rpSaveSet(btn){   /* ＝いつでも「増える」。いま選んで�
   if(RP_SETS.length>=30){ toast('セットは30個までです。いらないものを「🗑 削除」で消してください'); return; }
   var n=prompt('新しいセットの名前（例：中1英単語／夏休み課題）\n※ 新しく追加します。いま選んでいるセットは書き換えません。',''); if(!n)return;
   n=String(n).trim(); if(!n)return;
-  var row={name:n,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL,gr:_rpClone_(RP_GR),stu:_rpClone_(RP_STU)};   /* gr/stu 2026-09-16 */
+  var row={name:n,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch,crs:RP_F.crs||'all'},dl:RP_DL,gr:_rpClone_(RP_GR),stu:_rpClone_(RP_STU)};   /* gr/stu 2026-09-16 */
   var op={kind:'add',row:row,old:RP_SETS.slice(),st:_rpSetsSt_()};
   var next=RP_SETS.concat([row]);
   RP_SETS=next; RP_CUR=RP_SETS.length-1; RP_LAST=RP_CUR; RP_DIRTY=false; rpRenderSets();
@@ -8660,7 +8691,7 @@ function rpUpdateSet(btn){   /* ＝いま選んでいるセットを書き換え
   if(RP_SETS_ST!=='ok'||RP_SETS_SAVING){ toast((RP_SETS_ST==='ok')?'保存セットを保存しています。終わってからもう一度押してください':'保存セットを読み込めていないため、上書きできません（「↻ 読み込み直す」を押してください）'); return; }   /* 2026-09-16b */
   var i=_rpCurSet_(); if(i<0)return;
   if(!confirm('「'+RP_SETS[i].name+'」を いまの内容（教材・絞り込み・期限・学年や中学校や生徒ごとの範囲）で上書きします。\n前の内容は元に戻せません。よろしいですか？\n※ 増やしたいときは「＋ 新しいセットとして保存」。'))return;
-  var row={name:RP_SETS[i].name,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch},dl:RP_DL,gr:_rpClone_(RP_GR),stu:_rpClone_(RP_STU)};   /* gr/stu 2026-09-16 */
+  var row={name:RP_SETS[i].name,mats:RP_SEL.slice(),f:{cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch,crs:RP_F.crs||'all'},dl:RP_DL,gr:_rpClone_(RP_GR),stu:_rpClone_(RP_STU)};   /* gr/stu 2026-09-16 */
   var op={kind:'upd',name:row.name,row:row,old:RP_SETS.slice(),st:_rpSetsSt_()};
   var next=RP_SETS.slice();
   next[i]=row;
@@ -8697,6 +8728,8 @@ function rpRenderFilters(){
   if(cls.length)h+='<div class="filter-grp"><span class="filter-label">教室</span>'+_rpChips('cls',F.cls,cls,fn)+'</div>';
   h+='<div class="filter-grp"><span class="filter-label">学年</span>'+_rpChips('grade',F.grade,grades,fn)+'</div>';
   if(sch.length)h+='<div class="filter-grp"><span class="filter-label">中学校</span>'+_rpChips('sch',F.sch,sch,fn)+'</div>';
+  var crs=courseOpts_((_students||[]).filter(function(s){return s.is_active!==false;}));
+  if(crs.length)h+='<div class="filter-grp"><span class="filter-label">受講</span>'+_rpChips('crs',F.crs||'all',crs,fn)+'</div>';   /* 受講コース 2026-10-03 */
   el.innerHTML=h;
   /* 【2026-09-16】プリント面の見出しは「2 だれに出すか」（承認モック）。中身は いままでの「この紙を出す生徒」のまま */
   var t=$('rpFltTtl'); if(t){ if(isPrn)t.innerHTML='<span class="rg-stp">2</span>だれに出すか'; else t.textContent='絞り込み'; t.classList.toggle('rg-stph',isPrn); }
@@ -8713,12 +8746,13 @@ function _rpChips(kind,cur,opts,fn){ fn=fn||'rpSetF';
 function rpSetF(k,v){ RP_F[k]=v; rpDirty_(); rpRenderFilters(); rpRender(); rpRenderSumLine(); }
 function rpSetDL(v){ RP_DL=v||''; rpDirty_(); rpRender(); }
 function rpRemoveF(k){ if(k==='q'){var s=$('rpName');if(s)s.value='';} else {RP_F[k]='all';rpDirty_();} rpRenderFilters(); rpRender(); }
-function rpClearF(){ RP_F={cls:'all',grade:'all',sch:'all'}; var s=$('rpName'); if(s)s.value=''; rpDirty_(); rpRenderFilters(); rpRender(); }
+function rpClearF(){ RP_F={cls:'all',grade:'all',sch:'all',crs:'all'}; var s=$('rpName'); if(s)s.value=''; rpDirty_(); rpRenderFilters(); rpRender(); }
 function rpRenderStrip(){
   var st=$('rpFstrip'); if(!st)return; var t=[];
   if(RP_F.cls!=='all')t.push({k:'cls',l:'教室 '+RP_F.cls});
   if(RP_F.grade!=='all')t.push({k:'grade',l:'学年 '+RP_F.grade});
   if(RP_F.sch!=='all')t.push({k:'sch',l:'中学校 '+RP_F.sch});
+  if(RP_F.crs&&RP_F.crs!=='all')t.push({k:'crs',l:'受講 '+RP_F.crs});
   var q=((($('rpName')||{}).value)||'').trim(); if(q)t.push({k:'q',l:'名前「'+q+'」'});
   if(!t.length){st.style.display='none';st.innerHTML='';return;}
   st.style.display='flex';
@@ -8991,15 +9025,15 @@ function rpOutClear(){ rpOutClearAll(); }
 
 /* 【2026-09-14・段F】プリント側の生徒の絞り込み。さわるまではレポートと同じ。
    ★レポートの一覧（RP_F）は変えない＝「見る範囲と出す範囲は別」（段D の確定と同じ）。 */
-var RP_PF={cls:'all',grade:'all',sch:'all'}, RP_PF_TOUCHED=false;
-function _rpPfSync_(){ if(RP_PF_TOUCHED)return; RP_PF={cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch}; }
+var RP_PF={cls:'all',grade:'all',sch:'all',crs:'all'}, RP_PF_TOUCHED=false;
+function _rpPfSync_(){ if(RP_PF_TOUCHED)return; RP_PF={cls:RP_F.cls,grade:RP_F.grade,sch:RP_F.sch,crs:RP_F.crs||'all'}; }
 /* 画面でえらんでいる出す種別。★読む場所を1か所にする（紙ごとに決め打ちしない）2026-09-15 */
 function _rpTypes_(){ var a=[]; ['daily','unit','quiz'].forEach(function(t){ var c=$('rpT-'+t); if(c&&c.checked)a.push(t); }); return a; }
 function _rpPfSame_(){
   /* 絞り込みが同じでも、1人ずつ外していればレポートとは別 2026-09-15 */
   if(Object.keys(RP_DROP.prn).length!==Object.keys(RP_DROP.rep).length)return false;
   for(var k in RP_DROP.prn){ if(!RP_DROP.rep[k])return false; }
-  return RP_PF.cls===RP_F.cls&&RP_PF.grade===RP_F.grade&&RP_PF.sch===RP_F.sch;
+  return RP_PF.cls===RP_F.cls&&RP_PF.grade===RP_F.grade&&RP_PF.sch===RP_F.sch&&(RP_PF.crs||'all')===(RP_F.crs||'all');
 }
 function rpSetPF(k,v){ RP_PF_TOUCHED=true; RP_PF[k]=v; rpRenderFilters(); rpRenderPaper(); }
 function rpPfSameAsReport(){ RP_PF_TOUCHED=false; RP_DROP.prn={}; rpRenderFilters(); rpRenderPaper(); }
@@ -9129,7 +9163,7 @@ function rpRenderSumLine(){
   var ss=$('rpSlStuS');
   if(ss)ss.textContent=[(RP_F.cls==='all'?'教室すべて':'教室 '+RP_F.cls),
                         (RP_F.grade==='all'?'学年すべて':RP_F.grade),
-                        (RP_F.sch==='all'?'中学校すべて':RP_F.sch)].join('／');
+                        (RP_F.sch==='all'?'中学校すべて':RP_F.sch)].concat((RP_F.crs&&RP_F.crs!=='all')?['受講 '+RP_F.crs]:[]).join('／');
 }
 /* 「▾ 変える」＝教材えらびと絞り込みを開く／閉じる */
 function rpToggleSetEdit(){
@@ -9282,6 +9316,7 @@ function rpTargets(useP,keepDropped){
     if(F.cls!=='all'&&String(s.class_name||'')!==F.cls)return false;
     if(F.grade!=='all'&&String(s.grade||'')!==F.grade)return false;
     if(F.sch!=='all'&&String(s.school||'')!==F.sch)return false;
+    if(F.crs&&F.crs!=='all'&&courseLabels_(s).indexOf(F.crs)<0)return false;   /* 受講コース 2026-10-03 */
     if(q&&String(s.name||'').indexOf(q)<0&&String(s.nickname||'').indexOf(q)<0)return false;
     return true;
   }).map(function(s){return {s:s,a:rpAgg(s,AS,QZ),sh:_rpShortOf(s,AS),AS:AS};})
@@ -10137,6 +10172,7 @@ function rpRender(){
     if(RP_F.cls!=='all'&&String(s.class_name||'')!==RP_F.cls)return false;
     if(RP_F.grade!=='all'&&String(s.grade||'')!==RP_F.grade)return false;
     if(RP_F.sch!=='all'&&String(s.school||'')!==RP_F.sch)return false;
+    if(RP_F.crs&&RP_F.crs!=='all'&&courseLabels_(s).indexOf(RP_F.crs)<0)return false;   /* 受講コース 2026-10-03 */
     return !!_rpShortOf(s,AS);}).length;
   $('rpSummary').innerHTML=
      rpCard(list.length+'<span style="font-size:12px;">名</span>','対象の生徒','')
@@ -10234,7 +10270,7 @@ function rpPrintList_(){
   return l;
 }
 function rpCondText_(){
-  var c=[]; if(RP_F.cls!=='all')c.push('教室 '+RP_F.cls); if(RP_F.grade!=='all')c.push('学年 '+RP_F.grade); if(RP_F.sch!=='all')c.push('中学校 '+RP_F.sch);
+  var c=[]; if(RP_F.cls!=='all')c.push('教室 '+RP_F.cls); if(RP_F.grade!=='all')c.push('学年 '+RP_F.grade); if(RP_F.sch!=='all')c.push('中学校 '+RP_F.sch); if(RP_F.crs&&RP_F.crs!=='all')c.push('受講 '+RP_F.crs);
   var q=((($('rpName')||{}).value)||'').trim(); if(q)c.push('名前「'+q+'」');
   return c.length?c.join('・'):'なし';
 }
