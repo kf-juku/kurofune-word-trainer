@@ -345,6 +345,11 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
       <button class="chip active" data-room="all" onclick="setRoom('all',this)">すべて</button>
       <button class="chip" data-room="北久里浜" onclick="setRoom('北久里浜',this)">北久里浜</button>
       <button class="chip" data-room="久里浜" onclick="setRoom('久里浜',this)">久里浜</button>
+      <!-- 受講コース（英検対策・受験特訓）2026-10-03。教室とは AND -->
+      <span class="flt-label" style="margin-left:10px;">受講</span>
+      <button class="chip active" data-crs="all" onclick="setCrs('all',this)">すべて</button>
+      <button class="chip" data-crs="eiken" onclick="setCrs('eiken',this)">英検対策</button>
+      <button class="chip" data-crs="juken" onclick="setCrs('juken',this)">受験特訓</button>
       <div class="legend">
         <i><span class="dotk" style="background:var(--blue);"></span>解き中（タイマー）</i>
         <i><span class="dotk" style="background:var(--green);"></span>80%以上</i>
@@ -462,6 +467,8 @@ function call(b,_try){
 var resetAt=+(localStorage.getItem('kwt_rt_reset_at')||0);  // この時刻(クライアントms)以降のぶんだけ表示（授業の区切り）
 
 var roomFilter='all';
+var crsFilter='all';   /* 受講コース 2026-10-03。'all'／'eiken'／'juken'。GAS の quiz_live が courses を返す */
+function crsOk_(st){ return crsFilter==='all' || ((st.info&&st.info.courses)||[]).indexOf(crsFilter)>=0; }
 var state={};        // sid -> {info:{id,name,room}, lanes:[...], lastAt, active}
 var SIDX={};         // 名簿順（教室→名前）で固定するためのインデックス
 var serverSkew=0;    // クライアント時刻 - サーバー時刻(ms)
@@ -500,7 +507,7 @@ function mapLive(d){
   var seen={};
   (d.students||[]).forEach(function(s){
     var st=state[s.student_id]||(state[s.student_id]={info:{},lanes:[]});
-    st.info={id:s.student_id,name:s.student_name||'',nick:s.nickname||'',room:s.room||''};
+    st.info={id:s.student_id,name:s.student_name||'',nick:s.nickname||'',room:s.room||'',courses:s.courses||[]};
     st.lanes=(s.entries||[]).filter(function(e){ return !resetAt || (e.start_ts+serverSkew) >= resetAt || (e.sub_ts && (e.sub_ts+serverSkew) >= resetAt); }) /* リセット前に始めて、リセット後に出した提出も出す 2026-09-26 */.map(function(e){
       var eid=s.student_id+'|'+(e.type||'quiz')+'|'+(e.part_id||'')+'|'+e.start_ts;
       var fresh=false;
@@ -545,6 +552,7 @@ function render(){
   var list=sortLanes(Object.keys(state).map(function(id){return state[id];})
     .filter(function(st){return st.active;})
     .filter(function(st){return roomFilter==='all'||st.info.room===roomFilter;})
+    .filter(crsOk_)   /* 受講コース 2026-10-03 */
     .filter(function(st){return visLanes(st).length>0;}));
 
   var doing=0,done=0;
@@ -1373,7 +1381,7 @@ function openPrint(){
   var pdate=(function(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());})();
   // いま画面にいる生徒（教室しぼり込みを反映・名簿順）。種別スイッチに関係なく、確認テスト＋毎日学習＋単元別を印刷する。
   var ids=Object.keys(state).sort(function(a,b){return (SIDX[a]==null?999:SIDX[a])-(SIDX[b]==null?999:SIDX[b]);})
-    .filter(function(id){var st=state[id];return st.active && (roomFilter==='all'||st.info.room===roomFilter) && (st.lanes&&st.lanes.length>0);});
+    .filter(function(id){var st=state[id];return st.active && (roomFilter==='all'||st.info.room===roomFilter) && crsOk_(st) && (st.lanes&&st.lanes.length>0);});
   var $sheets=document.getElementById('printSheets'), $n=document.getElementById('printN');
   document.getElementById('printOv').classList.add('show');
   if(!ids.length){ $sheets.innerHTML='<div style="padding:40px;color:#64748b;">印刷できる記録がありません。</div>'; $n.textContent='0名分'; return; }
@@ -1543,6 +1551,12 @@ function updateSessLabel_(){
   if(!resetAt){ el.textContent='直近の記録を表示中'; return; }
   var d=new Date(resetAt);
   el.textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+'〜 の記録を表示中';
+}
+function setCrs(c,el){
+  crsFilter=c;
+  document.querySelectorAll('.chip[data-crs]').forEach(function(x){x.classList.remove('active');});
+  el.classList.add('active');
+  render();
 }
 function setRoom(r,el){
   roomFilter=r;
