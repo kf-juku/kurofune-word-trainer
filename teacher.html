@@ -679,6 +679,39 @@
   /* モーダル（チーム作成・メンバー編集） */
   .modal-back{position:fixed;inset:0;background:rgba(15,23,42,0.45);display:none;align-items:center;justify-content:center;z-index:9500;padding:14px;}
   .modal-back.show{display:flex;}
+  /* 【2026-10-04】アカウントの確認待ち（フォレスタIDが変わった・重複・氏名が変わった）。ボタンの帯はカードのいちばん下・幅固定（ui-standards 絶対ルール「重要なボタンは場所を固定する」） */
+  .idc-band{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;background:#fff7ed;border:1.5px solid #fb923c;border-radius:10px;padding:9px 14px;margin:0 0 12px;font-size:13px;color:#7c2d12}
+  .idc-band b.n{font-size:16px;color:#c2410c;margin:0 2px}
+  .idc-band .why{font-size:12px;color:#9a3412}
+  .idc-band button{background:#ea580c;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  #idcModal .modal{width:min(96vw,1040px);max-width:none;max-height:95vh;text-align:left}
+  .idc-lead{font-size:12.5px;color:#475569;margin:2px 0 12px;line-height:1.7}
+  .idc-card{border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px 12px;margin-bottom:10px;background:#fff}
+  .idc-card.warn{border-color:#fecaca;background:#fffafa}
+  .idc-h{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+  .idc-tag{font-size:11px;font-weight:800;border-radius:5px;padding:1px 7px}
+  .idc-tag.chg{background:#ffedd5;color:#9a3412}.idc-tag.dup{background:#fee2e2;color:#b91c1c}.idc-tag.nmc{background:#fef3c7;color:#92400e}
+  .idc-h .nm{font-weight:800;font-size:15px}
+  .idc-h .sub{font-size:12px;color:#64748b}
+  .idc-tbl{border-collapse:collapse;width:auto;margin:2px 0 8px}
+  .idc-tbl th{font-size:11px;color:#64748b;font-weight:700;text-align:left;padding:2px 16px 4px 4px;border-bottom:1px solid #e5e7eb;white-space:nowrap;background:#f8fafc}
+  .idc-tbl td{font-size:13px;padding:6px 16px 6px 4px;border-bottom:1px dashed #e9ebef;white-space:nowrap;vertical-align:middle}
+  .idc-tbl td.k{font-size:11.5px;color:#64748b;font-weight:700}
+  .idc-tbl td.id{font-family:ui-monospace,Menlo,monospace;font-weight:700}
+  .idc-tbl td.rb,.idc-tbl th.rb{padding-right:4px;width:18px}
+  .idc-tbl tr.mem td{background:#f8fafc}
+  .idc-tbl input[type=radio]{width:16px;height:16px;accent-color:var(--crimson);vertical-align:middle;margin:0}
+  .idc-st{font-size:11px;border-radius:4px;padding:0 5px;font-weight:700}
+  .idc-st.on{background:#dcfce7;color:#15803d}.idc-st.off{background:#f1f5f9;color:#64748b}
+  .idc-note{font-size:12px;color:#64748b;line-height:1.7}
+  .idc-note b{color:#b91c1c}
+  .idc-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start;border-top:1px solid #eef0f3;margin-top:8px;padding-top:9px}
+  .idc-b1{width:300px;text-align:center;background:var(--crimson);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .idc-b1[disabled]{background:#e5c4c6;cursor:not-allowed}
+  .idc-b2{width:190px;text-align:center;background:#fff;color:#334155;border:1.5px solid #cbd5e1;border-radius:8px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .idc-b2[disabled]{opacity:.55;cursor:not-allowed}
+  .idc-none{font-size:12px;color:#94a3b8;line-height:30px}
+  .idc-sync{margin-top:8px;font-size:13px;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:7px 10px;line-height:1.7}
   .modal{background:white;border-radius:14px;box-shadow:var(--shadow);box-sizing:border-box;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;overflow-x:hidden;padding:20px;}
   .modal h3{font-size:16px;font-weight:800;color:var(--crimson);margin-bottom:12px;}
   .modal .mhint{font-size:11.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;}
@@ -1276,6 +1309,8 @@
     </div>
 
     <!-- タブ切替（生徒一覧／チーム編成）2026-06-21 -->
+    <!-- 【2026-10-04】アカウントの確認待ち。確認待ちが0件なら出さない。全部決めるまで消えない -->
+    <div class="idc-band" id="idcBand" style="display:none;"><span>🪪 アカウントの確認待ち <b class="n" id="idcBandN">0</b>件</span><button type="button" onclick="idcOpen_()">確認する</button><span class="why">会員管理との同期で、IDが変わった・重複した・氏名が変わった生徒がいます。ポップアップを閉じても、全部確認するまでこの帯はどのタブにも出ています。</span></div>
     <div class="tabs">
       <button class="tab active" id="tab-dash" onclick="switchTab('dash')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>生徒一覧</button>
       <button class="tab" id="tab-mat" onclick="switchTab('mat')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;flex-shrink:0;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>教材ごと</button>
@@ -2530,6 +2565,7 @@
   <div class="modal">
     <h3>会員管理との同期結果</h3>
     <div id="syncSummary" style="font-size:14px;margin:6px 0 10px;"></div>
+    <div id="syncIdcWrap" style="display:none;" class="idc-sync"></div>
     <div id="syncNoIdWrap" style="display:none;">
       <div style="font-weight:700;font-size:13px;color:#c2410c;margin-bottom:4px;">フォレスタID未設定（在籍・塾生）— アカウント未作成</div>
       <div id="syncNoIdList" style="font-size:13px;line-height:1.7;max-height:220px;overflow:auto;"></div>
@@ -2541,6 +2577,15 @@
 </div>
 
 <div id="toast"></div>
+<!-- 【2026-10-04】アカウントの確認待ち（フォレスタIDが変わった・重複・氏名が変わった）。正＝ジョブス用\記録\20261004_フォレスタID変更の引き継ぎと同期の見張り_指示書.md -->
+<div class="modal-back" id="idcModal">
+  <div class="modal">
+    <h3 id="idcTitle">アカウントの確認待ち</h3>
+    <div class="idc-lead">会員管理との同期（毎朝の自動同期と「会員管理と同期」ボタン）で見つかったものです。同姓同名の取り違えを防ぐため、クロトレは自動では付け替えません。1件ずつ選んでください。選ぶと次の同期を待たずにその場で反映します。</div>
+    <div id="idcBody"></div>
+    <div class="modal-actions"><button class="btn-ghost" style="width:auto;" onclick="closeModal('idcModal')">あとで確認する</button></div>
+  </div>
+</div>
 
 <div id="loadingOverlay" class="loading-overlay">
   <div class="loading-box">
@@ -2693,6 +2738,16 @@ $('btn-sync').onclick=function(){
     if(!d||!d.ok){ toast('同期失敗：'+((d&&d.error)||'')); return; }
     var x=d.data||{};
     $('syncSummary').textContent='新規 '+(x.created||0)+'人 ／ 更新 '+(x.updated||0)+'人 ／ 停止 '+(x.deactivated||0)+'人';
+    var pd=x.pending||{}, pw=$('syncIdcWrap');
+    if(pw){
+      if((pd.total||0)>0){
+        var kinds=[]; if(pd.chg)kinds.push('IDが変わった？'+pd.chg+'件'); if(pd.dup)kinds.push('IDが重複'+pd.dup+'件'); if(pd.nm)kinds.push('別の生徒？'+pd.nm+'件');
+        pw.innerHTML='🪪 <b>確認待ち '+pd.total+'件</b>（'+kinds.join('・')+'）。この生徒たちは作りも付け替えもしていません。<br><button class="idc-b1" style="margin-top:6px;" onclick="closeModal(\'syncResultModal\');idcOpen_()">いま確認する</button>';
+        pw.style.display='';
+      } else { pw.style.display='none'; pw.innerHTML=''; }
+      if(pd.error){ pw.innerHTML+=(pw.innerHTML?'<br>':'')+'⚠ '+esc(pd.error); pw.style.display=''; }
+    }
+    idcLoad_(false);
     var noId=x.no_id||[];
     if(noId.length){ $('syncNoIdWrap').style.display=''; $('syncNoIdList').textContent=noId.join('、'); }
     else{ $('syncNoIdWrap').style.display='none'; }
@@ -2703,6 +2758,7 @@ $('btn-sync').onclick=function(){
 
 function openDash(){
   $('scr-login').style.display='none';$('scr-dash').style.display='';
+  idcLoad_(true); /* 2026-10-04：アカウントの確認待ちがあれば毎回ポップアップを開く */
   $('who-name').textContent=teacherName;
   loadDash();
 }
@@ -7280,6 +7336,91 @@ document.addEventListener('keydown',function(e){
    ボタンで閉じるときに呼びたくなければ、先に _modalOnClose_(id,null) で外す。 */
 var _MODAL_ONCLOSE_={};
 function _modalOnClose_(id,fn){ if(fn)_MODAL_ONCLOSE_[id]=fn; else delete _MODAL_ONCLOSE_[id]; }
+/* ===== アカウントの確認待ち（2026-10-04 川上さん確定）=====
+   帯（タブの上）・ポップアップ・同期結果の3か所から開く。GAS：id_pending_list／id_pending_resolve。
+   カードの並び＝見出し→説明→表→注意書き→ボタンの帯（いちばん下・左から［同じ生徒…］［別の生徒。新しく作る］・幅固定）。
+   候補が複数のときは行にラジオ、引き継ぐボタンは1つ（選ぶまで押せない）。 */
+var _idcItems_=[];
+function idcLoad_(autoOpen){
+  return call({action:'id_pending_list'}).then(function(d){
+    if(!d||!d.ok) return;
+    _idcItems_=(d.data&&d.data.items)||[];
+    idcRender_();
+    if(autoOpen&&_idcItems_.length) idcOpen_();
+    if(!_idcItems_.length) closeModal('idcModal');
+  }).catch(function(){});
+}
+function idcOpen_(){ if(!_idcItems_.length)return; idcRender_(); $('idcModal').classList.add('show'); }
+function idcSt_(a){ return a?'<span class="idc-st on">在籍中</span>':'<span class="idc-st off">停止中</span>'; }
+function idcRender_(){
+  var n=_idcItems_.length, band=$('idcBand');
+  if(band){ band.style.display=n?'':'none'; $('idcBandN').textContent=n; }
+  if($('idcTitle')) $('idcTitle').textContent='アカウントの確認待ち（'+n+'件）';
+  var body=$('idcBody'); if(!body)return;
+  body.innerHTML=_idcItems_.map(idcCard_).join('');
+}
+function idcCard_(it){
+  var p=it.payload||{}, id=esc(it.id);
+  var TH='<thead><tr><th></th><th class="rb"></th><th>氏名</th><th>ID</th><th>状態</th><th>学年・教室</th><th>最後の学習</th><th>解いたパート</th></tr></thead>';
+  var gc=function(o){ return esc((o.grade||'')+(o.class_name?'・'+o.class_name:'')); };
+  var memRow=function(name,fid,g){ return '<tr class="mem"><td class="k">会員管理</td><td class="rb"></td><td><b>'+esc(name)+'</b></td><td class="id">'+esc(fid)+'</td><td></td><td>'+g+'</td><td></td><td></td></tr>'; };
+  var kwtRow=function(lbl,c,radio){ return '<tr><td class="k">'+lbl+'</td><td class="rb">'+(radio||'')+'</td><td><b>'+esc(c.name||'')+'</b></td><td class="id">'+esc(c.login_id||'')+'</td><td>'+idcSt_(c.active)+'</td><td>'+gc(c)+'</td><td>'+esc(c.last||'—')+'</td><td>'+(c.parts||0)+'</td></tr>'; };
+  var bar=function(b1,b1dis,onB1,onB2){ return '<div class="idc-acts">'+(b1?'<button class="idc-b1"'+(b1dis?' disabled':'')+' data-b1="'+id+'" onclick="'+onB1+'">'+b1+'</button><button class="idc-b2" onclick="'+onB2+'">別の生徒。新しく作る</button>':'<span class="idc-none">この件はクロトレでは選べません（会員管理で直します）</span>')+'</div>'; };
+  var m=p.member||{};
+  if(it.kind==='chg'){
+    var cs=p.cands||[], many=cs.length>1;
+    var h='<div class="idc-card"><div class="idc-h"><span class="idc-tag chg">IDが変わった？</span><span class="nm">'+esc(m.name||'')+'</span><span class="sub">'+gc(m)+'</span></div>'
+      +'<div class="idc-note">会員管理に新しいID '+esc(p.fid)+' の'+esc(m.name||'')+'さんが来ました。クロトレには<b>同じ氏名で別のIDのアカウント</b>が'+(many?cs.length+'つあります。<b>同じ生徒なら、引き継ぐアカウントを1つ選んでください。</b>':'あります。')+'</div>'
+      +'<table class="idc-tbl">'+TH+'<tbody>'+memRow(m.name||'',p.fid,gc(m));
+    cs.forEach(function(c,i){
+      h+=kwtRow('クロトレ'+(many?'（候補'+(i+1)+'）':''),c,'<input type="radio" name="idc-'+id+'" value="'+esc(c.student_id)+'"'+(many?'':' checked')+' onchange="idcPick_(\''+id+'\')">');
+    });
+    var anyAct=cs.some(function(c){return c.active;});
+    h+='</tbody></table><div class="idc-note">引き継ぐと、選んだアカウントのIDが '+esc(p.fid)+' に変わります。学習記録はそのまま続きます。確認するまで、この生徒は新しいID '+esc(p.fid)+' ではログインできません'+(anyAct?'（在籍中のアカウントは止めないので、前のIDで学習を続けられます）':'')+'。</div>'
+      +bar('同じ生徒。'+(many?'選んだアカウントを':'このアカウントを')+'引き継ぐ',many,"idcResolve_(this,'"+id+"','takeover')","idcResolve_(this,'"+id+"','create')")+'</div>';
+    return h;
+  }
+  if(it.kind==='dup'){
+    var who=p.who||[];
+    return '<div class="idc-card warn"><div class="idc-h"><span class="idc-tag dup">IDが重複</span><span class="nm">ID '+esc(p.fid)+'</span><span class="sub">会員管理で '+who.length+'名に同じIDが入っています</span></div>'
+      +'<div class="idc-note">この'+who.length+'名は、クロトレのアカウントを<b>作りも更新もしていません</b>。</div>'
+      +'<table class="idc-tbl">'+TH+'<tbody>'+who.map(function(w){ return memRow(w.name||'',p.fid,gc(w)+'（'+esc(w.status||'在籍')+'）'); }).join('')+'</tbody></table>'
+      +'<div class="idc-note">会員管理でどちらかのIDを直すと、次の同期でこのお知らせは消えます。</div>'
+      +bar(null)+'</div>';
+  }
+  var a=p.account||{};
+  return '<div class="idc-card warn"><div class="idc-h"><span class="idc-tag nmc">別の生徒？</span><span class="nm">ID '+esc(p.fid)+'</span><span class="sub">同じIDで、氏名が変わっています</span></div>'
+    +'<div class="idc-note">会員管理の ID '+esc(p.fid)+' が'+esc(m.name||'')+'さんになっています。クロトレの ID '+esc(p.fid)+' は'+esc(a.name||'')+'さんのアカウントです。</div>'
+    +'<table class="idc-tbl">'+TH+'<tbody>'+memRow(m.name||'',p.fid,gc(m))+kwtRow('クロトレ',a,'')+'</tbody></table>'
+    +'<div class="idc-note">「新しく作る」＝'+esc(a.name||'')+'さんのアカウントと学習記録はそのまま残し、IDに印を付けます（'+esc(p.fid)+'#旧＋今日の日付）。'+esc(m.name||'')+'さんは ID '+esc(p.fid)+' の新しいアカウントになります。確認するまで、このアカウントは'+(a.active?'名前を変えずにそのまま':'止めたまま')+'にしています。</div>'
+    +bar('同じ生徒（改名など）。'+(a.active?'名前を変える':'動かし直す'),false,"idcResolve_(this,'"+id+"','rename')","idcResolve_(this,'"+id+"','create')")+'</div>';
+}
+function idcPick_(id){ var b=document.querySelector('#idcBody [data-b1="'+id+'"]'); if(b) b.disabled=false; }
+function idcResolve_(btn,id,choice){
+  var it=null; _idcItems_.forEach(function(x){ if(x.id===id) it=x; }); if(!it) return;
+  var p=it.payload||{}, m=p.member||{}, sid='', msg='';
+  if(choice==='takeover'){
+    var r=document.querySelector('#idcBody input[name="idc-'+id+'"]:checked'); if(!r){ toast('引き継ぐアカウントを選んでください'); return; }
+    sid=r.value; var c=null; (p.cands||[]).forEach(function(x){ if(x.student_id===sid) c=x; });
+    msg=(m.name||'')+'さんのアカウント（ID '+(c?c.login_id:'')+'）を、新しいID '+p.fid+' に引き継ぎます。学習記録はそのまま続きます。よろしいですか？';
+  } else if(choice==='rename'){
+    var a=p.account||{};
+    msg='ID '+p.fid+' のアカウントの名前を「'+(a.name||'')+'」から「'+(m.name||'')+'」に変えて、'+(a.active?'そのまま使います':'動かし直します')+'。よろしいですか？';
+  } else {
+    msg=(it.kind==='nm')
+      ? (p.account&&p.account.name||'')+'さんのアカウントはIDに印を付けて残し、'+(m.name||'')+'さんの新しいアカウント（ID '+p.fid+'）を作ります。よろしいですか？'
+      : (m.name||'')+'さんは別の生徒として、新しいアカウント（ID '+p.fid+'・学習記録なし）を作ります。よろしいですか？';
+  }
+  if(!confirm(msg)) return;
+  var card=btn.closest('.idc-card'); if(card) card.querySelectorAll('button').forEach(function(b){ b.disabled=true; });
+  var old=btn.innerHTML;
+  btn.innerHTML='<span style="display:inline-block;width:12px;height:12px;border:2px solid #cbd5e1;border-top-color:#334155;border-radius:50%;animation:kwtspin 0.7s linear infinite;vertical-align:-2px;margin-right:5px;"></span>処理中…';
+  call({action:'id_pending_resolve',id:id,choice:choice,student_id:sid}).then(function(d){
+    if(!d||!d.ok){ toast('できませんでした：'+((d&&d.error)||'')); btn.innerHTML=old; if(card) card.querySelectorAll('button').forEach(function(b){ b.disabled=false; }); if(choice==='takeover'&&!sid){} return; }
+    toast(choice==='takeover'?'引き継ぎました':choice==='rename'?'名前を変えました':'新しいアカウントを作りました');
+    idcLoad_(false); try{ loadDash(); }catch(e){}
+  }).catch(function(){ toast('通信に失敗しました'); btn.innerHTML=old; if(card) card.querySelectorAll('button').forEach(function(b){ b.disabled=false; }); });
+}
 function closeModal(id){
   var el=$(id); if(!el)return;
   el.classList.remove('show');
