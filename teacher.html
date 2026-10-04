@@ -173,12 +173,13 @@
   th.sorted{color:var(--crimson);}
   .sort-ar{font-size:10px;}
   tr.row-inactive td{background:rgba(214,69,69,.07);}
-  tr.row-inactive td:first-child{box-shadow:inset 3px 0 0 var(--crimson);}
+  /* 【2026-10-04 川上さん】行の色の目印は薄いピンク（◯日以上あいた子）だけ。左の線・オレンジは出さない（印が多くて分からない）。
+     声かけの中身は「次の一手」のアイコンと「デイリー」の列で見る。row-needhelp・row-action のクラスは並び・テストのために残す */
+  .row-legend{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-muted);margin:2px 0 6px;}
+  .row-legend .sw{display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(214,69,69,.10);border:1px solid rgba(214,69,69,.25);}
   .last-ago{font-size:11px;color:var(--text-muted);}
   .last-ago.warn{color:var(--crimson);font-weight:700;}
   /* 指導必要アラート 2026-07-02 */
-  tr.row-needhelp td{background:rgba(240,159,39,.10);}
-  tr.row-needhelp td:first-child{box-shadow:inset 3px 0 0 #d9820e;}
   .teach-rate{font-size:12.5px;font-weight:700;}
   .teach-low{color:#d9820e;}
   /* .acc-rate は teachCell() 専用だったので 2026-09-13d に削除（§6-4）。下の .acc-hi/.acc-mid/.acc-low は rpRateCls が使うので残す */
@@ -1040,7 +1041,7 @@
   .na-rush{background:#efeafb;color:#4d3596;border-color:#dcd0f5;}
   .na-ok{background:#e6f6ee;color:#14663a;border-color:#bfe6cf;}
   .na-na{background:#eef1f5;color:#8a97a6;border-color:#e2e7ee;}
-  tr.row-action td:first-child{box-shadow:inset 3px 0 0 #d64545;}
+  .na-scrib{width:15px;height:11px;display:block;flex:none;}
   /* 詳細モーダル：次の一手・推移・パート内訳（2026-07-10） */
   .sd-acts{background:#fcfdff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
   .sd-actrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px dashed var(--border);}
@@ -1377,13 +1378,14 @@
 
     <div id="dash-body">
       <div class="loading-msg" id="loadingMsg">読み込み中...</div>
+      <div class="row-legend" id="rowLegend"><span class="sw"></span>薄いピンクの行＝最終学習から <b id="rowLegendDays">7</b> 日以上あいている子（日数は「詳しく絞り込む」の色分けで変えられます）</div>
       <div class="table-wrap" id="tableWrap" style="display:none;">
         <table>
           <thead>
             <tr>
               <th data-sk="name" onclick="sortBy('name')">生徒 <span class="sort-ar" data-ar="name"></span></th>
               <th data-sk="grade" onclick="sortBy('grade')">学年 <span class="sort-ar" data-ar="grade"></span></th>
-              <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。毎日学習は 😴未着手=あき日数ぶん学習なし。単元別は 📘未練習（毎日学習と別で判定）。🎉完走=次を割当／⚠️つまずき=復習・印刷／💨雑=ていねいに／✅順調=不要／👀未評価=一度も未着手。当てはまるものは全部表示。</span></span></th>
+              <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。🎉完走＝次の教材を割り当てる／⚠️つまずき＝正答率が基準未満。復習・印刷／雑（ぐるぐるの印）＝2秒未満の誤答が目立つ。ていねいにやるよう声かけ／✅順調＝手当て不要／👀未評価＝まだ一度も学習していない。当てはまるものは全部出します。デイリーをやったかは「デイリー」の列（昨・今）で見ます。</span></span></th>
               <th>教材と進み<span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日＝教材名と →いまの回。単元別＝本の名前と印（未合格N＝確認テストで落ちた数／未練習＝まだ1回も練習しておらず、確認テストにも受かっていない）。教材名を押すと、この子の詳細でその教材を開きます。正答率・確認テストの内訳・定着度は詳細で見ます。</span></span></th>
               <th class="gcol">デイリー</th>
               <th data-sk="last" onclick="sortBy('last')">最終学習 <span class="sort-ar" data-ar="last"></span></th>
@@ -2874,7 +2876,7 @@ function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate
 function needsHelp(s){return hasTeach(s)&&s.teach_rate<_accLine();}
 /* 次の一手（機能仕様書§先生ダッシュボード「次の一手」2026-07-10）。GAS next_actions を表示。 */
 /* 2026-07-22 2トラック化：idle=毎日未着手／test_idle=単元別未練習。2026-08-27③ やりかけ(half/test_half)は廃止＝やったか、やってないかだけで見る */
-var NA_META={done:{c:'na-done',t:'🎉完走'},idle:{c:'na-idle',t:'😴未着手'},test_idle:{c:'na-tidle',t:'📘未練習'},stuck:{c:'na-stuck',t:'⚠️つまずき'},rush:{c:'na-rush',t:'💨雑'},ok:{c:'na-ok',t:'✅順調'},na:{c:'na-na',t:'👀未評価'}};
+var NA_META={done:{c:'na-done',t:'🎉完走'},idle:{c:'na-idle',t:'😴未着手'},test_idle:{c:'na-tidle',t:'📘未練習'},stuck:{c:'na-stuck',t:'⚠️つまずき'},rush:{c:'na-rush',t:'<svg class="na-scrib" viewBox="0 0 18 12" aria-hidden="true"><path d="M2 9C3.5 2 8 2 5.5 7S2.5 11 7 8.5 11.5 2 9 4.5 6.5 10.5 11 9 16.5 2.5 13.5 3.5 12 10 16.5 7.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>雑'},ok:{c:'na-ok',t:'✅順調'},na:{c:'na-na',t:'👀未評価'}};
 var NA_ORDER=['done','idle','test_idle','stuck','rush','ok','na'];
 var NA_SEV={stuck:5,idle:4,test_idle:3,rush:3,done:2,ok:1,na:0};
 /* 【2026-10-04】画面の「次の一手」から 未着手・未練習 を外す（デイリー（昨日・今日）に置き換え）。next_actions 自体は朝のメールがまだ使う */
@@ -5247,6 +5249,7 @@ function renderTable(){try{searchClearSync_();}catch(eSc){}
     return true;
   });
   var _idi=$('inactiveDays');if(_idi&&String(_inactiveDays)!==_idi.value)_idi.value=_inactiveDays;
+  var _rld=$('rowLegendDays');if(_rld)_rld.textContent=_inactiveDays;
   if(_sortKey==='name'){rows.sort(function(a,b){return _sortDir*String(a.name||'').localeCompare(String(b.name||''),'ja');});}
   else if(_sortKey){rows.sort(function(a,b){var d=sortVal_(a,_sortKey)-sortVal_(b,_sortKey);if(d===0)d=String(a.name||'').localeCompare(String(b.name||''),'ja');return _sortDir*d;});}
   $('filterCount').textContent=rows.length+'名';
@@ -5321,7 +5324,7 @@ function naWhy(s,k){
   if(k==='idle')return {t:'😴 未着手',why:'昨日、毎日学習をやっていません（最終学習 '+esc(lastStudiedText(s))+'）。',btn:'<span class="sd-actnote">「今日のをやろう」と声かけ</span>'};
   if(k==='test_idle')return {t:'📘 未練習',why:'単元別対策を割当済みですが、昨日1つもさわっていません。',btn:'<span class="sd-actnote">テスト対策を進めるよう声かけ</span>'};
   if(k==='stuck'){var wp=weakPartName(s);return {t:'⚠️ つまずき',why:'正答率が基準未満'+(wp?'（弱点：'+esc(wp)+'）':'')+'。下のパート内訳の赤を確認。',btn:'<span class="sd-actnote">→ 右の「まちがいを印刷」で対策プリント</span>'};}
-  if(k==='rush')return {t:'💨 雑（パッと押し）',why:'2秒未満の誤答が目立ちます。答えを見ずに押している可能性。',btn:'<span class="sd-actnote">ていねいにやるよう声かけ</span>'};
+  if(k==='rush')return {t:'<svg class="na-scrib" viewBox="0 0 18 12" aria-hidden="true"><path d="M2 9C3.5 2 8 2 5.5 7S2.5 11 7 8.5 11.5 2 9 4.5 6.5 10.5 11 9 16.5 2.5 13.5 3.5 12 10 16.5 7.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> 雑（パッと押し）',why:'2秒未満の誤答が目立ちます。答えを見ずに押している可能性。',btn:'<span class="sd-actnote">ていねいにやるよう声かけ</span>'};
   if(k==='ok')return {t:'✅ 順調',why:'学習を続けていて基準クリア・弱点なし。',btn:'<span class="sd-actnote">手当て不要（そのまま）</span>'};
   if(k==='na')return {t:'👀 未評価',why:'まだ一度も学習していません（未着手・データなし）。',btn:'<span class="sd-actnote">学習を始めるよう声かけ</span>'};
   return {t:k,why:'',btn:''};
@@ -5363,9 +5366,9 @@ var _ABD_PHASE_={round1:'1周目の途中',fix:'繰り返しの途中'};
 function abandonBlock_(d){
   if(!d)return '<div style="font-size:12px;color:var(--crimson);">取得に失敗しました</div>';
   var total=parseInt(d.total,10)||0, sdG=parseInt(d.same_day_groups,10)||0;
-  if(!total&&!sdG&&!(parseInt(d.redo_count,10)||0))return '<div style="font-size:12px;color:var(--text-light);">やり直しの記録はありません</div>';
+  if(!total&&!sdG&&!(parseInt(d.redo_count,10)||0))return '<div style="font-size:12px;color:var(--text-light);">途中リセットの記録はありません</div>';
   var out='<div style="font-size:12px;line-height:1.9;">';
-  out+='<div><b>途中でやめた</b> '+total+'回';
+  out+='<div><b>途中リセット</b> '+total+'回';
   if(total){
     var ph=[];['round1','fix'].forEach(function(k){var n=parseInt((d.by_phase||{})[k],10)||0;if(n)ph.push(_ABD_PHASE_[k]+' '+n);});
     if(ph.length)out+=' <span class="t-sub">（'+esc(ph.join('／'))+'）</span>';
@@ -5383,8 +5386,8 @@ function abandonBlock_(d){
   var rdN=parseInt(d.redo_count,10)||0, rdM=parseInt(d.redo_minutes,10)||10;
   if(rdN){
     out+='<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(198,0,11,.06);border:1px solid rgba(198,0,11,.25);">'
-      +'<div style="font-size:12px;font-weight:700;color:var(--crimson);">やめて、すぐやり直した '+rdN+'回</div>'
-      +'<div class="t-sub" style="font-size:11px;">やめてから'+rdM+'分以内に、同じパートをやり直した回数</div>';
+      +'<div style="font-size:12px;font-weight:700;color:var(--crimson);">リセットして、すぐ同じ回をやり直した '+rdN+'回</div>'
+      +'<div class="t-sub" style="font-size:11px;">やめてから'+rdM+'分以内に、同じ回を最後までやった回数（答えを見たあとでやり直した可能性が高い）</div>';
     (d.redo||[]).forEach(function(r){
       var ans=parseInt(r.answered,10)||0, cor=parseInt(r.correct,10)||0;
       var rt=(r.rate==null?'':('・'+r.rate+'%'));
@@ -5432,10 +5435,21 @@ function _sdDays7_(s){
   }
   return out.join('');
 }
+/* 【2026-10-04】詳細の「読み込み中…」が止まる・別の子の中身が入る、を防ぐ。
+   ・開くたびに番号を振り、返事が来たときに今開いている番号と違えば捨てる（A を開いて すぐ B を開くと、A の返事が B の画面に入っていた）
+   ・やり直し（途中リセット）と間違いの返事は5分だけ覚えておき、同じ子をもう一度開いたらすぐ出す
+   ・サーバーは1つの返事に7〜14秒かかる（2026-10-04 本番で計測）。待つ時間の目安を出す */
+var _sdSeq_=0, _sdCache_={};
+var SD_CACHE_MS_=5*60*1000;
+function _sdCacheGet_(k){ var c=_sdCache_[k]; return (c&&Date.now()-c.t<SD_CACHE_MS_)?c.d:null; }
+function _sdCachePut_(k,d){ _sdCache_[k]={t:Date.now(),d:d}; }
+var SD_LOADING_='<div style="font-size:12px;color:var(--text-light);">読み込み中…（10秒ほどかかります）</div>';
+function _sdFail_(sid,fk,msg){ return '<div style="font-size:12px;color:var(--crimson);">'+esc(/^取得に失敗/.test(String(msg||''))?msg:('取得に失敗しました'+(msg?'（'+msg+'）':'')))+' <button class="btn-ghost" style="font-size:11px;padding:2px 8px;" onclick="openStudentDetail(\''+esc(String(sid))+'\''+(fk?',\''+esc(String(fk))+'\'':'')+')">もう一度読む</button></div>'; }
 function openStudentDetail(sid,focusKey){
   var s=null;for(var i=0;i<_students.length;i++){if(String(_students[i].student_id)===String(sid)){s=_students[i];break;}}
   if(!s)return;
   var fk=(focusKey==null)?'':String(focusKey);
+  var seq=++_sdSeq_;
   var chips=[s.grade,s.school,s.class_name].filter(Boolean).map(function(x){return '<span class="sd-chip">'+esc(x)+'</span>';}).join('');
   var needBadge=needsHelp(s)?'<span class="badge b-red" style="margin-left:8px;">要指導</span>':'';
   var col=function(a){return (a==null||a===''?'#c3cbd6':(a<_accLine()?'#d64545':(a<80?'#c98a12':'#1f9d57')));};
@@ -5458,11 +5472,11 @@ function openStudentDetail(sid,focusKey){
     +'<div class="sd-head"><div><div class="sd-name">'+esc(s.name||'(無名)')+(s.nickname?' <span style="font-size:12px;font-weight:600;color:var(--text-light);">'+esc(s.nickname)+'</span>':'')+needBadge+'</div><div class="sd-chips">'+chips+'</div></div><span style="flex:1;"></span><button id="sdClose1" class="btn-ghost" style="border:none;font-size:18px;padding:2px 9px;">×</button></div>'
     +'<div class="sd2">'+band
       +'<div><div class="sd2-h">毎日学習</div><div id="sdDaily">'+dailyHtml+'</div></div>'
-      +'<div><div class="sd2-h">単元別（テスト対策）</div><div id="sdUnit"><div style="font-size:12px;color:var(--text-light);">読み込み中…</div></div></div>'
-      +'<div><div class="sd2-h">間違い</div><div id="sdWrong"><div style="font-size:12px;color:var(--text-light);">読み込み中…</div></div></div>'
+      +'<div><div class="sd2-h">単元別（テスト対策）</div><div id="sdUnit">'+SD_LOADING_+'</div></div>'
+      +'<div><div class="sd2-h">間違い</div><div id="sdWrong">'+SD_LOADING_+'</div></div>'
       +'<div>'+(cv.length?'<details class="sd2-fold"><summary>クリア済の教材（'+cv.length+'）</summary>'+partsBlock(cv)+'</details>':'')
         +(pm.length?'<details class="sd2-fold"><summary>過去にやった教材（'+pm.length+'）</summary>'+pm.map(function(x){return '<div class="pastrow">'+esc(mtLabel(x))+' <span class="t-sub">最終 '+esc(x.last||'')+'</span></div>';}).join('')+'</details>':'')
-        +'<details class="sd2-fold"><summary>やり直し（途中でやめた回。1周目の途中の点は正答率に入れていません）</summary><div id="sdAbandon"><div style="font-size:12px;color:var(--text-light);">読み込み中…</div></div></details></div>'
+        +'<details class="sd2-fold"><summary>途中リセット（最後まで解かずにやめた回）</summary><div class="t-sub" style="font-size:11.5px;margin:2px 0 6px;">1周目の途中でやめた回の点は、正答率に入っていません。多い子は、正答率が実際より高く出ているかもしれません。</div><div id="sdAbandon">'+SD_LOADING_+'</div></details></div>'
     +'</div>'
     +'<div style="display:flex;margin-top:14px;"><span style="flex:1;"></span><button id="sdClose2" class="btn-ghost">閉じる</button></div>';
   $('sdClose1').onclick=function(){closeModal('studentModal');};
@@ -5470,8 +5484,9 @@ function openStudentDetail(sid,focusKey){
   $('studentModal').classList.add('show');
   if(fk){var _on=$('sdBody').querySelector('tr.sd2-on');if(_on)setTimeout(function(){_on.scrollIntoView({block:'center'});},50);}
   sdLoadQuiz_(sid,function(pack,err){
+    if(seq!==_sdSeq_)return;   /* 別の子を開いたあとに来た返事は捨てる */
     var el=$('sdUnit');if(!el)return;
-    if(err){el.innerHTML='<div style="font-size:12px;color:var(--crimson);">取得に失敗しました（'+esc(err)+'）</div>';return;}
+    if(err){el.innerHTML=_sdFail_(sid,fk,'取得に失敗しました（'+err+'）');return;}
     var ents=(pack&&pack.entries)||[], mats=(pack&&pack.materials)||[];
     if(!ents.length){el.innerHTML=sdUnitBlock_(s,pack);return;}
     var me=(_practiceIndex()[String(sid)]||{});
@@ -5483,17 +5498,25 @@ function openStudentDetail(sid,focusKey){
       return '<details class="sd2-bk"'+open+' data-k="'+esc(k)+'"><summary><span class="nm">'+esc(G.label)+mark+'</span><span class="cv">練習 <b>'+pr+'</b>/'+tot+'</span><span class="cv">確認テスト合格 <b>'+ok+'</b>/'+tot+'</span><span class="car">▾</span></summary><div class="in">'+sdUnitBlock_(s,{entries:G.es,materials:mats})+'</div></details>';}).join('');
     var op=el.querySelector('details[open]');if(op)setTimeout(function(){op.scrollIntoView({block:'center'});},50);
   });
-  call({action:'abandon_summary',student_id:sid}).then(function(d){var el=$('sdAbandon');if(el)el.innerHTML=abandonBlock_((d&&d.ok)?d.data:null);});
-  call({action:'teacher_mistakes',student_ids:sid,mode:'active',limit:60}).then(function(d){
+  var _abK='ab_'+sid, _abC=_sdCacheGet_(_abK);
+  var _abShow=function(d){ if(seq!==_sdSeq_)return; var el=$('sdAbandon'); if(!el)return;
+    if(!d||!d.ok){ el.innerHTML=_sdFail_(sid,fk,d&&d.error); return; }
+    _sdCachePut_(_abK,d); el.innerHTML=abandonBlock_(d.data); };
+  if(_abC) _abShow(_abC); else call({action:'abandon_summary',student_id:sid}).then(_abShow,function(){_abShow(null);});
+  var _wK='wr_'+sid, _wC=_sdCacheGet_(_wK);
+  var _wShow=function(d){
+    if(seq!==_sdSeq_)return;
     var el=$('sdWrong');if(!el)return;
-    if(!d||!d.ok){el.innerHTML='<div style="font-size:12px;color:var(--crimson);">取得に失敗しました</div>';return;}
+    if(!d||!d.ok){el.innerHTML=_sdFail_(sid,fk,d&&d.error);return;}
+    _sdCachePut_(_wK,d);
     var items=(((d.data&&d.data.students)||[])[0]||{}).items||[];
     if(!items.length){el.innerHTML='<div class="sd-none">いま間違えている単語はありません（弱点なし）</div>';return;}
     var gr={},or=[];items.forEach(function(it){var k=it.subject||'その他';if(!gr[k]){gr[k]=[];or.push(k);}gr[k].push(it);});
     el.innerHTML='<div class="sd2-cnt">'+or.map(function(k){return '<span>'+_subjLabel(k)+' <b>'+gr[k].length+'</b>語</span>';}).join('')+'</div>'
       +'<details class="sd2-fold"><summary>語の一覧を見る</summary>'+or.map(function(k){return '<div class="wgrp"><div class="wgrp-h">'+_subjLabel(k)+' <span class="t-sub">'+gr[k].length+'語</span></div>'+gr[k].map(function(it){return '<div class="wrongrow"><b>'+esc(it.english||'')+'</b><span class="t-sub">'+esc(it.japanese||'')+'</span></div>';}).join('')+'</div>';}).join('')+'</details>'
       +'<div style="margin-top:8px;"><button class="btn-primary" style="width:auto;" onclick="printOne(\''+esc(String(sid))+'\')">🖨 この子のまちがいを印刷</button></div>';
-  });
+  };
+  if(_wC) _wShow(_wC); else call({action:'teacher_mistakes',student_ids:sid,mode:'active',limit:60}).then(_wShow,function(){_wShow(null);});
 }
 
 /* ===== 【2026-09-13e・先生画面の再編 段B】個別詳細の「毎日学習」と「単元別（確認テスト）」 =====
@@ -5504,6 +5527,7 @@ function openStudentDetail(sid,focusKey){
      点数表の全件キャッシュ（_quizBoard）とは別の入れものに持つ＝取り違えない */
 var _quizStu={};      // {student_id: {entries:[], materials:[]}}
 var _quizStuLoading={};
+var _quizStuWait_={};   /* 読み込み中に来た cb をためる（2026-10-04） */
 /* 次の一手の列。確認テストタブの _qsAct と同じだが、**🖨 は出さない**。
    行き先表（要件定義書 §4）で「行の🖨まちがい印刷」は「教材1つずつの🖨チェックプリント」に移したので、
    同じ表に🖨が2種類ならぶのを避ける。文言のほうは _qsAct をそのまま使う。 */
@@ -5573,8 +5597,13 @@ function sdUnitBlock_(s,pack){
 function sdLoadQuiz_(sid,cb){
   sid=String(sid);
   if(_quizStu[sid]){ cb(_quizStu[sid]); return; }
+  /* 【2026-10-04】読み込み中にもう一度開いたとき、旧版は cb を捨てていた＝「読み込み中…」のまま止まった。
+     待っている cb を全部ためて、返事が来たら全員に渡す */
+  (_quizStuWait_[sid]=_quizStuWait_[sid]||[]).push(cb);
   if(_quizStuLoading[sid]) return;
   _quizStuLoading[sid]=1;
+  var done_=function(pack,err){ var ws=_quizStuWait_[sid]||[]; _quizStuWait_[sid]=[]; ws.forEach(function(f){ try{ f(pack,err); }catch(e){} }); };
+  cb=done_;
   call({action:'quiz_board',student_id:sid}).then(function(d){
     _quizStuLoading[sid]=0;
     if(!d||!d.ok){ cb(null,(d&&d.error)||'取得に失敗しました'); return; }
