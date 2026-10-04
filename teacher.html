@@ -1042,6 +1042,11 @@
   .na-ok{background:#e6f6ee;color:#14663a;border-color:#bfe6cf;}
   .na-na{background:#eef1f5;color:#8a97a6;border-color:#e2e7ee;}
   .na-scrib{width:15px;height:11px;display:block;flex:none;}
+  /* 確認テストのその回の印 2026-10-04：途中＝途中でやめて、すぐやり直した回の点／ぐるぐる＝適当押しの注意が出た回 */
+  .q-mk{display:inline-flex;align-items:center;gap:2px;font-style:normal;font-size:10px;font-weight:800;line-height:1;border-radius:6px;padding:2px 5px;margin-left:3px;vertical-align:middle;}
+  .q-mk-a{background:#fff4e5;color:#b45309;border:1px solid #f5c98a;}
+  .q-mk-r{background:#fdecec;color:#c53030;border:1px solid #f3b4b4;padding:1px 4px;}
+  .q-mk-r .na-scrib{width:13px;height:9px;}
   /* 詳細モーダル：次の一手・推移・パート内訳（2026-07-10） */
   .sd-acts{background:#fcfdff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
   .sd-actrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px dashed var(--border);}
@@ -1385,7 +1390,7 @@
             <tr>
               <th data-sk="name" onclick="sortBy('name')">生徒 <span class="sort-ar" data-ar="name"></span></th>
               <th data-sk="grade" onclick="sortBy('grade')">学年 <span class="sort-ar" data-ar="grade"></span></th>
-              <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。🎉完走＝次の教材を割り当てる／⚠️つまずき＝正答率が基準未満。復習・印刷／雑（ぐるぐるの印）＝2秒未満の誤答が目立つ。ていねいにやるよう声かけ／✅順調＝手当て不要／👀未評価＝まだ一度も学習していない。当てはまるものは全部出します。デイリーをやったかは「デイリー」の列（昨・今）で見ます。</span></span></th>
+              <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。🎉完走＝次の教材を割り当てる／⚠️つまずき＝正答率が基準未満。復習・印刷／雑（ぐるぐるの印）＝2秒未満の誤答が目立つ（直近5回中3回）、または適当押しの注意が直近7日で2回以上。ていねいにやるよう声かけ／✅順調＝手当て不要／👀未評価＝まだ一度も学習していない。当てはまるものは全部出します。デイリーをやったかは「デイリー」の列（昨・今）で見ます。</span></span></th>
               <th>教材と進み<span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日＝教材名と →いまの回。単元別＝本の名前と印（未合格N＝確認テストで落ちた数／未練習＝まだ1回も練習しておらず、確認テストにも受かっていない）。教材名を押すと、この子の詳細でその教材を開きます。正答率・確認テストの内訳・定着度は詳細で見ます。</span></span></th>
               <th class="gcol">デイリー</th>
               <th data-sk="last" onclick="sortBy('last')">最終学習 <span class="sort-ar" data-ar="last"></span></th>
@@ -1571,7 +1576,7 @@
           <div id="qbFstrip" class="qfstrip"></div>
           <div id="qbBoardCap" style="font-size:12.5px;font-weight:800;margin:4px 0 8px;"></div>
           <div class="qtboard-scroll" style="overflow:auto;max-height:72vh;"><div id="qtBoard"></div></div>
-          <div class="qlegend"><span style="width:100%;color:var(--text-light);font-weight:700;">上段＝✅確認テスト</span><span><i class="qlg q-ok"></i>合格%</span><span><i class="qlg q-ng"></i>未合格%</span><span>— ＝未受験（送ったがまだ）</span><span><span class="q-un" style="padding:1px 5px;line-height:1;"><b style="font-size:10px;">未受験</b></span> 再配信・前○%＝前回の点</span><span style="color:#c7cfda;">・</span>＝未配信（送っていない）<span style="width:100%;color:var(--text-light);font-weight:700;">下段＝📘単元別</span><span><b style="color:#12805a;">📗/📘%</b>＝練習した（完走/途中）・<span style="color:#94a3b8;">日付</span>＝練習日</span><span><b style="color:#7b8794;">📘未練習</b>＝割当あり・練習まだ</span><span><b style="color:#aab4c0;">未割当</b>＝単元別なし</span><span style="width:100%;">見出しクリックで並び替え／セルをタップで詳細</span></div></div>
+          <div class="qlegend"><span style="width:100%;color:var(--text-light);font-weight:700;">上段＝✅確認テスト</span><span><i class="qlg q-ok"></i>合格%</span><span><i class="qlg q-ng"></i>未合格%</span><span>— ＝未受験（送ったがまだ）</span><span><span class="q-un" style="padding:1px 5px;line-height:1;"><b style="font-size:10px;">未受験</b></span> 再配信・前○%＝前回の点</span><span style="color:#c7cfda;">・</span>＝未配信（送っていない）<span><i class="q-mk q-mk-a" style="margin-left:0;">途中</i>＝途中でやめて、すぐやり直した回の点</span><span><i class="q-mk q-mk-r" style="margin-left:0;"><svg class="na-scrib" viewBox="0 0 18 12" aria-hidden="true"><path d="M2 9C3.5 2 8 2 5.5 7S2.5 11 7 8.5 11.5 2 9 4.5 6.5 10.5 11 9 16.5 2.5 13.5 3.5 12 10 16.5 7.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></i>＝適当押しの注意が出た回</span><span style="width:100%;color:var(--text-light);font-weight:700;">下段＝📘単元別</span><span><b style="color:#12805a;">📗/📘%</b>＝練習した（完走/途中）・<span style="color:#94a3b8;">日付</span>＝練習日</span><span><b style="color:#7b8794;">📘未練習</b>＝割当あり・練習まだ</span><span><b style="color:#aab4c0;">未割当</b>＝単元別なし</span><span style="width:100%;">見出しクリックで並び替え／セルをタップで詳細</span></div></div>
     </div>
 
     <!-- ===== 確認テストビューは 2026-09-13f（段C）に廃止した =====
@@ -5324,7 +5329,7 @@ function naWhy(s,k){
   if(k==='idle')return {t:'😴 未着手',why:'昨日、毎日学習をやっていません（最終学習 '+esc(lastStudiedText(s))+'）。',btn:'<span class="sd-actnote">「今日のをやろう」と声かけ</span>'};
   if(k==='test_idle')return {t:'📘 未練習',why:'単元別対策を割当済みですが、昨日1つもさわっていません。',btn:'<span class="sd-actnote">テスト対策を進めるよう声かけ</span>'};
   if(k==='stuck'){var wp=weakPartName(s);return {t:'⚠️ つまずき',why:'正答率が基準未満'+(wp?'（弱点：'+esc(wp)+'）':'')+'。下のパート内訳の赤を確認。',btn:'<span class="sd-actnote">→ 右の「まちがいを印刷」で対策プリント</span>'};}
-  if(k==='rush')return {t:'<svg class="na-scrib" viewBox="0 0 18 12" aria-hidden="true"><path d="M2 9C3.5 2 8 2 5.5 7S2.5 11 7 8.5 11.5 2 9 4.5 6.5 10.5 11 9 16.5 2.5 13.5 3.5 12 10 16.5 7.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> 雑（パッと押し）',why:'2秒未満の誤答が目立ちます。答えを見ずに押している可能性。',btn:'<span class="sd-actnote">ていねいにやるよう声かけ</span>'};
+  if(k==='rush')return {t:'<svg class="na-scrib" viewBox="0 0 18 12" aria-hidden="true"><path d="M2 9C3.5 2 8 2 5.5 7S2.5 11 7 8.5 11.5 2 9 4.5 6.5 10.5 11 9 16.5 2.5 13.5 3.5 12 10 16.5 7.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> 雑（パッと押し）',why:'2秒未満の誤答が目立ちます。答えを見ずに押している可能性。'+((parseInt(s.rush_pops_7,10)||0)>0?'（適当押しの注意 直近7日で'+(parseInt(s.rush_pops_7,10)||0)+'回）':''),btn:'<span class="sd-actnote">ていねいにやるよう声かけ</span>'};
   if(k==='ok')return {t:'✅ 順調',why:'学習を続けていて基準クリア・弱点なし。',btn:'<span class="sd-actnote">手当て不要（そのまま）</span>'};
   if(k==='na')return {t:'👀 未評価',why:'まだ一度も学習していません（未着手・データなし）。',btn:'<span class="sd-actnote">学習を始めるよう声かけ</span>'};
   return {t:k,why:'',btn:''};
@@ -5458,6 +5463,7 @@ function openStudentDetail(sid,focusKey){
     +'<div class="sd2-kv">最終学習<b>'+esc(lastStudiedText(s))+'</b></div>'
     +'<div class="sd2-kv">弱点（いま間違えている語）<b>'+(parseInt(s.mistake_active,10)||0)+'語</b></div>'
     +(weakM.length?'<div class="sd2-kv">つまずいている教材<b class="red" style="font-size:13px;">'+weakM.join('・')+'</b></div>':'')
+    +((parseInt(s.rush_pops_7,10)||0)>0?'<div class="sd2-kv">適当押しの注意<b class="red">直近7日で'+(parseInt(s.rush_pops_7,10)||0)+'回</b></div>':'')   /* 2026-10-04：0回なら出さない */
     +'</div>';
   var mvD=_sortByDord_((s.materials_view||[]).filter(function(m){return String(m.type)!=='test';}));
   var dailyHtml=mvD.length?('<table class="sd2-tbl"><thead><tr><th>教材</th><th>いまの回</th><th>済んだ回</th><th>正答率</th><th></th></tr></thead><tbody>'+mvD.map(function(m){
@@ -5476,7 +5482,7 @@ function openStudentDetail(sid,focusKey){
       +'<div><div class="sd2-h">間違い</div><div id="sdWrong">'+SD_LOADING_+'</div></div>'
       +'<div>'+(cv.length?'<details class="sd2-fold"><summary>クリア済の教材（'+cv.length+'）</summary>'+partsBlock(cv)+'</details>':'')
         +(pm.length?'<details class="sd2-fold"><summary>過去にやった教材（'+pm.length+'）</summary>'+pm.map(function(x){return '<div class="pastrow">'+esc(mtLabel(x))+' <span class="t-sub">最終 '+esc(x.last||'')+'</span></div>';}).join('')+'</details>':'')
-        +'<details class="sd2-fold"><summary>途中リセット（最後まで解かずにやめた回）</summary><div class="t-sub" style="font-size:11.5px;margin:2px 0 6px;">1周目の途中でやめた回の点は、正答率に入っていません。多い子は、正答率が実際より高く出ているかもしれません。</div><div id="sdAbandon">'+SD_LOADING_+'</div></details></div>'
+        +'<details class="sd2-fold"><summary>途中リセット（最後まで解かずにやめた回）</summary><div class="t-sub" style="font-size:11.5px;margin:2px 0 6px;">間違えたあとにやめて、10分以内に同じ回をやり直した回の点は、正答率に入っています（答えていない問題は誤答）。時間を置いてからのやり直しは、学習として入れていません。</div><div id="sdAbandon">'+SD_LOADING_+'</div></details></div>'
     +'</div>'
     +'<div style="display:flex;margin-top:14px;"><span style="flex:1;"></span><button id="sdClose2" class="btn-ghost">閉じる</button></div>';
   $('sdClose1').onclick=function(){closeModal('studentModal');};
@@ -6651,9 +6657,13 @@ function _qsDelta(e){
 }
 function _qDate(s){ if(!s)return ''; var m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/); return m?(parseInt(m[2],10)+'/'+parseInt(m[3],10)):''; }
 function _qsDateHtml(e){ var d=_qDate(e.last_date||e.round_started_at); return d?' <span class="qsu-date">'+d+'</span>':''; }
+/* 確認テストのその回の印（GAS quiz_results.latest_mark／prev_mark）2026-10-04 川上さん確定。
+   a＝途中でやめて、すぐ（10分以内に）同じ回をやり直した回の点（答えていない問題は誤答）／r＝適当押しの注意（ポップ）が出た回 */
+var Q_MK_SCRIB_='<svg class="na-scrib" viewBox="0 0 18 12" aria-hidden="true"><path d="M2 9C3.5 2 8 2 5.5 7S2.5 11 7 8.5 11.5 2 9 4.5 6.5 10.5 11 9 16.5 2.5 13.5 3.5 12 10 16.5 7.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function qMarkHtml_(mk){ mk=String(mk||''); var h=''; if(mk.indexOf('a')>=0)h+='<i class="q-mk q-mk-a" title="途中でやめて、すぐ同じ回をやり直した回の点（答えていない問題は誤答）">途中</i>'; if(mk.indexOf('r')>=0)h+='<i class="q-mk q-mk-r" title="適当押しの注意が出た回">'+Q_MK_SCRIB_+'</i>'; return h; }
 function _qsCell(e){
-  if(e.status==='ok')return '<span class="qcell q-ok">合格 '+e.latest_rate+'%</span>'+_qsDelta(e)+_qsDateHtml(e);
-  if(e.status==='ng')return '<span class="qcell q-ng">未合格 '+e.latest_rate+'%</span>'+_qsDelta(e)+_qsDateHtml(e);
+  if(e.status==='ok')return '<span class="qcell q-ok">合格 '+e.latest_rate+'%</span>'+qMarkHtml_(e.latest_mark)+_qsDelta(e)+_qsDateHtml(e);
+  if(e.status==='ng')return '<span class="qcell q-ng">未合格 '+e.latest_rate+'%</span>'+qMarkHtml_(e.latest_mark)+_qsDelta(e)+_qsDateHtml(e);
   return '<span class="qcell q-miss">未受験</span>';
 }
 function _qsAct(e,sid){
@@ -6823,8 +6833,8 @@ function renderQuizBoard(){
     // 上段＝確認テスト：記録なし＝未配信（薄い・）／status=miss＝未受験（—、再配信で前○%）／ok＝合格／ng＝未合格
     if(!e){cell='<span class="q-nosend" title="未配信（この生徒に送っていません）">・</span>';}
     else if(e.status==='miss'){cell=(e.latest_rate!=null&&(e.attempt_count||0)>0)?'<span class="q-un" title="未受験（再配信・前回 '+e.latest_rate+'%）"><b>未受験</b><i>前'+e.latest_rate+'%</i></span>':'<span class="qcell q-miss" title="未受験（まだ受けていません）">—</span>';}
-    else if(e.status==='ok')cell='<span class="qcell q-ok">'+e.latest_rate+'%</span>';
-    else cell='<span class="qcell q-ng">'+e.latest_rate+'%</span>';
+    else if(e.status==='ok')cell='<span class="qcell q-ok">'+e.latest_rate+'%</span>'+qMarkHtml_(e.latest_mark);
+    else cell='<span class="qcell q-ng">'+e.latest_rate+'%</span>'+qMarkHtml_(e.latest_mark);
     var dt=(e&&e.status!=='miss')?_qDate(e.last_date):''; var dstr=dt?'<i class="qb-date">'+dt+'</i>':'';
     // 下段＝単元別：割当なし＝未割当／割当あり練習まだ＝📘未練習／練習済み＝📗(完走)or📘(途中)+%
     var pr=(PIDX[String(sid)]||{})[String(mid)],prac='';
@@ -6860,6 +6870,7 @@ function openQuizCell(sid,pid){
     var miss=(e.missed_words&&e.missed_words.length)?('<div style="margin-top:12px"><div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:4px;">まちがえた単語（'+e.missed_words.length+'）</div>'+e.missed_words.map(function(w){return '<div class="qmw"><b>'+esc(w.en||'')+'</b> <span class="t-sub">'+esc(w.ja||'')+'</span></div>';}).join('')+'</div>'):'<div style="margin-top:12px;color:#1f9d57;font-weight:700;font-size:13px;">全部正解！</div>';
     body='<div class="qm-sub">'+esc(e.part_title)+'</div><div class="qm-big" style="color:'+(e.status==='ok'?'#1f9d57':'#d64545')+'">'+e.latest_rate+'<small>%</small></div>'
       +'<div style="text-align:center;margin-bottom:10px;">'+dv+' <span class="qdelta '+(e.status==='ok'?'d-up':'d-dn')+'">'+(e.status==='ok'?'合格':'未合格')+'</span></div>'
+      +((String(e.latest_mark||'')+String(e.prev_mark||''))?('<div class="qm-kv"><span>この回の印</span><b>'+(qMarkHtml_(e.latest_mark)||'なし')+(e.latest_mark&&String(e.latest_mark).indexOf('a')>=0?' <span style="font-size:11px;font-weight:600;color:var(--text-muted);">途中でやめて、すぐやり直した回（答えていない問題は誤答）</span>':'')+(e.latest_mark&&String(e.latest_mark).indexOf('r')>=0?' <span style="font-size:11px;font-weight:600;color:var(--text-muted);">適当押しの注意が出た回</span>':'')+'</b></div>'+(e.prev_mark?'<div class="qm-kv"><span>前回の印</span><b>'+qMarkHtml_(e.prev_mark)+'</b></div>':'')):'')
       +'<div class="qm-kv"><span>受けた日</span><b>'+esc(e.last_date||'-')+'</b></div><div class="qm-kv"><span>通算回数</span><b>'+e.attempt_count+'回</b></div>'
       +((e.correct_count!=null&&e.total_count!=null)?'<div class="qm-kv"><span>正解</span><b>'+e.correct_count+' / '+e.total_count+'問</b></div>':'')+miss;
   }

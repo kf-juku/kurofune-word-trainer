@@ -1659,6 +1659,18 @@ mark.lx-mk{background:#fff3c4;color:inherit;border-radius:3px;padding:0 2px;}
 .nv-pop>i{font-size:22px;flex:none}
 html.furi-on .nv-pop rt.uf{color:rgba(255,255,255,.92)}
 @keyframes nvIn{from{opacity:0;transform:translateY(-6px) scale(.96)}to{opacity:1;transform:none}}
+/* 真ん中に出すポップ（適当押し・再開）2026-10-04。色と字は誘導のポップ（.nv-pop）と同じ。押すまで閉じない＝背景は暗くして下を押せなくする */
+.ppop-mask{position:fixed;inset:0;z-index:85;background:rgba(10,14,22,.5);display:flex;align-items:center;justify-content:center;padding:0 16px;box-sizing:border-box}
+.ppop{width:100%;max-width:340px;box-sizing:border-box;text-align:center;padding:22px 18px 18px;border-radius:22px;color:#fff;background:linear-gradient(135deg,#ff8a7a,#ffb36b);box-shadow:0 14px 34px rgba(0,0,0,.22);animation:nvIn .45s cubic-bezier(.2,1.4,.4,1) both}
+.ppop>i{font-size:34px;display:block;margin:0 auto 6px}
+.ppop-t{font-size:16px;font-weight:800;line-height:1.6}
+.ppop-s{font-size:12.5px;font-weight:700;line-height:1.6;margin-top:6px;opacity:.95}
+.ppop-row{display:flex;gap:10px;margin-top:16px}
+.ppop-row button{flex:1;min-height:46px;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;border:2px solid #fff;background:#fff;color:#e8634f;font-family:inherit}
+.ppop-row button.gh{background:transparent;color:#fff}
+html.furi-on .ppop-t,html.furi-on .ppop-s{line-height:2.1}
+html.furi-on .ppop rt.uf{color:rgba(255,255,255,.92)}
+html.furi-on .ppop-row button:not(.gh) rt.uf{color:#e8634f}
 .qt-card{position:relative;background:#fffaf0;border:1px solid #f1e2bf;border-radius:16px;padding:16px 16px 14px 18px;text-align:left;margin-top:14px}
 .qt-mark{position:absolute;left:10px;top:-6px;font:900 44px/1 Georgia,serif;color:#e7c67c}
 .qt-text{font-size:17px;font-weight:800;line-height:2.05;color:#2b2416;margin:4px 0 2px 10px}
@@ -3763,7 +3775,7 @@ function _gdBoot_(){
 function _gdIntroWait_(){
   if(_gdSeen_('intro')||document.querySelector('.gd-dim'))return;
   var home=$('scr-home');if(!home||!home.classList.contains('active'))return; // 学習に入ったらやめる＝次にホームを開いたとき出す
-  if(document.querySelector('.modal-mask.show,.bd-mask.show,.stk-cele-mask.show,.ntc-mask.show,.rb-mask.show,.sfmask.on,.sfmask.show')){
+  if(document.querySelector('.modal-mask.show,.bd-mask.show,.stk-cele-mask.show,.ntc-mask.show,.rb-mask.show,.sfmask.on,.sfmask.show,.ppop-mask')){   /* .ppop-mask＝再開のポップ 2026-10-04 */
     if(++_gdWaitN<40)setTimeout(_gdIntroWait_,1500);return;
   }
   _gdIntro_();
@@ -4944,6 +4956,8 @@ if(_rs){var _ord=_resumeOrder_(d.data.words,_rs);if(_ord){d.data.words=_ord;}els
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
 session={mode:'daily',onNext:function(){nextWord();},listId:listId,quizMode:!!(d.data&&d.data.quiz),/* 【2026-08-21⑬】確認テストは session を作る時点で確定させる。startQuiz が後から session.quizMode=true を立てる形だと、_startPracticeWith_ の中で走る1問目の描画に間に合わず、帯が「単元別の練習」と出た（川上さん報告） */words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),dir:(d.data.direction||''),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now(),fixMode:false,fixQ:[],fixNext:[],fixCur:null,fixTotal:0,retryRounds:1,_firstWrong:[]};session.point=(d.data&&d.data.point)||'';session.pointDict=(d.data&&d.data.point_dict)||null;session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});
 if(_rs){session.idx=_rs.idx;session.step=_rs.step;session.meaningCorrect=_rs.mc||0;session.reverseCorrect=_rs.rc||0;session.miss=(_rs.miss||[]).slice();session._qrvPick=_rs.qp||{};session.activeMs=_rs.am||0;session.startedAtIso=_rs.at||session.startedAtIso;session.startedMs=Date.now()-(_rs.el||0);session.pronAttempts=_rs.pa||0;session.pronSuccesses=_rs.ps||0;
+  session._rushPops=parseInt(_rs.rp,10)||0;   /* 適当押しのポップは続きからでも1回の学習で2回まで 2026-10-04 */
+  session._rushWords={};(_rs.rk||[]).forEach(function(k){session._rushWords[k]=1;});   /* 速く押して間違えた問題も続きから数え続ける 2026-10-04 */
   /* ミス問モードの続きから（川上さん確定 2026-08-26）。1周目の正答率は保存ずみなのでズルにならない */
   session._firstWrong=_fixUnpack_(_rs.fw);session.retryRounds=_rs.rr||1;
   if(_rs.fx){session.fixMode=true;session.fixQ=_fixUnpack_(_rs.fq);session.fixNext=_fixUnpack_(_rs.fn);session.fixTotal=_rs.ft||(session.fixQ.length+session.fixNext.length);session.fixCur=null;}
@@ -5047,6 +5061,7 @@ function _quizAns(s,w,ok,_el,which){
   var _qpk=_qrvPick_;_qrvPick_=null;
   if(_PV_)return;   /* 先生用プレビュー＝記録にさわらない。正解の演出と解説は buildChoices の中で出る 2026-09-09 */
   measAns_(_el,ok);
+  try{_rushChk_(s,_el,ok);}catch(_eR){}   /* 適当押しのポップ 2026-10-04。中断の保存（_saveResumeNext_）より先に数える＝出した回数も保存に入る */
   if(s&&s.fixMode){ /* ミス問モード＝採点しない。間違えたらもう一度だけ待ち行列に戻す 2026-08-26 */
     if(s._fixAnswered)return; s._fixAnswered=true;
     if(!ok&&s.fixCur)s.fixNext.push(s.fixCur);
@@ -5437,16 +5452,28 @@ function _nvSetDcy_(o){ if(o&&o.date===yesterdayStr_())_nvDcy_=!!o.v; }
 var _nvPopN_=0;
 function _nvPopStart_(){ _nvPopN_=0; setTimeout(_nvPopTry_,1500); }
 function _nvPopTry_(){
-  var day=todayStr_(),seen='';try{seen=localStorage.getItem('kwt_nv_pop_day')||'';}catch(e){}
-  if(seen===day)return;
+  var day=todayStr_(),seen='',rzSeen='';try{seen=localStorage.getItem('kwt_nv_pop_day')||'';rzSeen=localStorage.getItem('kwt_rz_pop_day')||'';}catch(e){}
+  if(seen===day||rzSeen===day)return;   /* ポップは1日1つまで。再開のポップを出した日は誘導のポップを出さない 2026-10-04 */
   var home=$('scr-home');if(!home||!home.classList.contains('active'))return;   /* 学習に入ったらやめる＝次にホームを開いたとき */
-  var busy=!!document.querySelector('.modal-mask.show,.bd-mask.show,.stk-cele-mask.show,.ntc-mask.show,.rb-mask.show,.sfmask.on,.sfmask.show,.trio-ov,.gd-dim,.gd-tip,.nv-pop')||!!window._trioBusy||(typeof _ntShowing!=='undefined'&&_ntShowing);
+  var busy=!!document.querySelector('.modal-mask.show,.bd-mask.show,.stk-cele-mask.show,.ntc-mask.show,.rb-mask.show,.sfmask.on,.sfmask.show,.trio-ov,.gd-dim,.gd-tip,.nv-pop,.ppop-mask')||!!window._trioBusy||(typeof _ntShowing!=='undefined'&&_ntShowing);
+  /* 再開のポップ 2026-10-04（川上さん確定）：途中の学習が残っていたら、誘導のポップより先に1日1回だけ出す。
+     毎日タブのカード「途中の学習があります」はそのまま残す。教材や今日のデイリーの読み込みは待たない */
+  if(!busy){var _rzs=null;try{_rzs=_resumeAny_();}catch(e){}
+    if(_rzs&&!_partIdxReady&&_nvPopN_<5){_nvPopN_++;setTimeout(_nvPopTry_,1000);return;}   /* パート名がまだ分からない＝少しだけ待つ（届かなければ「前の学習」で出す） */
+    if(_rzs){try{localStorage.setItem('kwt_rz_pop_day',day);localStorage.setItem('kwt_nv_pop_day',day);}catch(e){}_rzPopShow_(_rzs);return;}}
   var ready=(_nvDcy_!==null)&&_srsReady&&_srsReady.loaded;
   var road=document.querySelector('#daily-list .dy-road');
   if(busy||!ready||!road||_homeTab!=='daily'){ if(++_nvPopN_<40)setTimeout(_nvPopTry_,1000); return; }
   var pk=_nvPopPick_(road);
   try{localStorage.setItem('kwt_nv_pop_day',day);}catch(e){}
   if(pk)_nvPopShow_(pk);
+}
+function _rzPopShow_(rs){
+  _ppopShow_('resume','ti-player-pause',
+    _nvRuby_('途中(とちゅう)の学習(がくしゅう)があります。続(つづ)きから終(お)わらせよう',true),
+    _resumeSub_(rs),
+    [{t:'あとで',cls:'gh'},
+     {t:_nvRuby_('続(つづ)きから',true),fn:function(){_resumeGoNow_(rs);}}]);
 }
 function _nvPopPick_(road){
   var st=function(k){return road.querySelector('.dy-st[data-dy="'+k+'"]');};
@@ -7398,9 +7425,11 @@ function _abandonLog_(rs,reason,useBeacon){
       active_ms:(parseInt(rs.am,10)||0),duration_ms:(parseInt(rs.el,10)||0),
       miss_word_ids:(rs.miss||[]),word_ids:(rs.ids||[]),
       pron_attempts:(parseInt(rs.pa,10)||0),pron_successes:(parseInt(rs.ps,10)||0),
+      rush_pops:(parseInt(rs.rp,10)||0),rush_wrong_count:(parseInt(rs.rw,10)||0),   /* 適当押し 2026-10-04 */
       device_info:String((navigator&&navigator.userAgent)||'').slice(0,120),
       /* 翌日になって消えた中断を「今日の学習」として記録しないための時刻。サーバーが未来と7日超を弾く */
       client_completed_at:(rs.ts?new Date(rs.ts).toISOString():''),
+      client_now:Date.now(),                          /* 送った瞬間の端末の時刻。サーバーが端末の時計のずれを直して「最後に答えてから何分か」を測る 2026-10-04 */
       send_id:'abd-'+_hash32_(key+'|'+token)};
     /* ログアウトは画面がすぐ切り替わるので、届く前に通信が切られることがある。
        sendBeacon なら送信だけ残る。同じ send_id なのでサーバー側で二重にならない。 */
@@ -7519,6 +7548,9 @@ function _resumeSave_(s,idx,step,ov){
       /* ミス問モード 2026-08-26：fw=1周目に間違えた問題／fx=ミス問モード中／fq=待ち行列／fn=次の周／rr=何周目／ft=最初のミス数 */
       fw:_fixPack_(s._firstWrong),fx:_fx,fq:_fixPack_(ov.fq||s.fixQ),fn:_fixPack_(ov.fn||s.fixNext),
       rr:(ov.rr||s.retryRounds||1),ft:(ov.ft||s.fixTotal||0),
+      /* 適当押し 2026-10-04：rp=ポップを出した回数（続きからでも1回の学習で2回までを守る）／rw=速く押して間違えた問題の数（途中でやめた記録に送る）
+         ／rk=その問題の番号。続きからで戻さないと、続きから後の分しか数えられず rush_wrong_count が少なく出る */
+      rp:(s._rushPops||0),rw:Object.keys(s._rushWords||{}).length,rk:Object.keys(s._rushWords||{}),
       ts:Date.now(),day:todayStr_()}));
   }catch(e){}
 }
@@ -7709,19 +7741,23 @@ function askDiscard_(rs,cb){  // 中断を残したまま別のパートを始�
 }
 /* 毎日タブの先頭に出す「途中の学習があるよ」カード（案B・川上さん確定 2026-08-20）。
    中断は1件だけなので最大1枚。つづき＝確認なしでそのまま再開／×＝確認して捨てる。 */
+/* カードと再開のポップで同じ2行目（パート名 ・ 何問目／あと何問で全問正解）を出す 2026-10-04 */
+function _resumeSub_(rs){
+  return _resumeLabel_(rs)+' ・ '+(rs.fx?('あと'+(((rs.fq||[]).length)+((rs.fn||[]).length))+'<ruby>問<rt class="uf">もん</rt></ruby>で<ruby>全問正解<rt class="uf">ぜんもんせいかい</rt></ruby>'):((rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby>'));
+}
 function _renderResumeCard_(){
   var host=$('resume-slot');if(!host)return;host.innerHTML='';
   var rs=_resumeAny_();if(!rs)return;
   var el=document.createElement('div');el.className='rz-card';
   el.innerHTML='<div class="rz-ic"><i class="ti ti-player-pause"></i></div>'
    +'<div class="rz-b"><div class="rz-t"><ruby>途中<rt class="uf">とちゅう</rt></ruby>の<ruby>学習<rt class="uf">がくしゅう</rt></ruby>があります</div>'
-   +'<div class="rz-s">'+_resumeLabel_(rs)+' ・ '+(rs.fx?('あと'+(((rs.fq||[]).length)+((rs.fn||[]).length))+'<ruby>問<rt class="uf">もん</rt></ruby>で<ruby>全問正解<rt class="uf">ぜんもんせいかい</rt></ruby>'):((rs.idx+1)+'/'+rs.ids.length+'<ruby>問目<rt class="uf">もんめ</rt></ruby>'))+'</div></div>'
+   +'<div class="rz-s">'+_resumeSub_(rs)+'</div></div>'
    +'<button type="button" class="rz-go"><span><ruby>続<rt class="uf">つづ</rt></ruby>き</span> <i class="ti ti-arrow-right"></i></button>'
    +'<button type="button" class="rz-x" aria-label="消す"><i class="ti ti-x"></i></button>';
   host.appendChild(el);
   el.querySelector('.rz-go').onclick=function(){_resumeGoNow_(rs);};
   el.querySelector('.rz-x').onclick=function(){
-    if(!confirm('途中の学習を消しますか？\n答えたところまでの点数は消えます。'))return;
+    if(!confirm('途中の学習を消しますか？'))return;   /* 2026-10-04 川上さん確定：2行目（点数は消えます）は出さない */
     _abandonLog_(rs,'discard_card');_resumeClear_();try{_renderResumeCard_();}catch(e){}
   };
 }
@@ -8070,6 +8106,49 @@ var CHOICE_COL_LIMIT=10;
 /* 学習データ強化：滞在時間・ずる検知の計測 2026-07-06（要件定義書_学習データ強化 v0.5） */
 var RUSH_MS=2000, ACTIVE_CAP_MS=30000;
 function measAns_(el,ok){var s=session;if(!s)return;s.activeMs=(s.activeMs||0)+Math.min(el||0,ACTIVE_CAP_MS);if(!ok&&(el||0)<RUSH_MS){(s._rushWords||(s._rushWords={}))[s.idx]=1;}}
+/* 適当押しのポップ 2026-10-04（川上さん確定）
+   RUSH_MS より速く押して間違えるのが RUSH_RUN_ 問続いたら、その場で止めて「よく読もう」と出す。1回の学習で RUSH_POP_MAX_ 回まで。
+   ・数えるのは session の学習だけ（毎日学習・単元別・確認テスト）。おさらい・間違いノートは数えない
+   ・正解、またはゆっくり答えて間違えたら、連続は0に戻す
+   ・el が0以下＝素材が取れず答えだけ見せた問題（生徒は押していない）なので数えない
+   ・秒数と問題数は生徒の画面に出さない（出すと、その秒数だけ待って押す子が出る） */
+var RUSH_RUN_=3, RUSH_POP_MAX_=2;
+function _rushChk_(s,el,ok){
+  if(!s||s!==session||s.mode!=='daily')return;
+  if(ok){s._rushRun=0;return;}
+  if(!(el>0))return;
+  if(el>=RUSH_MS){s._rushRun=0;return;}
+  s._rushRun=(s._rushRun||0)+1;
+  if(s._rushRun>=RUSH_RUN_&&(s._rushPops||0)<RUSH_POP_MAX_){s._rushPops=(s._rushPops||0)+1;s._rushRun=0;_rushPopShow_(s);}
+}
+/* 開いている間は一時停止と同じしくみで時間を止める（_pauseAt → s._pauseMs）。学習時間に数えず、制限時間も進めない。
+   「OK」を押すまで閉じない＝背景を押しても次へ進まない */
+function _rushPopShow_(s){
+  var mine=!_pauseAt;if(mine)_pauseAt=Date.now();
+  pauseQTimer_();
+  _ppopShow_('rush','ti-hand-finger',
+    _nvRuby_('速(はや)く押(お)しすぎているかも。問題(もんだい)をよく読(よ)んで答(こた)えよう',true),
+    _nvRuby_('ちゃんと考(かんが)えていたなら、気(き)にしないでね',true),
+    [{t:'OK',fn:function(){
+      if(mine&&_pauseAt){s._pauseMs=(s._pauseMs||0)+(Date.now()-_pauseAt);_pauseAt=0;}
+      resumeQTimer_();
+    }}]);
+}
+/* 真ん中に出すポップ（適当押し・再開で共用）2026-10-04。見た目は誘導のポップと同じ色。ボタンを押すまで閉じない */
+function _ppopShow_(kind,icon,main,sub,btns){
+  var old=document.querySelector('.ppop-mask');if(old)old.remove();
+  var m=document.createElement('div');m.className='ppop-mask';m.setAttribute('data-kind',kind);
+  m.innerHTML='<div class="ppop" role="dialog" aria-modal="true"><i class="ti '+icon+'"></i><div class="ppop-t">'+main+'</div>'+(sub?'<div class="ppop-s">'+sub+'</div>':'')+'<div class="ppop-row"></div></div>';
+  var row=m.querySelector('.ppop-row');
+  (btns||[]).forEach(function(b){
+    var el=document.createElement('button');el.type='button';if(b.cls)el.className=b.cls;el.innerHTML=b.t;
+    el.onclick=function(e){if(e)e.stopPropagation();try{m.remove();}catch(_e){}if(b.fn)b.fn();};
+    row.appendChild(el);
+  });
+  m.addEventListener('click',function(e){e.stopPropagation();},false);   /* 背景を押しても下の画面に届かせない */
+  document.body.appendChild(m);
+  return m;
+}
 function applyChoiceCols(box,choices){
   var mx=0;choices.forEach(function(c){var L=String(c).length;if(L>mx)mx=L;});
   box.classList.toggle('g2',mx<=CHOICE_COL_LIMIT);
@@ -8615,7 +8694,7 @@ function finishQuizSubmit_(){
   $('btn-home').onclick=function(){openHome();openQuizPane_();};
   var _qzT0=_perfNow_();
   var missU=(s.miss||[]).filter(function(v,i){return s.miss.indexOf(v)===i;}); // 重複除去（意味と日英で二重に入るため）
-  var _qzBody={action:'quiz_submit',part_id:s.quizPartId,total:s.total,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,miss_word_ids:missU};
+  var _qzBody={action:'quiz_submit',part_id:s.quizPartId,total:s.total,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,miss_word_ids:missU,/* 適当押し 2026-10-04 */rush_pops:(s._rushPops||0),rush_wrong_count:Object.keys(s._rushWords||{}).length,started_at:(s.startedAtIso||'')};
   var _qzSq=_sqAdd_(_qzBody); /* 送る前に端末へ積む＝ここで閉じられても記録は消えない 2026-09-02 */
   /* 【2026-09-02】合否・間違えた単語は端末で分かるので、保存の返事を待たずに出す。
      前回比（delta）だけはサーバーしか知らないので、返ってきたら足す。 */
@@ -8710,7 +8789,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   }
   if(!_donePre)$('star-area').innerHTML=_savingHtml_()+tipHtml_(); // 先に描けなかったときだけ「記録を保存中…」を出す
   var _svT0=_perfNow_(); // 保存の往復を測る 2026-08-22
-  var _scBody={action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,completed_all:true,retry_rounds:(s.retryRounds||1),/* 全問正解して終わった＝1周終えた。点は1周目の値 2026-08-26 */miss_word_ids:s.miss,word_ids:(s.words||[]).map(function(w){return w.id;}),mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:_elapsedMs_(s),rush_wrong_count:Object.keys(s._rushWords||{}).length};
+  var _scBody={action:'session_complete',part_id:s.listId,meaning_correct:s.meaningCorrect,reverse_correct:s.reverseCorrect,total:s.total,completed_all:true,retry_rounds:(s.retryRounds||1),/* 全問正解して終わった＝1周終えた。点は1周目の値 2026-08-26 */miss_word_ids:s.miss,word_ids:(s.words||[]).map(function(w){return w.id;}),mode:mode,pron_attempts:s.pronAttempts,pron_successes:s.pronSuccesses,started_at:s.startedAtIso,active_ms:Math.round(s.activeMs||0),duration_ms:_elapsedMs_(s),rush_wrong_count:Object.keys(s._rushWords||{}).length,rush_pops:(s._rushPops||0)/* 適当押しのポップを出した回数 2026-10-04 */};
   /* 聞き取りの選び直しと「分かった／分からない語」（§17q 段2）＝1回目に間違えた聞き取りの問題だけ。無ければ送らない */
   try{if(s._lxNotes){var _ln=Object.keys(s._lxNotes).map(function(k){var n=s._lxNotes[k]||{};return {word_id:k,retry_ok:n.retry_ok?1:0,self:n.self||''};});if(_ln.length)_scBody.listen_notes=_ln;}}catch(_eLn){}
   var _scSq=_sqAdd_(_scBody); /* 送る前に端末へ積む＝ここで閉じられても記録は消えない 2026-09-02 */
