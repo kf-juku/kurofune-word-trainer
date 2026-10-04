@@ -1160,6 +1160,84 @@
   .combo{position:fixed;top:16%;left:50%;transform:translateX(-50%);font-family:"Manrope";font-size:34px;font-weight:800;color:var(--gold);opacity:0;pointer-events:none;z-index:60;}
   .combo.show{animation:comboPop .8s ease-out;}
   @keyframes comboPop{0%{opacity:0;transform:translateX(-50%) scale(.5);}30%{opacity:1;transform:translateX(-50%) scale(1.15);}100%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(1);}}
+  /* ===== コンボ（段階で強くなる）・節目のアイキャッチ・デイリークリアの演出 2026-10-05（川上さん確定：5・15・25…＝案C／10・20・30…＝案A） ===== */
+  .cmb{position:fixed;top:15%;left:50%;transform:translateX(-50%);font-family:"Manrope";font-weight:800;color:var(--gold);opacity:0;pointer-events:none;z-index:61;white-space:nowrap;display:flex;align-items:center;gap:6px;line-height:1;}
+  .cmb .n{font-variant-numeric:tabular-nums;}
+  .cmb .w{font-size:.55em;letter-spacing:.06em;}
+  .cmb.t1{font-size:min(34px,10vw);}
+  .cmb.t2{font-size:min(44px,12vw);text-shadow:0 0 18px rgba(202,162,74,.55);}
+  .cmb.t3{font-size:min(52px,13vw);}
+  .cmb.t4{font-size:min(60px,14vw);}
+  .cmb.t3 .n,.cmb.t3 .w,.cmb.t4 .n,.cmb.t4 .w{background:linear-gradient(180deg,#fff3c4 0%,var(--gold) 45%,#a9842f 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(202,162,74,.7));}
+  .cmb.t4 .n,.cmb.t4 .w{background:linear-gradient(100deg,#a9842f 0%,var(--gold) 30%,#fff8dc 48%,var(--gold) 66%,#a9842f 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;animation:cmbShine .9s linear;}
+  @keyframes cmbShine{from{background-position:120% 0}to{background-position:-20% 0}}
+  .cmb i.ti{font-size:.8em;}
+  .cmb.show{animation:cmbPop .85s ease-out;}
+  @keyframes cmbPop{0%{opacity:0;transform:translateX(-50%) scale(.5);}28%{opacity:1;transform:translateX(-50%) scale(1.18);}60%{opacity:1;transform:translateX(-50%) scale(1);}100%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(1);}}
+  .cmb-meter{position:fixed;top:62px;right:14px;z-index:58;display:flex;align-items:center;gap:4px;padding:6px 11px 6px 9px;border-radius:999px;background:var(--surface);box-shadow:var(--shadow);border:1px solid var(--line);font-family:"Manrope";font-weight:800;font-size:16px;color:var(--gold);opacity:0;transform:scale(.6);transition:opacity .25s,transform .25s;pointer-events:none;}
+  .cmb-meter i{font-size:17px;}
+  .cmb-meter.on{opacity:1;transform:scale(1);}
+  .cmb-meter.hot{background:linear-gradient(135deg,var(--gold),#a9842f);color:#fff;border-color:transparent;box-shadow:0 0 0 3px rgba(202,162,74,.25),0 6px 18px rgba(202,162,74,.45);}
+  .cmb-meter.bump{animation:cmbBump .32s ease-out;}
+  @keyframes cmbBump{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
+  .cmb-meter.hot i{animation:cmbFlick .6s ease-in-out infinite alternate;}
+  @keyframes cmbFlick{from{transform:translateY(0) scale(1)}to{transform:translateY(-1px) scale(1.12)}}
+  .ec{position:fixed;inset:0;z-index:66;pointer-events:none;overflow:hidden;}
+  .ec-dim{position:absolute;inset:0;background:rgba(8,10,20,.55);opacity:0;animation:ecDim var(--d) ease-out forwards;}
+  @keyframes ecDim{0%{opacity:0}12%{opacity:1}80%{opacity:1}100%{opacity:0}}
+  /* 案A＝カットイン（10・20・30…）。色を変えてデイリークリアでも使う（.ok＝緑） */
+  .eca-band{position:absolute;left:-10%;right:-10%;top:50%;height:132px;margin-top:-66px;transform:skewY(-8deg) translateX(-120%);background:linear-gradient(90deg,#a9842f,var(--gold) 30%,#f3d78a 50%,var(--gold) 70%,#a9842f);box-shadow:0 0 0 4px rgba(255,255,255,.18),0 10px 40px rgba(202,162,74,.6);animation:ecaBand .95s cubic-bezier(.2,.9,.2,1) forwards;}
+  .eca-band.ok{background:linear-gradient(90deg,#0f7a4c,#1faa6b 30%,#7ce3b0 50%,#1faa6b 70%,#0f7a4c);box-shadow:0 0 0 4px rgba(255,255,255,.18),0 10px 40px rgba(31,170,107,.6);}
+  .eca-band:before,.eca-band:after{content:"";position:absolute;left:0;right:0;height:3px;background:#fff;opacity:.7;}
+  .eca-band:before{top:10px}.eca-band:after{bottom:10px}
+  @keyframes ecaBand{0%{transform:skewY(-8deg) translateX(-120%)}24%{transform:skewY(-8deg) translateX(0)}76%{transform:skewY(-8deg) translateX(3%)}100%{transform:skewY(-8deg) translateX(130%)}}
+  .eca-txt{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%) skewY(-8deg);text-align:center;font-family:"Manrope";font-weight:800;font-style:italic;color:#fff;font-size:min(64px,15vw);letter-spacing:.02em;text-shadow:0 3px 0 #8a6a22,0 0 24px rgba(255,255,255,.6);white-space:nowrap;opacity:0;animation:ecaTxt .95s ease-out forwards;}
+  .eca-txt.ok{font-size:min(50px,11.5vw);text-shadow:0 3px 0 #0b5c39,0 0 24px rgba(255,255,255,.6);}
+  .eca-txt small{font-size:.5em;margin-left:.2em;}
+  @keyframes ecaTxt{0%{opacity:0;transform:translateY(-50%) skewY(-8deg) translateX(60%) scale(1.3)}26%{opacity:1;transform:translateY(-50%) skewY(-8deg) translateX(0) scale(1)}74%{opacity:1;transform:translateY(-50%) skewY(-8deg) translateX(-2%) scale(1)}100%{opacity:0;transform:translateY(-50%) skewY(-8deg) translateX(-80%) scale(1)}}
+  .eca-line{position:absolute;height:2px;background:linear-gradient(90deg,transparent,#fff,transparent);opacity:0;animation:ecaLine .6s ease-out forwards;}
+  @keyframes ecaLine{0%{opacity:0;transform:translateX(120vw)}20%{opacity:.9}100%{opacity:0;transform:translateX(-120vw)}}
+  /* 案C＝数字が迫って割れる（5・15・25…） */
+  .ecc-num{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(.2);font-family:"Manrope";font-weight:800;font-size:min(150px,38vw);line-height:1;background:linear-gradient(180deg,#fff3c4,var(--gold) 50%,#a9842f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 20px rgba(202,162,74,.8));animation:eccNum .55s cubic-bezier(.2,1.4,.4,1) forwards;}
+  @keyframes eccNum{0%{transform:translate(-50%,-50%) scale(.2);opacity:0}60%{transform:translate(-50%,-50%) scale(1.25);opacity:1}100%{transform:translate(-50%,-50%) scale(1.1);opacity:1}}
+  .ecc-num.out{animation:eccOut .12s ease-in forwards;}
+  @keyframes eccOut{to{opacity:0;transform:translate(-50%,-50%) scale(1.25)}}
+  .ecc-w{position:absolute;left:0;right:0;top:calc(44% + min(80px,21vw));text-align:center;font-family:"Manrope";font-weight:800;color:#fff;letter-spacing:.16em;font-size:min(28px,7vw);opacity:0;animation:ecIn .3s .25s forwards;}
+  @keyframes ecIn{to{opacity:1}}
+  .ecc-sh{position:absolute;left:50%;top:44%;width:34px;height:34px;background:linear-gradient(135deg,#fff3c4,var(--gold));clip-path:polygon(50% 0,100% 100%,0 70%);animation:eccSh .8s cubic-bezier(.2,.7,.3,1) forwards;}
+  @keyframes eccSh{0%{transform:translate(-50%,-50%) rotate(0) scale(1);opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--r)) scale(.4);opacity:0}}
+  /* デイリークリア：丸が順に点く → 緑のカットイン → トロフィー */
+  .dcv{position:fixed;inset:0;z-index:72;display:none;align-items:center;justify-content:center;background:rgba(10,12,22,.78);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding:24px;overflow:hidden;}
+  .dcv.show{display:flex;animation:dcvIn .3s ease-out;}
+  @keyframes dcvIn{from{opacity:0}to{opacity:1}}
+  .dcv-x{position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;z-index:3;}
+  .dcv-box{width:100%;max-width:380px;text-align:center;color:#fff;position:relative;z-index:1;}
+  .dcv-road{display:flex;align-items:flex-start;justify-content:space-between;position:relative;margin:0 auto 6px;max-width:330px;}
+  .dcv-line{position:absolute;top:24px;left:26px;right:26px;height:4px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden;}
+  .dcv-line i{display:block;height:100%;width:0;background:var(--ok);transition:width .32s ease-out;}
+  .dcv-st{position:relative;z-index:1;width:64px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .dcv-c{width:52px;height:52px;border-radius:50%;background:#2a3040;border:2px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:24px;color:rgba(255,255,255,.7);transition:background .2s,border-color .2s,color .2s;}
+  .dcv-st.on .dcv-c{background:var(--ok);border-color:var(--ok);color:#fff;animation:dcvNode .45s ease-out;box-shadow:0 0 0 6px rgba(31,170,107,.25);}
+  @keyframes dcvNode{0%{transform:scale(.7)}50%{transform:scale(1.25)}100%{transform:scale(1)}}
+  .dcv-l{font-size:12px;font-weight:700;color:rgba(255,255,255,.85);white-space:nowrap;}
+  .dcv-st.goal .dcv-c{background:transparent;border:2px dashed rgba(255,255,255,.3);}
+  .dcv-st.goal.on .dcv-c{opacity:0;}
+  .dcv-cut{position:absolute;inset:0;z-index:2;pointer-events:none;}
+  .dcv-hero{position:relative;height:178px;margin-top:6px;display:flex;align-items:center;justify-content:center;}
+  .dcv-rays{position:absolute;width:300px;height:300px;border-radius:50%;background:repeating-conic-gradient(rgba(227,196,119,.38) 0 10deg,transparent 10deg 24deg);-webkit-mask:radial-gradient(circle,#000 18%,transparent 66%);mask:radial-gradient(circle,#000 18%,transparent 66%);opacity:0;}
+  .dcv.fin .dcv-rays{animation:dcvRaysIn .6s ease-out forwards,dcvSpin 9s linear infinite;}
+  @keyframes dcvRaysIn{to{opacity:1}}
+  @keyframes dcvSpin{to{transform:rotate(360deg)}}
+  .dcv-tro{position:relative;width:112px;height:112px;border-radius:50%;background:linear-gradient(135deg,#f3d78a,var(--gold) 50%,#a9842f);display:flex;align-items:center;justify-content:center;font-size:62px;color:#fff;box-shadow:0 0 0 8px rgba(202,162,74,.22),0 12px 40px rgba(202,162,74,.55);opacity:0;transform:translateY(-220px) scale(.6);}
+  .dcv.fin .dcv-tro{animation:dcvDrop .8s cubic-bezier(.3,1.5,.5,1) forwards;}
+  @keyframes dcvDrop{0%{opacity:0;transform:translateY(-220px) scale(.6) rotate(-14deg)}55%{opacity:1;transform:translateY(10px) scale(1.12) rotate(4deg)}75%{transform:translateY(-6px) scale(.97) rotate(-1deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+  .dcv-t{font-size:min(34px,10.5vw);white-space:nowrap;font-weight:800;letter-spacing:.02em;opacity:0;transform:scale(.6);margin-top:6px;text-shadow:0 2px 18px rgba(202,162,74,.6);}
+  .dcv.fin .dcv-t{animation:dcvTitle .55s .35s cubic-bezier(.3,1.6,.5,1) forwards;}
+  @keyframes dcvTitle{to{opacity:1;transform:scale(1)}}
+  .dcv-s{margin-top:8px;font-size:15px;color:rgba(255,255,255,.85);opacity:0;min-height:30px;transition:opacity .4s;}
+  .dcv-s.on{opacity:1;}
+  .dcv-s b{font-family:"Manrope";font-size:26px;color:#f3d78a;margin:0 3px;font-variant-numeric:tabular-nums;}
+  @media (max-width:340px){.dcv-st{width:56px}.dcv-c{width:46px;height:46px;font-size:21px}.dcv-line{top:21px}}
   /* 間違いノート：卒業ポップ（解答中・中央）＋卒業単語カード（採点後）2026-07-13 */
   .gradpop{position:fixed;top:34%;left:50%;transform:translateX(-50%) scale(.6);opacity:0;z-index:65;pointer-events:none;background:linear-gradient(135deg,var(--gold),#a9842f);color:#fff;border-radius:18px;padding:14px 22px;box-shadow:0 10px 30px rgba(202,162,74,.45);text-align:center;white-space:normal;max-width:min(340px,calc(100vw - 44px));box-sizing:border-box;} /* 長い用語でも画面からはみ出さない：折り返し可＋最大幅（拡大アニメのピークscale1.1でもはみ出さない幅）2026-07-23 */
   .gradpop.show{animation:gradPop 2.4s cubic-bezier(.2,1.3,.4,1) forwards;} /* 読めるように表示時間を延長 2026-07-23 */
@@ -2182,6 +2260,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="confetti"></div>
 <div class="flash" id="flash"></div>
 <div class="combo" id="combo"></div>
+<div class="cmb" id="cmb"></div><div class="cmb-meter" id="cmb-meter"><i class="ti ti-flame"></i><span id="cmb-meter-n">0</span></div><div class="dcv" id="dcv"></div>
 <div class="gradpop" id="gradpop"></div>
 <div class="stk-cele-mask" id="stk-cele-mask"><div class="stk-cele" id="stk-cele-box"></div></div>
 <div class="modal-mask" id="nick-mask">
@@ -2462,7 +2541,7 @@ var _prevScr='';
 /* 画面を切り替えるところ。アプリの自動更新のフックを2つだけ足している（2026-08-21 川上さん指摘）
    ・学習を始めた瞬間＝解いている数分のあいだに裏で新しい版がないか見ておく（入れ替えはしない）
    ・完了画面からホームに戻った直後＝1つ終わって画面が切り替わる瞬間なので、ここで入れ替えるのが一番ストレスが小さい */
-function show(scr){try{_gdTipClose_();}catch(eGt){}try{if(_ptHidden_)_ptRestore_();}catch(e){}var _p=_prevScr;_prevScr=scr;try{var _sf=$('sfmask');if(_sf)_sf.classList.remove('on');}catch(e){} /* ②のシートを持ち越さない 2026-09-06 */try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
+function show(scr){try{_gdTipClose_();}catch(eGt){}try{if(_ptHidden_)_ptRestore_();}catch(e){}var _p=_prevScr;_prevScr=scr;try{var _sf=$('sfmask');if(_sf)_sf.classList.remove('on');}catch(e){} /* ②のシートを持ち越さない 2026-09-06 */try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */try{if(scr!=='scr-practice')comboBreak_();}catch(eCb){}document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
 /* 学習マップのパート行のメタ：前回合格日・正答率・おさらいの進み（GAS material_parts が per-part で返す）2026-07-26 */
 function _mapMetaHtml_(l){
   if(!l||!l.last_pass_date)return ''; // 合格していないパートは出さない
@@ -3149,7 +3228,7 @@ function startQuiz(partId){
   if(_resumeAskIfAny_(partId,true,function(){startQuiz(partId);}))return; // 中断していたら続きから／最初から を選ばせる 2026-08-20
   srsSes=null;noteSes=null;showPracticeLoading_();
   try{ call({action:'quiz_start',part_id:partId}); }catch(e){} /* リアルタイム：確認テストの「実際の開始」を専用pingで飛ばす（先読みでは飛ばさない＝一覧を開いただけで全パートが解き中になる不具合の対策）2026-07-28 */
-  $('btn-next').style.display='none';$('btn-retry').style.display='flex';combo=0;maxCombo=0;ansCount=0;
+  $('btn-next').style.display='none';$('btn-retry').style.display='flex';combo=0;maxCombo=0;ansCount=0;comboBreak_();
   var _c=_qprefetch[partId];try{delete _qprefetch[partId];}catch(e){} // 使ったら捨てる（持ち続けると教材を直したあとも古い問題が出る）2026-08-21
   var _p=(_c&&_c.then)?_c:(_c?Promise.resolve(_c):call({action:'quiz_words',part_id:partId})); // 先読み済み/取得中があれば使う
   _p.then(function(d){ return (d&&d.ok)?d:call({action:'quiz_words',part_id:partId}); }).then(function(d){ // 先読みが空振り/失敗でも取り直す 2026-08-21
@@ -3438,6 +3517,118 @@ function fireworks_(level){
 }
 function flash(){var f=$('flash');f.classList.remove('show');void f.offsetWidth;f.classList.add('show');}
 function showCombo(t){var c=$('combo');c.textContent=t;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
+/* ===== コンボの演出 2026-10-05（川上さん確定）=====
+   ・正解音は1問ごとに半音ずつ上げる（13連続で1オクターブ上＝そこで止める）
+   ・数字は 2〜4＝金／5〜9＝大きく炎つき／10〜19＝金のグラデーション／20以上＝さらに大きく光が走る
+   ・3連続から右上に「🔥N」を出し続ける。10以上は金に塗る。途切れたら消すだけ（責める演出は出さない）
+   ・節目：5・15・25…＝案C（数字が迫って割れる）／10・20・30…＝案A（金のカットイン）
+   ・正解した場所（5か所）はすべて comboHit_ / comboBreak_ を呼ぶ＝どの学習でも同じ演出 */
+function cmbTier_(n){return n>=20?4:(n>=10?3:(n>=5?2:1));}
+function sndCombo_(n){
+  var k=Math.pow(2,Math.min(Math.max(n-1,0),12)/12);
+  beep(660*k,0.12,'triangle',0.34);setTimeout(function(){beep(990*k,0.14,'triangle',0.34);},90);
+  if(n>=5&&n%5===0){
+    setTimeout(function(){beep(1320*k,0.22,'triangle',0.26);},180);
+    if(n>=10){setTimeout(function(){beep(1760*k,0.18,'sine',0.18);},270);setTimeout(function(){beep(2093*k,0.26,'sine',0.14);},350);}
+  }
+}
+function sndWhoosh_(){try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();var c=audioCtx;if(!_kwtNoise){_kwtNoise=c.createBuffer(1,Math.floor(c.sampleRate*2),c.sampleRate);var dd=_kwtNoise.getChannelData(0);for(var i=0;i<dd.length;i++)dd[i]=Math.random()*2-1;}var s=c.createBufferSource();s.buffer=_kwtNoise;var bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.2;var g=c.createGain();s.connect(bp);bp.connect(g);g.connect(c.destination);var t=c.currentTime;bp.frequency.setValueAtTime(400,t);bp.frequency.exponentialRampToValueAtTime(3200,t+0.28);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.35,t+0.08);g.gain.exponentialRampToValueAtTime(0.0001,t+0.34);s.start(t);s.stop(t+0.4);}catch(e){}}
+function sndShatter_(){beep(90,0.22,'sine',0.5);for(var i=0;i<7;i++){(function(k){setTimeout(function(){beep(2200+Math.random()*2600,0.08,'triangle',0.12);},k*35);})(i);}}
+/* 節目のアイキャッチ。kind='A'（カットイン）/'C'（迫って割れる）。演出の間は下の画面を押せない（guardTaps_）。
+   正解のあとは解説が出て「つぎへ」が1秒止まるので、次の問題の時間（制限時間・適当押しの判定）には重ならない */
+function comboEyecatch_(kind,n){
+  var el=document.createElement('div');el.className='ec';var D;
+  if(kind==='A'){D=950;
+    var lines='';for(var i=0;i<7;i++){lines+='<i class="eca-line" style="top:'+(18+i*11)+'%;width:'+(30+Math.random()*40)+'%;animation-delay:'+(i*40)+'ms"></i>';}
+    el.innerHTML='<div class="ec-dim" style="--d:'+D+'ms"></div>'+lines+'<div class="eca-band"></div><div class="eca-txt">'+n+'<small>COMBO!</small></div>';
+    sndWhoosh_();setTimeout(function(){sndCombo_(n);try{confetti(60);}catch(e){}},230);
+  }else{D=900;
+    el.innerHTML='<div class="ec-dim" style="--d:'+D+'ms"></div><div class="ecc-num">'+n+'</div><div class="ecc-w">COMBO!</div>';
+    tone_(220,0.45,'sine',0.2,0,880);
+    setTimeout(function(){var nm=el.querySelector('.ecc-num');if(nm)nm.classList.add('out');sndShatter_();
+      for(var k=0;k<18;k++){var s=document.createElement('i');s.className='ecc-sh';var a=Math.PI*2*k/18+Math.random()*.3,d=120+Math.random()*160;s.style.setProperty('--dx',Math.cos(a)*d+'px');s.style.setProperty('--dy',Math.sin(a)*d+'px');s.style.setProperty('--r',(Math.random()*540-270)+'deg');s.style.width=s.style.height=(18+Math.random()*26)+'px';el.appendChild(s);}
+      try{confetti(70);}catch(e){}sndCombo_(n);},560);
+  }
+  document.body.appendChild(el);
+  try{guardTaps_(D);}catch(e){}
+  setTimeout(function(){try{el.remove();}catch(e){}},D+120);
+  return D;
+}
+function comboHit_(n){
+  var m=$('cmb-meter'),mn=$('cmb-meter-n');
+  if(m&&mn&&n>=3){mn.textContent=n;m.classList.add('on');m.classList.toggle('hot',n>=10);m.classList.remove('bump');void m.offsetWidth;m.classList.add('bump');}
+  if(n>=5&&n%5===0){comboEyecatch_(n%10===0?'A':'C',n);return;}
+  sndCombo_(n);
+  if(n<2)return;
+  var c=$('cmb');if(!c)return;
+  var t=cmbTier_(n);
+  c.className='cmb t'+t;
+  c.innerHTML=(t>=2?'<i class="ti ti-flame"></i>':'')+'<span class="n">'+n+'</span><span class="w">COMBO</span>';
+  void c.offsetWidth;c.classList.add('show');
+}
+function comboBreak_(){var m=$('cmb-meter');if(m){m.classList.remove('on','hot','bump');}}
+
+/* ===== デイリークリアの演出 2026-10-05（川上さん確定）=====
+   毎日タブで「全部済み」になったのを見たとき、この端末で1日1回だけ出す（ログアウトで消す＝共用タブレットで次の子にも出る）。
+   丸が順に緑に点く → 緑のカットイン「DAILY CLEAR!」→ トロフィーが落ちてくる＋花火。トロフィーから4秒で自動で閉じる。
+   「累計◯回目」はサーバーが今日の記録を確かめたとき（badges の stats.dailyclear_today）だけ出す＝ずれた数字を見せない */
+function sndDailyClear_(){
+  [523,659,784,1046].forEach(function(f,i){setTimeout(function(){beep(f,0.18,'triangle',0.32);},i*110);});
+  setTimeout(function(){[1046,1318,1568].forEach(function(f){tone_(f,1.1,'triangle',0.12);});tone_(523,1.1,'sine',0.10);},480);
+  setTimeout(function(){tone_(2093,0.5,'sine',0.06,0,3136);},900);
+}
+var _dcvTimer=null,_dcvTry=null;
+function dailyClearCele_(){
+  var ov=$('dcv');if(!ov)return;
+  var st=[{ic:'ti-anchor',l:'<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>'},{ic:'ti-clock-bolt',l:'おさらい'},{ic:'ti-notebook',l:'<ruby>集中<rt class="uf">しゅうちゅう</rt></ruby><ruby>攻略<rt class="uf">こうりゃく</rt></ruby>'}];
+  var h='<div class="dcv-line"><i id="dcv-line"></i></div>';
+  st.forEach(function(x,i){h+='<div class="dcv-st" id="dcv-s'+i+'"><span class="dcv-c"><i class="ti '+x.ic+'"></i></span><span class="dcv-l">'+x.l+'</span></div>';});
+  h+='<div class="dcv-st goal" id="dcv-s3"><span class="dcv-c"></span><span class="dcv-l">クリア</span></div>';
+  ov.className='dcv';
+  ov.innerHTML='<button class="dcv-x" id="dcv-x" type="button" aria-label="とじる"><i class="ti ti-x"></i></button>'
+    +'<div class="dcv-box"><div class="dcv-road">'+h+'</div>'
+    +'<div class="dcv-hero"><div class="dcv-rays"></div><div class="dcv-tro"><i class="ti ti-trophy"></i></div></div>'
+    +'<div class="dcv-t">デイリークリア！</div><div class="dcv-s" id="dcv-sub"></div></div>'
+    +'<div class="dcv-cut" id="dcv-cut"></div>';
+  ov.classList.add('show');var _dcvT0=Date.now();
+  var T_CUT=1200,T_FIN=2050;
+  [523,659,784].forEach(function(f,i){setTimeout(function(){var s=$('dcv-s'+i);if(s)s.classList.add('on');var ln=$('dcv-line');if(ln)ln.style.width=(i===2?100:(i+1)*33.4)+'%';beep(f,0.16,'triangle',0.3);},250+i*330);});
+  setTimeout(function(){var ct=$('dcv-cut');if(!ct||!ov.classList.contains('show'))return;
+    var lines='';for(var i=0;i<7;i++){lines+='<i class="eca-line" style="top:'+(18+i*11)+'%;width:'+(30+Math.random()*40)+'%;animation-delay:'+(i*40)+'ms"></i>';}
+    ct.innerHTML=lines+'<div class="eca-band ok"></div><div class="eca-txt ok">DAILY CLEAR!</div>';sndWhoosh_();
+    setTimeout(function(){try{ct.innerHTML='';}catch(e){}},1000);},T_CUT);
+  setTimeout(function(){if(!ov.classList.contains('show'))return;var s=$('dcv-s3');if(s)s.classList.add('on');ov.classList.add('fin');sndDailyClear_();try{fireworks_('empty');}catch(e){}try{flash();}catch(e){}},T_FIN);
+  var close=function(){ov.classList.remove('show','fin');if(_dcvTimer){clearTimeout(_dcvTimer);_dcvTimer=null;}};
+  $('dcv-x').onclick=close;
+  ov.onclick=function(e){if(e.target===ov)close();};
+  try{guardTaps_(T_FIN);}catch(e){}
+  if(_dcvTimer)clearTimeout(_dcvTimer);_dcvTimer=setTimeout(close,T_FIN+4000);
+  /* 累計：サーバーに今日の記録があると確かめられたときだけ出す */
+  try{call({action:'badges'}).then(function(d){
+    var sb=$('dcv-sub');if(!sb||!ov.classList.contains('show'))return;
+    var stt=d&&d.ok&&d.data&&d.data.stats;
+    if(stt&&stt.dailyclear_today===true&&(parseInt(stt.dailyclear,10)||0)>0){
+      sb.innerHTML='<ruby>累計<rt class="uf">るいけい</rt></ruby><b>'+(parseInt(stt.dailyclear,10))+'</b><ruby>回目<rt class="uf">かいめ</rt></ruby>';
+      setTimeout(function(){sb.classList.add('on');},Math.max(0,T_FIN+700-(Date.now()-_dcvT0)));
+    }
+  });}catch(e){}
+}
+/* 毎日タブで全部済みを見たときに呼ぶ。ホームが出ていて、ほかの演出（連続記録のお祝い・ポップなど）が閉じてから出す */
+function dcCeleTry_(){
+  var today=todayStr_();
+  try{if(localStorage.getItem('kwt_dc_cele')===today)return;}catch(e){}
+  if(_dcvTry)return;
+  var n=0;
+  (function tick(){
+    _dcvTry=null;
+    var home=$('scr-home');if(!home||!home.classList.contains('active'))return; /* ホームを離れたら出さない（次にホームで全部済みを描いたときに出る） */
+    var busy=document.querySelector('.stk-cele-mask.show,.ppop-mask,.nv-pop,.trio-ov,.modal.show,.dcv.show');
+    if(busy&&n<40){n++;_dcvTry=setTimeout(tick,700);return;}
+    if(busy)return;
+    try{if(localStorage.getItem('kwt_dc_cele')===today)return;localStorage.setItem('kwt_dc_cele',today);}catch(e){}
+    dailyClearCele_();
+  })();
+}
 /* ===== モチベ演出（完了3タイル・連続記録カード・ホーム復帰お祝い）2026-07-24 ===== */
 function _fmtDur_(ms){var s=Math.max(0,Math.round((ms||0)/1000));var m=Math.floor(s/60);var ss=s%60;return m+':'+('0'+ss).slice(-2);}
 /* 完了バッジ 3層（途中=青スマイル/個別完了=緑チェック/大きな達成=金トロフィー）＝背景色も役割色に連動 2026-08-08 */
@@ -3534,7 +3725,7 @@ $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};var _ic
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
 $('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;try{localStorage.setItem('kwt_sid',String(d.data.student.id||''));}catch(eSid){}/* 案内の済み印を生徒ごとに持つ。ログアウトでは消さない 2026-09-23 */nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();try{shGoIfPending_();}catch(e){}});};
 function doLogout_(){try{_sqFlush_();}catch(eSq){}/* 未送信があれば先に流す。1件ずつが自分のトークンを持つので token='' にしても届く 2026-09-02 */
-  homeCacheClear_();try{var _rsLo=_resumeAny_();if(_rsLo)_abandonLog_(_rsLo,'logout',true);}catch(e){}try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');shPendLisSet_(false);}catch(e){}token='';show('scr-login');}
+  homeCacheClear_();try{var _rsLo=_resumeAny_();if(_rsLo)_abandonLog_(_rsLo,'logout',true);}catch(e){}try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_dc_cele');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');shPendLisSet_(false);}catch(e){}token='';show('scr-login');}
 $('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
 $('logout-cancel').onclick=function(){$('logout-mask').classList.remove('show');};
 $('logout-mask').onclick=function(e){if(e.target===this)$('logout-mask').classList.remove('show');};
@@ -3933,6 +4124,7 @@ function renderDailyList_(main){
   _dailyUndone=undone.length;setDailyNavNum_();
   // デイリー完全完了（毎日学習＋おさらい枠）→ やったこと。祝いカードは daily-fin(renderDaily)が出すので二重にしない 2026-07-26
   if(dailyComplete){
+    try{dcCeleTry_();}catch(eDc){} /* デイリークリアの演出（この端末で1日1回）2026-10-05 */
     host.appendChild(_dyRoad_(main,osDone,ntDone,doneN,total)); // 全部終わった日も道を出す（全部緑＋トロフィー）2026-09-23
     var qh0=document.createElement('div');qh0.className='q-head done';qh0.innerHTML='<i class="ti ti-circle-check"></i> <span><ruby>今日<rt class="uf">きょう</rt></ruby>やったこと ・ もっとやりたい<ruby>人<rt class="uf">ひと</rt></ruby>は<ruby>先<rt class="uf">さき</rt></ruby>へ</span>';host.appendChild(qh0);
     main.forEach(function(m){host.appendChild(_dailyDoneCard_(m));});
@@ -4926,7 +5118,7 @@ $('btn-home').onclick=openHome;
 
 function startPractice(listId){
   if(_resumeAskIfAny_(listId,false,function(){startPractice(listId);}))return; // 中断していたら続きから／最初から を選ばせる 2026-08-20
-  srsSes=null;noteSes=null;showPracticeLoading_();combo=0;maxCombo=0;ansCount=0;$('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromReview;startPractice(session.listId);}};$('btn-retry').style.display='flex';$('btn-next').style.display='none';
+  srsSes=null;noteSes=null;showPracticeLoading_();combo=0;maxCombo=0;ansCount=0;comboBreak_();$('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromReview;startPractice(session.listId);}};$('btn-retry').style.display='flex';$('btn-next').style.display='none';
   try{ call({action:'activity_start',part_id:listId}); }catch(e){} /* リアルタイムモード：開始シグナルを先読みに依存せず確実に飛ばす（毎日学習/単元別の解き始め捕捉）2026-07-22 */
   var _pf=_prefetch[listId]; /* 先読みD：取得済みなら即開始・取得中なら続きを待つだけ（使ったら破棄）2026-07-05 */
   if(_pf){delete _prefetch[listId];
@@ -6565,13 +6757,13 @@ function renderRD_(s,w,q,pl){
       _qrvPick_=b?String((chs[order[+b.getAttribute('data-j')]]||{}).en||''):'';
       _quizAns(s,w,ok,Date.now()-t0,'e2j');   /* 点数と記録は1回目の答えで決まる */
       if(!ok&&canRetry&&b){
-        retried=true; combo=0; sndWrong();
+        retried=true; combo=0; comboBreak_(); sndWrong();
         b.classList.add('tried'); b.disabled=true;
         if(tip){ tip.innerHTML='<b>'+_jaRubyIf_('もう一度')+'</b>'+_jaRubyIf_('質問をもう一度読み、本文を最初から読み直して、選び直そう。'); tip.style.display=''; }
         return;
       }
-      if(ok){combo++;if(combo>maxCombo)maxCombo=combo;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
-      else{combo=0;sndWrong();}
+      if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
+      else{combo=0;comboBreak_();sndWrong();}
     }else if(ok){ sndCorrect(); }
     answered=true;
     [].forEach.call(box.querySelectorAll('.rd-ch'),function(x){
@@ -6961,8 +7153,8 @@ function renderRO_(s,w,q,pl){
     btn.disabled=true;btn.style.display='none';
     var bk=$('ro-bank');if(bk){[].forEach.call(bk.querySelectorAll('.ro-tok'),function(b){b.disabled=true;});bk.style.display='none';}
     var hh=$('ro-hint');if(hh)hh.style.display='none';
-    if(ok){combo++;if(combo>maxCombo)maxCombo=combo;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
-    else{combo=0;sndWrong();}
+    if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
+    else{combo=0;comboBreak_();sndWrong();}
     ansCount++;
     try{_qrvPick_=placedNow().join(' / ');}catch(eQp){_qrvPick_='';}
     _quizAns(s,w,ok,(Date.now()-_t0),'e2j');
@@ -7108,15 +7300,15 @@ function renderLX_(s,w,q,pl){
       _quizAns(s,w,ok,ms,'e2j');   /* 点数と記録は1回目の答えで決まる */
       if(!ok&&canRetry&&picked){
         /* 手順1：もう一度聞いて選び直す。英文はまだ出さない。最初に選んだ番号は押せない。聞き終わるまで番号は押せない */
-        retried=true;combo=0;sndWrong();
+        retried=true;combo=0;comboBreak_();sndWrong();
         picked.classList.add('tried');setBtns(false);
         if(st)st.textContent='';
         if(tip){tip.innerHTML='<b>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>選<rt class="uf">えら</rt></ruby>び<ruby>直<rt class="uf">なお</rt></ruby>そう</b>';tip.classList.add('show');}
         var ag=$('lx-again');if(ag)ag.classList.add('pulse');
         return;
       }
-      if(ok){combo++;if(combo>maxCombo)maxCombo=combo;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
-      else{combo=0;sndWrong();}
+      if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
+      else{combo=0;comboBreak_();sndWrong();}
     }else if(ok){sndCorrect();}
     answered=true;
     [].forEach.call(box.querySelectorAll('.lx-ch'),function(b){b.disabled=true;if(order[+b.getAttribute('data-j')]===0)b.classList.add('correct');});
@@ -8088,8 +8280,8 @@ function buildChoices(containerId,correct,pool,onResult,opts){
     if(answered)return;answered=true;stopQTimer();
     Array.prototype.forEach.call(box.children,function(c){c.disabled=true;});
     if(picked)picked.classList.add(ok?'correct':'wrong');
-    if(ok){combo++;if(combo>maxCombo)maxCombo=combo;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0){confetti(20);}}
-    else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(_choiceKey(c.getAttribute('data-val'))===_ck)c.classList.add('correct');});} /* data-val は必ず文字列・correct は数値のことがある 2026-08-18 */
+    if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
+    else{combo=0;comboBreak_();sndWrong();Array.prototype.forEach.call(box.children,function(c){if(_choiceKey(c.getAttribute('data-val'))===_ck)c.classList.add('correct');});} /* data-val は必ず文字列・correct は数値のことがある 2026-08-18 */
     ansCount++;_qrvPick_=picked?String(picked.getAttribute('data-val')):'';onResult(ok,(Date.now()-_t0));
     afterAnswer(ok,correct,opts.kaisetsu,opts.reading,opts.next);
     if(opts.afterShow){try{opts.afterShow(ok);}catch(_e){}}   /* 解説を出したあとに動くもの（文の音声・単語をみるの出し直し）2026-09-11 */
@@ -8997,7 +9189,7 @@ function openNote(subject){
 function startNote(subject,words,assets,opts){
   srsSes=null;session=null; // 出題エンジンの活性セッションを間違いノートに切替（共通レンダラーが正しい語を参照）2026-07-26
   if(!words||!words.length){toastH('<ruby>直<rt class="uf">なお</rt></ruby>す<ruby>単語<rt class="uf">たんご</rt></ruby>はありません');return;}
-  show('scr-practice');combo=0;maxCombo=0;ansCount=0; // 完了3タイルのコンボ用にリセット 2026-08-08
+  show('scr-practice');combo=0;maxCombo=0;ansCount=0;comboBreak_(); // 完了3タイルのコンボ用にリセット 2026-08-08
   gradeReset_(); // 採点キュー初期化 2026-07-05
   opts=opts||{}; /* today=その日の10語（弱点集中）／target=的／remaining=いまの残り語数 2026-08-26 */
   noteSes={mode:'note',subject:subject,words:words,idx:0,step:3,wordOK:true,cleared:0,clearedWords:[],total:words.length,assets:(assets||{}),miss:[],startedMs:Date.now(),
@@ -9024,8 +9216,8 @@ function buildNoteChoices(containerId,correct,wrongs,onResult,opts){
     if(answered)return;answered=true;
     Array.prototype.forEach.call(box.children,function(c){c.disabled=true;});
     if(picked)picked.classList.add(ok?'correct':'wrong');
-    if(ok){combo++;sndCorrect();if(combo>=2)showCombo(combo+' COMBO');if(combo%5===0)confetti(20);}
-    else{combo=0;sndWrong();Array.prototype.forEach.call(box.children,function(c){if(_choiceKey(c.textContent)===_ck)c.classList.add('correct');});} /* textContent は文字列・correct は数値のことがある 2026-08-18 */
+    if(ok){combo++;comboHit_(combo);} /* 2026-10-05 */
+    else{combo=0;comboBreak_();sndWrong();Array.prototype.forEach.call(box.children,function(c){if(_choiceKey(c.textContent)===_ck)c.classList.add('correct');});} /* textContent は文字列・correct は数値のことがある 2026-08-18 */
     onResult(ok);
     afterAnswer(ok,correct,opts.kaisetsu,opts.reading,opts.next);
   }
@@ -9281,7 +9473,7 @@ function openOsaraiSubject(subject){
 function startReviewSrs(words,assets,osSubject){
   noteSes=null;session=null; // 出題エンジンの活性セッションをおさらいに切替 2026-07-26
   if(!words||!words.length){toast('おさらいはありません');return;}
-  show('scr-practice');combo=0;maxCombo=0;ansCount=0; // 完了3タイルのコンボ用にリセット 2026-08-08
+  show('scr-practice');combo=0;maxCombo=0;ansCount=0;comboBreak_(); // 完了3タイルのコンボ用にリセット 2026-08-08
   gradeReset_(); // 採点キュー初期化 2026-07-05
   srsSes={mode:'srs',osSubject:(osSubject||''),words:words,idx:0,step:2,wordOK:true,graduated:0,total:words.length,doneWords:[],nextDays:null,assets:(assets||{}),miss:[],startedMs:Date.now(),onNext:function(){submitSrsWord();}};
   srsSes.step=_startStepFor(srsSes,words[0]); // 語ごとに開始ステップ（英語=意味2 / 用語=英語3）＝元と同じ流れ
