@@ -690,7 +690,7 @@
   .idc-card.warn{border-color:#fecaca;background:#fffafa}
   .idc-h{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:6px}
   .idc-tag{font-size:11px;font-weight:800;border-radius:5px;padding:1px 7px}
-  .idc-tag.chg{background:#ffedd5;color:#9a3412}.idc-tag.dup{background:#fee2e2;color:#b91c1c}.idc-tag.nmc{background:#fef3c7;color:#92400e}
+  .idc-tag.chg{background:#ffedd5;color:#9a3412}.idc-tag.dup{background:#fee2e2;color:#b91c1c}.idc-tag.nmc{background:#fef3c7;color:#92400e}.idc-tag.twin{background:#fee2e2;color:#b91c1c}
   .idc-h .nm{font-weight:800;font-size:15px}
   .idc-h .sub{font-size:12px;color:#64748b}
   .idc-tbl{border-collapse:collapse;width:auto;margin:2px 0 8px}
@@ -2741,7 +2741,7 @@ $('btn-sync').onclick=function(){
     var pd=x.pending||{}, pw=$('syncIdcWrap');
     if(pw){
       if((pd.total||0)>0){
-        var kinds=[]; if(pd.chg)kinds.push('IDが変わった？'+pd.chg+'件'); if(pd.dup)kinds.push('IDが重複'+pd.dup+'件'); if(pd.nm)kinds.push('別の生徒？'+pd.nm+'件');
+        var kinds=[]; if(pd.chg)kinds.push('IDが変わった？'+pd.chg+'件'); if(pd.dup)kinds.push('IDが重複'+pd.dup+'件'); if(pd.nm)kinds.push('別の生徒？'+pd.nm+'件'); if(pd.twin)kinds.push('IDが2つ'+pd.twin+'件');
         pw.innerHTML='🪪 <b>確認待ち '+pd.total+'件</b>（'+kinds.join('・')+'）。この生徒たちは作りも付け替えもしていません。<br><button class="idc-b1" style="margin-top:6px;" onclick="closeModal(\'syncResultModal\');idcOpen_()">いま確認する</button>';
         pw.style.display='';
       } else { pw.style.display='none'; pw.innerHTML=''; }
@@ -7388,6 +7388,17 @@ function idcCard_(it){
       +'<div class="idc-note">会員管理でどちらかのIDを直すと、次の同期でこのお知らせは消えます。</div>'
       +bar(null)+'</div>';
   }
+  if(it.kind==='twin'){
+    /* 2026-10-04 改：クロトレ側で同じIDのアカウントが2つ以上。ログインは止めていない（在籍中の行・その中では下の行に入る）。残すほうを選ぶ */
+    var rs=p.rows||[];
+    var h2='<div class="idc-card warn"><div class="idc-h"><span class="idc-tag twin">IDが2つ</span><span class="nm">ID '+esc(p.fid)+'</span><span class="sub">クロトレに同じIDのアカウントが'+rs.length+'つあります</span></div>'
+      +'<div class="idc-note">ログインは止めていません（IDとパスコードが合うアカウントのうち、在籍中のほうに入ります）。<b>残すアカウントを1つ選んでください。</b></div>'
+      +'<table class="idc-tbl">'+TH+'<tbody>';
+    rs.forEach(function(c,i){ h2+=kwtRow('クロトレ（'+(i+1)+'）',c,'<input type="radio" name="idc-'+id+'" value="'+esc(c.student_id)+'" onchange="idcPick_(\''+id+'\')">'); });
+    h2+='</tbody></table><div class="idc-note">選ばなかったアカウントは、IDに印を付けて止めます（'+esc(p.fid)+'#旧＋今日の日付）。学習記録は消えません。</div>'
+      +'<div class="idc-acts"><button class="idc-b1" disabled data-b1="'+id+'" onclick="idcResolve_(this,\''+id+'\',\'keep\')">選んだアカウントを残す</button></div></div>';
+    return h2;
+  }
   var a=p.account||{};
   return '<div class="idc-card warn"><div class="idc-h"><span class="idc-tag nmc">別の生徒？</span><span class="nm">ID '+esc(p.fid)+'</span><span class="sub">同じIDで、氏名が変わっています</span></div>'
     +'<div class="idc-note">会員管理の ID '+esc(p.fid)+' が'+esc(m.name||'')+'さんになっています。クロトレの ID '+esc(p.fid)+' は'+esc(a.name||'')+'さんのアカウントです。</div>'
@@ -7399,7 +7410,11 @@ function idcPick_(id){ var b=document.querySelector('#idcBody [data-b1="'+id+'"]
 function idcResolve_(btn,id,choice){
   var it=null; _idcItems_.forEach(function(x){ if(x.id===id) it=x; }); if(!it) return;
   var p=it.payload||{}, m=p.member||{}, sid='', msg='';
-  if(choice==='takeover'){
+  if(choice==='keep'){
+    var rk=document.querySelector('#idcBody input[name="idc-'+id+'"]:checked'); if(!rk){ toast('残すアカウントを選んでください'); return; }
+    sid=rk.value; var ck=null; (p.rows||[]).forEach(function(x){ if(x.student_id===sid) ck=x; });
+    msg='ID '+p.fid+' は「'+(ck?ck.name:'')+'」さんのアカウントを残します。ほかのアカウントはIDに印を付けて止めます（学習記録は消えません）。よろしいですか？';
+  } else if(choice==='takeover'){
     var r=document.querySelector('#idcBody input[name="idc-'+id+'"]:checked'); if(!r){ toast('引き継ぐアカウントを選んでください'); return; }
     sid=r.value; var c=null; (p.cands||[]).forEach(function(x){ if(x.student_id===sid) c=x; });
     msg=(m.name||'')+'さんのアカウント（ID '+(c?c.login_id:'')+'）を、新しいID '+p.fid+' に引き継ぎます。学習記録はそのまま続きます。よろしいですか？';
@@ -7417,7 +7432,7 @@ function idcResolve_(btn,id,choice){
   btn.innerHTML='<span style="display:inline-block;width:12px;height:12px;border:2px solid #cbd5e1;border-top-color:#334155;border-radius:50%;animation:kwtspin 0.7s linear infinite;vertical-align:-2px;margin-right:5px;"></span>処理中…';
   call({action:'id_pending_resolve',id:id,choice:choice,student_id:sid}).then(function(d){
     if(!d||!d.ok){ toast('できませんでした：'+((d&&d.error)||'')); btn.innerHTML=old; if(card) card.querySelectorAll('button').forEach(function(b){ b.disabled=false; }); if(choice==='takeover'&&!sid){} return; }
-    toast(choice==='takeover'?'引き継ぎました':choice==='rename'?'名前を変えました':'新しいアカウントを作りました');
+    toast(choice==='takeover'?'引き継ぎました':choice==='rename'?'名前を変えました':choice==='keep'?'残すアカウントを決めました':'新しいアカウントを作りました');
     idcLoad_(false); try{ loadDash(); }catch(e){}
   }).catch(function(){ toast('通信に失敗しました'); btn.innerHTML=old; if(card) card.querySelectorAll('button').forEach(function(b){ b.disabled=false; }); });
 }
