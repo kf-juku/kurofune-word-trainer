@@ -1384,7 +1384,7 @@
               <th data-sk="name" onclick="sortBy('name')">生徒 <span class="sort-ar" data-ar="name"></span></th>
               <th data-sk="grade" onclick="sortBy('grade')">学年 <span class="sort-ar" data-ar="grade"></span></th>
               <th data-sk="next" onclick="sortBy('next')">次の一手 <span class="sort-ar" data-ar="next"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">この子に今必要なこと。毎日学習は 😴未着手=あき日数ぶん学習なし。単元別は 📘未練習（毎日学習と別で判定）。🎉完走=次を割当／⚠️つまずき=復習・印刷／💨雑=ていねいに／✅順調=不要／👀未評価=一度も未着手。当てはまるものは全部表示。</span></span></th>
-              <th>教材と進み<span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日＝教材名と →いまの回。単元別＝本の名前と印（未合格N＝確認テストで落ちた数／未練習＝まだ1回も練習していない）。教材名を押すと、この子の詳細でその教材を開きます。正答率・確認テストの内訳・定着度は詳細で見ます。</span></span></th>
+              <th>教材と進み<span class="tt"><span class="help-mark">?</span><span class="tt-body">毎日＝教材名と →いまの回。単元別＝本の名前と印（未合格N＝確認テストで落ちた数／未練習＝まだ1回も練習しておらず、確認テストにも受かっていない）。教材名を押すと、この子の詳細でその教材を開きます。正答率・確認テストの内訳・定着度は詳細で見ます。</span></span></th>
               <th class="gcol">デイリー</th>
               <th data-sk="last" onclick="sortBy('last')">最終学習 <span class="sort-ar" data-ar="last"></span></th>
               <th data-sk="mistake_active" onclick="sortBy('mistake_active')">弱点<br><small style="font-weight:400">いま間違えている語</small><span class="sort-ar" data-ar="mistake_active"></span><span class="tt"><span class="help-mark">?</span><span class="tt-body">いま復習対象になっている語数（2回連続正解で卒業）</span></span></th>
@@ -5189,8 +5189,10 @@ function matViewCell(s){
   if(unit.length){
     var g={},o=[];unit.forEach(function(m){var k=_lvSerKey_(m);if(!g[k]){g[k]={label:(m.series_label||mtLabel(m)),ms:[]};o.push(k);}g[k].ms.push(m);});
     out+='<div class="lv-row"><span class="lv-k u">単元別</span>'+o.map(function(k){
-      var ng=0,touched=false;g[k].ms.forEach(function(m){ng+=_ngOf(s,m.material_id);if(_lvPartsDone_(m).n>0)touched=true;});
-      var mark=ng>0?'<span class="lv-ng">未合格'+ng+'</span>':(!touched?'<span class="lv-np">未練習</span>':'');
+      /* 【2026-10-04 川上さん 案A】未練習＝練習0回で、確認テストにも1つも受かっていない本だけ。
+         練習せずに確認テストに受かった本に「未練習」を出すと、要らない声かけを招くため */
+      var ng=0,ok=0,touched=false;g[k].ms.forEach(function(m){ng+=_ngOf(s,m.material_id);ok+=parseInt(((s.quiz_by_mat||{})[m.material_id]||{}).ok,10)||0;if(_lvPartsDone_(m).n>0)touched=true;});
+      var mark=ng>0?'<span class="lv-ng">未合格'+ng+'</span>':((!touched&&ok===0)?'<span class="lv-np">未練習</span>':'');
       return '<span class="lv-it" title="この子の詳細でこの本を開く" onclick="event.stopPropagation();openStudentDetail(\''+sid+'\',\''+esc(k)+'\')">'+esc(g[k].label)+mark+'</span>';}).join('')+'</div>';
   }
   return out+'</div>';
@@ -5477,7 +5479,7 @@ function openStudentDetail(sid,focusKey){
     el.innerHTML=o.map(function(k){var G=g[k],ok=0,ng=0,pr=0,tot=G.es.length;
       G.es.forEach(function(e){if(e.status==='ok')ok++;else if(e.status==='ng')ng++;var pp=((me[String(e.material_id)]||{}).parts||{})[e.part_title];if(pp&&pp.acc!=null)pr++;});
       var open=(fk&&(fk===k||G.mids[fk]))?' open':'';
-      var mark=ng>0?'<span class="lv-ng">未合格'+ng+'</span>':(pr===0?'<span class="lv-np">未練習</span>':'');
+      var mark=ng>0?'<span class="lv-ng">未合格'+ng+'</span>':((pr===0&&ok===0)?'<span class="lv-np">未練習</span>':'');   /* 案A：一覧と同じ決め方 */
       return '<details class="sd2-bk"'+open+' data-k="'+esc(k)+'"><summary><span class="nm">'+esc(G.label)+mark+'</span><span class="cv">練習 <b>'+pr+'</b>/'+tot+'</span><span class="cv">確認テスト合格 <b>'+ok+'</b>/'+tot+'</span><span class="car">▾</span></summary><div class="in">'+sdUnitBlock_(s,{entries:G.es,materials:mats})+'</div></details>';}).join('');
     var op=el.querySelector('details[open]');if(op)setTimeout(function(){op.scrollIntoView({block:'center'});},50);
   });
