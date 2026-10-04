@@ -7726,7 +7726,7 @@ function askResume_(rs,cb){   // 中断したのと同じパートを開いた�
     '<i class="ti ti-arrow-right"></i> <span><ruby>続<rt class="uf">つづ</rt></ruby>きから</span>',
     function(right){
       if(!right){ /* 誤タップ防止＋「間違えた分を消すために最初から」の抑止 */
-        if(!confirm('最初からやり直しますか？\n答えたところまでの点数は消えます。')){ $('resume-mask').classList.add('show'); return; }
+        if(!confirm('最初からやり直しますか？')){   /* 2026-10-04：「点数は消えます」は外した（間違えた語は残り、すぐやり直した回の点も残るため） */ $('resume-mask').classList.add('show'); return; }
       }
       cb(right);
     });
