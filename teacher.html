@@ -167,6 +167,10 @@
   /* 設定バーのグループ化＋列ソート（item3/4・2026-07-07） */
   .filter-grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-basis:100%;}
   .filter-colorset{gap:14px;}
+  /* 【2026-10-05】絞り込みのリセット（川上さん 案C＝「表示」の段の右隣）。条件が無いときは消さずに薄くして押せなくする（場所を固定） */
+  .flt-reset{border:1.5px solid var(--border);background:#fff;color:var(--text);border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .flt-reset:hover{border-color:var(--crimson);color:var(--crimson);}
+  .flt-reset[disabled]{opacity:.45;cursor:default;border-color:var(--border);color:var(--text-light);}
   .filter-hint{flex-basis:100%;font-size:10.5px;color:var(--text-light);}
   th[data-sk]{cursor:pointer;user-select:none;}
   th[data-sk]:hover{color:var(--crimson);}
@@ -1250,8 +1254,6 @@
   .mp-ro-note{font-size:11px;color:#94a3b8;font-style:normal;}
   .mp-q .qb{font-size:10px;font-weight:800;border-radius:6px;padding:1px 6px;flex-shrink:0;margin-top:3px;}
   #matPreviewModal .modal{max-width:960px;width:96vw;height:95vh;max-height:95vh;display:flex;flex-direction:column;position:relative;}
-  .mp-close{position:absolute;top:10px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--text);font-size:16px;line-height:1;cursor:pointer;z-index:6;display:grid;place-items:center;box-shadow:var(--shadow-sm);}
-  .mp-close:hover{background:var(--surface2);}
   .mp-fig{margin:4px 0 8px 32px;}
   .mp-fig img{max-height:160px;width:auto;max-width:100%;border:1px solid var(--border);border-radius:8px;display:block;background:#fff;cursor:zoom-in;}
   .mp-fig .zoomhint{font-size:10.5px;color:var(--accent);font-weight:700;margin-top:2px;}
@@ -1402,6 +1404,7 @@
         <button class="filter-chip active" data-f="all" onclick="setFilter('all',this)">すべて</button>
         <button class="filter-chip" data-f="today" onclick="setFilter('today',this)">今日やった</button>
         <button class="filter-chip" data-f="not_today" onclick="setFilter('not_today',this)">今日まだ</button>
+        <span style="flex:0 0 18px;"></span><button class="flt-reset" id="fltReset" type="button" onclick="resetFilters_()" disabled title="表示・教室・学年・中学校・受講・学習の種類・教材の選択と、名前の検索を、全部はじめに戻す（色分けの日数は戻さない）">× リセット</button>
       </div>
       <div class="filter-grp">
         <span class="filter-label" id="classLabel" style="display:none;">教室</span>
@@ -2339,7 +2342,6 @@
 <!-- 教材プレビュー（中身を見る・読み取り専用）2026-07-15 -->
 <div class="modal-back" id="matPreviewModal">
   <div class="modal">
-    <button class="mp-close" onclick="closeModal('matPreviewModal')" aria-label="閉じる">✕</button>
     <div class="mp-head"><h3 id="mpTitle">教材の中身</h3><span class="mp-ro">（クリックで編集・自動保存）</span><button class="mp-srvbtn" id="mpSrvBtn" style="margin-left:auto;" onclick="mpServerCheck()" title="サーバー（スプレッドシート）の最新と、この画面の内容が一致しているか確認します">☁︎ サーバー確認</button></div>
     <div class="mp-toolbar" id="mpToolbar"></div>
     <div class="mp-body" id="mpBody"></div>
@@ -5309,7 +5311,24 @@ function retentionCell2(s){
 /* 【2026-10-04】検索欄をワンボタンで消す。デイリーのカードの名前を押して1人に絞ったあと、学年などで絞り直すときに使う。 */
 function clearSearch_(){var i=$('searchInput');if(i){i.value='';}_alertFilter=null;renderTable();if(i)i.focus();}
 function searchClearSync_(){var i=$('searchInput'),b=$('searchClear');if(b)b.style.display=(i&&i.value)?'':'none';}
-function renderTable(){try{searchClearSync_();}catch(eSc){}
+/* 【2026-10-05】絞り込みのリセット（川上さん 案C）。表示・学習の種類＝すべて、教室・学年・中学校・受講・教材の選択を全部外す、名前の検索とアラートの絞り込みを消す。色分けの日数は戻さない。 */
+function fltActive_(){
+  var i=$('searchInput');
+  return _filter!=='all'||_kindSel!=='all'||!!_alertFilter||!!(i&&String(i.value||'').trim())
+    ||[_gradeSel,_classSel,_schoolSel,_courseSel,_matSel].some(function(o){return Object.keys(o||{}).some(function(k){return o[k];});});
+}
+function fltResetSync_(){var b=$('fltReset');if(b)b.disabled=!fltActive_();}
+function resetFilters_(){
+  _filter='all'; _kindSel='all'; _alertFilter=null;
+  [_gradeSel,_classSel,_schoolSel,_courseSel,_matSel].forEach(function(o){Object.keys(o||{}).forEach(function(k){delete o[k];});});
+  var i=$('searchInput'); if(i) i.value='';
+  document.querySelectorAll('#advFilters .filter-chip').forEach(function(c){
+    var on=(c.getAttribute('data-f')==='all')||(c.getAttribute('data-kd')==='all');
+    c.classList.toggle('active',on);
+  });
+  renderTable();
+}
+function renderTable(){try{searchClearSync_();}catch(eSc){}try{fltResetSync_();}catch(eFr){}
   var search=($('searchInput').value||'').trim();
   var gsel=Object.keys(_gradeSel),csel=Object.keys(_classSel),scsel=Object.keys(_schoolSel),msel=Object.keys(_matSel);
   var rows=_students.filter(function(s){
@@ -5553,7 +5572,7 @@ function openStudentDetail(sid,focusKey){
     :'<div class="sd-none">毎日学習の割り当てはありません</div>';
   var cv=s.completed_view||[], pm=s.past_materials||[];
   $('sdBody').innerHTML=''
-    +'<div class="sd-head"><div><div class="sd-name">'+esc(s.name||'(無名)')+(s.nickname?' <span style="font-size:12px;font-weight:600;color:var(--text-light);">'+esc(s.nickname)+'</span>':'')+needBadge+'</div><div class="sd-chips">'+chips+'</div></div><span style="flex:1;"></span><button id="sdClose1" class="btn-ghost" style="border:none;font-size:18px;padding:2px 9px;">×</button></div>'
+    +'<div class="sd-head"><div><div class="sd-name">'+esc(s.name||'(無名)')+(s.nickname?' <span style="font-size:12px;font-weight:600;color:var(--text-light);">'+esc(s.nickname)+'</span>':'')+needBadge+'</div><div class="sd-chips">'+chips+'</div></div></div>'
     +'<div class="sd2">'+band
       +'<div><div class="sd2-h">毎日学習</div><div id="sdDaily">'+dailyHtml+'</div></div>'
       +'<div><div class="sd2-h">単元別（テスト対策）</div><div id="sdUnit">'+SD_LOADING_+'</div></div>'
@@ -5563,7 +5582,6 @@ function openStudentDetail(sid,focusKey){
         +'<details class="sd2-fold"><summary>途中リセット（最後まで解かずにやめた回）</summary><div class="t-sub" style="font-size:11.5px;margin:2px 0 6px;">間違えたあとにやめて、10分以内に同じ回をやり直した回の点は、正答率に入っています（答えていない問題は誤答）。時間を置いてからのやり直しは、学習として入れていません。</div><div id="sdAbandon">'+SD_LOADING_+'</div></details></div>'
     +'</div>'
     +'<div style="display:flex;margin-top:14px;"><span style="flex:1;"></span><button id="sdClose2" class="btn-ghost">閉じる</button></div>';
-  $('sdClose1').onclick=function(){closeModal('studentModal');};
   $('sdClose2').onclick=function(){closeModal('studentModal');};
   $('studentModal').classList.add('show');
   if(fk){var _on=$('sdBody').querySelector('tr.sd2-on');if(_on)setTimeout(function(){_on.scrollIntoView({block:'center'});},50);}
