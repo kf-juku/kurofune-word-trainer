@@ -62,6 +62,10 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .flt-label{font-size:10px;font-weight:800;color:var(--text-muted);}
 .chip{font-size:12px;padding:3px 12px;border-radius:20px;border:1.5px solid var(--border);background:white;color:var(--text-muted);cursor:pointer;font-family:inherit;transition:all .1s;white-space:nowrap;}
 .chip:hover{border-color:#94a3b8;color:var(--text);}
+/* 絞り込みのリセット 2026-10-05（先生画面と同じ見た目・同じ文言） */
+.flt-reset{border:1.5px solid var(--border);background:#fff;color:var(--text);border-radius:7px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.flt-reset:hover{border-color:var(--crimson);color:var(--crimson);}
+.flt-reset[disabled]{opacity:.45;cursor:default;border-color:var(--border);color:var(--text-muted);}
 .chip.active{background:#1e293b;color:#fff;border-color:#1e293b;font-weight:700;}
 .legend{margin-left:auto;display:flex;gap:12px;font-size:11px;color:var(--text-muted);flex-wrap:wrap;}
 .legend i{font-style:normal;display:inline-flex;align-items:center;gap:4px;}
@@ -350,6 +354,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
       <button class="chip active" data-crs="all" onclick="setCrs('all',this)">すべて</button>
       <button class="chip" data-crs="eiken" onclick="setCrs('eiken',this)">英検対策</button>
       <button class="chip" data-crs="juken" onclick="setCrs('juken',this)">受験特訓</button>
+      <span style="flex:0 0 14px;"></span><button class="flt-reset" id="fltReset" type="button" onclick="resetFilters_()" disabled title="教室・受講・種別を はじめに戻す（並び順と授業の記録はそのまま）">× リセット</button>
       <div class="legend">
         <i><span class="dotk" style="background:var(--blue);"></span>解き中（タイマー）</i>
         <i><span class="dotk" style="background:var(--green);"></span>80%以上</i>
@@ -547,7 +552,7 @@ function sortLanes(list){
   }
   return list;
 }
-function render(){
+function render(){try{fltResetSync_();}catch(eFr){}
   var lanesEl=document.getElementById('lanes');
   var list=sortLanes(Object.keys(state).map(function(id){return state[id];})
     .filter(function(st){return st.active;})
@@ -1551,6 +1556,17 @@ function updateSessLabel_(){
   if(!resetAt){ el.textContent='直近の記録を表示中'; return; }
   var d=new Date(resetAt);
   el.textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+'〜 の記録を表示中';
+}
+/* 【2026-10-05】絞り込みのリセット：教室・受講＝すべて、種別＝確認テストだけ（はじめの形）。並び順と授業の区切りは触らない */
+var TYPES0_={quiz:true,daily:false,unit:false,review:false,note:false};
+function fltActive_(){return roomFilter!=='all'||crsFilter!=='all'||Object.keys(TYPES0_).some(function(k){return !!activeTypes[k]!==TYPES0_[k];});}
+function fltResetSync_(){var b=document.getElementById('fltReset');if(b)b.disabled=!fltActive_();}
+function resetFilters_(){
+  roomFilter='all';crsFilter='all';Object.keys(TYPES0_).forEach(function(k){activeTypes[k]=TYPES0_[k];});
+  document.querySelectorAll('.chip[data-room]').forEach(function(c){c.classList.toggle('active',c.getAttribute('data-room')==='all');});
+  document.querySelectorAll('.chip[data-crs]').forEach(function(c){c.classList.toggle('active',c.getAttribute('data-crs')==='all');});
+  document.querySelectorAll('.chip[data-type]').forEach(function(c){c.classList.toggle('active',!!activeTypes[c.getAttribute('data-type')]);});
+  render();
 }
 function setCrs(c,el){
   crsFilter=c;
