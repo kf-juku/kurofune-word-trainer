@@ -10208,8 +10208,6 @@ function arrowAt_(bx,el,w,dur){
   var x=c.left-br.left+bx.scrollLeft+Math.min(c.width,10)/2,y=c.bottom-br.top+bx.scrollTop+4;
   var jump=Math.abs((parseFloat(p.style.top)||y)-y)>4;
   p.style.transition=(dur&&!jump)?('left '+dur+'ms linear'):'none';p.style.left=x+'px';p.style.top=y+'px';
-  /* 枠の外に出そうなら、枠の中を動かす */
-  var vis=c.bottom-br.top;if(vis>br.height-30||vis<boxOff_(bx)+10){bx.scrollTop+=vis-(boxOff_(bx)+(br.height-boxOff_(bx))*0.35);}
   return p;
 }
 var TM=null;
@@ -10223,11 +10221,7 @@ function msFor_(w){var base=520/SPD;var len=w[2].replace(/[^A-Za-z0-9]/g,'').len
 function stepA_(){
   var bx=$('rd-box'),P=session._pen;if(!bx||!P||!P.run)return;var el=$(P.id);if(!el){P.run=false;return;}
   var ws=wordsOf_(el);
-  if(P.wi>=ws.length){ /* 次の文へ */
-    var all=[].slice.call(bx.querySelectorAll('.mk-s')),i=all.indexOf(el),nx=all[i+1];
-    if(!nx){P.run=false;return;}
-    startA_(nx);return;
-  }
+  if(P.wi>=ws.length){P.run=false;P.done=true;return;} /* 文の終わりで止まる */
   var w=ws[P.wi],ms=msFor_(w);arrowAt_(bx,el,w,ms);P.wi++;TM=setTimeout(stepA_,ms);
 }
 function startA_(el){
@@ -10238,9 +10232,8 @@ function startA_(el){
 function stepB_(){
   var bx=$('rd-box'),P=session._pen;if(!bx||!P||!P.run)return;var el=$(P.id);if(!el){P.run=false;return;}
   var pl=session._mkPl,cs=chunksOf_(el,pl),ci=(P.ci==null?-1:P.ci)+1;
-  if(ci>=cs.length){var all=[].slice.call(bx.querySelectorAll('.mk-s')),nx=all[all.indexOf(el)+1];if(!nx){P.run=false;return;}el=nx;cs=chunksOf_(el,pl);ci=0;}
+  if(ci>=cs.length){P.run=false;P.done=true;return;} /* 文の終わりで止まる */
   P.id=el.id;P.ci=ci;P.a=cs[ci][0];P.b=cs[ci][1];penPaint_();
-  var r=rangeOf_(el,P.a,P.b);if(r){var c=r.getClientRects()[0],br=bx.getBoundingClientRect();if(c){var v=c.bottom-br.top;if(v>br.height-30||v<boxOff_(bx)+10)bx.scrollTop+=v-(boxOff_(bx)+(br.height-boxOff_(bx))*0.35);}}
   var ws=wordsOf_(el).filter(function(w){return w[0]>=P.a&&w[1]<=P.b;}),ms=0;ws.forEach(function(w){ms+=msFor_(w);});
   TM=setTimeout(stepB_,Math.max(500/SPD,ms));
 }
@@ -10249,7 +10242,6 @@ function tapB_(el,pl){
   if(P&&P.id===el.id&&P.ci!=null){ci=P.ci+1;
     if(ci>=cs.length){var bx=$('rd-box'),all=[].slice.call(bx.querySelectorAll('.mk-s')),nx=all[all.indexOf(el)+1];if(!nx)return;el=nx;cs=chunksOf_(el,pl);ci=0;}}
   session._pen={id:el.id,a:cs[ci][0],b:cs[ci][1],ci:ci};penPaint_();
-  var bx=$('rd-box'),r=rangeOf_(el,cs[ci][0],cs[ci][1]);if(r){var c=r.getClientRects()[0],br=bx.getBoundingClientRect();if(c){var v=c.bottom-br.top;if(v>br.height-30)bx.scrollTop+=v-(br.height*0.5);}}
 }
 document.addEventListener('click',function(e){
   var t=e.target;if(!t||!t.closest)return;var bx=t.closest('#rd-box');if(!bx||t.closest('button')||t.closest('.tkw'))return;
@@ -10257,11 +10249,11 @@ document.addEventListener('click',function(e){
   var P=session._pen;
   if(OPT.pen==='A1'){penStop_();session._pen={id:el.id,a:0,b:el.textContent.replace(/\s+$/,'').length};penPaint_();}
   else if(OPT.pen==='A2'){
-    if(P&&P.id===el.id){ if(P.run){P.run=false;penStop_();} else {P.run=true;stepA_();} return; }
+    if(P&&P.id===el.id&&!P.done){ if(P.run){P.run=false;penStop_();} else {P.run=true;stepA_();} return; }
     startA_(el);
   }else if(OPT.pen==='B1'){tapB_(el,pl);}
   else if(OPT.pen==='B2'){
-    if(P&&P.id===el.id&&P.ci!=null){ if(P.run){P.run=false;penStop_();} else {P.run=true;stepB_();} return; }
+    if(P&&P.id===el.id&&P.ci!=null&&!P.done){ if(P.run){P.run=false;penStop_();} else {P.run=true;stepB_();} return; }
     penStop_();session._pen={id:el.id,ci:-1,run:true};stepB_();
   }
 },false);
@@ -10292,7 +10284,6 @@ renderRD_=function(s,w,q,pl){
     var bb=$('mk-bigb');if(bb)bb.onclick=function(e){e.stopPropagation();s._mkBig=!s._mkBig;draw(after);qbar_(!!s._mkBig,q);};
     spy_();penPaint_();
     if(wasRun&&s._pen){s._pen.run=true;if(OPT.pen==='B2'){s._pen.ci--;stepB_();}else stepA_();}
-    if(after){var t=document.querySelector('#rd-box .rd-hl');if(t)scrollToEl_(t);}
   };
   var order=shuffle(chs.map(function(c,i){return i;}));
   box.innerHTML=order.map(function(ci,j){return '<button type="button" class="choice rd-ch" data-j="'+j+'">'+esc(chs[ci].en)+'</button>';}).join('')+'<div class="rd-retry" id="rd-retry" style="display:none"></div>';
@@ -10337,7 +10328,7 @@ window.addEventListener('load',function(){setTimeout(function(){
   var p=document.createElement('div');p.id='mkp';
   p.innerHTML='<div><b>確認用の操作</b>（本番の画面には出ない）　問題 <b id="mkp-n"></b>　<button id="mk-fold" style="float:right;padding:3px 8px">たたむ</button></div>'
     +'<div class="r"><button data-p="mail">メール3通</button><button data-p="essay">説明文</button></div>'
-    +'<div class="r">赤線 <button data-pen="A1">A1 文まるごと</button><button data-pen="A2">A2 文まるごと＋自動の矢印</button><button data-pen="B1">B1 かたまり（押して進む）</button><button data-pen="B2">B2 かたまり（自動で進む）</button></div>'
+    +'<div class="r">赤線 <button data-pen="A1">A1 文まるごと</button><button data-pen="A2">A2 文まるごと＋自動の矢印（文末で止まる）</button><button data-pen="B1">B1 かたまり（押して進む）</button><button data-pen="B2">B2 かたまり（自動・文末で止まる）</button></div>'
     +'<div class="r">いま見ている所 <button data-sg="none">札の色だけ</button><button data-sg="line">＋点線の枠</button><button data-sg="dim">＋ほかを薄く</button></div>';
   document.body.appendChild(p);
   document.getElementById('mk-fold').onclick=function(){p.classList.toggle('fold');this.textContent=p.classList.contains('fold')?'ひらく':'たたむ';};
