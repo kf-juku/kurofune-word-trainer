@@ -10116,6 +10116,9 @@ function _pvStart_(){
 .mk-row2 .mk-lbl{white-space:nowrap}
 .mk-row2 .mk-spd{padding:3px 8px}
 .mk-slb.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.mk-slx::before{content:'/';color:var(--ng);font-weight:700;margin-right:.3em}
+.rd-wg .mk-wgh{display:block;background:none;border-radius:0;padding:0;flex-basis:100%;font:700 11.5px/1.4 "Noto Sans JP",sans-serif;color:var(--accent);cursor:pointer}
+.rd-box .rd-wg{border-left:3px solid var(--accent);padding:4px 0 4px 8px;margin:2px 0 8px 4px}
 .mk-sl{position:absolute;pointer-events:none;z-index:2;color:var(--ng);font:700 15px/1 sans-serif;transform:translateX(-50%)}
 .mk-ansspk{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-left:8px;vertical-align:middle;border-radius:999px;border:1px solid rgba(10,108,255,.28);background:var(--accent-soft);color:var(--accent);font-size:17px;cursor:pointer;padding:0}
 .mk-hlspk{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin-left:6px;vertical-align:middle;border-radius:999px;border:1px solid rgba(10,108,255,.28);background:var(--accent-soft);color:var(--accent);font-size:16px;cursor:pointer;padding:0}
@@ -10178,8 +10181,8 @@ function passage_(s,pl,locs,after){
     if(essay&&start&&k>0)h+='<div class="rd-gap"></div>';
     h+='<div class="'+cls+'" id="rd-l'+k+'" data-line="'+k+'">'+(hd?esc(en):sent_(en,gl))+'</div>';
     if(after){ var ck=(l.chunks||[]);
-      h+='<div class="rd-tr'+(on?' rd-hl':'')+'" data-k="'+k+'">'+rb_(String(l.ja||''))+(ck.length?'<span class="rd-fg">'+rb_('英語の順で')+'</span>':'')+'</div>';
-      if(ck.length)h+='<div class="rd-wg" id="rd-wg'+k+'" style="display:'+(on?'flex':'none')+'">'+ck.map(function(c){return '<span><b>'+esc(String(c.en||''))+'</b><em>'+rb_(String(c.ja||''))+'</em></span>';}).join('')+'</div>'; }
+      h+='<div class="rd-tr'+(on?' rd-hl':'')+'" data-k="'+k+'">'+rb_(String(l.ja||''))+(ck.length&&!on?'<span class="rd-fg">'+rb_('英語の順で')+'</span>':'')+'</div>';
+      if(ck.length)h+='<div class="rd-wg" id="rd-wg'+k+'" style="display:'+(on?'flex':'none')+'"><span class="mk-wgh" data-k="'+k+'">'+rb_('英語の順で')+'</span>'+ck.map(function(c){return '<span><b>'+esc(String(c.en||''))+'</b><em>'+rb_(String(c.ja||''))+'</em></span>';}).join('')+'</div>'; }
   });
   if(openP)h+='</p>'; if(segOpen)h+='</div>';
   return h+'</div>';
@@ -10213,17 +10216,15 @@ function rangeOf_(el,a,b){var ns=textNodes_(el),o=0,r=document.createRange(),sa=
 function wordsOf_(el){var t=el.textContent,re=/[A-Za-z0-9][A-Za-z0-9'’,.\-]*[!?]?/g,m,out=[];while((m=re.exec(t)))out.push([m.index,m.index+m[0].length,m[0]]);return out;}
 function chunksOf_(el,pl){var k=+el.getAttribute('data-line'),l=(pl.lines||[])[k]||{},cx=l.cx||[l.en],t=el.textContent,pos=0,out=[];
   cx.forEach(function(c){var i=t.indexOf(c,pos);if(i<0)i=pos;out.push([i,i+c.length]);pos=i+c.length;});return out;}
-function clearPen_(bx){[].forEach.call(bx.querySelectorAll('.mk-pl,.mk-pt,.mk-sl'),function(e){e.remove();});}
+function clearPen_(bx){[].forEach.call(bx.querySelectorAll('.mk-pl,.mk-pt,.mk-sl'),function(e){e.remove();});unslash_(bx);}
 /* スラッシュ：線を引いた文の、かたまりの切れ目に「/」を重ねる（文字は動かさない） */
 function slashes_(bx,el){
-  var cs=chunksOf_(el,session._mkPl),br=bx.getBoundingClientRect();
-  for(var i=1;i<cs.length;i++){
-    var r1=rangeOf_(el,cs[i-1][1]-1,cs[i-1][1]),r2=rangeOf_(el,cs[i][0],cs[i][0]+1);if(!r1||!r2)continue;
-    var a=r1.getClientRects()[0],b=r2.getClientRects()[0];if(!a||!b)continue;
-    var same=Math.abs(a.top-b.top)<4,x=same?(a.right+b.left)/2:a.right+4,c=a;
-    var d=document.createElement('div');d.className='mk-sl';d.textContent='/';
-    d.style.left=(x-br.left+bx.scrollLeft)+'px';d.style.top=(c.top-br.top+bx.scrollTop+(c.height-15)/2)+'px';bx.appendChild(d);}
+  /* 区切りの「/」は文の中に幅を取って入れる（重ねて描くと次の文字とかぶる）。字は ::before なので、文字の数え方は変わらない */
+  var cs=chunksOf_(el,session._mkPl);
+  for(var i=cs.length-1;i>=1;i--){var r=rangeOf_(el,cs[i][0],cs[i][0]);if(!r)continue;
+    var sp=document.createElement('span');sp.className='mk-slx';r.insertNode(sp);}
 }
+function unslash_(bx){[].forEach.call(bx.querySelectorAll('.mk-slx'),function(sp){var p=sp.parentNode;sp.remove();if(p)p.normalize();});}
 function bars_(bx,el,a,b){
   var r=rangeOf_(el,a,b);if(!r)return;var br=bx.getBoundingClientRect();
   [].forEach.call(r.getClientRects(),function(c){if(c.width<2)return;var d=document.createElement('div');d.className='mk-pl';
@@ -10245,7 +10246,7 @@ var TM=null;
 function penStop_(){clearTimeout(TM);TM=null;}
 function penPaint_(){
   var bx=$('rd-box'),P=window.session&&session._pen;if(!bx)return;clearPen_(bx);if(!P)return;var el=$(P.id);if(!el)return;
-  bars_(bx,el,P.a,P.b);if(OPT.slash&&OPT.kind==='A')slashes_(bx,el);
+  if(OPT.slash&&OPT.kind==='A')slashes_(bx,el);bars_(bx,el,P.a,P.b);
   if((OPT.pen==='A2'||OPT.pen==='B2')&&P.wi!=null){var ws=wordsOf_(el),k=Math.min(Math.max(P.wi-1,0),ws.length-1);if(ws[k])arrowAt_(bx,el,ws[k],0);}
 }
 function msFor_(w){var base=520/SPD;var len=w[2].replace(/[^A-Za-z0-9]/g,'').length;var ms=base*(0.65+0.07*Math.min(len,10));if(/[,.!?]$/.test(w[2]))ms+=220/SPD;return ms;}
@@ -10257,7 +10258,7 @@ function stepA_(){
 }
 function startA_(el){
   penStop_();var bx=$('rd-box');session._pen={id:el.id,a:0,b:el.textContent.replace(/\s+$/,'').length,wi:0,run:true};
-  clearPen_(bx);bars_(bx,el,0,session._pen.b);if(OPT.slash)slashes_(bx,el);stepA_();
+  clearPen_(bx);if(OPT.slash)slashes_(bx,el);bars_(bx,el,0,session._pen.b);stepA_();
 }
 /* B2：かたまりを、読む速さに合わせて自動で進める（かたまりの語数×1語の時間） */
 function stepB_(){
@@ -10312,13 +10313,16 @@ renderRD_=function(s,w,q,pl){
   var draw=function(after){
     var ob=$('rd-box'),st0=(!initial&&ob)?ob.scrollTop:0;initial=false;var wasRun=s._pen&&s._pen.run;penStop_();
     body.innerHTML=passage_(s,pl,locs,after)+(after?'<div class="rd-note">'+rb_('訳を押すと、英語の順番どおりの意味が見られます。')+'</div>':'')+qh(after);
-    [].forEach.call(body.querySelectorAll('.rd-tr'),function(el){ el.onclick=function(e){ e.stopPropagation(); var g=$('rd-wg'+el.getAttribute('data-k')); if(g)g.style.display=(g.style.display==='none')?'flex':'none'; try{penPaint_();}catch(_e){} }; });
+    [].forEach.call(body.querySelectorAll('.rd-tr,.mk-wgh'),function(el){ el.onclick=function(e){ e.stopPropagation(); var k=el.getAttribute('data-k'),g=$('rd-wg'+k); if(!g)return; var op=(g.style.display==='none'); g.style.display=op?'flex':'none';
+      var tr=body.querySelector('.rd-tr[data-k="'+k+'"]'),fg=tr&&tr.querySelector('.rd-fg');
+      if(op&&fg)fg.remove(); if(!op&&tr&&!fg)tr.insertAdjacentHTML('beforeend','<span class="rd-fg">'+rb_('英語の順で')+'</span>');
+      try{penPaint_();}catch(_e){} }; });
     var bx=$('rd-box');if(bx){bx.scrollTop=st0;bx.addEventListener('scroll',function(){requestAnimationFrame(spy_);},{passive:true});}
     [].forEach.call(body.querySelectorAll('.mk-chip'),function(b){b.onclick=function(e){e.stopPropagation();scrollToEl_(bx.querySelector('.mk-seg[data-seg="'+b.getAttribute('data-seg')+'"]'));};});
     [].forEach.call(body.querySelectorAll('.mk-spd:not(.mk-stop):not(.mk-slb)'),function(b){b.onclick=function(e){e.stopPropagation();SPD=+b.getAttribute('data-v');[].forEach.call(body.querySelectorAll('.mk-spd:not(.mk-stop):not(.mk-slb)'),function(x){x.classList.toggle('on',x===b);});};});
     var sb=body.querySelector('.mk-stop');if(sb)sb.onclick=function(e){e.stopPropagation();OPT.stop=!OPT.stop;OPT.pen=OPT.kind+(OPT.stop?'1':'2');penStop_();if(s._pen)s._pen.run=false;
       sb.classList.toggle('on',OPT.stop);sb.parentNode.classList.toggle('mk-stopped',OPT.stop);var b0=$('rd-box');if(b0){clearPen_(b0);penPaint_();}};
-    var lb=body.querySelector('.mk-slb');if(lb)lb.onclick=function(e){e.stopPropagation();OPT.slash=!OPT.slash;lb.classList.toggle('on',OPT.slash);var b0=$('rd-box');if(b0){[].forEach.call(b0.querySelectorAll('.mk-sl'),function(x){x.remove();});var P=s._pen;if(P&&OPT.slash){var el=$(P.id);if(el)slashes_(b0,el);}}};
+    var lb=body.querySelector('.mk-slb');if(lb)lb.onclick=function(e){e.stopPropagation();OPT.slash=!OPT.slash;lb.classList.toggle('on',OPT.slash);var P=s._pen;var run=P&&P.run;penStop_();penPaint_();if(run){P.run=true;stepA_();}};
     var bb=$('mk-bigb');if(bb)bb.onclick=function(e){e.stopPropagation();s._mkBig=!s._mkBig;draw(after);qbar_(!!s._mkBig,q);};
     segPad_(bx);spy_();penPaint_();
     if(wasRun&&s._pen){s._pen.run=true;if(OPT.pen==='B2')stepB_();else stepA_();}
