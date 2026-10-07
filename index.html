@@ -7046,7 +7046,7 @@ function _renderSENT0_(ss){
     buildChoices('sent-choices',w.japanese,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
       {fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:(q.intro?0:_tl),kaisetsu:_kai,next:s.onNext,
        afterShow:function(){try{_wlSync_(s,w,true);}catch(e){}
-         if(_heard){var xh=$('ex-heard');if(xh){xh.innerHTML='<span class="ex-lbl"><ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>英文<rt class="uf">えいぶん</rt></ruby></span><b>'+_tkAnsHtml_(_heard)+'</b>';xh.style.display='';}}
+         if(_heard){var xh=$('ex-heard');if(xh){xh.innerHTML='<span class="ex-lbl"><ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>英文<rt class="uf">えいぶん</rt></ruby></span><b>'+_tkAnsHtml_(_heard)+'</b><button type="button" class="rdx-spk" id="ex-heardspk" aria-label="聞こえた英文を聞く"><i class="ti ti-volume"></i></button>';xh.style.display='';var _hb=$('ex-heardspk');if(_hb)_hb.onclick=function(e){e.stopPropagation();_sentPlay_(pl);};}}   /* 文全体を鳴らすボタン（読解の正解 3-12 と同じ部品）2026-10-08b */
          if(pl.c&&pl.c.length){var xa=$('ex-audio');if(xa){xa.innerHTML='<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby></div><div class="lx-xl"><div class="lx-xb">'+_lxChunks_(pl.c)+(_lxSameJa_(pl.c,pl.ja)?'':'<small>'+_jaRubyIf_(String(pl.ja||''))+'</small>')+'</div></div>';xa.style.display='';}}}});   /* 聞いたあとに単語をみるを出す 2026-09-11 */
     return;
   }
@@ -8855,7 +8855,7 @@ function dailyProgAfter_(justPartId){
   var os=(dailyState.review===true); // おさらい枠（未取得のときも「まだ」扱い＝ホームと同じ）
   segs+='<i class="'+(os?'on':'')+'" title="おさらい"></i>';total++;if(os)done++;
   var _nc=_ntCount_();               // 間違いノート枠 2026-08-26／集中攻略の枠の数ぶん 2026-10-03
-  for(var _j=0;_j<_nc.tot;_j++){var nt=_j<_nc.done;segs+='<i class="'+(nt?'on':'')+'" title="'+rb('集中','しゅうちゅう')+rb('攻略','こうりゃく')+'"></i>';total++;if(nt)done++;}
+  for(var _j=0;_j<_nc.tot;_j++){var nt=_j<_nc.done;segs+='<i class="'+(nt?'on':'')+'" title="集中攻略"></i>';   /* 属性にふりがな（rb）を入れない＝" で属性が切れて「しゅうちゅう 攻略 ">」が画面に出ていた 2026-10-08b */total++;if(nt)done++;}
   return {done:done,total:total,segs:segs};
 }
 function dailyLeftAfter_(justPartId){
