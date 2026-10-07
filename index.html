@@ -6967,7 +6967,7 @@ function renderRD_(s,w,q,pl){
     if(b&&!ok)b.classList.add('wrong');
     if(tip){ if(retried&&ok){ tip.innerHTML=_jaRubyIf_('選び直して正解！'); tip.style.display=''; } else tip.style.display='none'; }
     draw(true);
-    var _ansAu=String(((q.choices||[])[0]&&q.choices[0].audio)||'');
+    var _ansAu=String(((q.choices||[])[0]&&q.choices[0].audio)||(pl.ans&&(pl.ans[chs[0].en]||pl.ans[String(chs[0].en).replace(/\s+/g,' ').trim()]))||'');   /* 正解の mp3＝本文の素材の ans（3-26・2026-10-07） */
     _rdxEx_=_ansAu?{en:chs[0].en,audio:_ansAu}:null;   /* 3-12③④：正解の mp3 があるときだけ、正解は1文＋音声ボタン、解説の英語は押せない形にする */
     afterAnswer(first,chs[0].en||w.english||'',w.kaisetsu,'',s.onNext);
     if(_rdxEx_){ var _ab=$('rdx-ansspk'); if(_ab){ var _ae=_rdxEx_; _ab.onclick=function(e){ e.stopPropagation(); _sentPlay_({en:_ae.en,audio:_ae.audio}); }; } }
