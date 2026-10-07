@@ -6625,9 +6625,12 @@ function _shufNot_(a){var b=shuffle(a);for(var k=0;k<20&&b.join('')===a.join('
 var _LX_FCARD_={
   r:{t:'英文を聞いて、返事を選ぶ',s:['最初の英文をよく聞く','1・2・3 を全部聞く','英文に合う返事を選ぶ'],ex:['Where is my bag?（私のかばんはどこ？）→ 場所を答える','','']},
   l2:{t:'会話を聞いて、質問に答える',s:['先に選択肢を読む','質問の最初の語をつかむ','分からなければ、そこだけもう一回'],ex:['','What time?（何時？）→ 時刻を聞く','']},   /* 第2部型（4-46 ②と同じ文面）2026-09-27 */
+  l1:{t:'会話を聞いて、返事を選ぶ',s:['絵を見て、場面をつかむ','最後の文をよく聞く','それに合う返事を選ぶ'],ex:['','Can I use your pen?（ペンを使ってもいい？）→ お願い','']},   /* 4級 第1部型（4-46 ①）2026-10-07 */
+  l3:{t:'話を聞いて、質問に答える',s:['先に選択肢を読む','質問の最初の語をつかむ','分からなければ、そこだけもう一回'],ex:['','How?（どうやって）→ やり方・乗り物を聞く','']},   /* 4級 第3部型（4-46 ③）2026-10-07 */
   p:{t:'絵に合う英文を選ぶ',s:['先に絵を見て、だれが何をしているかつかむ','1・2・3 を聞き、絵とちがうものを消す','残った1つを選ぶ'],ex:['','絵は「医者」→ a teacher（先生）はちがう','']}
 };
-var _LX_MEMO_={listen_resp:'最初の英文をよく聞く → 全部聞く → 合う返事を選ぶ',listen_pic:'絵を見る → ちがうものを消す → 残りを選ぶ',listen_print:'先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ'};
+/* 【2026-10-07】4級は qdata.fmt（l1・l2・l3）で引く。fmt の無い5級は今までどおり qtype で引く（§19e-5b ④） */
+var _LX_MEMO_={l1:'絵を見て場面をつかむ → 最後の文をよく聞く → 合う返事を選ぶ',l2:'先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ',l3:'先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ',listen_resp:'最初の英文をよく聞く → 全部聞く → 合う返事を選ぶ',listen_pic:'絵を見る → ちがうものを消す → 残りを選ぶ',listen_print:'先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ'};
 function _isIntroW_(w){try{var q=tfParse(w);return !!(q&&(q.intro===1||q.intro==='1'||q.intro===true));}catch(e){return false;}}
 function _qlDropIntro_(d){
   try{((d&&d.data&&d.data.materials)||[]).forEach(function(g){if(g&&g.parts)g.parts=g.parts.filter(function(p){return !/-in$/.test(String((p&&p.part_id)||''));});});}catch(e){}
@@ -6635,7 +6638,7 @@ function _qlDropIntro_(d){
 }
 var _LX_BULB_='<svg class="lx-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3"/><path d="M9.7 17h4.6"/></svg>';
 function _lxCard_(s,w,q){
-  var C=_LX_FCARD_[q.card]||_LX_FCARD_.r;
+  var C=((q.fmt==='l1'&&q.card==='r')?_LX_FCARD_.l1:_LX_FCARD_[q.card])||_LX_FCARD_.r;   /* 4級の第1部型は card='r'・fmt='l1'（2026-10-07） */
   hideQTimer();
   $('step-sent').style.display='block';
   $('sent-ask').innerHTML='';
@@ -6653,7 +6656,7 @@ function _lxDecor_(s,w,q){
     h='<div class="lx-point"><span class="lx-pn">'+esc(String(q.point[0]))+'</span><span>'+_tkRender_(_jaRubyIf_(_br(q.point[1]||'')))
       +(q.point[2]?'<span class="lx-fex">'+_tkRender_(_jaRubyIf_(_br('例　'+q.point[2])))+'</span>':'')+'</span></div>';
   }else if(q.memo&&!s.quizMode&&s.mode!=='note'){
-    var qt=String(w.qtype||''),m=_LX_MEMO_[qt];s._memoShown=s._memoShown||{};
+    var qt=(q.fmt&&_LX_MEMO_[q.fmt])?String(q.fmt):String(w.qtype||''),m=_LX_MEMO_[qt];s._memoShown=s._memoShown||{};   /* fmt で引く（2026-10-07） */
     if(m&&(!s._memoShown[qt]||s._memoShown[qt]===String(w.id))){s._memoShown[qt]=String(w.id);
       h='<div class="lx-memo">'+_LX_BULB_+'<span>'+_jaRubyIf_(m)+'</span></div>';}
   }
@@ -6775,6 +6778,23 @@ function renderRD_(s,w,q,pl){
     if(tip){ if(retried&&ok){ tip.innerHTML=_jaRubyIf_('選び直して正解！'); tip.style.display=''; } else tip.style.display='none'; }
     draw(true);
     afterAnswer(first,chs[0].en||w.english||'',w.kaisetsu,'',s.onNext);
+    /* 【2026-10-07・4-60】選び直した問題は、答え合わせ（答え・ありか・全文訳）のあとに「英文を読んで、どうだった？」を選ぶまで次へ進めない。
+       保存は聞き取りと同じ s._lxNotes → session_complete の listen_notes（列は qdata.fmt＝r4a〜r4c・先生画面の弱点の表で読解の行に入る） */
+    if(retried){ try{
+      var _xa=$('ex-audio'),_nx=$('ex-next');
+      if(_xa){
+        _xa.innerHTML='<div class="lx-self" id="rd-self"><div class="lx-xh">'+_jaRubyIf_('英文を読んで、どうだった？')+'</div><div class="lx-selfb">'
+          +'<button type="button" data-v="read">'+_jaRubyIf_('英文を読んだら分かった')+'</button>'
+          +'<button type="button" data-v="word">'+_jaRubyIf_('読んでも分からない語があった')+'</button></div></div>';
+        _xa.style.display='';
+        if(_nx)_nx.style.display='none';
+        var _okR=!!ok;
+        [].forEach.call(_xa.querySelectorAll('.lx-selfb button'),function(bt){ bt.onclick=function(){
+          [].forEach.call(_xa.querySelectorAll('.lx-selfb button'),function(x){ x.classList.toggle('on',x===bt); });
+          (s._lxNotes||(s._lxNotes={}))[String(w.id)]={retry_ok:_okR?1:0,self:bt.getAttribute('data-v')};
+          if(_nx)_nx.style.display=''; }; });
+      }
+    }catch(_eS){ var _nx2=$('ex-next'); if(_nx2)_nx2.style.display=''; } }
     /* showExplain は解説を画面の下にそろえてページを動かす（smooth）。読解は答えのありかを先に見せる（4-96）ので、その動きを止めてから本文の枠へ動かす */
     try{ window.scrollTo(window.scrollX||0,window.scrollY||window.pageYOffset||0); }catch(e){}
     try{ _rdScroll_(true); }catch(e){}

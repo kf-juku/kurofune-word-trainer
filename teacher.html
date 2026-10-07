@@ -3260,7 +3260,16 @@ function _pqLisQHtml_(it,cls){
 var _PQ_FIX_='間違えたら：英文を見ながらもう一度聞く → 分からない語に印';
 var _PQ_HOW_={listen_resp:'解き方（英文への返事）：最初の英文をよく聞く → 全部聞く → 合う返事を選ぶ',
               listen_pic:'解き方（絵に合う英文）：絵を見る → ちがうものを消す → 残りを選ぶ',
-              listen_print:'解き方（会話と質問）：先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ'};
+              listen_print:'解き方（会話と質問）：先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ',
+              /* 【2026-10-07】4級は qdata.fmt で引く（§19e-5b ④・4-46）。fmt の無い5級は qtype のまま */
+              l1:'解き方（会話への返事）：絵を見て場面をつかむ → 最後の文をよく聞く → 合う返事を選ぶ',
+              l2:'解き方（会話と質問）：先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ',
+              l3:'解き方（話と質問）：先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ'};
+function _pqHowKey_(it){ var f=String((_pqData_(it)||{}).fmt||''); return (f&&_PQ_HOW_[f])?f:String((it&&it.qtype)||''); }
+function _pqLisName_(it){ var q=String((it&&it.qtype)||''), f=String((_pqData_(it)||{}).fmt||'');
+  if(q==='listen_print') return f==='l3'?'話と質問':'会話と質問';
+  if(q==='listen_pic') return '絵に合う英文';
+  return f==='l1'?'会話への返事':'英文への返事'; }
 /* ===== 英検の聞き取り 第1部型（listen_resp）・第3部型（listen_pic）2026-09-17 =====
    承認モック＝20260917_モック_英検5級_聞き取り第1部型と第3部型.html（紙のタブ）。
    ・問題の側＝番号の枠（1・2・3）だけ。第3部型は絵も出す。**英文は出さない**
@@ -3647,12 +3656,12 @@ function unifiedStudentHtml_(st, opts){
       if(gl) extra='<div class="up-kai">語の意味：'+esc(gl)+'</div>';
     }else if(kind==='lisx'){
       /* 【2026-09-25・4-41 ⑥】まとまり（日付＋教材）の中で、その形式の最初の問題の前に解き方を1行だけ（1問ごとには刷らない） */
-      var _hq=String(it.qtype||'');
+      var _hq=_pqHowKey_(it);
       if(!_howDone[_hq]&&_PQ_HOW_[_hq]){ _howDone[_hq]=1; h+='<div class="up-how">'+esc(_PQ_HOW_[_hq])+'</div>';
         extra='<div class="up-fix">'+esc(_PQ_FIX_)+'</div>'; }   /* 答えの欄の下に直しの手順を1行（4-41 ⑥・2026-09-25 川上さん「イ」）*/
       /* 【2026-09-17】英検 第1部型・第3部型。先生が英文と3つの返事を読む（答えの欄が読み上げ原稿）。2026-09-23 第1部型を1発話にしたので見出しを「英文への返事」に */
       var _isPic=(String(it.qtype||'')==='listen_pic'), _isPr=(String(it.qtype||'')==='listen_print');
-      qH='<div class="up-qtxt">'+n+'. 🔊 '+(_isPr?'会話と質問':(_isPic?'絵に合う英文':'英文への返事'))+' <span class="pq-lead2">（先生が読みます。'+(_isPr?'質問の答えとして合うもの':(_isPic?'絵に合うもの':'返事として合うもの'))+'を番号で答える）</span></div>'
+      qH='<div class="up-qtxt">'+n+'. 🔊 '+_pqLisName_(it)+' <span class="pq-lead2">（先生が読みます。'+(_isPr?'質問の答えとして合うもの':(_isPic?'絵に合うもの':'返事として合うもの'))+'を番号で答える）</span></div>'
         +_pqLxQHtml_(it,'up')+'<div class="up-lisans">答え <span class="up-lisbox"></span></div>';
     }else if(kind==='dial'){
       /* 【2026-09-18】英検 大問2型。会話2行＋選択肢4つ。ここは番号で答える（右に答えがある紙なので・確定47）。 */
@@ -3855,7 +3864,7 @@ function fsQuestionOf_(it){
   if(k==='fill') return _pqFillQ_(it);            /* 穴あき英文＋和訳（紙用・§5b）。文ぜんぶの穴は記号を穴の外に出さない 2026-09-28 */
   if(k==='order')return _pqOrdAsk_(it);
   if(k==='listen')return '🔊 聞き取り（QRで音を聞いて、合うものを記号で）';
-  if(k==='lisx')  return (String(it.qtype||'')==='listen_print')?'🔊 会話と質問（QRで音を聞いて、合うものを番号で）':(String(it.qtype||'')==='listen_pic')?'🔊 絵に合う英文（QRで音を聞いて、番号で）':'🔊 英文への返事（QRで音を聞いて、合う返事を番号で）';
+  if(k==='lisx')  return '🔊 '+_pqLisName_(it)+((String(it.qtype||'')==='listen_print')?'（QRで音を聞いて、合うものを番号で）':(String(it.qtype||'')==='listen_pic')?'（QRで音を聞いて、番号で）':'（QRで音を聞いて、合う返事を番号で）');   /* 4級の名前も fmt で（2026-10-07） */
   if(k==='ph')    return _pqPhLead_(it);
   if(k==='read')  return _pqRdQText_(it);          /* 読解＝質問の文（rq は英語・rc は日本語）2026-09-30 */
   if(k==='dial')  return _pqDfIsWord_(it)?'（　）に入る語を線の上に書く（選択肢を見ないで書けたら◎）':'会話に合う英文を線の上に書く（選択肢を見ないで書けたら◎）';
@@ -3979,7 +3988,7 @@ function fsPick_(items){
        QRの先で鳴るのは単語まるごとの発音だけ（音のかたまりの mp3 は作らない＝2026-09-22 の決定）。
        そのことと●の意味を、見出しに小さく1行だけ書く */
     var _hasB=lis.some(function(x){ if(x._fsKind!=='ph') return false; var m=_pqPhMode_(x); return m==='build'||m==='spell'; });
-    var _hq={}; lis.forEach(function(x){ var q=String(x.qtype||''); if(_PQ_HOW_[q])_hq[q]=1; });   /* 解き方の1行を出す形式（2026-09-25・4-41 ⑦） */
+    var _hq={}; lis.forEach(function(x){ var q=_pqHowKey_(x); if(_PQ_HOW_[q])_hq[q]=1; });   /* 解き方の1行を出す形式（2026-09-25・4-41 ⑦） */
     texts=texts.concat([{__lisHead:true,__lisL:_hasL,__lisP:_hasP,__lisB:_hasB,__lisHow:Object.keys(_PQ_HOW_).filter(function(q){ return _hq[q]; })}]).concat(lis);
   }
   return {blocks:blocks,texts:texts};
@@ -4381,7 +4390,7 @@ function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
   var probe=fsProbe_(roomy);
   var figQ=[],txtQ=[];
   units.forEach(function(u){ (u.type==='fig'?figQ:txtQ).push(u); });
-  var pages=[], no=1, fi=0, ti=0;
+  var pages=[], no=1, fi=0, ti=0, over=0;   /* over＝まっさらなページにも入らず落とした問題の数（3-17・2026-10-07） */
   for(var p=0;p<FS_QPAGE_MAX_ && (fi<figQ.length||ti<txtQ.length);p++){
     var pg={figs:[],texts:[]};
     probe.innerHTML='<div class="fs-page">'+fsHeadPageHtml_(ctx,'問題',p===0,p===0)
@@ -4406,7 +4415,7 @@ function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
           figQ.splice(fi,1,{type:'fig',block:_b1,n:_b1.items.length},{type:'fig',block:_b2,n:_b2.items.length});
           continue;
         }
-        if(placed===0){ fi++; continue; }
+        if(placed===0){ over+=(figQ[fi].n||0); fi++; continue; }
         break;
       }
       pg.figs.push({block:figQ[fi].block,start:no}); no+=figQ[fi].n; fi++; placed++;
@@ -4453,6 +4462,7 @@ function fsFillQPages_(units,ctx,roomy,usable,qrFirst){
     /* 【2026-09-14・段7】聞き取りの区切り見出しは問題ではないので番号を取らない */
     pg2.texts.forEach(function(t){ t.no=(t.item&&t.item.__lisHead)?0:(rn++); });
   });
+  pages.over=over;
   return pages;
 }
 /* 置けた問題を並び順に平らにする（＝紙の1番〜N番） */
@@ -4600,7 +4610,25 @@ function fsBuildSheet_(st,base){
      ・組み直して減った／作れなかったときは、もとのまま（無理に入れて紙を壊さない） */
   var b3=fsListenReserve_(b,units,mk);
   if(b3) b=b3;
+  /* 【2026-10-07・3-17】紙に載らなかった問題を数えて先生に出す（黙って落とさない）。
+     cand＝候補（同じ答えを1つにまとめたあと）／over＝1ページに入らない大きさで出せない問題／left＝枚数の上限で入りきらなかった問題（次の紙の候補に残る） */
+  if(b){ var _cand=fsCandN_(st.items||[]); b.over=(b.qp&&b.qp.over)||0; b.left=Math.max(0,_cand-b.total-b.over); }
   return b;
+}
+function fsCandN_(items){
+  var seen={}, n=0;
+  (items||[]).forEach(function(it){ var k=_pqDedupKey_(it); if(seen[k])return; seen[k]=1; if(sheetKindOf_(it)==='skip')return; n++; });
+  return n;
+}
+/* 紙に載らなかった問題の注意書き（先生の画面だけ。紙には刷らない） */
+function fsLeftNote_(built){
+  var L=(built||[]).filter(function(b){ return b&&b.left>0; }), O=(built||[]).filter(function(b){ return b&&b.over>0; });
+  if(!L.length&&!O.length) return '';
+  var nm=function(a,k){ return a.slice(0,5).map(function(b){ return esc(b.ctx.name)+' '+b[k]+'問'; }).join('・')+(a.length>5?('　ほか'+(a.length-5)+'名'):''); };
+  return '<div class="fs-leftnote" style="margin-top:8px;padding:8px 10px;border-radius:8px;background:#fff7e6;border:1px solid #f0c36d;font-size:13px;line-height:1.6;">'
+    +(L.length?'⚠ <b>紙に入りきらなかった問題があります</b>：'+nm(L,'left')+'。<br>入らなかった問題は消えません。次に紙を作るときの候補に残ります。':'')
+    +(O.length?(L.length?'<br>':'')+'⚠ <b>1ページに入らない大きさの問題があります</b>：'+nm(O,'over')+'。<br>この問題は紙には出せません。画面で解かせてください。':'')
+    +'</div>';
 }
 /* 聞き取りの枠を取って組み直す。直す必要が無ければ null を返す（＝もとのまま） */
 function fsListenReserve_(b,units,mk){
@@ -4911,7 +4939,8 @@ function fsShowGo_(built,ss){
   if(el) el.innerHTML='<b>'+built.length+'名</b>ぶん・1人あたり両面2枚。セット番号は発行ずみです（'
     +esc(_fsGoInfo.codes.slice(0,3).join('・'))+(built.length>3?('　ほか'+(built.length-3)+'名'):'')+'）。<br>'
     +'印刷でもPDFでも<b>同じ番号の紙</b>が出ます。両方出しても番号は増えません。'
-    +fsFilledNote_(ss);   /* 範囲の語で埋めた生徒の注意書き 2026-09-02⑬ */
+    +fsFilledNote_(ss)   /* 範囲の語で埋めた生徒の注意書き 2026-09-02⑬ */
+    +fsLeftNote_(built);  /* 紙に載らなかった問題（3-17）2026-10-07 */
   $('fsGoModal').classList.add('show');
 }
 /* ---- 印刷・PDFのファイル名 2026-09-02⑭（川上さん＝「1名だけのときは名前を入れて」）----
@@ -6420,7 +6449,7 @@ function openMatPreview(mid){
         else if(w.qtype==='reorder')badge='<span class="qb snt">語順</span>';
         else if(w.qtype==='listen_resp')badge='<span class="qb snt">会話</span>';   /* 英検 第1部型 2026-09-17 */
         else if(w.qtype==='listen_pic')badge='<span class="qb snt">絵</span>';     /* 英検 第3部型 2026-09-17 */
-        else if(w.qtype==='listen_print')badge='<span class="qb snt">会話と質問</span>';   /* 英検 第2部型 2026-09-27 */
+        else if(w.qtype==='listen_print')badge='<span class="qb snt">'+(/"fmt":"l3"/.test(String(w.qdata||''))?'話と質問':'会話と質問')+'</span>';   /* 英検 第2部型 2026-09-27 */
         else if(w.qtype==='phonics')badge='<span class="qb snt">読み確認</span>';  /* 架け橋 読み確認 2026-09-22 */
         h+='<div class="mp-word">';
         h+='<div class="mp-q"><span class="no">'+(i+1)+'</span><span style="flex:1"></span>'+badge+'</div>';
@@ -9738,7 +9767,7 @@ function rpPreviewOne(){
         var b0=fsBuildSheet_(ss[0]||{},{date:_rpToday(),code:FS_CODE_TMP_,scope:fsScopeLabel_(mats)});
         if(!b0){ tmErr_(esc(nm)+'さんは、いまの条件で紙にできる問題がありません。'); done(); return; }
         _rpPvShow_(nm,'仕上げプリント',fsDrawSheet_(b0),
-          'セット番号は<b>まだ発行していません</b>（見本では「'+esc(FS_CODE_TMP_)+'」と出ます）。本番の番号は「🖨 仕上げプリントを出す（生徒用）」を押したときに出ます。');
+          'セット番号は<b>まだ発行していません</b>（見本では「'+esc(FS_CODE_TMP_)+'」と出ます）。本番の番号は「🖨 仕上げプリントを出す（生徒用）」を押したときに出ます。'+fsLeftNote_([b0]));
         done();
       });
     }).catch(function(e){ tmErr_('見本を作れませんでした：'+esc(e&&e.message||e)); done(); });
@@ -10359,7 +10388,7 @@ var RP_QF=null, RP_UF=null;   /* 出す形式・出す第N単元（null＝ぜん
 var RPWK_DEF_=[
   {k:'go',g:1,l:'語',p:1},{k:'table_fill',g:1,l:'表',p:1},{k:'listen',g:1,l:'聞き取り',p:1},
   {k:'sentence_fill',g:2,l:'穴うめ',x:'筆記1',p:1},{k:'dialog_fill',g:2,l:'会話の空所',x:'筆記2',p:1},{k:'reorder',g:2,l:'語順',x:'筆記3',p:1},
-  {k:'r4a',g:2,l:'掲示',x:'筆記4A',p:1},{k:'r4b',g:2,l:'メール',x:'筆記4B',p:1},{k:'r4c',g:2,l:'説明文',x:'筆記4C',p:1},   /* 紙が読解（reading）に対応した 2026-09-30 */
+  {k:'r4a',g:2,l:'掲示',x:'筆記4A',p:1,rd:1},{k:'r4b',g:2,l:'メール',x:'筆記4B',p:1,rd:1},{k:'r4c',g:2,l:'説明文',x:'筆記4C',p:1,rd:1},   /* 紙が読解（reading）に対応した 2026-09-30 */
   {k:'listen_resp',g:3,l:'会話の応答',x:'第1部',p:1},{k:'l2',g:3,l:'会話と質問',x:'第2部',p:1},
   {k:'listen_pic',g:3,l:'絵と英文',x:'第3部',p:1},{k:'l3',g:3,l:'話と質問',x:'第3部',p:0}];
 var RPWK_GN_={1:'練習の形',2:'筆記',3:'リスニング'};
@@ -10475,13 +10504,18 @@ function _rpWkWeakest_(sid){
     Object.keys(R).forEach(function(k){ var c=R[k]; if(!c.n)return; if(!w||c.rate<w.rate)w={rate:c.rate,mid:mid,u:k.split('/')[0],q:k.split('/').slice(1).join('/')}; }); });
   return w;
 }
-/* 聞き取りで間違えたあと（4-51 ⑦）。選んだ教材に聞き取りの本番形式があるときだけ */
+/* 聞き取りで間違えたあと（4-51 ⑦）。選んだ教材に聞き取りの本番形式があるときだけ
+   【2026-10-07・4-60】読解（rd:1 の列）で間違えたあとも同じ形で別の表に出す */
+function _rpWkNotesTbl_(N,cs,ttl,note){
+  return '<div class="rpwk-self"><div class="t">'+esc(ttl)+'</div><div style="overflow:auto;"><table><tr><th>形式</th><th>英文を読んだら分かった</th><th>読んでも分からない語があった</th></tr>'
+    +cs.map(function(c){ var x=N[c]||{read:0,word:0}; return '<tr><td>'+esc(_rpWkFx_(c))+'</td><td class="k1">'+(x.read||0)+'回</td><td class="k2">'+(x.word||0)+'回</td></tr>'; }).join('')
+    +'</table></div><div class="rpwk-note">'+esc(note)+'</div></div>';
+}
 function _rpWkNotesHtml_(sid,cols){
-  var lc=cols.filter(function(c){ return _rpWkDef_(c).g===3; }); if(!lc.length)return '';
   var N=((RP_WK&&RP_WK.notes)||{})[sid]||{};
-  return '<div class="rpwk-self"><div class="t">聞き取りで間違えたあと（練習）</div><div style="overflow:auto;"><table><tr><th>形式</th><th>英文を読んだら分かった</th><th>読んでも分からない語があった</th></tr>'
-    +lc.map(function(c){ var x=N[c]||{read:0,word:0}; return '<tr><td>'+esc(_rpWkFx_(c))+'</td><td class="k1">'+(x.read||0)+'回</td><td class="k2">'+(x.word||0)+'回</td></tr>'; }).join('')
-    +'</table></div><div class="rpwk-note">「分かった」が多い＝聞き取れていない／「分からない語」が多い＝語を知らない</div></div>';
+  var lc=cols.filter(function(c){ return _rpWkDef_(c).g===3; }), rc=cols.filter(function(c){ return _rpWkDef_(c).rd; });
+  return (lc.length?_rpWkNotesTbl_(N,lc,'聞き取りで間違えたあと（練習）','「分かった」が多い＝聞き取れていない／「分からない語」が多い＝語を知らない'):'')
+    +(rc.length?_rpWkNotesTbl_(N,rc,'読解で間違えたあと（練習）','「分かった」が多い＝読み取れていない（読み方）／「分からない語」が多い＝語を知らない'):'');
 }
 /* 1人ずつ（生徒の行を開いたところ） */
 function _rpWkUxHtml_(sid){
@@ -10611,6 +10645,20 @@ function rpWkFromClear(){
   RP_WK_FROM=null; RP_QF=null; RP_UF=null; RP_DROP.prn={}; RP_OUT_TOUCHED=false; RP_OUT={}; RP_TY_SIG=null;
   rpRenderMat(); rpRenderFilters(); rpRenderPaper();
 }
+/* 【2026-10-07・3-18】「出す形式」をまとめて切り替える：読解だけ（rd:1 の列）／リスニングだけ（g:3 の列）／すべて。押したあとも下のチェックで足し外しできる */
+var _RP_QF_COLS=[];
+function _rpQfBtnsHtml_(cols){
+  _RP_QF_COLS=cols.slice();
+  var rd=cols.filter(function(c){ return _rpWkDef_(c).rd; }), ls=cols.filter(function(c){ return _rpWkDef_(c).g===3; });
+  if(!rd.length&&!ls.length) return '';
+  var bt=function(k,l){ return '<button type="button" class="btn-ghost rpqf-b" data-qf="'+k+'" onclick="rpQfSet(\''+k+'\')" style="margin:0 6px 6px 0;">'+l+'</button>'; };
+  return '<div class="rpqf-row" style="margin:4px 0 2px;">'+(rd.length?bt('read','読解だけ'):'')+(ls.length?bt('listen','リスニングだけ'):'')+bt('all','すべて')+'</div>';
+}
+function rpQfSet(k){
+  if(k==='all'){ RP_QF=null; rpRenderPaper(); return; }
+  var o={}; _RP_QF_COLS.forEach(function(c){ var d=_rpWkDef_(c); if((k==='read'&&d.rd)||(k==='listen'&&d.g===3)) o[c]=1; });
+  RP_QF=o; rpRenderPaper();
+}
 function rpQfPick(q,on){ RP_QF=RP_QF||_rpQfAll_(); if(on)RP_QF[q]=1; else delete RP_QF[q]; rpRenderPaper(); }
 function rpUfPick(u,on){ RP_UF=RP_UF||_rpUfAll_(); if(on)RP_UF[u]=1; else delete RP_UF[u]; rpRenderPaper(); }
 function _rpQfAll_(){ var o={}; RPWK_COLS_.forEach(function(c){ o[c]=1; }); return o; }
@@ -10624,6 +10672,7 @@ function _rpQuBoxHtml_(use){
   var cols=_rpWkColsOf_(_rpWkRows_(wm)).filter(function(c){ return _rpWkDef_(c).p; });   /* 紙が対応していない形式は選ばせない（4-51 ⑧） */
   var h='<div class="tm-qh" style="margin-top:10px;">出す形式（複数えらべます）<span class="rp-mute" style="font-weight:700;margin-left:8px;">英検の教材のときだけ出ます'
     +(hasOther?'（ほかの教材の問題は、ここでは絞りません）':'')+'</span></div>'
+    +_rpQfBtnsHtml_(cols)
     +'<div class="rpwk-cbs">'+cols.map(function(c){ return '<label><input type="checkbox"'+(qf[c]?' checked':'')+' onchange="rpQfPick(\''+esc(c)+'\',this.checked)"> '+esc(_rpWkFx_(c))+'</label>'; }).join('')+'</div>';
   if(um.length){
     h+='<div class="tm-qh" style="margin-top:8px;">出す第N単元（単元別の教材のぶん）<span class="rp-mute" style="font-weight:700;margin-left:8px;">毎日学習の問題は第N単元で分かれないので、ここでは絞りません</span></div>';

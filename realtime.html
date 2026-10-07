@@ -952,7 +952,16 @@ function _pqLisQHtml_(it,cls){
 var _PQ_FIX_='間違えたら：英文を見ながらもう一度聞く → 分からない語に印';
 var _PQ_HOW_={listen_resp:'解き方（英文への返事）：最初の英文をよく聞く → 全部聞く → 合う返事を選ぶ',
               listen_pic:'解き方（絵に合う英文）：絵を見る → ちがうものを消す → 残りを選ぶ',
-              listen_print:'解き方（会話と質問）：先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ'};
+              listen_print:'解き方（会話と質問）：先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ',
+              /* 【2026-10-07】4級は qdata.fmt で引く（§19e-5b ④・4-46）。fmt の無い5級は qtype のまま */
+              l1:'解き方（会話への返事）：絵を見て場面をつかむ → 最後の文をよく聞く → 合う返事を選ぶ',
+              l2:'解き方（会話と質問）：先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ',
+              l3:'解き方（話と質問）：先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ'};
+function _pqHowKey_(it){ var f=String((_pqData_(it)||{}).fmt||''); return (f&&_PQ_HOW_[f])?f:String((it&&it.qtype)||''); }
+function _pqLisName_(it){ var q=String((it&&it.qtype)||''), f=String((_pqData_(it)||{}).fmt||'');
+  if(q==='listen_print') return f==='l3'?'話と質問':'会話と質問';
+  if(q==='listen_pic') return '絵に合う英文';
+  return f==='l1'?'会話への返事':'英文への返事'; }
 /* ===== 英検の聞き取り 第1部型（listen_resp）・第3部型（listen_pic）2026-09-17 =====
    承認モック＝20260917_モック_英検5級_聞き取り第1部型と第3部型.html（紙のタブ）。
    ・問題の側＝番号の枠（1・2・3）だけ。第3部型は絵も出す。**英文は出さない**
@@ -1339,12 +1348,12 @@ function unifiedStudentHtml_(st, opts){
       if(gl) extra='<div class="up-kai">語の意味：'+esc(gl)+'</div>';
     }else if(kind==='lisx'){
       /* 【2026-09-25・4-41 ⑥】まとまり（日付＋教材）の中で、その形式の最初の問題の前に解き方を1行だけ（1問ごとには刷らない） */
-      var _hq=String(it.qtype||'');
+      var _hq=_pqHowKey_(it);
       if(!_howDone[_hq]&&_PQ_HOW_[_hq]){ _howDone[_hq]=1; h+='<div class="up-how">'+esc(_PQ_HOW_[_hq])+'</div>';
         extra='<div class="up-fix">'+esc(_PQ_FIX_)+'</div>'; }   /* 答えの欄の下に直しの手順を1行（4-41 ⑥・2026-09-25 川上さん「イ」）*/
       /* 【2026-09-17】英検 第1部型・第3部型。先生が英文と3つの返事を読む（答えの欄が読み上げ原稿）。2026-09-23 第1部型を1発話にしたので見出しを「英文への返事」に */
       var _isPic=(String(it.qtype||'')==='listen_pic'), _isPr=(String(it.qtype||'')==='listen_print');
-      qH='<div class="up-qtxt">'+n+'. 🔊 '+(_isPr?'会話と質問':(_isPic?'絵に合う英文':'英文への返事'))+' <span class="pq-lead2">（先生が読みます。'+(_isPr?'質問の答えとして合うもの':(_isPic?'絵に合うもの':'返事として合うもの'))+'を番号で答える）</span></div>'
+      qH='<div class="up-qtxt">'+n+'. 🔊 '+_pqLisName_(it)+' <span class="pq-lead2">（先生が読みます。'+(_isPr?'質問の答えとして合うもの':(_isPic?'絵に合うもの':'返事として合うもの'))+'を番号で答える）</span></div>'
         +_pqLxQHtml_(it,'up')+'<div class="up-lisans">答え <span class="up-lisbox"></span></div>';
     }else if(kind==='dial'){
       /* 【2026-09-18】英検 大問2型。会話2行＋選択肢4つ。ここは番号で答える（右に答えがある紙なので・確定47）。 */
