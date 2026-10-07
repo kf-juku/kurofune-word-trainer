@@ -6830,11 +6830,21 @@ function _rdxQbar_(on,q,rc,after){
   document.documentElement.style.setProperty('--rdxq',b.offsetHeight+'px');
 }
 /* 解説カードを画面の下に固定（3-12⑤）。本文はその上でスクロールできるよう、画面の下に余白を足す */
+/* 【2026-10-08 川上さん「A」】幅はアプリの列にそろえる（タブレットで画面いっぱいに広げない）。
+   画面の高さが低いとき（スマホの横向きなど・560px 未満）は固定せず、前と同じく本文の下に置く。向きを変えたら測り直す */
+var _rdxFloatWant_=false, _RDX_FLOAT_MINH_=560;
 function _rdxFloat_(on){
   var sc=$('scr-practice'),ex=$('explain'),bd=sc&&sc.querySelector('.body');if(!sc||!ex)return;
-  sc.classList.toggle('rdx-float',!!on);
-  if(on){if(bd)bd.style.paddingBottom=(ex.offsetHeight+30)+'px';}else if(bd)bd.style.paddingBottom='';
+  _rdxFloatWant_=!!on;
+  var fit=!!on&&(window.innerHeight||0)>=_RDX_FLOAT_MINH_;
+  sc.classList.toggle('rdx-float',fit);
+  if(fit){
+    var cd=$('step-sent'),r=((cd&&cd.offsetParent!==null)?cd:(bd||sc)).getBoundingClientRect(),w=Math.max(0,Math.min(r.width,(window.innerWidth||r.width)-20));   /* 白いカード（問題の枠）と同じ幅 */
+    ex.style.left=Math.max(10,r.left+(r.width-w)/2)+'px'; ex.style.width=w+'px'; ex.style.right='auto';
+    if(bd)bd.style.paddingBottom=(ex.offsetHeight+30)+'px';
+  }else{ ex.style.left='';ex.style.width='';ex.style.right=''; if(bd)bd.style.paddingBottom=''; }
 }
+window.addEventListener('resize',function(){ try{ if(_rdxFloatWant_&&$('explain')&&$('explain').style.display!=='none')_rdxFloat_(true); }catch(_e){} });
 /* 黄色い文（答えのありか）の横の音声ボタン。mp3 がある文だけ（3-12②・3-25） */
 function _rdxHlSpk_(pl){
   var bx=$('rd-box');if(!bx)return;
