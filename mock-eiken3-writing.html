@@ -10419,6 +10419,9 @@ body.wr-rd #sent-body .rd-q{display:none!important}
 .c4b{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .c4b button{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px;text-align:left;font:600 15.5px "Noto Sans JP",sans-serif;color:var(--ink)}
 .c4b button.ok{border-color:#13703a;background:#e9f8ef}.c4b button.ng{border-color:#b42318;background:#fdecec}
+#sent-choices .ro-go{width:100%}
+.wr-s5 #ro-bank .ro-tok,.wr-s5 #ro-slots .ro-chip{display:block!important;text-align:left!important}
+.wr-tja{display:block;font-size:12px;font-weight:600;color:var(--sub);margin-top:2px;white-space:normal}
 body.wr-s5 #ro-slots{display:flex!important;flex-direction:column;gap:6px}body.wr-s5 #ro-slots>*{width:100%!important;min-height:44px}
 body.wr-s5 #step-sent .ro-bank button,body.wr-s5 #step-sent button.ro-tok{white-space:normal;text-align:left}
 /* 段⑥ */
@@ -10475,9 +10478,11 @@ var GL={hi:'こんにちは',i:'私は',heard:'聞いた（hear の過去）',th
   which:'どちら',like:'好き',better:'（～の）ほうが（好き）',summer:'夏',or:'それとも',winter:'冬',have:'持っている（have been to ～＝～へ行ったことがある）',two:'2つの',reasons:'理由',first:'1つ目は',thank:'感謝する',thanks:'ありがとう','e-mail':'Eメール',e:'E',mail:'メール',james:'ジェームズ（人の名前）',best:'いちばんよい（Best wishes,＝それでは、また）',wishes:'願い',can:'～できる',swim:'泳ぐ',in:'～で',sea:'海',friends:'友達',second:'2つ目は',vacation:'休み',long:'長い',so:'だから',travel:'旅行する',
   ever:'今までに',been:'（行ったことがある＝have been to）',kyoto:'京都','e-mail':'Eメール',do:'（質問の文を作る語）',july:'7月',mother:'母',brother:'兄・弟',rice:'ごはん',delicious:'おいしい',sang:'歌った（sing の過去）',songs:'歌',night:'夜',cats:'ねこ',dog:'犬',walk:'散歩する',cute:'かわいい',are:'～です',festival:'お祭り',eat:'食べる',ate:'食べた（eat の過去）',takoyaki:'たこ焼き',ice:'氷',cream:'クリーム（ice cream＝アイスクリーム）',school:'学校',from:'～の・～から',there:'そこで',went:'行った（go の過去）',very:'とても',much:'たくさん（very much＝とても）',nice:'すてきな',exciting:'わくわくさせる',saw:'見た（see の過去）',sister:'姉・妹',movie:'映画',buy:'買う'};
 function g_(w){var k=w.toLowerCase().replace(/[’']s$/,"'s");return GL[k]||GL[k.replace(/'s$/,'')]||'';}
+/* 文の中での意味（12-18）：同じ語でも文によって訳が変わるものは、文ごとに上書きする */
+var GLS={'What did you eat there?':{what:'何を'},'And who did you go with?':{who:'だれと'},'I have two reasons.':{have:'ある（I have ～＝～がある）'}};
 function tap_(t){ /* 英文 → 語ごとに押せる（押すと意味と音） */
-  var out='',re=/[A-Za-z][A-Za-z'’]*(?:-[A-Za-z]+)?/g,m,last=0;t=String(t);
-  while((m=re.exec(t))){var g=g_(m[0]);out+=esc(t.slice(last,m.index))+(g?'<span class="tkw" data-en="'+esc(m[0])+'" data-ja="'+esc(g)+'">'+esc(m[0])+'</span>':esc(m[0]));last=re.lastIndex;}
+  var out='',re=/[A-Za-z][A-Za-z'’]*(?:-[A-Za-z]+)?/g,m,last=0;t=String(t);var ov=GLS[t.trim()]||{};
+  while((m=re.exec(t))){var g=ov[m[0].toLowerCase()]||g_(m[0]);out+=esc(t.slice(last,m.index))+(g?'<span class="tkw" data-en="'+esc(m[0])+'" data-ja="'+esc(g)+'">'+esc(m[0])+'</span>':esc(m[0]));last=re.lastIndex;}
   return out+esc(t.slice(last));
 }
 function mix_(t){return String(t).split(/([A-Za-z][A-Za-z'’]*)/).map(function(x,i){return i%2?tap_(x):(x?rb_(x):'');}).join('');}
@@ -10506,7 +10511,7 @@ function diaMail_(ex){
 function diaEssay_(){
   var L=function(en,ja,me,lab){return '<div class="ln'+(me?' me':'')+'">'+(lab?'<i>'+rb_(lab)+'</i>':'')+tap_(en)+(ja?'<small>'+rb_(ja)+'</small>':'')+'</div>';};
   return '<div class="wl"><div class="h">'+rb_('答えの例（QUESTION：Which do you like better, dogs or cats?〔犬とねこではどちらが好き？〕）')+'</div>'
-    +L('I like dogs better.','犬のほうが好きです。',1,'意見')+L('I have two reasons.','理由が2つあります。',1,'')
+    +L('I like dogs better.','犬のほうが好きです。',1,'意見')+L('I have two reasons.','理由が2つあります。',1,'理由の数')
     +L('First, I can walk with my dog in the park every day.','1つ目は、毎日公園で犬と散歩できるからです。',1,'理由1')+L('Second, dogs are very cute and friendly.','2つ目は、犬はとてもかわいくて人なつこいからです。',1,'理由2')
     +'<div class="nt">'+rb_('全部自分で書く（合わせて25〜35語）。')+'</div></div>';
 }
@@ -10555,7 +10560,7 @@ function plMail_(){return {kind:'メール',title:'',gloss:GL,lines:M1.map(funct
 _LX_FCARD_.w1={t:'James のメールに返信を書く',s:['下線の質問2つを見つける','それぞれに1文で答える','1文足して、15〜25語にする'],ex:['When（いつ）・Who（だれが）・Where（どこで）','When（いつ）→ いつかを答える','感想 It was very exciting.（とてもわくわくしました）']};
 var EXC=[{en:'I saw it last Sunday.',ja:'この前の日曜日に見ました。'},{en:'I went with my sister.',ja:'姉と行きました。'},{en:'It was a very exciting movie.',ja:'とてもわくわくする映画でした。'}];
 var _qsf0_=qSecFor;qSecFor=function(x){return 0;};   /* 3-40：ライティング編の穴うめは時間をはからない（モックでは全部0） */
-_LX_FCARD_.w2={t:'QUESTION に英語で答える',s:['QUESTION にそのまま答える意見の文を書く','I have two reasons. のあとに理由を2つ','First, ／ Second, で始めて、25〜35語にする'],ex:['Which do you like better（どちらが好き？）→ 好きなほうを1つ選んで答える','','First, I can walk with my dog.（1つ目は、犬と散歩できるからです）']};
+_LX_FCARD_.w2={t:'QUESTION に英語で答える',s:['QUESTION にそのまま答える意見の文を書く','I have two reasons. のあとに理由を2つ','First, ／ Second, で始めて、25〜35語にする'],ex:['Which do you like better（どちらが好き？）→ 好きなほうを1つ選んで答える','','First, I can walk with my dog.（1つ目は、犬と散歩できるからです。）']};
 var _lxCard0_=_lxCard_;
 _lxCard_=function(s,w,q){_lxCard0_(s,w,q);var c=document.querySelector('#sent-body .lx-fcard');if(c&&q.card==='w1'){var ft=c.querySelector('.lx-ft');(ft||c).insertAdjacentHTML(ft?'afterend':'afterbegin','<div class="rp" style="margin-bottom:10px"><div class="qq">'+rb_('James から来たメール（このメールに返信を書く）')+'</div>'+M1.map(function(l){var t=tap_(l.en);return '<div class="ln">'+(l.u?'<span class="wr-u'+l.u+'">'+t+'</span>':t)+'</div>';}).join('')+'</div>');c.insertAdjacentHTML('beforeend',diaMail_(EXC));}if(c&&q.card==='w2')c.insertAdjacentHTML('beforeend',diaEssay_());};
 function W(){
@@ -10631,6 +10636,7 @@ function under_(){if(['s1a','s1b','s2a','s2b'].indexOf(cur)>=0)M1.forEach(functi
   if(bx&&!window.__hintDone&&!document.getElementById('wr-pen')){window.__hintDone=1;var n=bx.nextElementSibling;var t=(n&&n.classList.contains('rd-note'))?n.textContent:'';if(t.indexOf('訳を押す')<0){if(t)n.remove();bx.insertAdjacentHTML('afterend','<div class="rd-note" id="wr-pen">'+rb_('点線の語を押すと、意味と音が出ます。')+'</div>');}}}
 function go_(){
   var o=document.getElementById('wr-ansS');if(o)o.remove();var o2=document.getElementById('wr-ptx');if(o2)o2.remove();document.body.classList.remove('wr-rd','wr-s5');
+  window._wrGen_=(window._wrGen_||0)+1;
   upd_();window.scrollTo(0,0);
   var X=W();
   if(cur==='s5'){base_();st5_();return;}
@@ -10647,10 +10653,10 @@ function go_(){
   /* 下線は答えたあとの描き直しでも付ける */
   var mo=new MutationObserver(function(){under_();});
   /* 並べ替え・1文足す・文法編：答えたあとに「答えの文」（和訳・英語の順で・音）を出す。本番の解説には無い→§20d に書く */
-  var AS={s5r:A1,s3:A1[1],s4:A1[2],s3c:{en:'I went camping in July.',ja:'7月にキャンプに行きました。',ck:[['I went camping','私はキャンプに行った'],['in July.','7月に']]},s3d:{en:'My mother cooked dinner.',ja:'母が夕食を作りました。',ck:[['My mother cooked','母が料理した'],['dinner.','夕食を']]},s3e:{en:'I went camping in August.',ja:'8月にキャンプに行きました。',ck:[['I went camping','私はキャンプに行った'],['last Sunday.','この前の日曜日に']]},s3f:{en:'My brother cooked curry.',ja:'兄がカレーを作りました。',ck:[['My brother cooked','兄が料理した'],['curry.','カレーを']]},e2a:E.ex[0],e2b:E.ex[0],g:{en:'Have you ever been to Kyoto?',ja:'あなたは今までに京都へ行ったことがありますか。',ck:[['Have you ever been','あなたは今までに行ったことがありますか'],['to Kyoto?','京都へ']]}};
+  var AS={s5r:A1,s3:A1[1],s4:A1[2],s3c:{en:'I went camping in July.',ja:'7月にキャンプに行きました。',ck:[['I went camping','私はキャンプに行った'],['in July.','7月に']]},s3d:{en:'My mother cooked dinner.',ja:'母が夕食を作りました。',ck:[['My mother cooked','母が料理した'],['dinner.','夕食を']]},s3e:{en:'I went camping in August.',ja:'8月にキャンプに行きました。',ck:[['I went camping','私はキャンプに行った'],['in August.','8月に']]},s3f:{en:'My brother cooked curry.',ja:'兄がカレーを作りました。',ck:[['My brother cooked','兄が料理した'],['curry.','カレーを']]},e2a:E.ex[0],e2b:E.ex[0],g:{en:'Have you ever been to Kyoto?',ja:'あなたは今までに京都へ行ったことがありますか。',ck:[['Have you ever been','あなたは今までに行ったことがありますか'],['to Kyoto?','京都へ']]}};
   var ex=$('explain'),key=cur;if(ex&&AS[cur]){var mo2=new MutationObserver(function(){if(cur!==key){mo2.disconnect();return;}if(ex.style.display!=='none'&&!document.getElementById('wr-ansS')){var a=$('ex-ans');if(a)a.insertAdjacentHTML('afterend','<div id="wr-ansS">'+(Array.isArray(AS[key])?AS[key].map(function(x,i){return sent_(x,'c3',['下線①の答え','下線②の答え','足す1文'][i],false);}).join(''):sent_(AS[key],'','答えの文',true))+'</div>');}});mo2.observe(ex,{attributes:true,childList:true,subtree:true});setTimeout(function(){mo2.disconnect();},60000);}var bd=$('sent-body');if(bd){mo.observe(bd,{childList:true,subtree:true});setTimeout(function(){mo.disconnect();},60000);}
 }
-var _kts0_=kaiTraceStart_;kaiTraceStart_=function(el,text,ms){var plain=String(text).replace(/\{\{([^|}]+)\|([^}]*)\}\}/g,'$1');_kts0_(el,plain,ms);var t0=Date.now();var iv=setInterval(function(){if(!el.classList.contains('trace')||Date.now()-t0>ms+3000){clearInterval(iv);if(!_kaiTId)el.innerHTML=_tkKaiHtml_(text);}},120);};
+var _kts0_=kaiTraceStart_;kaiTraceStart_=function(el,text,ms){var plain=String(text).replace(/\{\{([^|}]+)\|([^}]*)\}\}/g,'$1');_kts0_(el,plain,ms);var t0=Date.now(),gen=window._wrGen_||0;var iv=setInterval(function(){if((window._wrGen_||0)!==gen){clearInterval(iv);return;}if(!el.classList.contains('trace')||Date.now()-t0>ms+3000){clearInterval(iv);if(!_kaiTId)el.innerHTML=_tkKaiHtml_(text);}},120);};
 
 /* ---------- 段⑥の前「見本でやってみよう」（12-8 ⑦・2026-10-09 決定） ---------- */
 function st6m_(){
@@ -10731,7 +10737,7 @@ var DO={s1a:null,s1b:null,s2a:null,s2b:null,
   s3:['日本語に合うように、答えの文を並べよう',''],
   s3c:['質問に合うように、（　）に入る語を選ぼう',''],s3d:['質問に合うように、（　）に入る語を選ぼう',''],
   s3e:['質問に合うように答えよう','使わないカードが2枚ある'],s3f:['質問に合うように答えよう','使わないカードが2枚ある'],
-  s5r:['3つの文を、返信の順に並べよう','下線①の答え → 下線②の答え → 足す1文'],
+  s5r:['3つの文を、返信の形に並べよう',''],
   e2a:['QUESTION に合うように、（　）に入る語を選ぼう',''],e2b:['QUESTION に合うように答えよう','使わないカードが2枚ある'],
   g:['日本語に合うように並べよう','']};
 var QX={s3:[[M1[4],'②']],s3c:[[M1[3],'①']],s3d:[[M1[4],'②']],s3e:[[M1[3],'①']],s3f:[[M1[4],'②']],s5r:[[M1[3],'①'],[M1[4],'②']],
@@ -10743,6 +10749,7 @@ function polish_(){
   if(['s4n','w6','s6','e6','s5'].indexOf(key)>=0)return;
   document.body.classList.toggle('wr-rd',!!body.querySelector('#rd-box'));
   document.body.classList.toggle('wr-s5',key==='s5r');
+  if(key==='s5r'){[].forEach.call(document.querySelectorAll('#ro-bank .ro-tok,#ro-slots .ro-chip'),function(b){if(b.querySelector('.wr-tja'))return;var t=b.getAttribute('data-t')||b.textContent,f=A1.filter(function(x){return x.en===t;})[0];if(f)b.insertAdjacentHTML('beforeend','<small class="wr-tja">'+rb_(f.ja)+'</small>');});}
   if(document.getElementById('wr-do'))return;
   var d=DO[key],h;
   if(body.querySelector('#rd-box')){var q=body.querySelector('.rd-q');h='<div class="wr-do" id="wr-do">'+(q?q.innerHTML:'')+'</div>';}
@@ -10862,13 +10869,13 @@ function st6_(T,kind){
   function judge(){
     if(n<T.min){DO6('語数が足りない。ノートの英文に書き足そう','');
       body.innerHTML=flow(1)+'<div class="wr-num">'+n+'<small>'+rb_('語')+'</small></div><div class="wr-msg">'+rb_('あと'+(T.min-n)+'語。'+(kind==='mail'?'感想の1文か、答えにくわしい説明を足そう。':'理由にくわしい説明を足そう。'))+'</div>'
-        +(kind==='mail'?'<div class="wr-inst">'+rb_('足し方の例①　答えを、「だれが」から始まる1文にする')+'</div><div class="wr-bf">'+rb_('前')+'　'+tap_('At a bike shop.')+'　'+rb_('（自転車屋で。）← 文になっていない・3語')+'</div>'+sent_({en:'I bought it at a bike shop.',ja:'自転車屋でそれを買いました。',ck:[['I bought it','私はそれを買った'],['at a bike shop.','自転車屋で']]},'c1','後')
+        +(kind==='mail'?'<div class="wr-inst">'+rb_('足し方の例①　答えを、「だれが」から始まる1文にする')+'</div><div class="wr-bf">'+rb_('前')+'　'+tap_('At a bike shop.')+'　'+rb_('（自転車屋で。）← 文になっていない・4語')+'</div>'+sent_({en:'I bought it at a bike shop.',ja:'自転車屋でそれを買いました。',ck:[['I bought it','私はそれを買った'],['at a bike shop.','自転車屋で']]},'c1','後')
             +'<div class="wr-inst">'+rb_('足し方の例②　感想を1文足す')+'</div>'+sent_({en:'I like it very much.',ja:'とても気に入っています。',ck:[['I like it','私はそれが好き'],['very much.','とても']]},'c3','足す')
           :'<div class="wr-inst">'+rb_('足し方の例　理由に「だれと・どこで」を足す')+'</div><div class="wr-bf">'+rb_('前')+'　'+tap_('First, I can swim.')+'　'+rb_('（1つ目は、泳げるからです）・4語')+'</div>'+sent_({en:'First, I can swim in the sea with my friends.',ja:'1つ目は、友達と海で泳げるからです。',ck:[['First,','1つ目は'],['I can swim','私は泳げる'],['in the sea','海で'],['with my friends.','私の友達と']]},'c1','後'))
         +'<button type="button" class="btn" id="wr-a">'+rb_('書き足した（数え直す）')+'</button>';
       $('wr-a').onclick=function(){n=null;count();};return;}
     if(n>T.max&&OPT.over==='show'){DO6('語数が多い。ノートの英文を短くしよう','');
-      body.innerHTML=flow(1)+'<div class="wr-num">'+n+'<small>'+rb_('語')+'</small></div><div class="wr-msg">'+rb_((n-T.max)+'語多い。質問に関係ない文や、同じことを言っている文を消そう。')+'<br>'+rb_(kind==='mail'?'答えの2文（下線①・下線②の答え）は消さない。':'意見の文と、理由の2文は消さない。')+'</div>'
+      body.innerHTML=flow(1)+'<div class="wr-num">'+n+'<small>'+rb_('語')+'</small></div><div class="wr-msg">'+rb_((n-T.max)+'語多い。質問に関係ない文や、同じことを言っている文を消そう。')+'<br>'+rb_(kind==='mail'?'答えの2文（下線①・下線②の答え）は消さない。':'意見の文・I have two reasons.・理由の2文は消さない。')+'</div>'
         +'<button type="button" class="btn" id="wr-a">'+rb_('直した（数え直す）')+'</button>';
       $('wr-a').onclick=function(){n=null;count();};return;}
     T.pts.forEach(function(p,i){if(p.auto)res[i]=(n>=T.min&&n<=T.max)?'y':'n';});
@@ -10883,7 +10890,7 @@ function st6_(T,kind){
   function one(){
     while(pi<T.pts.length&&T.pts[pi].auto)pi++;
     if(pi>=T.pts.length){fin();return;}
-    var real=T.pts.filter(function(p){return !p.auto;}),k=real.indexOf(T.pts[pi])+1;DO6('自分の英文と解答例を見比べて、できたか押そう',k+' / '+real.length);
+    var real=T.pts.filter(function(p){return !p.auto;}),k=real.indexOf(T.pts[pi])+1;DO6('自分の英文と解答例を見比べて、できたか押そう',T.pts[pi].n+' / '+T.pts.length);
     body.innerHTML=flow(2)+''+ptHtml(T.pts[pi],pi)+(k>1?'<button type="button" class="wr-back" id="wr-bk">'+rb_('← 前の点にもどる')+'</button>':'');
     if($('wr-bk'))$('wr-bk').onclick=function(){var j=pi-1;while(j>=0&&T.pts[j].auto)j--;if(j>=0){pi=j;one();}};
     [].forEach.call(body.querySelectorAll('.wr-3 button'),function(b){b.onclick=function(){res[pi]=b.getAttribute('data-v');pi++;setTimeout(function(){one();window.scrollTo(0,0);},180);};});
@@ -10940,13 +10947,21 @@ window.addEventListener('load',function(){setTimeout(function(){
 </script>
 
 <style>
-/* 決定A（10/9 16:14・§20d 12-15）：本文の語の意味は画面の下に出す。押した語は文字の色だけ変える */
-.tk-pop.wr-bot{position:fixed;left:12px!important;right:12px;width:auto!important;top:auto!important;bottom:calc(12px + env(safe-area-inset-bottom));z-index:90}
-.tk-pop.wr-bot::before{display:none}
-#rd-box .tkw.on{background:none;color:var(--accent);font-weight:800}
+/* 12-19（10/9 17:27 川上さん・原則）：語の窓は、押した語のすぐ近くに出す。画面の下に固定しない。
+   一時的に開いている窓だと見て分かる形にする＝押した語に色・語を指す三角・色の枠と影・右上の × */
+.tk-pop{border:2px solid var(--accent)!important;padding-right:40px!important}
+.tk-pop::before{border-left:2px solid var(--accent)!important;border-top:2px solid var(--accent)!important;top:-8px!important}
+.tk-pop.wr-up::before{top:auto!important;bottom:-8px;transform:rotate(225deg)}
+.tk-pop .wr-x{position:absolute;top:4px;right:6px;width:30px;height:30px;border:none;background:none;color:var(--sub);font-size:20px;line-height:1;cursor:pointer}
+.tkw.on{background:var(--accent-soft)!important;color:var(--accent)!important}
 </style>
 <script>
-(function(){var o=_tkOpen_;_tkOpen_=function(el,en,ja,sp){o(el,en,ja,sp);try{if(_TK_POP_&&el.closest&&el.closest('#rd-box')){_TK_POP_.classList.add('wr-bot');}}catch(e){}};})();
+(function(){var o=_tkOpen_;_tkOpen_=function(el,en,ja,sp){o(el,en,ja,sp);try{var p=_TK_POP_;if(!p)return;
+  var x=document.createElement('button');x.type='button';x.className='wr-x';x.setAttribute('aria-label','閉じる');x.textContent='×';x.onclick=function(e){e.stopPropagation();_tkClose_();};p.appendChild(x);
+  /* 下に入りきらないときは、押した語の上に出す（三角は下向き） */
+  var r=el.getBoundingClientRect(),pr=p.getBoundingClientRect(),vh=window.innerHeight||document.documentElement.clientHeight;
+  if(pr.bottom>vh-8&&r.top-pr.height-9>8){p.style.top=(r.top+window.scrollY-pr.height-9)+'px';p.classList.add('wr-up');}
+}catch(e){}};})();
 </script>
 <script>
 /* 12-17（10/9 16:30 川上さん決定 A）：並べ替えは1回だけやり直せる。1回目にまちがえたら、さっきの並べ方を見せて、札を並べ直す。2回目もまちがえたら今までどおり答えを出す */
