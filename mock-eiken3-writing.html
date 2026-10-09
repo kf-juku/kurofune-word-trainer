@@ -10510,18 +10510,18 @@ document.addEventListener('click',function(e){var o=e.target.closest&&e.target.c
 function diaMail_(ex){
   var L=function(en,ja,me,lab){return '<div class="ln'+(me?' me':'')+'">'+(lab?'<i>'+rb_(lab)+'</i>':'')+tap_(en)+(ja?'<small>'+rb_(ja)+'</small>':'')+'</div>';};
   var e=ex||[{en:'（下線①の答え）',ja:''},{en:'（下線②の答え）',ja:''},{en:'（1文足す）',ja:''}];
-  return '<div class="wl"><div class="h">'+rb_(ex?'返信の例（James から映画のメール。下線①：When did you see it?〔いつ見た？〕 下線②：Who did you go with?〔だれと行った？〕）':'返信の形')+'</div>'
+  return '<div class="wl"><div class="h">'+rb_(ex?'返信の例（映画の話のメールに返すとき）':'返信の形')+'</div>'
     +L('Hi, James!','こんにちは、ジェームズ！')+L('Thank you for your e-mail.','メールをありがとう。')
     +L(e[0].en,e[0].ja,1,'下線①の答え')+L(e[1].en,e[1].ja,1,'下線②の答え')+L(e[2].en,e[2].ja,1,'1文足す')
     +L('Best wishes,','それでは、また。')
-    +'<div class="nt">'+rb_('オレンジの3文を自分で書く（合わせて15〜25語）。ほかの文は問題に書いてある。')+'</div></div>';
+    +'<div class="nt">'+rb_(ex?'オレンジの3文を自分で書く。ほかの文は問題に書いてある。':'オレンジの3文を自分で書く（合わせて15〜25語）。ほかの文は問題に書いてある。')+'</div></div>';
 }
-function diaEssay_(){
+function diaEssay_(inCard){
   var L=function(en,ja,me,lab){return '<div class="ln'+(me?' me':'')+'">'+(lab?'<i>'+rb_(lab)+'</i>':'')+tap_(en)+(ja?'<small>'+rb_(ja)+'</small>':'')+'</div>';};
   return '<div class="wl"><div class="h">'+rb_('答えの例（QUESTION：Which do you like better, dogs or cats?〔犬とねこではどちらが好き？〕）')+'</div>'
     +L('I like dogs better.','犬のほうが好きです。',1,'意見')+L('I have two reasons.','理由が2つあります。',1,'理由の数')
     +L('First, I can walk with my dog in the park every day.','1つ目は、毎日公園で犬と散歩できるからです。',1,'理由1')+L('Second, dogs are very cute and friendly.','2つ目は、犬はとてもかわいくて人なつこいからです。',1,'理由2')
-    +'<div class="nt">'+rb_('全部自分で書く（合わせて25〜35語）。')+'</div></div>';
+    +'<div class="nt">'+rb_(inCard?'全部自分で書く。':'全部自分で書く（合わせて25〜35語）。')+'</div></div>';
 }
 /* ---------- データ（自作） ---------- */
 var M1=[
@@ -10565,12 +10565,12 @@ var E={h:'QUESTION',q:{en:'Which do you like better, summer or winter?',ja:'夏�
 /* 読解の形式（reading）で出す本文：かたまり（スラッシュ・英語の順で）と語の意味を入れる */
 function plMail_(){return {kind:'メール',title:'',gloss:GL,lines:M1.map(function(l){return {en:l.en,ja:l.ja,chunks:l.ck.map(function(c){return {en:c[0],ja:c[1]};})};})};}
 /* 形式ポイント（Eメール・英作文）。図は今の形式ポイントには無い→モックでは描いたあとに差しこむ */
-_LX_FCARD_.w1={t:'James のメールに返信を書く',s:['下線の質問2つを見つける','それぞれに1文で答える','1文足して、15〜25語にする'],ex:['When（いつ）・Who（だれが）・Where（どこで）','When（いつ）→ いつかを答える','感想 It was very exciting.（とてもわくわくしました）']};
+_LX_FCARD_.w1={t:'James のメールに返信を書く',s:['下線の質問2つを見つける','それぞれに1文で答える','1文足して、15〜25語にする'],ex:['When（いつ）・Who（だれが）・Where（どこで）','When（いつ）→ いつかを答える','']};
 var EXC=[{en:'I saw it last Sunday.',ja:'この前の日曜日に見ました。'},{en:'I went with my sister.',ja:'姉と行きました。'},{en:'It was a very exciting movie.',ja:'とてもわくわくする映画でした。'}];
 var _qsf0_=qSecFor;qSecFor=function(x){return 0;};   /* 3-40：ライティング編の穴うめは時間をはからない（モックでは全部0） */
-_LX_FCARD_.w2={t:'QUESTION に英語で答える',s:['QUESTION にそのまま答える意見の文を書く','I have two reasons. のあとに理由を2つ','First, ／ Second, で始めて、25〜35語にする'],ex:['Which do you like better（どちらが好き？）→ 好きなほうを1つ選んで答える','','First, I can walk with my dog.（1つ目は、犬と散歩できるからです。）']};
+_LX_FCARD_.w2={t:'QUESTION に英語で答える',s:['QUESTION にそのまま答える意見の文を書く','I have two reasons. のあとに理由を2つ','First, ／ Second, で始めて、25〜35語にする'],ex:['Which do you like better（どちらが好き？）→ 好きなほうを1つ選んで答える','','']};
 var _lxCard0_=_lxCard_;
-_lxCard_=function(s,w,q){_lxCard0_(s,w,q);var c=document.querySelector('#sent-body .lx-fcard');if(c&&q.card==='w1'){var ft=c.querySelector('.lx-ft');(ft||c).insertAdjacentHTML(ft?'afterend':'afterbegin','<div class="rp" style="margin-bottom:10px"><div class="qq">'+rb_('James から来たメール（このメールに返信を書く）')+'</div>'+M1.map(function(l){var t=tap_(l.en);return '<div class="ln">'+(l.u?'<span class="wr-u'+l.u+'">'+t+'</span>':t)+'</div>';}).join('')+'</div>');c.insertAdjacentHTML('beforeend',diaMail_(EXC));}if(c&&q.card==='w2')c.insertAdjacentHTML('beforeend',diaEssay_());};
+_lxCard_=function(s,w,q){_lxCard0_(s,w,q);var c=document.querySelector('#sent-body .lx-fcard');if(c&&q.card==='w1'){var ft=c.querySelector('.lx-ft');(ft||c).insertAdjacentHTML(ft?'afterend':'afterbegin','<div class="rp" style="margin-bottom:10px">'+M1.map(function(l){var t=tap_(l.en);return '<div class="ln">'+(l.u?'<span class="wr-u'+l.u+'">'+t+'</span>':t)+'</div>';}).join('')+'</div>');c.insertAdjacentHTML('beforeend',diaMail_(EXC));}if(c&&q.card==='w2')c.insertAdjacentHTML('beforeend',diaEssay_(1));};
 function W(){
   var as={};as['as-m1']={payload:JSON.stringify(plMail_())};
   as['as-s3']={payload:JSON.stringify({en:A1[1].en,ja:A1[1].ja,tokens:['My','father','cooked','curry','for','us','.'],gloss:['私の','父','料理した','カレー','～のために','私たちに','']})};
