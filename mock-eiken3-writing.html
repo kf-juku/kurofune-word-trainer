@@ -10427,6 +10427,7 @@ body.wr-s5 #step-sent .ro-bank button,body.wr-s5 #step-sent button.ro-tok{white-
 .wr-flow div i{display:block;font-size:20px;margin-bottom:2px}
 .wr-flow div.on{background:var(--accent);color:#fff}
 .wr-mail{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px;font-size:15.5px;line-height:1.75;margin-bottom:8px}
+.wr-ml{margin:4px 0 8px}.wr-ml .h{font-size:12px;color:var(--sub);font-weight:700;margin-bottom:2px}.wr-ml .ws{border:none;background:none;padding:3px 0;margin:2px 0}.wr-ml .ws .ja{font-size:12.5px;color:var(--sub)}.wr-ml .tk-lsp{display:inline-flex}
 .wr-mail .h{font-size:12px;color:var(--sub);font-weight:700;margin-bottom:4px}
 .wr-tog{font:700 12.5px "Noto Sans JP",sans-serif;color:var(--accent);cursor:pointer;margin:2px 0 8px;display:inline-block}
 .wr-mja .ws .en{color:var(--ink)}
@@ -10486,12 +10487,12 @@ function sent_(S,cls,tag,open){
   var id='ck'+Math.random().toString(36).slice(2,8);
   return '<div class="ws '+(cls||'')+'" data-en="'+esc(S.en)+'" data-ja="'+esc(S.ja)+'">'+(tag?'<span class="tag">'+rb_(tag)+'</span>':'')
     +(S.nocnt?'':'<span class="cnt">'+wc_(S.en)+rb_('語')+'</span>')
-    +'<div class="en">'+tap_(S.en)+'<button type="button" class="tk-lsp" aria-label="聞く"><i class="ti ti-volume"></i></button></div>'
+    +'<div class="en">'+(S.u?'<span class="wr-u'+S.u+'">'+tap_(S.en)+'</span>':tap_(S.en))+'<button type="button" class="tk-lsp" aria-label="聞く"><i class="ti ti-volume"></i></button></div>'
     +'<div class="ja">'+rb_(S.ja)+'</div>'
-    +(S.ck&&S.ck.length?'<span class="og" data-ck="'+id+'">'+rb_('英語の順で')+'</span><div class="ck" id="'+id+'"'+(open?' style="display:flex"':'')+'>'+S.ck.map(function(c){return '<span><b>'+esc(c[0])+'</b><em>'+rb_(c[1])+'</em></span>';}).join('')+'</div>':'')
+    +(S.ck&&S.ck.length?'<span class="og" data-ck="'+id+'">'+rb_(open?'かたまりの意味をかくす':'かたまりの意味を見る')+'</span><div class="ck" id="'+id+'"'+(open?' style="display:flex"':'')+'>'+S.ck.map(function(c){return '<span><b>'+esc(c[0])+'</b><em>'+rb_(c[1])+'</em></span>';}).join('')+'</div>':'')
     +'</div>';
 }
-document.addEventListener('click',function(e){var o=e.target.closest&&e.target.closest('.ws .og');if(!o)return;var c=document.getElementById(o.getAttribute('data-ck'));if(c)c.style.display=(c.style.display==='flex'?'none':'flex');});
+document.addEventListener('click',function(e){var o=e.target.closest&&e.target.closest('.ws .og');if(!o)return;var c=document.getElementById(o.getAttribute('data-ck'));if(c){var on=c.style.display!=='flex';c.style.display=on?'flex':'none';o.innerHTML=rb_(on?'かたまりの意味をかくす':'かたまりの意味を見る');}});
 /* ---------- 図：返信の形・英作文の形 ---------- */
 function diaMail_(ex){
   var L=function(en,ja,me,lab){return '<div class="ln'+(me?' me':'')+'">'+(lab?'<i>'+rb_(lab)+'</i>':'')+tap_(en)+(ja?'<small>'+rb_(ja)+'</small>':'')+'</div>';};
@@ -10532,7 +10533,8 @@ var M2={h:'James からのメール',lines:[['Hi,','こんにちは。'],['I hea
        {c:'',n:'4',t:'15〜25語に入った',ft:'15〜25語に入れる',auto:1},
        {c:'',n:'5',t:'どの文も I や It などで始まっている',ft:'どの文も「だれが・何が」から始める',how:'At a bike shop.（自転車屋で）だけでは文にならない。I bought it ～. のように I・It・My father などから書いたか。',ex:0,fix:'「だれが・何が」（I・It など）＋動詞 で書く。At a bike shop. → I bought it at a bike shop.'},
        {c:'',n:'6',t:'過去のことは過去の形で書いた',ft:'過去のことは過去の形で書く',how:'Where did you buy it? は did で聞いている＝過去の質問。答えは buy ではなく bought。',ex:0,fix:'did で聞かれたら、答えは過去の形。buy → bought、get → got、go → went。'},
-       {c:'',n:'7',t:'自分のこととして答えた（I を使った）',ft:'自分のこととして答える（I を使う）',how:'Where did you buy it?（あなたはどこで買った？）には、自分のことなので I bought it ～. と答える。',ex:0,fix:'質問の you（あなた）は、答えでは I（私）。your（あなたの）は my（私の）。'}]};
+       {c:'',n:'7',t:'自分のこととして答えた（I を使った）',ft:'自分のこととして答える（I を使う）',how:'Where did you buy it?（あなたはどこで買った？）には、自分のことなので I bought it ～. と答える。',ex:0,fix:'質問の you（あなた）は、答えでは I（私）。your（あなたの）は my（私の）。'},
+       {c:'',n:'8',t:'文の頭を大文字にして、最後にピリオドを打った',ft:'文の頭は大文字、文の最後にピリオド（.）',how:'どの文も最初の文字が大文字（I・It・My）か。どの文も最後にピリオド（.）があるか。I（私）は文の途中でも大文字。',ex:0,fix:'文の頭は大文字にする（it is blue → It is blue.）。文の最後にピリオド（.）を打つ。I（私）はいつも大文字。'}]};
 var MCK={'I heard that you got a new bike.':[['I heard','私は聞いた'],['that you got a new bike.','あなたが新しい自転車を手に入れたと']],"That's great!":[["That's great!",'それはすばらしい']],'I want a new bike, too.':[['I want a new bike,','私は新しい自転車がほしい'],['too.','～も']],'Where did you buy it?':[['Where','どこで'],['did you buy it?','あなたはそれを買いましたか']],'And what color is it?':[['And','そして'],['what color','何色'],['is it?','それは～ですか']],'Which do you like better, summer or winter?':[['Which do you like better,','あなたはどちらのほうが好きですか'],['summer or winter?','夏か冬か']]};
 var E={h:'QUESTION',q:{en:'Which do you like better, summer or winter?',ja:'夏と冬では、どちらのほうが好きですか。'},
   ex:[{en:'I like summer better.',ja:'私は夏のほうが好きです。',ck:[['I like summer','私は夏が好き'],['better.','（～の）ほうが']]},
@@ -10545,7 +10547,8 @@ var E={h:'QUESTION',q:{en:'Which do you like better, summer or winter?',ja:'夏�
        {c:'c1',n:'3',t:'First, で1つ目の理由を書いた',ft:'First, で1つ目の理由を書く',how:'意見に合う理由か。First, で始めたか。',ex:2,fix:'First, のあとに、意見に合う理由を1文で書く。'},
        {c:'c2',n:'4',t:'Second, で2つ目の理由を書いた',ft:'Second, で2つ目の理由を書く',how:'1つ目と別の理由か。Second, で始めたか。',ex:3,fix:'Second, のあとに、1つ目と別の理由を書く。同じことを言いかえただけにしない。'},
        {c:'',n:'5',t:'25〜35語に入った',ft:'25〜35語に入れる',auto:1},
-       {c:'',n:'6',t:'can のあとは動詞の元の形にした',ft:'can のあとは動詞の元の形にする',how:'can swim・can travel のように、can のあとは s も ed も付けない。can を使っていなければ「できた」を押す。',ex:2,fix:'can・will のあとは動詞の元の形。can swims・can swam にしない。'}]};
+       {c:'',n:'6',t:'can のあとは動詞の元の形にした',ft:'can のあとは動詞の元の形にする',how:'can swim・can travel のように、can のあとは s も ed も付けない。can を使っていなければ「できた」を押す。',ex:2,fix:'can・will のあとは動詞の元の形。can swims・can swam にしない。'},
+       {c:'',n:'7',t:'文の頭を大文字にして、最後にピリオドを打った',ft:'文の頭は大文字、文の最後にピリオド（.）',how:'どの文も最初の文字が大文字（I・First・Second）か。どの文も最後にピリオド（.）があるか。First, と Second, のあとのコンマ（,）も見る。',ex:2,fix:'文の頭は大文字にする（first, → First,）。文の最後にピリオド（.）を打つ。I（私）はいつも大文字。'}]};
 /* 読解の形式（reading）で出す本文：かたまり（スラッシュ・英語の順で）と語の意味を入れる */
 function plMail_(){return {kind:'メール',title:'',gloss:GL,lines:M1.map(function(l){return {en:l.en,ja:l.ja,chunks:l.ck.map(function(c){return {en:c[0],ja:c[1]};})};})};}
 /* 形式ポイント（Eメール・英作文）。図は今の形式ポイントには無い→モックでは描いたあとに差しこむ */
@@ -10554,7 +10557,7 @@ var EXC=[{en:'I saw it last Sunday.',ja:'この前の日曜日に見ました。
 var _qsf0_=qSecFor;qSecFor=function(x){return 0;};   /* 3-40：ライティング編の穴うめは時間をはからない（モックでは全部0） */
 _LX_FCARD_.w2={t:'QUESTION に英語で答える',s:['QUESTION にそのまま答える意見の文を書く','I have two reasons. のあとに理由を2つ','First, ／ Second, で始めて、25〜35語にする'],ex:['Which do you like better（どちらが好き？）→ 好きなほうを1つ選んで答える','','First, I can walk with my dog.（1つ目は、犬と散歩できるからです）']};
 var _lxCard0_=_lxCard_;
-_lxCard_=function(s,w,q){_lxCard0_(s,w,q);var c=document.querySelector('#sent-body .lx-fcard');if(c&&q.card==='w1')c.insertAdjacentHTML('beforeend',diaMail_(EXC));if(c&&q.card==='w2')c.insertAdjacentHTML('beforeend',diaEssay_());};
+_lxCard_=function(s,w,q){_lxCard0_(s,w,q);var c=document.querySelector('#sent-body .lx-fcard');if(c&&q.card==='w1'){var ft=c.querySelector('.lx-ft');(ft||c).insertAdjacentHTML(ft?'afterend':'afterbegin','<div class="rp" style="margin-bottom:10px"><div class="qq">'+rb_('James から来たメール（このメールに返信を書く）')+'</div>'+M1.map(function(l){var t=tap_(l.en);return '<div class="ln">'+(l.u?'<span class="wr-u'+l.u+'">'+t+'</span>':t)+'</div>';}).join('')+'</div>');c.insertAdjacentHTML('beforeend',diaMail_(EXC));}if(c&&q.card==='w2')c.insertAdjacentHTML('beforeend',diaEssay_());};
 function W(){
   var as={};as['as-m1']={payload:JSON.stringify(plMail_())};
   as['as-s3']={payload:JSON.stringify({en:A1[1].en,ja:A1[1].ja,tokens:['My','father','cooked','curry','for','us','.'],gloss:['私の','父','料理した','カレー','～のために','私たちに','']})};
@@ -10658,7 +10661,8 @@ function st6m_(){
          {q:'答えの2文のほかに、1文足している？',a:'y',why:'感想（It was a lot of fun.）を足している。'},
          {q:'どの文も I や It など「だれが・何が」から始まっている？',a:'y',why:'3つの文とも I・It から始まっている。'},
          {q:'①の質問は did で聞いている（過去のこと）。答えは過去の形になっている？',a:'n',why:'I eat は今の形。過去の形の ate（食べた）にする。'},
-         {q:'自分のこととして答えている？（I を使っている？）',a:'y',why:'①②の答えは I から始まり、自分のことを書いている。'}];
+         {q:'自分のこととして答えている？（I を使っている？）',a:'y',why:'①②の答えは I から始まり、自分のことを書いている。'},
+         {q:'どの文も、頭が大文字で、最後にピリオド（.）がある？',a:'y',why:'3つの文とも I・It（大文字）で始まり、最後に . がある。'}];
   function head(step){ask.innerHTML='<div class="wr-do">'+mix_(step.t)+(step.s?'<span class="sub">'+rb_(step.s)+'</span>':'')+'</div>';window.scrollTo(0,0);}
   function mail(){return '<div class="rp"><div class="qq">'+rb_('James のメール（お祭りの話）の質問')+'</div>'
     +'<div class="ln"><span class="wr-u1">'+tap_('What did you eat there?')+'</span> <small style="color:var(--sub)">（'+rb_('そこで何を食べましたか')+'）</small></div>'
@@ -10711,6 +10715,17 @@ function st6m_(){
   }
   intro();
 }
+
+/* 本番の不具合の手当て（モックだけ・§20d 12-15）：語を押せる本文（.tkw で語ごとに区切る）では、範囲の最初の矩形が幅0になり、矢印が語の頭から終わりへ動かない（瞬間移動に見える） */
+_rdxArrow_=function(bx,el,w,dur){
+  var n=w[2].replace(/[^A-Za-z0-9'’]+$/,'').length||w[2].length;
+  var r=_rdxRange_(el,w[0],w[0]+n);if(!r)return;var c=[].filter.call(r.getClientRects(),function(q){return q.width>1;})[0];if(!c)return;var br=bx.getBoundingClientRect();
+  var p=bx.querySelector('.rdx-pt');if(!p){p=document.createElement('div');p.className='rdx-pt';bx.appendChild(p);}
+  var x0=c.left-br.left+bx.scrollLeft,x1=c.right-br.left+bx.scrollLeft;
+  p.style.transition='none';p.style.top=(c.bottom-br.top+bx.scrollTop+4)+'px';
+  if(!dur){p.style.left=x1+'px';return;}
+  p.style.left=x0+'px';void p.offsetWidth;p.style.transition='left '+dur+'ms linear';p.style.left=x1+'px';
+};
 /* ===== 4版目：やることを上に1文（12-13 ⑨-1）・質問はふつうの文（⑨-4）・設問を本文の上（⑨-2） ===== */
 var DO={s1a:null,s1b:null,s2a:null,s2b:null,
   s3:['日本語に合うように、答えの文を並べよう',''],
@@ -10813,12 +10828,11 @@ function st6_(T,kind){
   function DO6(t,sub){ask.innerHTML='<div class="wr-do">'+rb_(t)+(sub?'<span class="sub">'+rb_(sub)+'</span>':'')+'</div>';window.scrollTo(0,0);}
   function flow(k){var a=['1 ノートに書く','2 語数を数える','3 確かめる'];return '<div class="wr-steps">'+a.map(function(x,i){return i===k?'<b>'+rb_(x)+'</b>':rb_(x);}).join(' → ')+'</div>';}
   function topicHtml(){
+    /* 12-16（10/9 16:23）：囲いと「和訳と英語の順を見る」の切りかえをやめる。1行ずつ 英語・和訳・かたまり（ほかの画面と同じ形） */
     if(kind==='mail'){
-      var en=T.lines.map(function(l){var t=tap_(l[0]);return l[2]?'<span class="wr-u'+l[2]+'">'+t+'</span>':t;});
-      var b=en[0]+'<br>'+en.slice(1,6).join(' ')+'<br>'+en[6]+'<br>'+en[7];
-      return '<div class="wr-mail"><div class="h">'+rb_(T.h)+'</div>'+b+'</div><div class="wr-hint">'+rb_('点線の語を押すと、意味と音が出ます。')+'</div><span class="wr-tog" id="wr-tg">'+rb_('和訳と英語の順を見る')+'</span><div class="wr-mja" id="wr-mja">'+T.lines.map(function(l){return sent_({en:l[0],ja:l[1],ck:MCK[l[0]]||[],nocnt:1},l[2]?'c'+l[2]:'',l[2]?'下線'+(l[2]===1?'①':'②'):'');}).join('')+'</div>';
+      return '<div class="wr-ml"><div class="h">'+rb_(T.h)+'</div>'+T.lines.map(function(l){return sent_({en:l[0],ja:l[1],ck:MCK[l[0]]||[],nocnt:1,u:l[2]||0},'','');}).join('')+'</div><div class="wr-hint">'+rb_('点線の語を押すと、意味と音が出ます。')+'</div>';
     }
-    return '<div class="wr-mail"><div class="h">QUESTION</div><b>'+tap_(T.q.en)+'</b></div><div class="wr-hint">'+rb_('点線の語を押すと、意味と音が出ます。')+'</div><span class="wr-tog" id="wr-tg">'+rb_('和訳と英語の順を見る')+'</span><div class="wr-mja" id="wr-mja">'+sent_({en:T.q.en,ja:T.q.ja,ck:MCK[T.q.en]||[],nocnt:1},'c4','QUESTION')+'</div>';
+    return '<div class="wr-ml"><div class="h">QUESTION</div>'+sent_({en:T.q.en,ja:T.q.ja,ck:MCK[T.q.en]||[],nocnt:1},'','')+'</div><div class="wr-hint">'+rb_('点線の語を押すと、意味と音が出ます。')+'</div>';
   }
   function topic(){
     DO6(kind==='mail'?'James のメールに、ノートで返信を書こう':'QUESTION の答えを、ノートに書こう','アプリには打ちこまない。本当のことでなくてよい。書けたら下のボタンを押す。');
@@ -10826,7 +10840,6 @@ function st6_(T,kind){
       +(kind==='mail'?diaMail_(null):diaEssay_())
       
       +'<button type="button" class="btn" id="wr-w">'+rb_('ノートに書けた')+'</button>';
-    $('wr-tg').onclick=function(){var m=$('wr-mja');m.style.display=m.style.display==='block'?'none':'block';this.innerHTML=rb_(m.style.display==='block'?'和訳と英語の順をかくす':'和訳と英語の順を見る');};
     $('wr-w').onclick=count;
   }
   function count(){
@@ -10923,6 +10936,45 @@ window.addEventListener('load',function(){setTimeout(function(){
   [].forEach.call(p.querySelectorAll('[data-o]'),function(b){b.onclick=function(){var a=b.getAttribute('data-o').split('=');OPT[a[0]]=a[1];if(cur==='s6'||cur==='e6')go_();else upd_();};});
   go_();
 },700);});
+})();
+</script>
+
+<style>
+/* 決定A（10/9 16:14・§20d 12-15）：本文の語の意味は画面の下に出す。押した語は文字の色だけ変える */
+.tk-pop.wr-bot{position:fixed;left:12px!important;right:12px;width:auto!important;top:auto!important;bottom:calc(12px + env(safe-area-inset-bottom));z-index:90}
+.tk-pop.wr-bot::before{display:none}
+#rd-box .tkw.on{background:none;color:var(--accent);font-weight:800}
+</style>
+<script>
+(function(){var o=_tkOpen_;_tkOpen_=function(el,en,ja,sp){o(el,en,ja,sp);try{if(_TK_POP_&&el.closest&&el.closest('#rd-box')){_TK_POP_.classList.add('wr-bot');}}catch(e){}};})();
+</script>
+<script>
+/* 12-17（10/9 16:30 川上さん決定 A）：並べ替えは1回だけやり直せる。1回目にまちがえたら、さっきの並べ方を見せて、札を並べ直す。2回目もまちがえたら今までどおり答えを出す */
+(function(){
+  function rb_(t){try{return _jaRubyIf_(t);}catch(e){return esc(t);}}
+  var o=renderRO_,retry=false,tried=0,prev='';
+  renderRO_=function(s,w,q,pl){
+    var again=retry;retry=false;if(!again){tried=0;prev='';}
+    o.apply(this,arguments);
+    var body=document.getElementById('sent-body');
+    if(again&&body)body.insertAdjacentHTML('afterbegin','<div class="wr-sum ng" id="wr-ro2" style="margin:0 0 6px">'+rb_('ちがっていました。もう一度並べよう（あと1回）')+'</div><div class="wr-kai" id="wr-ro2b" style="margin:0 0 8px">'+rb_('さっきの並べ方')+'：<s style="color:#b91c1c">'+esc(prev)+'</s></div>');
+    var btn=document.querySelector('#sent-choices .ro-go');if(!btn)return;
+    if(tried>0){var ob2=btn.onclick;btn.onclick=function(){var m=document.getElementById('wr-ro2');if(m){var n=m.nextElementSibling;if(n&&n.id==='wr-ro2b')n.remove();m.remove();}return ob2.call(this);};return;}
+    var ob=btn.onclick;
+    btn.onclick=function(){
+      var sl=document.getElementById('ro-slots');if(!sl)return;
+      var placed=[].map.call(sl.querySelectorAll('.ro-chip'),function(e){return e.getAttribute('data-t');});
+      var toks=(q&&q.tokens&&q.tokens.length)?q.tokens:((pl.tokens&&pl.tokens.length)?pl.tokens:_sentTok_(pl.en));
+      if(placed.length!==toks.length)return;
+      var alts=(q&&q.alt_orders)||[];
+      var ok=_sentJoin_(placed)===_sentJoin_(toks)||alts.some(function(a){return _sentJoin_(placed)===_sentJoin_(a);});
+      if(ok)return ob.call(this);
+      tried=1;prev=_sentJoin_(placed);btn.disabled=true;
+      [].forEach.call(sl.querySelectorAll('.ro-chip'),function(c){c.classList.add('ng');});
+      sl.classList.add('shake');try{sndWrong();}catch(e){}
+      setTimeout(function(){retry=true;renderRO_(s,w,q,pl);window.scrollTo(0,0);},900);
+    };
+  };
 })();
 </script>
 </body>
