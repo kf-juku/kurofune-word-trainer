@@ -10385,6 +10385,42 @@ function _pvStart_(){
 .wr-sum.ok{background:#e9f8ef;color:#13703a}.wr-sum.ng{background:#fdecec;color:#b42318}
 .wr-kai{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:14.5px;line-height:1.75}
 .wr-kai .h{font:700 12px "Noto Sans JP",sans-serif;color:var(--sub);margin-bottom:2px}
+
+/* ===== 4版目（2026-10-09 川上さん 12-13）：やることは上に1文・色は2つ・囲みを減らす ===== */
+.wr-do{font:800 17px/1.55 "Noto Sans JP",sans-serif;color:var(--ink);text-align:left;margin:2px 0 10px}
+.wr-do .sub{display:block;font:600 12.5px/1.5 "Noto Sans JP",sans-serif;color:var(--sub);margin-top:2px}
+#sent-ask .lx-point,#sent-ask .ro-ex{display:none!important}
+#sent-body .rd-tag{display:none!important}
+body.wr-rd #sent-body .rd-q{display:none!important}
+.wr-u1,.wr-u2{text-decoration:underline solid #111 2px!important;text-underline-offset:4px}
+.wr-u1::before,.wr-u2::before{display:inline!important;background:none!important;color:var(--ink)!important;padding:0 3px 0 0!important;margin:0!important;font:800 15px "Noto Sans JP",sans-serif!important;border-radius:0!important;vertical-align:0!important;text-decoration:none}
+.wr-u1::before{content:'①'!important}.wr-u2::before{content:'②'!important}
+/* 色は「自分が書く所」の1色だけ（オレンジ） */
+.c1,.c2,.c3,.c4{background:#fff4e6!important}
+.c1 b,.c2 b,.c3 b,.c4 b,.c1 .tag,.c2 .tag,.c3 .tag,.c4 .tag,.ws.c1 .tag,.ws.c2 .tag,.ws.c3 .tag,.ws.c4 .tag{background:#c2410c!important}
+.ws.c1,.ws.c2,.ws.c3,.ws.c4{border-color:#f3c99b!important;background:var(--surface)!important}
+.wr-pt.c1,.wr-pt.c2,.wr-pt.c3,.wr-pt.c4{background:var(--surface)!important}
+.wr-slot.c1 b,.wr-slot.c2 b,.wr-slot.c3 b{background:#c2410c!important}
+/* 質問の英文は枠なしのふつうの文 */
+.wr-q{margin:4px 0 10px;text-align:left}.wr-q .lb{font:700 12.5px "Noto Sans JP",sans-serif;color:var(--sub)}
+.wr-q .ws{border:none!important;padding:0!important;margin:2px 0 0!important;background:none!important}
+/* 返信の形（図）＝ふつうの文。自分で書く所だけオレンジ */
+.wl{margin:10px 0 4px;text-align:left}.wl .h{font:700 13px "Noto Sans JP",sans-serif;color:var(--sub);margin-bottom:4px}
+.wl .ln{padding:3px 8px;font-size:15px;line-height:1.5}.wl .ln small{display:block;font-size:12px;color:var(--sub)}
+.wl .me{background:#fff4e6;border-left:4px solid #c2410c;margin:3px 0}.wl .me i{font-style:normal;font:700 11.5px "Noto Sans JP",sans-serif;color:#c2410c;float:right;margin-left:6px}
+.wl .nt{font:700 13.5px "Noto Sans JP",sans-serif;margin-top:8px}
+/* 段⑥の流れは1行 */
+.wr-steps{font:700 13px "Noto Sans JP",sans-serif;color:var(--sub);margin:0 0 10px}.wr-steps b{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.wr-pic{display:none!important}
+/* 段④・段⑤ */
+.rp{text-align:left;margin:4px 0}.rp .ln{font-size:15.5px;line-height:1.55;padding:2px 0}.rp .qq{font-size:12.5px;color:var(--sub);margin-top:6px}
+.rp .blank{border:2px dashed #c2410c;background:#fff4e6;border-radius:8px;padding:10px;margin:6px 0;color:#c2410c;font-weight:700;min-height:22px}
+.rp .blank.f{border-style:solid;color:var(--ink)}
+.c4b{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.c4b button{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px;text-align:left;font:600 15.5px "Noto Sans JP",sans-serif;color:var(--ink)}
+.c4b button.ok{border-color:#13703a;background:#e9f8ef}.c4b button.ng{border-color:#b42318;background:#fdecec}
+body.wr-s5 #ro-slots{display:flex!important;flex-direction:column;gap:6px}body.wr-s5 #ro-slots>*{width:100%!important;min-height:44px}
+body.wr-s5 #step-sent .ro-bank button,body.wr-s5 #step-sent button.ro-tok{white-space:normal;text-align:left}
 /* 段⑥ */
 .wr-flow{display:flex;gap:6px;margin:4px 0 12px}
 .wr-flow div{flex:1;text-align:center;border-radius:10px;padding:7px 2px;background:var(--neutral-bg);font:700 12px "Noto Sans JP",sans-serif;color:var(--sub)}
@@ -10458,21 +10494,20 @@ function sent_(S,cls,tag,open){
 document.addEventListener('click',function(e){var o=e.target.closest&&e.target.closest('.ws .og');if(!o)return;var c=document.getElementById(o.getAttribute('data-ck'));if(c)c.style.display=(c.style.display==='flex'?'none':'flex');});
 /* ---------- 図：返信の形・英作文の形 ---------- */
 function diaMail_(ex){
-  return '<div class="wd"><div class="wd-h">'+rb_('返信の形')+(ex?rb_('（例は、映画のメールへの返信。When did you see it?（いつ見た？）・Who did you go with?（だれと行った？）と聞かれた場合）'):'')+'</div>'
-    +'<div class="wd-r wd-fix"><b>印</b><span class="wd-t">'+tap_('Hi, James! Thank you for your e-mail.')+'<small>'+rb_('（こんにちは、ジェームズ！メールをありがとう）印刷されている・数えない')+'</small></span></div>'
-    +'<div class="wd-r c1"><b>1</b><span class="wd-t">'+rb_('下線①の質問の答え（1文）')+(ex?'<small>'+tap_(ex[0].en)+' （'+rb_(ex[0].ja)+'）</small>':'')+'</span></div>'
-    +'<div class="wd-r c2"><b>2</b><span class="wd-t">'+rb_('下線②の質問の答え（1文）')+(ex?'<small>'+tap_(ex[1].en)+' （'+rb_(ex[1].ja)+'）</small>':'')+'</span></div>'
-    +'<div class="wd-r c3"><b>＋</b><span class="wd-t">'+rb_('1文足す（感想・くわしい説明）')+(ex?'<small>'+tap_(ex[2].en)+' （'+rb_(ex[2].ja)+'）</small>':'')+'</span></div>'
-    +'<div class="wd-r wd-fix"><b>印</b><span class="wd-t">'+tap_('Best wishes,')+'<small>'+rb_('（それでは、また）印刷されている・数えない')+'</small></span></div>'
-    +'<div class="wd-n">'+rb_('自分で書くのは')+' <span>1</span> <span>2</span> <span>＋</span> '+rb_('の3文。合わせて15〜25語')+'</div></div>';
+  var L=function(en,ja,me,lab){return '<div class="ln'+(me?' me':'')+'">'+(lab?'<i>'+rb_(lab)+'</i>':'')+tap_(en)+(ja?'<small>'+rb_(ja)+'</small>':'')+'</div>';};
+  var e=ex||[{en:'（下線①の答え）',ja:''},{en:'（下線②の答え）',ja:''},{en:'（1文足す）',ja:''}];
+  return '<div class="wl"><div class="h">'+rb_(ex?'返信の例（James から映画のメール。下線①：When did you see it?〔いつ見た？〕 下線②：Who did you go with?〔だれと行った？〕）':'返信の形')+'</div>'
+    +L('Hi, James!','こんにちは、ジェームズ！')+L('Thank you for your e-mail.','メールをありがとう。')
+    +L(e[0].en,e[0].ja,1,'下線①の答え')+L(e[1].en,e[1].ja,1,'下線②の答え')+L(e[2].en,e[2].ja,1,'1文足す')
+    +L('Best wishes,','それでは、また。')
+    +'<div class="nt">'+rb_('オレンジの3文を自分で書く（合わせて15〜25語）。ほかの文は問題に書いてある。')+'</div></div>';
 }
 function diaEssay_(){
-  return '<div class="wd"><div class="wd-h">'+rb_('答えの形')+'</div>'
-    +'<div class="wd-r c4"><b>意</b><span class="wd-t">'+rb_('意見：QUESTION にそのまま答える')+'<small>'+rb_('例（Which do you like better, dogs or cats?）')+' '+tap_('I like dogs better.')+' （'+rb_('犬のほうが好きです')+'）</small></span></div>'
-    +'<div class="wd-r c3"><b>→</b><span class="wd-t">'+tap_('I have two reasons.')+'<small>'+rb_('（理由が2つあります）自分で書く・数える')+'</small></span></div>'
-    +'<div class="wd-r c1"><b>1</b><span class="wd-t">'+tap_('First,')+' '+rb_('（1つ目は）1つ目の理由')+'<small>'+tap_('First, I can walk with my dog.')+' （'+rb_('1つ目は、犬と散歩できるからです')+'）</small></span></div>'
-    +'<div class="wd-r c2"><b>2</b><span class="wd-t">'+tap_('Second,')+' '+rb_('（2つ目は）2つ目の理由')+'<small>'+tap_('Second, dogs are very cute.')+' （'+rb_('2つ目は、犬はとてもかわいいからです')+'）</small></span></div>'
-    +'<div class="wd-n">'+rb_('全部で25〜35語')+'</div></div>';
+  var L=function(en,ja,me,lab){return '<div class="ln'+(me?' me':'')+'">'+(lab?'<i>'+rb_(lab)+'</i>':'')+tap_(en)+(ja?'<small>'+rb_(ja)+'</small>':'')+'</div>';};
+  return '<div class="wl"><div class="h">'+rb_('答えの例（QUESTION：Which do you like better, dogs or cats?〔犬とねこではどちらが好き？〕）')+'</div>'
+    +L('I like dogs better.','犬のほうが好きです。',1,'意見')+L('I have two reasons.','理由が2つあります。',1,'')
+    +L('First, I can walk with my dog in the park every day.','1つ目は、毎日公園で犬と散歩できるからです。',1,'理由1')+L('Second, dogs are very cute and friendly.','2つ目は、犬はとてもかわいくて人なつこいからです。',1,'理由2')
+    +'<div class="nt">'+rb_('全部自分で書く（合わせて25〜35語）。')+'</div></div>';
 }
 /* ---------- データ（自作） ---------- */
 var M1=[
@@ -10492,12 +10527,12 @@ var M2={h:'James からのメール',lines:[['Hi,','こんにちは。'],['I hea
       {en:'I ride it to the park every Sunday.',ja:'毎週日曜日に、それに乗って公園に行きます。',ck:[['I ride it','私はそれに乗る'],['to the park','公園へ'],['every Sunday.','毎週日曜日']]}],
   min:15,max:25,
   pts:[{c:'c1',n:'1',t:'下線①（Where did you buy it?）に答えた',ft:'下線①（Where did you buy it?）に答える',how:'Where は「どこで」。買った場所が書いてあるか見る。',ex:0,fix:'Where（どこで）には場所を答える。I bought it at ～.（～で買いました）。'},
-       {c:'c2',n:'2',t:'下線②（What color is it?）に答えた',ft:'下線②（What color is it?）に答える',how:'What color は「何色」。色が書いてあるか見る。',ex:1,fix:'What color（何色）には色を答える。It is ～.（それは～です）。'},
-       {c:'c3',n:'＋',t:'答えのほかに1文足した',ft:'答えのほかに1文足す',how:'感想（It is very nice.＝とてもすてきです）や、くわしい説明（いつ乗るか など）。',ex:2,fix:'答えの2文のあとに、感想かくわしい説明を1文足す。I like it very much.（とても気に入っています）など。'},
-       {c:'',n:'語',t:'15〜25語に入った',ft:'15〜25語に入れる',auto:1},
-       {c:'',n:'主',t:'どの文も I や It などで始まっている',ft:'どの文も「だれが・何が」から始める',how:'At a bike shop.（自転車屋で）だけでは文にならない。I bought it ～. のように I・It・My father などから書いたか。',ex:0,fix:'「だれが・何が」（I・It など）＋動詞 で書く。At a bike shop. → I bought it at a bike shop.'},
-       {c:'',n:'過',t:'過去のことは過去の形で書いた',ft:'過去のことは過去の形で書く',how:'Where did you buy it? は did で聞いている＝過去の質問。答えは buy ではなく bought。',ex:0,fix:'did で聞かれたら、答えは過去の形。buy → bought、get → got、go → went。'},
-       {c:'',n:'I',t:'質問の you を I に変えた',ft:'質問の you を I に変える',how:'Where did you buy it?（あなたはどこで買った？）→ 答えは自分のことなので I bought it ～.',ex:0,fix:'質問の you（あなた）は、答えでは I（私）。your（あなたの）は my（私の）。'}]};
+       {c:'c2',n:'2',t:'下線②（And what color is it?）に答えた',ft:'下線②（And what color is it?）に答える',how:'What color は「何色」。色が書いてあるか見る。',ex:1,fix:'What color（何色）には色を答える。It is ～.（それは～です）。'},
+       {c:'c3',n:'3',t:'答えのほかに1文足した',ft:'答えのほかに1文足す',how:'感想（It is very nice.＝とてもすてきです）や、くわしい説明（いつ乗るか など）。',ex:2,fix:'答えの2文のあとに、感想かくわしい説明を1文足す。I like it very much.（とても気に入っています）など。'},
+       {c:'',n:'4',t:'15〜25語に入った',ft:'15〜25語に入れる',auto:1},
+       {c:'',n:'5',t:'どの文も I や It などで始まっている',ft:'どの文も「だれが・何が」から始める',how:'At a bike shop.（自転車屋で）だけでは文にならない。I bought it ～. のように I・It・My father などから書いたか。',ex:0,fix:'「だれが・何が」（I・It など）＋動詞 で書く。At a bike shop. → I bought it at a bike shop.'},
+       {c:'',n:'6',t:'過去のことは過去の形で書いた',ft:'過去のことは過去の形で書く',how:'Where did you buy it? は did で聞いている＝過去の質問。答えは buy ではなく bought。',ex:0,fix:'did で聞かれたら、答えは過去の形。buy → bought、get → got、go → went。'},
+       {c:'',n:'7',t:'自分のこととして答えた（I を使った）',ft:'自分のこととして答える（I を使う）',how:'Where did you buy it?（あなたはどこで買った？）には、自分のことなので I bought it ～. と答える。',ex:0,fix:'質問の you（あなた）は、答えでは I（私）。your（あなたの）は my（私の）。'}]};
 var MCK={'I heard that you got a new bike.':[['I heard','私は聞いた'],['that you got a new bike.','あなたが新しい自転車を手に入れたと']],"That's great!":[["That's great!",'それはすばらしい']],'I want a new bike, too.':[['I want a new bike,','私は新しい自転車がほしい'],['too.','～も']],'Where did you buy it?':[['Where','どこで'],['did you buy it?','あなたはそれを買いましたか']],'And what color is it?':[['And','そして'],['what color','何色'],['is it?','それは～ですか']],'Which do you like better, summer or winter?':[['Which do you like better,','あなたはどちらのほうが好きですか'],['summer or winter?','夏か冬か']]};
 var E={h:'QUESTION',q:{en:'Which do you like better, summer or winter?',ja:'夏と冬では、どちらのほうが好きですか。'},
   ex:[{en:'I like summer better.',ja:'私は夏のほうが好きです。',ck:[['I like summer','私は夏が好き'],['better.','（～の）ほうが']]},
@@ -10505,17 +10540,17 @@ var E={h:'QUESTION',q:{en:'Which do you like better, summer or winter?',ja:'夏�
       {en:'First, I can swim in the sea with my friends.',ja:'1つ目は、友達と海で泳げるからです。',ck:[['First,','1つ目は'],['I can swim','私は泳げる'],['in the sea','海で'],['with my friends.','私の友達と']]},
       {en:'Second, summer vacation is long, so I can travel with my family.',ja:'2つ目は、夏休みは長いので、家族と旅行できるからです。',ck:[['Second,','2つ目は'],['summer vacation is long,','夏休みは長い'],['so I can travel','だから私は旅行できる'],['with my family.','私の家族と']]}],
   min:25,max:35,
-  pts:[{c:'c4',n:'意',t:'QUESTION に答える意見の文を書いた',ft:'QUESTION に答える意見の文を書く',how:'summer か winter のどちらかを選んで、I like ～ better. の形で書いたか。',ex:0,fix:'QUESTION の言葉を使って答える。Which do you like better ～? → I like ～ better.'},
-       {c:'c3',n:'→',t:'I have two reasons. を書いた',ft:'意見のあとに I have two reasons. を書く',how:'意見の文と理由の間に入れる文。',ex:1,fix:'意見の文のあとに I have two reasons.（理由が2つあります）を書く。'},
-       {c:'c1',n:'1',t:'First, で1つ目の理由を書いた',ft:'First, で1つ目の理由を書く',how:'意見に合う理由か。First, で始めたか。',ex:2,fix:'First, のあとに、意見に合う理由を1文で書く。'},
-       {c:'c2',n:'2',t:'Second, で2つ目の理由を書いた',ft:'Second, で2つ目の理由を書く',how:'1つ目と別の理由か。Second, で始めたか。',ex:3,fix:'Second, のあとに、1つ目と別の理由を書く。同じことを言いかえただけにしない。'},
-       {c:'',n:'語',t:'25〜35語に入った',ft:'25〜35語に入れる',auto:1},
-       {c:'',n:'形',t:'can のあとは動詞の元の形にした',ft:'can のあとは動詞の元の形にする',how:'can swim・can travel のように、can のあとは s も ed も付けない。',ex:2,fix:'can・will のあとは動詞の元の形。can swims・can swam にしない。'}]};
+  pts:[{c:'c4',n:'1',t:'QUESTION に答える意見の文を書いた',ft:'QUESTION に答える意見の文を書く',how:'summer か winter のどちらかを選んで、I like ～ better. の形で書いたか。',ex:0,fix:'QUESTION の言葉を使って答える。Which do you like better ～? → I like ～ better.'},
+       {c:'c3',n:'2',t:'I have two reasons. を書いた',ft:'意見のあとに I have two reasons. を書く',how:'意見の文と理由の間に入れる文。',ex:1,fix:'意見の文のあとに I have two reasons.（理由が2つあります）を書く。'},
+       {c:'c1',n:'3',t:'First, で1つ目の理由を書いた',ft:'First, で1つ目の理由を書く',how:'意見に合う理由か。First, で始めたか。',ex:2,fix:'First, のあとに、意見に合う理由を1文で書く。'},
+       {c:'c2',n:'4',t:'Second, で2つ目の理由を書いた',ft:'Second, で2つ目の理由を書く',how:'1つ目と別の理由か。Second, で始めたか。',ex:3,fix:'Second, のあとに、1つ目と別の理由を書く。同じことを言いかえただけにしない。'},
+       {c:'',n:'5',t:'25〜35語に入った',ft:'25〜35語に入れる',auto:1},
+       {c:'',n:'6',t:'can のあとは動詞の元の形にした',ft:'can のあとは動詞の元の形にする',how:'can swim・can travel のように、can のあとは s も ed も付けない。can を使っていなければ「できた」を押す。',ex:2,fix:'can・will のあとは動詞の元の形。can swims・can swam にしない。'}]};
 /* 読解の形式（reading）で出す本文：かたまり（スラッシュ・英語の順で）と語の意味を入れる */
 function plMail_(){return {kind:'メール',title:'',gloss:GL,lines:M1.map(function(l){return {en:l.en,ja:l.ja,chunks:l.ck.map(function(c){return {en:c[0],ja:c[1]};})};})};}
 /* 形式ポイント（Eメール・英作文）。図は今の形式ポイントには無い→モックでは描いたあとに差しこむ */
 _LX_FCARD_.w1={t:'James のメールに返信を書く',s:['下線の質問2つを見つける','それぞれに1文で答える','1文足して、15〜25語にする'],ex:['When（いつ）・Who（だれが）・Where（どこで）','When（いつ）→ いつかを答える','感想 It was very exciting.（とてもわくわくしました）']};
-var EXC=[{en:'I saw it last Sunday.',ja:'この前の日曜日に見ました。'},{en:'I went with my sister.',ja:'姉と行きました。'},{en:'It was very exciting.',ja:'とてもわくわくしました。'}];
+var EXC=[{en:'I saw it last Sunday.',ja:'この前の日曜日に見ました。'},{en:'I went with my sister.',ja:'姉と行きました。'},{en:'It was a very exciting movie.',ja:'とてもわくわくする映画でした。'}];
 var _qsf0_=qSecFor;qSecFor=function(x){return 0;};   /* 3-40：ライティング編の穴うめは時間をはからない（モックでは全部0） */
 _LX_FCARD_.w2={t:'QUESTION に英語で答える',s:['QUESTION にそのまま答える意見の文を書く','I have two reasons. のあとに理由を2つ','First, ／ Second, で始めて、25〜35語にする'],ex:['Which do you like better（どちらが好き？）→ 好きなほうを1つ選んで答える','','First, I can walk with my dog.（1つ目は、犬と散歩できるからです）']};
 var _lxCard0_=_lxCard_;
@@ -10525,14 +10560,15 @@ function W(){
   as['as-s3']={payload:JSON.stringify({en:A1[1].en,ja:A1[1].ja,tokens:['My','father','cooked','curry','for','us','.'],gloss:['私の','父','料理した','カレー','～のために','私たちに','']})};
   as['as-f1']={payload:JSON.stringify({en:'I went camping in July.',ja:'7月にキャンプに行きました。',tokens:['I','went','camping','in','July','.'],gloss:['私は','行った','キャンプ','～に','7月','']})};
   as['as-f2']={payload:JSON.stringify({en:'My mother cooked dinner.',ja:'母が夕食を作りました。',tokens:['My','mother','cooked','dinner','.'],gloss:['私の','母','料理した','夕食','']})};
-  as['as-r1']={payload:JSON.stringify({en:'I went camping last Sunday.',ja:'you を I に、did go を過去の形に変えて答えよう',tokens:['I','went','camping','last','Sunday','.'],gloss:['私は','行った','キャンプ','この前の','日曜日','']})};
-  as['as-r2']={payload:JSON.stringify({en:'My brother cooked curry and rice.',ja:'作った人（自分の家族）を主語にして答えよう',tokens:['My','brother','cooked','curry','and','rice','.'],gloss:['私の','兄・弟','料理した','カレー','と','ごはん','']})};
-  as['as-r3']={payload:JSON.stringify({en:E.ex[0].en,ja:'夏のほうが好きだとして、QUESTION に答える文を作ろう',tokens:['I','like','summer','better','.'],gloss:['私は','好き','夏','（～のほうが）','']})};
+  as['as-r1']={payload:JSON.stringify({en:'I went camping in August.',ja:'8月にキャンプに行きました。',tokens:['I','went','camping','in','August','.'],gloss:['私は','行った','キャンプ','～に','8月','']})};
+  as['as-r2']={payload:JSON.stringify({en:'My brother cooked curry.',ja:'兄がカレーを作りました。',tokens:['My','brother','cooked','curry','.'],gloss:['私の','兄','料理した','カレー','']})};
+  as['as-r3']={payload:JSON.stringify({en:E.ex[0].en,ja:E.ex[0].ja,tokens:['I','like','summer','better','.'],gloss:['私は','好き','夏','（～のほうが）','']})};
   as['as-rep']={payload:JSON.stringify({kind:'メール',title:'あなたの返信（ここまで）',gloss:GL,lines:[
     {en:'Hi, James!',ja:'こんにちは、ジェームズ！',chunks:[]},{en:'Thank you for your e-mail.',ja:'メールをありがとう。',chunks:[{en:'Thank you',ja:'ありがとう'},{en:'for your e-mail.',ja:'あなたのメールに'}]},
     {en:A1[0].en,ja:A1[0].ja,chunks:A1[0].ck.map(function(c){return {en:c[0],ja:c[1]};})},{en:A1[1].en,ja:A1[1].ja,chunks:A1[1].ck.map(function(c){return {en:c[0],ja:c[1]};})},
     {en:'Best wishes,',ja:'それでは、また。',chunks:[]}]})};
   as['as-e2']={payload:JSON.stringify({en:E.ex[0].en,ja:E.ex[0].ja,tokens:['I','like','summer','better','.'],gloss:['私は','好き','夏','（～のほうが）','']})};
+  as['as-s5']={payload:JSON.stringify({en:A1.map(function(x){return x.en;}).join(' '),ja:' ',tokens:A1.map(function(x){return x.en;}),gloss:A1.map(function(x){return x.ja;})})};
   as['as-s4']={payload:JSON.stringify({en:A1[2].en,ja:A1[2].ja,tokens:['It','was','a','lot','of','fun','.'],gloss:['それは','～だった','1つの','たくさん','～の','楽しいこと','']})};
   as['as-g']={payload:JSON.stringify({en:'Have you ever been to Kyoto?',ja:'あなたは今までに京都に行ったことがありますか。',tokens:['Have','you','ever','been','to','Kyoto','?'],gloss:['（～したことがある）','あなたは','今までに','（been to＝行ったことがある）','～へ','京都','']})};
   function R(id,kind,ques,ch,loc,kai,pt,extra){var q={asset:'as-m1',kind:kind,q:ques,choices:ch,loc:loc,point:pt,intro:1};for(var k in extra)q[k]=extra[k];
@@ -10540,10 +10576,10 @@ function W(){
   return {as:as,ws:{
     s1a:R('w-1a','rc','下線①の質問は、何を聞いている？',['いつキャンプに行ったか','だれとキャンプに行ったか','どこでキャンプをしたか','キャンプに行きたいか'],3,
       '{{When|いつ}} は「いつ」をたずねる語。\n下線①＝{{When did you go camping?|いつキャンプに行きましたか}} → いつ行ったかを聞いている。\nほかの選択肢：「だれと」なら {{Who|だれ}} を使った質問、「どこで」なら {{Where|どこで}} の質問になる。「行きたいか」は {{I want to go camping, too.|私もキャンプに行きたい}} の文の話で、質問ではない。',
-      [1,'下線の質問が、何を聞いているかをつかむ','{{When|いつ}}・{{Who|だれが}}・{{Where|どこで}}'],{card:'w1',tg:3,tap:1}),
+      [1,'下線の質問が、何を聞いているかをつかむ','{{When|いつ}}・{{Who|だれが}}・{{Where|どこで}}'],{card:'w1',tap:1}),
     s1b:R('w-1b','rc','下線②の質問は、何を聞いている？',['だれが夕食を作ったか','いつ夕食を食べたか','何を料理したか','どこで夕食を食べたか'],4,
       '{{Who|だれが}} は「だれが」をたずねる語。\n下線②＝{{Who cooked dinner at the campsite?|キャンプ場ではだれが夕食を作りましたか}} → 作った人を聞いている。\nほかの選択肢：「いつ」なら {{When|いつ}}、「何を」なら {{What|何を}}、「どこで」なら {{Where|どこで}} の質問になる。',
-      [1,'下線の質問が、何を聞いているかをつかむ','{{Who|だれが}} → 人を答える'],{tg:4,tap:1}),
+      [1,'下線の質問が、何を聞いているかをつかむ','{{Who|だれが}} → 人を答える'],{tap:1}),
     s2a:R('w-2a','rq','下線①（When did you go camping?）の答えになる文は？',[{en:A1[0].en,ja:A1[0].ja},{en:'Yes, I did.',ja:'はい、行きました。'},{en:'I will go camping next August.',ja:'次の8月にキャンプに行くつもりです。'},{en:'My father cooked curry for us.',ja:'父が私たちにカレーを作ってくれました。'}],3,
       '{{When|いつ}}（いつ）と聞かれたら、いつかを答える。\n{{I went camping last August.|この前の8月にキャンプに行きました}}＝{{went|行った}} で過去、{{last August|この前の8月}} でいつ。\nほかの選択肢：{{Yes, I did.|はい、行きました}} は {{Did you ～?|～しましたか}} への答え方で、When には Yes / No で答えない。{{will|～するつもり}} は未来なので、過去の質問に合わない。{{My father cooked curry for us.|父が私たちにカレーを作ってくれました}} は下線②の答え。',
       [2,'質問に合う答えの文を選ぶ','{{When|いつ}} → 時を答える・過去のことは過去の形'],{tap:1}),
@@ -10554,24 +10590,26 @@ function W(){
       qdata:JSON.stringify({asset:'as-s3',point:[3,'答えの文を、自分で組み立てる','だれが → どうした → 何を → だれのために'],intro:1})},
     s4:{id:'w-4',qtype:'sentence_fill',english:'fun',japanese:'It was a lot of (   ).',kaisetsu:'{{a lot of fun|とても楽しいこと}}＝「とても楽しい」。感想でよく使う。\n{{a lot of|たくさんの}} のあとには、物や事の名前（名詞）が来る。{{fun|楽しいこと}} は名詞。\n{{funny|おかしい}}・{{happy|うれしい}}・{{glad|うれしい}} は様子を表す語なので、a lot of のあとに置けない。',
       qdata:JSON.stringify({asset:'as-s4',blank:5,choices:['fun','funny','happy','glad'],point:[4,'1文足す（感想）','{{It was very exciting.|とてもわくわくしました}}'],intro:1})},
-    s3c:{id:'w-3c',qtype:'sentence_fill',english:'went',japanese:'I (   ) camping in July.',kaisetsu:'{{did you go?|行きましたか}} と did で聞かれたら、答えは過去の形にする。\n{{go|行く}} の過去の形は {{went|行った}}。did は質問に使う語なので、答えは went の1語にする。\nほかの選択肢：{{go|行く}} は今の形。{{goes|行く}} は he・she のときの今の形で、I には使わない。did go は答えの文では使わない。',
-      qdata:JSON.stringify({asset:'as-f1',blank:1,choices:['went','go','goes','did go'],point:['3-2','質問の英文を、答えの文に作り変える','{{did you buy?|買いましたか}} → {{I bought|私は買った}}'],intro:1})},
+    s3c:{id:'w-3c',qtype:'sentence_fill',english:'went',japanese:'I (   ) camping in July.',kaisetsu:'{{did you go?|行きましたか}} と did で聞かれたら、答えは過去の形にする。\n{{go|行く}} の過去の形は {{went|行った}}。did は質問に使う語。答えの文では go の過去の形 went を使う。\nほかの選択肢：{{go|行く}} は今の形。{{goes|行く}} は he・she のときの今の形で、I には使わない。did だけでは「行った」の意味にならない。',
+      qdata:JSON.stringify({asset:'as-f1',blank:1,choices:['went','go','goes','did'],point:['3-2','質問の英文を、答えの文に作り変える','{{did you buy?|買いましたか}} → {{I bought|私は買った}}'],intro:1})},
     s3d:{id:'w-3d',qtype:'sentence_fill',english:'cooked',japanese:'My mother (   ) dinner.',kaisetsu:'{{Who cooked ～?|だれが～を作りましたか}} には、作った人＋{{cooked|料理した}} で答える。\n質問の {{cooked|料理した}} をそのまま使えばよい。\nほかの選択肢：{{cook|料理する}}・{{cooks|料理する（彼・彼女が）}} は今のこと。{{will cook|料理するつもり}} は未来。',
       qdata:JSON.stringify({asset:'as-f2',blank:2,choices:['cooked','cook','cooks','will cook'],point:['3-2','質問の英文を、答えの文に作り変える','{{Who made ～?|だれが作った？}} → {{My sister made ～.|姉が作った}}'],intro:1})},
-    s3e:{id:'w-3e',qtype:'reorder',english:'I went camping last Sunday.',japanese:'you を I に、did go を過去の形に変えて答えよう',kaisetsu:'{{you|あなた}} は答えでは自分のことなので {{I|私}} に変える。\n{{did you go|行きましたか}} → {{I went|私は行った}}。did は答えの文に書かない。\n余った札：{{you|あなた}}（答えは自分のこと）・{{go|行く}}（今の形。過去の質問なので went）。',
-      qdata:JSON.stringify({asset:'as-r1',extra:['you','go'],point:['3-2','質問の英文を、答えの文に作り変える','{{you|あなた}} → {{I|私}}・{{buy|買う}} → {{bought|買った}}'],intro:1})},
-    s3f:{id:'w-3f',qtype:'reorder',english:'My brother cooked curry and rice.',japanese:'作った人（自分の家族）を主語にして答えよう',kaisetsu:'{{Who|だれが}} には人を答える。\n{{My brother|私の兄が}}＋{{cooked|料理した}}＋{{curry and rice|カレーとごはん}}。\n余った札：{{Your|あなたの}}（Your brother だと「あなたのお兄さん」になる）・{{cook|料理する}}（今の形。過去の質問なので cooked）。',
+    s3e:{id:'w-3e',qtype:'reorder',english:'I went camping in August.',japanese:'8月にキャンプに行きました。',kaisetsu:'{{you|あなた}} は答えでは自分のことなので {{I|私}} に変える。\n{{did you go|行きましたか}} → {{I went|私は行った}}。did は答えの文に書かない。\n余った札：{{you|あなた}}（答えは自分のこと）・{{go|行く}}（今の形。過去の質問なので went）。',
+      qdata:JSON.stringify({asset:'as-r1',extra:['you','go'],point:['3-2','質問の英文を、答えの文に作り変える','{{Did you eat ～?|食べましたか}} → {{I ate ～.|私は食べました}}'],intro:1})},
+    s3f:{id:'w-3f',qtype:'reorder',english:'My brother cooked curry.',japanese:'兄がカレーを作りました。',kaisetsu:'{{Who|だれが}} には人を答える。\n{{My brother|私の兄が}}＋{{cooked|料理した}}＋{{curry|カレーを}}。\n余った札：{{Your|あなたの}}（Your brother だと「あなたのお兄さん」になる）・{{cook|料理する}}（今の形。過去の質問なので cooked）。',
       qdata:JSON.stringify({asset:'as-r2',extra:['Your','cook'],point:['3-2','質問の英文を、答えの文に作り変える','{{Who|だれが}} → 人＋過去の形'],intro:1})},
     s4n:{id:'w-4n',qtype:'reading',english:'It was a lot of fun.',japanese:'足す1文',kaisetsu:'足す1文は、答えの話の続き（感想かくわしい説明）にする。\n{{It was a lot of fun.|とても楽しかったです}}＝キャンプの感想。過去の話なので {{was|～だった}}。\nほかの選択肢：{{I like dogs.|私は犬が好きです}} はキャンプの話と関係ない。{{I went camping last August.|この前の8月にキャンプに行きました}} は下線①の答えのくり返し。{{It will be a lot of fun.|とても楽しくなるでしょう}} は will（これから）なので、過去の話と時が合わない。',
       qdata:JSON.stringify({asset:'as-rep',kind:'rq',q:'My father cooked curry for us. のあとに足す1文として、いちばん合うものは？',choices:[{en:'It was a lot of fun.',ja:'とても楽しかったです。'},{en:'I like dogs.',ja:'私は犬が好きです。'},{en:'I went camping last August.',ja:'この前の8月にキャンプに行きました。'},{en:'It will be a lot of fun.',ja:'とても楽しくなるでしょう。'}],loc:3,tap:1,point:[4,'答えのあとに足す1文を選ぶ','感想 {{It was very delicious.|とてもおいしかったです}}・くわしい説明 {{We sang songs at night.|夜は歌を歌いました}}'],intro:1})},
     e2a:{id:'w-e2a',qtype:'sentence_fill',english:'like',japanese:'I (   ) summer better.',kaisetsu:'{{Which do you like better ～?|どちらのほうが好きですか}} には {{I like ～ better.|～のほうが好きです}} で答える。\n質問の {{you|あなた}} は答えでは {{I|私}}。I のあとは {{like|好き}}（s を付けない）。\nほかの選択肢：{{likes|好き（彼・彼女が）}} は I には使わない。{{liked|好きだった}} は過去。am like という形は無い。',
       qdata:JSON.stringify({asset:'as-e2',blank:1,choices:['like','likes','liked','am like'],card:'w2',point:[2,'意見の文（質問を答えの文に作り変える）','{{Which do you want to visit?|どちらを訪れたい？}} → {{I want to visit ～.|～を訪れたい}}'],intro:1})},
-    e2b:{id:'w-e2b',qtype:'reorder',english:E.ex[0].en,japanese:'夏のほうが好きだとして、QUESTION に答える文を作ろう',kaisetsu:'{{Which do you like better|どちらのほうが好きですか}} → {{I like summer better.|私は夏のほうが好きです}}\n{{you|あなた}} を {{I|私}} に変え、選んだほう（ここでは summer）を入れる。\n余った札：{{you|あなた}}・{{best|いちばん}}。2つを比べるときは {{better|～のほうが}}。',
-      qdata:JSON.stringify({asset:'as-r3',extra:['you','best'],point:[2,'意見の文（質問を答えの文に作り変える）','{{you|あなた}} → {{I|私}}'],intro:1})},
+    e2b:{id:'w-e2b',qtype:'reorder',english:E.ex[0].en,japanese:E.ex[0].ja,kaisetsu:'{{Which do you like better|どちらのほうが好きですか}} → {{I like summer better.|私は夏のほうが好きです}}\n{{you|あなた}} を {{I|私}} に変え、選んだほう（ここでは summer）を入れる。\n余った札：{{you|あなた}}・{{best|いちばん}}。2つを比べるときは {{better|～のほうが}}。',
+      qdata:JSON.stringify({asset:'as-r3',extra:['you','best'],point:[2,'意見の文（質問を答えの文に作り変える）','{{Do you like ～?|好きですか}} → {{I like ～.|私は好きです}}'],intro:1})},
+    s5r:{id:'w-5r',qtype:'reorder',english:A1.map(function(x){return x.en;}).join(' '),japanese:' ',kaisetsu:'質問の順に答える：下線① {{When|いつ}} の答え → 下線② {{Who|だれが}} の答え → 足す1文。\n{{Hi, James!|こんにちは、ジェームズ！}}・{{Thank you for your e-mail.|メールをありがとう}}・{{Best wishes,|それでは、また}} は問題に書いてあるので、数えない。\n自分で書いた3文は合わせて17語。15〜25語に入っている。',
+      qdata:JSON.stringify({asset:'as-s5',point:[5,'3つの文を、返信の順に並べる','下線①の答え → 下線②の答え → 足す1文'],intro:1})},
     g:{id:'w-g',qtype:'reorder',english:'Have you ever been to Kyoto?',japanese:'あなたは今までに京都に行ったことがありますか。',kaisetsu:'{{Have you ever been to ～?|今までに～へ行ったことがありますか}}＝経験をたずねる形。\nHave（～したことがある）→ you（あなた）→ ever（今までに）→ been to Kyoto（京都へ行った）。',qdata:JSON.stringify({asset:'as-g',point:[1,'経験をたずねる','{{Have you ever been to ～?|今までに～へ行ったことがありますか}}'],intro:1})}
   }};
 }
-var cur='s1a',ORDER=['s1a','s1b','s2a','s2b','s3','s3c','s3d','s3e','s3f','s4n','s5','w6','s6','e2a','e2b','e6','g'];
+var cur='s1a',ORDER=['s1a','s1b','s2a','s2b','s3','s3c','s3d','s3e','s3f','s4n','s5r','w6','s6','e2a','e2b','e6','g'];
 function sess_(w,as){
   var s={mode:'daily',listId:'mkw',quizMode:false,words:[w],idx:0,step:2,subject:'english',isEnglish:true,assets:as,content_type:'unit',dir:'e2j',
     meaningCorrect:0,reverseCorrect:0,total:1,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},fixMode:false,fixQ:[],fixNext:[],fixCur:null,fixTotal:0,retryRounds:1,_firstWrong:[],startedMs:Date.now(),_ptFilled:{}};
@@ -10586,87 +10624,153 @@ function base_(){
 }
 function under_(){if(['s1a','s1b','s2a','s2b'].indexOf(cur)>=0)M1.forEach(function(l,k){if(l.u){var e=document.getElementById('rd-l'+k);if(e)e.classList.add('wr-u'+l.u);}});
   /* 本番に無い一言（モックで足した・§20d に書く）：文を押すと青い線とスラッシュが出ることを、語を押せない画面でも書く */
-  var bx=document.getElementById('rd-box');if(bx&&!document.getElementById('wr-pen')){var n=bx.nextElementSibling;var t=(n&&n.classList.contains('rd-note'))?n.textContent:'';if(t.indexOf('訳を押す')<0){if(t)n.remove();bx.insertAdjacentHTML('afterend','<div class="rd-note" id="wr-pen">'+rb_('点線の語を押すと、意味と音が出ます。語と語の間や文の終わりを押すと、その文に線と「/」（かたまりの切れ目）が出ます。')+'</div>');}}}
+  var bx=document.getElementById('rd-box');if(bx&&window.__hintDone&&!document.getElementById('wr-pen')){var n0=bx.nextElementSibling;if(n0&&n0.classList.contains('rd-note')&&n0.textContent.indexOf('訳を押す')<0)n0.remove();}
+  if(bx&&!window.__hintDone&&!document.getElementById('wr-pen')){window.__hintDone=1;var n=bx.nextElementSibling;var t=(n&&n.classList.contains('rd-note'))?n.textContent:'';if(t.indexOf('訳を押す')<0){if(t)n.remove();bx.insertAdjacentHTML('afterend','<div class="rd-note" id="wr-pen">'+rb_('点線の語を押すと、意味と音が出ます。')+'</div>');}}}
 function go_(){
-  var o=document.getElementById('wr-ansS');if(o)o.remove();
+  var o=document.getElementById('wr-ansS');if(o)o.remove();var o2=document.getElementById('wr-ptx');if(o2)o2.remove();document.body.classList.remove('wr-rd','wr-s5');
   upd_();window.scrollTo(0,0);
   var X=W();
   if(cur==='s5'){base_();st5_();return;}
   if(cur==='s6'){base_();st6_(M2,'mail');return;}
   if(cur==='w6'){base_();st6m_();return;}
+  if(cur==='s4n'){base_();st4_();return;}
   if(cur==='e6'){base_();st6_(E,'essay');return;}
   var s=sess_(X.ws[cur],X.as);session=s;base_();
   try{renderSENT(s);}catch(e){console.error(e);}
-  var CTX={s3c:[M1[3],'c1','下線①'],s3d:[M1[4],'c2','下線②'],s3e:[M1[3],'c1','下線①'],s3f:[M1[4],'c2','下線②'],e2a:[{en:E.q.en,ja:E.q.ja,ck:MCK[E.q.en]},'c4','QUESTION'],e2b:[{en:E.q.en,ja:E.q.ja,ck:MCK[E.q.en]},'c4','QUESTION']};
-  var putCtx=function(){var a3=$('sent-ask');if(!CTX[cur]||!a3||document.getElementById('wr-ctx')||document.querySelector('#sent-body .lx-fcard'))return;var c=CTX[cur];a3.insertAdjacentHTML('beforeend','<div id="wr-ctx"><div class="wr-inst" style="margin:8px 0 0;text-align:left">'+rb_(cur.charAt(0)==='e'?'QUESTION':'James の質問（'+c[2]+'）')+'</div>'+sent_({en:c[0].en,ja:c[0].ja,ck:c[0].ck||[],nocnt:1},c[1],c[2])+'</div>');};
-  putCtx();var moC=new MutationObserver(putCtx);var askE=$('sent-ask');if(askE){moC.observe(askE,{childList:true});setTimeout(function(){moC.disconnect();},60000);}
-  if(cur==='s4n'){var a4=$('sent-ask');if(a4&&!document.getElementById('wr-s4c'))a4.insertAdjacentHTML('beforeend','<div id="wr-s4c" class="wr-inst" style="text-align:left;margin:8px 0 0">'+rb_('下の枠は、あなたが James に書いている返信（ここまで）。下線①・下線②の質問には、もう答えてある。')+'</div>');}
-  if(cur==='s3'){var a3=$('sent-ask');if(a3)a3.insertAdjacentHTML('beforeend','<div class="wr-inst" style="margin:8px 0 0;text-align:left">'+rb_('James の質問（下線②）への答えの文を作る')+'</div>'+sent_({en:M1[4].en,ja:M1[4].ja,ck:M1[4].ck,nocnt:1},'c2','下線②'));}
+  polishStart_();
   setTimeout(under_,30);
+  var qd=null;try{qd=JSON.parse((X.ws[cur]||{}).qdata||'{}');}catch(e){}
+  var exP=$('explain'),keyP=cur;if(exP&&qd&&qd.point){var moP=new MutationObserver(function(){if(cur!==keyP){moP.disconnect();return;}if(exP.style.display!=='none'&&!document.getElementById('wr-ptx')){var k=$('ex-kai');if(k)k.insertAdjacentHTML('afterend','<div id="wr-ptx" class="ex-kai" style="margin-top:4px">'+_tkKaiHtml_('ポイント：'+qd.point[1]+(qd.point[2]?'　例 '+qd.point[2]:''))+'</div>');}});moP.observe(exP,{attributes:true,childList:true,subtree:true});}
   /* 下線は答えたあとの描き直しでも付ける */
   var mo=new MutationObserver(function(){under_();});
   /* 並べ替え・1文足す・文法編：答えたあとに「答えの文」（和訳・英語の順で・音）を出す。本番の解説には無い→§20d に書く */
-  var AS={s3:A1[1],s4:A1[2],s3c:{en:'I went camping in July.',ja:'7月にキャンプに行きました。',ck:[['I went camping','私はキャンプに行った'],['in July.','7月に']]},s3d:{en:'My mother cooked dinner.',ja:'母が夕食を作りました。',ck:[['My mother cooked','母が料理した'],['dinner.','夕食を']]},s3e:{en:'I went camping last Sunday.',ja:'この前の日曜日にキャンプに行きました。',ck:[['I went camping','私はキャンプに行った'],['last Sunday.','この前の日曜日に']]},s3f:{en:'My brother cooked curry and rice.',ja:'兄がカレーライスを作りました。',ck:[['My brother cooked','兄が料理した'],['curry and rice.','カレーライスを']]},e2a:E.ex[0],e2b:E.ex[0],g:{en:'Have you ever been to Kyoto?',ja:'あなたは今までに京都へ行ったことがありますか。',ck:[['Have you ever been','あなたは今までに行ったことがありますか'],['to Kyoto?','京都へ']]}};
-  var ex=$('explain'),key=cur;if(ex&&AS[cur]){var mo2=new MutationObserver(function(){if(cur!==key){mo2.disconnect();return;}if(ex.style.display!=='none'&&!document.getElementById('wr-ansS')){var a=$('ex-ans');if(a)a.insertAdjacentHTML('afterend','<div id="wr-ansS">'+sent_(AS[key],'','答えの文',true)+'</div>');}});mo2.observe(ex,{attributes:true,childList:true,subtree:true});setTimeout(function(){mo2.disconnect();},60000);}var bd=$('sent-body');if(bd){mo.observe(bd,{childList:true,subtree:true});setTimeout(function(){mo.disconnect();},60000);}
+  var AS={s5r:A1,s3:A1[1],s4:A1[2],s3c:{en:'I went camping in July.',ja:'7月にキャンプに行きました。',ck:[['I went camping','私はキャンプに行った'],['in July.','7月に']]},s3d:{en:'My mother cooked dinner.',ja:'母が夕食を作りました。',ck:[['My mother cooked','母が料理した'],['dinner.','夕食を']]},s3e:{en:'I went camping in August.',ja:'8月にキャンプに行きました。',ck:[['I went camping','私はキャンプに行った'],['last Sunday.','この前の日曜日に']]},s3f:{en:'My brother cooked curry.',ja:'兄がカレーを作りました。',ck:[['My brother cooked','兄が料理した'],['curry.','カレーを']]},e2a:E.ex[0],e2b:E.ex[0],g:{en:'Have you ever been to Kyoto?',ja:'あなたは今までに京都へ行ったことがありますか。',ck:[['Have you ever been','あなたは今までに行ったことがありますか'],['to Kyoto?','京都へ']]}};
+  var ex=$('explain'),key=cur;if(ex&&AS[cur]){var mo2=new MutationObserver(function(){if(cur!==key){mo2.disconnect();return;}if(ex.style.display!=='none'&&!document.getElementById('wr-ansS')){var a=$('ex-ans');if(a)a.insertAdjacentHTML('afterend','<div id="wr-ansS">'+(Array.isArray(AS[key])?AS[key].map(function(x,i){return sent_(x,'c3',['下線①の答え','下線②の答え','足す1文'][i],false);}).join(''):sent_(AS[key],'','答えの文',true))+'</div>');}});mo2.observe(ex,{attributes:true,childList:true,subtree:true});setTimeout(function(){mo2.disconnect();},60000);}var bd=$('sent-body');if(bd){mo.observe(bd,{childList:true,subtree:true});setTimeout(function(){mo.disconnect();},60000);}
 }
 var _kts0_=kaiTraceStart_;kaiTraceStart_=function(el,text,ms){var plain=String(text).replace(/\{\{([^|}]+)\|([^}]*)\}\}/g,'$1');_kts0_(el,plain,ms);var t0=Date.now();var iv=setInterval(function(){if(!el.classList.contains('trace')||Date.now()-t0>ms+3000){clearInterval(iv);if(!_kaiTId)el.innerHTML=_tkKaiHtml_(text);}},120);};
 
 /* ---------- 段⑥の前「見本でやってみよう」（12-8 ⑦・2026-10-09 決定） ---------- */
-var SMP={lines:[{en:'I eat takoyaki and ice cream there.',ja:'そこでたこ焼きとアイスクリームを食べます。',ck:[['I eat takoyaki and ice cream','私はたこ焼きとアイスクリームを食べる'],['there.','そこで']]},{en:'I went with my friends from school.',ja:'学校の友達と行きました。',ck:[['I went','私は行った'],['with my friends','私の友達と'],['from school.','学校の']]},{en:'It was a lot of fun.',ja:'とても楽しかったです。',ck:[['It was','それは～だった'],['a lot of fun.','とても楽しいこと']]}],n:20,
-  pts:[{c:'c1',n:'1',t:'下線①（What did you eat there?）に答えた',how:'What did you eat は「何を食べた」。食べた物が書いてあるか見る。',m:'y',why:'食べた物（takoyaki and ice cream）が書いてある。'},
-       {c:'c2',n:'2',t:'下線②（Who did you go with?）に答えた',how:'Who ～ with は「だれと」。いっしょに行った人が書いてあるか見る。',m:'y',why:'いっしょに行った人（my friends from school）が書いてある。'},
-       {c:'c3',n:'＋',t:'答えのほかに1文足した',how:'感想や、くわしい説明の文があるか見る。',m:'y',why:'感想（It was a lot of fun.）を足している。'},
-       {c:'',n:'主',t:'どの文も I や It などで始まっている',how:'文の最初が「だれが・何が」になっているか見る。',m:'y',why:'3つの文とも I・It から始まっている。'},
-       {c:'',n:'過',t:'過去のことは過去の形で書いた',how:'did で聞かれた質問に、過去の形で答えているか見る。',m:'n',why:'What did you eat? は過去の質問。eat ではなく ate（食べた）にする。'},
-       {c:'',n:'I',t:'質問の you を I に変えた',how:'答えの文が、自分のこと（I）になっているか見る。',m:'y',why:'3つとも自分のこと（I・It）で書いている。'}]};
 function st6m_(){
-  var ask=$('sent-ask'),body=$('sent-body'),pi=0,v='';
-  var real=SMP.pts,got=0;
-  ask.innerHTML='<div class="lx-point"><span class="lx-pn">6</span><span>'+rb_('見本でやってみよう')+'<span class="lx-fex">'+rb_('ある生徒の返信を、数えて、確かめる')+'</span></span></div>';
-  function smp(){return '<div class="wr-mail" style="background:#fffdf3;border-color:#e9dfb9"><div class="h">'+rb_('ある生徒がノートに書いた返信（見本）')+'</div>'+SMP.lines.map(function(l){return sent_({en:l.en,ja:l.ja,ck:l.ck,nocnt:1},'','');}).join('')+'</div>';}
-  function mail(){return '<div class="wr-mail"><div class="h">'+rb_('見本のメール（James：お祭りに行ったと聞きました）')+'</div>'+sent_({en:'What did you eat there?',ja:'そこで何を食べましたか。',ck:[['What','何を'],['did you eat','あなたは食べましたか'],['there?','そこで']],nocnt:1},'c1','下線①')+sent_({en:'And who did you go with?',ja:'そして、だれと行きましたか。',ck:[['And','そして'],['who','だれ'],['did you go with?','あなたは～と行きましたか']],nocnt:1},'c2','下線②')+'</div>';}
+  /* 12-13 ⑦：何の練習かを最初に書く。作業は2つ（数える・丸付け）を問いの形で。見本では「分からない」を出さない */
+  var ask=$('sent-ask'),body=$('sent-body'),pi=0,v='',got=0;
+  var Q=[{q:'①の質問（What did you eat there?＝何を食べた？）に答えている？',a:'y',why:'食べた物（takoyaki and ice cream）が書いてある。'},
+         {q:'②の質問（Who did you go with?＝だれと行った？）に答えている？',a:'y',why:'いっしょに行った人（my friends from school）が書いてある。'},
+         {q:'答えの2文のほかに、1文足している？',a:'y',why:'感想（It was a lot of fun.）を足している。'},
+         {q:'どの文も I や It など「だれが・何が」から始まっている？',a:'y',why:'3つの文とも I・It から始まっている。'},
+         {q:'①の質問は did で聞いている（過去のこと）。答えは過去の形になっている？',a:'n',why:'I eat は今の形。過去の形の ate（食べた）にする。'},
+         {q:'自分のこととして答えている？（I を使っている？）',a:'y',why:'①②の答えは I から始まり、自分のことを書いている。'}];
+  function head(step){ask.innerHTML='<div class="wr-do">'+mix_(step.t)+(step.s?'<span class="sub">'+rb_(step.s)+'</span>':'')+'</div>';window.scrollTo(0,0);}
+  function mail(){return '<div class="rp"><div class="qq">'+rb_('James のメール（お祭りの話）の質問')+'</div>'
+    +'<div class="ln"><span class="wr-u1">'+tap_('What did you eat there?')+'</span> <small style="color:var(--sub)">（'+rb_('そこで何を食べましたか')+'）</small></div>'
+    +'<div class="ln"><span class="wr-u2">'+tap_('And who did you go with?')+'</span> <small style="color:var(--sub)">（'+rb_('そして、だれと行きましたか')+'）</small></div></div>';}
+  function smp(){return '<div class="rp" style="margin-top:8px"><div class="qq">'+rb_('ある生徒がノートに書いた返信')+'</div>'
+    +[{en:'I eat takoyaki and ice cream there.',ja:'そこでたこ焼きとアイスクリームを食べます。'},{en:'I went with my friends from school.',ja:'学校の友達と行きました。'},{en:'It was a lot of fun.',ja:'とても楽しかったです。'}].map(function(l){return '<div class="ln me" style="background:#fff4e6;border-left:4px solid #c2410c;padding:3px 8px;margin:3px 0">'+tap_(l.en)+'<small style="display:block;color:var(--sub);font-size:12px">'+rb_(l.ja)+'</small></div>';}).join('')+'</div>';}
+  function intro(){
+    head({t:'丸付けのしかたを、ある生徒の答えで練習しよう',s:''});
+    body.innerHTML='<div class="wr-kai" style="margin-top:0">'+rb_('このあとの「自分で書く」では、ノートに書いた自分の英文を、自分で丸付けします。')+'<br>'+rb_('その前に、ある生徒が書いた返信（間違いが1つある）で、丸付けのしかたを練習します。')+'<br>'+rb_('やることは2つ：① 語数を数える　② 確かめる点を、はい・いいえで答える')+'</div>'+mail()+smp()
+      +'<button type="button" class="btn" id="wm-st" style="margin-top:12px">'+rb_('はじめる')+'</button>';
+    $('wm-st').onclick=function(){cnt();window.scrollTo(0,0);};
+  }
   function cnt(){
-    body.innerHTML='<div class="wr-flow"><div class="on"><i class="ti ti-hand-finger"></i>'+rb_('語数を数える')+'</div><div><i class="ti ti-clipboard-list"></i>'+rb_('確かめる')+'</div></div>'
-      +'<div class="wr-inst">'+rb_('本番では、自分のノートで同じことをします。まず見本で練習しよう。')+'</div>'+mail()+smp()
-      +'<div class="wr-inst">'+rb_('見本の返信（自分で書いた3文）は何語？ ピリオド（.）は数えない。')+'</div><div class="wr-num">'+(v===''?'&nbsp;':esc(v))+'<small>'+rb_('語')+'</small></div>'
+    head({t:'この生徒の返信（オレンジの3文）は何語？',s:'1 / 2　ピリオド（.）は数えない'});
+    body.innerHTML=smp()+'<div class="wr-num">'+(v===''?'&nbsp;':esc(v))+'<small>'+rb_('語')+'</small></div>'
       +'<div class="wr-pad">'+[1,2,3,4,5,6,7,8,9].map(function(d){return '<button type="button" data-d="'+d+'">'+d+'</button>';}).join('')+'<button type="button" data-d="x">←</button><button type="button" data-d="0">0</button><button type="button" data-d="" disabled></button></div>'
       +'<button type="button" class="btn" id="wm-c" style="margin-top:12px"'+((v===''||+v===0)?' disabled':'')+'>'+rb_('決定')+'</button>';
     [].forEach.call(body.querySelectorAll('[data-d]'),function(b){b.onclick=function(){var d=b.getAttribute('data-d');if(d==='x')v=v.slice(0,-1);else if(d!==''&&v.length<2)v=(v==='0'?'':v)+d;cnt();};});
     $('wm-c').onclick=cntAns;
   }
   function cntAns(){
-    var ok=(+v===SMP.n);try{ok?sndCorrect():sndWrong();}catch(e){}
-    var k=0,num=SMP.lines.map(function(l){return l.en.replace(/[.]/g,'').split(' ').map(function(w){k++;return '<span style="display:inline-block;margin:2px 3px"><b>'+esc(w)+'</b><sub style="color:#2563eb;font-weight:800">'+k+'</sub></span>';}).join('');}).join('<br>');
-    body.innerHTML='<div class="wr-sum '+(ok?'ok':'ng')+'">'+(ok?rb_('正解！ 20語'):rb_('見本は20語（'+v+'語ではない）。下の数え方を見よう'))+'</div>'
-      +'<div class="wr-kai"><div class="h">'+rb_('数え方')+'</div>'+num+'<br>'+rb_('1語ずつ指で数える。ピリオド（.）は数えない。20語なので15〜25語に入っている。')+'</div>'
-      +'<button type="button" class="btn" id="wm-n" style="margin-top:12px">'+rb_('次へ：確かめる点')+'</button>';
-    $('wm-n').onclick=function(){pi=0;pt();window.scrollTo(0,0);};
+    var ok=(+v===20);try{ok?sndCorrect():sndWrong();}catch(e){}
+    var k=0,num=['I eat takoyaki and ice cream there','I went with my friends from school','It was a lot of fun'].map(function(l){return l.split(' ').map(function(w){k++;return '<span style="display:inline-block;margin:2px 3px"><b>'+esc(w)+'</b><sub style="color:#c2410c;font-weight:800">'+k+'</sub></span>';}).join('');}).join('<br>');
+    body.innerHTML='<div class="wr-sum '+(ok?'ok':'ng')+'">'+(ok?rb_('正解！ 20語'):rb_('20語（'+v+'語ではない）'))+'</div>'
+      +'<div class="wr-kai"><div class="h">'+rb_('数え方')+'</div>'+num+'<br>'+rb_('1語ずつ指で数える。20語なので15〜25語に入っている。')+'</div>'
+      +'<button type="button" class="btn" id="wm-n" style="margin-top:12px">'+rb_('次へ（2 / 2 確かめる）')+'</button>';
+    $('wm-n').onclick=function(){pi=0;got=0;pt();window.scrollTo(0,0);};
   }
   function pt(){
-    if(pi>=real.length){fin();return;}
-    var p=real[pi];
-    body.innerHTML='<div class="wr-flow"><div><i class="ti ti-hand-finger"></i>'+rb_('語数を数える')+'</div><div class="on"><i class="ti ti-clipboard-list"></i>'+rb_('確かめる')+'</div></div>'
-      +'<div class="wr-inst">'+rb_('見本の英文を見て、この点ができているか押そう。')+'</div><div class="wr-prog">'+(pi+1)+' / '+real.length+'</div>'+mail()+smp()
-      +'<div class="wr-pt '+p.c+'"><div class="t"><b>'+esc(p.n)+'</b><span>'+mix_(p.t)+'</span></div><div class="how">'+mix_(p.how||'')+'</div>'
-      +'<div class="wr-3"><button type="button" class="y" data-v="y">'+rb_('できた')+'</button><button type="button" class="n" data-v="n">'+rb_('できていない')+'</button><button type="button" class="q" data-v="q">'+rb_('分からない')+'</button></div><div id="wm-a"></div></div>';
+    if(pi>=Q.length){fin();return;}
+    var x=Q[pi];head({t:x.q,s:'2 / 2　確かめる（'+(pi+1)+' / '+Q.length+'）'});
+    body.innerHTML=smp()
+      +'<div class="wr-3" style="grid-template-columns:1fr 1fr"><button type="button" class="y" data-v="y">'+rb_('はい')+'</button><button type="button" class="n" data-v="n">'+rb_('いいえ')+'</button></div><div id="wm-a"></div>';
     [].forEach.call(body.querySelectorAll('.wr-3 button'),function(b){b.onclick=function(){
-      var m=[p.m,p.why],pick=b.getAttribute('data-v'),ok=pick===m[0];if(ok)got++;try{ok?sndCorrect():(pick==='q'?0:sndWrong());}catch(e){}
-      [].forEach.call(b.parentNode.children,function(x){x.disabled=true;x.classList.toggle('on',x===b);});
-      $('wm-a').innerHTML='<div class="wr-sum '+(ok?'ok':(pick==='q'?'':'ng'))+'" style="margin-top:8px">'+rb_('正しい丸付け＝')+rb_(m[0]==='y'?'できた':'できていない')+(ok?'　'+rb_('合っている'):'')+'</div><div class="wr-kai">'+mix_(m[1])+'</div><button type="button" class="btn" id="wm-nx" style="margin-top:10px">'+rb_('次へ')+'</button>';
+      var pick=b.getAttribute('data-v'),ok=pick===x.a;if(ok)got++;try{ok?sndCorrect():sndWrong();}catch(e){}
+      [].forEach.call(b.parentNode.children,function(y){y.disabled=true;y.classList.toggle('on',y===b);if(y===b&&!ok){y.className='n on';}});
+      $('wm-a').innerHTML='<div class="wr-sum '+(ok?'ok':'ng')+'" style="margin-top:8px">'+rb_(ok?'正解！':'正しくは「'+(x.a==='y'?'はい':'いいえ')+'」')+'</div><div class="wr-kai">'+mix_(x.why)+'</div><button type="button" class="btn" id="wm-nx" style="margin-top:10px">'+rb_('次へ')+'</button>';
       $('wm-nx').onclick=function(){pi++;pt();window.scrollTo(0,0);};};});
   }
   function fin(){
-    body.innerHTML='<div class="wr-res"><div class="big" style="color:#13703a">'+rb_('見本の確かめ、終わり')+'</div>'
-      +'<div class="wr-sum">'+rb_('正しく丸を付けられた点：')+got+' / '+real.length+'</div>'
-      +'<div class="wr-inst">'+rb_('見本は「過去の形」だけできていなかった。eat → ate に直すと、こうなる。')+'</div>'
+    head({t:'結果',s:''});
+    body.innerHTML='<div class="wr-sum">'+rb_('正しく答えられた数：')+got+' / '+Q.length+'</div>'
+      +'<div class="wr-kai">'+rb_('この生徒の返信は「過去の形」だけできていなかった。eat → ate に直すと、こうなる。')+'</div>'
       +sent_({en:'I ate takoyaki and ice cream there.',ja:'そこでたこ焼きとアイスクリームを食べました。',ck:[['I ate takoyaki and ice cream','私はたこ焼きとアイスクリームを食べた'],['there.','そこで']]},'c1','直した文')
-      +'<div class="wr-inst" style="margin-top:10px">'+rb_('次は、別の James のメール（新しい自転車の話）に、自分で返信を書こう。')+'</div></div>'
-      +(got<real.length?'<button type="button" class="btn" id="wm-re" style="background:var(--neutral-bg);color:var(--ink);margin-bottom:8px">'+rb_('確かめる点をもう一度やる')+'</button>':'')
-      +'<button type="button" class="btn" id="wm-go">'+rb_('自分で書く（段⑥）へ')+'</button>';
+      +'<div class="wr-kai">'+rb_('次は、別の James のメール（新しい自転車の話）に、自分で返信を書いて、同じように丸付けする。')+'</div>'
+      +(got<Q.length?'<button type="button" class="btn" id="wm-re" style="background:var(--neutral-bg);color:var(--ink);margin:10px 0 8px">'+rb_('確かめる所をもう一度やる')+'</button>':'')
+      +'<button type="button" class="btn" id="wm-go" style="margin-top:10px">'+rb_('自分で書く へ進む')+'</button>';
     if($('wm-re'))$('wm-re').onclick=function(){pi=0;got=0;pt();window.scrollTo(0,0);};
     $('wm-go').onclick=function(){cur='s6';go_();};
   }
-  cnt();
+  intro();
+}
+/* ===== 4版目：やることを上に1文（12-13 ⑨-1）・質問はふつうの文（⑨-4）・設問を本文の上（⑨-2） ===== */
+var DO={s1a:null,s1b:null,s2a:null,s2b:null,
+  s3:['日本語に合うように、答えの文を並べよう',''],
+  s3c:['質問に合うように、（　）に入る語を選ぼう',''],s3d:['質問に合うように、（　）に入る語を選ぼう',''],
+  s3e:['質問に合うように答えよう','使わないカードが2枚ある'],s3f:['質問に合うように答えよう','使わないカードが2枚ある'],
+  s5r:['3つの文を、返信の順に並べよう','下線①の答え → 下線②の答え → 足す1文'],
+  e2a:['QUESTION に合うように、（　）に入る語を選ぼう',''],e2b:['QUESTION に合うように答えよう','使わないカードが2枚ある'],
+  g:['日本語に合うように並べよう','']};
+var QX={s3:[[M1[4],'②']],s3c:[[M1[3],'①']],s3d:[[M1[4],'②']],s3e:[[M1[3],'①']],s3f:[[M1[4],'②']],s5r:[[M1[3],'①'],[M1[4],'②']],
+  e2a:[[{en:E.q.en,ja:E.q.ja,ck:MCK[E.q.en]},'Q']],e2b:[[{en:E.q.en,ja:E.q.ja,ck:MCK[E.q.en]},'Q']]};
+function qHtml_(arr){return '<div class="wr-q">'+arr.map(function(x){return '<div class="lb">'+rb_(x[1]==='Q'?'QUESTION':'下線'+x[1]+'の質問')+'</div>'+sent_({en:x[0].en,ja:x[0].ja,ck:[],nocnt:1},'','');}).join('')+'</div>';}
+function polish_(){
+  var key=cur,ask=$('sent-ask'),body=$('sent-body');if(!ask||!body)return;
+  if(body.querySelector('.lx-fcard'))return;   /* 形式ポイントのカードはそのまま */
+  if(['s4n','w6','s6','e6','s5'].indexOf(key)>=0)return;
+  document.body.classList.toggle('wr-rd',!!body.querySelector('#rd-box'));
+  document.body.classList.toggle('wr-s5',key==='s5r');
+  if(document.getElementById('wr-do'))return;
+  var d=DO[key],h;
+  if(body.querySelector('#rd-box')){var q=body.querySelector('.rd-q');h='<div class="wr-do" id="wr-do">'+(q?q.innerHTML:'')+'</div>';}
+  else{if(!d)return;h='<div class="wr-do" id="wr-do">'+rb_(d[0])+(d[1]?'<span class="sub">'+rb_(d[1])+'</span>':'')+'</div>'+(QX[key]?qHtml_(QX[key]):'');}
+  ask.innerHTML=h;window.scrollTo(0,0);setTimeout(function(){window.scrollTo(0,0);},120);
+  if(key==='s5r'){var sl=document.getElementById('ro-slots');if(sl&&!document.getElementById('wr-s5a')){sl.insertAdjacentHTML('beforebegin','<div id="wr-s5a" class="rp"><div class="ln">'+tap_('Hi, James!')+'</div><div class="ln">'+tap_('Thank you for your e-mail.')+'</div></div>');sl.insertAdjacentHTML('afterend','<div class="rp"><div class="ln">'+tap_('Best wishes,')+'</div></div>');}}
+}
+var _polMo_=null;
+function polishStart_(){
+  if(_polMo_)_polMo_.disconnect();
+  var st=$('step-sent');polish_();
+  _polMo_=new MutationObserver(function(){if(_polMo_){_polMo_.disconnect();polish_();var x=$('step-sent');if(x)_polMo_.observe(x,{childList:true,subtree:true});}});
+  if(st)_polMo_.observe(st,{childList:true,subtree:true});
+}
+/* 下線は見張りを止めない（3版目は60秒で止めていた＝スマホで下線が消えた 12-13 ②） */
+setInterval(function(){try{under_();}catch(e){}},700);
+
+/* ===== 段④（12-13 ⑤）：自分の返信を並べ、最後の1文の場所を空欄で見せる ===== */
+function st4_(){
+  var ask=$('sent-ask'),body=$('sent-body'),C=[{en:'It was a lot of fun.',ja:'とても楽しかったです。',ok:1},{en:'I like dogs.',ja:'私は犬が好きです。'},{en:'I went camping last August.',ja:'この前の8月にキャンプに行きました。'},{en:'It will be a lot of fun.',ja:'とても楽しくなるでしょう。'}],picked=null,tries=0;
+  var order=[3,0,2,1];
+  ask.innerHTML='<div class="wr-do">'+rb_('返信の最後に足す1文を選ぼう')+'<span class="sub">'+rb_('オレンジの空欄に入る文を、下から選ぶ')+'</span></div>';
+  function rp(fill){return '<div class="rp">'
+    +'<div class="ln">'+tap_('Hi, James!')+'</div><div class="ln">'+tap_('Thank you for your e-mail.')+'</div>'
+    +'<div class="qq">'+rb_('下線①の質問 ')+tap_('When did you go camping?')+'</div><div class="ln">'+tap_('I went camping last August.')+'<small style="display:block;font-size:12px;color:var(--sub)">'+rb_('この前の8月にキャンプに行きました。')+'</small></div>'
+    +'<div class="qq">'+rb_('下線②の質問 ')+tap_('Who cooked dinner at the campsite?')+'</div><div class="ln">'+tap_('My father cooked curry for us.')+'<small style="display:block;font-size:12px;color:var(--sub)">'+rb_('父が私たちにカレーを作ってくれました。')+'</small></div>'
+    +'<div class="blank'+(fill?' f':'')+'">'+(fill?tap_(fill):rb_('ここに足す1文'))+'</div>'
+    +'<div class="ln">'+tap_('Best wishes,')+'</div></div>';}
+  function draw(){
+    body.innerHTML=rp(picked!=null?C[picked].en:'')+'<div class="c4b">'+order.map(function(k){var c=C[k];return '<button type="button" data-k="'+k+'"'+(picked!=null?' disabled':'')+' class="'+(picked===k?(c.ok?'ok':'ng'):'')+'">'+esc(c.en)+'<small style="display:block;font-weight:500;color:var(--sub);font-size:12.5px">'+rb_(c.ja)+'</small></button>';}).join('')+'</div>';
+    [].forEach.call(body.querySelectorAll('.c4b button'),function(b){b.onclick=function(e){var k=+b.getAttribute('data-k');picked=k;var ok=!!C[k].ok;try{ok?sndCorrect():sndWrong();}catch(_e){}
+      if(!ok&&tries===0){tries++;draw();body.insertAdjacentHTML('beforeend','<div class="wr-sum ng">'+mix_('ちがいます。キャンプの話の続きになる文か、時（過去の話）が合っているか見よう。')+'</div><button type="button" class="btn" id="s4-re" style="margin-top:10px">'+rb_('もう一度選ぶ')+'</button>');$('s4-re').onclick=function(){picked=null;draw();};return;}
+      fin(ok);};});
+  }
+  function fin(ok){
+    picked=0;draw();
+    body.insertAdjacentHTML('beforeend','<div class="wr-sum '+(ok?'ok':'ng')+'">'+rb_(ok?'正解！':'正解は It was a lot of fun.')+'</div>'
+      +sent_({en:'It was a lot of fun.',ja:'とても楽しかったです。',ck:[['It was','それは～だった'],['a lot of fun.','とても楽しいこと']]},'c3','答えの文')
+      +'<div class="wr-kai"><div class="h">'+rb_('解説')+'</div>'+mix_('足す1文は、答えの話の続き（感想かくわしい説明）にする。')+'<br>'+mix_('It was a lot of fun.（とても楽しかったです）＝キャンプの感想。過去の話なので was。')+'<br>'+mix_('I like dogs. はキャンプと関係ない。I went camping last August. は下線①の答えのくり返し。It will be ～ は will（これから）なので、過去の話と時が合わない。')+'<br>'+mix_('ポイント：感想 It was very delicious.（とてもおいしかった）・くわしい説明 We sang songs at night.（夜は歌を歌った）')+'</div>'
+      +'<button type="button" class="btn" id="wr-nx" style="margin-top:12px">'+rb_('次へ')+'</button>');
+    $('wr-nx').onclick=next_;
+  }
+  draw();
 }
 /* ---------- 段⑤ メールを組み上げる（新しい画面） ---------- */
 function st5_(){
@@ -10706,7 +10810,8 @@ function st5_(){
 /* ---------- 段⑥ 自分で書く（新しい画面） ---------- */
 function st6_(T,kind){
   var ask=$('sent-ask'),body=$('sent-body'),n=null,res=T.pts.map(function(){return null;}),pi=0;
-  function flow(k){var a=[['ti-pencil','ノートに書く'],['ti-hand-finger','語数を数える'],['ti-clipboard-list','確かめる']];return '<div class="wr-flow">'+a.map(function(x,i){return '<div class="'+(i===k?'on':'')+'"><i class="ti '+x[0]+'"></i>'+rb_(x[1])+'</div>';}).join('')+'</div>';}
+  function DO6(t,sub){ask.innerHTML='<div class="wr-do">'+rb_(t)+(sub?'<span class="sub">'+rb_(sub)+'</span>':'')+'</div>';window.scrollTo(0,0);}
+  function flow(k){var a=['1 ノートに書く','2 語数を数える','3 確かめる'];return '<div class="wr-steps">'+a.map(function(x,i){return i===k?'<b>'+rb_(x)+'</b>':rb_(x);}).join(' → ')+'</div>';}
   function topicHtml(){
     if(kind==='mail'){
       var en=T.lines.map(function(l){var t=tap_(l[0]);return l[2]?'<span class="wr-u'+l[2]+'">'+t+'</span>':t;});
@@ -10716,22 +10821,21 @@ function st6_(T,kind){
     return '<div class="wr-mail"><div class="h">QUESTION</div><b>'+tap_(T.q.en)+'</b></div><div class="wr-hint">'+rb_('点線の語を押すと、意味と音が出ます。')+'</div><span class="wr-tog" id="wr-tg">'+rb_('和訳と英語の順を見る')+'</span><div class="wr-mja" id="wr-mja">'+sent_({en:T.q.en,ja:T.q.ja,ck:MCK[T.q.en]||[],nocnt:1},'c4','QUESTION')+'</div>';
   }
   function topic(){
-    ask.innerHTML='<div class="lx-point"><span class="lx-pn">6</span><span>'+rb_(kind==='mail'?'自分で返信を書く':'自分で答えを書く')+'<span class="lx-fex">'+rb_('ノートに書いて、自分で確かめる')+'</span></span></div>';
+    DO6(kind==='mail'?'James のメールに、ノートで返信を書こう':'QUESTION の答えを、ノートに書こう','アプリには打ちこまない。本当のことでなくてよい。書けたら下のボタンを押す。');
     body.innerHTML=flow(0)+topicHtml()
       +(kind==='mail'?diaMail_(null):diaEssay_())
-      +'<div class="wr-pic"><i class="ti ti-notebook"></i>'+rb_('（絵を入れる場所）ノートに英文を書いている絵')+'</div>'
-      +'<div class="wr-inst">'+rb_('アプリには打ちこまない。ノートに書けたら、下のボタンを押す。')+'</div><div class="wr-hint">'+rb_(kind==='mail'?'本当のことでなくてよい。自分が英語で書ける内容で書こう（自転車を持っていなくても、持っているつもりで書く）。':'本当の気持ちでなくてよい。理由を2つ書きやすいほうを選ぼう。')+'</div>'
+      
       +'<button type="button" class="btn" id="wr-w">'+rb_('ノートに書けた')+'</button>';
     $('wr-tg').onclick=function(){var m=$('wr-mja');m.style.display=m.style.display==='block'?'none':'block';this.innerHTML=rb_(m.style.display==='block'?'和訳と英語の順をかくす':'和訳と英語の順を見る');};
     $('wr-w').onclick=count;
   }
   function count(){
-    ask.innerHTML='';
+    DO6('書いた英文の語数を入れよう','指で1語ずつ数える。ピリオド（.）やコンマ（,）は数えない。');
     var v=(n==null?'':String(n));
     function draw(){
       var h=flow(1)+'<div class="wr-pic"><i class="ti ti-notebook"></i>'+rb_('（絵を入れる場所）ノートの英文を、指で1語ずつ数えている絵')+'</div>'
-        +'<div class="wr-inst">'+rb_('自分で書いた英文を、指で1語ずつ数えよう。')+(kind==='mail'?rb_('Hi, James! ／ Thank you for your e-mail. ／ Best wishes, は数えない。'):'')+rb_('ピリオド（.）やコンマ（,）は数えない。')+'</div>'
-        +'<div class="wr-num">'+(v===''?'&nbsp;':esc(v))+'<small>'+rb_('語')+'</small></div>'+(v===''?'<div class="wr-hint" style="text-align:center">'+rb_(OPT.num==='pad'?'数えた語数を、数字のボタンで入れよう。':'数えた語数になるまで ＋ を押そう。')+'</div>':'');
+        +(kind==='mail'?'<div class="wr-inst">'+rb_('Hi, James! ／ Thank you for your e-mail. ／ Best wishes, は数えない。')+'</div>':'')
+        +'<div class="wr-num">'+(v===''?'&nbsp;':esc(v))+'<small>'+rb_('語')+'</small></div>';
       if(OPT.num==='pad'){h+='<div class="wr-pad">'+[1,2,3,4,5,6,7,8,9].map(function(d){return '<button type="button" data-d="'+d+'">'+d+'</button>';}).join('')+'<button type="button" data-d="x">←</button><button type="button" data-d="0">0</button><button type="button" data-d="" disabled></button></div>';}
       else{h+='<div class="wr-step"><button type="button" data-s="-1">−</button><button type="button" data-s="1">＋</button></div>';}
       h+='<button type="button" class="btn" id="wr-c" style="margin-top:12px"'+((v===''||+v===0)?' disabled':'')+'>'+rb_('決定')+'</button>';
@@ -10743,15 +10847,15 @@ function st6_(T,kind){
     draw();
   }
   function judge(){
-    if(n<T.min){
+    if(n<T.min){DO6('語数が足りない。ノートの英文に書き足そう','');
       body.innerHTML=flow(1)+'<div class="wr-num">'+n+'<small>'+rb_('語')+'</small></div><div class="wr-msg">'+rb_('あと'+(T.min-n)+'語。'+(kind==='mail'?'感想の1文か、答えにくわしい説明を足そう。':'理由にくわしい説明を足そう。'))+'</div>'
         +(kind==='mail'?'<div class="wr-inst">'+rb_('足し方の例①　答えを、「だれが」から始まる1文にする')+'</div><div class="wr-bf">'+rb_('前')+'　'+tap_('At a bike shop.')+'　'+rb_('（自転車屋で。）← 文になっていない・3語')+'</div>'+sent_({en:'I bought it at a bike shop.',ja:'自転車屋でそれを買いました。',ck:[['I bought it','私はそれを買った'],['at a bike shop.','自転車屋で']]},'c1','後')
             +'<div class="wr-inst">'+rb_('足し方の例②　感想を1文足す')+'</div>'+sent_({en:'I like it very much.',ja:'とても気に入っています。',ck:[['I like it','私はそれが好き'],['very much.','とても']]},'c3','足す')
           :'<div class="wr-inst">'+rb_('足し方の例　理由に「だれと・どこで」を足す')+'</div><div class="wr-bf">'+rb_('前')+'　'+tap_('First, I can swim.')+'　'+rb_('（1つ目は、泳げるからです）・4語')+'</div>'+sent_({en:'First, I can swim in the sea with my friends.',ja:'1つ目は、友達と海で泳げるからです。',ck:[['First,','1つ目は'],['I can swim','私は泳げる'],['in the sea','海で'],['with my friends.','私の友達と']]},'c1','後'))
         +'<button type="button" class="btn" id="wr-a">'+rb_('書き足した（数え直す）')+'</button>';
       $('wr-a').onclick=function(){n=null;count();};return;}
-    if(n>T.max&&OPT.over==='show'){
-      body.innerHTML=flow(1)+'<div class="wr-num">'+n+'<small>'+rb_('語')+'</small></div><div class="wr-msg">'+rb_((n-T.max)+'語多い。質問に関係ない文や、同じことを言っている文を消そう。')+'<br>'+rb_('答えの2文（下線①・下線②の答え）は消さない。')+'</div>'
+    if(n>T.max&&OPT.over==='show'){DO6('語数が多い。ノートの英文を短くしよう','');
+      body.innerHTML=flow(1)+'<div class="wr-num">'+n+'<small>'+rb_('語')+'</small></div><div class="wr-msg">'+rb_((n-T.max)+'語多い。質問に関係ない文や、同じことを言っている文を消そう。')+'<br>'+rb_(kind==='mail'?'答えの2文（下線①・下線②の答え）は消さない。':'意見の文と、理由の2文は消さない。')+'</div>'
         +'<button type="button" class="btn" id="wr-a">'+rb_('直した（数え直す）')+'</button>';
       $('wr-a').onclick=function(){n=null;count();};return;}
     T.pts.forEach(function(p,i){if(p.auto)res[i]=(n>=T.min&&n<=T.max)?'y':'n';});
@@ -10766,13 +10870,13 @@ function st6_(T,kind){
   function one(){
     while(pi<T.pts.length&&T.pts[pi].auto)pi++;
     if(pi>=T.pts.length){fin();return;}
-    var real=T.pts.filter(function(p){return !p.auto;}),k=real.indexOf(T.pts[pi])+1;
-    body.innerHTML=flow(2)+'<div class="wr-inst">'+rb_('自分のノートの英文と、解答例を見比べて押そう。')+'</div><div class="wr-prog">'+k+' / '+real.length+'</div>'+ptHtml(T.pts[pi],pi)+(k>1?'<button type="button" class="wr-back" id="wr-bk">'+rb_('← 前の点にもどる')+'</button>':'');
+    var real=T.pts.filter(function(p){return !p.auto;}),k=real.indexOf(T.pts[pi])+1;DO6('自分の英文と解答例を見比べて、できたか押そう',k+' / '+real.length);
+    body.innerHTML=flow(2)+''+ptHtml(T.pts[pi],pi)+(k>1?'<button type="button" class="wr-back" id="wr-bk">'+rb_('← 前の点にもどる')+'</button>':'');
     if($('wr-bk'))$('wr-bk').onclick=function(){var j=pi-1;while(j>=0&&T.pts[j].auto)j--;if(j>=0){pi=j;one();}};
     [].forEach.call(body.querySelectorAll('.wr-3 button'),function(b){b.onclick=function(){res[pi]=b.getAttribute('data-v');pi++;setTimeout(function(){one();window.scrollTo(0,0);},180);};});
   }
-  function all(){
-    var h=flow(2)+'<div class="wr-inst">'+rb_('自分のノートの英文と、解答例を見比べて押そう。')+'</div>';
+  function all(){DO6('自分の英文と解答例を見比べて、できたか押そう','');
+    var h=flow(2);
     T.pts.forEach(function(p,i){if(p.auto){h+='<div class="wr-pt"><div class="t"><b>'+esc(p.n)+'</b><span>'+rb_(p.t)+'</span></div><div class="wr-sum '+(res[i]==='y'?'ok':'ng')+'" style="margin:4px 0 0">'+n+rb_('語＝')+rb_(res[i]==='y'?'入っている':'入っていない')+'</div></div>';return;}
       h+=ptHtml(p,i);});
     h+='<button type="button" class="btn" id="wr-f" disabled>'+rb_('確かめ終わった')+'</button>';
@@ -10785,9 +10889,9 @@ function st6_(T,kind){
     var q=res.indexOf('q')>=0,ng=res.indexOf('n')>=0;
     var bad=T.pts.filter(function(p,i){return res[i]==='n';}),qq=T.pts.filter(function(p,i){return res[i]==='q';});
     var autoFix=function(){return n<T.min?(kind==='mail'?'足りない。感想の1文か、答えにくわしい説明を足す。':'足りない。理由に「だれと・どこで」などを足す。'):'多い。質問に関係ない文を消す。答えの文は消さない。';};
-    var h='<div class="wr-res">';
+    DO6('結果','');var h='<div class="wr-res">';
     if(q){h+='<div class="big" style="color:#8a5a00">'+rb_('先生に見せよう')+'</div><div class="wr-inst">'+rb_('ノートを持って、先生に聞こう。分からなかったところ：')+'</div>'+qq.map(function(p){return '<div class="wr-fixit" style="border-color:#b26a00;background:#fffaf0"><b>'+esc(p.n)+'</b> '+mix_(p.ft||p.t)+'</div>';}).join('');}
-    if(ng){h+='<div class="big" style="color:#b42318;margin-top:'+(q?'14px':'0')+'">'+rb_('ここを直そう')+'</div>'+bad.map(function(p){return '<div class="wr-fixit"><b>'+esc(p.n)+'</b> '+mix_(p.ft||p.t)+'<br>'+mix_(p.auto?(n+'語。'+autoFix()):p.fix)+'</div>';}).join('');}
+    if(ng){h+=(q?'<div class="wr-inst" style="margin-top:12px;font-weight:700;color:var(--ink)">'+rb_('先生に聞いたあと、ここを直そう')+'</div>':'<div class="big" style="color:#b42318">'+rb_('ここを直そう')+'</div>')+bad.map(function(p){return '<div class="wr-fixit"><b>'+esc(p.n)+'</b> '+mix_(p.ft||p.t)+'<br>'+mix_(p.auto?(n+'語。'+autoFix()):p.fix)+'</div>';}).join('');}
     if(!q&&!ng){h+='<div class="big" style="color:#13703a">'+rb_('よく書けた！')+'</div>';try{sndCorrect();}catch(e){}}
     h+='<div class="wr-inst" style="margin-top:10px">'+rb_('解答例')+'（'+T.ex.reduce(function(a,t){return a+wc_(t.en);},0)+rb_('語')+'）</div>';
     var cl=kind==='mail'?['c1','c2','c3']:['c4','c3','c1','c2'],tg=kind==='mail'?['1 下線①の答え','2 下線②の答え','＋ 1文足す']:['意見','→ 理由が2つ','First, 1つ目の理由','Second, 2つ目の理由'];
@@ -10808,7 +10912,7 @@ function upd_(){
 window.addEventListener('load',function(){setTimeout(function(){
   var p=document.createElement('div');p.id='mkp';
   p.innerHTML='<div><span class="mkh-t"><b>確認用の操作</b>（本番の画面には出ない） </span><button id="mk-fold" style="float:right;padding:3px 8px">たたむ</button></div>'
-    +'<div class="r"><span>Eメール</span><button data-p="s1a">①読み取る</button><button data-p="s1b">①-2</button><button data-p="s2a">②答えを選ぶ</button><button data-p="s2b">②-2</button><button data-p="s3">③並べ替え</button><button data-p="s3c">③-2 穴うめ</button><button data-p="s3d">③-2 穴うめ2</button><button data-p="s3e">③-2 並べ替え</button><button data-p="s3f">③-2 並べ替え2</button><button data-p="s4n">④足す1文を選ぶ</button><button data-p="s5">⑤組み上げ</button><button data-p="w6">⑥の前 見本</button><button data-p="s6">⑥自分で書く</button></div>'
+    +'<div class="r"><span>Eメール</span><button data-p="s1a">①読み取る</button><button data-p="s1b">①-2</button><button data-p="s2a">②答えを選ぶ</button><button data-p="s2b">②-2</button><button data-p="s3">③並べ替え</button><button data-p="s3c">③-2 穴うめ</button><button data-p="s3d">③-2 穴うめ2</button><button data-p="s3e">③-2 並べ替え</button><button data-p="s3f">③-2 並べ替え2</button><button data-p="s4n">④足す1文を選ぶ</button><button data-p="s5r">⑤組み上げ</button><button data-p="w6">⑥の前 丸付けの練習</button><button data-p="s6">⑥自分で書く</button></div>'
     +'<div class="r"><span>英作文</span><button data-p="e2a">②意見の文 穴うめ</button><button data-p="e2b">②意見の文 並べ替え</button><button data-p="e6">⑥自分で書く</button><span>ほか</span><button data-p="g">文法編 1文を組み立てる</button></div>'
     +'<div class="r r6"><span>⑥確かめる点</span><button data-o="pts=one">案A 1つずつ</button><button data-o="pts=all">案B 一覧</button></div>'
     +'<div class="r r6"><span>⑥語数の入れ方</span><button data-o="num=pad">案A 数字ボタン</button><button data-o="num=step">案B ＋−</button></div>'
