@@ -1630,7 +1630,8 @@
 .lx-wgl .ww.lxk{background:#fff3c4;border-radius:6px;border-bottom-color:var(--gold);padding:1px 4px 2px;}
 .lx-wgl .ww.lxk .ww-ja{color:inherit;}
 mark.lx-mk{background:#fff3c4;color:inherit;border-radius:3px;padding:0 2px;}
-@media (prefers-color-scheme:dark){.lx-wgl .ww.lxk,mark.lx-mk{background:#4a3f14;}}
+[data-theme="dark"] .lx-wgl .ww.lxk,[data-theme="dark"] mark.lx-mk{background:#5a4d10;color:#fff3c4;}   /* 2026-10-10 端末の設定ではなくアプリのテーマで切り替える（読解の .rd-hl と同じ色）。端末とアプリの設定が食い違うと字が読めなかった */
+[data-theme="dark"] .lx-wgl .ww.lxk .ww-en,[data-theme="dark"] .lx-wgl .ww.lxk .ww-ja{color:#fff3c4;}
 .lx-hide .lx-wgl .ww-en{filter:blur(6px);}
 .lx-self{margin-top:10px;}
 .lx-ximg{text-align:center;margin:2px 0 8px;}.lx-ximg img{max-height:130px;max-width:100%;border-radius:8px;border:1px solid var(--line);}
@@ -7419,14 +7420,20 @@ function _lxSay_(t){return new Promise(function(res){
 });}
 function _lxOne_(it,tok){return new Promise(function(res){
   if(tok!==_lxRun){res();return;}
-  var done=false,fin=function(){if(done)return;done=true;res();};
+  var t1=null,t2=null,au=null;
+  var done=false,fin=function(){if(done)return;done=true;clearTimeout(t1);clearTimeout(t2);res();};
   var url=String((it&&it.audio)||'');
-  var fall=function(){if(done)return;_lxAu=null;if(tok!==_lxRun){fin();return;}_lxSay_(it&&it.en).then(fin);};
+  var fall=function(){if(done)return;clearTimeout(t1);clearTimeout(t2);try{if(au)au.pause();}catch(e){}_lxAu=null;if(tok!==_lxRun){fin();return;}_lxSay_(it&&it.en).then(fin);};
   if(!url){fall();return;}
   try{
-    var au=_auPlay_(url,fall);_lxAu=au;
+    au=_auPlay_(url,fall);_lxAu=au;
     au.onended=fin;
-    setTimeout(fin,15000);
+    /* 【2026-10-10】mp3 が読みこめず「鳴りも止まりもしない」ときに1本15秒ずつ黙って待ち、番号が1分近く押せなかった（英検5級 文法編 第1単元ウォームアップ）。
+       3秒たっても鳴り始めなければ端末の読み上げに切りかえる。鳴り始めたら「音の長さ＋2秒」で区切る（長さが取れなければ15秒） */
+    var started=false;
+    au.addEventListener('playing',function(){if(started||done)return;started=true;clearTimeout(t1);
+      var d=au.duration;t2=setTimeout(fin,(isFinite(d)&&d>0)?Math.round(d*1000)+2000:15000);});
+    t1=setTimeout(function(){if(!started)fall();},3000);
   }catch(e){fall();}
 });}
 /* steps＝[{it:{en,audio}, on:function(){…光らせる…}, gap:ms}]。途中で _lxStop_ されたら false で終わる */
