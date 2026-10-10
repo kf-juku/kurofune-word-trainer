@@ -1342,6 +1342,9 @@
   @keyframes flash{0%{opacity:0;}30%{opacity:1;}100%{opacity:0;}}
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:24px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:70;}
   .toast.show{opacity:1;}
+  /* 【2026-10-10】mp3 の読み込み中・失敗の案内（_auMsg_） */
+  .au-msg{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);max-width:min(92vw,420px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:16px;font-size:13.5px;font-weight:700;line-height:1.6;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;z-index:71;}
+  .au-msg.show{opacity:1;}
   /* 演出の登場直後、貯まっていた先行タップを一定時間すべて飲み込む透明レイヤー（要件：しっかり見えてからのタップで消す/押すのはOK）2026-07-25 */
   .tap-guard{position:fixed;inset:0;z-index:9999;background:transparent;}
 
@@ -3759,7 +3762,7 @@ $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};var _ic
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
 $('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;try{localStorage.setItem('kwt_sid',String(d.data.student.id||''));}catch(eSid){}/* 案内の済み印を生徒ごとに持つ。ログアウトでは消さない 2026-09-23 */nickname=d.data.student.nickname||'きみ';/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();try{shGoIfPending_();}catch(e){}});};
 function doLogout_(){try{_sqFlush_();}catch(eSq){}/* 未送信があれば先に流す。1件ずつが自分のトークンを持つので token='' にしても届く 2026-09-02 */
-  homeCacheClear_();try{var _rsLo=_resumeAny_();if(_rsLo)_abandonLog_(_rsLo,'logout',true);}catch(e){}try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_dc_cele');localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');shPendLisSet_(false);}catch(e){}token='';show('scr-login');}
+  homeCacheClear_();try{var _rsLo=_resumeAny_();if(_rsLo)_abandonLog_(_rsLo,'logout',true);}catch(e){}try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_dc_cele');try{localStorage.removeItem('kwt_star_day');}catch(e){}localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');shPendLisSet_(false);}catch(e){}token='';show('scr-login');}
 $('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
 $('logout-cancel').onclick=function(){$('logout-mask').classList.remove('show');};
 $('logout-mask').onclick=function(e){if(e.target===this)$('logout-mask').classList.remove('show');};
@@ -4665,8 +4668,12 @@ function renderChill(ms){
 function yesterdayStr_(){var d=new Date(Date.now()+9*3600*1000-86400000);return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2);}/* JST固定 2026-07-08 */
 // 流れ星：学習完了後に「その日合格したチーム外の誰か1人」を出す（いなければ何も出さない）
 var _starPre=null; // 採点と並行取得した流れ星の結果（体感改善 2026-07-08）
+/* 【2026-10-10 川上さん「流れ星が毎回出てテンポを阻害」→ 案A】流れ星はこの端末で1日1回（その日の最初の完了画面だけ）。
+   2回目からは取りにも行かない（豆知識・名言はそのまま出る）。ログアウトで消す（kwt_dc_cele と同じ） */
+function _starToday_(){try{return localStorage.getItem('kwt_star_day')===todayStr_();}catch(e){return false;}}
 function loadStar(){
   var area=$('star-area');
+  if(_starToday_()){_starPre=null;if(area&&/sw-load/.test(area.innerHTML))area.innerHTML='';return;}
   /* 【2026-09-02】ここで先に空にしない。届くまでのあいだ、豆知識カードを出したままにする。
      完了画面を保存より先に描くようにしたので、ここを空にすると画面に穴があく。 */
   var pre=_starPre;_starPre=null;
@@ -4675,7 +4682,9 @@ function loadStar(){
        （完了画面を先に描くようにしたので、ここを空にすると画面に穴があく）。
        「記録を保存中…」のぐるぐるが出ているときだけ消す。 2026-09-02 */
     if(!d||!d.ok||!d.data||!d.data.star){if(/sw-load/.test(area.innerHTML))area.innerHTML='';return;}
+    if(_starToday_())return;                        // 並行して2つ届いても出すのは1回 2026-10-10
     starRecentPush_(d.data.star.student_id);       // 直近に出した子を記録＝次回は避ける 2026-07-21
+    try{localStorage.setItem('kwt_star_day',todayStr_());}catch(e){}
     area.innerHTML='';
     area.appendChild(buildStarStage(d.data.star));  // B-2演出（川上さんモック選定 2026-07-03）
   });
@@ -6547,11 +6556,64 @@ var _sentAu=null;
 function _sentSay_(t){try{if(!window.speechSynthesis||!t)return;var u=new SpeechSynthesisUtterance(String(t));u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
 /* mp3 を鳴らす共通の口（2026-09-25 §17q 5-6）。mp3 が読めないと onerror と play() の失敗が両方来るので、
    読み上げへの切り替え（onFail）は1回だけ呼ぶ。以前は4か所（_sentPlay_・_phSnd_・speak・_lxOne_）が別々に書いていて2回呼んでいた */
-function _auPlay_(url,onFail){
-  var fell=false,fail=function(){if(fell)return;fell=true;try{if(onFail)onFail();}catch(e){}};
-  var au=new Audio(url);au.onerror=fail;
-  var p=au.play();if(p&&p['catch'])p['catch'](fail);
-  return au;
+/* 【2026-10-10 川上さん「しょうもない音声で×になるのを避けて」「答え合わせの後も同じ」】
+   mp3 が用意されている音は、読み込めなくても端末の読み上げに切りかえない（4か所＝_sentPlay_・_phSnd_・speak・_lxOne_ が全部ここを通る）。
+   ・1.5秒鳴り始めなければ「音声を読み込んでいます」／8秒鳴り始めなければ読み込み直し（1回）／それでもだめなら「読み込めませんでした」
+   ・自動再生が止められた（NotAllowedError）ときは「押して聞いてください」
+   ・鳴り始めたら「音の長さ＋3秒」で区切る（ended が来ない端末でも止まらないように）
+   ・第2引数（以前の読み上げへの切りかえ）は使わない。第3引数 o＝{onStart,onEnd,onFail(why)}。戻り値は pause() で止められる（止めたときも onEnd を呼ぶ）
+   ・_auPreload_ で問題を出した時点に先に読み込んでおく（その問題の分だけ持つ） */
+var _AU_PRE_={};
+function _auPreload_(urls){
+  var keep={};
+  (urls||[]).forEach(function(u){u=String(u||'');if(!u)return;keep[u]=1;
+    if(!_AU_PRE_[u]){try{var a=new Audio();a.preload='auto';a.src=u;try{a.load();}catch(e){}_AU_PRE_[u]=a;}catch(e){}}});
+  Object.keys(_AU_PRE_).forEach(function(u){if(keep[u])return;var a=_AU_PRE_[u];delete _AU_PRE_[u];
+    try{if(a.paused){a.removeAttribute('src');a.load();}}catch(e){}});
+}
+function _auTake_(u,fresh){
+  var a=_AU_PRE_[u];
+  if(a&&!fresh&&!a.error){try{a.pause();a.currentTime=0;}catch(e){}return a;}
+  if(a)delete _AU_PRE_[u];
+  return new Audio(u);
+}
+var _auMsgT_=null,_auMsgOwn_=null;
+function _auMsg_(k,own){
+  var el=$('au-msg');
+  if(!el){el=document.createElement('div');el.id='au-msg';el.className='au-msg';el.setAttribute('role','status');document.body.appendChild(el);}
+  clearTimeout(_auMsgT_);
+  if(!k){if(!own||own===_auMsgOwn_)el.classList.remove('show');return;}
+  _auMsgOwn_=own||null;
+  el.innerHTML=(k==='wait')?'<ruby>音声<rt class="uf">おんせい</rt></ruby>を<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>んでいます…'
+    :(k==='blocked')?'<ruby>音声<rt class="uf">おんせい</rt></ruby>のボタンを<ruby>押<rt class="uf">お</rt></ruby>して<ruby>聞<rt class="uf">き</rt></ruby>いてください'
+    :'<ruby>音声<rt class="uf">おんせい</rt></ruby>が<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>めませんでした。<ruby>通信<rt class="uf">つうしん</rt></ruby>を<ruby>確<rt class="uf">たし</rt></ruby>かめて、もう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>押<rt class="uf">お</rt></ruby>してください';
+  el.classList.add('show');
+  if(k!=='wait')_auMsgT_=setTimeout(function(){el.classList.remove('show');},6000);
+}
+function _auPlay_(url,_noUse,o){
+  o=o||{};
+  var tries=0,au=null,started=false,done=false,tW=null,tR=null,tE=null,ctl={};
+  var clr=function(){clearTimeout(tW);clearTimeout(tR);clearTimeout(tE);};
+  var detach=function(){if(au){au.onplaying=null;au.onended=null;au.onerror=null;}};
+  var finish=function(cb,arg){if(done)return;done=true;clr();detach();try{if(cb)cb(arg);}catch(e){}};
+  var fail=function(why){if(done)return;try{if(au)au.pause();}catch(e){}_auMsg_(why,ctl);finish(o.onFail,why);};
+  var again=function(){if(done)return;clr();detach();try{if(au)au.pause();}catch(e){}if(tries<2)go(true);else fail('fail');};
+  function go(fresh){
+    tries++;started=false;au=_auTake_(url,fresh);
+    au.onplaying=function(){if(done||started)return;started=true;clearTimeout(tW);clearTimeout(tR);_auMsg_('',ctl);
+      try{if(o.onStart)o.onStart();}catch(e){}
+      var d=au.duration;tE=setTimeout(function(){finish(o.onEnd);},(isFinite(d)&&d>0)?Math.round(d*1000)+3000:30000);};
+    au.onended=function(){finish(o.onEnd);};
+    au.onerror=function(){again();};
+    tW=setTimeout(function(){if(!started&&!done)_auMsg_('wait',ctl);},1500);
+    tR=setTimeout(function(){if(!started&&!done)again();},8000);
+    var p;try{p=au.play();}catch(e){again();return;}
+    if(p&&p['catch'])p['catch'](function(e){if(done)return;var n=e&&e.name;
+      if(n==='NotAllowedError')fail('blocked');else if(n!=='AbortError')again();});
+  }
+  ctl.pause=function(){if(done)return;try{if(au)au.pause();}catch(e){}_auMsg_('',ctl);finish(o.onEnd);};
+  go(false);
+  return ctl;
 }
 function _sentStop_(){try{if(_sentAu){_sentAu.pause();_sentAu=null;}}catch(e){}try{_lxStop_();}catch(e){}try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
 /* 読み確認のタイマー（音の足し算）も、次の問題に進むときに必ず止める 2026-09-21 */
@@ -6587,10 +6649,8 @@ function _sentPick_(pl,sex){
 function _sentPlay_(pl,sex){
   _sentStop_();
   var url=_sentPick_(pl,sex);
-  if(!url){_sentSay_(pl&&pl.en);return;}
-  try{
-    _sentAu=_auPlay_(url,function(){_sentAu=null;_sentSay_(pl.en);});
-  }catch(e){_sentSay_(pl&&pl.en);}
+  if(!url){_sentSay_(pl&&pl.en);return;}   /* mp3 を作っていない文だけ読み上げ */
+  try{ _sentAu=_auPlay_(url); }catch(e){ _auMsg_('fail'); }   /* 2026-10-10 mp3 があるのに鳴らないときは読み上げに切りかえない */
 }
 /* ===== 答え合わせで文を流す（要件定義書_英検教材 確定13「文は答え合わせで聞ける」）2026-09-11 =====
    穴うめ・語順は出題中に文を流せない（答えバレ）ので、答えたあとが唯一「文の音を聞ける場」になる。
@@ -7045,6 +7105,7 @@ function _renderSENT0_(ss){
     ask.innerHTML='<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>意味<rt class="uf">いみ</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
     body.innerHTML='<button type="button" class="sq-spk" id="sent-spk"><i class="ti ti-volume"></i><span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
     $('sent-spk').onclick=function(){_sentPlay_(pl);};
+    try{_auPreload_((pl.audios&&pl.audios.length)?pl.audios:[pl.audio]);}catch(_eP){}   /* 2026-10-10 先に読み込む */
     _sentPlay_(pl);
     /* 答え合わせに、いま流れた英文を出す（2026-09-09 川上さん指摘）。
        【2026-09-29 川上さん】聞き取りは、形式に関係なく流れた英文を必ず出す。前は「解説があれば解説を優先」にしていたため、
@@ -7122,9 +7183,7 @@ function _phSplit_(pl){ return (pl&&pl.split&&pl.split.length)?pl.split:[]; }
 function _phSnd_(pl,i){
   _sentStop_();
   var a=(pl&&pl.split_audio)||[],u=String(a[i]||'');
-  if(u){ try{ _sentAu=_auPlay_(u,function(){_sentAu=null;_sayJa_(_phSplit_(pl)[i]&&_phSplit_(pl)[i][1]);});
-      return; }catch(e){}
-  }
+  if(u){ try{ _sentAu=_auPlay_(u); return; }catch(e){ _auMsg_('fail'); return; } }   /* 2026-10-10 mp3 があるのに鳴らないときは読み上げに切りかえない */
   var sp=_phSplit_(pl)[i]; _sayJa_(sp&&sp[1]);
 }
 function _sayJa_(t){try{if(!window.speechSynthesis||!t)return;var u=new SpeechSynthesisUtterance(String(t));u.lang='ja-JP';u.rate=0.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
@@ -7420,21 +7479,15 @@ function _lxSay_(t){return new Promise(function(res){
 });}
 function _lxOne_(it,tok){return new Promise(function(res){
   if(tok!==_lxRun){res();return;}
-  var t1=null,t2=null,au=null;
-  var done=false,fin=function(){if(done)return;done=true;clearTimeout(t1);clearTimeout(t2);res();};
   var url=String((it&&it.audio)||'');
-  var fall=function(){if(done)return;clearTimeout(t1);clearTimeout(t2);try{if(au)au.pause();}catch(e){}_lxAu=null;if(tok!==_lxRun){fin();return;}_lxSay_(it&&it.en).then(fin);};
-  if(!url){fall();return;}
-  try{
-    au=_auPlay_(url,fall);_lxAu=au;
-    au.onended=fin;
-    /* 【2026-10-10】mp3 が読みこめず「鳴りも止まりもしない」ときに1本15秒ずつ黙って待ち、番号が1分近く押せなかった（英検5級 文法編 第1単元ウォームアップ）。
-       3秒たっても鳴り始めなければ端末の読み上げに切りかえる。鳴り始めたら「音の長さ＋2秒」で区切る（長さが取れなければ15秒） */
-    var started=false;
-    au.addEventListener('playing',function(){if(started||done)return;started=true;clearTimeout(t1);
-      var d=au.duration;t2=setTimeout(fin,(isFinite(d)&&d>0)?Math.round(d*1000)+2000:15000);});
-    t1=setTimeout(function(){if(!started)fall();},3000);
-  }catch(e){fall();}
+  if(!url){_lxSay_(it&&it.en).then(res);return;}   /* mp3 を作っていない素材だけ（2026-10-10 本番の聞き取り1,989問は0件） */
+  /* 【2026-10-10】mp3 が鳴らないときは読み上げに切りかえない。読み込めなければ並びを止め、番号は押せないまま「もう一回聞く」を案内する */
+  _lxAu=_auPlay_(url,null,{onEnd:function(){res();},onFail:function(why){
+    _lxStop_();
+    var st=$('lx-st');if(st)st.innerHTML=(why==='blocked')
+      ?'「もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く」を<ruby>押<rt class="uf">お</rt></ruby>してください'
+      :'<ruby>音声<rt class="uf">おんせい</rt></ruby>が<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>めませんでした。「もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く」を<ruby>押<rt class="uf">お</rt></ruby>してください';
+    res();}});
 });}
 /* steps＝[{it:{en,audio}, on:function(){…光らせる…}, gap:ms}]。途中で _lxStop_ されたら false で終わる */
 function _lxRunSeq_(steps){
@@ -7472,6 +7525,7 @@ function renderLX_(s,w,q,pl){
     ?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、<b><ruby>返事<rt class="uf">へんじ</rt></ruby></b>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
     :'<ruby>絵<rt class="uf">え</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>う<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
   var order=shuffle(chs.map(function(c,i){return i;}));
+  try{_auPreload_(lines.map(function(l){return l&&l.audio;}).concat(isPrint?[qq&&qq.audio]:chs.map(function(c){return c&&c.audio;})));}catch(_eP){}   /* 2026-10-10 先に読み込む */
   var h='';
   if(isResp){
     /* 確定52（2026-09-23）＝本番の第1部は聞こえる英文が1つだけ。確定50（承認モック 20260921_モック_会話編_第1部型.html の③）の形：
@@ -7576,6 +7630,7 @@ function _renderLXIntro_(s,w,q,pl,md){
   $('step-sent').style.display='block';hideQTimer();box.classList.remove('g2');
   ask.innerHTML=(md==='pic_ja')?_jaRubyIf_(String(q.ask||'何の絵？')):_jaRubyIf_(String(q.ask||'この英文は、絵に合う？'));
   var l=((pl&&pl.lines)||[])[0]||{};
+  if(md==='pic_yn'){try{_auPreload_([l.audio]);}catch(_eP){}}   /* 2026-10-10 先に読み込む */
   body.innerHTML='<div class="lx-pic"><img src="'+esc(String(pl.img||''))+'" alt="" onerror="this.parentNode.classList.add(\'noimg\');this.style.display=\'none\';"></div>'
     +(md==='pic_yn'?'<div class="lx-talk"><div class="lx-bub" id="lx-l0"><span class="lx-who a">'+_LX_IC_.vol+'</span><span class="lx-wave"></span></div></div>'
       +'<button type="button" class="ex-spk lx-again" id="lx-again">'+_LX_IC_.vol+'<span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>':'');
@@ -8235,9 +8290,7 @@ function speak(w){
   _wordStop_();
   var url=String(w.audio||'');
   if(!url){_wordSay_(w);return;}
-  try{
-    _wordAu=_auPlay_(url,function(){_wordAu=null;_wordSay_(w);});
-  }catch(e){_wordAu=null;_wordSay_(w);}
+  try{ _wordAu=_auPlay_(url); }catch(e){ _wordAu=null; _auMsg_('fail'); }   /* 2026-10-10 mp3 があるのに鳴らないときは読み上げに切りかえない */
 }
 /* どの画面でも発音を聞けるボタン 2026-07-08：選択問題中でも現在の単語を再生 */
 var _playWord=null;
@@ -9166,7 +9219,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   /* 最後の答えを選んでから完了画面（点数）が出るまで。ここは通信をしないので速いはずだが、
      川上さんから「点数が出るまで時間がかかる」と指摘があったので測る 2026-09-02 */
   try{if(_ansT0)_perfPush_('答え→点数',_perfNow_()-_ansT0);}catch(eAt){} /* 最後の答え→チップまでを測る 2026-08-22 */ $('prog').style.width='100%';show('scr-done');hideQTimer();hideExplain();$('done-score-wrap').style.display='';
-  _starPre=call({action:'shooting_star',exclude:starRecent_().join(',')}).catch(function(){return {ok:false};}); // 流れ星を採点と並行取得（体感改善 2026-07-08）／直近に出た子はexcludeで避ける 2026-07-21
+  _starPre=_starToday_()?null:call({action:'shooting_star',exclude:starRecent_().join(',')}).catch(function(){return {ok:false};}); // 流れ星を採点と並行取得（体感改善 2026-07-08）／直近に出た子はexcludeで避ける 2026-07-21
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
   var e2jOnly=(s.dir==='e2j'); // 方向固定：英→日だけ 2026-07-28
