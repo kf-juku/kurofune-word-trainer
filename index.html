@@ -1568,7 +1568,7 @@
 .lx-bub{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:var(--bg);transition:background .2s,border-color .2s;}
 .lx-bub.b{flex-direction:row-reverse;}
 .lx-who{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;}
-.lx-who.a{background:#e0708a;}.lx-who.b{background:#4a7fd6;}
+.lx-who.a,.lx-who.b{background:#6b7280;}   /* 2026-10-11 名札は性別も順も表さないので1色（本番の原稿も縦に並べて印を付けるだけ） */
 /* 【A⑤ 2026-10-02】長い役名（Woman・Mother・Grandmother…）が丸からはみ出していた。丸は広げず、長い名前だけ文字を小さくする（_whoC_） */
 /* 2026-10-03 7.5px・8px は小さすぎた → 6字以上は丸を横長の札にして 11px（丸の高さ34pxはそのまま） */
 .lx-who.n6,.lx-who.n8,.lx-who.n9{width:auto;min-width:34px;padding:0 8px;border-radius:17px;font-size:11px;letter-spacing:-.01em;white-space:nowrap;}
@@ -1582,7 +1582,7 @@
 .df-talk{display:flex;flex-direction:column;gap:10px;margin:4px 0 14px;}
 .df-bub{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:var(--bg);}
 .df-who{min-width:58px;height:26px;padding:0 9px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12.5px;color:#fff;flex-shrink:0;}
-.df-who.a{background:#e0708a;}.df-who.b{background:#4a7fd6;}
+.df-who.a,.df-who.b{background:#6b7280;}
 .df-line{flex:1;font-size:17px;font-weight:700;line-height:1.55;}
 .df-hole{display:inline-block;min-width:92px;height:18px;border-bottom:3px solid var(--accent);vertical-align:-2px;}
 /* 【A⑤ 2026-10-02】Grandmother などの長い札で英文が細くなり、答えの線が吹き出しの外に出ていた */
@@ -1617,13 +1617,13 @@
 .lx-opt .lx-ch.lx-pr{font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px;text-align:left;justify-content:flex-start;padding:10px 14px;}
 .lx-opt .lx-ch.lx-pr:disabled:not(.correct):not(.wrong):not(.tried){opacity:.75;}
 .lx-prn{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--bg);border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--sub);}
-.lx-who.q{background:#6b7280;}
+.lx-who.q{background:#374151;}
 .lx-key{font-weight:500;margin-left:8px;font-size:12px;}
 .lx-xl{padding:4px 6px;border-radius:10px;}
 .lx-xl.now{background:var(--accent-soft);}
 .lx-xl.ok{box-shadow:inset 0 0 0 1px var(--ok);}
 .lx-xb{flex:1;min-width:0;}
-.lx-tg{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:800;color:#fff;background:#4a7fd6;flex-shrink:0;margin-top:2px;}
+.lx-tg{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:800;color:#fff;background:#6b7280;flex-shrink:0;margin-top:2px;}
 .lx-no{font-weight:800;font-size:13px;color:var(--sub);margin-right:4px;}
 .lx-wgl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:flex-end;margin:2px 0;}
 .lx-wgl .wg-ws{column-gap:0;}
@@ -7698,7 +7698,7 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
       +((hasC&&l.c&&!pl.line_kja&&_lxSameJa_(l.c,l.ja))?'':'<small>'+(hasC?_lxJaMark_(l.ja,pl.line_kja):_jaRubyIf_(String(l.ja||'')))+'</small>')+'</div></div>';
   });
   var qq=(H&&H.print)?(H.q||{}):null;   /* 第2部型＝会話のあとに Question の行（2026-09-27） */
-  if(qq&&(qq.en||qq.c))xh+='<div class="lx-xl" id="lx-x-q"><span class="lx-tg" style="background:#6b7280">Q</span><div class="lx-xb">'
+  if(qq&&(qq.en||qq.c))xh+='<div class="lx-xl" id="lx-x-q"><span class="lx-tg" style="background:#374151">Q</span><div class="lx-xb">'
       +((hasC&&qq.c)?_lxChunks_(qq.c):'<b>'+esc(String(qq.en||''))+'</b>')
       +((hasC&&qq.c&&_lxSameJa_(qq.c,qq.ja))?'':'<small>'+_jaRubyIf_(String(qq.ja||''))+'</small>')+'</div></div>';
   if(isResp&&!hasC)xh+='<div class="lx-xh"><ruby>選択肢<rt class="uf">せんたくし</rt></ruby></div>';
