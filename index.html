@@ -202,6 +202,8 @@
   .qchw.open .nqparts{display:block;}
   .nqp{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer;}
   .nqp-nm{flex:1;font-size:13px;font-weight:600;line-height:1.3;min-width:0;}
+  /* 【2026-10-10】No（カリキュラム表と共通の番号）。_pnoHtml_ */
+  .pno{display:inline-block;margin-right:6px;font-size:.86em;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .nqp-nm small{font-weight:500;font-size:10.5px;color:var(--sub);}
   /* 【確定・2026-08-20 川上さん】単元別と確認テストは"本のとじ方は同じ・見分けは色と名前"。
      単元別＝金（教科アイコン・金のバー）／確認テスト＝紫（チェックリストのアイコン・紫のバー・左の紫帯）。
@@ -2594,12 +2596,12 @@ function _mapMetaHtml_(l){
 }
 /* 学習マップの1行（川上さん承認モック 2026-07-05）。inFold=クリアずみ枠内（「もう一回」バッジつき・状態文言なし） */
 /* subj＝その本の教科。一覧のパート名にふりがなを当てるために受ける（英語・国語だけ）2026-09-11 */
-function buildMapRow(l,isTest,inFold,subj){
+function buildMapRow(l,isTest,inFold,subj,mid){
   var row=document.createElement('div');row.className='list-row';
   var icon=l.is_current?'<div class="dot cur"><i class="ti ti-player-play"></i></div>':(l.passed?'<div class="dot done"><i class="ti ti-check"></i></div>':'<div class="dot"><i class="ti ti-book-2"></i></div>');
   // テスト配信＝クリア済/挑戦中/未挑戦の3状態（未挑戦=この周で未着手・「いまここ」なし・川上さん確定 2026-07-06）
   var st=inFold?'':(isTest?(l.passed?'クリア<ruby>済<rt class="uf">ずみ</rt></ruby>':(l.attempted?'<ruby>挑戦<rt class="uf">ちょうせん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>':'<ruby>未<rt class="uf">み</rt></ruby><ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>')):(l.passed?'<ruby>合格<rt class="uf">ごうかく</rt></ruby><ruby>済<rt class="uf">ず</rt></ruby>み':(l.is_current?'':'<ruby>未<rt class="uf">み</rt></ruby><ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>')));
-  var ttl=isTest?_jaRubySubj_(l.title,subj):('DAY '+(l.part_order||1)); // 毎日学習=DAY表記（川上さん確定 2026-07-03）
+  var ttl=isTest?(_pnoHtml_(mid||l.material_id,l.part_order)+_jaRubySubj_(l.title,subj)):('DAY '+(l.part_order||1)); // 毎日学習=DAY表記（川上さん確定 2026-07-03）
   var redo=inFold?'<span class="redo-pill"><i class="ti ti-refresh"></i> もう<ruby>一回<rt class="uf">いっかい</rt></ruby></span>':'';
   // パートごとの記録＝前回合格日・正答率・おさらいの進み（GAS material_parts が返す）2026-07-26
   var meta=_mapMetaHtml_(l);
@@ -3220,7 +3222,7 @@ function renderQuiz(){
           /* 練習の状態は「名前の下の小さいタグ」＝テストが主役のまま（川上さん確定 2026-08-20）。
              まだ練習していない／途中のときだけ、小さい「練習」ボタンを1つ足す。押すとそのパートの練習がその場で始まる。 */
           html+='<div class="nqp" data-pid="'+esc(String(p.part_id))+'">'
-            +'<div class="nqp-nm">'+_jaRubySubj_(p.title||'パート',subj)+(p.attempt_count>0?('<small> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></small>'):'')+_unitTag_(p)+'</div>'
+            +'<div class="nqp-nm">'+_pnoHtml_(g.material_id,p.part_order)+_jaRubySubj_(p.title||'パート',subj)+(p.attempt_count>0?('<small> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></small>'):'')+_unitTag_(p)+'</div>'
             +_unitBtn_(p)+quizStatus2_(p)+'</div>'; /* 右端の青丸→は廃止＝「受ける →」と矢印が2つ並んでいた 2026-08-20 川上さん */
         });
         html+='</div></div>';
@@ -4563,7 +4565,7 @@ function loadHomeData_(showSkel){
         var total=parts.length;
         var passedN=parts.filter(function(l){return l.passed;}).length;
         var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
-        var curLbl=curPart?(isTest?_jaRubySubj_(curPart.l.title,subjB):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
+        var curLbl=curPart?(isTest?(_pnoHtml_(c.material_id,curPart.l.part_order)+_jaRubySubj_(curPart.l.title,subjB)):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
         var ov=document.createElement('div');ov.className='ov-card';ov.setAttribute('data-mid',String(c.material_id||'')); /* ピンポイント遷移の宛先 2026-08-21 */
         var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'');
         var right=curPart?(curLbl+' <small>/ <ruby>全<rt class="uf">ぜん</rt></ruby>'+total+'</small>'):('クリア '+passedN+' <small>/ <ruby>全<rt class="uf">ぜん</rt></ruby>'+total+'</small>');
@@ -4581,18 +4583,18 @@ function loadHomeData_(showSkel){
         /* 【案B・2026-08-21】全部合格した教材は「クリア済み（N）」に畳まない。
            畳むと、開いてもその1行しか出てこない（完走教材は全部クリア済みなので畳む意味がない）＝川上さん指摘。 */
         var _allDone=(total>0&&passedN===total);
-        if(_allDone){ parts.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,true,subjB));}); }
+        if(_allDone){ parts.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,true,subjB,c.material_id));}); }
         else if(cleared.length){
           var contig=!isTest&&cleared.every(function(l,i){return (l.part_order||0)===i+1;});
           var lbl='クリア<ruby>済<rt class="uf">ず</rt></ruby>み '+(contig?('DAY 1〜'+cleared[cleared.length-1].part_order+'　'):'')+'（'+cleared.length+'）';
           var fold=document.createElement('div');fold.className='done-fold';
           fold.innerHTML='<div class="df-ic"><i class="ti ti-check"></i></div><div class="df-t">'+lbl+'</div><i class="ti ti-chevron-down df-arw"></i>';
           var farea=document.createElement('div');farea.className='fold-area';
-          cleared.forEach(function(l){farea.appendChild(buildMapRow(l,isTest,true,subjB));});
+          cleared.forEach(function(l){farea.appendChild(buildMapRow(l,isTest,true,subjB,c.material_id));});
           fold.onclick=function(e){e.stopPropagation();fold.classList.toggle('open');farea.classList.toggle('open');};
           detail.appendChild(fold);detail.appendChild(farea);
         }
-        if(!_allDone)rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false,subjB));});
+        if(!_allDone)rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false,subjB,c.material_id));});
         ov.onclick=function(){ov.classList.toggle('open');detail.classList.toggle('open');};
         bdetail.appendChild(ov);bdetail.appendChild(detail);
       });
@@ -8088,6 +8090,12 @@ function _resumeOrder_(words,rs){
   return out;
 }
 /* パートID→「教科 パート名」の索引。material_parts / quiz_list の返りから作る（中断カード・確認モーダルの表示用）2026-08-20 */
+/* 【2026-10-10 川上さん確定】No＝カリキュラム表と共通のパート番号（parts.part_order・級ごとの通し番号）。
+   出すのはカリキュラム表がある教材だけ。★今後、カリキュラム表がなくてもチェックプリントなどを作ったら No を付けることがある
+   ＝そのときはこの一覧に1行足すだけ（teacher.html の _NO_MATS_ も同じにする）。正＝要件定義書_カリキュラム表とチェックプリント 2026-10-10 */
+var _NO_MATS_={'mat-eiken5-unit-01':1,'mat-eiken5-scene':1,'mat-eiken5-kakehashi':1,'mat-eiken4-bunpo':1,'mat-eiken4-kaiwa':1,'mat-eiken4-dokkai':1};
+function _pnoOf_(mid,ord){ if(!_NO_MATS_[String(mid||'')])return ''; var n=parseInt(ord,10); return (n>0)?('No.'+n):''; }
+function _pnoHtml_(mid,ord){ var t=_pnoOf_(mid,ord); return t?('<span class="pno">'+t+'</span>'):''; }
 var _partIdx={},_partIdxReady=false;
 /* 【2026-09-22 川上さん確定】教材ごとのパート一覧を part_order 順のまま覚える。
    単元別の完了画面で「順番どおりの次のパート」を端末だけで決めるために要る（kwtGAS.gs は触らない）。
@@ -8100,7 +8108,8 @@ function _buildPartIdx_(mats){
     (c.parts||[]).forEach(function(pt){
       var pid=String(pt.part_id||pt.id||'');if(!pid)return;
       _ord.push({id:pid,passed:!!pt.passed,title:String(pt.title||pt.name||'')}); /* 2026-09-22 */
-      _partIdx[pid]={subj:sj,part:String(pt.title||pt.name||''),mat:String(mtShortMt(c)||c.material_title||c.title||''),mid:String(c.material_id||''),
+      var _no=_pnoOf_(c.material_id,pt.part_order);   /* 2026-10-10 帯・完了画面・続きからの表示に No を付ける（part は表示にだけ使う） */
+      _partIdx[pid]={subj:sj,part:(_no?_no+' ':'')+String(pt.title||pt.name||''),mat:String(mtShortMt(c)||c.material_title||c.title||''),mid:String(c.material_id||''),
         /* 単元別の練習状況（確認テスト一覧に「練習ずみ 4日前／まだ練習していない」を出すため）2026-08-20。
            material_parts は content_type=test のパートに passed（80%合格）と last_pass_date を返す＝GAS改修は不要。 */
         isTest:(c.content_type==='test'),passed:!!pt.passed,attempted:!!pt.attempted,lastPass:String(pt.last_pass_date||'')};

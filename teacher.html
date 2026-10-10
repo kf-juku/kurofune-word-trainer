@@ -299,6 +299,7 @@
     font-family:'Hiragino Kaku Gothic ProN','Yu Gothic','Meiryo','Noto Sans CJK JP',sans-serif;--lpsub:#6b7280;--lpline:#d1d5db;--lpgold:#b7791f;--lpacc:#c2410c;--lpguide:#0f766e;}
   .lp-page *{box-sizing:border-box;}
   .lp-page.lp-f{page-break-after:always;}
+  .lp-page{page:kwt-nonum;}   /* ログイン用ペラはページ番号を出さない（1人2ページ固定）2026-10-10 */
   .lp-brand{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid #1f2937;padding-bottom:3mm}
   .lp-brand .t{font-size:22pt;font-weight:800;letter-spacing:.02em}
   .lp-brand .t small{font-size:10pt;font-weight:600;color:var(--lpsub);margin-left:3mm}
@@ -352,7 +353,9 @@
   #printArea{display:none;}
   .p-filler{display:none;}   /* 両面印刷の仕切りページ。1ページで終わる生徒にだけJSで挿入。画面では出さず印刷時のみ 2026-07-28 */
   @media print{
-    @page{ size:A4 portrait; margin:12mm; }   /* 用紙と余白を固定＝各生徒のページ数を正確に数え、奇数なら仕切りを1枚足して偶数化する（両面で表裏に別生徒を出さない）2026-07-30 */
+    @page{ size:A4 portrait; margin:12mm; @bottom-center{ content:counter(page) " / " counter(pages); font-size:8.5pt; color:#555; } }   /* 【2026-10-10 印刷の決まり】下の真ん中に「n / 総数」（印刷1回ぶんの通し番号）。余白の中に描くので 273mm の数え方は変わらない */
+  @page kwt-nonum{ @bottom-center{ content:none; } }   /* 番号を出さない紙（仕切りの白紙・ログイン用ペラ）2026-10-10 */
+  .p-filler{page:kwt-nonum;}   /* 用紙と余白を固定＝各生徒のページ数を正確に数え、奇数なら仕切りを1枚足して偶数化する（両面で表裏に別生徒を出さない）2026-07-30 */
     /* 本体をレイアウトごと非表示にする（visibility:hiddenだと本体の高さが残り、印刷内容の後ろに謎の空白ページが出る）2026-07-23 */
     body > *:not(#printArea){display:none !important;}
     #printArea{display:block !important;position:static;left:auto;top:auto;width:100%;}
@@ -3578,7 +3581,7 @@ function unifiedStudentHtml_(st, opts){
       var lbl=(md?('<span class="up-gdate">'+esc(md)+'</span>'):'')+'<span class="up-gmat">'+esc(mtLabelMt(it)||'(教材)')+'</span>';
       h+='<div class="up-ghead">'+lbl+'</div>';
     }
-    var tag=it.part_title?('<span class="up-tag">'+esc(it.part_title)+'</span>'):'';
+    var tag=it.part_title?('<span class="up-tag">'+esc(_pnoT_(it.material_id,it.part_order,it.part_title))+'</span>'):'';   /* No 2026-10-10（part_order は teacher_mistakes が返す） */
     if(kind==='table'){
       /* 【2026-09-13k・川上さん確定】表は**空いているところを全部書かせる**。
          きっかけ＝本番の be動詞の表は「答えの列が丸ごと穴」（7行ぜんぶが穴）で、
@@ -4026,6 +4029,11 @@ function fsProbe_(roomy){
    ★左右とも「短いほうは縮ませない・長いほう（範囲）だけ縮む」。範囲を1行目に混ぜると、
      題名と札のぶん幅が足りず、長い教材名で5行に折れる（2026-09-02 に実測）。
    tag＝「問題」か「解答と解説」。score＝true のページだけ得点らんを出す。 */
+/* 【2026-10-10 川上さん確定】No＝カリキュラム表と共通のパート番号（parts.part_order・級ごとの通し番号）。カリキュラム表がある教材だけ出す。
+   ★今後、カリキュラム表がなくてもチェックプリントなどを作ったら No を付けることがある＝この一覧に1行足すだけ（index.html の _NO_MATS_ と同じにする） */
+var _NO_MATS_={'mat-eiken5-unit-01':1,'mat-eiken5-scene':1,'mat-eiken5-kakehashi':1,'mat-eiken4-bunpo':1,'mat-eiken4-kaiwa':1,'mat-eiken4-dokkai':1};
+function _pnoOf_(mid,ord){ if(!_NO_MATS_[String(mid||'')])return ''; var n=parseInt(ord,10); return (n>0)?('No.'+n):''; }
+function _pnoT_(mid,ord,title){ var no=_pnoOf_(mid,ord); return (no?no+' ':'')+String(title||''); }
 function fsHeadHtml_(ctx,ttl,scope,tag,score){
   var tg=tag?('<div class="fs-tag">'+esc(tag)+'</div>'):'';
   var sc=score?('<div class="fs-score"><span class="fs-sc-l">得点</span><span class="fs-sc-box"></span>'
@@ -4985,6 +4993,14 @@ function fsGo_(how){
    下の余白を 0.2146mm だけ広げると本文が 272.785mm＝ちょうど1031px になり、2つの計算が一致する。
    紙（window.print）には効かない。仕上げプリントは1ページ262mmまでしか詰めないので、本文が0.2mm減っても あふれない。 */
 var H2P_MARGIN_=[12,12,12.2146,12];
+/* 【2026-10-10 印刷の決まり】html2pdf の PDF にも「n / 総数」を下の真ん中に入れる（印刷の @bottom-center と同じ）。
+   skip＝番号を出さないページ（1始まり。仕切りの白紙）。数字と「/」だけなので jsPDF の標準フォントで出る */
+function _pdfPageNo_(pdf,skip){
+  try{ var n=pdf.internal.getNumberOfPages(),W=pdf.internal.pageSize.getWidth(),H=pdf.internal.pageSize.getHeight();
+    pdf.setFontSize(8.5); pdf.setTextColor(85,85,85);
+    for(var i=1;i<=n;i++){ if(skip&&skip.indexOf(i)>=0)continue; pdf.setPage(i); pdf.text(i+' / '+n,W/2,H-6,{align:'center'}); }
+  }catch(e){}
+}
 var _fsPdfBusy=false;
 function fsPdf_(){
   if(_fsPdfBusy) return;
@@ -5027,11 +5043,13 @@ function fsPdf_(){
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
       pagebreak:{mode:['css','legacy']} };
     setP('PDFを作っています… 1/'+units.length+'名');
-    var w=html2pdf().set(opt).from(units[0]).toPdf();
+    var _skip=[]; function _mark(u){ return function(pdf){ if(u.querySelector('.p-filler'))_skip.push(pdf.internal.getNumberOfPages()); }; }   /* 仕切りの白紙＝その生徒の最後のページ 2026-10-10 */
+    var w=html2pdf().set(opt).from(units[0]).toPdf().get('pdf').then(_mark(units[0]));
     units.slice(1).forEach(function(u,k){
       w=w.get('pdf').then(function(pdf){ pdf.addPage(); setP('PDFを作っています… '+(k+2)+'/'+units.length+'名'); })
-         .set(opt).from(u).toContainer().toCanvas().toPdf();
+         .set(opt).from(u).toContainer().toCanvas().toPdf().get('pdf').then(_mark(u));
     });
+    w=w.get('pdf').then(function(pdf){ _pdfPageNo_(pdf,_skip); });   /* ページ番号 2026-10-10 */
     w.save().then(function(){ fin(); })['catch'](function(e){ window._fsPdfErr=String(e&&e.stack||e); fin('PDFの作成に失敗しました。「印刷する」から「PDFに保存」を選んでください'); });
     });
   }, function(){ fin(); });
@@ -5733,7 +5751,7 @@ function sdUnitBlock_(s,pack){
       var sub=multiMat?('<tr class="qsu-mat"><td colspan="4">'+esc(_sdMatTitle_(mats,mid)||mes[0].material_title||'')+'</td>'
         +'<td class="qsu-a">'+prn(mid)+'</td></tr>'):'';
       return sub+mes.map(function(e){
-        return '<tr><td class="qsu-u">'+esc(e.part_title)+'</td><td class="qsu-prac">'+_qsPrac(sid,e,PIDX)+'</td>'
+        return '<tr><td class="qsu-u">'+esc(_pnoT_(e.material_id,e.part_order,e.part_title))+'</td><td class="qsu-prac">'+_qsPrac(sid,e,PIDX)+'</td>'
           +'<td class="qsu-arw">→</td><td>'+_qsCell(e)+'</td><td class="qsu-a">'+_sdAct_(e)+'</td></tr>';
       }).join('');
     }).join('');
@@ -11064,7 +11082,7 @@ function rpPdf(){
       html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
       pagebreak:{mode:['css','legacy']}
-    }).from(host.querySelector('.rp-pa')||host).save().then(fin)['catch'](function(){ fin(); toast('PDFの作成に失敗しました。「印刷」から「PDFに保存」を選んでください'); });
+    }).from(host.querySelector('.rp-pa')||host).toPdf().get('pdf').then(function(pdf){ _pdfPageNo_(pdf); }).save().then(fin)   /* ページ番号 2026-10-10 */['catch'](function(){ fin(); toast('PDFの作成に失敗しました。「印刷」から「PDFに保存」を選んでください'); });
   });
 }
 

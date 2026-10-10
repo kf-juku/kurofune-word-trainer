@@ -313,7 +313,9 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .p-unit{width:100%;display:flex;flex-direction:column;align-items:center;}   /* 生徒1人ぶんのまとまり（画面プレビューは中央）2026-07-28 */
 .p-filler{display:none;}   /* 両面印刷の仕切りページ。1ページで終わる子にだけJSで挿入。画面では出さず印刷時のみ */
 @media print{
-  @page{ size:A4 portrait; margin:12mm; }   /* 用紙と余白を固定＝各生徒のページ数を正確に数え、奇数なら仕切りを1枚足して偶数化する（両面で表裏に別生徒を出さない）2026-07-30 */
+  @page{ size:A4 portrait; margin:12mm; @bottom-center{ content:counter(page) " / " counter(pages); font-size:8.5pt; color:#555; } }   /* 【2026-10-10 印刷の決まり】下の真ん中に「n / 総数」（印刷1回ぶんの通し番号）。余白の中に描くので 273mm の数え方は変わらない */
+  @page kwt-nonum{ @bottom-center{ content:none; } }   /* 番号を出さない紙（仕切りの白紙・ログイン用ペラ）2026-10-10 */
+  .p-filler{page:kwt-nonum;}   /* 用紙と余白を固定＝各生徒のページ数を正確に数え、奇数なら仕切りを1枚足して偶数化する（両面で表裏に別生徒を出さない）2026-07-30 */
   body{background:#fff;}
   .win,#pop,.ov,.print-bar{display:none!important;}
   .print-ov{position:static;background:#fff;overflow:visible;}
