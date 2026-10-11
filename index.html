@@ -1645,6 +1645,21 @@ mark.lx-mk{background:#fff3c4;color:var(--ink);border-radius:3px;padding:0 2px;}
 .lx-selfb button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;text-align:left;}
 .lx-selfb button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);}
 .lx-again.lx-ghost{opacity:.85;}
+/* 【2026-10-11 案A】「英文を隠してもう一度聞く」は文字だけのリンク。hidden が .ex-spk の display に負けて最初から出ていたのを直す */
+.lx-again[hidden]{display:none!important;}
+.lx-again.lx-ghost{background:none;border:0;box-shadow:none;color:var(--accent);font-size:13.5px;padding:6px 0;opacity:1;text-decoration:underline;text-underline-offset:3px;min-height:0;}
+.lx-again.lx-ghost svg{width:16px;height:16px;}
+/* 【2026-10-11 案A】選び直した問題の2つの答え＝「次へ」の場所 */
+.ex-actions.lx-picking{flex-direction:column;align-items:stretch;}
+.ex-actions.lx-picking .ex-report{align-self:flex-end;}
+.lx-pick{display:flex;flex-direction:column;gap:8px;}
+.lx-pq{font-size:14px;font-weight:800;color:var(--ink);}
+.lx-pq small{display:block;font-size:12px;color:var(--sub);font-weight:700;margin-top:2px;}
+.lx-pw{font-size:13px;font-weight:700;color:var(--accent);text-align:center;}
+.lx-pick button{background:var(--accent);color:#fff;border:0;border-radius:13px;padding:13px 14px;font:inherit;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;text-align:left;}
+.lx-pick button .lx-pgo{flex:0 0 auto;white-space:nowrap;}
+.lx-pick button i{font-size:19px;}
+.lx-pick button[disabled]{background:var(--ring-track);color:var(--sub);cursor:default;}
 /* 確認テストの見直し（要件定義書_英検教材 4-70・案A・承認モック 20260925_モック_確認テストの結果画面_現状と案.html）2026-09-25 */
 .qrv-box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px;box-shadow:var(--shadow);text-align:center;}
 .qrv-n{font-size:14px;font-weight:700;margin-bottom:10px;}.qrv-n b{font-size:18px;color:var(--ng);}
@@ -7055,19 +7070,9 @@ function renderRD_(s,w,q,pl){
     /* 【2026-10-07・4-60】選び直した問題は、答え合わせ（答え・ありか・全文訳）のあとに「英文を読んで、どうだった？」を選ぶまで次へ進めない。
        保存は聞き取りと同じ s._lxNotes → session_complete の listen_notes（列は qdata.fmt＝r4a〜r4c・先生画面の弱点の表で読解の行に入る） */
     if(retried){ try{
-      var _xa=$('ex-audio'),_nx=$('ex-next');
-      if(_xa){
-        _xa.innerHTML='<div class="lx-self" id="rd-self"><div class="lx-xh">'+_jaRubyIf_('英文を読んで、どうだった？')+'</div><div class="lx-selfb">'
-          +'<button type="button" data-v="read">'+_jaRubyIf_('英文を読んだら分かった')+'</button>'
-          +'<button type="button" data-v="word">'+_jaRubyIf_('読んでも分からない語があった')+'</button></div></div>';
-        _xa.style.display='';
-        if(_nx)_nx.style.display='none';
-        var _okR=!!ok;
-        [].forEach.call(_xa.querySelectorAll('.lx-selfb button'),function(bt){ bt.onclick=function(){
-          [].forEach.call(_xa.querySelectorAll('.lx-selfb button'),function(x){ x.classList.toggle('on',x===bt); });
-          (s._lxNotes||(s._lxNotes={}))[String(w.id)]={retry_ok:_okR?1:0,self:bt.getAttribute('data-v')};
-          if(_nx)_nx.style.display=''; try{_rdxFloat_(true);}catch(_eF){} }; });
-      }
+      /* 【2026-10-11 案A】2つの答えを「次へ」の場所に置く。押すと記録して、そのまま次の問題へ（読解は聞く手順が無いので、すぐ押せる） */
+      _lxPickMount_(s,w,!!ok,false);
+      try{_rdxFloat_(true);}catch(_eF){}
     }catch(_eS){ var _nx2=$('ex-next'); if(_nx2)_nx2.style.display=''; } }
     /* showExplain は解説を画面の下にそろえてページを動かす（smooth）。読解は答えのありかを先に見せる（4-96）ので、その動きを止めてから本文の枠へ動かす */
     try{ window.scrollTo(window.scrollX||0,window.scrollY||window.pageYOffset||0); }catch(e){}
@@ -7685,6 +7690,32 @@ function _lxJaMark_(ja,k){
   }
   return out+_jaRubyIf_(ja.slice(pos));
 }
+/* 【2026-10-11 川上さん 案A】選び直した問題の「英文を読んで、どうだった？」を「次へ」の場所に置く。
+   2つのボタン（分かった／分からない語があった）を押すと、記録（s._lxNotes＝listen_notes。中身は今までと同じ）を入れて、そのまま次の問題へ進む。
+   needListen＝聞き取り：「英文を見ながら聞く」を最後まで聞くまで押せない（4-43 ②）。返り値の heard() で押せるようにする。
+   「次へ」が解説のなぞりで待っているあいだ（waitTap）も押せない。読解は needListen=false。 */
+function _lxPickMount_(s,w,ok2,needListen){
+  var nx=$('ex-next');if(!nx)return null;var acts=nx.parentNode;
+  var old=acts.querySelector('.lx-pick');if(old)old.remove();
+  var pk=document.createElement('div');pk.className='lx-pick';
+  var nxt='<span class="lx-pgo">'+_jaRubyIf_('次へ')+' <i class="ti ti-arrow-right"></i></span>';
+  pk.innerHTML='<div class="lx-pq">'+_jaRubyIf_('英文を読んで、どうだった？')+'<small>'+_jaRubyIf_('選ぶと、次の問題へ進む')+'</small></div>'
+    +(needListen?'<div class="lx-pw">'+_jaRubyIf_('↑「英文を見ながら聞く」を最後まで聞くと押せる')+'</div>':'')
+    +'<button type="button" data-v="read" disabled><span>'+_jaRubyIf_('英文を読んだら分かった')+'</span>'+nxt+'</button>'
+    +'<button type="button" data-v="word" disabled><span>'+_jaRubyIf_('読んでも分からない語があった')+'</span>'+nxt+'</button>';
+  acts.insertBefore(pk,nx);acts.classList.add('lx-picking');nx.style.display='none';
+  var heard=!needListen,tm=null;
+  var upd=function(){ if(!document.body.contains(pk)){clearInterval(tm);return;}
+    var on=heard&&!nx.disabled; [].forEach.call(pk.querySelectorAll('button'),function(b){b.disabled=!on;});
+    var pw=pk.querySelector('.lx-pw'); if(pw)pw.style.display=heard?'none':''; };
+  tm=setInterval(upd,200);upd();
+  [].forEach.call(pk.querySelectorAll('button'),function(b){b.onclick=function(){
+    if(b.disabled)return;
+    (s._lxNotes||(s._lxNotes={}))[String(w.id)]={retry_ok:ok2?1:0,self:b.getAttribute('data-v')};
+    clearInterval(tm);pk.remove();acts.classList.remove('lx-picking');nx.style.display='';nx.click();
+  };});
+  return {heard:function(){heard=true;upd();}};
+}
 function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
   var xa=$('ex-audio');if(!xa)return;
   var hasC=!!(chs[0]&&chs[0].c&&chs[0].c.length);
@@ -7709,14 +7740,15 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
       +((hasC&&c.c&&!(ci===0&&pl.choice_kja)&&_lxSameJa_(c.c,c.ja))?'':'<small>'+((hasC&&ci===0)?_lxJaMark_(c.ja,pl.choice_kja):_jaRubyIf_(String(c.ja||'')))+'</small>')+'</div></div>';
   });
   /* 【2026-09-25 川上さん「3 ア」】選び直した問題は、押すまで次へ進めないので、ボタンの上に1行だけ案内する */
-  if(retried)xh+='<div class="lx-wtip" id="lx-wtip"><ruby>押<rt class="uf">お</rt></ruby>して、<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>見<rt class="uf">み</rt></ruby>ながらもう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>こう</div>';
+  /* 【2026-10-11 案A】「押して、英文を見ながらもう一度聞こう」の1行はやめた（答えのボタンの上の1行と同じことを言うため） */
   xh+='<button type="button" class="ex-spk lx-again" id="lx-wt">'+_LX_IC_.play+'<span><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>見<rt class="uf">み</rt></ruby>ながら<ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
-  if(retried)xh+='<div class="lx-self" id="lx-self" hidden><div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>読<rt class="uf">よ</rt></ruby>んで、どうだった？</div><div class="lx-selfb">'
-    +'<button type="button" data-v="read"><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>読<rt class="uf">よ</rt></ruby>んだら<ruby>分<rt class="uf">わ</rt></ruby>かった</button>'
-    +'<button type="button" data-v="word"><ruby>読<rt class="uf">よ</rt></ruby>んでも<ruby>分<rt class="uf">わ</rt></ruby>からない<ruby>語<rt class="uf">ご</rt></ruby>があった</button></div></div>';
+  /* 【2026-10-11 案A】「英文を読んで、どうだった？」の2つは「次へ」の場所に出す（_lxPickMount_） */
+
+
   xh+='<button type="button" class="ex-spk lx-again lx-ghost" id="lx-hd" hidden>'+_LX_IC_.hide+'<span><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>隠<rt class="uf">かく</rt></ruby>してもう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
   xa.innerHTML=xh;xa.style.display='';
   var nx=$('ex-next'),selfDone=false,self=$('lx-self'),hd=$('lx-hd'),wt=$('lx-wt');
+  var _pick=retried?_lxPickMount_(s,w,ok2,true):null;   /* 【2026-10-11 案A】選び直した問題＝2つの答えを「次へ」の場所に。聞き終わるまで押せない */
   var steps=function(){var st=[];
     if(isResp)lines.forEach(function(l,i){st.push({it:l,gap:900,on:H.lit('lx-x-l'+i)});});
     if(qq)st.push({it:qq,gap:0,on:H.lit('lx-x-q')});   /* 第2部型は選択肢を読まない */
@@ -7731,8 +7763,8 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
   }
   if(wt)wt.onclick=function(){wt.classList.remove('pulse');var _wtp=$('lx-wtip');if(_wtp)_wtp.style.display='none';
     _lxRunSeq_(steps()).then(function(done){H.clear();if(!done||!H.alive())return;
-      if(retried&&!selfDone){if(H.tip)H.tip.classList.remove('show');if(self){self.hidden=false;try{self.scrollIntoView({block:'nearest'});}catch(e){}}}
-      else if(hd)hd.hidden=false;});};
+      if(retried){if(H.tip)H.tip.classList.remove('show');if(_pick)_pick.heard();}
+      if(hd)hd.hidden=false;});};
   if(self)[].forEach.call(self.querySelectorAll('button'),function(b){b.onclick=function(){
     [].forEach.call(self.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b);});
     selfDone=true;
@@ -8668,7 +8700,7 @@ function showExplain(correct,kaisetsu,reading,ok){
   var _kimg=$('ex-img');if(_kimg){if(_kaiImgCur){_kimg.innerHTML=_kaiImgCur;_kimg.style.display='';}else{_kimg.innerHTML='';_kimg.style.display='none';}}
   var _xh=$('ex-heard');if(_xh){_xh.innerHTML='';_xh.style.display='none';}   /* 前の問題の「聞こえた英文」を残さない 2026-09-29 */
   var _xa=$('ex-audio');if(_xa){_xa.innerHTML='';_xa.style.display='none';_xa.classList.remove('lx-hide');}
-  var _xn=$('ex-next');if(_xn)_xn.style.display='';   /* 聞き取りの選び直しで隠した「次へ」を戻す 2026-09-25 */   /* 文の音声ボタンは毎回消す＝前の問題のが残らない 2026-09-11 */
+  var _xn=$('ex-next');if(_xn)_xn.style.display='';try{var _xp=document.querySelector('.ex-actions .lx-pick');if(_xp)_xp.remove();var _xe=document.querySelector('.ex-actions');if(_xe)_xe.classList.remove('lx-picking');}catch(_eP){}   /* 2026-10-11 案A：前の問題の答えのボタンを残さない */   /* 聞き取りの選び直しで隠した「次へ」を戻す 2026-09-25 */   /* 文の音声ボタンは毎回消す＝前の問題のが残らない 2026-09-11 */
   var _bf=$('bug-fab');if(_bf)_bf.style.display='none'; /* 解説中はフローティング報告を隠す＝機能は解説内「まちがい報告」へ 2026-07-16 */
   $('explain').style.display='block';
   try{$('explain').scrollIntoView({behavior:'smooth',block:'end'});}catch(e){try{$('explain').scrollIntoView(false);}catch(e2){}}
