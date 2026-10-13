@@ -3511,6 +3511,11 @@ function prefetchParts_(cards){
   });
 }
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+/* 【2026-10-13 川上さん】図の中の記号で答える問題（選択肢がア・イ・ウ・エや①②③…だけ）は、選択肢を記号の順に並べる。
+   記号は図に印字されているので、混ぜても意味がない。あわせて、記号1字の答えは「この単元の用語」に出さない（用語ではないため）。 */
+var _SYM_ORD_='アイウエオカキクケコサシスセソタチツテト①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
+function _isSymCh_(x){x=String(x==null?'':x).trim();return x.length===1&&_SYM_ORD_.indexOf(x)>=0;}
+function _symOrder_(arr){if(!arr||!arr.length||!arr.every(_isSymCh_))return arr;return arr.slice().sort(function(p,q){return _SYM_ORD_.indexOf(String(p).trim())-_SYM_ORD_.indexOf(String(q).trim());});}
 function animNum(el,to,dur){if(document.hidden){el.textContent=Math.round(to||0);return;} /* 裏タブ/非表示はrAFが止まり数字が0で残るので最終値を即表示 2026-07-27 */ var st=performance.now();function f(t){var p=Math.min(1,(t-st)/(dur||900));el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f);}requestAnimationFrame(f);}
 
 /* テーマ：端末設定に追従＋手動切替 */
@@ -5468,7 +5473,7 @@ function _sumData_(s){
   var A=s.assets||{},seen={},use=[];
   s.words.forEach(function(w){
     var a=String(w.english||'');
-    if(!a||/。$/.test(a)||seen[a])return;
+    if(!a||/。$/.test(a)||seen[a]||_isSymCh_(a))return;   /* 記号1字の答え（図中の記号で答える問題）は用語ではない 2026-10-13 */
     seen[a]=1;
     var q={};try{q=tfParse(w)||{};}catch(e){q={};}
     use.push({a:a,r:(w.reading_hint&&String(w.reading_hint)!==a)?String(w.reading_hint):'',n:q.num||'',
@@ -8608,7 +8613,7 @@ function buildChoices(containerId,correct,pool,onResult,opts){
   else { _base=pool.filter(function(x){return _choiceKey(x)!==_ck;}).filter(_notInPrompt); } // ランダムpoolのときだけ問題文の語を除外
   _base=_dedupChoices(_base);   /* 誤答どうしが見た目で重なるのも1つに畳む 2026-08-18 */
   var others=shuffle(_base).slice(0,3);
-  var choices=shuffle([correct].concat(others));
+  var choices=_symOrder_(shuffle([correct].concat(others)));   /* 記号だけの選択肢は記号の順 2026-10-13 */
   var answered=false;
   function finish(ok,picked){
     if(answered)return;answered=true;stopQTimer();
@@ -9544,7 +9549,7 @@ function buildNoteChoices(containerId,correct,wrongs,onResult,opts){
   var others=shuffle(_dedupChoices((wrongs||[])
     .filter(function(x){return _choiceKey(x)!==_ck;})
     .filter(function(x){return !_pt||_pt.indexOf(String(x))===-1;}))).slice(0,3);
-  var choices=shuffle([correct].concat(others));
+  var choices=_symOrder_(shuffle([correct].concat(others)));   /* 記号だけの選択肢は記号の順 2026-10-13 */
   var answered=false;
   function finish(ok,picked){
     if(answered)return;answered=true;
