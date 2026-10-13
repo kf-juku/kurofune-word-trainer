@@ -4128,11 +4128,16 @@ function fsQBodyHtml_(it,no,ctx,pos){
    値は CSS の max-width:58mm / max-height（3問58・2問48・1問36mm）で決まる寸法をそのまま数値にしたものなので、
    見た目は今までと変わらない。縦横比が分からない図（読めなかった図）は最大の高さを確保する＝詰め込みすぎない。 */
 var FS_FIG_W_MM_=58;
+/* 【2026-10-13 川上さん確定・案A】横長の図（高さ÷幅が0.45未満）は幅の上限を105mmに広げる。
+   幅58mmのままだと、断面図（1000×243）が高さ14mmになり、図の中の記号（ア〜エ・X・Y）が約1.5mmで読めなかった。
+   105mm はチェックプリントで同じ図が読めている幅（約103mm）とそろえた値。右の問題文の欄は狭くなる。 */
+var FS_FIG_WIDE_AR_=0.45, FS_FIG_WIDE_W_MM_=105;
+function fsFigWMm_(url){ var ar=_fsImgAR[url]; return (ar>0&&ar<FS_FIG_WIDE_AR_)?FS_FIG_WIDE_W_MM_:FS_FIG_W_MM_; }
 function fsFigMaxH_(n){ return n>=3?58:(n===2?48:36); }
 function fsFigHMm_(url,n){
   var mx=fsFigMaxH_(n), ar=_fsImgAR[url];
   if(!(ar>0)) return mx;                      /* 読めていない図は最大の高さで場所を取る */
-  return Math.min(mx, FS_FIG_W_MM_*ar);       /* 幅58mmに収めたときの高さ。max-height を超えない */
+  return Math.min(mx, fsFigWMm_(url)*ar);     /* 幅の上限（ふつう58mm・横長105mm）に収めたときの高さ。max-height を超えない */
 }
 function fsFigBlockHtml_(block,startNo){
   /* 【2026-09-13j・段E】表（table_fill）も「1つの素材＋複数の問題」なので、図と同じ入れ物で描く。
@@ -4159,7 +4164,7 @@ function fsFigBlockHtml_(block,startNo){
   var inner='';
   block.items.forEach(function(it,i){ inner+=fsQBodyHtml_(it,startNo+i); });
   var h=Math.round(fsFigHMm_(block.fig,block.items.length)*10)/10;
-  return '<div class="fs-figblk" data-n="'+block.items.length+'"><img src="'+esc(block.fig)+'" alt="" style="height:'+h+'mm" onerror="this.style.visibility=\'hidden\'">'
+  return '<div class="fs-figblk" data-n="'+block.items.length+'"><img src="'+esc(block.fig)+'" alt="" style="height:'+h+'mm;max-width:'+fsFigWMm_(block.fig)+'mm" onerror="this.style.visibility=\'hidden\'">'
     +'<div class="fs-qs">'+inner+'</div></div>';
 }
 function fsAnsBandHtml_(){
