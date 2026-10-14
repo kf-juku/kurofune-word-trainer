@@ -1104,6 +1104,7 @@
   .qsec{font-size:15px;font-weight:700;min-width:44px;text-align:right;color:var(--accent);}
   /* 不正解時の 解答＋解説＋タップでつぎへ（2026-07-04）*/
   .explain{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--ng);border-radius:14px;padding:11px 13px;margin-top:4px;box-shadow:var(--shadow);animation:exIn .18s ease;}
+  .explain.ex-ok{border-left-color:var(--ok);}   /* 2026-10-14 §20d 12-18：正解のときは左の線を緑に（前は正解でも赤） */
   @keyframes exIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
   .ex-ans{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;}
   .ex-ans b{color:var(--ok);}
@@ -1743,6 +1744,9 @@ mark.lx-mk{background:#fff3c4;color:var(--ink);border-radius:3px;padding:0 2px;}
 .tk{cursor:pointer;-webkit-tap-highlight-color:transparent;background:rgba(120,128,145,.13);border-radius:6px;padding:1px 5px;white-space:nowrap;color:inherit;font-weight:inherit}
 [data-theme="dark"] .tk{background:rgba(255,255,255,.10)}
 .tk .tk-ic{font-size:.8em;margin-left:3px;color:var(--sub);vertical-align:-1px}
+.tk-sent .tk{background:none;border-radius:0;padding:0;white-space:normal;border-bottom:1.5px dotted rgba(120,128,145,.65)}   /* 2026-10-14 正解の文は札にしない */
+[data-theme="dark"] .tk-sent .tk{background:none;border-bottom-color:rgba(255,255,255,.4)}
+.tk-sent .tk.on{background:var(--accent-soft)}
 /* 【A⑤ 2026-10-02】スマホの幅（400px以下）で、解説とポイントの中の英文の札が1行のまま枠の外に出ていた（360pxでも例文の後ろの「.」がはみ出す）。入らないときは札の中で折り返す */
 @media (max-width:400px){.ex-kai .tk,.pt-body .tk{white-space:normal}}
 .tkw{cursor:pointer;border-radius:6px;-webkit-tap-highlight-color:transparent}
@@ -2064,6 +2068,10 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 .choice.rd-ch.tried{opacity:.4;border-style:dashed;text-decoration:line-through}
 .rd-retry{margin:4px 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:14px;text-align:left}
 .rd-retry b{color:var(--ng);margin-right:6px}
+.ro-retry{margin:0 0 8px}
+.ro-was{margin-top:6px;font-size:13px;color:var(--sub)}
+.ro-was span{display:inline-block;font-size:11px;font-weight:800;margin-right:6px}
+.ro-was s{font-family:'Manrope','Noto Sans JP',sans-serif;color:var(--ng)}
 .rd-opts{background:var(--accent-soft);border-radius:10px;padding:6px 12px;margin:2px 0 10px;text-align:left}
 .rd-opt{padding:3px 0;font-size:15.5px}
 .rd-opt .rd-on{display:inline-block;min-width:1.6em;color:var(--sub);font-weight:700}
@@ -5613,12 +5621,13 @@ function _tkAnsHtml_(t){
   if(_rdxEx_&&/[A-Za-z]/.test(t))return esc(t)+'<button type="button" class="rdx-spk" id="rdx-ansspk" aria-label="正解の英文を聞く"><i class="ti ti-volume"></i></button>';   /* 読解の正解（mp3 あり）＝1文のまま＋音声 3-12③ */
   if(!/[A-Za-z]/.test(t)||/[ぁ-んァ-ヶ一-龥]/.test(t))return _jaRubyIf_(t);
   var parts=t.split(/(\s+)/), many=parts.filter(function(x){return /[A-Za-z]/.test(x);}).length>1;
-  return parts.map(function(x){
+  var _h=parts.map(function(x){
     if(!/[A-Za-z]/.test(x))return esc(x);
     var m=x.match(/^([^A-Za-z0-9']*)([A-Za-z0-9'’]+(?:[-][A-Za-z0-9']+)*)([^A-Za-z0-9']*)$/);
     if(!m)return esc(x);
     return esc(m[1])+_tkHtml_(m[2],_tkLook_(m[2]),many)+esc(m[3]);
   }).join('');
+  return many?'<span class="tk-sent">'+_h+'</span>':_h;   /* 2026-10-14 §20d 12-18：2語以上は札の形にせず文のまま（押せる印は点線）。1語ずつ札で折り返していた */
 }
 /* 解説の中の英語。{{英語|日本語}} があればそれ、無ければ英語のつながり（Tom and I など）を1つにして押せる */
 function _tkKaiHtml_(t){
@@ -6902,7 +6911,7 @@ function _rdxBars_(bx,el,a,b){
 /* 矢印はその語の頭から語の終わり（記号の手前）まで dur ミリ秒で進む。dur=0 は語の終わりに置くだけ */
 function _rdxArrow_(bx,el,w,dur){
   var n=w[2].replace(/[^A-Za-z0-9'’]+$/,'').length||w[2].length;
-  var r=_rdxRange_(el,w[0],w[0]+n);if(!r)return;var c=r.getClientRects()[0];if(!c)return;var br=bx.getBoundingClientRect();
+  var r=_rdxRange_(el,w[0],w[0]+n);if(!r)return;var c=[].filter.call(r.getClientRects(),function(x){return x.width>1;})[0];if(!c)return;var br=bx.getBoundingClientRect();   /* 2026-10-14 §20d 12-15②：語を押せる本文では最初の矩形が幅0で矢印が動かなかった */
   var p=bx.querySelector('.rdx-pt');if(!p){p=document.createElement('div');p.className='rdx-pt';bx.appendChild(p);}
   var x0=c.left-br.left+bx.scrollLeft,x1=c.right-br.left+bx.scrollLeft;
   p.style.transition='none';p.style.top=(c.bottom-br.top+bx.scrollTop+4)+'px';
@@ -6993,9 +7002,9 @@ function _rdPassage_(pl,locs,tg,after,gl,big){
     if(essay&&l.p&&k>0)h+='<div class="rd-gap"></div>';
     h+='<div class="'+cls+(essay&&l.p?' pi':'')+'" id="rd-l'+k+'" data-line="'+k+'">'+_rdWords_(en,gl)+'</div>';
     if(after){
-      var ck=(l&&l.chunks)||[],fg='<span class="rd-fg">'+rb('英語','えいご')+'の'+rb('順','じゅん')+'で</span>';
+      var ck=(l&&l.chunks)||[],fg='<span class="rd-fg">'+'かたまりの'+rb('意味','いみ')+'を'+rb('見','み')+'る'+'</span>';
       h+='<div class="rd-tr'+(on?' rd-hl':'')+'" data-k="'+k+'">'+_jaRubyIf_(String(l.ja||''))+(ck.length&&!on?fg:'')+'</div>'
-        +(ck.length?'<div class="rd-wg rd-wg2" id="rd-wg'+k+'" style="display:'+(on?'flex':'none')+'"><span class="rdx-wgh" data-k="'+k+'">'+rb('英語','えいご')+'の'+rb('順','じゅん')+'で</span>'+ck.map(function(c,ci){return '<span class="rd-ck"><span class="rd-cc"><b>'+esc(String(c.en||''))+'</b><em>'+_jaRubyIf_(String(c.ja||''))+'</em></span>'+(ci<ck.length-1?'<i class="lx-sl" aria-hidden="true">/</i>':'')+'</span>';}).join('')+'</div>':'');
+        +(ck.length?'<div class="rd-wg rd-wg2" id="rd-wg'+k+'" style="display:'+(on?'flex':'none')+'"><span class="rdx-wgh" data-k="'+k+'">'+'かたまりの'+rb('意味','いみ')+'をかくす'+'</span>'+ck.map(function(c,ci){return '<span class="rd-ck"><span class="rd-cc"><b>'+esc(String(c.en||''))+'</b><em>'+_jaRubyIf_(String(c.ja||''))+'</em></span>'+(ci<ck.length-1?'<i class="lx-sl" aria-hidden="true">/</i>':'')+'</span>';}).join('')+'</div>':'');
     }
   });
   if(openP)h+='</p>'; if(segOpen)h+='</div>';
@@ -7037,7 +7046,7 @@ function renderRD_(s,w,q,pl){
     /* 訳・見出し「英語の順で」を押すと開く／閉じる。開いているあいだは訳の横の「英語の順で」を消す */
     [].forEach.call(body.querySelectorAll('.rd-tr,.rdx-wgh'),function(el){ el.onclick=function(e){ e.stopPropagation(); var k=el.getAttribute('data-k'),g=$('rd-wg'+k); if(!g)return; var op=(g.style.display==='none'); g.style.display=op?'flex':'none';
       var tr=body.querySelector('.rd-tr[data-k="'+k+'"]'),fg=tr&&tr.querySelector('.rd-fg');
-      if(op&&fg)fg.remove(); if(!op&&tr&&!fg&&!tr.classList.contains('rd-hl'))tr.insertAdjacentHTML('beforeend','<span class="rd-fg">'+rb('英語','えいご')+'の'+rb('順','じゅん')+'で</span>');
+      if(op&&fg)fg.remove(); if(!op&&tr&&!fg&&!tr.classList.contains('rd-hl'))tr.insertAdjacentHTML('beforeend','<span class="rd-fg">'+'かたまりの'+rb('意味','いみ')+'を'+rb('見','み')+'る'+'</span>');
       try{_rdxPaint_();}catch(_e){} }; });
     var bx=$('rd-box');
     if(bx){ if(drawn)bx.scrollTop=st0; bx.addEventListener('scroll',function(){requestAnimationFrame(_rdxSpy_);},{passive:true}); }
@@ -7063,7 +7072,8 @@ function renderRD_(s,w,q,pl){
   var order=shuffle(chs.map(function(c,i){return i;}));
   box.innerHTML=order.map(function(ci,j){
       return '<button type="button" class="choice rd-ch" data-j="'+j+'" data-val="'+esc(chs[ci].en)+'">'+(rc?_jaRubyIf_(chs[ci].en):esc(chs[ci].en))+'</button>';
-    }).join('')+'<div class="rd-retry" id="rd-retry" style="display:none"></div>';
+    }).join('');
+  box.insertAdjacentHTML('afterbegin','<div class="rd-retry" id="rd-retry" style="display:none"></div>');   /* 2026-10-14 §20d 12-23：「もう一度」の案内は選択肢の上（下だとスマホの1画面目に入らない） */
   var answered=false,first=null,retried=false,t0=Date.now(),canRetry=!s.quizMode&&s.mode!=='note';
   var alive=function(){return s.words[s.idx]===w;};
   function finish(ok,b){
@@ -7076,7 +7086,7 @@ function renderRD_(s,w,q,pl){
       if(!ok&&canRetry&&b){
         retried=true; combo=0; comboBreak_(); sndWrong();
         b.classList.add('tried'); b.disabled=true;
-        if(tip){ tip.innerHTML='<b>'+_jaRubyIf_('もう一度')+'</b>'+_jaRubyIf_('質問をもう一度読み、本文を最初から読み直して、選び直そう。'); tip.style.display=''; }
+        if(tip){ tip.innerHTML='<b>'+_jaRubyIf_('もう一度')+'</b>'+_jaRubyIf_('質問をもう一度読み、本文を最初から読み直して、選び直そう。'); tip.style.display=''; try{tip.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_eT){} }
         return;
       }
       if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
@@ -7464,6 +7474,11 @@ function renderRO_(s,w,q,pl){
     fillEmpty();sync();
   }
   fillEmpty();drawBank();sync();
+  /* 【2026-10-14 要件定義書_英検教材 §20d 12-17・川上さん決定】並べ替えは1回だけやり直せる（全部の級）。
+     1回目にまちがえたら、札を赤くして揺らし、約1秒後に札を語群に戻して並べ直させる。上に「ちがっていました。もう一度並べよう（あと1回）」と「さっきの並べ方」（取り消し線）。
+     記録（_quizAns）と点数は1回目の答えで決まる＝1回目のまちがいは「まちがい」として残す（読解の選び直しと同じ）。2回目は正解でもまちがいでも答え合わせを出す。
+     確認テスト（quizMode）とノート（mode note）はやり直しなし（読解と同じ） */
+  var _roTry=0,_roFirst=null,_roCan=!s.quizMode&&s.mode!=='note';
   btn.onclick=function(){
     if(locked)return;
     var placed=placedNow();
@@ -7477,15 +7492,39 @@ function renderRO_(s,w,q,pl){
        赤くしないと、下に出る「正解 ◯◯」だけが目に入って正解したように見える（川上さん指摘 2026-09-08⑦）*/
     [].forEach.call(sl.querySelectorAll('.ro-chip'),function(c){c.classList.add(ok?'okc':'ng');});
     if(!ok){sl.classList.add('shake');setTimeout(function(){sl.classList.remove('shake');},320);}
+    _roTry++;
+    if(_roTry===1){
+      _roFirst=ok; ansCount++;
+      try{_qrvPick_=placed.join(' / ');}catch(eQp){_qrvPick_='';}
+      _quizAns(s,w,ok,(Date.now()-_t0),'e2j');   /* 点数と記録は1回目の答えで決まる */
+      if(!ok&&_roCan){
+        combo=0;comboBreak_();sndWrong();
+        var _was=_sentJoin_(placed);
+        setTimeout(function(){
+          if(s.words[s.idx]!==w)return;
+          [].forEach.call(sl.querySelectorAll('.ro-chip'),function(c){bank.push(c.getAttribute('data-t'));if(c.parentNode)c.parentNode.removeChild(c);});
+          bank=_shufNot_(bank);
+          var rt=$('ro-retry');
+          if(!rt){rt=document.createElement('div');rt.id='ro-retry';rt.className='rd-retry ro-retry';sl.parentNode.insertBefore(rt,sl);}
+          rt.innerHTML='<b>'+_jaRubyIf_('ちがっていました。')+'</b>'+_jaRubyIf_('もう一度並べよう（あと1回）')
+            +'<div class="ro-was"><span>'+_jaRubyIf_('さっきの並べ方')+'</span><s>'+esc(_was)+'</s></div>';
+          rt.style.display='';
+          locked=false; fillEmpty(); drawBank(); sync();
+          try{rt.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_eR){}
+        },1000);
+        return;
+      }
+    }else{
+      var _rt=$('ro-retry'); if(_rt)_rt.remove();
+    }
     /* 答えたら「これでいい」と語群は片づける。下に出る「つぎへ」と2つボタンが並ぶと、どちらを押すのか迷う */
     btn.disabled=true;btn.style.display='none';
     var bk=$('ro-bank');if(bk){[].forEach.call(bk.querySelectorAll('.ro-tok'),function(b){b.disabled=true;});bk.style.display='none';}
     var hh=$('ro-hint');if(hh)hh.style.display='none';
-    if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
-    else{combo=0;comboBreak_();sndWrong();}
-    ansCount++;
-    try{_qrvPick_=placedNow().join(' / ');}catch(eQp){_qrvPick_='';}
-    _quizAns(s,w,ok,(Date.now()-_t0),'e2j');
+    if(_roTry===1){
+      if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
+      else{combo=0;comboBreak_();sndWrong();}
+    }else{ if(ok)sndCorrect(); else sndWrong(); }   /* 2回目：記録とコンボは1回目で済んでいる */
     /* 正解の表示は文頭を大文字にした正しい形（＝en）。語群の小文字のまま見せない */
     afterAnswer(ok,(pl.en||_sentJoin_(toks)),w.kaisetsu,'',s.onNext);
     _sentAfterAudio_(pl,(pl.roles&&pl.roles.length)?'':_sentChunkBlk_(pl,null));   /* 答え合わせで文を鳴らす 2026-09-11・かたまり 2026-10-14 4-111 ⑨ */
@@ -8739,6 +8778,7 @@ function showExplain(correct,kaisetsu,reading,ok){
   var _xa=$('ex-audio');if(_xa){_xa.innerHTML='';_xa.style.display='none';_xa.classList.remove('lx-hide');}
   var _xn=$('ex-next');if(_xn)_xn.style.display='';try{var _xp=document.querySelector('.ex-actions .lx-pick');if(_xp)_xp.remove();var _xe=document.querySelector('.ex-actions');if(_xe)_xe.classList.remove('lx-picking');}catch(_eP){}   /* 2026-10-11 案A：前の問題の答えのボタンを残さない */   /* 聞き取りの選び直しで隠した「次へ」を戻す 2026-09-25 */   /* 文の音声ボタンは毎回消す＝前の問題のが残らない 2026-09-11 */
   var _bf=$('bug-fab');if(_bf)_bf.style.display='none'; /* 解説中はフローティング報告を隠す＝機能は解説内「まちがい報告」へ 2026-07-16 */
+  try{$('explain').classList.toggle('ex-ok',ok===true);}catch(_eOk){}
   $('explain').style.display='block';
   try{$('explain').scrollIntoView({behavior:'smooth',block:'end'});}catch(e){try{$('explain').scrollIntoView(false);}catch(e2){}}
   if(ok===false&&_isEigo_())setTimeout(function(){try{_tkCoach_('ans',$('explain'));}catch(_e){}},80);   /* 間違えたときだけ・1日1回（§17s-6）。聞き取りの英文はこのあとで描かれるので少し待つ */
