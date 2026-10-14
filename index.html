@@ -1627,6 +1627,14 @@
 .lx-no{font-weight:800;font-size:13px;color:var(--sub);margin-right:4px;}
 .lx-wgl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:flex-end;margin:2px 0;}
 .lx-wgl .wg-ws{column-gap:0;}
+/* 【2026-10-14 4-111 ⑪ 案2】かたまりはスラッシュで区切る（下線の箱はやめた） */
+.lx-wgl{gap:4px 0!important;align-items:flex-start!important;}
+.lx-wgl .ww{border-bottom:none!important;}
+.lx-wgl .wg-ws{align-items:flex-start;}
+.lx-sl{color:#9ca3af;font-size:17px;font-weight:400;padding:0 6px;line-height:1.35;align-self:flex-start;user-select:none;}
+.rd-wg .rd-ck{display:flex;flex-direction:row;align-items:flex-start;background:none;border-radius:0;padding:0}
+.rd-wg .rd-cc{display:flex;flex-direction:column;align-items:flex-start;background:none;border-radius:0;padding:0}
+.rd-wg.rd-wg2{gap:4px 0}
 .lx-wgl .ww{align-items:flex-start;border-bottom:2px solid var(--line);padding:0 1px 2px;}
 .lx-wgl .ww-en{font-size:15.5px;min-height:0;}
 /* 【A⑤ 2026-10-02】長いかたまり（英文・直訳）が1行のまま画面の右へ突き抜けていた。入らないときだけ折り返す */
@@ -6681,12 +6689,12 @@ function _sentPlay_(pl,sex){
    ・iOS は「押した流れ」から外れた自動再生を止めることがある。鳴らなかったときの逃げ道がボタン
    ・mp3 が無ければ _sentPlay_ が端末の読み上げに落ちる（音声をそろえる前でも動く）*/
 var _sentAfterT_=null;
-function _sentAfterAudio_(pl){
+function _sentAfterAudio_(pl,pre){
   if(!pl||!(pl.en||pl.audio||(pl.audios&&pl.audios.length)))return;
   var box=$('ex-audio');
   if(box){
     box.style.display='';
-    box.innerHTML='<button type="button" class="ex-spk" id="ex-spk"><i class="ti ti-volume"></i>'
+    box.innerHTML=(pre||'')+'<button type="button" class="ex-spk" id="ex-spk"><i class="ti ti-volume"></i>'
       +'<span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
     var b=$('ex-spk'); if(b)b.onclick=function(){_sentPlay_(pl);};
   }
@@ -6734,6 +6742,21 @@ function _wordCols_(tokens,gloss,roles,blankAt,blankText,s,blankN){
 function _sentPack_(s,w){var q=tfParse(w);var a=((s&&s.assets)||{})[q.asset]||{};var pl={};try{pl=JSON.parse(a.payload||'{}');}catch(e){pl={};}return {q:q,pl:pl};}
 /* T-shirt・P.E.・don't は1語として切る（ハイフンとアポストロフィで割らない）＝文のビルドと検査.py と同じ正規表現 */
 function _sentTok_(t){return String(t==null?'':t).match(/P\.E\.|[ap]\.m\.|[0-9]+(?:[:.,][0-9]+)*(?:st|nd|rd|th)?|[A-Za-z]+(?:[-'][A-Za-z]+)*|[.,?!]/g)||[];}
+/* 【2026-10-14 4-111 ⑨】文の穴うめ・並べ替えの答え合わせに「英文と、英語の順番どおりの意味」。pl.c が無い素材は '' を返す（今のまま）。
+   mk＝{bi,bn}（文の穴うめの穴の位置＝_sentTok_ の何番目から何語）。穴に重なるかたまりを黄色にする。並べ替えは mk なし（黄色なし） */
+function _sentChunkBlk_(pl,mk){
+  var c=(pl&&pl.c)||[]; if(!c.length)return '';
+  var en=String(pl.en||''),cc=c.map(function(x){return [x[0],x[1]];}),key=false,kja=[];
+  if(mk&&mk.bn>0){
+    var re=/P\.E\.|[ap]\.m\.|[0-9]+(?:[:.,][0-9]+)*(?:st|nd|rd|th)?|[A-Za-z]+(?:[-'][A-Za-z]+)*|[.,?!]/g,m,i=0,a=-1,b=-1;
+    while((m=re.exec(en))){ if(i===mk.bi)a=m.index; if(i===mk.bi+mk.bn-1){b=m.index+m[0].length;break;} i++; }
+    if(a>=0&&b>a){ var pos=0; cc.forEach(function(x){ var s0=pos,e0=pos+String(x[0]).length; pos=e0+1;
+      if(s0<b&&e0>a){ x.push(1); key=true; if(String(pl.ja||'').indexOf(x[1])>=0)kja.push(x[1]); } }); }
+  }
+  return '<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby>'
+    +(key?'<span class="lx-key"><ruby>黄色<rt class="uf">きいろ</rt></ruby>＝<ruby>答<rt class="uf">こた</rt></ruby>え</span>':'')+'</div>'
+    +'<div class="lx-xl"><div class="lx-xb">'+_lxChunks_(cc)+((!kja.length&&_lxSameJa_(cc,pl.ja))?'':'<small>'+(kja.length?_lxJaMark_(pl.ja,kja):_jaRubyIf_(String(pl.ja||'')))+'</small>')+'</div></div>';
+}
 function _sentJoin_(a){return (a||[]).join(' ').replace(/\s+([.,?!])/g,'$1');}
 function _sentIsPn_(t){return /^[.,?!]$/.test(String(t));}
 /* シャッフルが偶然そのままの並びになると、並べ替えが「押すだけ」で正解になる。ずれるまで振り直す 2026-09-08 */
@@ -6972,7 +6995,7 @@ function _rdPassage_(pl,locs,tg,after,gl,big){
     if(after){
       var ck=(l&&l.chunks)||[],fg='<span class="rd-fg">'+rb('英語','えいご')+'の'+rb('順','じゅん')+'で</span>';
       h+='<div class="rd-tr'+(on?' rd-hl':'')+'" data-k="'+k+'">'+_jaRubyIf_(String(l.ja||''))+(ck.length&&!on?fg:'')+'</div>'
-        +(ck.length?'<div class="rd-wg" id="rd-wg'+k+'" style="display:'+(on?'flex':'none')+'"><span class="rdx-wgh" data-k="'+k+'">'+rb('英語','えいご')+'の'+rb('順','じゅん')+'で</span>'+ck.map(function(c){return '<span><b>'+esc(String(c.en||''))+'</b><em>'+_jaRubyIf_(String(c.ja||''))+'</em></span>';}).join('')+'</div>':'');
+        +(ck.length?'<div class="rd-wg rd-wg2" id="rd-wg'+k+'" style="display:'+(on?'flex':'none')+'"><span class="rdx-wgh" data-k="'+k+'">'+rb('英語','えいご')+'の'+rb('順','じゅん')+'で</span>'+ck.map(function(c,ci){return '<span class="rd-ck"><span class="rd-cc"><b>'+esc(String(c.en||''))+'</b><em>'+_jaRubyIf_(String(c.ja||''))+'</em></span>'+(ci<ck.length-1?'<i class="lx-sl" aria-hidden="true">/</i>':'')+'</span>';}).join('')+'</div>':'');
     }
   });
   if(openP)h+='</p>'; if(segOpen)h+='</div>';
@@ -7158,7 +7181,7 @@ function _renderSENT0_(ss){
     body.innerHTML=_sfBody('');
     buildChoices('sent-choices',_sfAns,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
       {fig:true,fixedChoices:_sfCh,timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext,
-       afterShow:function(){ try{body.innerHTML=_sfBody(_sfAns);}catch(_e){} _sentAfterAudio_(pl); }});   /* 空欄に答えを入れてから文を鳴らす 2026-09-11 / 2026-09-21 */
+       afterShow:function(){ try{body.innerHTML=_sfBody(_sfAns);}catch(_e){} _sentAfterAudio_(pl,_hasRl?'':_sentChunkBlk_(pl,_sfW?null:{bi:bi,bn:bn})); }});   /* 2026-10-14 4-111 ⑨ かたまり（架け橋の語ごとの表示は今のまま） */   /* 空欄に答えを入れてから文を鳴らす 2026-09-11 / 2026-09-21 */
     return;
   }
   renderRO_(s,w,q,pl);
@@ -7465,7 +7488,7 @@ function renderRO_(s,w,q,pl){
     _quizAns(s,w,ok,(Date.now()-_t0),'e2j');
     /* 正解の表示は文頭を大文字にした正しい形（＝en）。語群の小文字のまま見せない */
     afterAnswer(ok,(pl.en||_sentJoin_(toks)),w.kaisetsu,'',s.onNext);
-    _sentAfterAudio_(pl);   /* 答え合わせで文を鳴らす 2026-09-11 */
+    _sentAfterAudio_(pl,(pl.roles&&pl.roles.length)?'':_sentChunkBlk_(pl,null));   /* 答え合わせで文を鳴らす 2026-09-11・かたまり 2026-10-14 4-111 ⑨ */
   };
 }
 
@@ -7674,7 +7697,8 @@ function _lxChunks_(c){
   if(!c||!c.length)return '';
   var G=c.map(function(x,i){return {idx:[i],r:''};});
   return '<div class="lx-wgl">'+wgHtml(G,function(i){var x=c[i]||[];
-    return '<span class="ww tkw'+(x[2]?' lxk':'')+'" role="button" tabindex="0" data-en="'+esc(String(x[0]||''))+'" data-ja="'+esc(String(x[1]||''))+'"><span class="ww-en">'+esc(String(x[0]||''))+'</span><span class="ww-ja">'+_jaRubyIf_(String(x[1]||''))+'</span></span>';},true)+'</div>';
+    return '<span class="ww tkw'+(x[2]?' lxk':'')+'" role="button" tabindex="0" data-en="'+esc(String(x[0]||''))+'" data-ja="'+esc(String(x[1]||''))+'"><span class="ww-en">'+esc(String(x[0]||''))+'</span><span class="ww-ja">'+_jaRubyIf_(String(x[1]||''))+'</span></span>'
+      +(i<c.length-1?'<span class="lx-sl" aria-hidden="true">/</span>':'');},true)+'</div>';   /* 【2026-10-14 4-111 ⑪ 案2】かたまりの後ろに「/」。同じ箱の中に置くので行の頭に来ない */
 }
 /* 【2026-09-25 川上さん「1 ア」】1かたまりの文で、直訳と全体の訳が同じ（句点だけの違い）なら全体の訳は出さない（同じ文が重なるため） */
 function _lxSameJa_(c,ja){
@@ -9146,7 +9170,8 @@ function _qrvItem_(s,w,mine){
     var tk=_sentTok_(pl.en),bi=(q.blank|0),bn=Math.max(1,(q.blank_n|0)||1),BL='\u0001';
     var sent=tk.length?tk.map(function(t,i){return (bn>1&&i>bi&&i<bi+bn)?'':((i===bi)?BL:esc(t));}).filter(function(x){return x!=='';})
       .join(' ').replace(/\s+([.,?!])/g,'$1').replace(BL,'<span class="qrv-blank">'+esc(w.english||'')+'</span>'):esc(w.japanese||'');
-    h='<div class="qrv-q">'+sent+'<small>'+_jaRubyIf_(pl.ja||'')+'</small></div>'+_qrvAns_(mine,String(w.english||''))+_qrvKai_(w.kaisetsu);
+    h='<div class="qrv-q">'+sent+'<small>'+_jaRubyIf_(pl.ja||'')+'</small></div>'+_qrvAns_(mine,String(w.english||''))
+      +((pl.c&&pl.c.length&&!(pl.roles&&pl.roles.length))?'<div class="qrv-q">'+_lxChunks_(pl.c)+'</div>':'')+_qrvKai_(w.kaisetsu);   /* 2026-10-14 4-111 ⑨ */
     if(pl.en||pl.audio)play=function(){_sentPlay_(pl);};
   }else if(qt==='listen'){
     h=_qrvAgain_()+'<div class="qrv-q">'+((pl.c&&pl.c.length)?_lxChunks_(pl.c):esc(pl.en||''))+'<small>'+_jaRubyIf_(pl.ja||'')+'</small></div>'
@@ -9154,7 +9179,8 @@ function _qrvItem_(s,w,mine){
     play=function(){_sentPlay_(pl);};
   }else if(qt==='reorder'){
     var toks=(q.tokens&&q.tokens.length)?q.tokens:((pl.tokens&&pl.tokens.length)?pl.tokens:_sentTok_(pl.en));
-    h='<div class="qrv-q">'+_jaRubyIf_(pl.ja||'')+'</div>'+_qrvAns_(mine,String(pl.en||_sentJoin_(toks)))+_qrvKai_(w.kaisetsu);
+    h='<div class="qrv-q">'+_jaRubyIf_(pl.ja||'')+'</div>'+_qrvAns_(mine,String(pl.en||_sentJoin_(toks)))
+      +((pl.c&&pl.c.length&&!(pl.roles&&pl.roles.length))?'<div class="qrv-q">'+_lxChunks_(pl.c)+'</div>':'')+_qrvKai_(w.kaisetsu);   /* 2026-10-14 4-111 ⑨ */
     if(pl.en||pl.audio)play=function(){_sentPlay_(pl);};
   }else if(qt==='dialog_fill'){
     var ans=String(w.english||''),aja=_dfJaOf_(pl,ans),lines=(pl.lines||[]);
