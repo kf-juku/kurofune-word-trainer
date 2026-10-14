@@ -6650,7 +6650,7 @@ function _phStopIfAny_(){try{_phStopAll_();}catch(e){}}
 /* 【2026-09-21 川上さん確定・案2】カードの行頭に Boy: / Girl: の札があるとき、その性別の声だけを使う。
    いままでは札に関係なくランダムだったので「Boy:」の行が半分の確率で女性の声で読まれていた。
    声を増やしたら _VOICE_SEX_ に1行足す。表に無い声・札のない行は、いままでどおりランダム。 */
-var _VOICE_SEX_=[['neural2-d','m'],['achernar','f']];
+var _VOICE_SEX_=[['neural2-d','m'],['achernar','f'],['fenrir','m'],['despina','f']];   /* 2026-10-14 声の役（§17t-2）：少年 Fenrir・女性 Despina を足した */
 function _voiceSex_(url){var u=String(url||'').toLowerCase();
   for(var i=0;i<_VOICE_SEX_.length;i++){if(u.indexOf(_VOICE_SEX_[i][0])>=0)return _VOICE_SEX_[i][1];}
   return '';}
