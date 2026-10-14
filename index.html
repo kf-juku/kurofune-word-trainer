@@ -1603,6 +1603,7 @@
 .lx-again{margin-top:14px;}
 .lx-st{font-size:12.5px;color:var(--sub);text-align:center;margin-top:10px;min-height:18px;}
 .lx-xh{font-size:12.5px;color:var(--sub);font-weight:700;margin:8px 0 4px;}
+.lx-xh:empty{display:none}   /* 2026-10-15 川上さん：見出し「英文と、英語の順番どおりの意味」は無くても分かる＝全部の形式で消した。「黄色＝答え」だけ残る所は残す */
 .lx-xl{display:flex;gap:8px;align-items:flex-start;font-size:15px;line-height:1.55;margin:4px 0;}
 .lx-xl small{display:block;color:var(--sub);font-size:13px;}
 .lx-xl.ok b{color:var(--ok);}
@@ -1620,10 +1621,12 @@
 .lx-prn{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--bg);border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--sub);}
 .lx-who.q{background:#374151;}
 .lx-key{font-weight:500;margin-left:8px;font-size:12px;}
+.lx-xh>.lx-key:first-child{margin-left:0}
 .lx-xl{padding:4px 6px;border-radius:10px;}
 .lx-xl.now{background:var(--accent-soft);}
 .lx-xl.ok{box-shadow:inset 0 0 0 1px var(--ok);}
 .lx-xb{flex:1;min-width:0;}
+.rd-xlb{display:block;font-size:11px;color:var(--sub);font-weight:800;margin-bottom:2px}
 .lx-tg{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:800;color:#fff;background:#6b7280;flex-shrink:0;margin-top:2px;}
 .lx-no{font-weight:800;font-size:13px;color:var(--sub);margin-right:4px;}
 .lx-wgl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:flex-end;margin:2px 0;}
@@ -6762,7 +6765,7 @@ function _sentChunkBlk_(pl,mk){
     if(a>=0&&b>a){ var pos=0; cc.forEach(function(x){ var s0=pos,e0=pos+String(x[0]).length; pos=e0+1;
       if(s0<b&&e0>a){ x.push(1); key=true; if(String(pl.ja||'').indexOf(x[1])>=0)kja.push(x[1]); } }); }
   }
-  return '<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby>'
+  return '<div class="lx-xh">'
     +(key?'<span class="lx-key"><ruby>黄色<rt class="uf">きいろ</rt></ruby>＝<ruby>答<rt class="uf">こた</rt></ruby>え</span>':'')+'</div>'
     +'<div class="lx-xl"><div class="lx-xb">'+_lxChunks_(cc)+((!kja.length&&_lxSameJa_(cc,pl.ja))?'':'<small>'+(kja.length?_lxJaMark_(pl.ja,kja):_jaRubyIf_(String(pl.ja||'')))+'</small>')+'</div></div>';
 }
@@ -7104,6 +7107,15 @@ function renderRD_(s,w,q,pl){
     var _ansAu=String(((q.choices||[])[0]&&q.choices[0].audio)||(pl.ans&&(pl.ans[chs[0].en]||pl.ans[String(chs[0].en).replace(/\s+/g,' ').trim()]))||'');   /* 正解の mp3＝本文の素材の ans（3-26・2026-10-07） */
     _rdxEx_=_ansAu?{en:chs[0].en,audio:_ansAu}:null;   /* 3-12③④：正解の mp3 があるときだけ、正解は1文＋音声ボタン、解説の英語は押せない形にする */
     afterAnswer(first,chs[0].en||w.english||'',w.kaisetsu,'',s.onNext);
+    /* 【2026-10-15 4-111 ⑬ 案A】英語の質問（rq）は、答え合わせに「英文と、英語の順番どおりの意味」＝質問（qdata.q_c）と正解の選択肢（qdata.choices[0].c）。
+       c が無い問題は今のまま（何も足さない）。日本語の質問（rc）は対象外 */
+    try{ var _qc=(!rc&&q.q_c&&q.q_c.length)?q.q_c:null, _ac=(!rc&&q.choices&&q.choices[0]&&q.choices[0].c&&q.choices[0].c.length)?q.choices[0].c:null, _xa=$('ex-audio');
+      if(_xa&&(_qc||_ac)){
+        var _row=function(lb,c){ return '<div class="lx-xl"><div class="lx-xb"><b class="rd-xlb">'+_jaRubyIf_(lb)+'</b>'+_lxChunks_(c)+'</div></div>'; };   /* 和訳は上の質問と選択肢に出ているので、カードでは出さない（同じことを2回書かない） */
+        _xa.innerHTML=''
+          +(_qc?_row('質問',_qc):'')+(_ac?_row('答え',_ac):'');
+        _xa.style.display='';
+      } }catch(_eQC){}
     if(_rdxEx_){ var _ab=$('rdx-ansspk'); if(_ab){ var _ae=_rdxEx_; _ab.onclick=function(e){ e.stopPropagation(); _sentPlay_({en:_ae.en,audio:_ae.audio}); }; } }
     /* 【2026-10-07・4-60】選び直した問題は、答え合わせ（答え・ありか・全文訳）のあとに「英文を読んで、どうだった？」を選ぶまで次へ進めない。
        保存は聞き取りと同じ s._lxNotes → session_complete の listen_notes（列は qdata.fmt＝r4a〜r4c・先生画面の弱点の表で読解の行に入る） */
@@ -7162,7 +7174,7 @@ function _renderSENT0_(ss){
       {fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:(q.intro?0:_tl),kaisetsu:_kai,next:s.onNext,
        afterShow:function(){try{_wlSync_(s,w,true);}catch(e){}
          if(_heard){var xh=$('ex-heard');if(xh){xh.innerHTML='<span class="ex-lbl"><ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>英文<rt class="uf">えいぶん</rt></ruby></span><b>'+_tkAnsHtml_(_heard)+'</b><button type="button" class="rdx-spk" id="ex-heardspk" aria-label="聞こえた英文を聞く"><i class="ti ti-volume"></i></button>';xh.style.display='';var _hb=$('ex-heardspk');if(_hb)_hb.onclick=function(e){e.stopPropagation();_sentPlay_(pl);};}}   /* 文全体を鳴らすボタン（読解の正解 3-12 と同じ部品）2026-10-08b */
-         if(pl.c&&pl.c.length){var xa=$('ex-audio');if(xa){xa.innerHTML='<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby></div><div class="lx-xl"><div class="lx-xb">'+_lxChunks_(pl.c)+(_lxSameJa_(pl.c,pl.ja)?'':'<small>'+_jaRubyIf_(String(pl.ja||''))+'</small>')+'</div></div>';xa.style.display='';}}}});   /* 聞いたあとに単語をみるを出す 2026-09-11 */
+         if(pl.c&&pl.c.length){var xa=$('ex-audio');if(xa){xa.innerHTML='<div class="lx-xh"></div><div class="lx-xl"><div class="lx-xb">'+_lxChunks_(pl.c)+(_lxSameJa_(pl.c,pl.ja)?'':'<small>'+_jaRubyIf_(String(pl.ja||''))+'</small>')+'</div></div>';xa.style.display='';}}}});   /* 聞いたあとに単語をみるを出す 2026-09-11 */
     return;
   }
   if(qt==='sentence_fill'){
@@ -7712,7 +7724,7 @@ function _renderLXIntro_(s,w,q,pl,md){
   buildChoices('sent-choices',w.japanese,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
     {fig:true,fixedChoices:fixed,timeLimit:0,kaisetsu:w.kaisetsu,next:s.onNext,
      afterShow:function(){if(md==='pic_yn'&&l.en){var xa=$('ex-audio');if(xa){
-       xa.innerHTML='<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby></div><div class="lx-xl"><div class="lx-xb">'+((l.c&&l.c.length)?_lxChunks_(l.c):'<b>'+esc(String(l.en))+'</b>')+(_lxSameJa_(l.c,l.ja)?'':'<small>'+_jaRubyIf_(String(l.ja||''))+'</small>')+'</div></div>';xa.style.display='';}}}});
+       xa.innerHTML='<div class="lx-xh"></div><div class="lx-xl"><div class="lx-xb">'+((l.c&&l.c.length)?_lxChunks_(l.c):'<b>'+esc(String(l.en))+'</b>')+(_lxSameJa_(l.c,l.ja)?'':'<small>'+_jaRubyIf_(String(l.ja||''))+'</small>')+'</div></div>';xa.style.display='';}}}});
   if(md==='pic_yn'){
     var bs=box.querySelectorAll('.choice'),lock=function(v){[].forEach.call(bs,function(b){if(!b.classList.contains('correct')&&!b.classList.contains('wrong'))b.disabled=v;});};
     var alive=function(){return s.words[s.idx]===w&&$('scr-practice')&&$('scr-practice').classList.contains('active');};
@@ -7787,7 +7799,7 @@ function _lxPickMount_(s,w,ok2,needListen){
 function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
   var xa=$('ex-audio');if(!xa)return;
   var hasC=!!(chs[0]&&chs[0].c&&chs[0].c.length);
-  var xh='<div class="lx-xh">'+(hasC?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby><span class="lx-key"><ruby>黄色<rt class="uf">きいろ</rt></ruby>＝<ruby>答<rt class="uf">こた</rt></ruby>えの<ruby>決<rt class="uf">き</rt></ruby>め<ruby>手<rt class="uf">て</rt></ruby></span>'
+  var xh='<div class="lx-xh">'+(hasC?'<span class="lx-key"><ruby>黄色<rt class="uf">きいろ</rt></ruby>＝<ruby>答<rt class="uf">こた</rt></ruby>えの<ruby>決<rt class="uf">き</rt></ruby>め<ruby>手<rt class="uf">て</rt></ruby></span>'
     :(isResp?'<ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>英文<rt class="uf">えいぶん</rt></ruby>':'<ruby>選択肢<rt class="uf">せんたくし</rt></ruby>'))+'</div>';
   /* 【2026-09-25 川上さん「2 ア」】第3部型は答え合わせの上に絵を小さく出す（絵と見くらべて直すため） */
   if(pl.img)xh='<div class="lx-ximg"><img src="'+esc(String(pl.img))+'" alt="" onerror="this.parentNode.style.display=\'none\'"></div>'+xh;
@@ -7878,7 +7890,7 @@ function _dfAfter_(w,pl){
   var xa=$('ex-audio'); if(!xa)return;
   var one=(full.length===1&&!full[0].sp);   /* 1文だけの問題（大問1型）＝見出しは「英文」、名札なし */
   xa.innerHTML=(hasC
-    ?'<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby><span class="lx-key"><ruby>黄色<rt class="uf">きいろ</rt></ruby>＝<ruby>答<rt class="uf">こた</rt></ruby>え</span></div>'
+    ?'<div class="lx-xh"><span class="lx-key"><ruby>黄色<rt class="uf">きいろ</rt></ruby>＝<ruby>答<rt class="uf">こた</rt></ruby>え</span></div>'
      +full.map(function(l){return '<div class="lx-xl"><div class="lx-xb">'+(l.sp?'<b>'+esc(l.sp)+'：</b>':'')+_lxChunks_(l.c)
        +((!l.kja&&_lxSameJa_(l.c,l.ja))?'':'<small>'+_lxJaMark_(l.ja,l.kja)+'</small>')+'</div></div>';}).join('')
     :'<div class="lx-xh">'+(one?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>':'<ruby>会話<rt class="uf">かいわ</rt></ruby>')+'</div>'
