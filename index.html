@@ -7806,12 +7806,20 @@ function _dfAfter_(w,pl){
   var full=lines.map(function(l,i){
     var en=String((l&&l.en)||'');
     return {sp:String((l&&l.sp)||''),en:(_DF_HOLE_.test(en)?en.replace(_DF_HOLE_,ans):en),
-            ja:String((l&&l.ja)||'').replace(_DF_HOLE_,String(_dfJaOf_(pl,ans)||'')),audio:(l&&l.audio)||''};
+            ja:String((l&&l.ja)||'').replace(_DF_HOLE_,String(_dfJaOf_(pl,ans)||'')),audio:(l&&l.audio)||'',
+            c:(l&&l.c&&l.c.length)?l.c:null,kja:(l&&l.kja)||''};
   });
+  /* 【2026-10-14 4-111】行にかたまり（c）があれば、聞き取りの答え合わせと同じ「英文と、英語の順番どおりの意味」で出す。
+     c＝[[英語,意味]] または [[英語,意味,1]]（1＝答えのかたまり＝黄色）。穴の行の kja＝和訳の中で黄色にする部分。c の無い素材は今のまま */
+  var hasC=full.length&&full.every(function(l){return !!l.c;});
   var xa=$('ex-audio'); if(!xa)return;
   var one=(full.length===1&&!full[0].sp);   /* 1文だけの問題（大問1型）＝見出しは「英文」、名札なし */
-  xa.innerHTML='<div class="lx-xh">'+(one?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>':'<ruby>会話<rt class="uf">かいわ</rt></ruby>')+'</div>'
-    +full.map(function(l){return '<div class="lx-xl"><div class="lx-xb">'+(l.sp?'<b>'+esc(l.sp)+'：</b>':'')+esc(l.en)+'<small>'+_jaRubyIf_(l.ja)+'</small></div></div>';}).join('')   /* 2026-10-03 名札・英文・訳を1つの箱に（横に3つ並んで280pxではみ出していた） */
+  xa.innerHTML=(hasC
+    ?'<div class="lx-xh"><ruby>英文<rt class="uf">えいぶん</rt></ruby>と、<ruby>英語<rt class="uf">えいご</rt></ruby>の<ruby>順番<rt class="uf">じゅんばん</rt></ruby>どおりの<ruby>意味<rt class="uf">いみ</rt></ruby><span class="lx-key"><ruby>黄色<rt class="uf">きいろ</rt></ruby>＝<ruby>答<rt class="uf">こた</rt></ruby>え</span></div>'
+     +full.map(function(l){return '<div class="lx-xl"><div class="lx-xb">'+(l.sp?'<b>'+esc(l.sp)+'：</b>':'')+_lxChunks_(l.c)
+       +((!l.kja&&_lxSameJa_(l.c,l.ja))?'':'<small>'+_lxJaMark_(l.ja,l.kja)+'</small>')+'</div></div>';}).join('')
+    :'<div class="lx-xh">'+(one?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>':'<ruby>会話<rt class="uf">かいわ</rt></ruby>')+'</div>'
+    +full.map(function(l){return '<div class="lx-xl"><div class="lx-xb">'+(l.sp?'<b>'+esc(l.sp)+'：</b>':'')+esc(l.en)+'<small>'+_jaRubyIf_(l.ja)+'</small></div></div>';}).join(''))   /* 2026-10-03 名札・英文・訳を1つの箱に（横に3つ並んで280pxではみ出していた） */
     +'<button type="button" class="ex-spk" id="df-spk"><i class="ti ti-volume"></i><span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
   xa.style.display='';
   var play=function(){_lxRunSeq_(full.map(function(l){return {it:l,gap:300};}));};
@@ -9150,9 +9158,12 @@ function _qrvItem_(s,w,mine){
     if(pl.en||pl.audio)play=function(){_sentPlay_(pl);};
   }else if(qt==='dialog_fill'){
     var ans=String(w.english||''),aja=_dfJaOf_(pl,ans),lines=(pl.lines||[]);
+    var dfC=lines.length&&lines.every(function(l){return !!(l&&l.c&&l.c.length);});
     var full=lines.map(function(l){var en=String((l&&l.en)||'');return {sp:String((l&&l.sp)||''),en:(_DF_HOLE_.test(en)?en.replace(_DF_HOLE_,ans):en),audio:(l&&l.audio)||''};});
     h='<div class="qrv-talk">'+lines.map(function(l,i){var en=String((l&&l.en)||''),ja=String((l&&l.ja)||'');
         var eh=_DF_HOLE_.test(en)?esc(en).replace(_DF_HOLE_,'<span class="qrv-blank">'+esc(ans)+'</span>'):esc(en);
+        /* 【2026-10-14 4-111】かたまり（c）がある素材は答え合わせと同じ形（黄色＝答え・穴の行の kja を和訳で黄色） */
+        if(dfC)return '<div class="qrv-line">'+((l&&l.sp)?'<span class="df-who '+(i>0?'b':'a')+'">'+esc(String(l.sp))+'</span>':'')+'<div class="lx-xb">'+_lxChunks_(l.c)+'<small>'+_lxJaMark_(ja.replace(_DF_HOLE_,aja),l.kja||'')+'</small></div></div>';
         return '<div class="qrv-line">'+((l&&l.sp)?'<span class="df-who '+(i>0?'b':'a')+'">'+esc(String(l.sp))+'</span>':'')+'<div>'+eh+'<small>'+_jaRubyIf_(ja.replace(_DF_HOLE_,aja))+'</small></div></div>';}).join('')+'</div>'
       +_qrvAns_(mine,ans,(mine?_dfJaOf_(pl,mine):''),aja)+_qrvKai_(w.kaisetsu);
     play=function(){_lxRunSeq_(full.map(function(l){return {it:l,gap:300};}));};
