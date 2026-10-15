@@ -7727,9 +7727,11 @@ var _LX_INTRO_={   /* 2026-10-15 画面の見出しと同じ文（4r＝2人の�
   'c':'英文を聞いて、絵に合うものを選ぼう。'
 };
 var _LX_DIR_='img/audio/listen_intro/', _LX_RW_MS_=5000;
+function _lxRwDrop_(){ try{ [].forEach.call(document.querySelectorAll('.lx-rw'),function(x){ if(x.parentNode)x.parentNode.removeChild(x); }); }catch(e){} }   /* 描き直しで前の問題の文と帯が残らないように（2026-10-15 本番で1つ残ったのを見つけた） */
 /* 会話と質問：選択肢を読む時間。見出しの下に文と帯を出す（文は指示の音声と同じ） */
-function _lxRwShow_(){ var ask=$('sent-ask'); if(!ask)return null; var d=document.createElement('div'); d.className='lx-rw'; d.innerHTML='<span>'+_jaRubyIf_(_LX_INTRO_.p)+'</span><i class="lx-rwbar"><b></b></i>'; ask.appendChild(d); return d; }
-function _lxRwRun_(d){ if(d){ var b=d.querySelector('.lx-rwbar b'); if(b){ void b.offsetWidth; b.style.transition='width '+_LX_RW_MS_+'ms linear'; b.style.width='0%'; } } return _lxWait_(_LX_RW_MS_).then(function(){ try{ if(d&&d.parentNode)d.parentNode.removeChild(d); }catch(e){} }); }
+function _lxRwShow_(){ _lxRwDrop_(); var ask=$('sent-ask'); if(!ask)return null; var d=document.createElement('div'); d.className='lx-rw'; d.innerHTML='<span>'+_jaRubyIf_(_LX_INTRO_.p)+'</span><i class="lx-rwbar"><b></b></i>'; ask.appendChild(d); return d; }
+function _lxRwRun_(d){ d=document.querySelector('#sent-ask .lx-rw')||_lxRwShow_();   /* 見出しは解き方の帯を足すときに innerHTML で描き直されるので、出したときの要素は使わず今あるものを探す（2026-10-15 本番で帯が動かず残った） */
+  if(d){ var b=d.querySelector('.lx-rwbar b'); if(b){ void b.offsetWidth; b.style.transition='width '+_LX_RW_MS_+'ms linear'; b.style.width='0%'; } } return _lxWait_(_LX_RW_MS_).then(function(){ _lxRwDrop_(); }); }
 function _lxPlayMp3_(src,st){return new Promise(function(res){
   var done=false,fin=function(){if(done)return;done=true;res();};
   try{
@@ -7753,7 +7755,7 @@ function _lxPreRoll_(s,w,isResp,isPrint,setBtns,st,alive,nl){
   return waitImg.then(function(){ if(!ok())return false; return intro?_lxPlayMp3_(_LX_DIR_+'intro_'+key+'.mp3',st).then(function(){return ok()&&_lxWait_(isPrint?0:700).then(function(){return ok();});}):true; })
     .then(function(r){ if(!r||!ok())return false; return isPrint?_lxRwRun_(rw).then(function(){return ok();}):true; })   /* 会話と質問＝5秒読む */
     .then(function(r){ if(!r||!ok())return false; if(st)st.textContent=''; var n=s.idx+1; if(n>20)return true; return _lxPlayMp3_(_LX_DIR_+'number_'+(n<10?'0':'')+n+'.mp3',st).then(function(){return ok()&&_lxWait_(600).then(function(){return ok();});}); })
-    .then(function(r){ return !!r&&ok(); });
+    .then(function(r){ if(!(r&&ok())&&isPrint)_lxRwDrop_(); return !!r&&ok(); });
 }
 /* 導入パート（第3部型）の段1＝絵を見て日本語3択（音なし）／段2＝英文1つを聞いて「合う／合わない」。2026-09-25 §17q 5-8
    素材 picture3＝{img, lines:[{en,ja,audio,c}]}（段2だけ lines を使う）。選択肢は qdata.choices_ja（先頭が正解＝words.japanese） */
