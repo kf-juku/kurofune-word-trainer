@@ -10563,6 +10563,56 @@ function _pvStart_(){
     <button class="kz-close" id="kz-close"><i class="ti ti-x"></i>とじる</button>
   </div>
 </div>
-<div style="position:fixed;left:6px;bottom:6px;z-index:99999;background:#fff3c4;color:#5b4500;border:1px solid #e0c060;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;pointer-events:none">試作：聞き取りの前の指示と Number（mp3）</div>
+<div style="position:fixed;left:6px;bottom:6px;z-index:99999;background:#fff3c4;color:#5b4500;border:1px solid #e0c060;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;pointer-events:none">試作：聞き取りの前の指示と Number（mp3）・記録は残らない</div>
+<button id="mk-open" onclick="mkPanel_(true)" style="position:fixed;right:6px;bottom:6px;z-index:99999;background:#1f5fbf;color:#fff;border:0;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700">始める問題を選ぶ</button>
+<div id="mk-panel" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.45);overflow:auto">
+ <div style="background:#fff;max-width:520px;margin:24px auto;border-radius:12px;padding:14px 14px 18px;font-size:14px;color:#222">
+  <div style="font-weight:800;font-size:16px;margin-bottom:4px">試作：始める問題を選ぶ</div>
+  <div style="color:#555;font-size:12px;margin-bottom:10px">押すと、その問題から始まります。前の問題と形式が違う所では日本語の指示 → Number → 英文、同じ形式が続く所では Number → 英文の順に鳴ります。答えても記録は残りません。</div>
+  <div id="mk-list">読み込み中…</div>
+  <button onclick="mkPanel_(false)" style="margin-top:12px;border:1px solid #bbb;background:#fff;border-radius:8px;padding:6px 12px">閉じる</button>
+ </div>
+</div>
+<script>
+/* 【試作 2026-10-15】川上さん「モックなら聞きたいところから始まるようにしろ」。
+   本番の問題（quiz_words）を読み、聞き取りの問題ごとに「ここから始める」を出す。ログインは、このブラウザに残っている生徒のログインを使う。
+   記録は残さない＝quiz_words 以外の通信は送らずに ok を返す。 */
+var MK_PARTS_=[['part-eiken5-g2-10-1','英検5級 会話編 第10単元 お礼（1）'],['part-eiken4-kaiwa-12-1','英検4級 会話編 第12単元 お願い・許可（1）']];
+var MK_QT_={listen_resp:'英文を聞いて返事を選ぶ',listen_pic:'絵に合う英文を選ぶ',listen_print:'会話と質問を聞いて答える'};
+var _mkCall_=call, _mkData_={};
+call=function(b){ if(b&&b.action==='quiz_words')return _mkCall_(b); return Promise.resolve({ok:true,data:{}}); };
+function mkPanel_(on){ var p=document.getElementById('mk-panel'); p.style.display=on?'block':'none'; if(on)mkLoad_(); }
+function mkLoad_(){
+  var box=document.getElementById('mk-list');
+  if(!localStorage.getItem('kwt_token')){ box.innerHTML='<div style="color:#b00">このブラウザで生徒のログインが切れています。閉じて、かわかみでログインしてから、右下の「始める問題を選ぶ」を押してください。</div>'; return; }
+  box.textContent='読み込み中…';
+  Promise.all(MK_PARTS_.map(function(m){ return _mkData_[m[0]]?Promise.resolve(_mkData_[m[0]]):_mkCall_({action:'quiz_words',part_id:m[0]}).then(function(d){ if(d&&d.ok)_mkData_[m[0]]=d; return d; }); })).then(function(rs){
+    var h='';
+    rs.forEach(function(d,i){
+      h+='<div style="font-weight:800;margin:10px 0 4px">'+MK_PARTS_[i][1]+'</div>';
+      if(!d||!d.ok){ h+='<div style="color:#b00">読めませんでした：'+((d&&d.error)||'')+'</div>'; return; }
+      var ws=d.data.words;
+      ws.forEach(function(w,j){ var qt=String(w.qtype||''); if(!MK_QT_[qt])return;
+        var prev=j>0?String(ws[j-1].qtype||''):''; var intro=prev!==qt;
+        h+='<button onclick="mkGo_('+i+','+j+')" style="display:block;width:100%;text-align:left;margin:4px 0;padding:8px 10px;border:1px solid '+(intro?'#1f5fbf':'#ccc')+';border-radius:8px;background:'+(intro?'#eef4ff':'#fff')+'">'
+          +(j+1)+'問目　'+MK_QT_[qt]+'<br><span style="font-size:12px;color:#555">'+(intro?'日本語の指示 → Number '+(j+1)+' → 英文':'Number '+(j+1)+' → 英文（同じ形式が続く）')+'</span></button>'; });
+    });
+    box.innerHTML=h;
+  });
+}
+function mkGo_(i,j){
+  var m=MK_PARTS_[i], d=_mkData_[m[0]]; if(!d)return;
+  mkPanel_(false);
+  try{ _lxStop_(); }catch(e){}
+  try{ _pendingResume=null; }catch(e){}
+  srsSes=null; noteSes=null; showPracticeLoading_();   /* 本番の startQuiz と同じく、解く画面を出してから始める */
+  var rs=renderStep, pt=_ptShow_; renderStep=function(){}; _ptShow_=function(){return false;};
+  try{ _startPracticeWith_(m[0],{ok:true,data:{words:d.data.words.slice(),subject:(d.data.subject||'english'),assets:(d.data.assets||{}),content_type:'test',direction:(d.data.direction||''),quiz:false}}); }
+  finally{ renderStep=rs; _ptShow_=pt; }
+  session.idx=j; session.step=_startStepFor(session,session.words[j]);
+  renderStep();
+}
+(function(){ var t=setInterval(function(){ if(document.readyState!=='loading'){ clearInterval(t); if(localStorage.getItem('kwt_token'))mkPanel_(true); } },300); })();
+</script>
 </body>
 </html>
