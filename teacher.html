@@ -1305,6 +1305,84 @@
 .qa-names{font-size:11.5px;color:var(--text-muted);}
 .chip-none{color:var(--text-light);font-size:12px;}
 </style>
+<style>
+  /* ===== 練習プリント 2026-10-15（要件定義書_練習プリントと単元ワークシート §1） =====
+     1ページ＝@page の余白12mmの内側（186×272mm）。ページ番号は @page の「n / 総数」がそのまま付く。
+     ページ分けはここで測って決める（.pp-pg 1つ＝紙1ページ）。測る器も同じクラスを使うので #printArea で始めない。 */
+  .pp-pg{width:186mm;height:271mm;overflow:hidden;display:flex;flex-direction:column;background:#fff;color:#1a1a1a;font-family:'Noto Sans JP','Hiragino Sans','Yu Gothic',sans-serif;break-after:page;page-break-after:always;position:relative}
+  .pp-pg:last-child{break-after:auto;page-break-after:auto}
+  .pp-pg.pp-blank{page:kwt-nonum}
+  .pp-body{position:relative;flex:1;overflow:hidden;display:flex;flex-wrap:wrap;align-content:flex-start;column-gap:6mm}
+  .pp-hd{width:100%;border-bottom:1.5px solid #1a1a1a;padding-bottom:1.5mm;margin-bottom:2mm}
+  .pp-hd .k{font-size:9pt;color:#555;display:flex;justify-content:space-between}
+  .pp-hd .k b{color:#1a1a1a;border:1px solid #1a1a1a;border-radius:3px;padding:0 5px;font-size:9pt}
+  .pp-hd .who{display:flex;gap:6mm;margin-top:2mm;font-size:10pt}
+  .pp-hd .who span{flex:1;border-bottom:1px solid #1a1a1a;padding-bottom:1mm;white-space:nowrap}
+  .pp-hd .who span.sc{flex:0 0 40mm}
+  .pp-hd.cont{padding-bottom:1mm;margin-bottom:1mm}
+  .pp-ph{width:100%;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5px solid #1f4e8c;margin:2.5mm 0 1mm;padding-bottom:0.5mm}
+  .pp-ph .t{font-size:11.5pt;font-weight:700}.pp-ph .sc{font-size:10pt;white-space:nowrap}
+  .pp-it{width:100%;display:flex;gap:2mm;padding:0.8mm 0;border-bottom:1px dotted #ccc;font-size:9.5pt;line-height:1.4}
+  .pp-it.half{width:calc(50% - 3mm)}
+  .pp-it .no{flex:0 0 7mm;font-weight:700;color:#1f4e8c}
+  .pp-it .q{flex:1;min-width:0}
+  .pp-ans{display:inline-block;min-width:38mm;border-bottom:1px solid #1a1a1a;height:1.4em;vertical-align:bottom}
+  .pp-l4{position:relative;display:inline-block;height:6.3mm;vertical-align:-2.1mm;border-top:0.35mm solid #2f5fa7;border-bottom:0.35mm solid #2f5fa7;margin:0.5mm 0}
+  .pp-l4:before{content:"";position:absolute;left:0;right:0;top:33%;border-top:0.3mm dashed #2f5fa7}
+  .pp-l4:after{content:"";position:absolute;left:0;right:0;top:66%;border-top:0.45mm solid #e03030}
+  .pp-l4.blk{display:block;width:100%;vertical-align:baseline}
+  .pp-ch{display:grid;grid-template-columns:1fr 1fr;gap:0.5mm 5mm;margin-top:0.5mm}
+  .pp-ch span{white-space:normal;min-width:0}
+  .pp-ch.one{grid-template-columns:1fr}
+  .pp-ch.c4{grid-template-columns:repeat(4,auto);justify-content:start;column-gap:4mm}
+  .pp-ansr{text-align:right;margin-top:0.5mm}
+  .pp-kana{font-size:9pt}
+  .pp-gun{width:100%;border:1px solid #1a1a1a;border-radius:2mm;padding:2mm 3mm;margin-bottom:2mm;font-size:10pt}
+  .pp-gun b{font-size:9pt;margin-right:3mm}
+  .pp-toks{margin-top:0.5mm}
+  .pp-toks span{border:1px solid #888;border-radius:1.5mm;padding:0 1.6mm;margin:0 1.2mm 0.6mm 0;display:inline-block;line-height:1.3}
+  .pp-qr{float:right;width:16mm;height:16mm;margin-left:3mm}
+  .pp-it.lis .pp-qr{width:13mm;height:13mm}
+  .pp-qr.big{width:22mm;height:22mm}   /* 音が何本もある聞き取り＝QRの模様が細かいので大きく刷る 2026-10-15 */
+  .pp-it.lis .pp-ch{grid-template-columns:1fr;line-height:1.3}
+  .pp-it.lis .pp-qrcap{display:none}
+  .pp-qrcap{font-size:8pt;color:#555}
+  .pp-figb{width:100%;text-align:center;padding:1mm 0 2mm;border-bottom:1px dotted #ccc}
+  .pp-figb img{max-width:100%;max-height:85mm}
+  .pp-figb .cap{font-size:8pt;color:#777}
+  .pp-psgb{width:100%;padding:1mm 0 2mm}
+  .pp-mt{border-collapse:collapse;margin:1mm 0;font-size:9pt}
+  .pp-mt th,.pp-mt td{border:1px solid #666;padding:0.3mm 2mm;text-align:center;white-space:nowrap}
+  .pp-mt th{background:#f0f0f0;font-weight:400}.pp-mt td.bl{font-weight:700}
+  .pp-chk{display:inline-block;width:4mm;height:4mm;border:1px solid #1a1a1a;vertical-align:middle;margin-right:1mm}
+  .pp-dl{margin:0}.pp-dl b{margin-right:1.5mm}
+  .pp-lxn{display:inline-block;border:1px solid #555;border-radius:1mm;min-width:7mm;text-align:center;margin-right:2mm}
+  .pp-lxpic{height:30mm;width:auto;max-width:60mm;object-fit:contain;display:block;margin:0.5mm 0}   /* 高さを決めておく＝読み込みの早い遅いでページ分けが変わらない */
+  .pp-ar{width:100%;display:flex;gap:2.5mm;padding:1.4mm 0;border-bottom:1px dotted #ccc;font-size:9pt;line-height:1.45}
+  .pp-ar .no{flex:0 0 7mm;font-weight:700;color:#1f4e8c}
+  .pp-ar .a{flex:0 0 52mm;font-weight:700;overflow-wrap:anywhere}
+  .pp-ar .x{flex:1;color:#333;font-size:8.3pt;overflow-wrap:anywhere}
+  .pp-skip{width:100%;font-size:8.5pt;color:#777;padding:1mm 0}
+  .pp-blank .pp-body{align-items:center;justify-content:center;color:#bbb;font-size:9pt}
+  @media print{ .pp-blank .pp-body span{display:none} }
+  #ppMeasure{position:absolute;left:-99999px;top:0;width:186mm}
+</style>
+<style>
+  /* 紙の使い分け 2026-10-15 */
+  .pg-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+  @media(max-width:800px){.pg-pick{grid-template-columns:1fr 1fr}}
+  .pg-pick div{border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface)}
+  .pg-pick b{display:block;font-size:13px}.pg-pick span{font-size:12px;color:var(--text-muted)}
+  .pg-tw{overflow-x:auto}
+  .pg-t{border-collapse:collapse;width:100%;min-width:860px;font-size:13px}
+  .pg-t th,.pg-t td{border-bottom:1px solid var(--border);padding:7px 8px;text-align:left;vertical-align:top;white-space:normal}
+  .pg-t th{background:var(--surface2);font-size:12px;color:var(--text-muted)}
+  .pg-t td.n{font-weight:700;white-space:nowrap}
+  .pg-tag{display:inline-block;font-size:11px;border-radius:5px;padding:0 6px;margin:1px 2px 1px 0;border:1px solid #ccd;background:#f7f8fb}
+  .pg-tag.new{border-color:#2563eb;color:#2563eb;background:#eff6ff}.pg-tag.soon{border-color:#b45309;color:#b45309;background:#fff7ed}
+  .pg-go{font:inherit;font-size:12px;border:1.5px solid var(--crimson);color:var(--crimson);background:#fff;border-radius:6px;padding:2px 8px;cursor:pointer;white-space:nowrap}
+  .pg-go:disabled{border-color:#bbb;color:#999;cursor:default}
+</style>
 </head>
 <body>
 
@@ -1336,6 +1414,7 @@
         <button class="btn-ghost" id="btn-reload" title="各生徒の学習状況を最新に読み直します（会員管理は見ません）"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px;flex-shrink:0;"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>学習状況を更新</button>
         <!-- 【2026-09-13f・段C】リアルタイムの入口をヘッダーへ。どのタブからでも1回で開ける（要件定義書 決定9） -->
         <button class="btn-ghost" id="rtOpenBtn" onclick="openRealtime()" title="別ウィンドウが開き、いま確認テスト中の子をリアルタイムに一覧します。この画面はそのまま操作できます" style="border-color:#C6000B;color:#C6000B;font-weight:800;">● リアルタイムモードを開く<span id="rtOnBadge" style="display:none;align-items:center;gap:4px;background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;border-radius:20px;padding:0 7px;font-size:10px;font-weight:800;margin-left:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;"></span>起動中</span></button>
+        <button class="btn-ghost" onclick="pgOpen_()" title="どんなときにどの紙を使うかの早見表">🖨 紙の使い分け</button>
         <button class="btn-ghost" id="btn-logout">ログアウト</button>
       </div>
     </div>
@@ -1397,6 +1476,7 @@
       <button class="btn-primary btn-outlineK" style="width:auto;" onclick="openTargetModal('remove')" title="生徒を複数×教材を複数をまとめて外す。単元別対策は確認テストも一緒に外れます（記録は残る）">🗑 まとめて外す</button>
       <button class="btn-primary btn-outlineK" style="width:auto;" onclick="openTargetModal('print')">🖨 まとめて印刷</button>
       <button class="btn-primary btn-outlineK" style="width:auto;" onclick="openTargetModal('login')" title="新しく入った子に配る紙。1人＝A4両面（QR・URL・ID・パスワード・使い方）">🔑 ログイン用ペラ</button>
+      <button class="btn-primary btn-outlineK" style="width:auto;" onclick="ppOpen_()" title="教材の問題をそのまま紙にする。全員同じ紙（問題用紙＋解答用紙）">📝 練習プリント</button>
     </div>
 
     <div id="alFilterBar"><span id="alFilterLabel"></span><button class="afb-clear" onclick="clearAlertFilter()">✕ 絞り込みを解除</button></div>
@@ -2468,6 +2548,32 @@
 </div>
 
 <!-- 教材の一括割当モーダル（クロフネLINE方式・2026-07-04） -->
+<!-- 紙の使い分け 2026-10-15（要件定義書_練習プリントと単元ワークシート 1b・川上さん「右上でいい」） -->
+<div class="modal-back" id="pgModal">
+  <div class="modal" style="max-width:none;width:min(96vw,1040px);">
+    <h3 style="margin-bottom:8px;">🖨 紙の使い分け</h3>
+    <div id="pgBody"></div>
+  </div>
+</div>
+<!-- 練習プリント 2026-10-15（要件定義書_練習プリントと単元ワークシート §1） -->
+<div class="modal-back" id="ppModal">
+  <div class="modal" style="max-width:620px;">
+    <h3 style="margin-bottom:8px;">📝 練習プリント</h3>
+    <div style="background:var(--crimson-light);border:1px solid #f4c6c9;border-radius:8px;padding:7px 10px;font-size:13px;margin-bottom:12px;">教材の問題をそのまま紙にする。アプリができない子・家でやらない子に、同じ問題を紙でやらせるときに使う。全員同じ紙（問題用紙のあとに解答用紙）。　<a style="color:var(--crimson);font-weight:700;cursor:pointer;white-space:nowrap;" onclick="closeModal('ppModal');pgOpen_()">紙の使い分けを見る →</a></div>
+    <div class="err" id="ppErr"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+      <label>教材　<select id="ppMat" onchange="ppMatChg_()" style="font:inherit;padding:6px;max-width:100%;"></select></label>
+      <label id="ppDirW" style="display:none;">英単語　<select id="ppDir" style="font:inherit;padding:6px;"><option value="e2j">英語を見て和訳を書く</option><option value="j2e">和訳を見て英語を書く</option></select></label>
+      <div id="ppStat" style="color:var(--text-muted);min-height:1.4em;"></div>
+    </div>
+    <div class="modal-actions" style="align-items:center;">
+      <span style="flex:1;"></span>
+      <button class="btn-ghost" onclick="closeModal('ppModal')">やめる</button>
+      <button class="btn-primary btn-outlineK" style="width:auto;" onclick="ppMake_('pdf')">⬇ PDFで保存</button>
+      <button class="btn-primary" style="width:auto;" onclick="ppMake_('print')">🖨 印刷する</button>
+    </div>
+  </div>
+</div>
 <div class="modal-back" id="bulkModal">
   <div class="modal">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -11091,6 +11197,290 @@ function rpPdf(){
   });
 }
 
+/* ===== 練習プリント 2026-10-15 =====
+   正＝ジョブス用\仕様書\要件定義書_練習プリントと単元ワークシート_Kurofune-Word-Trainer.md §1・1a。
+   承認モック＝モック\20261015_モック_練習プリント.html（作り＝ジョブス用\道具\20261015_練習プリントのモック\template.html）。
+   ・教材の問題をそのまま紙にする。全員同じ紙（名前は印刷しない）。生徒の記録とは結びつけない
+   ・問題用紙をまとめて先に、解答用紙（答え＋解説）をあとに。問題用紙が奇数ページなら白紙を1枚はさむ
+   ・パートは詰めて並べる。1ページに入るパートはページの途中で分けない（川上さん 2026-10-15 36）
+   ・英語を書く欄は4線。答えが1語なら書く・文や記号なら選ぶ（21）。並びはアプリと同じ（8）
+   ・中身は material_preview（with_qdata=1）で押したときのシートの最新から作る
+   ・音は oto.html を QR で開く（ログインも GAS も使わない・56 A） */
+var PP_KANA_=['ア','イ','ウ','エ','オ','カ','キ','ク'];
+var PP_VOICE_={'_chirp3-hd-achernar':'~a','_neural2-d':'~n','_chirp3-hd-fenrir':'~f','_chirp3-hd-despina':'~d','_chirp3-hd-algenib':'~g'};
+var _ppMats=[], _ppBusy=false;
+function _ppHash_(s){var h=2166136261;s=String(s);for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function _ppShuf_(arr,seed){var a=arr.slice(),h=_ppHash_(seed);for(var i=a.length-1;i>0;i--){h=Math.imul(h^(h>>>15),2246822507)>>>0;var j=h%(i+1);var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function _ppOneWord_(a){a=String(a||'');if(/[。、，．]/.test(a))return false;if(/[A-Za-z]/.test(a))return !/\s/.test(a.trim());return a.length<=12;}
+function _ppKai_(s){return esc(String(s||'').replace(/\{\{([^|}]*)\|([^}]*)\}\}/g,'$1（$2）').replace(/\[\[|\]\]/g,'')).replace(/\n/g,' ／ ');}
+function _ppL4_(w){return '<span class="pp-l4" style="width:'+w+'mm"></span>';}
+function _ppPlain_(s){return String(s||'').replace(/（　）/g,'').length;}
+function _ppBlank_(s,en){return esc(s).replace(/（　）|（\s*）|\(\s*\)/g,en?_ppL4_(22):'<span class="pp-ans" style="min-width:22mm"></span>');}
+function _ppCho_(ch,seed,marks){var s=_ppShuf_(ch,seed);var mx=Math.max.apply(null,s.map(function(c){return String(c).length;}).concat([0]));marks=marks||PP_KANA_;
+  return {html:'<div class="pp-ch'+(mx>18?' one':'')+'">'+s.map(function(c,i){return '<span>'+marks[i]+'　'+esc(c)+'</span>';}).join('')+'</div>',order:s};}
+function _ppRuby_(qr){return qr.map(function(x){return x[1]?'<ruby>'+esc(x[0])+'<rt>'+esc(x[1])+'</rt></ruby>':esc(x[0]);}).join('');}
+function _ppOtoUrl_(paths){
+  paths=(paths||[]).filter(Boolean).map(function(p){return String(p).replace(/^img\/audio\//,'').replace(/\.mp3$/,'');});
+  if(!paths.length) return '';
+  var dirs=paths.map(function(p){var i=p.lastIndexOf('/');return i<0?'':p.slice(0,i);});
+  var d=dirs[0], same=dirs.every(function(x){return x===d;});
+  var items=paths.map(function(p){var n=same?p.slice(d.length+(d?1:0)):p;Object.keys(PP_VOICE_).forEach(function(k){n=n.split(k).join(PP_VOICE_[k]);});return n;});
+  return location.href.replace(/[?#].*$/,'').replace(/[^\/]*$/,'')+'oto.html?d='+encodeURIComponent(same?d:'')+'&a='+items.join(',');
+}
+function _ppQr_(paths){
+  var url=_ppOtoUrl_(paths); if(!url) return '';
+  var m=null; try{ m=qrModules_(url); }catch(e){ m=null; }
+  if(!m) return '<span class="pp-qrcap">（QRを作れませんでした）</span>';
+  var n=m.length,q=2,s=n+q*2,d='';
+  for(var r=0;r<n;r++){var c=0;while(c<n){if(!m[r][c]){c++;continue;}var st=c;while(c<n&&m[r][c])c++;d+='M'+(st+q)+' '+(r+q)+'h'+(c-st)+'v1h-'+(c-st)+'z';}}
+  return '<svg class="pp-qr'+(url.length>120?' big':'')+'" viewBox="0 0 '+s+' '+s+'" width="64" height="64"><rect width="'+s+'" height="'+s+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';
+}
+/* 1問 → {cls,q（問題用紙）,a（答え）,x（解説）,fig,gun,psg,skip} */
+function _ppBuild_(M,w,dir){
+  var id=String(w.id||''),en=String(w.english||''),ja=String(w.japanese||''),hint=String(w.reading_hint||''),ks=w.kaisetsu,qt=String(w.qtype||''),q={};
+  try{ q=w.qdata?JSON.parse(w.qdata):{}; }catch(e){ q={}; } if(!q||typeof q!=='object') q={};
+  var as=null; if(q.asset&&M.assets[q.asset]) as=M.assets[q.asset];
+  var pl=as?as.p:null;
+  var alt=q.alt?'（'+esc(q.alt)+' も正解）':'';
+  var eng=(M.subject==='english');
+  if(qt===''){
+    if(q.q_ruby||M.subject==='japanese'){
+      var qh=(q.q_ruby?_ppRuby_(q.q_ruby):esc(ja)).replace(/（　）|（　）/,'<span class="pp-ans" style="min-width:30mm"></span>');
+      return {cls:'',q:qh,a:esc(en)+(hint?'<span class="pp-kana">（'+esc(hint)+'）</span>':''),x:_ppKai_(ks),gun:en};
+    }
+    if(eng){
+      if(dir==='j2e') return {cls:'half',q:esc(ja)+'<br>'+_ppL4_(60),a:esc(en),x:esc(ja)};
+      return {cls:'half',q:'<b style="font-size:11.5pt;display:inline-block;min-width:24mm">'+esc(en)+'</b><span class="pp-ans"></span>',a:esc(ja),x:_ppKai_(ks)};
+    }
+  }
+  if(qt==='listen'){
+    var au=pl&&(pl.audios||[])[0];var cj=(q.choices_ja&&q.choices_ja.length)?q.choices_ja:(w.choices_ja||[]);var c=_ppCho_(cj,id);
+    var lmx=Math.max.apply(null,cj.map(function(x){return String(x).length;}).concat([0]));
+    return {cls:lmx<=22?'half lis':'',q:(au?_ppQr_([au]):'')+'音声を聞いて、合う意味を選ぼう。<span class="pp-qrcap">（QRをスマホで読むと音声が流れる）</span>'+c.html+'<div class="pp-ansr" style="text-align:left">答え <span class="pp-ans" style="min-width:12mm"></span></div><div style="clear:both"></div>',a:PP_KANA_[c.order.indexOf(cj[0])]+'　'+esc(en),x:esc(ja)+(ks?' ／ '+_ppKai_(ks):'')};
+  }
+  if(qt==='phonics'){
+    var au2=pl&&pl.audio, hi=esc((pl&&pl.hint)||'');
+    if(q.mode==='say') return {cls:'half',q:'<b style="font-size:12pt">'+esc(en)+'</b>　声に出して読もう<br><span class="pp-chk"></span>読めた',a:esc(ja),x:hi};
+    if(q.mode==='build') return {cls:'half',q:(au2?_ppQr_([au2]):'')+'「'+esc(ja)+'」を英語で書こう<br>'+_ppL4_(34)+'<div style="clear:both"></div>',a:esc(en),x:hi};
+    var c2=_ppCho_(q.choices||[],id);
+    return {cls:'half',q:'<b style="font-size:12pt">'+esc(en)+'</b>　読み方を選ぼう　答え <span class="pp-ans" style="min-width:12mm"></span>'+c2.html.replace('class="pp-ch','class="pp-ch c4'),a:PP_KANA_[c2.order.indexOf(ja)]+'　'+esc(ja),x:hi};
+  }
+  if(qt==='table_fill'){
+    if(/^語順の表/.test(ja)&&pl&&pl.cols&&q.r!=null&&q.c!=null){
+      var th='<table class="pp-mt"><tr><th></th>'+pl.cols.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'</tr>'+(pl.rows||[]).map(function(row,ri){return '<tr><th>'+esc(row.label)+'</th>'+(row.cells||[]).map(function(c,ci){return (ri===q.r&&ci===q.c)?'<td class="bl">（　）</td>':'<td>'+esc(c)+'</td>';}).join('')+'</tr>';}).join('')+'</table>';
+      var lb=(pl.rows[q.r]&&pl.rows[q.r].label==='英語');
+      return {cls:pl.cols.length>=3?'':'half',q:(lb?'表の（　）に入る英語を書こう':'表の（　）に入る語を書こう')+'<div style="display:flex;flex-wrap:wrap;align-items:center;gap:1mm 3mm">'+th+'<span>答え '+(lb?_ppL4_(26):'<span class="pp-ans" style="min-width:26mm"></span>')+'</span></div>',a:esc(en),x:_ppKai_(ks)};
+    }
+    return {cls:'half',q:esc(ja)+'<br>'+(eng?_ppL4_(40):'<span class="pp-ans"></span>'),a:esc(en),x:_ppKai_(ks)};
+  }
+  if(qt==='reorder'){
+    var t=q.tokens||((pl&&pl.tokens)||[]).filter(function(x){return !/^[.?!,]$/.test(x);});
+    var all=_ppShuf_(t.concat(q.extra||[]),id);
+    return {cls:(all.length<=5&&ja.length<=16)?'half':'',q:esc(ja)+'<span style="color:#555;font-size:8.5pt">　並べかえて英語で書こう'+(q.extra&&q.extra.length?'（使わない語もある）':'')+'</span><div class="pp-toks">'+all.map(function(x){return '<span>'+esc(x)+'</span>';}).join('')+'</div><span class="pp-l4 blk"></span>',a:esc(en),x:_ppKai_(ks)};
+  }
+  if(qt==='sentence_fill'){
+    if(_ppOneWord_(en)) return {cls:_ppPlain_(ja)<=26?'half':'',q:_ppBlank_(ja,eng),a:esc(en)+alt,x:_ppKai_(ks)};
+    var ch3=(q.choices&&q.choices.length)?q.choices:[en];var c3=_ppCho_(ch3,id),mx3=Math.max.apply(null,ch3.map(function(x){return String(x).length;}));
+    return {cls:'',q:_ppBlank_(ja,false)+'<br>（　）に入るものを選ぼう　答え <span class="pp-ans" style="min-width:12mm"></span>'+(mx3<=16?c3.html.replace('class="pp-ch','class="pp-ch c4'):c3.html),a:PP_KANA_[c3.order.indexOf(en)]+'　'+esc(en),x:_ppKai_(ks)};
+  }
+  if(qt==='dialog_fill'&&pl&&pl.lines&&pl.choices&&pl.choices.length>1){
+    var chs=pl.choices.map(function(c){return String((c&&c.en)||c||'');});
+    var isWord=chs.every(function(x){return !/\s/.test(x.trim());});
+    var lines=pl.lines.map(function(l){var e=String(l.en||''),sp=String(l.sp||'').trim();var ps=e.split(/[（(]\s*[）)]/);
+      var body=ps.length>1?esc(ps[0])+(isWord?_ppL4_(26):'<span class="pp-ans" style="min-width:16mm"></span>')+esc(ps.slice(1).join('')):esc(e);
+      return '<div class="pp-dl">'+(sp?'<b>'+esc(sp)+':</b>':'')+body+'</div>';}).join('');
+    if(isWord) return {cls:'',q:lines,a:esc(chs[0]),x:_ppKai_(ks)};
+    var c5=_ppCho_(chs,id);
+    return {cls:'',q:lines+'（　）に入るものを選ぼう　答え <span class="pp-ans" style="min-width:12mm"></span>'+c5.html,a:PP_KANA_[c5.order.indexOf(chs[0])]+'　'+esc(chs[0])+(pl.choices[0]&&pl.choices[0].ja?'（'+esc(pl.choices[0].ja)+'）':''),x:_ppKai_(ks)};
+  }
+  if((qt==='listen_resp'||qt==='listen_pic'||qt==='listen_print')&&pl&&pl.choices&&pl.choices.length>1&&String(q.mode||'')!=='opt_ja'){
+    var ord=_ppShuf_(pl.choices.map(function(c,i){return i;}),id), ansN=ord.indexOf(0)+1;
+    var aud=[]; (pl.lines||[]).forEach(function(l){ if(l.audio) aud.push(l.audio); });
+    var printCho=(qt==='listen_print');
+    if(printCho){ if(pl.q&&pl.q.audio) aud.push(pl.q.audio); } else ord.forEach(function(ci){ var c=pl.choices[ci]||{}; if(c.audio) aud.push(c.audio); });
+    var lead=qt==='listen_print'?'会話と質問を聞いて、答えを選ぼう':(qt==='listen_pic'?'英文を聞いて、絵に合うものを選ぼう':'英文を聞いて、返事を選ぼう');
+    var body2=printCho?'<div class="pp-ch one">'+ord.map(function(ci,j){return '<span>'+(j+1)+'　'+esc(String((pl.choices[ci]||{}).en||''))+'</span>';}).join('')+'</div>'
+      :((pl.img?'<img class="pp-lxpic" src="'+esc(String(pl.img))+'" alt="">':'')+'<div>'+ord.map(function(ci,j){return '<span class="pp-lxn">'+(j+1)+'</span>';}).join('')+'</div>');
+    var scr=(pl.lines||[]).map(function(l){var sp=String(l.sp||'').trim();return (sp?sp+': ':'')+String(l.en||'');}).join('　')+(pl.q&&pl.q.en?'　Question: '+pl.q.en:'')+'　／　'+ord.map(function(ci,j){return (j+1)+' '+String((pl.choices[ci]||{}).en||'');}).join('　');
+    return {cls:'',q:_ppQr_(aud)+lead+'　答え <span class="pp-ans" style="min-width:12mm"></span>'+body2+'<div style="clear:both"></div>',a:String(ansN),x:esc(scr)+(ks?' ／ '+_ppKai_(ks):'')};
+  }
+  if(qt==='reading'&&pl&&pl.lines){
+    var rch=(q.choices||w.choices||[]).map(function(c){return (c&&typeof c==='object')?String(c.en||c.ja||''):String(c);});
+    var c6=_ppCho_(rch,id,['1','2','3','4','5']);
+    return {cls:'',psg:{id:String(q.asset),pl:pl},q:esc(ja)+'　答え <span class="pp-ans" style="min-width:12mm"></span>'+c6.html,a:String(c6.order.indexOf(rch[0])+1)+'　'+esc(rch[0]),x:_ppKai_(ks)};
+  }
+  if(qt===''||qt==='image_fill'){
+    var figu=(qt==='image_fill'&&as)?String(as.url||(pl&&pl.url)||''):'';
+    var ask=q.ask||ja;
+    var chs7=(q.choices&&q.choices.length)?q.choices:(w.choices||[]);
+    if(_ppOneWord_(en)||!chs7.length) return {cls:'',fig:figu,q:esc(ask)+'　<span class="pp-ans"></span>',a:esc(en)+(hint?'<span class="pp-kana">（'+esc(hint)+'）</span>':''),x:_ppKai_(ks)};
+    var c7=_ppCho_(chs7,id);
+    return {cls:'',fig:figu,q:esc(ask)+c7.html+'<div class="pp-ansr">答え <span class="pp-ans" style="min-width:14mm"></span></div>',a:PP_KANA_[c7.order.indexOf(en)]+'　'+esc(en),x:_ppKai_(ks)};
+  }
+  return {skip:true};
+}
+/* ---- ページ分け ---- */
+var _ppPages=[],_ppCur=null;
+function _ppNewPage_(host,kind,head){var p=document.createElement('div');p.className='pp-pg'+(kind==='blank'?' pp-blank':'');p.innerHTML='<div class="pp-body"></div>';host.appendChild(p);var b=p.firstChild;if(head)b.insertAdjacentHTML('beforeend',head);_ppCur={el:p,body:b,kind:kind,fresh:true};_ppPages.push(_ppCur);return _ppCur;}
+function _ppFits_(){return _ppCur.body.scrollHeight<=_ppCur.body.clientHeight+1;}
+function _ppUsed_(){var mx=0;[].forEach.call(_ppCur.body.children,function(c){mx=Math.max(mx,c.offsetTop+c.offsetHeight);});return mx;}
+function _ppMk_(html){var t=document.createElement('div');t.innerHTML=html;return t.firstChild;}
+function _ppPageHead_(M,isAns,cont){return '<div class="pp-hd'+(cont?' cont':'')+'"><div class="k"><span>'+esc(M.title)+'　練習プリント</span><b>'+(isAns?'解答用紙':'問題用紙')+'</b></div>'+(isAns||cont?'':'<div class="who"><span>名前</span><span class="sc">日付　　月　　日</span></div>')+'</div>';}
+function _ppPartHead_(pt,n,isAns,cont){return '<div class="pp-ph"><span class="t">'+esc(pt)+(cont?'（つづき）':'')+'</span>'+(isAns||cont?'':'<span class="sc">点数　　　／'+n+'</span>')+'</div>';}
+function _ppMeasure_(nodes){var m=$('ppMeasure');if(!m){m=document.createElement('div');m.id='ppMeasure';m.innerHTML='<div class="pp-body" style="height:auto"></div>';document.body.appendChild(m);}var b=m.firstChild;b.innerHTML='';nodes.forEach(function(n){b.appendChild(n.cloneNode(true));});return b.scrollHeight;}
+function _ppPlace_(host,M,pt,n,nodes,isAns,figs){
+  var kind=isAns?'a':'q', need=_ppMeasure_(nodes);
+  if(!_ppCur.fresh&&need>_ppCur.body.clientHeight-_ppUsed_()&&need<=_ppCur.body.clientHeight) _ppNewPage_(host,kind,_ppPageHead_(M,isAns,false));
+  nodes.forEach(function(nd,i){
+    _ppCur.body.appendChild(nd);_ppCur.fresh=false;
+    if(!_ppFits_()){_ppCur.body.removeChild(nd);_ppNewPage_(host,kind,_ppPageHead_(M,isAns,true));_ppCur.body.appendChild(_ppMk_(_ppPartHead_(pt,n,isAns,true)));
+      if(figs[i])_ppCur.body.appendChild(_ppMk_(figs[i]));
+      _ppCur.body.appendChild(nd);_ppCur.fresh=false;}
+  });
+}
+var _ppImgDim={};   /* 図の縦横（読み込んでから測る＝ページ分けの高さを毎回同じにする 2026-10-15） */
+function _ppFigHtml_(u){var d=_ppImgDim[u],st='';
+  if(d&&d[0]&&d[1]){var mw=700,mh=320,k=Math.min(mw/d[0],mh/d[1],1);st=' style="width:'+Math.round(d[0]*k)+'px;height:'+Math.round(d[1]*k)+'px"';}
+  return '<div class="pp-figb"><img src="'+esc(u)+'" alt="図"'+st+'></div>';}
+function _ppPsgHtml_(ps){return '<div class="pp-psgb">'+_pqPsgHtml_(ps.pl,'up')+'</div>';}
+function _ppLayout_(host,M,built){
+  _ppPages=[];_ppCur=null;host.innerHTML='';
+  _ppNewPage_(host,'q',_ppPageHead_(M,false,false));
+  built.forEach(function(b){
+    var items=b.items.filter(function(it){return !it.skip;}),n=items.length,skip=b.items.length-n;
+    if(!n) return;
+    var nodes=[_ppMk_(_ppPartHead_(b.title,n,false,false))],figs=[null],lastFig='',lastPsg='';
+    if(b.goi){nodes.push(_ppMk_('<div class="pp-gun"><b>語群</b>'+_ppShuf_(items.map(function(x){return x.gun;}),b.id).map(esc).join('　')+'</div>'));figs.push(null);}
+    items.forEach(function(it,i){
+      if(it.fig&&it.fig!==lastFig){nodes.push(_ppMk_(_ppFigHtml_(it.fig)));figs.push(null);lastFig=it.fig;}
+      if(!it.fig)lastFig='';
+      if(it.psg&&it.psg.id!==lastPsg){nodes.push(_ppMk_(_ppPsgHtml_(it.psg)));figs.push(null);lastPsg=it.psg.id;}
+      if(!it.psg)lastPsg='';
+      nodes.push(_ppMk_('<div class="pp-it '+it.cls+'"><div class="no">'+(i+1)+'</div><div class="q">'+it.q+'</div></div>'));
+      figs.push(it.fig?_ppFigHtml_(it.fig):(it.psg?_ppPsgHtml_(it.psg):null));
+    });
+    if(skip){nodes.push(_ppMk_('<div class="pp-skip">紙に出していない問題 '+skip+'問（アプリで解く）</div>'));figs.push(null);}
+    _ppPlace_(host,M,b.title,n,nodes,false,figs);
+  });
+  var nq=_ppPages.length;
+  if(nq%2===1){_ppNewPage_(host,'blank','<span>（白紙＝両面印刷で解答用紙を表から始めるためのページ）</span>');}
+  _ppNewPage_(host,'a',_ppPageHead_(M,true,false));
+  built.forEach(function(b){
+    var items=b.items.filter(function(it){return !it.skip;}),n=items.length; if(!n) return;
+    var nodes=[_ppMk_(_ppPartHead_(b.title,n,true,false))],figs=[null];
+    items.forEach(function(it,i){nodes.push(_ppMk_('<div class="pp-ar"><div class="no">'+(i+1)+'</div><div class="a">'+it.a+'</div><div class="x">'+it.x+'</div></div>'));figs.push(null);});
+    _ppPlace_(host,M,b.title,n,nodes,true,figs);
+  });
+  return {nq:nq,tot:_ppPages.length,blank:(nq%2===1)};
+}
+/* ---- 窓 ---- */
+function ppOpen_(){
+  $('ppErr').textContent=''; $('ppStat').textContent='';
+  var fill=function(mats){
+    _ppMats=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}).sort(function(a,b){return (Number(a.display_order)||0)-(Number(b.display_order)||0);});
+    var last=''; try{ last=localStorage.getItem('kwt_pp_mat')||''; }catch(e){}
+    $('ppMat').innerHTML=_ppMats.map(function(m){return '<option value="'+esc(String(m.id))+'"'+(String(m.id)===last?' selected':'')+'>'+esc(mtLabel(m)||m.title||m.id)+'</option>';}).join('');
+    ppMatChg_();
+  };
+  $('ppModal').classList.add('show');
+  if(typeof bulkMaterials!=='undefined'&&bulkMaterials&&bulkMaterials.length){ fill(bulkMaterials); return; }
+  $('ppMat').innerHTML='<option>読み込み中…</option>';
+  call({action:'materials_list'}).then(function(d){ fill((d&&d.ok)?(d.data.materials||[]):[]); });
+}
+function ppMatChg_(){
+  var mid=$('ppMat').value, m=_ppMats.filter(function(x){return String(x.id)===mid;})[0];
+  $('ppDirW').style.display=(m&&m.subject==='english')?'':'none';
+  try{ localStorage.setItem('kwt_pp_mat',mid); }catch(e){}
+}
+function ppMake_(how){
+  if(_ppBusy) return;
+  var mid=$('ppMat').value, dir=$('ppDir').value; if(!mid){ $('ppErr').textContent='教材を選んでください'; return; }
+  _ppBusy=true; $('ppErr').textContent=''; $('ppStat').textContent='教材の中身を読み込んでいます…（10秒ほど）'; window.__ppDone=null;
+  var btns=$('ppModal').querySelectorAll('button'); for(var i=0;i<btns.length;i++) btns[i].disabled=true;
+  var fin=function(msg){ _ppBusy=false; for(var j=0;j<btns.length;j++) btns[j].disabled=false; if(msg!=null) $('ppStat').textContent=msg; };
+  call({action:'material_preview',material_id:mid,with_qdata:'1'}).then(function(d){
+    if(!d||!d.ok){ $('ppErr').textContent='読み込めませんでした：'+((d&&d.error)||'通信に失敗しました'); fin(''); return; }
+    var dt=d.data, parts=dt.parts||[];
+    var hasQ=parts.some(function(p){return (p.words||[]).some(function(w){return w.qdata!==undefined;});});
+    if(!hasQ&&parts.some(function(p){return (p.words||[]).length;})){ $('ppErr').textContent='サーバー（GAS）の更新がまだです。GASを再デプロイしてから、もう一度押してください。'; fin(''); return; }
+    var M={title:mtLabel(dt)||dt.title||'',subject:String(dt.subject||''),assets:{}};
+    Object.keys(dt.assets||{}).forEach(function(k){var a=dt.assets[k],p=null;try{p=JSON.parse(a.payload||'{}');}catch(e){p={};}M.assets[k]={kind:a.kind,p:p||{},url:a.url||''};});
+    var built=parts.map(function(p){var ws=p.words||[];var goi=ws.some(function(w){try{return !!JSON.parse(w.qdata||'{}').q_ruby;}catch(e){return false;}})||M.subject==='japanese';
+      return {id:String(p.part_id),title:String(p.title||''),goi:goi&&ws.every(function(w){return !w.qtype;}),items:ws.map(function(w){return _ppBuild_(M,w,dir);})};}).filter(function(b){return b.items.length;});
+    if(!built.length){ $('ppErr').textContent='この教材にはまだ問題がありません'; fin(''); return; }
+    $('ppStat').textContent='紙を組んでいます…';
+    var urls=[]; built.forEach(function(b){b.items.forEach(function(it){if(it.fig&&urls.indexOf(it.fig)<0)urls.push(it.fig);});});
+    Promise.all(urls.map(function(u){return new Promise(function(ok){var im=new Image();im.onload=function(){_ppImgDim[u]=[im.naturalWidth,im.naturalHeight];ok();};im.onerror=function(){ok();};im.src=u;});})).then(function(){
+      var meas=document.createElement('div'); meas.style.cssText='position:absolute;left:-99999px;top:0;width:186mm;'; document.body.appendChild(meas);
+      var r=_ppLayout_(meas,M,built);
+      var host=$('printArea'); host.innerHTML=''; while(meas.firstChild) host.appendChild(meas.firstChild); document.body.removeChild(meas);
+      var nqs=built.reduce(function(s,b){return s+b.items.filter(function(it){return !it.skip;}).length;},0);
+      var nsk=built.reduce(function(s,b){return s+b.items.filter(function(it){return it.skip;}).length;},0);
+      var nm=_rpToday().replace(/-/g,'')+'_練習プリント_'+String(M.title).replace(/[\\\/:*?"<>|\s]+/g,'');
+      window.__ppDone={tot:r.tot,nq:r.nq,blank:r.blank,nqs:nqs,nsk:nsk};
+      $('ppStat').textContent=built.length+'パート・'+nqs+'問'+(nsk?'（紙に出していない問題 '+nsk+'問）':'')+'／問題用紙 '+r.nq+'ページ'+(r.blank?'＋白紙1':'')+'・解答用紙 '+(r.tot-r.nq-(r.blank?1:0))+'ページ（計 '+r.tot+'ページ）';
+      if(how==='pdf'){ _ppPdf_(nm,fin); return; }
+      if(how==='none'){ fin(); return; }
+      fin(); closeModal('ppModal');
+      printWhenImagesReady_(host,nm);
+    });
+  }).catch(function(){ $('ppErr').textContent='通信に失敗しました。もう一度押してください'; fin(''); });
+}
+function _ppPdf_(nm,fin){
+  var host=$('printArea');
+  var pages=Array.prototype.slice.call(host.querySelectorAll('.pp-pg'));
+  var skip=[]; pages.forEach(function(p,i){ if(p.classList.contains('pp-blank')) skip.push(i+1); });
+  _rpEnsureH2P(function(){
+    var sx=window.pageXOffset||0, sy=window.pageYOffset||0; window.scrollTo(0,0);
+    host.style.cssText='display:block;position:absolute;left:-99999px;top:0;width:186mm;background:#fff;';
+    var opt={margin:H2P_MARGIN_,filename:nm+'.pdf',image:{type:'jpeg',quality:0.85},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}};
+    var done=function(msg){ host.style.cssText=''; window.scrollTo(sx,sy); fin(msg); };
+    var w=null;
+    pages.forEach(function(pg,k){
+      if(k===0){ w=html2pdf().set(opt).from(pg).toPdf(); return; }
+      w=w.get('pdf').then(function(pdf){ pdf.addPage(); $('ppStat').textContent='PDFを作っています… '+(k+1)+'/'+pages.length+'ページ'; }).set(opt).from(pg).toContainer().toCanvas().toPdf();
+    });
+    w.get('pdf').then(function(pdf){ _pdfPageNo_(pdf,skip); }).save().then(function(){ done('PDFを保存しました（'+pages.length+'ページ）'); })['catch'](function(){ done('PDFの作成に失敗しました。「印刷する」から「PDFに保存」を選んでください'); });
+  }, function(){ fin(''); });
+}
+
+
+/* ===== 紙の使い分け（右上の「🖨 紙の使い分け」）2026-10-15 =====
+   正＝ジョブス用\仕様書\要件定義書_練習プリントと単元ワークシート_Kurofune-Word-Trainer.md 1b。
+   紙を足したら、この PG_ROWS_ と PG_PICK_ と要件定義書の 1b を一緒に直す（文の正本は要件定義書） */
+var PG_PICK_=[
+ ['間違えた語を、短い時間で確かめたい','チェックプリント'],
+ ['範囲の仕上げをしたい','仕上げプリント'],
+ ['アプリができない子・家でやらない子に、同じ問題を紙で','練習プリント'],
+ ['理解しているかを点数で見たい','単元まとめテスト・章まとめテスト'],
+ ['授業中、確認テストで間違えた子にその場で','リアルタイムモードの印刷'],
+ ['面談・職員会議で進み具合を見せたい','学習状況レポート']
+];
+var PG_ROWS_=[
+ {n:'チェックプリント',use:'間違えた語を、折って隠しながらざっと確かめる',src:'その子の間違い',who:'1人ずつ違う',chk:'自分で（左が問題・右が答え）',where:'生徒一覧の「🖨 まとめて印刷」／レポート・印刷タブ／リアルタイムモード',go:'print'},
+ {n:'仕上げプリント',use:'選んだ範囲の仕上げ。間違えた問題を範囲の教材から均等に出す',src:'その子の間違い',who:'1人ずつ違う',chk:'○×入力（QR）。答えと解説の紙つき',where:'生徒一覧の「🖨 まとめて印刷」（紙の形で仕上げプリントを選ぶ）',go:'print'},
+ {n:'練習プリント',tag:'new',use:'アプリができない子・家でやらない子に、教材の問題をそのまま紙で。勉強してきた所を紙でテストのように解く',src:'教材そのまま',who:'全員同じ',chk:'自分で（解答用紙・解説つき）',where:'生徒一覧の「📝 練習プリント」',go:'pp'},
+ {n:'単元まとめテスト・章まとめテスト',tag:'soon',use:'理解しているかを100点満点で見る。章まとめテストは前の章も出る',src:'教材そのまま（テスト）',who:'全員同じ',chk:'○×入力か自動採点（QR）。先生用の答えつき',where:'生徒一覧の「📝 テストを印刷」（これから作る）',go:''},
+ {n:'リアルタイムモードの印刷',use:'授業中、確認テストでまちがえた問題を、その場でチェックプリントの形にして渡す',src:'その子の間違い（いまの授業）',who:'1人ずつ違う',chk:'自分で（左が問題・右が答え）',where:'右上の「● リアルタイムモードを開く」で開く別の窓の「生徒ごとに印刷」',go:'rt'},
+ {n:'学習状況レポート',use:'選んだ教材の進み具合・正答率・テストの点を、1行1人で一覧にする。面談・職員会議で見せる',src:'学習の記録',who:'先生・面談用（一覧）',chk:'－',where:'レポート・印刷タブ（印刷／PDF）',go:'report'},
+ {n:'カリキュラム表',use:'英検・架け橋の教材の順番と、確認の紙（チェックプリントと同じ使い方）',src:'教材の表',who:'全員同じ',chk:'自分で',where:'先生画面からは出せない。フォルダのPDF（英検教材\\カリキュラム表\\）',go:''},
+ {n:'ログイン用ペラ',use:'新しく入った子に配る。ID・パスワード・使い方',src:'生徒のアカウント',who:'1人ずつ違う',chk:'－',where:'生徒一覧の「🔑 ログイン用ペラ」',go:'login'}
+];
+function pgOpen_(){
+  var p='<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">迷ったら、目的から選ぶ</div><div class="pg-pick">'+PG_PICK_.map(function(x){return '<div><span>'+esc(x[0])+'</span><b>→ '+esc(x[1])+'</b></div>';}).join('')+'</div>';
+  var t='<div class="pg-tw"><table class="pg-t"><tr><th>紙</th><th>どんなときに使う</th><th>中身</th><th>だれ向け</th><th>答え合わせ</th><th>出す場所</th><th></th></tr>'+PG_ROWS_.map(function(r){
+    return '<tr><td class="n">'+esc(r.n)+(r.tag==='new'?' <span class="pg-tag new">新しい</span>':r.tag==='soon'?' <span class="pg-tag soon">これから</span>':'')+'</td><td>'+esc(r.use)+'</td><td><span class="pg-tag">'+esc(r.src)+'</span></td><td>'+esc(r.who)+'</td><td>'+esc(r.chk)+'</td><td>'+esc(r.where)+'</td><td>'+(r.go?'<button class="pg-go" onclick="pgGo_(\''+r.go+'\')">ここから出す</button>':'<button class="pg-go" disabled>－</button>')+'</td></tr>';}).join('')+'</table></div>';
+  $('pgBody').innerHTML=p+t;
+  $('pgModal').classList.add('show');
+}
+function pgGo_(k){
+  closeModal('pgModal');
+  if(k==='pp') ppOpen_();
+  else if(k==='print') openTargetModal('print');
+  else if(k==='login') openTargetModal('login');
+  else if(k==='rt') openRealtime();
+  else if(k==='report') switchTab('report');
+}
 </script>
 </body>
 </html>
