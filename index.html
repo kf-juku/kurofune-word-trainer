@@ -7724,7 +7724,8 @@ function _renderLXIntro_(s,w,q,pl,md){
   buildChoices('sent-choices',w.japanese,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
     {fig:true,fixedChoices:fixed,timeLimit:0,kaisetsu:w.kaisetsu,next:s.onNext,
      afterShow:function(){if(md==='pic_yn'&&l.en){var xa=$('ex-audio');if(xa){
-       xa.innerHTML='<div class="lx-xh"></div><div class="lx-xl"><div class="lx-xb">'+((l.c&&l.c.length)?_lxChunks_(l.c):'<b>'+esc(String(l.en))+'</b>')+(_lxSameJa_(l.c,l.ja)?'':'<small>'+_jaRubyIf_(String(l.ja||''))+'</small>')+'</div></div>';xa.style.display='';}}}});
+       var _yk=!!(l.c&&l.c.some(function(x){return x&&x[2];}));   /* 2026-10-15 黄色があれば札を出す（ほかの聞き取りと同じ） */
+       xa.innerHTML='<div class="lx-xh">'+(_yk?'<span class="lx-key"><ruby>黄色<rt class="uf">きいろ</rt></ruby>＝<ruby>答<rt class="uf">こた</rt></ruby>えの<ruby>決<rt class="uf">き</rt></ruby>め<ruby>手<rt class="uf">て</rt></ruby></span>':'')+'</div><div class="lx-xl"><div class="lx-xb">'+((l.c&&l.c.length)?_lxChunks_(l.c):'<b>'+esc(String(l.en))+'</b>')+(_lxSameJa_(l.c,l.ja)?'':'<small>'+_jaRubyIf_(String(l.ja||''))+'</small>')+'</div></div>';xa.style.display='';}}}});
   if(md==='pic_yn'){
     var bs=box.querySelectorAll('.choice'),lock=function(v){[].forEach.call(bs,function(b){if(!b.classList.contains('correct')&&!b.classList.contains('wrong'))b.disabled=v;});};
     var alive=function(){return s.words[s.idx]===w&&$('scr-practice')&&$('scr-practice').classList.contains('active');};
