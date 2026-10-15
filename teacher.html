@@ -5103,6 +5103,8 @@ function fsGo_(how){
    （実測＝2ページ目の図の枠の上線が1ページ目の下の余白に灰色の線で出る。7ページ目で約0.8mm）。
    下の余白を 0.2146mm だけ広げると本文が 272.785mm＝ちょうど1031px になり、2つの計算が一致する。
    紙（window.print）には効かない。仕上げプリントは1ページ262mmまでしか詰めないので、本文が0.2mm減っても あふれない。 */
+/* 【地雷】html2canvas の windowWidth は、画面のスクロールバーを除いた幅（clientWidth）にする。2026-10-15
+   入れないと、スクロールバーの出る Windows では中身が右へ約8px（バーの幅の半分）ずれて写り、右はしのQRや文字が切れる（練習プリントのPDFで見つかった）。 */
 var H2P_MARGIN_=[12,12,12.2146,12];
 /* 【2026-10-10 印刷の決まり】html2pdf の PDF にも「n / 総数」を下の真ん中に入れる（印刷の @bottom-center と同じ）。
    skip＝番号を出さないページ（1始まり。仕切りの白紙）。数字と「/」だけなので jsPDF の標準フォントで出る */
@@ -5150,7 +5152,7 @@ function fsPdf_(){
        どの組み合わせでもQRは200dpiで6/6デコードできた。 */
     var opt={ margin:H2P_MARGIN_, filename:_fsPdfName_()+'.pdf',
       image:{type:'jpeg',quality:0.85},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:document.documentElement.clientWidth},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
       pagebreak:{mode:['css','legacy']} };
     setP('PDFを作っています… 1/'+units.length+'名');
@@ -11190,7 +11192,7 @@ function rpPdf(){
     html2pdf().set({
       margin:H2P_MARGIN_, filename:nm,   /* 下だけ12.2146mm＝ページずれ対策（H2P_MARGIN_ の説明） */
       image:{type:'jpeg',quality:0.98},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:document.documentElement.clientWidth},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
       pagebreak:{mode:['css','legacy']}
     }).from(host.querySelector('.rp-pa')||host).toPdf().get('pdf').then(function(pdf){ _pdfPageNo_(pdf); }).save().then(fin)   /* ページ番号 2026-10-10 */['catch'](function(){ fin(); toast('PDFの作成に失敗しました。「印刷」から「PDFに保存」を選んでください'); });
@@ -11433,7 +11435,7 @@ function _ppPdf_(nm,fin){
   _rpEnsureH2P(function(){
     var sx=window.pageXOffset||0, sy=window.pageYOffset||0; window.scrollTo(0,0);
     host.style.cssText='display:block;position:absolute;left:-99999px;top:0;width:186mm;background:#fff;';
-    var opt={margin:H2P_MARGIN_,filename:nm+'.pdf',image:{type:'jpeg',quality:0.85},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}};
+    var opt={margin:H2P_MARGIN_,filename:nm+'.pdf',image:{type:'jpeg',quality:0.85},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:document.documentElement.clientWidth},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}};
     var done=function(msg){ host.style.cssText=''; window.scrollTo(sx,sy); fin(msg); };
     var w=null;
     pages.forEach(function(pg,k){
