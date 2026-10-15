@@ -1945,7 +1945,7 @@ table.tf-table td.tf-en{font-family:'Manrope','Noto Sans JP',sans-serif;font-wei
   .bug-ta{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--ink);resize:vertical;min-height:60px;margin-bottom:16px;}
 /* 第1部型の1発話（確定50・52）2026-09-23 */
 .kw-sec{display:flex;align-items:baseline;gap:8px;margin:12px 0 6px;}
-.kw-secl{font-size:11.5px;font-weight:800;color:#fff;background:var(--sub);border-radius:6px;padding:2px 9px;display:inline-flex;align-items:center;gap:5px;}
+.kw-secl{font-size:11.5px;font-weight:800;color:#fff;background:var(--sub);border-radius:6px;padding:2px 9px;display:inline-block;line-height:1.5;}   /* 2026-10-15 inline-flex＋gap だと「聞」「こえる」「英文」が別々の箱になって間が空いた（川上さん指摘）。札の中は文字だけなので inline-block */
 .kw-secl.pick{background:var(--accent);}
 .kw-secn{font-size:11.5px;color:var(--sub);font-weight:600;}
 .kw-gap{display:flex;align-items:center;gap:8px;margin:12px 0 2px;font-size:11px;font-weight:700;color:var(--sub);}
@@ -3226,7 +3226,7 @@ function renderQuiz(){
       /* 【2026-08-20 川上さん】「のこり101・もう一歩3・もう一度1・合格3%」はごちゃごちゃで見ない。
          見出しは「合格 何個/何個」だけにする。内訳は下の行を見れば分かる。 */
       var metaMid=bookDone
-        ? '<span class="nbk-tag"><i class="ti ti-check"></i> <ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby></span>'
+        ? '<span class="nbk-tag"><i class="ti ti-check"></i> <span><ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby></span></span>'
         : ('<span class="nbk-rate"><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+pas+'/'+tot+'</span>');
       html+='<div class="nbook qbook'+(bookDone?' done':'')+(_bo.indexOf(gp.key)>=0?' open':'')+'" data-bk="'+esc(gp.key)+'">'
         +'<div class="nbook-head"><div class="nbk-ic"><i class="ti ti-checkup-list"></i></div>' /* 確認テストの本＝チェックリストのアイコン（青）。教科は下の教科タグで分かる 2026-08-20 */
@@ -3248,7 +3248,7 @@ function renderQuiz(){
           html+='<div class="nchap qchap"><div class="ncf-nm">'+_jaRubySubj_(mtShort(g)||'教材',subj)
           +(rdy>0?(' <span class="qrdy"><i class="ti ti-checkup-list"></i>そろそろテスト '+rdy+'</span>'):'')
           +'<small><ruby>合格<rt class="uf">ごうかく</rt></ruby> '+np+'/'+ps.length+'</small></div>'
-          +(g.all_pass?'<span class="nbk-tag qch-gold"><ruby>全<rt class="uf">ぜん</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby></span>':'')
+          +(g.all_pass?'<span class="nbk-tag qch-gold"><span><ruby>全<rt class="uf">ぜん</rt></ruby><ruby>合格<rt class="uf">ごうかく</rt></ruby></span></span>':'')
           +'<i class="ti ti-chevron-down ncf-arw"></i></div>';
         }
         html+='<div class="nqparts">';
@@ -4313,7 +4313,7 @@ function renderUnitZone_(materials){
       var bookDone=(tot>0&&pas===tot);if(!bookDone)_allClear=false; // 100%の本＝緑・ぜんぶできた 2026-07-24
       var subjTag=subj?('<span class="nbk-subj">'+esc(subjLabel(subj))+'</span> '):'';
       /* 見出しは「できた 何個/何個」だけ（確認テストの「合格 N/M」と対にする）2026-08-20 川上さん */
-      var metaMid=bookDone?('<span class="nbk-tag"><i class="ti ti-check"></i> <ruby>全部<rt class="uf">ぜんぶ</rt></ruby>できた</span>'):('<span class="nbk-rate">できた '+pas+'/'+tot+'</span>');
+      var metaMid=bookDone?('<span class="nbk-tag"><i class="ti ti-check"></i> <span><ruby>全部<rt class="uf">ぜんぶ</rt></ruby>できた</span></span>'):('<span class="nbk-rate">できた '+pas+'/'+tot+'</span>');
       var book=document.createElement('div');book.className=bookDone?'nbook unitbook done':'nbook unitbook'; /* 単元別＝金の左帯（確認テストは qbook＝青）2026-08-20 */
       var head='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subj)+'"></i></div>'
         +'<div class="nbk-body"><div class="nbk-nm">'+_jaRubySubj_(g.lab,subj)+'</div>' /* 一覧のふりがな＝英語と国語だけ 2026-09-11 */
@@ -7608,8 +7608,10 @@ function renderLX_(s,w,q,pl){
   }
   ask.innerHTML=isPrint?'<ruby>会話<rt class="uf">かいわ</rt></ruby>と<ruby>質問<rt class="uf">しつもん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、<b><ruby>答<rt class="uf">こた</rt></ruby>え</b>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
     :isResp
-    ?'<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、<b><ruby>返事<rt class="uf">へんじ</rt></ruby></b>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
-    :'<ruby>絵<rt class="uf">え</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>う<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
+    ?(lines.length>=2   /* 2026-10-15 川上さん「いいね」：4級の第1部型（2人の会話・返すのは最後の文）は見出しで「最後の文への返事」と言う。聞き取りの前の指示の音声はこの見出しをそのまま読む */
+      ?'<ruby>会話<rt class="uf">かいわ</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>最後<rt class="uf">さいご</rt></ruby>の<ruby>文<rt class="uf">ぶん</rt></ruby>への<b><ruby>返事<rt class="uf">へんじ</rt></ruby></b>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
+      :'<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、<b><ruby>返事<rt class="uf">へんじ</rt></ruby></b>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう')
+    :'<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>絵<rt class="uf">え</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>うものを<ruby>選<rt class="uf">えら</rt></ruby>ぼう';   /* 2026-10-15 選択肢は音だけなので「聞いて」を入れる。ほかの形式と同じ「〜を聞いて、〜を選ぼう」 */
   var order=shuffle(chs.map(function(c,i){return i;}));
   try{_auPreload_(lines.map(function(l){return l&&l.audio;}).concat(isPrint?[qq&&qq.audio]:chs.map(function(c){return c&&c.audio;})));}catch(_eP){}   /* 2026-10-10 先に読み込む */
   var h='';
@@ -7623,7 +7625,7 @@ function renderLX_(s,w,q,pl){
         return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+_whoC_(l.sp)+'">'+_whoT_(l.sp)+'</span>'+(q.show_line?'<span class="lx-en">'+esc(String(l.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div>';
       }).join('')+'</div>'
       +'<div class="kw-gap"><span></span><b>ここまでが<ruby>英文<rt class="uf">えいぶん</rt></ruby></b><span></span></div>'
-      +'<div class="kw-sec pick"><span class="kw-secl pick"><ruby>返事<rt class="uf">へんじ</rt></ruby></span><span class="kw-secn">1・2・3 を<ruby>聞<rt class="uf">き</rt></ruby>いて、<ruby>合<rt class="uf">あ</rt></ruby>うものを<ruby>選<rt class="uf">えら</rt></ruby>ぶ</span></div>';
+      +'<div class="kw-sec pick"><span class="kw-secl pick"><ruby>返事<rt class="uf">へんじ</rt></ruby></span><span class="kw-secn">1・2・3 の<ruby>英文<rt class="uf">えいぶん</rt></ruby>が<ruby>流<rt class="uf">なが</rt></ruby>れる</span></div>';
   }else if(isPrint){
     h='<div class="kw-sec"><span class="kw-secl"><ruby>聞<rt class="uf">き</rt></ruby>こえる<ruby>英文<rt class="uf">えいぶん</rt></ruby></span></div>'
       +'<div class="lx-talk">'+lines.map(function(l,i){
@@ -7707,7 +7709,44 @@ function renderLX_(s,w,q,pl){
   [].forEach.call(box.querySelectorAll('.lx-ch'),function(b){
     b.onclick=function(){if(b.disabled)return;var j=+b.getAttribute('data-j');finish(order[j]===0,b);};
   });
-  playAll();
+  _lxPreRoll_(s,w,isResp,isPrint,setBtns,st,alive,lines.length).then(function(go){ if(go) playAll(); });
+}
+/* 【2026-10-15 本番に入れた（川上さん「実装しよう」）・試作 2026-10-14】聞き取りの前に「指示」と「Number ◯」を流す（作り方の元＝ジョブス用\道具\20261014_指示の音声の試作\make_mock.py）。
+   ・前の問題と形式（qtype）が違うとき＝日本語の指示（公式の放送原稿の文。二度くり返す・例題・解答時間の部分は除く）→ No. ◯ → 英文
+   ・同じ形式が続くとき＝No. ◯ → 英文
+   ・どちらも、絵があれば絵が読み込み終わってから始める（最大3秒待つ）
+   ・2026-10-15 端末の読み上げをやめて mp3 にした（音声づくりツールの ㉓。指示＝日本語 Algenib ×1.15／Number＝英語 Algenib ×1.0）
+   ・指示の文は英検の指示文の型（川上さん「形式の説明じゃなくて、〜を聞き、最も適切なものを選びなさい でいい」）
+   ・mp3 が無いときは端末の読み上げに切りかえない（聞き比べが混ざるため）。画面に「音が見つかりません」と出して先へ進む */
+var _LX_INTRO_={   /* 2026-10-15 画面の見出しと同じ文（4r＝2人の会話・5r＝1文。lines の数で分ける） */
+  '4r':'会話を聞いて、最後の文への返事を選ぼう。',
+  '5r':'英文を聞いて、返事を選ぼう。',
+  'p':'会話と質問を聞いて、答えを選ぼう。',
+  'c':'英文を聞いて、絵に合うものを選ぼう。'
+};
+var _LX_DIR_='img/audio/listen_intro/';
+function _lxPlayMp3_(src,st){return new Promise(function(res){
+  var done=false,fin=function(){if(done)return;done=true;res();};
+  try{
+    var a=new Audio(src);
+    a.onended=fin;
+    a.onerror=function(){ if(st)st.textContent='音が見つかりません：'+src; setTimeout(fin,800); };
+    var p=a.play(); if(p&&p.catch)p.catch(function(){ if(st)st.textContent='音を鳴らせませんでした：'+src; setTimeout(fin,800); });
+    setTimeout(fin,20000);
+  }catch(e){fin();}
+});}
+function _lxPreRoll_(s,w,isResp,isPrint,setBtns,st,alive,nl){
+  var tok=++_lxRun;
+  var ok=function(){return tok===_lxRun&&alive();};
+  var qt=String(w.qtype||''), prev=(s.idx>0&&s.words[s.idx-1])?String(s.words[s.idx-1].qtype||''):'';
+  var key=isResp?((nl>=2)?'4r':'5r'):isPrint?'p':'c';   /* 見出しと同じ分け方（会話2行以上＝4r） */
+  var intro=(prev!==qt)?_LX_INTRO_[key]:'';
+  setBtns(false); if(st)st.textContent=intro?'説明を聞いています':'';
+  var img=document.querySelector('#sent-body .lx-pic img, #sent-choices .lx-pic img, .lx-pic img');
+  var waitImg=new Promise(function(r){ if(!img||img.complete)return r(); var t=setTimeout(r,3000); img.addEventListener('load',function(){clearTimeout(t);r();}); img.addEventListener('error',function(){clearTimeout(t);r();}); });
+  return waitImg.then(function(){ if(!ok())return false; return intro?_lxPlayMp3_(_LX_DIR_+'intro_'+key+'.mp3',st).then(function(){return ok()&&_lxWait_(700).then(function(){return ok();});}):true; })
+    .then(function(r){ if(!r||!ok())return false; if(st)st.textContent=''; var n=s.idx+1; if(n>20)return true; return _lxPlayMp3_(_LX_DIR_+'number_'+(n<10?'0':'')+n+'.mp3',st).then(function(){return ok()&&_lxWait_(600).then(function(){return ok();});}); })
+    .then(function(r){ return !!r&&ok(); });
 }
 /* 導入パート（第3部型）の段1＝絵を見て日本語3択（音なし）／段2＝英文1つを聞いて「合う／合わない」。2026-09-25 §17q 5-8
    素材 picture3＝{img, lines:[{en,ja,audio,c}]}（段2だけ lines を使う）。選択肢は qdata.choices_ja（先頭が正解＝words.japanese） */
@@ -9820,7 +9859,7 @@ function loadReviewSrs(){
       if(todayDone){
         tile.className='dcard';
         tile.innerHTML='<div class="dcard-l"><i class="ti ti-circle-check"></i></div>'
-          +'<div class="dcard-r"><div class="dcard-top"><span class="dpill">おさらい</span><span class="dbadge"><i class="ti ti-check"></i> '+rb('今日','きょう')+'の<ruby>分<rt class="uf">ぶん</rt></ruby>'+rb('完了','かんりょう')+'</span></div>'
+          +'<div class="dcard-r"><div class="dcard-top"><span class="dpill">おさらい</span><span class="dbadge"><i class="ti ti-check"></i> <span>'+rb('今日','きょう')+'の<ruby>分<rt class="uf">ぶん</rt></ruby>'+rb('完了','かんりょう')+'</span></span></div>'
           +'<div class="dcard-nm">'+(moreAvail?('おさらいがあと <b>'+dueTotal+'</b> '+rb('語','ご')):'<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>できた')+'</div>'
           +(moreAvail?('<div class="dcard-cta">'+rb('続','つづ')+'けると'+rb('忘','わす')+'れにくい <i class="ti ti-arrow-right"></i></div>'):'')
           +'</div>';
