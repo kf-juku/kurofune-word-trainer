@@ -410,22 +410,24 @@ var drawPhone=function(){
 }
 /* ===== スマホで横にはみ出す物を収める（2026-10-18 川上さん「Point の図がスマホではみ出す」）=====
    ①はみ出した Point の行（.pr）があるカードだけ、札を上・中身を下にして横幅を空ける ②それでもはみ出す図（SVG）は幅に合わせて縮める
-   ③表・縦の式・筆算は zoom で縮める（0.55 倍まで）。はみ出していない物は触らない＝PC の画面と紙は今までどおり */
+   ③表・縦の式・筆算・長い数式は zoom で縮める（0.55 倍まで）。はみ出していない物は触らない＝PC の画面と紙は今までどおり */
 function __fit(el){if(!el||!el.getBoundingClientRect().width)return;
  el.querySelectorAll('.pr.stk').forEach(e=>e.classList.remove('stk'));
  el.querySelectorAll('[data-fz]').forEach(e=>{e.style.zoom='';e.style.width='';e.style.height='';e.removeAttribute('data-fz');});
  el.querySelectorAll('.pr').forEach(pr=>{const t=pr.querySelector(':scope>.pt');if(t&&t.scrollWidth>t.clientWidth+1)pr.classList.add('stk');});
  el.querySelectorAll('.pr.stk').forEach(pr=>{const c=pr.closest('.pc');if(c)c.querySelectorAll('.pr').forEach(x=>x.classList.add('stk'));}); /* 同じカードの行は並べ方をそろえる */
- const avl=e=>{const p=e.parentElement;if(!p)return 1e9;const cs=getComputedStyle(p);return p.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0);};
- const C=[...el.querySelectorAll('svg,table,.eqg,.pt>span,.katex-display')].filter(e=>!e.closest('.katex')&&!e.closest('.ch'));
- C.forEach(e=>{if(C.some(a=>a!==e&&a.contains(e)&&a.hasAttribute('data-fz')))return;const a=avl(e),r=e.getBoundingClientRect(),w=Math.max(r.width,e.scrollWidth||0);if(!(w>a+1)||a<=0)return;
+ /* 入れ物＝いちばん近いブロックの箱。使える幅＝その箱の中身の右端から、この物の左端まで（行の途中から始まる数式もはかれる） */
+ const box=e=>{let p=e.parentElement;while(p&&p!==el&&/^inline/.test(getComputedStyle(p).display))p=p.parentElement;return p;};
+ const avl=(e,r)=>{const p=box(e);if(!p)return 1e9;const pr=p.getBoundingClientRect(),cs=getComputedStyle(p);return pr.left+p.clientLeft+p.clientWidth-(parseFloat(cs.paddingRight)||0)-r.left;};
+ const C=[...el.querySelectorAll('svg,table,.eqg,.pt>span,.katex-display,.katex')].filter(e=>!(e.parentElement&&e.parentElement.closest('.katex'))&&!e.closest('.ch'));
+ C.forEach(e=>{if(C.some(a=>a!==e&&a.contains(e)&&a.hasAttribute('data-fz')))return;const r=e.getBoundingClientRect();if(!r.width)return;const a=avl(e,r),w=Math.max(r.width,e.scrollWidth||0);if(!(w>a+1)||a<=0)return;
   const vb=e.tagName.toLowerCase()==='svg'&&e.viewBox&&e.viewBox.baseVal&&e.viewBox.baseVal.width;
   if(vb){e.style.width=a+'px';e.style.height=(r.height*a/r.width)+'px';}else e.style.zoom=String(Math.max(0.55,Math.floor(a/w*1000)/1000));
   e.setAttribute('data-fz','1');});}
-/* 描いたあと・字の読み込みのあと・幅が変わったときに __fit。Point のなぞりで行が出てきてはみ出したときも */
+/* 描いたあと・字の読み込みのあと・幅や高さが変わったとき（答えて解説が出た・Point のなぞりで行が出た）に __fit */
 function __fitL(el){if(!el)return;__fit(el);try{requestAnimationFrame(()=>__fit(el));}catch(e){}
  try{const FD=window.document;if(FD.fonts&&FD.fonts.status!=='loaded')FD.fonts.ready.then(()=>__fit(el));}catch(e){}
- if(!el.__fro&&typeof ResizeObserver!=='undefined'){let lw=0,q=0;el.__fro=new ResizeObserver(()=>{if(q)return;q=1;requestAnimationFrame(()=>{q=0;const w=el.clientWidth;if(w!==lw||el.scrollWidth>el.clientWidth+1){lw=w;__fit(el);}});});el.__fro.observe(el);}}
+ if(!el.__fro&&typeof ResizeObserver!=='undefined'){let lw=0,q=0;let lh=0;el.__fro=new ResizeObserver(()=>{if(q)return;q=1;requestAnimationFrame(()=>{q=0;const w=el.clientWidth,h=el.scrollHeight;if(w!==lw||h!==lh){lw=w;__fit(el);lh=el.scrollHeight;}});});el.__fro.observe(el);}}
 /* ページ（問題・Point の区切り・テストの画面）が替わったら、いちばん上へ（2026-10-18 川上さん）。答えて解説が出ただけでは動かさない。
    本番は Shadow DOM の外の箱（生徒アプリの #ws-host）が動くので、外まで上って scrollTop を0にする */
 function __toTop(){const ph=document.getElementById('ph');if(!ph)return;let e=ph;
