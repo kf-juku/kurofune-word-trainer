@@ -750,6 +750,12 @@
   .m-closebar{position:sticky;top:-8px;height:0;z-index:20;text-align:right;pointer-events:none;}
   .m-closefix{pointer-events:auto;position:relative;top:-6px;right:-6px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:18px;line-height:1;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,.14);}
   .m-closefix:hover{border-color:var(--crimson);color:var(--crimson);}
+  /* ×の下に見出し・ボタンを入れない（2026-10-18 川上さん「×がかぶってる」）。×は右上の約28px四方を覆うので、
+     モーダルの最初の段（見出し・見出しの行）の右を30px空ける。:where で強さ0にしてあるので、
+     自分で右を空けている段（.mp-head 44px・.re-hd 30px など）はそちらが勝つ。
+     中身をまるごと描く入れ物（#sdBody・#quizCellBody）は、その中の最初の段を空ける。
+     見張り＝ジョブス用\テスト\20261018_モーダルの×の下は空ける_実機テスト.mjs */
+  :where(.modal > .m-closebar + :not(#sdBody):not(#quizCellBody), #quizCellBody > :first-child, #sdBody .sd-head){padding-right:30px;}
   .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;}
   .asg-btn{font-size:11px;color:var(--crimson);border:1px solid var(--crimson-mid);background:#fff;border-radius:7px;padding:3px 7px;font-weight:700;cursor:pointer;white-space:nowrap;}
   .asg-btn:hover{background:var(--crimson-light);}
@@ -2724,7 +2730,6 @@
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
       <h3 style="margin:0;flex:1;">🐞 生徒からのバグ報告</h3>
       <button class="btn-ghost" onclick="loadBugReports()" style="width:auto;">↻ 最新に更新</button>
-      <button class="btn-ghost" onclick="closeModal('bugReportsModal')" style="width:auto;">閉じる</button>
     </div>
     <div style="font-size:12px;color:var(--sub,#64748b);margin-bottom:8px;">各報告に「診断情報」（報告時のアプリ版・画面・サーバー側のおさらい状態・直近のJSエラーなど）が付きます。原因を追うときは診断を開いてください。</div>
     <div id="bugReportsBody"><div style="text-align:center;padding:20px;color:var(--sub,#64748b);">読み込み中…</div></div>
@@ -11572,7 +11577,11 @@ function _ppWsLayout_(api,kind,picked){
      そのあと、どの部品が何ページ目のどの段にあるかを測り、ページごとの箱に入れ直す（PDF＝html2canvas は段組みを描けないため） */
   var MM=src.getBoundingClientRect().width/190,PW=190*MM,GAP=20*MM;
   /* モックの紙は <main> の中（左右 16px・上 16px の余白）で印刷される＝紙の幅は 190mm−32px。同じ幅・同じ上の余白にする */
-  src.style.cssText='width:190mm;height:272mm;columns:190mm auto;column-gap:20mm;column-fill:auto;padding:0 16px;box-sizing:border-box;';
+  /* 1段の高さ＝ブラウザ（Chrome）が印刷するときのページの中身の高さ。モックは @page の余白 上13mm・下12mm で印刷し、
+     Chrome は紙の高さ 297mm と上下の余白をそれぞれ整数の px に丸めてから引く（1123−49−45＝1029px）。272mm（1028.03px）で組むと
+     1px 足りず、ちょうど入る問題を次のページへ送っていた（解答解説 ④52→53・章まとめ48→49。2026-10-18 13:40 実測で確定） */
+  var COLH=Math.round(297*MM)-Math.round(13*MM)-Math.round(12*MM);
+  src.style.cssText='width:190mm;height:'+COLH+'px;columns:190mm auto;column-gap:20mm;column-fill:auto;padding:0 16px;box-sizing:border-box;';
   if(shs[0]){var sp=document.createElement('div');sp.className='wsp-top16';sp.style.cssText='height:16px';shs[0].insertBefore(sp,shs[0].firstChild);}
   shs.forEach(function(e,i){e.style.page='auto';if(i)e.style.breakBefore='column';});
   var L0=src.getBoundingClientRect().left+16;PW=190*MM-32; /* 1段の幅＝紙の幅（左右 16px の余白の内側） */
