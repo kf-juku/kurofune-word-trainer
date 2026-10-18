@@ -1306,6 +1306,10 @@
   @keyframes badgeIn{0%{transform:scale(0) rotate(-18deg);opacity:0;}100%{transform:scale(1) rotate(0);opacity:1;}}
   .done-info{flex:1;min-width:0;}
   .done-ttl{font-size:16.5px;font-weight:700;line-height:1.35;}
+  #done-part:empty{display:none;}#done-part{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 13px;margin-bottom:10px;box-shadow:var(--shadow);}
+  #done-part .dp-m{font-size:11px;font-weight:600;color:var(--sub);}#done-part .dp-p{font-size:14px;font-weight:800;line-height:1.35;margin-top:1px;}#done-part .dp-p .imp{margin-right:2px;}
+  #done-part .d1{margin-top:7px;}#done-part .dp-pos{flex:none;margin-left:8px;font-size:11.5px;font-weight:800;color:var(--sub);font-family:Manrope,"Noto Sans JP",sans-serif;}
+  #btn-next .nx-l{display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-width:0;flex:1;line-height:1.3;}#btn-next .nx-l small{font-size:11px;font-weight:700;opacity:.85;}#btn-next .nx-l b{font-size:14px;font-weight:800;}
   .done-nums{display:flex;align-items:baseline;gap:8px;margin-top:3px;flex-wrap:wrap;}
   .done-score{font-family:"Manrope";font-size:29px;font-weight:800;}
   .done-score small{font-size:12px;color:var(--sub);font-weight:500;font-family:"Noto Sans JP";}
@@ -2381,6 +2385,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
   <section id="scr-done" class="screen">
     <div class="body" style="padding-top:24px;padding-bottom:96px;">
       <!-- 完了カード：縦圧縮の横組み（川上さん承認モック 2026-07-05） -->
+      <div id="done-part"></div><!-- 終えたパートの名前と教材の中の進み（2026-10-19 作業4の3） -->
       <div class="done-card">
         <div class="done-ic" id="done-badge"><i class="ti ti-trophy"></i></div>
         <div class="done-info">
@@ -2546,7 +2551,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-19b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-19c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -8687,6 +8692,16 @@ function _pnoHtml_(mid,ord){ var t=_pnoOf_(mid,ord); return t?('<span class="pno
 function _hGrp_(h){ return (h&&(h.group_no||h.group_name))?(String(h.group_no||'')+'|'+String(h.group_name||'')):''; }
 function _hPart_(h,title){ var t=h?(String(h.part_no||'')+String(h.part_name||'')):''; return t||String(title||''); }
 function _hImp_(h){ return (h&&h.important)?'<span class="imp" aria-label="重要マーク">◆</span>':''; }
+/* パートの呼び方（完了画面の見出し・次へのボタンで同じものを使う＝呼び方をそろえる 2026-10-19 作業4の3）。
+   {mat:「英検5級 ①文法編」, no:「No.1」, grp:「第1回 be動詞」, name:「（1）I am・You are」, imp:true/false}。hier の無い教材は name に今までの名前 */
+function _partName_(pid){
+  var e=_partIdx[String(pid||'')];if(!e)return null;
+  var no=(String(e.part||'').match(/^No\.[0-9]+/)||[''])[0];
+  var o={mat:e.mat||'',no:no,grp:'',name:String(e.part||'').replace(/^No\.[0-9]+ /,''),imp:false};
+  if(e.hier){var h=e.hier;o.mat=[h.book,h.material_label].filter(Boolean).join(' ')||o.mat;o.grp=[h.group_no,h.group_name].filter(Boolean).join(' ');o.name=_hPart_(h,o.name);o.imp=!!h.important;}
+  return o;
+}
+function _partNameHtml_(o,withGrp){ if(!o)return ''; return (o.imp?_hImp_({important:1}):'')+(o.no?esc(o.no)+' ':'')+((withGrp&&o.grp)?esc(o.grp)+' ／ ':'')+esc(o.name); }
 var _partIdx={},_partIdxReady=false;
 /* 【2026-09-22 川上さん確定】教材ごとのパート一覧を part_order 順のまま覚える。
    単元別の完了画面で「順番どおりの次のパート」を端末だけで決めるために要る（kwtGAS.gs は触らない）。
@@ -8733,13 +8748,19 @@ function _unitNextBtn_(curPartId,srvNextId){
     var pid=nx?nx.id:String(srvNextId||'');
     if(!pid||pid===String(curPartId))return false;
     var again=!!(nx&&nx.passed);
-    $('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span>'+(again
-      ?'<ruby>次<rt class="uf">つぎ</rt></ruby>のパートをもう<ruby>一度<rt class="uf">いちど</rt></ruby>'
-      :'<ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のパート）')+'</span>';
+    var lb=again?(rb('次','つぎ')+'のパートをもう'+rb('一度','いちど')):(rb('続','つづ')+'けて'+rb('先取','さきど')+'り（'+rb('次','つぎ')+'のパート）');
+    $('btn-next').innerHTML=_nextBtnHtml_(lb,pid,curPartId);
     $('btn-next').className='btn sub';$('btn-next').style.display='flex';
     $('btn-next').onclick=function(){startPractice(pid);};
     return true;
   }catch(e){return false;}
+}
+/* 次へのボタンの中身：1行目に今までの文言、2行目に行き先のパートの名前（完了画面の見出しと同じ呼び方）2026-10-19 作業4の3。
+   行き先の名前が分からないときは今までどおり1行。まとまりが替わるときだけ「第2回 …／」を付ける */
+function _nextBtnHtml_(lb,pid,curPid){
+  var o=null,c=null;try{o=_partName_(pid);c=_partName_(curPid);}catch(e){}
+  if(!o||!o.name)return '<i class="ti ti-arrow-right"></i> <span>'+lb+'</span>';
+  return '<span class="nx-l"><small>'+lb+'</small><b>'+_partNameHtml_(o,!!(o.grp&&(!c||c.grp!==o.grp)))+'</b></span><i class="ti ti-chevron-right"></i>';
 }
 /* 何日前か（JST。todayStr_ と同じ基準） */
 function _daysAgo_(ymd){
@@ -9598,6 +9619,33 @@ function doneFirstRoundSub_(s,termOnly,e2jOnly){
   var cor=termOnly?(s.reverseCorrect||0):(e2jOnly?(s.meaningCorrect||0):((s.meaningCorrect||0)+(s.reverseCorrect||0)));
   return 'はじめの<b>'+tot+'</b><ruby>問<rt class="uf">もん</rt></ruby>で <b>'+cor+'</b><ruby>問<rt class="uf">もん</rt></ruby><ruby>正解<rt class="uf">せいかい</rt></ruby>';
 }
+/* 完了画面の上の見出し：終えたパートの名前と、教材の中の進みを D1 の1行で（済み No.2 ─ 次 No.3 ─ 🏆　2 / 51）。
+   2026-10-19 作業4の3（川上さん 2026-10-18 19:03〜19:22・モック\20261018_モック_結果画面と次へ.html の案）。
+   確認テストは名前だけ（次のパートへは進まないので進みの1行は出さない）。パートの索引が無いとき・おさらいの卒業方式は出さない */
+function _donePartSync_(s,nextPid){
+  var el=$('done-part');if(!el)return;el.innerHTML='';
+  if(!s||s.fromReview||s.mode==='srs'||s.mode==='note')return;
+  var o=_partName_(s.listId);if(!o||!o.name)return;
+  var h='<div class="dp-m">'+esc(o.mat)+(o.grp?' ・ '+esc(o.grp):'')+'</div><div class="dp-p">'+_partNameHtml_(o,false)+'</div>';
+  if(!s.quizMode){
+    var e=_partIdx[String(s.listId)]||{},a=_matParts_[String(e.mid||'')]||[],k=-1;
+    for(var i=0;i<a.length;i++){if(a[i].id===String(s.listId)){k=i;break;}}
+    var nx=String(nextPid||'');if(!nx){var n0=_nextPartInMat_(s.listId);nx=n0?n0.id:'';}
+    var no2=nx?(_partName_(nx)||{}).no:'';
+    var nodes=[{cls:'done',ic:'ti-check',t:(o.no?esc(o.no):rb('今回','こんかい'))}];
+    if(nx)nodes.push({cls:'now',ic:'ti-player-play',t:rb('次','つぎ')+(no2?' '+esc(no2):''),v:0});
+    nodes.push({cls:'goal',ic:'ti-trophy'});
+    var pos=(k>=0&&a.length>1)?('<span class="dp-pos">'+(k+1)+' / '+a.length+'</span>'):'';
+    h+=_d1Html_(nodes,0).replace('<span class="d1-cmb"></span>',pos);
+  }
+  el.innerHTML=h;
+}
+/* 完了画面の率の名前：英単語（英語の単語だけで、意味を答える）は「意味」、それ以外は全部「正解」（2026-10-19 作業4の3）。
+   英単語の両方向（意味・日本語→英語の2つ）はそのまま */
+function _rateLbl_(s){
+  try{var w=(s&&s.words)||[];if(w.length&&w.every(function(x){return _d1Form_(x)==='語'&&/^[\x00-\x7F]+$/.test(String((x&&x.english)||''));}))return rb('意味','いみ');}catch(e){}
+  return rb('正解','せいかい');
+}
 function doneDailyTtl_(left){
   return doneAllCorrectTtl_((left===0)
     ?'<ruby>今日<rt class="uf">きょう</rt></ruby>のデイリー、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！'
@@ -9609,8 +9657,13 @@ function doneDailyTtl_(left){
 function doneUnitPartTtl_(remain){
   var n=parseInt(remain,10);
   /* 【2026-08-26】「合格」は使わない（全問正解して終わる設計なので合否が無くなった） */
-  return doneAllCorrectTtl_('このパート、<ruby>終<rt class="uf">お</rt></ruby>わり！'
-    +((isFinite(n)&&n>0)?('　この<ruby>教材<rt class="uf">きょうざい</rt></ruby>はあと '+n+' パート。'):''));
+  /* 【2026-10-19 作業4の3】「この教材はあと N パート」は見出しから外し、点数の下の「はじめの◯問で◯問正解」のうしろへ（_doneRemain_）。見出しは短く */
+  return doneAllCorrectTtl_('このパート、<ruby>終<rt class="uf">お</rt></ruby>わり！');
+}
+function _doneRemain_(remain){
+  var n=parseInt(remain,10),m=$('done-miss');if(!m||!(isFinite(n)&&n>0))return;
+  if(m.querySelector('.dm-rem'))return;
+  m.insertAdjacentHTML('beforeend','<span class="dm-rem">'+(m.textContent?'・':'')+'あと '+n+' パート</span>');
 }
 function doneGuideHtml_(){return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 15px;margin-top:14px;text-align:left;">'
  +'<div style="font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;"><i class="ti ti-sparkles" style="color:var(--gold)"></i> <span><ruby>次<rt class="uf">つぎ</rt></ruby>は？</span></div>'
@@ -9623,6 +9676,7 @@ function doneGuideHtml_(){return '<div style="background:var(--surface);border:1
    前のモードの表示が残らないよう共通で消す。今日のがんばりチップ・周目バッジ・ホームボタンの3つ。2026-08-21 */
 function _doneResetCommon_(){
   var a=$('today-did-area');if(a)a.innerHTML='';
+  var dp=$('done-part');if(dp)dp.innerHTML='';       // 前のモードのパートの見出しを残さない 2026-10-19
   var dd=$('done-daily-area');if(dd)dd.innerHTML=''; // 前のモードのデイリーバーを残さない 2026-08-22
   var sm=$('done-sum');if(sm)sm.innerHTML='';        // 前のモードのまとめを残さない 2026-09-06
   var qa=$('done-quote-area');if(qa)qa.innerHTML='';  // 前の回の名言を残さない 2026-10-03
@@ -9764,12 +9818,12 @@ function qrvDraw_(){
 }
 function finishQuizSubmit_(){
   var s=session;try{if(_ansT0)_perfPush_('答え→点数',_perfNow_()-_ansT0);}catch(eAt){} // 2026-09-02
-  try{_resumeClear_();}catch(e){}show('scr-done');_doneResetCommon_();var _dgq=document.getElementById('done-guide-area');if(_dgq)_dgq.innerHTML='';hideQTimer();hideExplain();$('done-score-wrap').style.display='';var _dtq=$('done-tiles');if(_dtq)_dtq.innerHTML='';
+  try{_resumeClear_();}catch(e){}show('scr-done');_doneResetCommon_();try{_donePartSync_(s,'');}catch(eDp){}var _dgq=document.getElementById('done-guide-area');if(_dgq)_dgq.innerHTML='';hideQTimer();hideExplain();$('done-score-wrap').style.display='';var _dtq=$('done-tiles');if(_dtq)_dtq.innerHTML='';
   var mr=Math.round(s.meaningCorrect/s.total*100),rr=Math.round(s.reverseCorrect/s.total*100);
   var termOnly=(s.isEnglish===false)||s.tfOnly;
   var e2jOnly=(s.dir==='e2j'); // 方向固定 2026-07-28
   var score=_doneScore_(s,mr,rr);
-  $('done-rate').innerHTML=termOnly?('<ruby>正答<rt class="uf">せいとう</rt></ruby> <b>'+rr+'</b>％'):(e2jOnly?('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％'):('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> '+rr+'％'));
+  $('done-rate').innerHTML=termOnly?(rb('正解','せいかい')+' <b>'+rr+'</b>％'):(e2jOnly?(_rateLbl_(s)+' '+mr+'％'):('<ruby>意味<rt class="uf">いみ</rt></ruby> '+mr+'％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> '+rr+'％'));
   animNum($('score-anim'),score,450); /* 数え上がりは残す（ただの演出で、これがあっても待たされない）。0.9秒→0.45秒 2026-09-02 川上さん確定 */
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（確認テストにも）2026-08-08
   try{_sumRender_(s);}catch(e){}  /* ③ 終わったあとのまとめ 2026-09-06 */
@@ -9830,13 +9884,14 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   var termOnly=(s.isEnglish===false)||s.tfOnly;
   var e2jOnly=(s.dir==='e2j'); // 方向固定：英→日だけ 2026-07-28
   var score=_doneScore_(s,mr,rr);
-  if(termOnly){$('done-rate').innerHTML=(s.tfOnly?'<ruby>正答<rt class="uf">せいとう</rt></ruby>':'<ruby>用語<rt class="uf">ようご</rt></ruby>')+' <b>'+rr+'</b>％';}
-  else if(e2jOnly){$('done-rate').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr">'+mr+'</span>％';}
+  if(termOnly){$('done-rate').innerHTML=rb('正解','せいかい')+' <b>'+rr+'</b>％';}   /* 正答・用語 → 正解にそろえる 2026-10-19 */
+  else if(e2jOnly){$('done-rate').innerHTML=_rateLbl_(s)+' <span id="done-mr">'+mr+'</span>％';}
   else{$('done-rate').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr">'+mr+'</span>％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> <span id="done-rr">'+rr+'</span>％';}
   animNum($('score-anim'),score,450); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）。数え上がりは残す＝ただの演出で待たせない。0.9秒→0.45秒 2026-09-02 川上さん確定
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル 2026-07-24
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);
   _doneResetCommon_();var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
+  try{_donePartSync_(s,'');}catch(eDp){}  /* 終えたパートの名前と進み 2026-10-19 */
   try{_sumRender_(s);}catch(e){}  /* ③ 終わったあとのまとめ（_doneResetCommon_ のあとに出す）2026-09-06 */
   try{doneQuoteShow_((s.miss||[]).length>0);}catch(eQt){}  /* 名言（1回目に間違いがあった回＝間違い）2026-10-03 */
   var _isUnit_=(s.content_type==='test'); // 単元別（テスト配信）かどうかは端末で分かる
@@ -9957,10 +10012,10 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
       dailyMarkCleared_(s.listId);renderDoneDaily_(s.listId); /* 今日のデイリーの進みをホームと同じバーで出す（教材クリアでも同じ）2026-08-22 川上さん確定 */
       if(d.data.completed_material){setDoneBadge_('gold');$('done-result').innerHTML=doneClearTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();}
       else{setDoneBadge_('ok');$('done-result').innerHTML=doneDailyTtl_(dailyLeftAfter_(s.listId));$('done-guide-area').innerHTML=nextStepGuide_(false,s.listId); /* 今日のぶん完了＝緑 2026-08-08／デイリー全部かどうかで文言を出し分け 2026-08-22 */
-        if(d.data.advanced&&d.data.next_part_id){$('btn-next').innerHTML='<i class="ti ti-arrow-right"></i> <span><ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のDAY）</span>';$('btn-next').className='btn sub';$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}
+        if(d.data.advanced&&d.data.next_part_id){$('btn-next').innerHTML=_nextBtnHtml_('<ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のDAY）',d.data.next_part_id,s.listId);$('btn-next').className='btn sub';try{_donePartSync_(s,d.data.next_part_id);}catch(eDp){}$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}
     }else{setDoneBadge_('accent');$('done-result').innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>は <b>まだ<ruby>終<rt class="uf">お</rt></ruby>わっていない</b>（<span style=\"color:#e0574b;\">●</span>が<ruby>残<rt class="uf">のこ</rt></ruby>っている）。<br><span class=\"done-guide\">「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で <b>80%</b> とれたら、<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby><ruby>完了<rt class="uf">かんりょう</rt></ruby>！</span>';}
     /* 点数は保存前に表示済み（2026-07-08）*/
-    $('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);   /* 1周目の事実だけ。どこへ入ったか（おさらい・間違いノート）は生徒に説明しない 2026-08-26 */
+    $('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);try{if(d.data.is_test&&d.data.passed&&!d.data.completed_material)_doneRemain_(d.data.remaining_parts);}catch(eRm){}   /* 「あと N パート」は見出しからここへ 2026-10-19 */ /* 1周目の事実だけ。どこへ入ったか（おさらい・間違いノート）は生徒に説明しない 2026-08-26 */
     if(!_donePre)loadStar(); // 先に描いていたらもう出ている 2026-09-02
   });}
 $('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromReview;startPractice(session.listId);}};
