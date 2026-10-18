@@ -257,7 +257,7 @@ let TSEEN={};
 const TKEY=opt.tkey||'kwtws_'+decodeURIComponent(location.pathname.split('/').pop())+'_'+TEST.name;
 let TSTATE=null,TFRESH=false;try{TSTATE=opt.tstate!==undefined?(opt.tstate||null):JSON.parse(localStorage.getItem(TKEY)||'null');}catch(e){}
 const LIVE=()=>!(typeof pvShowAns!=='undefined'&&pvShowAns);
-const tSave=()=>{if(!LIVE()||!TSTATE)return;TSTATE.pass=!!((TEST.ver||opt.live)&&TSTATE.got>=80&&tDone(TSTATE));if(opt.onTestSubmit){__tSend();return;}try{localStorage.setItem(TKEY,JSON.stringify(TSTATE));}catch(e){}};
+const tSave=()=>{if(!LIVE()||!TSTATE)return;TSTATE.pass=!!((TEST.ver||opt.live)&&TSTATE.got>=80&&tDone(TSTATE));__tSideUpd();if(opt.onTestSubmit){__tSend();return;}try{localStorage.setItem(TKEY,JSON.stringify(TSTATE));}catch(e){}};
 const RANGE=()=>TEST.ver?TEST.name.replace(/\s*[ABC]$/,''):'';
 /* 同じ範囲の A・B・C のうち、合格したもの（この端末の記録から） */
 function rangePass(){if(!TEST.ver)return null;if(opt.rangePass)return opt.rangePass();const r=RANGE();try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!/^kwtws_/.test(k)||/_draft$/.test(k)||k.indexOf(r)<0)continue;const v=JSON.parse(localStorage.getItem(k)||'null');if(v&&v.pass)return k.slice(-1);}}catch(e){}return null;}
@@ -697,6 +697,9 @@ function __tPerm(p){TFL.forEach(x=>{if(!x.st0)x.st0=x.st;});
  if(p==='new'){p=(opt.live&&opt.shuffle)?TFL.map(x=>__TKEEP(x.st0)?null:shuf(x.st0.c.map((_,k)=>k))):null;}
  __TP=p&&p.length===TFL.length?p:null;
  TFL.forEach((x,j)=>{const s0=x.st0,o=__TP&&__TP[j];if(!o||o.length!==s0.c.length){x.st=s0;return;}x.st=Object.assign({},s0,{c:o.map(k=>s0.c[k]),a:o.indexOf(s0.a)});});}
+/* 左の欄のテストの行（「◯点・直し途中」）を、いまの TSTATE に合わせる。採点（アプリ・紙）・解説を見た・類題のたびに呼ぶ。
+   前は左の欄を描き直さなかったので、紙の答えを採点したあとも前の点が残っていた（川上さん 2026-10-18 12:50「直して」） */
+function __tSideUpd(){try{const w=document.querySelector('.wst2 .wsm');if(!w)return;const o=w.querySelector('.tst'),h=tSideTxt();if(o){if(h)o.outerHTML=h;else o.remove();}else if(h)w.insertAdjacentHTML('beforeend',h);}catch(e){}}
 function __tSend(){const pid=TEST.part_id,S=Object.assign({},TSTATE,{done:tDone(TSTATE)});
  if(__tNew){__tNew=false;const ok=TFL.filter((x,j)=>TSTATE.ans[j]===x.st.a).length;const miss=[];TFL.forEach((x,j)=>{if(TSTATE.ans[j]!==x.st.a&&x.it.wid&&miss.indexOf(x.it.wid)<0)miss.push(x.it.wid);});
   try{opt.onTestSubmit(pid,S,{score:TSTATE.got,correct:ok,total:TFL.length,miss_word_ids:miss,over_ms:TSTATE.over||0,paper:TSTATE.paper||''});}catch(e){console.log(e);}return;}
