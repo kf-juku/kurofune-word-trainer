@@ -157,6 +157,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .ty-unit{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd;}
 .ty-review{background:var(--amber-light);color:var(--amber-dark);border:1px solid #fde68a;}
 .ty-note{background:var(--green-light);color:var(--green-dark);border:1px solid #6ee7b7;}
+.ty-ws{background:#ccfbf1;color:#115e59;border:1px solid #5eead4;} /* ワークシート 2026-10-18 */
 
 /* 反応なし（灰色化） */
 .tcard.stale{background:#f1f5f9!important;border-color:#cbd5e1!important;box-shadow:none!important;opacity:.75;}
@@ -502,7 +503,7 @@ function roomOrd_(r){ return r==='北久里浜'?0:(r==='久里浜'?1:2); }  // �
 var STALE_SEC=10*60;  // 解き中がこの秒数続いたら「反応なし」（10分）
 
 // 種別（v1では quiz_live は確認テストのみを返す。将来ここにマッピングを増やす）
-var TYPES={ quiz:{label:'確認テスト',cls:'ty-quiz'}, daily:{label:'毎日学習',cls:'ty-daily'}, unit:{label:'単元別',cls:'ty-unit'}, review:{label:'おさらい',cls:'ty-review'}, note:{label:'間違いノート',cls:'ty-note'} };
+var TYPES={ quiz:{label:'確認テスト',cls:'ty-quiz'}, daily:{label:'毎日学習',cls:'ty-daily'}, unit:{label:'単元別',cls:'ty-unit'}, review:{label:'おさらい',cls:'ty-review'}, note:{label:'間違いノート',cls:'ty-note'}, ws:{label:'ワークシート',cls:'ty-ws'} };
 var activeTypes={quiz:true,daily:false,unit:false,review:false,note:false};
 function subjType_(subj){ return 'quiz'; }
 
@@ -524,7 +525,7 @@ function mapLive(d){
       return { id:eid, type:(e.type||'quiz'), kind:(e.kind||''), mat:mtChapMt(e), book:mtBookMt(e), part:e.part_title||'', subject:e.subject||'',
         status:e.status, startAt:Math.floor((e.start_ts+serverSkew)/1000), updatedAt:Math.floor(((e.updated_ts||e.start_ts)+serverSkew)/1000),
         rate:(e.rate==null?null:e.rate), correct:(e.correct==null?0:e.correct), total:(e.total==null?0:e.total), answered:(e.answered==null?0:e.answered),
-        missed:(e.missed_words||[]), fresh:fresh };
+        missed:(e.missed_words||[]), fresh:fresh, test:!!e.test, over:(e.over||0), missN:(e.miss_n==null?(e.missed_words||[]).length:e.miss_n) };
     });
     st.lastAt=Math.floor(((s.last_ts||0)+serverSkew)/1000);
     st.active=st.lanes.length>0;
@@ -631,11 +632,11 @@ function render(){try{fltResetSync_();}catch(eFr){}
         }
       }else{
         var c=rateClass(l.rate);
-        var nm=l.missed.length;
+        var nm=(l.type==='ws')?l.missN:l.missed.length;   /* 数学は問題の名前を引かないので数だけ */
         var flash=(fresh?' flashd':'');
         html+='<div class="tcard clk'+pop+flash+(c==='r'?' low':'')+'" data-lid="'+l.id+'">'+ty
             +cardBody(l,i)
-            +'<div class="tc-foot"><span class="rate '+c+'">'+l.rate+'%</span>'
+            +'<div class="tc-foot"><span class="rate '+c+'">'+l.rate+(l.test?'点':'%')+'</span>'+(l.over?'<span class="rate-pill r">時間切れ</span>':'')
             +ratePill_(l.type,c)+'</div>'
             +'<div class="tc-hint">'+(nm?'ミス'+nm+'問 ▸':'全問正解')+'</div></div>';
       }
@@ -1608,7 +1609,7 @@ document.addEventListener('mouseover',function(e){
     if(stEl0>=STALE_SEC){ h+='<span class="pp-k">状態</span> '+Math.max(1,Math.floor(stEl0/60))+'分 反応なし（アプリを閉じた／離席の可能性）'; }
     else{ h+='<span class="pp-k">状態</span> いま解き中（開始から '+fmt(el0)+'）<br><span class="pp-k">問題数</span> 全'+l.total+'問'; }
   }
-  else{ h+='<span class="pp-k">状態</span> 提出ずみ　正答率 '+l.rate+'%<br><span class="pp-k">正解</span> '+l.correct+' / '+l.total+' 問　<span class="pp-k">ミス</span> '+l.missed.length+'問<br>クリックでまちがえた問題を見る'; }
+  else{ h+='<span class="pp-k">状態</span> 提出ずみ　'+(l.test?('点数 '+l.rate+'点'+(l.over?'（時間切れ '+fmt(Math.round(l.over/1000))+'）':'')):('正答率 '+l.rate+'%'))+'<br><span class="pp-k">正解</span> '+l.correct+' / '+l.total+' 問　<span class="pp-k">ミス</span> '+(l.type==='ws'?l.missN:l.missed.length)+'問'+(l.type==='ws'?'':'<br>クリックでまちがえた問題を見る'); }
   _pop.innerHTML=h; _pop.style.display='block';
   var r=card.getBoundingClientRect(), pw=_pop.offsetWidth, ph=_pop.offsetHeight;
   var left=r.left+r.width/2-pw/2; if(left<8)left=8; if(left+pw>window.innerWidth-8)left=window.innerWidth-pw-8;
@@ -1630,8 +1631,9 @@ function openMiss(s,l,doing){
     sub.textContent='いま解き中（経過 '+fmt(now()-l.startAt)+'）';
     body.innerHTML='<div class="miss-none">まだ解き中です。<br>提出されると、ここにまちがえた問題が出ます。</div>';
   }else{
-    sub.textContent='正答率 '+l.rate+'%　正解 '+l.correct+'/'+l.total+'問';
-    if(l.missed.length===0){ body.innerHTML='<div class="miss-none">✓ 全問正解でした</div>'; }
+    sub.textContent=(l.test?'点数 '+l.rate+'点':'正答率 '+l.rate+'%')+'　正解 '+l.correct+'/'+l.total+'問';
+    if(l.type==='ws'){ body.innerHTML='<div class="miss-none">'+(l.missN?'まちがえた問題 '+l.missN+'問（数学のワークシートの問題は、ここには出しません）':'✓ 全問正解でした')+'</div>'; }
+    else if(l.missed.length===0){ body.innerHTML='<div class="miss-none">✓ 全問正解でした</div>'; }
     else{
       body.innerHTML='<div style="font-size:11.5px;color:var(--text-muted);margin-bottom:8px;">まちがえた問題（'+l.missed.length+'問）</div>'
         +l.missed.map(function(m){return '<div class="miss"><span class="en">'+m.en+'</span><span class="ja">'+m.ja+'</span></div>';}).join('');
