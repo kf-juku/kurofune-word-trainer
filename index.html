@@ -210,7 +210,7 @@
   .nqg+.nqp{border-top:0;}
   /* 読み始めの左端をそろえる（2026-10-19 01:23 川上さん「重要マークがあるなしでガタガタしない？」）：No. の幅と ◆ の場所を決まった幅にし、名前はいつも同じ位置から始める。まとまりの中のパートも字下げしない */
   .nqp-nm.hz{display:flex;align-items:baseline;}.nqp-nm.hz .pno{flex:none;min-width:3.7em;margin-right:2px;}
-  .nqp-nm.hz .imps{flex:none;width:1.15em;color:#c2410c;font-size:.85em;}.nqp-nm.hz .nqp-t{flex:1;min-width:0;}
+  .nqp-nm.hz .imps{flex:none;width:1.1em;margin-left:-.3em;color:#c2410c;font-size:.85em;}.nqp-nm.hz .nqp-t{flex:1;min-width:0;}
   html[data-theme=dark] .nqp-nm.hz .imps{color:#fb923c;}
   .imp{color:#c2410c;font-size:.85em;margin-right:3px;vertical-align:1px;}
   html[data-theme=dark] .nqg-no{background:#e5e7eb;color:#111827;}html[data-theme=dark] .imp{color:#fb923c;}
@@ -2546,7 +2546,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-19a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-19b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4547,7 +4547,7 @@ function renderUnitZone_(materials){
               ? '<span class="utag done"><i class="ti ti-circle-check"></i>できた</span>'
               : '<span class="utag"><i class="ti ti-player-play"></i>まだ</span>';
             detail+='<div class="nqp" data-upid="'+esc(String(l.part_id||''))+'">'+(_h
-              ?('<div class="nqp-nm hz">'+_pnoHtml_(c.material_id,l.part_order)+'<span class="imps"'+(_h.important?' aria-label="重要マーク">◆':'>')+'</span><span class="nqp-t">'+_jaRubySubj_(_hPart_(_h,String(l.title||'パート')),subj)+'</span></div>')
+              ?('<div class="nqp-nm hz"><span class="imps"'+(_h.important?' aria-label="重要マーク">◆':'>')+'</span>'+_pnoHtml_(c.material_id,l.part_order)+'<span class="nqp-t">'+_jaRubySubj_(_hPart_(_h,String(l.title||'パート')),subj)+'</span></div>')
               :('<div class="nqp-nm">'+_pnoHtml_(c.material_id,l.part_order)+_jaRubySubj_(String(l.title||'パート'),subj)+'</div>'))   /* No 2026-10-10 */
               +st+(l.passed?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
           });
