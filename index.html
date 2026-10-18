@@ -202,6 +202,18 @@
   .qchw.open .nqparts{display:block;}
   .nqp{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer;}
   .nqp-nm{flex:1;font-size:13px;font-weight:600;line-height:1.3;min-width:0;}
+  /* 4段の階層（2026-10-19 作業4・NB）：まとまりの見出しを1回だけ出し、その下にパートを並べる。正＝KWT_生徒アプリ.md 2026-10-18 18:13 */
+  .nqg{display:flex;align-items:center;gap:7px;padding:10px 0 4px;border-top:1px solid var(--line);}
+  .nqg-no{flex:none;background:#1f2937;color:#fff;font-size:10.5px;font-weight:800;border-radius:6px;padding:2px 7px;white-space:nowrap;}
+  .nqg-nm{flex:1;min-width:0;font-size:12.5px;font-weight:800;line-height:1.3;}
+  .nqg-cnt{flex:none;font-size:10.5px;font-weight:700;color:var(--sub);white-space:nowrap;}
+  .nqg+.nqp{border-top:0;}
+  /* 読み始めの左端をそろえる（2026-10-19 01:23 川上さん「重要マークがあるなしでガタガタしない？」）：No. の幅と ◆ の場所を決まった幅にし、名前はいつも同じ位置から始める。まとまりの中のパートも字下げしない */
+  .nqp-nm.hz{display:flex;align-items:baseline;}.nqp-nm.hz .pno{flex:none;min-width:3.7em;margin-right:2px;}
+  .nqp-nm.hz .imps{flex:none;width:1.15em;color:#c2410c;font-size:.85em;}.nqp-nm.hz .nqp-t{flex:1;min-width:0;}
+  html[data-theme=dark] .nqp-nm.hz .imps{color:#fb923c;}
+  .imp{color:#c2410c;font-size:.85em;margin-right:3px;vertical-align:1px;}
+  html[data-theme=dark] .nqg-no{background:#e5e7eb;color:#111827;}html[data-theme=dark] .imp{color:#fb923c;}
   /* 【2026-10-10】No（カリキュラム表と共通の番号）。_pnoHtml_ */
   .pno{display:inline-block;margin-right:6px;font-size:.86em;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .nqp-nm small{font-weight:500;font-size:10.5px;color:var(--sub);}
@@ -874,6 +886,7 @@
   .nowbar .nb-k{font-size:11px;font-weight:800;letter-spacing:.02em;}
   .nowbar .nb-p{font-size:13px;font-weight:700;margin-top:1px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .nowbar .nb-p small{font-weight:500;color:var(--sub);font-size:11px;}
+  .nowbar .nb-p.hz{white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}.nowbar .nb-p.hz small{display:block;}   /* 4段の階層は本・教材を1行目に、まとまり／パートを次の行に（2026-10-19） */
   .nowbar.k-gold .nb-ic{background:var(--n-goldsoft);color:var(--gold);}
   .nowbar.k-gold .nb-k{color:var(--gold);}
   .nowbar.k-quiz .nb-ic{background:var(--quiz-soft);color:var(--quiz);}
@@ -908,6 +921,25 @@
   .pz-bar{width:120px;height:10px;border-radius:8px;background:var(--ring-track);margin:14px auto 2px;overflow:hidden;}
   .pz-bar i{display:block;height:100%;width:55%;border-radius:8px;background:var(--sub);opacity:.55;}
   .progrow{display:flex;align-items:center;gap:8px;}
+  /* ===== 進み具合 D1＋EB＋「N連続」（2026-10-19 作業4）。正＝KWT_生徒アプリ.md「進み具合の出し方（全画面共通）」・モック\20261018_モック_教材ごとの進み具合.html =====
+     細いバー（.prog）と「◯/◯語目」（#step-label）と右上の 🔥N（.cmb-meter）はこれに置きかえた */
+  #scr-practice .prog{display:none;}
+  .d1q{margin:4px 0 2px;padding-left:3px;}.d1q:empty{display:none;}
+  .d1{display:flex;align-items:center;white-space:nowrap;min-height:22px;}
+  .d1 .s{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:800;color:var(--sub);flex:none;}
+  .d1 .c{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:var(--neutral-bg);color:var(--sub);flex:none;}
+  .d1 .s.done .c{background:var(--ok);color:#fff;}.d1 .s.done{color:var(--ok);}
+  .d1 .s.now .c{background:var(--accent-soft);color:var(--accent);box-shadow:0 0 0 2px var(--accent);animation:d1p 1.6s ease-in-out infinite;}
+  @keyframes d1p{0%,100%{box-shadow:0 0 0 2px var(--accent);}50%{box-shadow:0 0 0 5px rgba(10,108,255,.18);}}
+  .d1 .s.now{color:var(--accent);}.d1 .s.now b{font-family:Manrope,sans-serif;font-size:12.5px;}
+  .d1 .s.fx .c{background:#fff4dc;color:var(--fix);box-shadow:0 0 0 2px var(--fix);animation:none;}.d1 .s.fx{color:var(--fix);}
+  .d1 .s.goal .c{background:var(--n-goldsoft);color:var(--gold);}
+  .d1 .ln{flex:1;min-width:8px;height:2.5px;border-radius:2px;background:var(--n-track);margin:0 4px;}.d1 .ln.lk{background:var(--ok);}
+  .d1 .ln.part{background:linear-gradient(90deg,var(--accent) var(--v),var(--n-track) 0);}
+  .d1 .ln.fxp{background:linear-gradient(90deg,var(--fix) var(--v),var(--n-track) 0);}
+  .d1-cmb{flex:none;margin-left:8px;font-size:11.5px;font-weight:800;color:var(--gold);font-family:Manrope,"Noto Sans JP",sans-serif;}.d1-cmb:empty{display:none;}
+  .d1-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 9px;margin-top:4px;}
+  .cmb-meter{display:none !important;}
   .prog{flex:1;min-width:0;height:8px;background:var(--ring-track);border-radius:6px;overflow:hidden;margin:8px 0 6px;}
   /* ミス問モードのチップ「あと◯問で全問正解」2026-08-26。日本語は span で1つに包む（flex直下に裸で置かない） */
   .fixchip{flex:none;display:flex;align-items:center;gap:5px;background:var(--fix-soft);color:var(--fix-ink);font-size:11.5px;font-weight:700;border-radius:999px;padding:4px 10px;white-space:nowrap;}
@@ -2287,6 +2319,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
     <div class="body">
       <div class="prac-top"><button class="prac-quit" id="btn-quit" type="button"><i class="ti ti-x"></i> <span>やめる</span></button><div class="prac-acts"><button class="prac-refresh" id="btn-pause" type="button"><i class="ti ti-player-pause"></i> <span class="pr-t"><ruby>一時停止<rt class="uf">いちじていし</rt></ruby></span></button><button class="prac-refresh" id="btn-refresh" type="button"><i class="ti ti-refresh"></i> <span class="pr-t"><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div></div>
       <div class="nowbar" id="now-bar" style="display:none;"></div>
+      <div class="d1q" id="d1q"></div><!-- 進み具合 D1＋EB（2026-10-19 作業4） -->
       <div id="pt-wrap"></div>
       <div class="wl-bar" id="wl-bar" style="display:none;"><button class="wl-btn" id="wl-btn" type="button"><i class="ti ti-book"></i><span><ruby>単語<rt class="uf">たんご</rt></ruby>をみる</span></button></div>
       <div class="progrow"><div class="prog"><i id="prog"></i></div><button class="sofar" id="btn-sofar" type="button" style="display:none;"><i class="ti ti-clipboard-list"></i><span>ここまでの答え</span></button><div class="fixchip" id="fix-chip" style="display:none;"></div></div>
@@ -2513,7 +2546,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-18c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-19a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3733,6 +3766,7 @@ function comboEyecatch_(kind,n){
   return D;
 }
 function comboHit_(n){
+  try{_d1Cmb_(n);}catch(eD1){}   /* D1 の右の「N連続」2026-10-19 */
   var m=$('cmb-meter'),mn=$('cmb-meter-n');
   if(m&&mn&&n>=3){mn.textContent=n;m.classList.add('on');m.classList.toggle('hot',n>=10);m.classList.remove('bump');void m.offsetWidth;m.classList.add('bump');}
   if(n>=5&&n%5===0){comboEyecatch_(n%10===0?'A':'C',n);return;}
@@ -3741,10 +3775,10 @@ function comboHit_(n){
   var c=$('cmb');if(!c)return;
   var t=cmbTier_(n);
   c.className='cmb t'+t;
-  c.innerHTML=(t>=2?'<i class="ti ti-flame"></i>':'')+'<span class="n">'+n+'</span><span class="w">COMBO</span>';
+  c.innerHTML='<span class="n">'+n+'</span><span class="w">COMBO</span>';   /* 炎は外した（炎＝連続記録の印）2026-10-19 */
   void c.offsetWidth;c.classList.add('show');
 }
-function comboBreak_(){var m=$('cmb-meter');if(m){m.classList.remove('on','hot','bump');}}
+function comboBreak_(){try{_d1Cmb_(0);}catch(eD1){}var m=$('cmb-meter');if(m){m.classList.remove('on','hot','bump');}}
 
 /* ===== デイリークリアの演出 2026-10-05（川上さん確定）=====
    毎日タブで「全部済み」になったのを見たとき、この端末で1日1回だけ出す（ログアウトで消す＝共用タブレットで次の子にも出る）。
@@ -3946,6 +3980,54 @@ var NOTE_THRESHOLD=20; // 間違いノートが これ以上たまったら nudg
 var _unitCount=0;
 /* UI文言のルビ（小学生アカウント＝html.furi-on のときだけ rt.uf が出る。中学生は漢字のみ）2026-07-24 */
 function rb(k,y){return '<ruby>'+k+'<rt class="uf">'+y+'</rt></ruby>';}
+/* ===== 進み具合 D1＋EB（2026-10-19 作業4）=====
+   丸：要点（要点カードのあるパートだけ）→ 問題「今/全部」（確認テストは「確認テスト 今/全部」）→ もう一度（ミス問モードのときだけ・黄）→ 旗。
+   札＝今の問題の形と、その形が続くかたまりの中の何問目か（確認テストは順がまざるので形だけ）。形が1つだけのパートは札を出さない。
+   右＝正解が2つ以上続いたら「N連続」（まちがえたら消えるだけ）。正＝KWT_生徒アプリ.md「進み具合の出し方（全画面共通）」と 19:03〜19:22 */
+var _D1F_={'語':['ti-book'],'表':['ti-book'],'穴':['ti-pencil'],'会':['ti-speakerphone'],'並':['ti-arrows-move'],'聞':['ti-volume'],'応':['ti-volume'],'絵':['ti-volume'],'刷':['ti-volume'],'読':['ti-book'],'フ':['ti-language'],'図':['ti-target']};
+function _d1Form_(w){var q=String((w&&w.qtype)||'');return ({table_fill:'表',image_fill:'図',sentence_fill:'穴',reorder:'並',listen:'聞',listen_resp:'応',listen_pic:'絵',listen_print:'刷',dialog_fill:'会',phonics:'フ',reading:'読'})[q]||'語';}
+function _d1FormName_(f,w,mat){
+  if(f==='語'){var en=String((w&&w.english)||'');return /^[\x00-\x7F]+$/.test(en)?rb('単語','たんご'):(/語彙/.test(String(mat||''))?rb('語句','ごく'):rb('用語','ようご'));}
+  return ({'表':rb('表','ひょう'),'穴':rb('穴埋','あなう')+'め','会':rb('会話','かいわ'),'並':rb('並','なら')+'べかえ','聞':'リスニング','応':rb('応答','おうとう')+'を'+rb('選','えら')+'ぶ','絵':rb('絵','え')+'を'+rb('選','えら')+'ぶ','刷':'リスニング','読':rb('読解','どっかい'),'フ':'フォニックス','図':rb('図','ず')+'の'+rb('問題','もんだい')})[f]||'';
+}
+function _d1Html_(nodes,cmb){
+  var h='';nodes.forEach(function(n,j){
+    if(j>0){var p=nodes[j-1];h+=(p.cls==='now'||p.cls==='fx')?'<span class="ln '+(p.cls==='fx'?'fxp':'part')+'" style="--v:'+Math.round((p.v||0)*100)+'%"></span>':'<span class="ln'+(p.cls==='done'&&(n.cls==='now'||n.cls==='fx'||n.cls==='done')?' lk':'')+'"></span>';}
+    h+='<span class="s '+(n.cls||'')+'"><span class="c"><i class="ti '+(n.cls==='done'?'ti-check':n.ic)+'"></i></span>'+(n.t?'<span>'+n.t+'</span>':'')+'</span>';
+  });
+  return '<div class="d1">'+h+'<span class="d1-cmb">'+(cmb>=2?cmb+rb('連続','れんぞく'):'')+'</span></div>';
+}
+function _d1Sync_(s){
+  var el=$('d1q');if(!el)return;
+  if(!s||!s.words||!s.words.length){el.innerHTML='';return;}
+  var tot=s.words.length,quiz=!!s.quizMode,fix=!!s.fixMode;
+  var hasPt=false;try{hasPt=(_ptKind_(s)==='head')&&!!_ptParse_(s.point);}catch(e){}
+  var inPt=hasPt&&!s._ptDone&&!fix;
+  var nodes=[];
+  if(hasPt)nodes.push({cls:inPt?'now':'done',ic:'ti-bulb',t:rb('要点','ようてん')});
+  var qn=quiz?(rb('確認','かくにん')+'テスト'):rb('問題','もんだい');
+  if(fix){
+    var rem=0,den=1;try{rem=_fixRemain_(s);den=Math.max(s.fixTotal||1,rem);}catch(e){}
+    nodes.push({cls:'done',ic:'ti-pencil',t:qn});
+    nodes.push({cls:'fx',ic:'ti-repeat',t:'もう'+rb('一度','いちど')+' <b>'+Math.min(den,den-rem+1)+'/'+den+'</b>',v:(den-rem)/den});
+  }else{
+    var i=Math.min(s.idx||0,tot-1);
+    nodes.push(inPt?{cls:'',ic:'ti-pencil',t:qn}:{cls:'now',ic:'ti-pencil',t:qn+' <b>'+(i+1)+'/'+tot+'</b>',v:i/tot});
+  }
+  nodes.push({cls:'goal',ic:'ti-flag'});
+  var chip='';
+  if(!inPt&&!fix){
+    var fs=s.words.map(_d1Form_),cur=Math.min(s.idx||0,tot-1),f=fs[cur],uniq={};fs.forEach(function(x){uniq[x]=1;});
+    if(Object.keys(uniq).length>1){
+      var mat='';try{var _e=_partIdx[String(s.listId||'')];if(_e)mat=_e.mat||'';}catch(e){}
+      var run='';if(!quiz){var a=cur,b=cur;while(a>0&&fs[a-1]===f)a--;while(b<tot-1&&fs[b+1]===f)b++;run=' '+(cur-a+1)+' / '+(b-a+1);}
+      chip='<span class="d1-chip"><i class="ti '+(_D1F_[f]||['ti-pencil'])[0]+'"></i><span>'+_d1FormName_(f,s.words[cur],mat)+run+'</span></span>';
+    }
+  }
+  el.innerHTML=_d1Html_(nodes,(typeof combo==='number')?combo:0)+chip;
+}
+/* 正解・まちがいのたびに「N連続」だけを書きかえる（次の問題を待たない） */
+function _d1Cmb_(n){var c=document.querySelector('#d1q .d1-cmb');if(c)c.innerHTML=(n>=2?n+rb('連続','れんぞく'):'');}
 function subjIcon_(s){var m={english:'ti-language',science:'ti-flask',history:'ti-building-monument',geography:'ti-world',civics:'ti-building-bank',social:'ti-books',japanese:'ti-book-2',math:'ti-calculator'};return m[s]||'ti-flag';}
 /* 教科カラー（おさらい・間違いノートの教科カードで共通に使う）2026-07-26 */
 function subjColor_(s){var _soc={bg:'rgba(240,160,32,.14)',fg:'#e08a12'};/* 歴史・地理・公民は同じオレンジ。見分けはアイコンでつける（川上さん確定 2026-08-26）。色を増やすと §12 の色の法則が薄まる */
@@ -4451,12 +4533,22 @@ function renderUnitZone_(materials){
         }
         if(t2){
           detail+='<div class="nqparts">';
+          var _gPrev='',_gSeen={};
           ps.forEach(function(l){
-            /* パート名は title をそのまま出す（切らない・まとめない）。右は済み／未。 */
+            /* パート名は title をそのまま出す（切らない・まとめない）。右は済み／未。
+               2026-10-19 NB：hier のある教材は、まとまり（第1回 be動詞）の見出しを1回だけ出し、その下にパート（（1）I am・You are）を並べる。見出しの右に「できた ◯/◯」 */
+            var _h=l.hier||null,_g=_hGrp_(_h);
+            if(_g&&_g!==_gPrev&&!_gSeen[_g]){ _gSeen[_g]=1;   /* 見出しは本の中で1回だけ（ウォームアップがまとまりの途中にはさまっても、もう一度は出さない） */
+              var _gs=ps.filter(function(x){return _hGrp_(x.hier||null)===_g;}),_gp=_gs.filter(function(x){return x.passed;}).length;
+              detail+='<div class="nqg">'+(_h.group_no?'<span class="nqg-no">'+esc(String(_h.group_no))+'</span>':'')+'<span class="nqg-nm">'+_jaRubySubj_(String(_h.group_name||''),subj)+'</span><span class="nqg-cnt">できた '+_gp+'/'+_gs.length+'</span></div>';
+            }
+            _gPrev=_g;
             var st=l.passed
               ? '<span class="utag done"><i class="ti ti-circle-check"></i>できた</span>'
               : '<span class="utag"><i class="ti ti-player-play"></i>まだ</span>';
-            detail+='<div class="nqp" data-upid="'+esc(String(l.part_id||''))+'"><div class="nqp-nm">'+_pnoHtml_(c.material_id,l.part_order)+_jaRubySubj_(String(l.title||'パート'),subj)+'</div>'   /* No 2026-10-10 */
+            detail+='<div class="nqp" data-upid="'+esc(String(l.part_id||''))+'">'+(_h
+              ?('<div class="nqp-nm hz">'+_pnoHtml_(c.material_id,l.part_order)+'<span class="imps"'+(_h.important?' aria-label="重要マーク">◆':'>')+'</span><span class="nqp-t">'+_jaRubySubj_(_hPart_(_h,String(l.title||'パート')),subj)+'</span></div>')
+              :('<div class="nqp-nm">'+_pnoHtml_(c.material_id,l.part_order)+_jaRubySubj_(String(l.title||'パート'),subj)+'</div>'))   /* No 2026-10-10 */
               +st+(l.passed?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
           });
           detail+='</div>';
@@ -5653,7 +5745,8 @@ function _fixBarSync_(s){
   if(!on){chip.style.display='none';chip.innerHTML='';return;}
   var rem=_fixRemain_(s),den=Math.max(s.fixTotal||1,rem);
   if(bar)bar.style.width=Math.round((den-rem)/den*100)+'%';
-  chip.style.display='';
+  try{_d1Sync_(s);}catch(eD1){}
+  chip.style.display='none';   /* 2026-10-19：D1 の黄の丸「もう一度 ◯/◯」に置きかえた（チップの中身は残しておく） */
   chip.innerHTML='<i class="ti ti-repeat"></i> <span>あと<b>'+rem+'</b><ruby>問<rt class="uf">もん</rt></ruby>で<ruby>全問正解<rt class="uf">ぜんもんせいかい</rt></ruby></span>';
 }
 function _ansDone_(s,which){if(s&&s.fixMode)return !!s._fixAnswered;return !!(s&&s._answered&&s._answered[_ansKey_(s,which)]);}
@@ -5692,19 +5785,21 @@ function _nowBarSync_(s){
     srs  :{ic:'ti-clock-bolt',   c:'accent',nm:'おさらい'},
     note :{ic:'ti-notebook',     c:'accent',nm:rb('間違','まちが')+'いノート'}
   }[kind];
-  var mat='',part='';
+  var mat='',part='',hImp=false,hz=false;
   try{
     if(kind==='srs'){ var _os=String(s.osSubject||''); mat=_os?subjLabel(_os):'おまかせ'; part=(s.total||(s.words||[]).length)+'語'; }
     else if(kind==='note'){ mat=(s.today?(noteTargetPlain_(s.target)||(rb('今日','きょう')+'の10'+rb('語','ご'))):subjLabel(s.subject||'')); part=(s.total||(s.words||[]).length)+'語'; }
-    else{ var e=_partIdx[String(s.listId||'')]; if(e){mat=e.mat||'';part=e.part||'';} }
+    else{ var e=_partIdx[String(s.listId||'')]; if(e){mat=e.mat||'';part=e.part||'';
+      /* 4段の階層（2026-10-19）：「英検5級 ①文法編」・「第1回 be動詞 ／（1）I am・You are」＋◆ */
+      if(e.hier){var _h=e.hier;mat=[_h.book,_h.material_label].filter(Boolean).join(' ')||mat;var _g=[_h.group_no,_h.group_name].filter(Boolean).join(' ');var _no=(part.match(/^No\.[0-9]+ /)||[''])[0];part=_no+(_g?_g+' ／ ':'')+_hPart_(_h,part);hImp=!!_h.important;hz=true;}} }
   }catch(e){}
-  var key=kind+'|'+mat+'|'+part;
+  var key=kind+'|'+mat+'|'+part+'|'+(hz?1:0);
   if(key===_nowBarKey&&el.style.display!=='none')return;   /* 毎問の再描画で作り直さない */
   _nowBarKey=key;
   el.className='nowbar k-'+K.c;
   el.style.display='';
   el.innerHTML='<div class="nb-ic"><i class="ti '+K.ic+'"></i></div><div class="nb-b"><div class="nb-k">'+K.nm+'</div>'
-    +((mat||part)?('<div class="nb-p">'+(mat?'<small>'+esc(mat)+' ・ </small>':'')+esc(part)+'</div>'):'')+'</div>';
+    +((mat||part)?('<div class="nb-p'+(hz?' hz':'')+'">'+(mat?'<small>'+esc(mat)+(hz?'':' ・ ')+'</small>':'')+(hImp?_hImp_({important:1}):'')+esc(part)+'</div>'):'')+'</div>';
 }
 /* ===== ② 学習中に見返す（2026-09-06 川上さん確定）=====
    正＝20260904_保留_単元のまとまりを見せる3案.md §3②。
@@ -6678,7 +6773,7 @@ function _ptShow_(s){
   var f=card.querySelector('.bl:not(.done)'); if(f)openBl(f);
   return true;
 }
-function renderQz_(s){try{clearTimeout(_sentAfterT_);_sentAfterT_=null;}catch(eSa){} /* 前の問題の答え合わせの音（600ms後）を取り消す。残すと次の聞き取りの音を止めて番号が押せなくなる 2026-09-25 */if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestore_();if(_ptShow_(_ps))return;}catch(e){}}/* 更新ボタンは要点カードのことを知らない。片づけて問題を描くと【要点を飛ばせてしまう】ので、終えていなければカードを描き直す（埋めた穴は復元する）2026-09-06③ */
+function renderQz_(s){try{clearTimeout(_sentAfterT_);_sentAfterT_=null;}catch(eSa){}try{_d1Sync_(s);}catch(eD1){} /* 前の問題の答え合わせの音（600ms後）を取り消す。残すと次の聞き取りの音を止めて番号が押せなくなる 2026-09-25 */if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestore_();if(_ptShow_(_ps))return;}catch(e){}}/* 更新ボタンは要点カードのことを知らない。片づけて問題を描くと【要点を飛ばせてしまう】ので、終えていなければカードを描き直す（埋めた穴は復元する）2026-09-06③ */
   /* 英検5級：語を全部終えて文の問題に来た1回だけ、文法解説カードをはさむ。
      _ptShow_ の中で「文の問題かどうか」「もう出したか」を見るので、ここは呼ぶだけ 2026-09-09 */
   if(!_ptHidden_&&_ptKind_(s)==='sent'){try{if(_ptShow_(s))return;}catch(e){}}
@@ -6693,11 +6788,9 @@ function renderQz_(s){try{clearTimeout(_sentAfterT_);_sentAfterT_=null;}catch(eS
   // 進捗ラベル（おさらいは教材・パートのタグつき）
   if(s.mode==='srs'){
     var _tag=(w.material_title||w.part_title)?('<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 11px;margin-bottom:7px;"><i class="ti ti-clock-bolt" style="font-size:12px"></i> おさらい・'+_jaRubySubj_(mtLabelMt(w),w.subject)+(w.part_title?('／'+_jaRubySubj_(w.part_title,w.subject)):'')+'</div><br>'):'';
-    $('step-label').innerHTML=_tag+(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
-  }else if(s.mode==='note'){
-    $('step-label').innerHTML=(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
+    $('step-label').innerHTML=_tag;   /* 数は D1 の「問題 ◯/◯」に移した 2026-10-19 */
   }else{
-    $('step-label').innerHTML=(s.idx+1)+' / '+tot+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>目<rt class="uf">め</rt></ruby>';
+    $('step-label').innerHTML='';   /* 「◯ / ◯語目」は D1 の「問題 ◯/◯」に置きかえた 2026-10-19 */
   }
   try{_sofarSync_(s);}catch(e){}    /* ② ここまでの答え（答えたものが1つでもあれば出す）2026-09-06 */
   try{_fixBarSync_(s);}catch(e){}   /* ミス問モードは黄色バー＋「あと◯問で全問正解」＋問題番号なし 2026-08-26 */
@@ -8588,6 +8681,12 @@ function _resumeOrder_(words,rs){
 var _NO_MATS_={'mat-eiken5-unit-01':1,'mat-eiken5-scene':1,'mat-eiken5-kakehashi':1,'mat-eiken4-bunpo':1,'mat-eiken4-kaiwa':1,'mat-eiken4-dokkai':1};
 function _pnoOf_(mid,ord){ if(!_NO_MATS_[String(mid||'')])return ''; var n=parseInt(ord,10); return (n>0)?('No.'+n):''; }
 function _pnoHtml_(mid,ord){ var t=_pnoOf_(mid,ord); return t?('<span class="pno">'+t+'</span>'):''; }
+/* ===== 4段の階層（2026-10-19 作業4）=====
+   GAS がパートの一覧に付ける hier（parts の book・material_label・group_no・group_name・part_no・part_name・important）から出す。
+   hier が無い教材（英検以外）は今までどおり title をそのまま出す。正＝KWT_生徒アプリ.md 2026-10-18 21:05・KWT_教材づくり.md 2026-10-19 */
+function _hGrp_(h){ return (h&&(h.group_no||h.group_name))?(String(h.group_no||'')+'|'+String(h.group_name||'')):''; }
+function _hPart_(h,title){ var t=h?(String(h.part_no||'')+String(h.part_name||'')):''; return t||String(title||''); }
+function _hImp_(h){ return (h&&h.important)?'<span class="imp" aria-label="重要マーク">◆</span>':''; }
 var _partIdx={},_partIdxReady=false;
 /* 【2026-09-22 川上さん確定】教材ごとのパート一覧を part_order 順のまま覚える。
    単元別の完了画面で「順番どおりの次のパート」を端末だけで決めるために要る（kwtGAS.gs は触らない）。
@@ -8601,7 +8700,7 @@ function _buildPartIdx_(mats){
       var pid=String(pt.part_id||pt.id||'');if(!pid)return;
       _ord.push({id:pid,passed:!!pt.passed,title:String(pt.title||pt.name||'')}); /* 2026-09-22 */
       var _no=_pnoOf_(c.material_id,pt.part_order);   /* 2026-10-10 帯・完了画面・続きからの表示に No を付ける（part は表示にだけ使う） */
-      _partIdx[pid]={subj:sj,part:(_no?_no+' ':'')+String(pt.title||pt.name||''),mat:String(mtShortMt(c)||c.material_title||c.title||''),mid:String(c.material_id||''),
+      _partIdx[pid]={subj:sj,hier:(pt.hier||null)/* 4段の階層 2026-10-19 */,part:(_no?_no+' ':'')+String(pt.title||pt.name||''),mat:String(mtShortMt(c)||c.material_title||c.title||''),mid:String(c.material_id||''),
         /* 単元別の練習状況（確認テスト一覧に「練習ずみ 4日前／まだ練習していない」を出すため）2026-08-20。
            material_parts は content_type=test のパートに passed（80%合格）と last_pass_date を返す＝GAS改修は不要。 */
         isTest:(c.content_type==='test'),passed:!!pt.passed,attempted:!!pt.attempted,lastPass:String(pt.last_pass_date||'')};
