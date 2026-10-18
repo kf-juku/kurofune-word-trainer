@@ -1341,7 +1341,15 @@
   .pp-outs{display:flex;flex-direction:column;gap:6px;margin-top:2px}
   .pp-out{display:flex;align-items:center;gap:8px}.pp-out .nm{width:5.5em;font-weight:700}
   /* 紙ごとに［印刷］［PDF］（川上さん 2026-10-17 21:08）。テストは「解答用紙」の行を足す */
-  .pp-pth{display:flex;align-items:center;gap:6px}.pp-pth #ppPartsN{color:var(--text-muted);font-size:12px;margin-right:auto}
+  .pp-pth{display:flex;align-items:center;gap:6px}
+/* 練習プリント・テストを印刷の教材えらび＝共通の部品（renderMatCand_）。1つだけ選ぶので、シリーズの「全部選ぶ」は出さない（2026-10-18 川上さん「プルダウンが使いづらい」） */
+.pp-mth{display:flex;align-items:baseline;gap:10px;font-weight:700}
+.pp-mnow{font-weight:800;color:var(--crimson)}.pp-mnow.none{font-weight:600;color:var(--text-light)}
+.pp-mlist{min-height:0;max-height:min(58vh,520px)}
+.pp-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;align-items:start}
+.pp-cr{display:flex;flex-direction:column;gap:10px;min-width:0}
+@media(max-width:760px){.pp-cols{grid-template-columns:1fr}.pp-mlist{max-height:min(40vh,320px)}}
+.pp-mlist .mt-selall{display:none}.pp-pth #ppPartsN{color:var(--text-muted);font-size:12px;margin-right:auto}
 .pp-wsn{font-size:11.5px;color:var(--text-muted);margin:0 0 4px}.pp-wsr{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;padding:4px 0;border-bottom:1px solid #eef0f2}.pp-wsr .t{min-width:100%;font-weight:700;font-size:12.5px}.pp-wsr label{display:inline-flex;align-items:center;gap:4px}.pp-wsb{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px} /* ワークシートの範囲 2026-10-18 */
   .pp-ptb{width:auto;padding:2px 8px;font-size:12px}
   .pp-pts{max-height:180px;overflow:auto;border:1px solid var(--border,#e5e7eb);border-radius:6px;padding:4px 8px;margin-top:4px}
@@ -2587,13 +2595,15 @@
 </div>
 <!-- 練習プリント 2026-10-15（要件定義書_練習プリントと単元ワークシート §1） -->
 <div class="modal-back" id="ppModal">
-  <div class="modal" style="max-width:620px;">
+  <div class="modal" style="max-width:none;width:min(96vw,1000px);">
     <h3 style="margin-bottom:8px;" id="ppTtl">📝 練習プリント</h3>
     <div id="ppNote" style="display:none;background:var(--crimson-light);border:1px solid #f4c6c9;border-radius:8px;padding:7px 10px;font-size:13px;margin-bottom:12px;">単元ワークシートのテスト（単元まとめテスト・章まとめテスト）を紙で受けさせる。全員同じ紙。問題用紙・解答用紙・解答解説は別々に刷る（部数はプリンターの画面で人数に）。解答用紙は回収する紙なので問題用紙に留めない。生徒は解答用紙の QR を読んで、自動採点か○×入力で答えを入れる。　<a style="color:var(--crimson);font-weight:700;cursor:pointer;white-space:nowrap;" onclick="closeModal('ppModal');pgOpen_()">紙の使い分けを見る →</a></div>
     <div id="ppNoteP" style="background:var(--crimson-light);border:1px solid #f4c6c9;border-radius:8px;padding:7px 10px;font-size:13px;margin-bottom:12px;">教材の問題をそのまま紙にする。アプリができない子・家でやらない子に、同じ問題を紙でやらせるときに使う。全員同じ紙。問題用紙と解答解説は別々に刷る（部数はプリンターの画面で人数に）。PDFは紙ごとに1部。　<a style="color:var(--crimson);font-weight:700;cursor:pointer;white-space:nowrap;" onclick="closeModal('ppModal');pgOpen_()">紙の使い分けを見る →</a></div>
     <div class="err" id="ppErr"></div>
     <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
-      <label>教材　<select id="ppMat" onchange="ppMatChg_()" style="font:inherit;padding:6px;max-width:100%;"></select></label>
+      <div class="pp-cols"><div class="pp-cl">
+      <div id="ppMatW"><div class="pp-mth">教材<span id="ppMatNow" class="pp-mnow"></span></div><input type="hidden" id="ppMat" value=""><input class="pk-search2" id="ppMatSearch" placeholder="教材名で探す" oninput="_ppMatDraw_()" autocomplete="off"><div class="pk-list pp-mlist" id="ppMatList"></div></div>
+      </div><div class="pp-cr">
       <label id="ppDirW" style="display:none;">英単語　<select id="ppDir" style="font:inherit;padding:6px;"><option value="e2j">英語を見て和訳を書く</option><option value="j2e">和訳を見て英語を書く</option></select></label>
       <div id="ppPartsW"><div class="pp-pth">範囲<span id="ppPartsN"></span><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(true)">全部選ぶ</button><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(false)">全部外す</button></div><div id="ppParts" class="pp-pts"></div></div>
       <div id="ppStat" style="color:var(--text-muted);min-height:1.4em;"></div>
@@ -2602,6 +2612,7 @@
         <div class="pp-out"><span class="nm">解答解説</span><button class="btn-primary" style="width:auto;" onclick="ppMake_('print_a')">🖨 印刷</button><button class="btn-primary btn-outlineK" style="width:auto;" onclick="ppMake_('pdf_a')">⬇ PDF</button></div>
         <div class="pp-out" id="ppOutS" style="display:none;"><span class="nm">解答用紙</span><button class="btn-primary" style="width:auto;" onclick="ppMake_('print_s')">🖨 印刷</button><button class="btn-primary btn-outlineK" style="width:auto;" onclick="ppMake_('pdf_s')">⬇ PDF</button></div>
       </div>
+      </div></div>
     </div>
     <div class="modal-actions" style="align-items:center;">
       <span style="flex:1;"></span>
@@ -11296,6 +11307,17 @@ function rpPdf(){
 var PP_KANA_=['ア','イ','ウ','エ','オ','カ','キ','ク'];
 var PP_VOICE_={'_chirp3-hd-achernar':'~a','_neural2-d':'~n','_chirp3-hd-fenrir':'~f','_chirp3-hd-despina':'~d','_chirp3-hd-algenib':'~g'};
 var _ppMats=[], _ppBusy=false;
+/* 教材えらび（練習プリント・テストを印刷）＝共通の部品 renderMatCand_。選んだ id は今までどおり $('ppMat').value に入れる＝範囲・印刷・PDF は変えない（2026-10-18） */
+var _ppMatOpen={};
+function _ppMatNow_(){var e=$('ppMatNow');if(!e)return;var id=$('ppMat').value,m=_ppMats.filter(function(x){return String(x.id)===id;})[0];
+  e.textContent=m?(mtLabel(m)||m.title||id):'まだ選んでいません';e.className='pp-mnow'+(m?'':' none');}
+function _ppMatOpenOf_(id){matGroupPool_(_ppMats,null,'').forEach(function(tg){tg.groups.forEach(function(g){if(!g.solo&&g.items.some(function(m){return String(m.id)===String(id);}))_ppMatOpen['pp:'+tg.type+':'+g.key]=true;});});}
+function _ppMatDraw_(scr){var el=$('ppMatList');if(!el)return;var pk={};if($('ppMat').value)pk[$('ppMat').value]=1;
+  renderMatCand_(el,{materials:_ppMats,assignedSet:null,pickedSet:pk,openMap:_ppMatOpen,search:(($('ppMatSearch')||{}).value||'').trim(),keyPrefix:'pp',
+    onOne:function(id){if($('ppMat').value===id)return;$('ppMat').value=id;_ppMatDraw_();ppMatChg_();},
+    onSeries:function(){},onOpen:function(k){_ppMatOpen[k]=!_ppMatOpen[k];_ppMatDraw_();}});
+  _ppMatNow_();
+  if(scr){var on=el.querySelector('.pk-cb.on');var r=on&&on.closest('.pk-row');if(r){el.scrollTop+=r.getBoundingClientRect().top-el.getBoundingClientRect().top-40;}else el.scrollTop=0;}}
 function _ppHash_(s){var h=2166136261;s=String(s);for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 function _ppShuf_(arr,seed){var a=arr.slice(),h=_ppHash_(seed);for(var i=a.length-1;i>0;i--){h=Math.imul(h^(h>>>15),2246822507)>>>0;var j=h%(i+1);var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function _ppOneWord_(a){a=String(a||'');if(/[。、，．]/.test(a))return false;if(/[A-Za-z]/.test(a))return !/\s/.test(a.trim());return a.length<=12;}
@@ -11480,14 +11502,19 @@ function ppOpen_(keep){
   var fill=function(mats){
     _ppMats=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}).sort(function(a,b){return (Number(a.display_order)||0)-(Number(b.display_order)||0);});
     var _all=_ppMats;if(_ppTest)_ppMats=_ppMats.filter(function(m){return String(m.content_type||'')==='worksheet';});
-    if(_ppTest&&!_ppMats.length){$('ppMat').innerHTML='<option value="">テストのあるワークシートがありません</option>';$('ppParts').innerHTML='';return;}
+    $('ppMatSearch').value='';_ppMatOpen={};
+    if(_ppTest&&!_ppMats.length){$('ppMat').value='';$('ppMatList').innerHTML='<div class="pk-empty">テストのあるワークシートがありません</div>';_ppMatNow_();$('ppParts').innerHTML='';return;}
     var last=''; try{ last=localStorage.getItem(_ppTest?'kwt_pt_mat':'kwt_pp_mat')||''; }catch(e){}
-    $('ppMat').innerHTML=_ppMats.map(function(m){return '<option value="'+esc(String(m.id))+'"'+(String(m.id)===last?' selected':'')+'>'+esc(mtLabel(m)||m.title||m.id)+'</option>';}).join('');
-    ppMatChg_();
+    /* 前回の教材を覚えておき、そのシリーズを開いて出す。前回が無ければ何も選ばない（範囲は教材を選んでから出す） */
+    var has=_ppMats.some(function(m){return String(m.id)===last;});
+    $('ppMat').value=has?last:'';
+    if(has)_ppMatOpenOf_(last);
+    _ppMatDraw_(true);
+    if(has)ppMatChg_();else{$('ppParts').innerHTML='<div style="color:var(--text-muted)">上の一覧から教材を選ぶと、範囲が出ます</div>';$('ppPartsN').textContent='';$('ppOutS').style.display='none';}
   };
   $('ppModal').classList.add('show');
   if(typeof bulkMaterials!=='undefined'&&bulkMaterials&&bulkMaterials.length){ fill(bulkMaterials); return; }
-  $('ppMat').innerHTML='<option>読み込み中…</option>';
+  $('ppMat').value='';$('ppMatList').innerHTML='<div class="pk-empty">読み込み中…</div>';_ppMatNow_();
   call({action:'materials_list'}).then(function(d){ fill((d&&d.ok)?(d.data.materials||[]):[]); });
 }
 /* 範囲＝刷るパートを選ぶ（要件定義書 §1d ①・2026-10-17）。教材を選んだらその場で中身を読み、パートを並べる。
