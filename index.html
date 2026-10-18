@@ -2120,6 +2120,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
   #ws-ov .subhead{margin:0;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--bg)}
   #ws-host{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 12px 40px}
   body.ws-lock{overflow:hidden}
+  body.ws-lock .cmb,body.ws-lock .ec{z-index:72}body.ws-lock .cmb-meter{z-index:71} /* ワークシート（#ws-ov＝70）の上にコンボを出す 2026-10-18 */
 </style>
 </head>
 <body>
@@ -2512,7 +2513,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-18a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-18b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4492,7 +4493,7 @@ function renderUnitZone_(materials){
    KaTeX・math_fig.js・ws_load.js・ws_app.js は、初めてワークシートを開いたときだけ読む。
    できた＝サーバーの passed（material_parts）。パートの最後まで進んだら session_complete と complete_extras を送る（正答率＝1回目の答え）。
    途中でやめたら、その日のうちは同じパートのやめた題から（ws_app.js が localStorage に持つ・今の「途中の学習」のカードには出さない）。 */
-var WS_LIB_V='20261018b';
+var WS_LIB_V='20261018c';
 var _wsMats=[],_wsDone={},_wsLibP=null,_wsApi=null,_wsSent=0,_wsTL={},_wsTq=Promise.resolve();
 /* ===== ワークシートのテスト（段④ 2026-10-18）=====
    受けどきの色は確認テスト（_quizReady_・quizStatus2_）と同じ3つ：青の塗り＝いま受けるところ／枠＝受けられるが今ではない／点線＝先に練習。
@@ -4651,7 +4652,7 @@ function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
   $('ws-ttl').textContent=title||'';
   host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
-  ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;
+  ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;try{comboBreak_();}catch(e){}
   Promise.all([_wsLoadLibs_(),call({action:'ws_unit',material_id:mid})]).then(function(r){
     var d=r[1];
     if(!d||!d.ok||!d.data){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+(d&&d.error?esc(d.error):_NET_NG_MSG_)+'<br><button class="btn sub" style="margin-top:8px" id="ws-retry">'+_nvRuby_('もう一度(いちど)よみこむ',true)+'</button></div></div>';var rb=$('ws-retry');if(rb)rb.onclick=function(){openWs_(mid,pids,title);};return;}
@@ -4679,6 +4680,7 @@ function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（
         _wsTestSend_({action:'ws_test_submit',part_id:pid,score:r.score,correct:r.correct,total:r.total,state:JSON.stringify(st),over_ms:r.over_ms||0,paper:r.paper||''});},
       onTestState:function(pid,st){var _was=!!(_wsTL[String(pid)]&&_wsTL[String(pid)].state&&_wsTL[String(pid)].state.pass);_wsTL[String(pid)]={state:st};if(st.pass){_wsPartSet_(pid,{passed:true,last_pass_date:todayStr_()});if(!_was)_wsCele_();}
         _wsTestSend_({action:'ws_test_state',part_id:pid,state:JSON.stringify(st)});},
+      fx:function(t,n){try{if(t==='hit')comboHit_(n);else if(t==='miss'){comboBreak_();sndWrong();}else if(t==='ok')sndCorrect();else sndWrong();}catch(e){}},  /* 答えたときの音とコンボ（F-43）＝毎日学習と同じ comboHit_・comboBreak_・sndWrong・sndCorrect */
       onRush:function(done){_ppopShow_('rush','ti-hand-finger',_nvRuby_('速(はや)く押(お)しすぎているかも。問題(もんだい)をよく読(よ)んで答(こた)えよう',true),_nvRuby_('ちゃんと考(かんが)えていたなら、気(き)にしないでね',true),[{t:'OK',fn:function(){if(done)done();}}]);}});   /* ポップを開いている間は学習時間に数えない（毎日学習の _rushPopShow_ と同じ）*/
   }).catch(function(e){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';try{console.log(e);}catch(e2){}});
 }
@@ -4699,7 +4701,7 @@ function _wsSend_(pid,r){
 }
 function closeWs_(){
   var ov=$('ws-ov'),host=$('ws-host');if(!ov)return;
-  ov.classList.remove('on');document.body.classList.remove('ws-lock');if(host)host.innerHTML='';_wsApi=null; /* 画面から外すと ws_app.js の繰り返しの処理も止まる */
+  ov.classList.remove('on');document.body.classList.remove('ws-lock');if(host)host.innerHTML='';_wsApi=null;try{comboBreak_();}catch(e){} /* 画面から外すと ws_app.js の繰り返しの処理も止まる */
   _wsMats.forEach(function(c){(c.parts||[]).forEach(function(l){if(_wsDone[String(l.part_id)])l.passed=true;});});
   try{renderWsZone_(_wsMats.concat([]));}catch(e){}
   if(_wsSent){_wsSent=0;try{loadHomeData_(false);}catch(e){}}
