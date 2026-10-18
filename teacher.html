@@ -1344,7 +1344,7 @@
   .pp-pth{display:flex;align-items:center;gap:6px}
 /* 練習プリント・テストを印刷の教材えらび＝共通の部品（renderMatCand_）。1つだけ選ぶので、シリーズの「全部選ぶ」は出さない（2026-10-18 川上さん「プルダウンが使いづらい」） */
 .pp-mth{display:flex;align-items:baseline;gap:10px;font-weight:700}
-.pp-mnow{font-weight:800;color:var(--crimson)}.pp-mnow.none{font-weight:600;color:var(--text-light)}
+.pp-mlab{flex:0 0 auto;white-space:nowrap}.pp-mnow{font-weight:800;color:var(--crimson);min-width:0}.pp-mnow.none{font-weight:600;color:var(--text-light)}
 .pp-mlist{min-height:0;max-height:min(58vh,520px)}
 .pp-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;align-items:start}
 .pp-cr{display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -2602,7 +2602,7 @@
     <div class="err" id="ppErr"></div>
     <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
       <div class="pp-cols"><div class="pp-cl">
-      <div id="ppMatW"><div class="pp-mth">教材<span id="ppMatNow" class="pp-mnow"></span></div><input type="hidden" id="ppMat" value=""><input class="pk-search2" id="ppMatSearch" placeholder="教材名で探す" oninput="_ppMatDraw_()" autocomplete="off"><div class="pk-list pp-mlist" id="ppMatList"></div></div>
+      <div id="ppMatW"><div class="pp-mth"><span class="pp-mlab">教材</span><span id="ppMatNow" class="pp-mnow"></span></div><input type="hidden" id="ppMat" value=""><input class="pk-search2" id="ppMatSearch" placeholder="教材名で探す" oninput="_ppMatDraw_()" autocomplete="off"><div class="pk-list pp-mlist" id="ppMatList"></div></div>
       </div><div class="pp-cr">
       <label id="ppDirW" style="display:none;">英単語　<select id="ppDir" style="font:inherit;padding:6px;"><option value="e2j">英語を見て和訳を書く</option><option value="j2e">和訳を見て英語を書く</option></select></label>
       <div id="ppPartsW"><div class="pp-pth">範囲<span id="ppPartsN"></span><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(true)">全部選ぶ</button><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(false)">全部外す</button></div><div id="ppParts" class="pp-pts"></div></div>
