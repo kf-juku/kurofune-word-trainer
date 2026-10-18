@@ -6583,10 +6583,10 @@ var _mpMid='';
 var WS_LIB_V='20261017a',_wsLibP=null;
 function _wsLoadLibs_(){
   if(_wsLibP)return _wsLibP;
-  var cssP=new Promise(function(ok){var l=document.querySelector('link[data-ws="katex"]');if(l){ok();return;}l=document.createElement('link');l.rel='stylesheet';l.href='katex/katex.min.css';l.setAttribute('data-ws','katex');l.onload=function(){ok();};l.onerror=function(){ok();};document.head.appendChild(l);})
+  var cssP=new Promise(function(ok){var l=document.querySelector('link[data-ws="katex"]');if(l){ok();return;}l=document.createElement('link');l.rel='stylesheet';l.href='ws/katex/katex.min.css';l.setAttribute('data-ws','katex');l.onload=function(){ok();};l.onerror=function(){ok();};document.head.appendChild(l);})
     .then(function(){try{return Promise.all(['20px KaTeX_Main','bold 20px KaTeX_Main','italic 20px KaTeX_Main','italic 20px KaTeX_Math','20px KaTeX_AMS','20px KaTeX_Size1','20px KaTeX_Size2','20px KaTeX_Size3','20px KaTeX_Size4'].map(function(f){return document.fonts.load(f).catch(function(){});}));}catch(e){}});
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+WS_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
-  _wsLibP=cssP.then(function(){return js('katex/katex.min.js');}).then(function(){return js('katex/contrib/auto-render.min.js');}).then(function(){return Promise.all([js('math_fig.js'),js('ws_load.js')]);}).then(function(){return js('ws_app.js');});
+  _wsLibP=cssP.then(function(){return js('ws/katex/katex.min.js');}).then(function(){return js('ws/katex/contrib/auto-render.min.js');}).then(function(){return Promise.all([js('ws/math_fig.js'),js('ws/ws_load.js')]);}).then(function(){return js('ws/ws_app.js');});
   _wsLibP.catch(function(){_wsLibP=null;});
   return _wsLibP;
 }
@@ -6610,7 +6610,7 @@ function mpWsPreview_(mid,dt0,startPid){
     var D=MathFig.data({UNIT_TITLE:U.UNIT_TITLE,PATS:U.PATS,REVIEW:U.REVIEW,TEST:U.TEST});
     var k='①②③④⑤⑥⑦⑧⑨'.indexOf(String(D.UNIT_TITLE).charAt(0));if(k>=0)D.UNIT_TITLE='単元'+(k+1)+' '+String(D.UNIT_TITLE).slice(1);
     var b=$('mpBody');b.innerHTML='';var root=document.createElement('div');root.style.paddingBottom='70px';b.appendChild(root);
-    wsMount(root,D,{katexCss:'katex/katex.min.css',preview:true,startPid:startPid||''});
+    wsMount(root,D,{katexCss:'ws/katex/katex.min.css',preview:true,startPid:startPid||''});
   }).catch(function(e){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">数式・図の部品を読めませんでした（'+esc(String(e&&e.message||e))+'）</div>';});
 }
 function openMatPreview(mid){
@@ -11512,7 +11512,7 @@ function _ppWsPrep_(mid,pid){
     var k='①②③④⑤⑥⑦⑧⑨'.indexOf(String(D.UNIT_TITLE).charAt(0));if(k>=0)D.UNIT_TITLE='単元'+(k+1)+' '+String(D.UNIT_TITLE).slice(1);
     var hide=document.getElementById('ppWsHide');if(!hide){hide=document.createElement('div');hide.id='ppWsHide';hide.style.cssText='position:absolute;left:-99999px;top:0;width:1000px;height:10px;overflow:hidden;';document.body.appendChild(hide);}
     var root=document.createElement('div');hide.appendChild(root); /* テストごとに1つずつ置く（章まとめテスト） */
-    var api=wsMount(root,D,{katexCss:'katex/katex.min.css'});
+    var api=wsMount(root,D,{katexCss:'ws/katex/katex.min.css'});
     if(!document.getElementById('wsPaperCss')){var st=document.createElement('style');st.id='wsPaperCss';st.textContent=(window.WS_PAPER_CSS||'')+'.wsp .qr svg.fs-qr{width:21mm;height:21mm;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp .qr{justify-content:center;gap:1mm}.wsp .wsqr-cd{font-size:9pt;letter-spacing:.06em;line-height:1}'+'.pp-pg.wsp-pg{width:190mm;height:293mm;page:wsp;break-inside:avoid;overflow:visible}.wsp-pg .pp-body{overflow:visible}.wsp-pg .pp-body *{page:auto!important;break-before:auto!important;break-after:auto!important;page-break-before:auto!important;page-break-after:auto!important}.wsp-pg .wsp-band{flex:0 0 12mm;display:flex;align-items:flex-end;font-size:9pt;line-height:1.2;color:#333;padding-bottom:2mm;font-family:"Noto Sans JP","Yu Gothic",sans-serif}.wsp-pg .pp-body{flex:0 0 272mm;height:272mm;display:block;column-gap:0}.wsp-pg .pp-ft{flex:0 0 9mm;align-items:center;font-size:9pt;color:#333}@page wsp{size:A4 portrait;margin:0 10mm;@bottom-center{content:none}}@media print{@page wsp{size:A4 portrait;margin:0 10mm;@bottom-center{content:none}}}';document.head.appendChild(st);}
     if(!pid&&_ppWs.mid===mid)_ppWs.api=api;return api;});
   if(pid){_ppWsMap[mid+'|'+pid]=pr;pr.catch(function(){delete _ppWsMap[mid+'|'+pid];});return pr;}

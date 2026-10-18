@@ -4601,10 +4601,10 @@ function _wsLoadLibs_(){
   if(_wsLibP)return _wsLibP;
   /* 字の形（@font-face）は Shadow DOM の中では効かないので、ページにも読む。
      さらに、Shadow DOM の中の数式だけでは字の形を取りに行かないことがある（Chrome で確かめた 2026-10-17）ので、よく使う形を先に読んでおく */
-  var cssP=new Promise(function(ok){var l=document.querySelector('link[data-ws="katex"]');if(l){ok();return;}l=document.createElement('link');l.rel='stylesheet';l.href='katex/katex.min.css';l.setAttribute('data-ws','katex');l.onload=function(){ok();};l.onerror=function(){ok();};document.head.appendChild(l);})
+  var cssP=new Promise(function(ok){var l=document.querySelector('link[data-ws="katex"]');if(l){ok();return;}l=document.createElement('link');l.rel='stylesheet';l.href='ws/katex/katex.min.css';l.setAttribute('data-ws','katex');l.onload=function(){ok();};l.onerror=function(){ok();};document.head.appendChild(l);})
     .then(function(){try{return Promise.all(['20px KaTeX_Main','bold 20px KaTeX_Main','italic 20px KaTeX_Main','italic 20px KaTeX_Math','20px KaTeX_AMS','20px KaTeX_Size1','20px KaTeX_Size2','20px KaTeX_Size3','20px KaTeX_Size4'].map(function(f){return document.fonts.load(f).catch(function(){});}));}catch(e){}});
   var js=function(src){return new Promise(function(ok,ng){var s=document.createElement('script');s.src=src+'?v='+WS_LIB_V;s.onload=function(){ok();};s.onerror=function(){ng(new Error(src));};document.head.appendChild(s);});};
-  _wsLibP=cssP.then(function(){return js('katex/katex.min.js');}).then(function(){return js('katex/contrib/auto-render.min.js');}).then(function(){return Promise.all([js('math_fig.js'),js('ws_load.js')]);}).then(function(){return js('ws_app.js');});
+  _wsLibP=cssP.then(function(){return js('ws/katex/katex.min.js');}).then(function(){return js('ws/katex/contrib/auto-render.min.js');}).then(function(){return Promise.all([js('ws/math_fig.js'),js('ws/ws_load.js')]);}).then(function(){return js('ws/ws_app.js');});
   _wsLibP.catch(function(){_wsLibP=null;});
   return _wsLibP;
 }
@@ -4662,8 +4662,8 @@ function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（
     var k='①②③④⑤⑥⑦⑧⑨'.indexOf(String(D.UNIT_TITLE).charAt(0));if(k>=0)D.UNIT_TITLE='単元'+(k+1)+' '+String(D.UNIT_TITLE).slice(1); /* ws_app.js（モック）は「単元2 直線の式を求める」の形で受け取る */
     host.innerHTML='';var root=document.createElement('div');root.className='ws-root';host.appendChild(root);
     var rkey='kwtws_res_'+((typeof token!=='undefined'&&token)?_hash32_(token):'anon')+'_'+mid+(pids&&pids.length?'_'+pids.join('_'):'');
-    if(xo&&xo.preview){_wsApi=wsMount(root,D,{katexCss:'katex/katex.min.css',preview:true,startPid:xo.startPid||'',dark:_wsDark_()});root.style.paddingBottom='70px';return;}
-    _wsApi=wsMount(root,D,{katexCss:'katex/katex.min.css',live:true,paper:(xo&&xo.paper)||'',shuffle:true,innerBack:false,dark:_wsDark_(),resumeKey:rkey,capMs:180000,/* 数学は計算に時間がかかるので1問3分まで数える（川上さん 2026-10-18 00:07）*/
+    if(xo&&xo.preview){_wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',preview:true,startPid:xo.startPid||'',dark:_wsDark_()});root.style.paddingBottom='70px';return;}
+    _wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',live:true,paper:(xo&&xo.paper)||'',shuffle:true,innerBack:false,dark:_wsDark_(),resumeKey:rkey,capMs:180000,/* 数学は計算に時間がかかるので1問3分まで数える（川上さん 2026-10-18 00:07）*/
       done:function(pid){return !!_wsDone[String(pid)];},
       onStart:function(pid){try{call({action:'activity_start',part_id:pid});}catch(e){}},
       onPartDone:function(pid,rec){_wsDone[String(pid)]=1;_wsSend_(pid,rec);_wsCele_();},
