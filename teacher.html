@@ -2241,7 +2241,7 @@
           <span><b style="color:#1b4f9c;">練習中 2</b>＝さわったが、まだ終わっていないパートの数。<b>未着手＝1回も練習せず、テストも受けていない教材だけ</b>です</span>
           <span><b style="color:#d64545;">● 9日 うごいていません</b>＝選んだ教材を7日以上さわっていない子（学習日は直近14日ぶんを見ているので、それより前は「14日以上」と出ます）</span>
           <span>「詰めて表示」＝1人1行にして、たくさんの生徒を一画面で見ます（この端末に覚えます）</span>
-          <span><b>弱点（第N単元×形式）は、英検の教材を選んだときだけ出ます</b>（第N単元や文の形式〈穴うめ・語順・聞き取り〉がある教材。いまは英検5級の2つ）。単元別＝確認テストの<b>受けた回ぜんぶ</b>の正答率／毎日学習＝<b>おさらい待ち</b>（毎日学習で間違えて、翌日のおさらいに入っている語）の数。マスを押すと、その子・その範囲の紙を出す画面に移ります</span>
+          <span><b>弱点（第N回×形式）は、英検の教材を選んだときだけ出ます</b>（第N回や文の形式〈穴うめ・語順・聞き取り〉がある教材。いまは英検5級の2つ）。単元別＝確認テストの<b>受けた回ぜんぶ</b>の正答率／毎日学習＝<b>おさらい待ち</b>（毎日学習で間違えて、翌日のおさらいに入っている語）の数。マスを押すと、その子・その範囲の紙を出す画面に移ります</span>
           <span>🖨 一覧を印刷／⬇ PDF＝<b>先生が見る紙</b>（この表そのもの）。<b>生徒に配る紙は上の「🖨 プリントを出す」</b>から出します（旧「🖨 まちがいプリント（1人1枚）」はそちらに移り、条件をえらべるようになりました）</span>
           <span style="width:100%;">行をクリックすると教材ごとの内訳が開きます。右の「詳細」でその子のまちがいまで見られます。未着手の教材は1行にまとめています（クリックで開きます）。内訳の各教材の右にある「🖨 この範囲で出す」は、<b>その子・その教材だけ</b>の紙を出します。</span>
         </div>
@@ -10650,11 +10650,11 @@ function _rpWkMatShort_(mid){
   var b=t.replace(/^英検\s*/,'').replace(/単元別\s*/,'').replace(/[①-⑳]\s*/,'').trim();
   return b||t;
 }
-function _rpWkUnitsOf_(mid){   /* [{k:'1',label:'第1単元',sub:'be動詞'}] */
+function _rpWkUnitsOf_(mid){   /* [{k:'1',label:'第1回',sub:'be動詞'}]。2026-10-19 呼び名を「第N回」に（名前の決まり：第◯単元は使わない）。見出しは GAS が「第N回 be動詞」か古い題「第N単元 be動詞（1）…」で返す */
   var L=((RP_WK&&RP_WK.unit_label)||{})[mid]||{}, D=((RP_WK&&RP_WK.den)||{})[mid]||{};
   return Object.keys(D).sort(function(a,b){ return (parseInt(a,10)||0)-(parseInt(b,10)||0); }).map(function(u){
-    var t=String(L[u]||''), sub=t.replace(new RegExp('^第'+u+'単元\\s*'),'').replace(/[（(][0-9０-９]+[）)]\s*$/,'').replace(/[①-⑳]\s*$/,'').replace(/\s*パート\s*[0-9０-９]+\s*$/,'').trim();
-    return {k:u,label:'第'+u+'単元',sub:sub};
+    var t=String(L[u]||''), sub=t.replace(new RegExp('^第'+u+'(単元|回)\\s*'),'').replace(/[（(][0-9０-９]+[）)]\s*$/,'').replace(/[①-⑳]\s*$/,'').replace(/\s*パート\s*[0-9０-９]+\s*$/,'').trim();
+    return {k:u,label:'第'+u+'回',sub:sub};
   });
 }
 /* 表の行＝教材ごと（4-51 ④）。単元別は第N単元ごと、毎日学習は1行 */
@@ -10662,7 +10662,7 @@ function _rpWkRows_(mids){
   var rows=[];
   _rpWkMatsIn_(mids).forEach(function(mid){
     if(RP_WK.mats[mid].kind==='unit') _rpWkUnitsOf_(mid).forEach(function(u){ rows.push({k:mid+'|'+u.k,mid:mid,u:u.k,label:u.label,sub:u.sub,kind:'rate'}); });
-    else rows.push({k:mid+'|d',mid:mid,u:'',label:_rpWkMatShort_(mid),sub:'第N単元で分かれない',kind:'cnt'});
+    else rows.push({k:mid+'|d',mid:mid,u:'',label:_rpWkMatShort_(mid),sub:'第N回で分かれない',kind:'cnt'});
   });
   return rows;
 }
@@ -10902,7 +10902,7 @@ function _rpQuBoxHtml_(use){
     +_rpQfBtnsHtml_(cols)
     +'<div class="rpwk-cbs">'+cols.map(function(c){ return '<label><input type="checkbox"'+(qf[c]?' checked':'')+' onchange="rpQfPick(\''+esc(c)+'\',this.checked)"> '+esc(_rpWkFx_(c))+'</label>'; }).join('')+'</div>';
   if(um.length){
-    h+='<div class="tm-qh" style="margin-top:8px;">出す第N単元（単元別の教材のぶん）<span class="rp-mute" style="font-weight:700;margin-left:8px;">毎日学習の問題は第N単元で分かれないので、ここでは絞りません</span></div>';
+    h+='<div class="tm-qh" style="margin-top:8px;">出す第N回（単元別の教材のぶん）<span class="rp-mute" style="font-weight:700;margin-left:8px;">毎日学習の問題は第N回で分かれないので、ここでは絞りません</span></div>';
     um.forEach(function(mid){
       h+='<div class="rpwk-cbs"><span class="rpwk-cbm">'+esc(_rpWkMatShort_(mid))+'</span>'
         +_rpWkUnitsOf_(mid).map(function(u){ var k=mid+':'+u.k; return '<label><input type="checkbox"'+(uf[k]?' checked':'')+' onchange="rpUfPick(\''+esc(k)+'\',this.checked)"> '+esc(u.label)+(u.sub?'（'+esc(u.sub)+'）':'')+'</label>'; }).join('')+'</div>';
@@ -10932,7 +10932,7 @@ function _rpQuNg_(use){
   if(!RP_WK||!_rpWkMatsIn_(use).length)return '';
   if(RP_QF&&!Object.keys(RP_QF).length)return '出す形式を1つ以上えらんでください。';
   var um=_rpWkMatsIn_(use).filter(function(m){ return RP_WK.mats[m].kind==='unit'; });
-  if(um.length&&RP_UF&&!um.some(function(mid){ return Object.keys(RP_UF).some(function(k){ return k.indexOf(mid+':')===0; }); }))return '出す第N単元を1つ以上えらんでください。';
+  if(um.length&&RP_UF&&!um.some(function(mid){ return Object.keys(RP_UF).some(function(k){ return k.indexOf(mid+':')===0; }); }))return '出す第N回を1つ以上えらんでください。';
   return '';
 }
 function rpRender(){
@@ -11019,7 +11019,7 @@ function rpRender(){
       +'<td><span class="rp-tst"><b class="rp-ok">合格'+a.ok+'</b>・<b class="rp-ng">未合格'+a.ng+'</b>・<b class="rp-ms">未受験'+a.miss+'</b></span>'
         +wrap(rpRateHtml(cp?'平均':'平均点',a.trate))+rpPaceQHtml(a,cp)
         +(_wkV?(function(){ var w=_rpWkWeakest_(sid);
-            return '<div class="rpwk-weak">'+(w?('弱い：<b class="'+_rpWkRc_(w.rate)+'">'+esc(_rpWkMatShort_(w.mid))+' 第'+esc(w.u)+'単元 '+esc(_rpWkFx_(w.q))+' '+w.rate+'%</b>'):'弱い形式：まだ受けていない')+'</div>'; })():'')+'</td>'
+            return '<div class="rpwk-weak">'+(w?('弱い：<b class="'+_rpWkRc_(w.rate)+'">'+esc(_rpWkMatShort_(w.mid))+' 第'+esc(w.u)+'回 '+esc(_rpWkFx_(w.q))+' '+w.rate+'%</b>'):'弱い形式：まだ受けていない')+'</div>'; })():'')+'</td>'
       +'<td>'+rpStaleHtml_(a,cp)+rpW7Html(a,cp)+rpDaysHtml(cp?((a.days==null)?null:a.days.slice(0,1)):a.days)+'</td>'
       +'<td style="text-align:right;white-space:nowrap;"><span class="rp-caret'+(op?' on':'')+'">'+(op?'▾ 閉じる':'▸ 内訳')+'</span>'
         +'<button class="rp-detail" onclick="event.stopPropagation();openStudentDetail(\''+esc(sid)+'\')" title="この子の詳細（いま何を間違えているか）">詳細</button></td></tr>'
