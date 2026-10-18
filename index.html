@@ -509,6 +509,20 @@
   .ov-sub b{color:var(--ink);}
   .dm-s{display:inline-block;width:11px;height:11px;border-radius:4px;background:var(--ok);}
   .dm-s.cur{background:var(--accent);}
+  /* 学習マップ M1＝D1 と同じ丸と線のすごろく（1行8つ・行の終わりで下に曲がる・10ごとに金の旗・最後はトロフィー）2026-10-19 作業4の4 */
+  .m1{margin:6px 0 10px;}
+  .m1r{display:flex;align-items:center;}.m1r.rv{flex-direction:row-reverse;}
+  .m1c{width:24px;height:24px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:10px;font-weight:800;background:var(--neutral-bg);color:var(--sub);font-family:Manrope,"Noto Sans JP",sans-serif;letter-spacing:-.02em;}
+  .m1c i{font-size:12px;}
+  .m1c.done{background:var(--ok);color:#fff;}
+  .m1c.fl{background:var(--n-goldsoft);color:var(--gold);}.m1c.fl.done{background:var(--gold);color:#fff;}
+  .m1c.gl{background:var(--n-goldsoft);color:var(--gold);}.m1c.gl i{font-size:14px;}.m1c.gl.done{background:var(--gold);color:#fff;}
+  .m1c.cur{background:var(--accent-soft);color:var(--accent);box-shadow:0 0 0 2px var(--accent);animation:d1p 1.6s ease-in-out infinite;}
+  .m1l{flex:1;min-width:3px;height:2.5px;border-radius:2px;background:var(--n-track);margin:0 2px;}.m1l.lk{background:var(--ok);}
+  .m1c.gh,.m1l.gh{visibility:hidden;}
+  .m1v{display:flex;height:10px;}.m1v.r{justify-content:flex-end;}.m1v i{width:2.5px;background:var(--n-track);margin:0 10.75px;}.m1v.lk i{background:var(--ok);}
+  .m1-now{font-size:12px;font-weight:800;color:var(--accent);line-height:1.45;}.m1-now i{margin-right:4px;vertical-align:-1px;}
+  .nbk-d1 .d1{margin-top:6px;}.nbk-d1 .d1 .s{font-size:10.5px;}
   .map-hint{font-size:11.5px;color:var(--sub);margin:0 2px 8px;display:flex;align-items:center;gap:5px;}
   .done-fold{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:10px 13px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;font-size:13px;font-weight:700;}
   .done-fold .df-ic{width:28px;height:28px;border-radius:9px;background:rgba(31,170,107,.14);color:var(--ok);display:grid;place-items:center;font-size:15px;flex:none;}
@@ -2551,7 +2565,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-19c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-19d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4031,6 +4045,44 @@ function _d1Sync_(s){
   }
   el.innerHTML=_d1Html_(nodes,(typeof combo==='number')?combo:0)+chip;
 }
+/* ===== 学習マップ M1（2026-10-19 作業4の4・川上さん 2026-10-18 18:13 決定・モック\20261018_モック_英検パートと学習マップ.html の M1）=====
+   parts を1行8つで並べ、行の終わりで下に曲がる（偶数行は左→右、奇数行は右→左）。済み＝緑のチェック・今＝青く光る丸に番号・
+   番号が10の倍数＝金の旗（済みなら塗り。番号が無ければ並び順で10ごと）・最後＝トロフィー。番号は part_order（無ければ並び順）。丸の状態は今までの dotmap と同じ（is_current が先・次に passed） */
+function _m1Html_(parts){
+  var n=parts.length;if(!n)return '';
+  var st=parts.map(function(l){return l.is_current?'cur':(l.passed?'done':'');});
+  var cell=function(i){
+    var l=parts[i],no=String(l.part_order||(i+1)),last=(i===n-1),_nn=parseInt(no,10),fl=!last&&(((_nn>0)?_nn:(i+1))%10===0),c=st[i];
+    var cls='m1c'+(last?' gl':(fl?' fl':''))+(c?' '+c:''),in_;
+    if(last)in_='<i class="ti ti-trophy"></i>';else if(fl&&c!=='cur')in_='<i class="ti ti-flag"></i>';else if(c==='done')in_='<i class="ti ti-check"></i>';else in_=esc(no);
+    return '<span class="'+cls+'" title="'+esc(no)+'">'+in_+'</span>';
+  };
+  var lk=function(i){return st[i]==='done'&&(st[i+1]==='done'||st[i+1]==='cur');};
+  var h='<div class="m1">',rows=Math.ceil(n/8);
+  for(var r=0;r<rows;r++){
+    h+='<div class="m1r'+(r%2?' rv':'')+'">';
+    for(var k=0;k<8;k++){var i=r*8+k;
+      if(k>0)h+='<span class="m1l'+(i<n?(lk(i-1)?' lk':''):' gh')+'"></span>';
+      h+=(i<n)?cell(i):'<span class="m1c gh"></span>';}
+    h+='</div>';
+    var e=r*8+7;if(r<rows-1&&e+1<n)h+='<div class="m1v'+(r%2?'':' r')+(lk(e)?' lk':'')+'"><i></i></div>';
+  }
+  return h+'</div>';
+}
+/* 本の行の進み＝D1 の1行（済み「1〜12」→ 今 → 次の10ごとの旗を2つまで → トロフィー）。数は本の中の全教材の合計 */
+function _m1BookD1_(items){
+  var tot=0,pas=0,cur='';
+  items.forEach(function(c){var ps=c.parts||[];tot+=ps.length;pas+=ps.filter(function(l){return l.passed;}).length;
+    if(!cur){ps.forEach(function(l,i){if(!cur&&l.is_current)cur=(c.content_type==='test')?(_pnoOf_(c.material_id,l.part_order)||rb('今','いま')):('DAY '+(l.part_order||i+1));});}});
+  if(!tot)return '';
+  /* 教材が1つの本＝「1〜12」と番号の旗（20・30）。教材が2つ以上の本＝番号が教材ごとなので、済みは数（できた 24）だけにして旗は出さない */
+  var one=(items.length===1),nodes=[];
+  if(pas>0)nodes.push({cls:'done',ic:'ti-check',t:(pas===tot?rb('全部','ぜんぶ'):(one?(pas===1?'1':'1〜'+pas):(pas+rb('個','こ'))))});
+  if(cur&&pas<tot)nodes.push({cls:'now',ic:'ti-player-play',t:'<b>'+cur+'</b>',v:0});
+  if(one){var f=Math.floor((pas+1)/10+1)*10,k=0;while(f<tot&&k<2){nodes.push({cls:'',ic:'ti-flag',t:String(f)});f+=10;k++;}}
+  nodes.push({cls:pas===tot?'done':'goal',ic:'ti-trophy'});
+  return '<div class="nbk-d1">'+_d1Html_(nodes,0)+'</div>';
+}
 /* 正解・まちがいのたびに「N連続」だけを書きかえる（次の問題を待たない） */
 function _d1Cmb_(n){var c=document.querySelector('#d1q .d1-cmb');if(c)c.innerHTML=(n>=2?n+rb('連続','れんぞく'):'');}
 function subjIcon_(s){var m={english:'ti-language',science:'ti-flask',history:'ti-building-monument',geography:'ti-world',civics:'ti-building-bank',social:'ti-books',japanese:'ti-book-2',math:'ti-calculator'};return m[s]||'ti-flag';}
@@ -5017,7 +5069,7 @@ function loadHomeData_(showSkel){
       var kindIc=_allTest?'ti-flag':(_allDaily?'ti-anchor':'');
       var kindPill=bookKind?(' <span class="mkind"><i class="ti '+kindIc+'"></i>'+bookKind+'</span>'):'';
       var book=document.createElement('div');book.className='nbook';book.setAttribute('data-bk',String(g.key||'')); /* ピンポイント遷移で開いた状態を記憶するため 2026-08-21 */
-      book.innerHTML='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subjB)+'"></i></div><div class="nbk-body"><div class="nbk-nm">'+_jaRubySubj_(g.lab,subjB)+kindPill+'</div><div class="nbk-meta">'+(subjB?'<span class="nbk-subj">'+esc(subjLabel(subjB))+'</span> ':'')+'できた '+bpct+'%</div><div class="nbk-bar"><i style="width:'+bpct+'%"></i></div></div><i class="ti ti-chevron-down nbk-arw"></i></div>';
+      book.innerHTML='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subjB)+'"></i></div><div class="nbk-body"><div class="nbk-nm">'+_jaRubySubj_(g.lab,subjB)+kindPill+'</div><div class="nbk-meta">'+(subjB?'<span class="nbk-subj">'+esc(subjLabel(subjB))+'</span> ':'')+'できた '+bpas+' / '+btot+'</div>'+_m1BookD1_(g.items)+'</div><i class="ti ti-chevron-down nbk-arw"></i></div>'; /* 細いバー → D1 の1行 2026-10-19 */
       var bdetail=document.createElement('div');bdetail.className='nbk-detail';book.appendChild(bdetail);
       if(_mapOpen.indexOf(g.key)>=0)book.classList.add('open'); // 学習マップも開いた本を保持（単元別と統一）2026-07-24
       book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_openToggle_('kwt_map_open',g.key,book.classList.contains('open'));};
@@ -5027,18 +5079,16 @@ function loadHomeData_(showSkel){
         var total=parts.length;
         var passedN=parts.filter(function(l){return l.passed;}).length;
         var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
-        var curLbl=curPart?(isTest?(_pnoHtml_(c.material_id,curPart.l.part_order)+_jaRubySubj_(curPart.l.title,subjB)):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
+        var _cpH=curPart&&curPart.l.hier,_cpNo=curPart?_pnoOf_(c.material_id,curPart.l.part_order):'';
+        var curLbl=curPart?(isTest?((_cpNo?esc(_cpNo)+' ':'')+(_cpH?(([_cpH.group_no,_cpH.group_name].filter(Boolean).join(' ')?esc([_cpH.group_no,_cpH.group_name].filter(Boolean).join(' '))+' ／ ':'')+esc(_hPart_(_cpH,curPart.l.title))):_jaRubySubj_(curPart.l.title,subjB))):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
         var ov=document.createElement('div');ov.className='ov-card';ov.setAttribute('data-mid',String(c.material_id||'')); /* ピンポイント遷移の宛先 2026-08-21 */
         var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'');
-        var right=curPart?(curLbl+' <small>/ <ruby>全<rt class="uf">ぜん</rt></ruby>'+total+'</small>'):('クリア '+passedN+' <small>/ <ruby>全<rt class="uf">ぜん</rt></ruby>'+total+'</small>');
+        var right=passedN+' <small>/ '+total+' できた</small>';   /* M1：右上は「12 / 40 できた」2026-10-19 */
         var pct=total?Math.round(passedN/total*100):0;
-        var map='<div class="dotmap">';
-        parts.forEach(function(l){map+='<span class="dm'+(l.is_current?' cur':(l.passed?' done':''))+'"></span>';});
-        map+='</div>';
+        var map=_m1Html_(parts);   /* 四角のマス目 → M1 のすごろく 2026-10-19 */
         var doneTag=(total>0&&passedN===total)?' <span style="font-size:10px;font-weight:800;color:var(--ok);background:rgba(31,170,107,.12);border:1px solid rgba(31,170,107,.3);border-radius:6px;padding:1px 7px;vertical-align:middle;white-space:nowrap;"><i class="ti ti-circle-check" style="font-size:11px;vertical-align:-1px;"></i> クリア<ruby>済<rt class="uf">ずみ</rt></ruby></span>':''; // 完了教材は緑タグ 2026-08-01
         ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+_jaRubySubj_(mtShortMt(c),subjB)+lapPill+doneTag+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
-          +'<div class="ov-bar"><i style="width:'+pct+'%"></i></div>'+map
-          +'<div class="ov-sub"><span class="dm-s done"></span>クリア<ruby>済<rt class="uf">ず</rt></ruby>み <b>'+passedN+'</b>　'+(curPart?'<span class="dm-s cur"></span><ruby>今<rt class="uf">いま</rt></ruby>ここ <b>'+curLbl+'</b>　':'')+'<ruby>残<rt class="uf">のこ</rt></ruby>り <b>'+(total-passedN)+'</b></div>';
+          +map+(curPart&&passedN<total?'<div class="m1-now"><i class="ti ti-map-2"></i>'+rb('今','いま')+'ここ：'+curLbl+'</div>':'');   /* 下の「■クリア済み・■今ここ・残り」→「今ここ：…」だけ（M1）2026-10-19 */
         var detail=document.createElement('div');detail.className='macc-detail';
         var cleared=parts.filter(function(l){return l.passed&&!l.is_current;});
         var rest=parts.filter(function(l){return !(l.passed&&!l.is_current);});
