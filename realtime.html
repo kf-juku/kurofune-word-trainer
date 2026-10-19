@@ -548,7 +548,7 @@ function mapLive(d){
       return { id:eid, type:(e.type||'quiz'), kind:(e.kind||''), mat:mtChapMt(e), book:mtBookMt(e), part:e.part_title||'', subject:e.subject||'',
         status:e.status, startAt:Math.floor((e.start_ts+serverSkew)/1000), updatedAt:Math.floor(((e.updated_ts||e.start_ts)+serverSkew)/1000),
         rate:(e.rate==null?null:e.rate), correct:(e.correct==null?0:e.correct), total:(e.total==null?0:e.total), answered:(e.answered==null?0:e.answered),
-        missed:(e.missed_words||[]), fresh:fresh, test:!!e.test, over:(e.over||0), missN:(e.miss_n==null?(e.missed_words||[]).length:e.miss_n),
+        missed:(e.missed_words||[]), fresh:fresh, test:!!e.test, over:(e.over||0), missN:((e.type==='ws'&&e.status==='done'&&e.total)?Math.max(e.miss_n||0,e.total-(e.correct||0)):(e.miss_n==null?(e.missed_words||[]).length:e.miss_n)),   /* ワークシートのテストはサーバーが まちがえた問題の一覧を持たない（miss_n＝0）ので、全部−正解 で数える。前は 90点でも「全問正解でした」と出た（2026-10-19 17:53 川上さん） */
         /* 途中の様子（5問ごとに生徒から届く。2026-10-19 作業5）：何問目／全部・正解数・何問連続・1回目のまちがい。まちがいの数は先生だけに出す */
         pAt:(e.p_at==null?null:e.p_at), pTot:(e.p_tot==null?null:e.p_tot), pCor:(e.p_cor==null?null:e.p_cor), pCmb:(e.p_cmb==null?null:e.p_cmb), pMiss:(e.p_miss==null?null:e.p_miss) };
     });
