@@ -327,7 +327,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .p-unit{width:100%;display:flex;flex-direction:column;align-items:center;}   /* 生徒1人ぶんのまとまり（画面プレビューは中央）2026-07-28 */
 .p-filler{display:none;}   /* 両面印刷の仕切りページ。1ページで終わる子にだけJSで挿入。画面では出さず印刷時のみ */
 @media print{
-  @page{ size:A4 portrait; margin:12mm; @bottom-center{ content:counter(page) " / " counter(pages); font-size:8.5pt; color:#555; } }   /* 【2026-10-10 印刷の決まり】下の真ん中に「n / 総数」（印刷1回ぶんの通し番号）。余白の中に描くので 273mm の数え方は変わらない */
+  @page{ size:A4 portrait; margin:16mm 8mm 8mm 16mm; @bottom-center{ content:counter(page) " / " counter(pages); vertical-align:top; font-size:8.5pt; color:#555; } }   /* 【2026-10-10 印刷の決まり】下の真ん中に「n / 総数」（印刷1回ぶんの通し番号）。余白の中に描くので 273mm の数え方は変わらない */
   @page kwt-nonum{ @bottom-center{ content:none; } }   /* 番号を出さない紙（仕切りの白紙・ログイン用ペラ）2026-10-10 */
   .p-filler{page:kwt-nonum;}   /* 用紙と余白を固定＝各生徒のページ数を正確に数え、奇数なら仕切りを1枚足して偶数化する（両面で表裏に別生徒を出さない）2026-07-30 */
   body{background:#fff;}
@@ -615,7 +615,7 @@ function render(){try{fltResetSync_();}catch(eFr){}
       var prevB=i>0?books[i-1]:null, prevC=i>0?chaps[i-1]:null;
       var showBook=(!uniB)&&((i===0)||(books[i]!==prevB));            // 本が変わった1枚目だけ本名
       var showChap=(!uniC)&&((i===0)||(chaps[i]!==prevC)||showBook);   // 章が変わった1枚目だけ章名（本が変われば章も）
-      var bk=(showBook&&l.book)?('<span class="tc-bk">'+l.book+'</span> '):'';
+      var bk=(showBook&&l.book&&l.book!==l.mat)?('<span class="tc-bk">'+l.book+'</span> '):'';   /* 本と教材が同じ名前（英検5級 英単語 など）なら1回だけ 2026-10-20 */
       if(showChap){ return '<div class="tc-mat">'+bk+l.mat+'</div>'+(l.part?'<span class="tc-part">'+l.part+'</span>':''); }
       return '<div class="tc-mat">'+bk+(l.part||l.mat)+'</div>';       // 続き＝パート主役
     };

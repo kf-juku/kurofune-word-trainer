@@ -353,7 +353,7 @@
   #printArea{display:none;}
   .p-filler{display:none;}   /* 両面印刷の仕切りページ。1ページで終わる生徒にだけJSで挿入。画面では出さず印刷時のみ 2026-07-28 */
   @media print{
-    @page{ size:A4 portrait; margin:12mm; @bottom-center{ content:counter(page) " / " counter(pages); font-size:8.5pt; color:#555; } }   /* 【2026-10-10 印刷の決まり】下の真ん中に「n / 総数」（印刷1回ぶんの通し番号）。余白の中に描くので 273mm の数え方は変わらない */
+    @page{ size:A4 portrait; margin:16mm 8mm 8mm 16mm; @bottom-center{ content:counter(page) " / " counter(pages); vertical-align:top; font-size:8.5pt; color:#555; } }   /* 【2026-10-10 印刷の決まり】下の真ん中に「n / 総数」（印刷1回ぶんの通し番号）。余白の中に描くので 273mm の数え方は変わらない */
   @page kwt-nonum{ @bottom-center{ content:none; } }   /* 番号を出さない紙（仕切りの白紙・ログイン用ペラ）2026-10-10 */
   .p-filler{page:kwt-nonum;}   /* 用紙と余白を固定＝各生徒のページ数を正確に数え、奇数なら仕切りを1枚足して偶数化する（両面で表裏に別生徒を出さない）2026-07-30 */
     /* 本体をレイアウトごと非表示にする（visibility:hiddenだと本体の高さが残り、印刷内容の後ろに謎の空白ページが出る）2026-07-23 */
@@ -5202,7 +5202,7 @@ function fsGo_(how){
    紙（window.print）には効かない。仕上げプリントは1ページ262mmまでしか詰めないので、本文が0.2mm減っても あふれない。 */
 /* 【地雷】html2canvas の windowWidth は、画面のスクロールバーを除いた幅（clientWidth）にする。2026-10-15
    入れないと、スクロールバーの出る Windows では中身が右へ約8px（バーの幅の半分）ずれて写り、右はしのQRや文字が切れる（練習プリントのPDFで見つかった）。 */
-var H2P_MARGIN_=[12,12,12.2146,12];
+var H2P_MARGIN_=[16,16,8.2146,8];
 /* 【2026-10-10 印刷の決まり】html2pdf の PDF にも「n / 総数」を下の真ん中に入れる（印刷の @bottom-center と同じ）。
    skip＝番号を出さないページ（1始まり。仕切りの白紙）。数字と「/」だけなので jsPDF の標準フォントで出る */
 function _pdfPageNo_(pdf,skip){
@@ -11619,7 +11619,7 @@ function _ppWsPrep_(mid,pid){
     var hide=document.getElementById('ppWsHide');if(!hide){hide=document.createElement('div');hide.id='ppWsHide';hide.style.cssText='position:absolute;left:-99999px;top:0;width:1000px;height:10px;overflow:hidden;';document.body.appendChild(hide);}
     var root=document.createElement('div');hide.appendChild(root); /* テストごとに1つずつ置く（章まとめテスト） */
     var api=wsMount(root,D,{katexCss:'ws/katex/katex.min.css'});
-    if(!document.getElementById('wsPaperCss')){var st=document.createElement('style');st.id='wsPaperCss';st.textContent=(window.WS_PAPER_CSS||'')+'.wsp .qr svg.fs-qr{width:21mm;height:21mm;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp .qr{display:block;text-align:center}.wsp .qr svg.fs-qr{margin:1.3mm auto 0}.wsp .qr .wsqr-cd{margin-top:.3mm}.wsp .wsqr-cd{font-size:9pt;letter-spacing:.06em;line-height:1}'+'.pp-pg.wsp-pg{width:190mm;height:293mm;page:wsp;break-inside:avoid;overflow:visible}.wsp-pg .pp-body{overflow:visible}.wsp-pg .pp-body *{page:auto!important;break-before:auto!important;break-after:auto!important;page-break-before:auto!important;page-break-after:auto!important}.wsp-pg .wsp-rng{position:absolute;right:10.5mm;bottom:.5mm;height:8.5mm;line-height:8.5mm;font-size:17pt;font-weight:800;letter-spacing:.02em;color:#111;white-space:nowrap}.wsp-pg .wsp-var{position:absolute;right:0;bottom:.5mm;width:8.5mm;height:8.5mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp-pg .wsp-band{position:relative;flex:0 0 12mm;display:flex;align-items:flex-end;font-size:9pt;line-height:1.2;color:#333;padding-bottom:2mm;font-family:"Noto Sans JP","Yu Gothic",sans-serif}.wsp-pg .pp-body{flex:0 0 272mm;height:272mm;display:block;column-gap:0}.wsp-pg .pp-ft{flex:0 0 9mm;align-items:center;font-size:9pt;color:#333}@page wsp{size:A4 portrait;margin:0 10mm;@bottom-center{content:none}}@media print{@page wsp{size:A4 portrait;margin:0 10mm;@bottom-center{content:none}}}';document.head.appendChild(st);}
+    if(!document.getElementById('wsPaperCss')){var st=document.createElement('style');st.id='wsPaperCss';st.textContent=(window.WS_PAPER_CSS||'')+'.wsp .qr svg.fs-qr{width:21mm;height:21mm;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp .qr{display:block;text-align:center}.wsp .qr svg.fs-qr{margin:1.3mm auto 0}.wsp .qr .wsqr-cd{margin-top:.3mm}.wsp .wsqr-cd{font-size:9pt;letter-spacing:.06em;line-height:1}'+'.pp-pg.wsp-pg{width:190mm;height:293mm;page:wsp;break-inside:avoid;overflow:visible}.wsp-pg .pp-body{overflow:visible}.wsp-pg .pp-body *{page:auto!important;break-before:auto!important;break-after:auto!important;page-break-before:auto!important;page-break-after:auto!important}.wsp-pg .wsp-rng{position:absolute;right:14.5mm;bottom:.5mm;height:8.5mm;line-height:8.5mm;font-size:17pt;font-weight:800;letter-spacing:.02em;color:#111;white-space:nowrap}.wsp-pg .wsp-var{position:absolute;right:4mm;bottom:.5mm;width:8.5mm;height:8.5mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp-pg .wsp-band{position:relative;flex:0 0 16mm;display:flex;align-items:flex-end;font-size:9pt;line-height:1.2;color:#333;padding-bottom:2mm;font-family:"Noto Sans JP","Yu Gothic",sans-serif}.wsp-pg .pp-body{flex:0 0 272mm;height:272mm;display:block;column-gap:0}.wsp-pg .pp-ft{flex:0 0 5mm;align-items:flex-start;font-size:9pt;color:#333}@page wsp{size:A4 portrait;margin:0 6mm 0 14mm;@bottom-center{content:none}}@media print{@page wsp{size:A4 portrait;margin:0 6mm 0 14mm;@bottom-center{content:none}}}';document.head.appendChild(st);}
     if(!pid&&_ppWs.mid===mid)_ppWs.api=api;return api;});
   if(pid){_ppWsMap[mid+'|'+pid]=pr;pr.catch(function(){delete _ppWsMap[mid+'|'+pid];});return pr;}
   _ppWs.p=pr;pr.catch(function(){if(_ppWs.p===pr)_ppWs={mid:'',p:null,api:null};});
@@ -11772,7 +11772,7 @@ function _ppWsMake_(mid,how,fin){
     var nm=_rpToday().replace(/-/g,'')+(_ppTest?'_テスト_':'_ワークシート_')+knm+'_'+String(mtLabel(m)||m.title||'').replace(/[\\\/:*?"<>|\s]+/g,'');
     window.__ppDone={tot:r.tot,kind:kind,ws:true};
     $('ppStat').textContent=knm+' '+r.tot+'ページ';
-    if(/^pdf_/.test(how)){_ppPdf_(nm,fin,[0,10,0,10],'190mm');return;} /* モックと同じ紙の大きさ：A4・左右10mm・上の帯12mm・下の番号の所9mm・中身272mm（紙の高さ297mmより4mm小さく＝印刷で次のページにはみ出さない） */
+    if(/^pdf_/.test(how)){_ppPdf_(nm,fin,[0,14,0,6],'190mm');return;} /* モックと同じ紙の大きさ：A4・左右10mm・上の帯12mm・下の番号の所9mm・中身272mm（紙の高さ297mmより4mm小さく＝印刷で次のページにはみ出さない） */
     if(/^none/.test(how)){fin();return;}
     fin();printWhenImagesReady_(host,nm); /* 窓は閉じない（続けて解答解説・解答用紙を刷る。2026-10-19 16:56 川上さん）。印刷は #printArea だけが出る */
   }).catch(function(e){$('ppErr').textContent='紙を組めませんでした：'+String(e&&e.message||e);fin('');});
@@ -11964,7 +11964,7 @@ function _ppPdf_(nm,fin,mg,wd){ /* mg・wd＝ワークシートの紙だけ（�
     host.style.cssText='display:block;position:absolute;left:-99999px;top:0;width:'+(wd&&wd!=='auto'?wd:'186mm')+';background:#fff;';
     /* mg==='auto'＝まとめて刷った束（2026-10-19）。ワークシートの紙（.wsp-pg）は余白 0・10mm と幅190mm、ほかは今までの余白と幅186mm をページごとに選ぶ */
     var auto=(mg==='auto');
-    var optOf=function(pg){var ws=auto&&pg.classList.contains('wsp-pg');return {margin:auto?(ws?[0,10,0,10]:H2P_MARGIN_):(mg||H2P_MARGIN_),filename:nm+'.pdf',image:{type:'jpeg',quality:0.85},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:document.documentElement.clientWidth},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}};};
+    var optOf=function(pg){var ws=auto&&pg.classList.contains('wsp-pg');return {margin:auto?(ws?[0,14,0,6]:H2P_MARGIN_):(mg||H2P_MARGIN_),filename:nm+'.pdf',image:{type:'jpeg',quality:0.85},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:document.documentElement.clientWidth},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}};};
     var widOf=function(pg){return auto?(pg.classList.contains('wsp-pg')?'190mm':'186mm'):(wd||'186mm');};
     var done=function(msg){ host.style.cssText=''; window.scrollTo(sx,sy); fin(msg); };
     var w=null;
