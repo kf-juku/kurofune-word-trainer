@@ -2565,7 +2565,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-19d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-19e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -2739,6 +2739,8 @@ function buildMapRow(l,isTest,inFold,subj,mid){
   // テスト配信＝クリア済/挑戦中/未挑戦の3状態（未挑戦=この周で未着手・「いまここ」なし・川上さん確定 2026-07-06）
   var st=inFold?'':(isTest?(l.passed?'クリア<ruby>済<rt class="uf">ずみ</rt></ruby>':(l.attempted?'<ruby>挑戦<rt class="uf">ちょうせん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>':'<ruby>未<rt class="uf">み</rt></ruby><ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>')):(l.passed?'<ruby>合格<rt class="uf">ごうかく</rt></ruby><ruby>済<rt class="uf">ず</rt></ruby>み':(l.is_current?'':'<ruby>未<rt class="uf">み</rt></ruby><ruby>挑戦<rt class="uf">ちょうせん</rt></ruby>')));
   var ttl=isTest?(_pnoHtml_(mid||l.material_id,l.part_order)+_jaRubySubj_(l.title,subj)):('DAY '+(l.part_order||1)); // 毎日学習=DAY表記（川上さん確定 2026-07-03）
+  /* 4段の階層のある教材＝左はしに◆の場所（無い行も空ける）・No.・名前（単元別の一覧と同じ並び）2026-10-19 作業4の6 */
+  if(isTest&&l.hier)ttl='<div class="nqp-nm hz">'+_impSlot_(l.hier)+_pnoHtml_(mid||l.material_id,l.part_order)+'<span class="nqp-t">'+_jaRubySubj_(l.title,subj)+'</span></div>';
   var redo=inFold?'<span class="redo-pill"><i class="ti ti-refresh"></i> もう<ruby>一回<rt class="uf">いっかい</rt></ruby></span>':'';
   // パートごとの記録＝前回合格日・正答率・おさらいの進み（GAS material_parts が返す）2026-07-26
   var meta=_mapMetaHtml_(l);
@@ -3408,7 +3410,9 @@ function renderQuiz(){
           /* 練習の状態は「名前の下の小さいタグ」＝テストが主役のまま（川上さん確定 2026-08-20）。
              まだ練習していない／途中のときだけ、小さい「練習」ボタンを1つ足す。押すとそのパートの練習がその場で始まる。 */
           html+='<div class="nqp" data-pid="'+esc(String(p.part_id))+'">'
-            +'<div class="nqp-nm">'+_pnoHtml_(g.material_id,p.part_order)+_jaRubySubj_(p.title||'パート',subj)+(p.attempt_count>0?('<small> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></small>'):'')+_unitTag_(p)+'</div>'
+            +(p.hier  /* 4段の階層のある教材＝◆の場所・No.・名前（単元別の一覧と同じ並び）2026-10-19 作業4の6 */
+              ?('<div class="nqp-nm hz">'+_impSlot_(p.hier)+_pnoHtml_(g.material_id,p.part_order)+'<span class="nqp-t">'+_jaRubySubj_(p.title||'パート',subj)+(p.attempt_count>0?('<small> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></small>'):'')+_unitTag_(p)+'</span></div>')
+              :('<div class="nqp-nm">'+_pnoHtml_(g.material_id,p.part_order)+_jaRubySubj_(p.title||'パート',subj)+(p.attempt_count>0?('<small> ・'+p.attempt_count+'<ruby>回<rt class="uf">かい</rt></ruby></small>'):'')+_unitTag_(p)+'</div>'))
             +_unitBtn_(p)+quizStatus2_(p)+'</div>'; /* 右端の青丸→は廃止＝「受ける →」と矢印が2つ並んでいた 2026-08-20 川上さん */
         });
         html+='</div></div>';
@@ -3798,6 +3802,32 @@ function comboHit_(n){
   void c.offsetWidth;c.classList.add('show');
 }
 function comboBreak_(){try{_d1Cmb_(0);}catch(eD1){}var m=$('cmb-meter');if(m){m.classList.remove('on','hot','bump');}}
+/* ===== リアルタイムモードへ途中の様子を送る（2026-10-19 作業5・川上さん 2026-10-18 19:22「おすすめでいい」）=====
+   毎日学習・単元別・確認テスト：答えた数が5の倍数になるたびに、裏で live_progress を1回送る（返事は待たない・失敗しても何もしない）。
+   送るもの＝何問目・全部・正解数（1回目）・何問連続・1回目のまちがいの数。まちがいの数は先生の画面だけに出る（生徒の画面には出さない）。
+   ワークシート：opt.fx の hit／miss（1回目の答え）を数えて同じように送る。ワークシートのテストは送らない（まだ） */
+function _lpSend_(b){try{call(b).catch(function(){});}catch(e){}}
+function _lpAns_(ok){
+  try{
+    var s=session;if(!s||!s.listId||s.fromReview)return;
+    var L=s._lp||(s._lp={n:0,cor:0,miss:0});L.n++;
+    if(!s.fixMode){if(ok)L.cor++;else L.miss++;}
+    if(L.n%5!==0)return;
+    /* 数は「答えた数」で数える（英単語の両方向は1語で2回答える＝完了画面の「はじめの◯問」と同じ数え方） */
+    var per=((s.isEnglish===false)||s.tfOnly||s.dir==='e2j')?1:2,tot=(s.words||[]).length*per,at=s.fixMode?tot:Math.min(L.cor+L.miss,tot);
+    var e=_partIdx[String(s.listId)]||{};
+    _lpSend_({action:'live_progress',part_id:s.listId,ty:(s.quizMode?'quiz':(String(s.content_type||'')==='test'?'unit':'daily')),material_id:e.mid||'',at:at,tot:tot,cor:L.cor,cmb:(ok?((typeof combo==='number'?combo:0)+1):0),miss:L.miss});   /* combo を足す前に呼ぶので、この答えの分を足して送る */
+  }catch(e2){}
+}
+var _wsLP=null;
+function _lpWs_(t,n){
+  try{
+    if(!_wsLP||!_wsLP.pid||(t!=='hit'&&t!=='miss'))return;
+    var L=_wsLP;L.n++;if(t==='hit')L.cor++;else L.miss++;
+    if(L.n%5!==0)return;
+    _lpSend_({action:'live_progress',part_id:L.pid,ty:'ws',material_id:L.mid||'',at:L.n,cor:L.cor,cmb:(t==='hit'?n:0),miss:L.miss});
+  }catch(e){}
+}
 
 /* ===== デイリークリアの演出 2026-10-05（川上さん確定）=====
    毎日タブで「全部済み」になったのを見たとき、この端末で1日1回だけ出す（ログアウトで消す＝共用タブレットで次の子にも出る）。
@@ -4558,7 +4588,7 @@ function renderUnitZone_(materials){
       var head='<div class="nbook-head"><div class="nbk-ic"><i class="ti '+subjIcon_(subj)+'"></i></div>'
         +'<div class="nbk-body"><div class="nbk-nm">'+_jaRubySubj_(g.lab,subj)+'</div>' /* 一覧のふりがな＝英語と国語だけ 2026-09-11 */
         +'<div class="nbk-meta">'+subjTag+metaMid+'</div>'
-        +'<div class="nbk-bar"><i style="width:'+pct+'%"></i></div></div>'
+        +_m1BookD1_(g.items)+'</div>'   /* 細い金のバー → D1 の1行（学習マップの本の行と同じ）2026-10-19 作業4の6 */
         +'<i class="ti ti-chevron-down nbk-arw"></i></div>';
       var detail='<div class="nbk-detail">';
       var _co=_unitChapOpenGet_(); // 章ごとのパート一覧の開閉を保持 2026-09-11
@@ -4604,7 +4634,7 @@ function renderUnitZone_(materials){
               ? '<span class="utag done"><i class="ti ti-circle-check"></i>できた</span>'
               : '<span class="utag"><i class="ti ti-player-play"></i>まだ</span>';
             detail+='<div class="nqp" data-upid="'+esc(String(l.part_id||''))+'">'+(_h
-              ?('<div class="nqp-nm hz"><span class="imps"'+(_h.important?' aria-label="重要マーク">◆':'>')+'</span>'+_pnoHtml_(c.material_id,l.part_order)+'<span class="nqp-t">'+_jaRubySubj_(_hPart_(_h,String(l.title||'パート')),subj)+'</span></div>')
+              ?('<div class="nqp-nm hz">'+_impSlot_(_h)+_pnoHtml_(c.material_id,l.part_order)+'<span class="nqp-t">'+_jaRubySubj_(_hPart_(_h,String(l.title||'パート')),subj)+'</span></div>')
               :('<div class="nqp-nm">'+_pnoHtml_(c.material_id,l.part_order)+_jaRubySubj_(String(l.title||'パート'),subj)+'</div>'))   /* No 2026-10-10 */
               +st+(l.passed?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';
           });
@@ -4642,7 +4672,7 @@ function renderUnitZone_(materials){
    KaTeX・math_fig.js・ws_load.js・ws_app.js は、初めてワークシートを開いたときだけ読む。
    できた＝サーバーの passed（material_parts）。パートの最後まで進んだら session_complete と complete_extras を送る（正答率＝1回目の答え）。
    途中でやめたら、その日のうちは同じパートのやめた題から（ws_app.js が localStorage に持つ・今の「途中の学習」のカードには出さない）。 */
-var WS_LIB_V='20261018d';
+var WS_LIB_V='20261019a';
 var _wsMats=[],_wsDone={},_wsLibP=null,_wsApi=null,_wsSent=0,_wsTL={},_wsTq=Promise.resolve();
 /* ===== ワークシートのテスト（段④ 2026-10-18）=====
    受けどきの色は確認テスト（_quizReady_・quizStatus2_）と同じ3つ：青の塗り＝いま受けるところ／枠＝受けられるが今ではない／点線＝先に練習。
@@ -4815,7 +4845,7 @@ function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（
     if(xo&&xo.preview){_wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',preview:true,startPid:xo.startPid||'',dark:_wsDark_()});root.style.paddingBottom='70px';return;}
     _wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',live:true,paper:(xo&&xo.paper)||'',shuffle:true,innerBack:false,dark:_wsDark_(),resumeKey:rkey,capMs:180000,/* 数学は計算に時間がかかるので1問3分まで数える（川上さん 2026-10-18 00:07）*/
       done:function(pid){return !!_wsDone[String(pid)];},
-      onStart:function(pid){try{call({action:'activity_start',part_id:pid});}catch(e){}},
+      onStart:function(pid){_wsLP={pid:String(pid),mid:mid,n:0,cor:0,miss:0};try{call({action:'activity_start',part_id:pid});}catch(e){}},
       onPartDone:function(pid,rec){_wsDone[String(pid)]=1;_wsSend_(pid,rec);_wsCele_();},
       tstate:_wsTState_(U.TEST,D0.tests||{}),tkey:'kwtws_t_'+((typeof token!=='undefined'&&token)?_hash32_(token):'anon')+'_'+(U.TEST?U.TEST.part_id:''),
       rangePass:function(){return _wsRangePassOf_(U.TEST,D0.parts||[],D0.tests||{});},
@@ -4829,7 +4859,7 @@ function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（
         _wsTestSend_({action:'ws_test_submit',part_id:pid,score:r.score,correct:r.correct,total:r.total,state:JSON.stringify(st),over_ms:r.over_ms||0,paper:r.paper||''});},
       onTestState:function(pid,st){var _was=!!(_wsTL[String(pid)]&&_wsTL[String(pid)].state&&_wsTL[String(pid)].state.pass);_wsTL[String(pid)]={state:st};if(st.pass){_wsPartSet_(pid,{passed:true,last_pass_date:todayStr_()});if(!_was)_wsCele_();}
         _wsTestSend_({action:'ws_test_state',part_id:pid,state:JSON.stringify(st)});},
-      fx:function(t,n){try{if(t==='hit')comboHit_(n);else if(t==='miss'){comboBreak_();sndWrong();}else if(t==='ok')sndCorrect();else sndWrong();}catch(e){}},  /* 答えたときの音とコンボ（F-43）＝毎日学習と同じ comboHit_・comboBreak_・sndWrong・sndCorrect */
+      fx:function(t,n){try{if(t==='hit')comboHit_(n);else if(t==='miss'){comboBreak_();sndWrong();}else if(t==='ok')sndCorrect();else sndWrong();}catch(e){}_lpWs_(t,n);},  /* 答えたときの音とコンボ（F-43）＝毎日学習と同じ comboHit_・comboBreak_・sndWrong・sndCorrect */
       onRush:function(done){_ppopShow_('rush','ti-hand-finger',_nvRuby_('速(はや)く押(お)しすぎているかも。問題(もんだい)をよく読(よ)んで答(こた)えよう',true),_nvRuby_('ちゃんと考(かんが)えていたなら、気(き)にしないでね',true),[{t:'OK',fn:function(){if(done)done();}}]);}});   /* ポップを開いている間は学習時間に数えない（毎日学習の _rushPopShow_ と同じ）*/
   }).catch(function(e){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';try{console.log(e);}catch(e2){}});
 }
@@ -7561,11 +7591,13 @@ function renderRD_(s,w,q,pl){
       _qrvPick_=b?String((chs[order[+b.getAttribute('data-j')]]||{}).en||''):'';
       _quizAns(s,w,ok,Date.now()-t0,'e2j');   /* 点数と記録は1回目の答えで決まる */
       if(!ok&&canRetry&&b){
+        _lpAns_(false); /* 1回目のまちがい（リアルタイムモード 2026-10-19） */
         retried=true; combo=0; comboBreak_(); sndWrong();
         b.classList.add('tried'); b.disabled=true;
         if(tip){ tip.innerHTML='<b>'+_jaRubyIf_('もう一度')+'</b>'+_jaRubyIf_('質問をもう一度読み、本文を最初から読み直して、選び直そう。'); tip.style.display=''; try{tip.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_eT){} }
         return;
       }
+      if(!retried)_lpAns_(ok);  /* 選び直した問題は1回目のまちがいで数えた */ /* リアルタイムモードへ5問ごとに途中の様子 2026-10-19 */
       if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
       else{combo=0;comboBreak_();sndWrong();}
     }else if(ok){ sndCorrect(); }
@@ -8008,6 +8040,7 @@ function renderRO_(s,w,q,pl){
     var bk=$('ro-bank');if(bk){[].forEach.call(bk.querySelectorAll('.ro-tok'),function(b){b.disabled=true;});bk.style.display='none';}
     var hh=$('ro-hint');if(hh)hh.style.display='none';
     if(_roTry===1){
+      _lpAns_(ok); /* リアルタイムモードへ5問ごとに途中の様子 2026-10-19 */
       if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
       else{combo=0;comboBreak_();sndWrong();}
     }else{ if(ok)sndCorrect(); else sndWrong(); }   /* 2回目：記録とコンボは1回目で済んでいる */
@@ -8156,6 +8189,7 @@ function renderLX_(s,w,q,pl){
       _quizAns(s,w,ok,ms,'e2j');   /* 点数と記録は1回目の答えで決まる */
       if(!ok&&canRetry&&picked){
         /* 手順1：もう一度聞いて選び直す。英文はまだ出さない。最初に選んだ番号は押せない。聞き終わるまで番号は押せない */
+        _lpAns_(false); /* 1回目のまちがい（リアルタイムモード 2026-10-19） */
         retried=true;combo=0;comboBreak_();sndWrong();
         picked.classList.add('tried');setBtns(false);
         if(st)st.textContent='';
@@ -8163,6 +8197,7 @@ function renderLX_(s,w,q,pl){
         var ag=$('lx-again');if(ag)ag.classList.add('pulse');
         return;
       }
+      if(!retried)_lpAns_(ok);  /* 選び直した問題は1回目のまちがいで数えた */ /* リアルタイムモードへ5問ごとに途中の様子 2026-10-19 */
       if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
       else{combo=0;comboBreak_();sndWrong();}
     }else if(ok){sndCorrect();}
@@ -8742,6 +8777,8 @@ function _pnoHtml_(mid,ord){ var t=_pnoOf_(mid,ord); return t?('<span class="pno
 function _hGrp_(h){ return (h&&(h.group_no||h.group_name))?(String(h.group_no||'')+'|'+String(h.group_name||'')):''; }
 function _hPart_(h,title){ var t=h?(String(h.part_no||'')+String(h.part_name||'')):''; return t||String(title||''); }
 function _hImp_(h){ return (h&&h.important)?'<span class="imp" aria-label="重要マーク">◆</span>':''; }
+/* 行の左はしの◆の場所（◆の無い行も同じ幅を空ける＝名前の書き出しをそろえる）。CSS は .nqp-nm.hz .imps */
+function _impSlot_(h){ return '<span class="imps"'+((h&&h.important)?' aria-label="重要マーク">◆':'>')+'</span>'; }
 /* パートの呼び方（完了画面の見出し・次へのボタンで同じものを使う＝呼び方をそろえる 2026-10-19 作業4の3）。
    {mat:「英検5級 ①文法編」, no:「No.1」, grp:「第1回 be動詞」, name:「（1）I am・You are」, imp:true/false}。hier の無い教材は name に今までの名前 */
 function _partName_(pid){
@@ -9244,6 +9281,7 @@ function buildChoices(containerId,correct,pool,onResult,opts){
     if(answered)return;answered=true;stopQTimer();
     Array.prototype.forEach.call(box.children,function(c){c.disabled=true;});
     if(picked)picked.classList.add(ok?'correct':'wrong');
+    _lpAns_(ok); /* リアルタイムモードへ5問ごとに途中の様子 2026-10-19 */
     if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
     else{combo=0;comboBreak_();sndWrong();Array.prototype.forEach.call(box.children,function(c){if(_choiceKey(c.getAttribute('data-val'))===_ck)c.classList.add('correct');});} /* data-val は必ず文字列・correct は数値のことがある 2026-08-18 */
     ansCount++;_qrvPick_=picked?String(picked.getAttribute('data-val')):'';onResult(ok,(Date.now()-_t0));

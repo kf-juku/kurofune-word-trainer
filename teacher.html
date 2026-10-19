@@ -6596,7 +6596,7 @@ var _mpMid='';
 /* ===== 単元ワークシート（数学）のプレビュー 2026-10-17 段③ =====
    教材のプレビューで、ワークシートの教材だけは生徒の画面と同じ ws_app.js で出す（モックのプレビューのバー＝◀ ▶・答え・解説を出す）。
    数式（KaTeX）・図（math_fig.js）は初めて開いたときだけ読む。問題はシートで直さない（要件定義書 2026-10-16 21:04）ので、ここでは直す欄を出さない。 */
-var WS_LIB_V='20261018d',_wsLibP=null;
+var WS_LIB_V='20261019a',_wsLibP=null;
 function _wsLoadLibs_(){
   if(_wsLibP)return _wsLibP;
   var cssP=new Promise(function(ok){var l=document.querySelector('link[data-ws="katex"]');if(l){ok();return;}l=document.createElement('link');l.rel='stylesheet';l.href='ws/katex/katex.min.css';l.setAttribute('data-ws','katex');l.onload=function(){ok();};l.onerror=function(){ok();};document.head.appendChild(l);})
@@ -6920,7 +6920,7 @@ function mpConfirm_(msg){
 var _rtWin=null,_rtTimer=null;
 function openRealtime(){
   if(_rtWin && !_rtWin.closed){ try{ _rtWin.focus(); }catch(e){} return; } // 既に開いていれば前面に
-  try{ localStorage.setItem('kwt_rt_reset_at', String(Date.now())); }catch(e){}  // 新しく開く＝新しい授業として、この時刻以降のぶんだけ表示
+  try{ localStorage.setItem('kwt_rt_ask', '1'); }catch(e){}  // 新しく開く＝窓の中で「30分前から／1時間前から／時刻を指定／今から」を聞く（2026-10-19 作業5）。前は押した時刻で切っていたので、押し忘れると前の分が見えなかった
   _rtWin=window.open('realtime.html','kwtRealtime','width=1180,height=920,menubar=no,toolbar=no');
   if(!_rtWin){ _rtWin=window.open('realtime.html','_blank'); }  // ポップアップがブロックされたら別タブで開くフォールバック
   if(!_rtWin){ toast('ポップアップがブロックされています。ブラウザでこのサイトのポップアップ表示を許可してください'); return; }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>確認テスト リアルタイムモード</title>
+<title>リアルタイムモード</title>
 <style>
 :root{
   --crimson:#C6000B; --crimson-dark:#A00008; --crimson-light:#FFF0F0; --crimson-mid:#f4a0a5;
@@ -136,6 +136,19 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 .md-sub{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
 .md-x{position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:var(--text-light);cursor:pointer;}
 .md-b{padding:14px 18px;overflow-y:auto;}
+/* いつからの分を出すか（2026-10-19 作業5）：開くときと印刷のときに同じボタンで選ぶ */
+.rg-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.rg-btn{border:1.5px solid var(--border);background:#fff;border-radius:10px;padding:12px 10px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;color:var(--text);}
+.rg-btn:hover{border-color:var(--blue);color:var(--blue-dark);}
+.rg-time{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;font-weight:700;}
+.rg-time input{font-size:15px;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;}
+.rg-note{font-size:11.5px;color:var(--text-muted);margin-top:10px;line-height:1.6;}
+.rg-list{max-height:46vh;overflow:auto;border:1px solid var(--border);border-radius:8px;margin-top:6px;}
+.rg-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;}
+.rg-row:last-child{border-bottom:none;}.rg-row small{color:var(--text-muted);margin-left:auto;font-size:11px;}
+.rg-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;}
+.tc-prog{margin-top:3px;font-size:10.5px;line-height:1.4;color:var(--text);white-space:normal;max-width:150px;}
+.qprog2{font-weight:800;}.qprog2 b{font-size:13px;}.qcmb{color:#b8860b;font-weight:800;}.qmis{color:var(--crimson-dark);font-weight:800;}
 .miss{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:#fff7f7;}
 .miss .en{font-size:13px;font-weight:800;color:var(--crimson-dark);flex-shrink:0;min-width:96px;}
 .miss .ja{font-size:12px;color:var(--text);}
@@ -339,7 +352,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 
   <div class="rt-head">
     <div class="rt-head-top">
-      <div class="rt-title"><span class="live-dot"></span>いま確認テスト中の生徒 <span class="live-badge">● LIVE</span></div>
+      <div class="rt-title"><span class="live-dot"></span>いま学習中の生徒 <span class="live-badge">● LIVE</span></div>
       <div class="rt-refresh">5秒ごとに自動更新　次の更新まで <b id="cd">5</b> 秒　<span id="sessLabel" style="color:var(--text-light);"></span>　<span class="idle-note" id="idleNote"></span><span id="connLost" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;padding:1px 8px;font-weight:700;">⚠ 接続が切れています（再試行中）</span></div>
     </div>
     <div class="rt-stats">
@@ -372,14 +385,15 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
       <button class="chip" data-type="unit" onclick="toggleType('unit',this)">単元別</button>
       <button class="chip" data-type="review" onclick="toggleType('review',this)">おさらい</button>
       <button class="chip" data-type="note" onclick="toggleType('note',this)">間違いノート</button>
-      <span style="font-size:10.5px;color:var(--text-light);margin-left:4px;">確認テスト以外は必要なときだけON</span>
+      <button class="chip" data-type="ws" onclick="toggleType('ws',this)">ワークシート</button>
+      <span style="font-size:10.5px;color:var(--text-light);margin-left:4px;">はじめは全部ON。いらない種類は押して消す</span>
     </div>
     <div class="rt-controls">
       <span class="flt-label">並び順</span>
       <button class="chip active" data-sort="follow" onclick="setSort('follow',this)">要フォローを上に（他は名簿順で固定）</button>
       <button class="chip" data-sort="recent" onclick="setSort('recent',this)">最新順（更新が上）</button>
       <span style="flex:1;"></span>
-      <button class="btn-print" onclick="resetSession()" title="今の表示を消して、この授業のぶんだけを新しく記録します">🔄 新しい授業（リセット）</button>
+      <button class="btn-print" onclick="openRange('view')" title="いつからの分を出すかを選び直します（30分前から・1時間前から・時刻を指定・今から）">🕒 いつからの分を出すか</button>
       <button class="btn-print" style="border-color:#cbd5e1;color:var(--text-muted);" onclick="openSpec()">ⓘ 仕様・使い方</button>
       <button class="btn-print" onclick="openPrint()">🖨 生徒ごとに印刷</button>
     </div>
@@ -400,7 +414,7 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 <!-- 印刷プレビュー -->
 <div class="print-ov" id="printOv">
   <div class="print-bar">
-    <span class="pb-t">🖨 生徒ごとの記録（この画面で貯まったぶん）</span>
+    <span class="pb-t">🖨 生徒ごとの記録（選んだ時刻から）</span>
     <span class="pb-n" id="printN"></span>
     <span class="sp"></span>
     <button class="btn-resume" style="padding:6px 16px;font-size:12.5px;" onclick="doPrint()">この内容で印刷</button>
@@ -418,13 +432,13 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
       <div class="spec-sec"><div class="spec-h">更新・自動停止（管理画面と同時に使えます）</div><div class="spec-b"><b>5秒ごとに自動更新</b>します。この画面は<b>別ウィンドウ</b>なので、<b>画面の横に出したまま、元の管理画面をふつうに操作できます</b>。見えているあいだは、管理画面を触っていても更新が続きます（止まりません）。<br>更新が5秒で終わらないときは、<b>前の応答が返るのを待ってから次を取りに行きます</b>（重ねて投げると表示がかえって遅れるため）。<br>止まるのは次の2つだけ：<b>①この画面を最小化・完全に隠したとき</b>（見ていないので停止／前に戻すと<b>自動で再開</b>。ボタン操作は不要）。<b>②生徒の動きが30分ないとき</b>（授業終わりとみなして停止／「再開」ボタンで戻す）。</div></div>
       <div class="spec-sec"><div class="spec-h">止まっている間もデータは失われません（重要）</div><div class="spec-b">止まるのは<b>画面の更新（見に行くこと）だけ</b>です。生徒の解答は、<b>提出した瞬間にサーバーに記録</b>されるので、この画面が止まっていても・閉じていても<b>ずっと記録され続けます</b>。だから、LINE・メール・Slackを開いてこの画面が裏に回っても大丈夫。<b>前に戻した瞬間に、離れているあいだのぶんもまとめて反映</b>されます（取りこぼしゼロ）。記録＝サーバー／この画面＝それを見る窓、という分担です。</div></div>
       <div class="spec-sec"><div class="spec-h">カードの見方</div><div class="spec-b">生徒1人が<b>1レーン（横1行）</b>。テストは<b>左が古い→右が新しい（いま解いている）</b>で横に増えます。<span class="spec-k" style="background:var(--blue-light);color:var(--blue-dark);">解き中</span>はタイマー（<b>開始からの経過</b>。集中時間ではありません）、提出後は正答率（<span class="spec-k" style="background:var(--green-light);color:var(--green-dark);">緑=80%以上</span><span class="spec-k" style="background:var(--amber-light);color:var(--amber-dark);">黄=60〜79%</span><span class="spec-k" style="background:var(--red-light);color:var(--red-dark);">赤=60%未満</span>）。新しく提出されるとカードが光ります。<br><b>「合格」と出るのは確認テストだけです（2026-08-27）</b>。毎日学習・単元別は<b>その場で全問正解するまで繰り返す</b>作りになり合否が無くなったので、正答率の数字と色だけを出し、<b>60%未満のときだけ「要フォロー」</b>を付けます。なお毎日学習・単元別の正答率は<b>1周目（くり返す前）の点</b>です。<br><b>本の名前（メキメキ合格ノート…）はレーンの左に1回だけ</b>出し、カードには<b>章とパート</b>だけを出します（同じ本名がカードごとに並ばないように）。同じレーンで<b>ちがう本</b>をやったときだけ、そのカードに本名も付きます。レーン左の<b>「◯パート目」</b>＝この画面を開いてからその子が解いたパート数です。<br><b>横スクロール</b>は、<b>新しいパートが増えたときだけ</b>自動で右端（最新）に寄せます。手でスクロールした位置は、5秒ごとの更新でも<b>そのまま保たれます</b>（勝手に動きません）。</div></div>
-      <div class="spec-sec"><div class="spec-h">種別（何を表示するか選ぶ）</div><div class="spec-b"><b>確認テストは既定でON</b>。毎日学習・単元別・おさらい・間違いノートは、必要なときだけONにできます。<br><b>確認テスト・毎日学習・単元別</b>は「解き中→正答率」で表示。<b>おさらい・間違いノート</b>は1問ずつ進む学習なので、点数のかわりに<b>「◯問（正解△）」</b>で表示します。おさらい・間違いノートには正答率の区切りがないので、<b>その子が別の学習を始めたら「◯問で終了」に切り替え</b>ます（解き中のまま残りません）。</div></div>
+      <div class="spec-sec"><div class="spec-h">種別（何を表示するか選ぶ）</div><div class="spec-b"><b>最初から全部の種類</b>（確認テスト・毎日学習・単元別・おさらい・間違いノート・ワークシート）を出します。いらない種類は押して消せます。<b>確認テスト・毎日学習・単元別・ワークシート</b>は「解き中→正答率（ワークシートのテストは点）」。解き中のカードの下には、生徒が<b>5問ごとに送る途中の様子</b>（何問目・正解数・何問連続・1回目のまちがいの数）が出ます。まちがいの数は先生の画面だけに出して、生徒の画面には出しません。<b>おさらい・間違いノート</b>は「◯問（正解△）」で表示します（2026-10-19）。</div></div>
       <div class="spec-sec"><div class="spec-h">並び順（2つから選ぶ）</div><div class="spec-b"><b>要フォローを上に（既定）</b>：<b>気になる子＝提出して60%未満（赤）／反応なし（止まってる）</b>の子だけを上にまとめ、<b>それ以外（解き中も、点数がOKで提出した子も全部）は名簿順で固定</b>して動かしません。提出→すぐ次を解き中…と切り替わっても<b>行は動かず、カードだけがその場で変わります</b>。上に出てくるのは「いま手を貸したほうがいい子」だけ。<br><b>最新順</b>：直前に動いた子が一番上。数秒ごとにトップが入れ替わるので、10人いると特定の子を追いにくい。<br><span style="color:var(--text-muted);font-size:11px;">例：あおい45%(赤)・はると解き中・ゆな88%・そうた解き中・みお70% → 要フォローを上に では「あおい」だけが上、他は名簿順で固定。ゆなが提出し直しても、はるとが提出→次を解き中になっても、行は動かない。</span></div></div>
       <div class="spec-sec"><div class="spec-h">反応なし（灰色）</div><div class="spec-b">解き中のまま<b>10分</b>更新がない子は<b>灰色にして「◯分 反応なし」</b>と表示します（離席・アプリを閉じた可能性）。</div></div>
       <div class="spec-sec"><div class="spec-h">くわしく見る</div><div class="spec-b">カードに<b>マウスを乗せると詳細</b>（教材・パート・状態・問題数）。<b>クリックすると</b>、提出済みは<b>その回のまちがえた問題</b>、解き中は「いま解き中」を表示します。</div></div>
       <div class="spec-sec"><div class="spec-h">要フォロー（赤い子）</div><div class="spec-b">正答率が基準（先生画面の⚙で決める1つの値・既定60%）未満の子は<b>カードとレーンを赤で強調</b>し、レーンに「要フォロー」の印を付けます。すぐ声かけに行けるようにするためです。<b>この基準は塾で1つ</b>で、先生画面の色分け・毎朝のメールと同じ値です（2026-09-13）。</div></div>
-      <div class="spec-sec"><div class="spec-h">生徒ごとに印刷（学習記録・統一レイアウト 2026-07-24）</div><div class="spec-b">右上の「🖨 生徒ごとに印刷」で、生徒1人＝<b>1枚</b>に印刷します。<b>要指導の印刷（学習履歴タブ）と同じレイアウト</b>に統一しました。中身は「1行サマリー（提出・平均正答率・要フォロー）」＋「<b>まちがえた問題</b>を学習日→教材でまとめたもの」。各問は「問題｜答え・読み方・覚え方」の2カラムで、<b>右を折れば答えを隠して口頭クイズ</b>に使えます。図は大きく表示。対象は<b>今日ぶんの確認テスト＋毎日学習＋単元別</b>（教室のしぼり込みを反映）。<b>データは一時保存ではなく学習記録（quiz_results／review_words）から取り直す</b>ので、リアルタイムを長く開いていても古いぶんが欠けません（以前は1人14件を超えると古いものが消えていました）。<br><b>同じ問題は1回にまとめます（2026-07-28）</b>：同じ語を確認テストと毎日学習の両方でまちがえても、印刷では1問だけ出します（以前は同じ問題が2つ並んでいました）。<br><b>両面でも「生徒が表と裏に混ざらない」ようにしました（2026-07-28→2026-07-30 改良）</b>：各生徒の<b>ページ数が奇数のとき</b>だけ、裏に<b>仕切りページ</b>を自動で1枚はさんで偶数にそろえるので、両面印刷でも各生徒が新しい紙のオモテから始まります（2ページ・3ページなど何ページの子でも正しく分かれます。以前は「1ページで終わる子」しか分けられませんでした）。仕切りページは<b>ほぼ余白で個人情報は載せません（裏紙に使えます）</b>。ただし完全な白紙だとプリンタの「白紙ページをスキップ」機能で消えてしまうので、<b>隅に小さな印だけ</b>を出しています。プリンタ側の設定を変える必要はありません。</div></div>
-      <div class="spec-sec"><div class="spec-h">授業の区切り（リセット）</div><div class="spec-b">「リアルタイムモードを開く」を<b>押した時刻＝その授業の開始</b>として、<b>それ以降のぶんだけ</b>表示します。だから1コマ目の記録が2コマ目に混ざりません。<b>リロード（F5）は同じ授業の続き</b>として残ります（誤って更新しても消えません）。授業を続けて切り替えるときは、上の<b>「🔄 新しい授業（リセット）」</b>を押すとその場で表示が空になり、そこからのぶんだけ貯めます。上部に「◯:◯◯〜 の記録を表示中」と開始時刻が出ます。<br>なお、記録そのもの（点数・ミス問）は<b>サーバーに全部残る</b>ので、点数表や集計には影響しません。ここで区切っているのは<b>表示だけ</b>です。蓄積は<b>先生（端末）ごと</b>です。<br>リセットより前に始めて、リセットのあとに提出したものも表示します。<br>サーバーが画面用に持っているのは、生徒1人あたり直近40件・最後の記録から3時間までです（2026-09-26 に14件から増やしました）。同じパートを開き直したときの「解き中」は1件にまとめます。</div></div>
+      <div class="spec-sec"><div class="spec-h">生徒ごとに印刷（学習記録・統一レイアウト 2026-07-24）</div><div class="spec-b"><b>2026-10-19：</b>押すと先に「30分前から」「1時間前から」「時刻を指定」で刷る範囲を選び、刷る子をチェックで外せます（前のコマの子が混ざらないように）。その時刻より前の記録は紙に入りません。<br>右上の「🖨 生徒ごとに印刷」で、生徒1人＝<b>1枚</b>に印刷します。<b>要指導の印刷（学習履歴タブ）と同じレイアウト</b>に統一しました。中身は「1行サマリー（提出・平均正答率・要フォロー）」＋「<b>まちがえた問題</b>を学習日→教材でまとめたもの」。各問は「問題｜答え・読み方・覚え方」の2カラムで、<b>右を折れば答えを隠して口頭クイズ</b>に使えます。図は大きく表示。対象は<b>今日ぶんの確認テスト＋毎日学習＋単元別</b>（教室のしぼり込みを反映）。<b>データは一時保存ではなく学習記録（quiz_results／review_words）から取り直す</b>ので、リアルタイムを長く開いていても古いぶんが欠けません（以前は1人14件を超えると古いものが消えていました）。<br><b>同じ問題は1回にまとめます（2026-07-28）</b>：同じ語を確認テストと毎日学習の両方でまちがえても、印刷では1問だけ出します（以前は同じ問題が2つ並んでいました）。<br><b>両面でも「生徒が表と裏に混ざらない」ようにしました（2026-07-28→2026-07-30 改良）</b>：各生徒の<b>ページ数が奇数のとき</b>だけ、裏に<b>仕切りページ</b>を自動で1枚はさんで偶数にそろえるので、両面印刷でも各生徒が新しい紙のオモテから始まります（2ページ・3ページなど何ページの子でも正しく分かれます。以前は「1ページで終わる子」しか分けられませんでした）。仕切りページは<b>ほぼ余白で個人情報は載せません（裏紙に使えます）</b>。ただし完全な白紙だとプリンタの「白紙ページをスキップ」機能で消えてしまうので、<b>隅に小さな印だけ</b>を出しています。プリンタ側の設定を変える必要はありません。</div></div>
+      <div class="spec-sec"><div class="spec-h">いつからの分を出すか（授業の区切り）</div><div class="spec-b">先生画面の「リアルタイムモードを開く」を押すと、最初に<b>「30分前から」「1時間前から」「今から」「時刻を指定」</b>のボタンが出ます。押した時刻より後のぶんだけを出すので、1コマ目の記録が2コマ目に混ざりません。<b>押し忘れて途中で開いても、前の分が見えます</b>（サーバーにあるのは3時間ぶん）。範囲を変えるときは上の<b>「🕒 いつからの分を出すか」</b>。リロード（F5）は同じ授業の続きとして、範囲はそのままです（2026-10-19）。</div></div>
     </div>
   </div>
 </div>
@@ -433,6 +447,14 @@ body{font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;backgroun
 <!-- ホバー詳細 -->
 <div id="pop"></div>
 <!-- ミス問モーダル -->
+<!-- いつからの分を出すか（2026-10-19 作業5）。mode＝view（画面に出す範囲）／print（刷る範囲）。print はこのあと刷る子をチェックで選ぶ -->
+<div class="ov" id="rangeOv">
+  <div class="md" onclick="event.stopPropagation()" style="position:relative;">
+    <button class="md-x" onclick="closeRange()">×</button>
+    <div class="md-h"><div class="md-t" id="rangeT">いつからの分を出す？</div><div class="md-sub" id="rangeSub"></div></div>
+    <div class="md-b" id="rangeB"></div>
+  </div>
+</div>
 <div class="ov" id="missOv" onclick="closeMiss()">
   <div class="md" onclick="event.stopPropagation()" style="position:relative;">
     <button class="md-x" onclick="closeMiss()">×</button>
@@ -504,7 +526,7 @@ var STALE_SEC=10*60;  // 解き中がこの秒数続いたら「反応なし」�
 
 // 種別（v1では quiz_live は確認テストのみを返す。将来ここにマッピングを増やす）
 var TYPES={ quiz:{label:'確認テスト',cls:'ty-quiz'}, daily:{label:'毎日学習',cls:'ty-daily'}, unit:{label:'単元別',cls:'ty-unit'}, review:{label:'おさらい',cls:'ty-review'}, note:{label:'間違いノート',cls:'ty-note'}, ws:{label:'ワークシート',cls:'ty-ws'} };
-var activeTypes={quiz:true,daily:false,unit:false,review:false,note:false};
+var activeTypes={quiz:true,daily:true,unit:true,review:true,note:true,ws:true};   /* 最初から全部の種類を出す（2026-10-18 19:56 川上さん）。前は確認テストだけ */
 function subjType_(subj){ return 'quiz'; }
 
 // サーバー応答(quiz_live)を state に反映
@@ -516,7 +538,8 @@ function mapLive(d){
   (d.students||[]).forEach(function(s){
     var st=state[s.student_id]||(state[s.student_id]={info:{},lanes:[]});
     st.info={id:s.student_id,name:s.student_name||'',nick:s.nickname||'',room:s.room||'',courses:s.courses||[]};
-    st.lanes=(s.entries||[]).filter(function(e){ return !resetAt || (e.start_ts+serverSkew) >= resetAt || (e.sub_ts && (e.sub_ts+serverSkew) >= resetAt); }) /* リセット前に始めて、リセット後に出した提出も出す 2026-09-26 */.map(function(e){
+    st.all=(s.entries||[]).map(function(e){ return {st:e.start_ts+serverSkew, sub:(e.sub_ts?e.sub_ts+serverSkew:0), up:((e.updated_ts||e.start_ts)+serverSkew)}; });   /* 印刷の範囲えらびに使う（表示の範囲で切る前）2026-10-19 */
+    st.lanes=(s.entries||[]).filter(function(e){ return !resetAt || (e.start_ts+serverSkew) >= resetAt || (e.sub_ts && (e.sub_ts+serverSkew) >= resetAt) || ((e.updated_ts||0)+serverSkew) >= resetAt; }) /* リセット前に始めて、リセット後に出した提出も出す 2026-09-26／途中の様子が届いた解き中も出す 2026-10-19 */.map(function(e){
       var eid=s.student_id+'|'+(e.type||'quiz')+'|'+(e.part_id||'')+'|'+e.start_ts;
       var fresh=false;
       if(!(eid in _entrySeen)) fresh=(e.status==='doing' && e.kind!=='prog');
@@ -525,7 +548,9 @@ function mapLive(d){
       return { id:eid, type:(e.type||'quiz'), kind:(e.kind||''), mat:mtChapMt(e), book:mtBookMt(e), part:e.part_title||'', subject:e.subject||'',
         status:e.status, startAt:Math.floor((e.start_ts+serverSkew)/1000), updatedAt:Math.floor(((e.updated_ts||e.start_ts)+serverSkew)/1000),
         rate:(e.rate==null?null:e.rate), correct:(e.correct==null?0:e.correct), total:(e.total==null?0:e.total), answered:(e.answered==null?0:e.answered),
-        missed:(e.missed_words||[]), fresh:fresh, test:!!e.test, over:(e.over||0), missN:(e.miss_n==null?(e.missed_words||[]).length:e.miss_n) };
+        missed:(e.missed_words||[]), fresh:fresh, test:!!e.test, over:(e.over||0), missN:(e.miss_n==null?(e.missed_words||[]).length:e.miss_n),
+        /* 途中の様子（5問ごとに生徒から届く。2026-10-19 作業5）：何問目／全部・正解数・何問連続・1回目のまちがい。まちがいの数は先生だけに出す */
+        pAt:(e.p_at==null?null:e.p_at), pTot:(e.p_tot==null?null:e.p_tot), pCor:(e.p_cor==null?null:e.p_cor), pCmb:(e.p_cmb==null?null:e.p_cmb), pMiss:(e.p_miss==null?null:e.p_miss) };
     });
     st.lastAt=Math.floor(((s.last_ts||0)+serverSkew)/1000);
     st.active=st.lanes.length>0;
@@ -569,7 +594,7 @@ function render(){try{fltResetSync_();}catch(eFr){}
   document.getElementById('stDone').textContent=done;
   document.getElementById('stStu').textContent=list.length;
 
-  if(list.length===0){ lanesEl.innerHTML='<div class="empty">いま確認テストをやっている子はいません。<br>生徒が確認テストを始めると、ここに自動で出てきます。</div>'; return; }
+  if(list.length===0){ lanesEl.innerHTML='<div class="empty">いま学習している子はいません。<br>生徒が学習を始めると、ここに自動で出てきます（上の種別でしぼっているときは、その種別だけ）。</div>'; return; }
 
   var html='';
   _idx={};
@@ -620,7 +645,7 @@ function render(){try{fltResetSync_();}catch(eFr){}
         if(stEl>=STALE_SEC){ // 反応なし＝灰色
           html+='<div class="tcard doing stale clk" data-lid="'+l.id+'">'+ty
               +cardBody(l,i)
-              +'<div class="tc-foot"><span class="noresp"><span class="zz"></span>'+Math.max(1,Math.floor(stEl/60))+'分 反応なし</span></div></div>';
+              +'<div class="tc-foot"><span class="noresp"><span class="zz"></span>'+Math.max(1,Math.floor(stEl/60))+'分 反応なし</span></div>'+progLine_(l)+'</div>';
         }else if(l.kind==='prog'){ // おさらい・間違いノート＝◯問カウント（点数なし）
           html+='<div class="tcard doing clk'+pop+'" data-lid="'+l.id+'"><div class="tc-now">いま解き中</div>'+ty
               +cardBody(l,i)
@@ -628,7 +653,7 @@ function render(){try{fltResetSync_();}catch(eFr){}
         }else{ // 確認テスト・毎日学習・単元別＝タイマー
           html+='<div class="tcard doing clk'+pop+'" data-lid="'+l.id+'"><div class="tc-now">いま解き中</div>'+ty
               +cardBody(l,i)
-              +'<div class="tc-foot"><span class="timer" data-start="'+l.startAt+'"><span class="tk"></span>'+fmt(el)+'</span></div></div>';
+              +'<div class="tc-foot"><span class="timer" data-start="'+l.startAt+'"><span class="tk"></span>'+fmt(el)+'</span></div>'+progLine_(l)+'</div>';
         }
       }else{
         var c=rateClass(l.rate);
@@ -1393,17 +1418,18 @@ function unifiedStudentHtml_(st, opts){
   return h;
 }
 /* PQCOPY:END */
-function openPrint(){
+function openPrint(pickIds,since){
   keepAlive();
+  /* 2026-10-19 作業5：ボタンから押したときは、先に「いつからの分を印刷する？」と「刷る子」を選ぶ（openRange('print')）。選んだ子と時刻を受けて、ここに来る */
+  if(!pickIds){ openRange('print'); return; }
   var pdate=(function(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());})();
   // いま画面にいる生徒（教室しぼり込みを反映・名簿順）。種別スイッチに関係なく、確認テスト＋毎日学習＋単元別を印刷する。
-  var ids=Object.keys(state).sort(function(a,b){return (SIDX[a]==null?999:SIDX[a])-(SIDX[b]==null?999:SIDX[b]);})
-    .filter(function(id){var st=state[id];return st.active && (roomFilter==='all'||st.info.room===roomFilter) && crsOk_(st) && (st.lanes&&st.lanes.length>0);});
+  var ids=pickIds.slice();
   var $sheets=document.getElementById('printSheets'), $n=document.getElementById('printN');
   document.getElementById('printOv').classList.add('show');
   if(!ids.length){ $sheets.innerHTML='<div style="padding:40px;color:#64748b;">印刷できる記録がありません。</div>'; $n.textContent='0名分'; return; }
   $sheets.innerHTML='<div style="padding:40px;color:#64748b;">恒久データ（学習記録）から読み込み中…</div>'; $n.textContent='読み込み中…';
-  call({action:'rt_print', student_ids:ids.join(','), date:pdate}).then(function(r){
+  call({action:'rt_print', student_ids:ids.join(','), date:pdate, since:(since?_hm_(since):'')}).then(function(r){   /* since＝この時刻（HH:mm）より前の記録は紙に入れない。古い GAS は無視する＝今日の分ぜんぶ */
     if(!r||!r.ok){ $sheets.innerHTML='<div style="padding:40px;color:#c0121e;">取得に失敗しました：'+esc_((r&&r.error)||'')+'</div>'; $n.textContent=''; return; }
     _pqSetAssets_(r.data);   /* 【2026-09-15b】形式ごとの紙の素材（表・文）。古いGASなら来ない＝今までの紙に落ちる */
     var byId={}; (r.data.students||[]).forEach(function(s){ byId[s.student_id]=s; });
@@ -1417,6 +1443,70 @@ function openPrint(){
   }).catch(function(){ $sheets.innerHTML='<div style="padding:40px;color:#c0121e;">通信エラーで取得できませんでした。</div>'; $n.textContent=''; });
 }
 function closePrint(){ document.getElementById('printOv').classList.remove('show'); }
+/* 解き中のカードの下に出す途中の様子（2026-10-19 作業5）。生徒が5問ごとに送ってくる。まだ届いていなければ出さない */
+function progLine_(l){
+  if(l.pAt==null) return '';
+  return '<div class="tc-prog"><span class="qprog2"><b>'+l.pAt+'</b>'+(l.pTot?'/'+l.pTot:'')+'問目</span>'
+    +(l.pCor!=null?' ・正解'+l.pCor:'')+(l.pCmb>=2?' ・<span class="qcmb">'+l.pCmb+'連続</span>':'')+(l.pMiss?' ・<span class="qmis">ミス'+l.pMiss+'</span>':'')+'</div>';
+}
+/* ===== いつからの分を出すか（2026-10-19 作業5・川上さん 2026-10-18 19:56 確定）=====
+   開くとき：30分前から／1時間前から／時刻を指定／今から（前の「新しい授業（リセット）」はこれに置きかえた）。
+   印刷のとき：30分前から／1時間前から／時刻を指定 → 刷る子をチェックで外せる → rt_print に since（HH:mm）を付けて、その時刻より前の記録を紙に入れない。
+   サーバーの記録（qlive）は3時間ぶんなので、3時間より前は画面に出ない（紙は恒久データから取るので出る） */
+var _rgMode='view';
+function _hm_(ms){ var d=new Date(ms); return pad(d.getHours())+':'+pad(d.getMinutes()); }
+function openRange(mode){
+  keepAlive(); _rgMode=mode||'view';
+  var pr=(_rgMode==='print');
+  document.getElementById('rangeT').textContent=pr?'いつからの分を印刷する？':'いつからの分を出す？';
+  document.getElementById('rangeSub').textContent=pr?'前のコマの子が混ざらないように、刷る範囲を選びます。このあと刷る子を選べます。':'押し忘れて途中で開いても、前の分が見えます（サーバーにあるのは3時間ぶん）。';
+  var t0=_hm_(Date.now()-60*60*1000);
+  document.getElementById('rangeB').innerHTML='<div class="rg-btns">'
+    +'<button class="rg-btn" onclick="pickRange(30)">30分前から</button>'
+    +'<button class="rg-btn" onclick="pickRange(60)">1時間前から</button>'
+    +(pr?'':'<button class="rg-btn" onclick="pickRange(0)">今から</button>')
+    +'</div>'
+    +'<div class="rg-time">時刻を指定：<input type="time" id="rgTime" value="'+t0+'"> <button class="rg-btn" style="padding:8px 14px;" onclick="pickRangeTime()">この時刻から</button></div>'
+    +'<div class="rg-note">'+(pr?'今日の記録だけを刷ります。':'いま出している範囲：'+(resetAt?_hm_(resetAt)+'から':'サーバーにある分すべて')+'。')+'</div>';
+  document.getElementById('rangeOv').classList.add('show');
+}
+function closeRange(){ document.getElementById('rangeOv').classList.remove('show'); }
+function pickRange(min){ var ms=min?(Date.now()-min*60*1000):Date.now(); applyRange_(ms); }
+function pickRangeTime(){
+  var v=(document.getElementById('rgTime')||{}).value||''; var m=v.match(/^(\d{1,2}):(\d{2})$/); if(!m){ rtToast('時刻を入れてください'); return; }
+  var d=new Date(); d.setHours(+m[1],+m[2],0,0); if(d.getTime()>Date.now()){ rtToast('これから先の時刻は選べません'); return; }
+  applyRange_(d.getTime());
+}
+function applyRange_(ms){
+  if(_rgMode==='print'){ openPrintPick_(ms); return; }
+  closeRange();
+  resetAt=ms;
+  try{ localStorage.setItem('kwt_rt_reset_at', String(resetAt)); }catch(e){}
+  _entrySeen={};
+  updateSessLabel_();
+  fetchLive();
+  rtToast(_hm_(ms)+'からの分を出します');
+}
+/* 印刷：刷る子を選ぶ（範囲の中に記録がある子。教室・受講のしぼり込みは今までどおり効かせる） */
+var _prSince=0;
+function openPrintPick_(ms){
+  _prSince=ms;
+  var ids=Object.keys(state).sort(function(a,b){return (SIDX[a]==null?999:SIDX[a])-(SIDX[b]==null?999:SIDX[b]);})
+    .filter(function(id){var st=state[id];return (roomFilter==='all'||st.info.room===roomFilter) && crsOk_(st) && (st.all||[]).some(function(x){return x.st>=ms||x.sub>=ms||x.up>=ms;});});
+  document.getElementById('rangeT').textContent=_hm_(ms)+'からの分を印刷する子';
+  document.getElementById('rangeSub').textContent='チェックを外した子は刷りません。まちがいが0問の子は、もともと紙を作りません。';
+  var rows=ids.map(function(id){var st=state[id];return '<label class="rg-row"><input type="checkbox" class="rgChk" value="'+esc_(id)+'" checked> '+esc_(st.info.name||st.info.nick)+'<small>'+esc_(st.info.room||'')+'</small></label>';}).join('');
+  document.getElementById('rangeB').innerHTML=ids.length
+    ?('<div style="display:flex;gap:8px;font-size:12px;"><button class="chip" onclick="rgAll_(true)">全員にチェック</button><button class="chip" onclick="rgAll_(false)">全員のチェックを外す</button></div><div class="rg-list">'+rows+'</div>'
+      +'<div class="rg-foot"><button class="chip" onclick="openRange(\'print\')">範囲を選び直す</button><button class="btn-resume" style="padding:8px 18px;" onclick="goPrint_()">この子たちの紙を作る</button></div>')
+    :('<div class="miss-none">'+_hm_(ms)+'から記録がある子がいません。</div><div class="rg-foot"><button class="chip" onclick="openRange(\'print\')">範囲を選び直す</button></div>');
+}
+function rgAll_(on){ document.querySelectorAll('.rgChk').forEach(function(c){c.checked=on;}); }
+function goPrint_(){
+  var ids=Array.prototype.map.call(document.querySelectorAll('.rgChk:checked'),function(c){return c.value;});
+  if(!ids.length){ rtToast('刷る子を1人以上選んでください'); return; }
+  closeRange(); openPrint(ids,_prSince);
+}
 function doPrint(){ // 図の画像を読み込んでから印刷（画像未読込での印刷＝図が空白 を回避）2026-07-24
   var c=document.getElementById('printSheets');
   var imgs=c?Array.prototype.slice.call(c.querySelectorAll('img')):[];
@@ -1524,7 +1614,7 @@ function fetchLive(){
     if(!r||!r.ok){ setStatus_(false); return; }
     setStatus_(true);
     var d=r.data||{server_now:Date.now(),students:[]};
-    var sig=JSON.stringify((d.students||[]).map(function(s){return s.student_id+':'+(s.entries||[]).map(function(e){return e.part_id+e.status+(e.rate==null?'':e.rate);}).join(',');}));
+    var sig=JSON.stringify((d.students||[]).map(function(s){return s.student_id+':'+(s.entries||[]).map(function(e){return e.part_id+e.status+(e.rate==null?'':e.rate)+'|'+(e.p_at==null?'':e.p_at);}).join(',');}));
     if(sig!==lastSig){ lastChangeMs=Date.now(); lastSig=sig; }
     mapLive(d);
     render();
@@ -1555,14 +1645,7 @@ document.addEventListener('visibilitychange',function(){
   else{ if(paused && pauseReason==='hidden') resume(); }
 });
 function rtToast(msg){ var el=document.getElementById('rtToast'); if(!el)return; el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(function(){el.classList.remove('show');},3400); }
-function resetSession(){
-  resetAt=Date.now();
-  try{ localStorage.setItem('kwt_rt_reset_at', String(resetAt)); }catch(e){}
-  _entrySeen={};
-  updateSessLabel_();
-  fetchLive();
-  rtToast('新しい授業として表示をリセットしました（これ以降のぶんだけ表示します）');
-}
+/* resetSession（「新しい授業（リセット）」）は 2026-10-19 に openRange('view') の「今から」に置きかえた */
 function updateSessLabel_(){
   var el=document.getElementById('sessLabel'); if(!el) return;
   if(!resetAt){ el.textContent='直近の記録を表示中'; return; }
@@ -1570,7 +1653,7 @@ function updateSessLabel_(){
   el.textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+'〜 の記録を表示中';
 }
 /* 【2026-10-05】絞り込みのリセット：教室・受講＝すべて、種別＝確認テストだけ（はじめの形）。並び順と授業の区切りは触らない */
-var TYPES0_={quiz:true,daily:false,unit:false,review:false,note:false};
+var TYPES0_={quiz:true,daily:true,unit:true,review:true,note:true,ws:true};   /* はじめの形＝全部（2026-10-19） */
 function fltActive_(){return roomFilter!=='all'||crsFilter!=='all'||Object.keys(TYPES0_).some(function(k){return !!activeTypes[k]!==TYPES0_[k];});}
 function fltResetSync_(){var b=document.getElementById('fltReset');if(b)b.disabled=!fltActive_();}
 function resetFilters_(){
@@ -1644,9 +1727,12 @@ function openMiss(s,l,doing){
 function closeMiss(){ document.getElementById('missOv').classList.remove('show'); }
 function openSpec(){ keepAlive(); document.getElementById('specOv').classList.add('show'); }
 function closeSpec(){ document.getElementById('specOv').classList.remove('show'); }
-document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeMiss(); closeSpec(); if(typeof closePrint==='function')closePrint(); } });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeMiss(); closeSpec(); closeRange(); if(typeof closePrint==='function')closePrint(); } });
 
 // 初期化：先生画面(window.opener)からGAS URL・トークンを受け取り、すぐ取得を開始
+/* 2026-10-19 作業5：種別のボタンを「全部ON」で始める／先生画面から新しく開いたとき（kwt_rt_ask）は、いつからの分を出すかを最初に聞く。F5 で読み込み直したときは聞かない（同じ授業の続き） */
+document.querySelectorAll('.chip[data-type]').forEach(function(c){c.classList.toggle('active',!!activeTypes[c.getAttribute('data-type')]);});
+try{ if(localStorage.getItem('kwt_rt_ask')==='1'){ localStorage.removeItem('kwt_rt_ask'); setTimeout(function(){openRange('view');},50); } }catch(eAsk){}
 updateSessLabel_();
 render();          // まず空表示
 fetchLive();       // 初回取得
