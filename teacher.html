@@ -4721,11 +4721,14 @@ function fsFillAPages_(flat,ctx,usable,qrLast){
   var fill=function(startIdx,withBack,label,first){
     probe.innerHTML='<div class="fs-page">'+fsHeadPageHtml_(ctx,'解答解説',first,false)+(first?fsAnsBandHtml_():'')
       +fsAnsTableHtml_('')+((qrLast&&withBack)?fsBackHtml_(ctx):'')+fsFootHtml_(ctx,label)+'</div>';
-    var pageEl=probe.firstChild, tb=probe.querySelector('tbody'), n=0;
+    var pageEl=probe.firstChild, tb=probe.querySelector('tbody'), tbl=probe.querySelector('table.fs-atbl'), n=0;
+    /* 全文の答えがある行を入れたら、描くときと同じく「答え」の列を広げて測る（fs-wide）。
+       広げずに測っていたので、描くと解答解説のページが紙より長くなっていた（2026-10-19 紙の総点検で見つけた。英検5級 英単語で279mm） */
+    var wide=function(){ if(tbl) tbl.classList.toggle('fs-wide',!!tb.querySelector('.fs-full')); };
     for(var i=startIdx;i<flat.length;i++){
       var box=document.createElement('tbody'); box.innerHTML=fsAnsRowHtml_(flat[i].item,flat[i].no);
-      var row=box.firstChild; tb.appendChild(row);
-      if(pageEl.offsetHeight>usable){ tb.removeChild(row); break; }
+      var row=box.firstChild; tb.appendChild(row); wide();
+      if(pageEl.offsetHeight>usable){ tb.removeChild(row); wide(); break; }
       n++;
     }
     return n;
@@ -6644,7 +6647,7 @@ var _mpMid='';
 /* ===== 単元ワークシート（数学）のプレビュー 2026-10-17 段③ =====
    教材のプレビューで、ワークシートの教材だけは生徒の画面と同じ ws_app.js で出す（モックのプレビューのバー＝◀ ▶・答え・解説を出す）。
    数式（KaTeX）・図（math_fig.js）は初めて開いたときだけ読む。問題はシートで直さない（要件定義書 2026-10-16 21:04）ので、ここでは直す欄を出さない。 */
-var WS_LIB_V='20261019a',_wsLibP=null;
+var WS_LIB_V='20261019b',_wsLibP=null;
 function _wsLoadLibs_(){
   if(_wsLibP)return _wsLibP;
   var cssP=new Promise(function(ok){var l=document.querySelector('link[data-ws="katex"]');if(l){ok();return;}l=document.createElement('link');l.rel='stylesheet';l.href='ws/katex/katex.min.css';l.setAttribute('data-ws','katex');l.onload=function(){ok();};l.onerror=function(){ok();};document.head.appendChild(l);})

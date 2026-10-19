@@ -518,7 +518,7 @@ function drawTest(ph){if(__PAPER)return __drawPaper(ph);
 const TDKEY=()=>TKEY+'_draft';
 let TEL=0,TDRAFT=null;
 function tDraftLoad(){try{return JSON.parse(localStorage.getItem(TDKEY())||'null');}catch(e){return null;}}
-function tDraftSave(){if(!LIVE())return;try{localStorage.setItem(TDKEY(),JSON.stringify({ans:tans.slice(),el:TEL,perm:__TP}));}catch(e){}}
+function tDraftSave(){if(!LIVE())return;try{localStorage.setItem(TDKEY(),JSON.stringify({ans:tans.slice(),el:TEL,perm:__TP}));}catch(e){}__tProg();}
 function tDraftClear(){try{localStorage.removeItem(TDKEY());}catch(e){}}
 const tJs=bi=>TFL.map((x,j)=>x.b===bi?j:-1).filter(j=>j>=0);
 const tUnans=()=>TFL.map((x,j)=>tans[j]===undefined?j:-1).filter(j=>j>=0);
@@ -739,8 +739,11 @@ function __resLoad(){if(!opt.resumeKey)return null;try{const r=JSON.parse(localS
 
 /* ===== テスト（段④ 2026-10-18）=====
    opt.tstate＝サーバーにある最後の回の記録／opt.onTestSubmit(part_id, 記録, 送るもの)＝提出／opt.onTestState(part_id, 記録)＝直しの進み／
-   opt.onTestStart(part_id)＝［スタート］を押した／opt.rangePass()＝範囲で合格した版（A・B・C）／opt.testReady(part_id)＝'go'(青の塗り)・'can'(枠)・'late'(点線)／opt.tkey＝下書きの保存の名前 */
+   opt.onTestStart(part_id)＝［スタート］を押した／opt.onTestProg(part_id, 答えた数, 全部)＝途中の様子（5問ごと）／opt.rangePass()＝範囲で合格した版（A・B・C）／opt.testReady(part_id)＝'go'(青の塗り)・'can'(枠)・'late'(点線)／opt.tkey＝下書きの保存の名前 */
 let __TP=null,__tNew=false;
+/* テストの途中の様子（リアルタイムモード 2026-10-19 作業5の残り）：答えた小問の数が5の倍数か全部になったら opt.onTestProg(part_id, 答えた数, 全部)。正誤は送らない（テストは提出まで採点しない） */
+let __tPA=-1;
+function __tProg(){if(!opt.live||!opt.onTestProg||!LIVE()||typeof TEST==='undefined'||!TEST||!TFL||!TFL.length)return;const a=tans.filter(x=>x!==undefined&&x!==null).length;if(a===__tPA)return;const up=a>__tPA;__tPA=a;if(up&&(a%5===0||a===TFL.length)){try{opt.onTestProg(TEST.part_id,a,TFL.length);}catch(e){}}}
 
 /* ===== 答えたときの音とコンボ（F-43・2026-10-18 川上さん「全部音とか演出を合わせるべき」）=====
    1問ずつ答えるもの（復習パート・WarmUp・Try・Exercise・Exercise＋・類題）の選択肢だけ。穴埋め（fillRun）とテストの答えている間は鳴らさない。
