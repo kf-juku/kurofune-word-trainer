@@ -2566,7 +2566,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-20a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-20b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3029,14 +3029,14 @@ function shWsChoose_(w,ok){
   var top='<div class="sh-head"><span class="sh-code">'+esc(w.code)+'</span></div>'
     +'<div class="shw-t">'+esc(String(w.material_title||'').replace(/^中[123]数学[ 　]+\S+[ 　]+/,''))+'<b>'+esc(w.part_title||'')+'</b></div>';
   if(!ok){ shAccAsk_(w.code,top,function(){shWsChoose_(w,true);}); return; }
+  /* 2026-10-20 川上さん 02:53〜03:10：選ぶ画面はテストの入口（ws_app の __drawEntry）に移した。どこから開いても同じ画面＝前の結果と［続きから］・受け方3つ（クロトレで解く・自動採点・○×入力）。
+     この画面には見出しと［開く］だけを残す（入口を閉じたときに戻る所） */
+  var go=function(){openWs_(w.material_id,[w.part_id],w.part_title,{entryHead:{code:String(w.code||''),who:nm?(nm+(familyName?'（'+familyName+'）':'')):''}});};
   host.innerHTML=top+'<div class="shw-who"><i class="ti ti-user"></i> <b>'+(nm?esc(nm)+seiSuffix_():'')+'</b>'+(nm?'さんとして':'')+rb('記録','きろく')+'します。</div>'
-    /* どちらかを選ぶ画面だと分かるように、問いかけ＋同じ形のボタン2つを横に並べる（2026-10-19 19:03〜19:06 川上さん：配置は案A・ボタンの文字は「採点する」「結果を入力する」） */
-    +'<div class="shw-ask">'+rb('答','こた')+'え'+rb('合','あ')+'わせのしかたを'+rb('選','えら')+'ぶ</div>'
-    +'<div class="shw-go"><button type="button" class="shw-c" id="shw-sym"><i class="ti ti-pencil"></i><b>'+rb('自動採点','じどうさいてん')+'</b><small>'+rb('解答用紙','かいとうようし')+'に'+rb('書','か')+'いた'+rb('記号','きごう')+'を'+rb('入','い')+'れる</small><span class="shw-act">'+rb('採点','さいてん')+'する</span></button>'
-    +'<button type="button" class="shw-c" id="shw-ox"><i class="ti ti-circle-check"></i><b>○×'+rb('入力','にゅうりょく')+'</b><small>'+rb('丸付','まるつ')+'けが'+rb('終','お')+'わった'+rb('紙','かみ')+'の○×を'+rb('入','い')+'れる</small><span class="shw-act">'+rb('結果','けっか')+'を'+rb('入力','にゅうりょく')+'する</span></button></div>';
+    +'<button type="button" class="btn" id="shw-open">'+rb('答','こた')+'え'+rb('合','あ')+'わせの'+rb('画面','がめん')+'を'+rb('開','ひら')+'く</button>';
   host.style.display='block';
-  $('shw-sym').onclick=function(){openWs_(w.material_id,[w.part_id],w.part_title,{paper:'sym'});};
-  $('shw-ox').onclick=function(){openWs_(w.material_id,[w.part_id],w.part_title,{paper:'ox'});};
+  $('shw-open').onclick=go;
+  go();
 }
 /* 【段7b・2026-09-15 川上さん】問題用紙のリスニングの先頭にあるQR＝音を聞くだけの画面。
    ・○×は出さない（正誤を入れるのは解答と解説の紙のQRの方だけ）
@@ -4743,7 +4743,7 @@ function renderUnitZone_(materials){
    KaTeX・math_fig.js・ws_load.js・ws_app.js は、初めてワークシートを開いたときだけ読む。
    できた＝サーバーの passed（material_parts）。パートの最後まで進んだら session_complete と complete_extras を送る（正答率＝1回目の答え）。
    途中でやめたら、その日のうちは同じパートのやめた題から（ws_app.js が localStorage に持つ・今の「途中の学習」のカードには出さない）。 */
-var WS_LIB_V='20261019g';
+var WS_LIB_V='20261020a';
 var _wsMats=[],_wsDone={},_wsLibP=null,_wsApi=null,_wsSent=0,_wsTL={},_wsTq=Promise.resolve();
 /* ===== ワークシートのテスト（段④ 2026-10-18）=====
    受けどきの色は確認テスト（_quizReady_・quizStatus2_）と同じ3つ：青の塗り＝いま受けるところ／枠＝受けられるが今ではない／点線＝先に練習。
@@ -4763,12 +4763,15 @@ function _wsReadyOf_(pre,attempted){if(!pre)return 'late';if(attempted)return 'g
 /* 単元まとめテスト：c＝その単元の教材 */
 function _wsUnitReady_(c){var tp=(c.parts||[]).filter(function(l){return _wsIsTestT_(l.title);})[0];if(!tp||tp.passed)return '';return _wsReadyOf_(_wsPracDone_([c]),!!tp.attempted);}
 /* 章まとめテストの範囲：{name, ps(A・B・C の行)}。返す＝{st:'ok'|'go'|'can'|'late', nx:次に受ける行, pass:合格した行} */
+/* 直しが終わったか（2026-10-20）：この画面で送ったばかりの記録（_wsTL）→ サーバーの ws_done（GAS が古くて無いときは null） */
+function _wsFixDone_(l){var lc=_wsTL[String(l.part_id)];if(lc&&lc.state&&lc.state.done!==undefined)return !!lc.state.done;return (l.ws_done===undefined||l.ws_done===null)?null:!!l.ws_done;}
 function _wsRangeInfo_(r,mats){
   var pass=r.ps.filter(function(l){return l.passed;})[0]||null;
   var tried=r.ps.filter(function(l){return l.attempted;}).sort(function(a,b){return String(a.last_date||'')<String(b.last_date||'')?1:-1;});
   var nx=r.ps[0],fix=false;
   if(tried.length){var lt=tried[0],st=(_wsTL[String(lt.part_id)]||{}).state;var got=lt.latest_rate;
-    if(got!=null&&got>=80&&!pass){nx=lt;fix=true;}   /* 80点以上で直しの途中＝同じ版の直しを終える */
+    var fd=_wsFixDone_(lt);
+    if(!pass&&(fd===false||(fd===null&&got!=null&&got>=80))){nx=lt;fix=true;}   /* 直しの途中＝同じ版の直しを終える（2026-10-20 川上さん：80点未満でも。前は80点以上だけ） */
     else{var i=r.ps.indexOf(lt);nx=r.ps[(i+1)%r.ps.length];}}
   if(pass)return {st:'ok',nx:nx,pass:pass,fix:false};
   var us=_wsUnitsOfRange_(r.name,mats);var pre=(us.length&&us.every(function(c){return !!c;}))?_wsPracDone_(us):null;
@@ -4807,6 +4810,10 @@ function renderWsZone_(materials){
     var nqp=function(mid,pid,nm,sub,st,done,ttl){return '<div class="nqp" data-wsm="'+esc(String(mid))+'" data-wsp="'+esc(String(pid))+'" data-wst="'+esc(ttl)+'"><div class="nqp-nm">'+nm+(sub?' <small>'+sub+'</small>':'')+'</div>'+st+(done?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';};
     var tagDone=function(t){return '<span class="utag done"><i class="ti ti-circle-check"></i>'+t+'</span>';};
     var tagYet=function(t){return '<span class="utag"><i class="ti ti-player-play"></i>'+(t||'まだ')+'</span>';};
+    /* 受けたが合格していないテスト：点 ・ 直しの途中／直し済み（2026-10-20） */
+    var _wsTagTried_=function(l){if(!(l.attempted&&l.latest_rate!=null))return tagYet('');var fd=_wsFixDone_(l);
+      if(fd===false)return '<span class="utag warn"><i class="ti ti-pencil"></i>'+l.latest_rate+'点 ・ '+_nvRuby_('直(なお)しの途中(とちゅう)',true)+'</span>';
+      return tagYet(l.latest_rate+'点'+(fd===true?' ・ '+_nvRuby_('直(なお)し済(ず)み',true):''));};
     var arw='<i class="ti ti-chevron-down ncf-arw" data-utog="1" role="button" tabindex="0" aria-label="パートの一覧をひらく" style="padding:7px;margin:-7px -3px;"></i>';
     g.items.forEach(function(c){
       var ps=(c.parts||[]).slice().sort(function(a,b){return (a.part_order||0)-(b.part_order||0);});
@@ -4824,7 +4831,7 @@ function renderWsZone_(materials){
           rows+='<div class="qchw'+(_co.indexOf(rk)>=0?' open':'')+'" data-uck="'+esc(rk)+'"><div class="nchap ws-ct'+(inf.pass?' done':'')+'" data-wsm="'+esc(String(c.material_id))+'" data-wsp="'+esc(String(tgt))+'" data-wst="'+esc(r.name)+'"><div class="ncf-nm"><i class="ti ti-checkup-list" style="color:var(--quiz)"></i> '+esc(r.name)+'<small>'+sm+'</small></div>'
             +(inf.pass?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+arw+'</div><div class="nqparts">';
           r.ps.forEach(function(l){
-            var st=l.passed?tagDone(_nvRuby_('合格(ごうかく)',true)+(l.latest_rate!=null?' '+l.latest_rate+'点':'')):tagYet(l.attempted&&l.latest_rate!=null?l.latest_rate+'点':'');
+            var st=l.passed?tagDone(_nvRuby_('合格(ごうかく)',true)+(l.latest_rate!=null?' '+l.latest_rate+'点':'')):_wsTagTried_(l);
             rows+=nqp(c.material_id,l.part_id,esc(_wsVer_(l.title)||l.title),'',st,false,r.name);
           });
           rows+='</div></div>';
@@ -4835,7 +4842,7 @@ function renderWsZone_(materials){
       var d=pr.filter(function(l){return l.passed;}).length,n=pr.length;
       var tPass=tp&&tp.passed;var done=(n>0&&d===n&&(!tp||tPass));if(done)uDone++;
       var urd=tp?_wsUnitReady_(c):'';if(urd==='go')rdyN++;
-      var sm2=_nvRuby_('パート',true)+' '+d+'/'+n+(d?' できた':'')+(tp?' ・ '+_nvRuby_('単元(たんげん)まとめテスト',true)+' '+(tPass?_nvRuby_('合格(ごうかく)',true):(tp.attempted&&tp.latest_rate!=null?tp.latest_rate+'点':'まだ')):'')
+      var sm2=_nvRuby_('パート',true)+' '+d+'/'+n+(d?' できた':'')+(tp?' ・ '+_nvRuby_('単元(たんげん)まとめテスト',true)+' '+(tPass?_nvRuby_('合格(ごうかく)',true):(tp.attempted&&tp.latest_rate!=null?tp.latest_rate+'点'+(_wsFixDone_(tp)===false?' ・ '+_nvRuby_('直(なお)しの途中(とちゅう)',true):''):'まだ')):'')
         +(urd==='go'?' <span class="qrdy"><i class="ti ti-checkup-list"></i>そろそろテスト</span>':'');
       /* 次にやるパート＝ ws_app を開いたときと同じ選び方（③もっと練習は飛ばす・全部できたらテスト） */
       var nx=pr.filter(function(l){return !l.passed&&!/Exercise＋\s*$/.test(String(l.title||''));})[0]||(tp&&!tPass?tp:null);
@@ -4847,7 +4854,7 @@ function renderWsZone_(materials){
       ps.forEach(function(l){
         var t=String(l.title||'');
         if(_wsIsTestT_(t)){
-          var st0=l.passed?tagDone(_nvRuby_('合格(ごうかく)',true)):tagYet(l.attempted&&l.latest_rate!=null?l.latest_rate+'点':'');
+          var st0=l.passed?tagDone(_nvRuby_('合格(ごうかく)',true)):_wsTagTried_(l);
           rows+=nqp(c.material_id,l.part_id,'<i class="ti ti-checkup-list" style="color:var(--quiz)"></i> '+_nvRuby_('単元(たんげん)まとめテスト',true),'',st0,!!l.passed,ttl);return;}
         var m=t.match(/^パターン\s*(\d+)\s+(.*?)\s+(Point・WarmUp・Try|Exercise＋|Exercise)\s*$/);
         var st=l.passed?tagDone('できた'):tagYet('');
@@ -4953,7 +4960,7 @@ function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（
     host.innerHTML='';var root=document.createElement('div');root.className='ws-root';host.appendChild(root);
     var rkey='kwtws_res_'+((typeof token!=='undefined'&&token)?_hash32_(token):'anon')+'_'+mid+(pids&&pids.length?'_'+pids.join('_'):'');
     if(xo&&xo.preview){_wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',preview:true,startPid:xo.startPid||'',dark:_wsDark_()});root.style.paddingBottom='70px';return;}
-    _wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',live:true,paper:(xo&&xo.paper)||'',startPid:(xo&&xo.startPid)||'',shuffle:true,innerBack:false,dark:_wsDark_(),resumeKey:rkey,capMs:180000,/* 数学は計算に時間がかかるので1問3分まで数える（川上さん 2026-10-18 00:07）*/
+    _wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',live:true,paper:(xo&&xo.paper)||'',entryHead:(xo&&xo.entryHead)||null,startPid:(xo&&xo.startPid)||'',shuffle:true,innerBack:false,dark:_wsDark_(),resumeKey:rkey,capMs:180000,/* 数学は計算に時間がかかるので1問3分まで数える（川上さん 2026-10-18 00:07）*/
       done:function(pid){return !!_wsDone[String(pid)];},
       onStart:function(pid){_wsLP={pid:String(pid),mid:mid,n:0,cor:0,miss:0};try{call({action:'activity_start',part_id:pid});}catch(e){}},
       onPartDone:function(pid,rec){_wsDone[String(pid)]=1;_wsSend_(pid,rec);_wsCele_();},
