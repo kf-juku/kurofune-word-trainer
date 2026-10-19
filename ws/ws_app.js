@@ -373,14 +373,14 @@ function PGROUPS(){const G=[];if(HAS_RV())G.push({g:'rv',pno:'',name:REVIEW.name
 /* 2026-10-17 16:35 川上さん「いいね」：パターンごとに1枚のカード。中に ①学ぶ ②練習 ③もっと練習。役割は日本語、英語の名前は小さく右に */
 const NOTE1='<ul class="wsnote"><li>ノートと鉛筆を用意しよう。</li><li>計算はノートに書いてから答えを選ぼう。</li></ul>';
 const ROLE={a:['学ぶ','Point・WarmUp・Try'],e:['練習','Exercise'],p:['もっと練習','Exercise＋']};
-function ROLETXT(pa,P){if(P.k==='R'||(typeof REVIEW!=='undefined'&&P===REVIEW))return 'この単元で使う計算のおさらい。まちがえた問題は最後にもう一度出て、全問正解で終わる';
+function ROLETXT(pa,P){if(P.k==='R'||(typeof REVIEW!=='undefined'&&P===REVIEW))return '前回の内容と、大事な計算のおさらい。まちがえた問題は最後にもう一度出て、全問正解で終わる';
  if(P.k==='E')return '同じやり方の問題を、1人で解く';if(P.k==='EP')return '同じやり方の問題を、もっと解いて力をつける（宿題にもなる）';
  const t=pa&&pa.parts.find(q=>q.k==='T');return `やり方を読んで、先生と一緒に1問、自分で${t?t.items.length:4}問`;}
 function appView(){
  const v=document.getElementById('v-app');const G=PGROUPS();const req=G,dn=req.filter(x=>pdGet(x.g)).length;
  let side=`<div class="wsh"><div class="wst">${BOOK} ${UTN()}</div><div class="wss"><span class="wsb">ワークシート</span>できたパート ${dn} / ${req.length}</div><div class="wsbar"><i style="width:${req.length?Math.round(dn/req.length*100):0}%"></i></div></div>`;
  const row=(x,lab,sub,cnt)=>{const on=x.ns.includes(cur.n),d=pdGet(x.g);return `<button type="button" class="wsr ${on?'on':''}" data-n="${x.ns[0]}"><span class="wsm"><b>${lab}</b><span class="wsu">${sub}${cnt?`　${cnt}`:''}</span></span><span class="wsd ${d?'ok':''}">${d?'✓ できた':'まだ'}</span></button>`;};
- G.filter(x=>x.g==='rv').forEach(x=>{side+=`<div class="wsc">${row(x,REVIEW.name,`この単元で使う計算のおさらい<br>${REVIEW.items.length}題・全問正解で終わり`,'')}</div>`;});
+ G.filter(x=>x.g==='rv').forEach(x=>{side+=`<div class="wsc">${row(x,REVIEW.name,`前回の内容と、大事な計算のおさらい<br>${REVIEW.items.length}題・全問正解で終わり`,'')}</div>`;});
  PATS.forEach((pa,pi)=>{const gs=G.filter(x=>x.g.indexOf('p'+pi)===0);if(!gs.length)return;const rq=gs.filter(x=>!x.opt),d=rq.filter(x=>pdGet(x.g)).length;
   side+=`<div class="wsc"><div class="wsch">${PNO(pa.no)} <b>${pa.name}</b></div>`;
   gs.forEach((x,k)=>{const t=x.g.slice(-1),r=ROLE[t];const P0=NAV[x.ns[0]]&&!NAV[x.ns[0]].test&&!NAV[x.ns[0]].rv?PATS[NAV[x.ns[0]].pi].parts[NAV[x.ns[0]].k]:null;

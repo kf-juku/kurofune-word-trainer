@@ -409,6 +409,10 @@
   .fs-q .fs-b{flex:1;min-width:0;}
   .fs-q .fs-txt{font-size:12.5px;line-height:1.5;overflow-wrap:anywhere;}
   .fs-q .fs-ansline{margin-top:5px;border-bottom:1.4px solid #333;height:17px;}
+  .fs-q .fs-l4{margin-top:4px;}
+  .fs-q .fs-l4+.fs-l4{margin-top:2.2mm;}
+  .fs-tasub{font-size:8pt;color:#555;font-weight:400;margin-top:1px;}
+  .fs-ta .fs-full{font-weight:400;}.fs-ta .fs-full b{font-weight:800;text-decoration:underline;text-underline-offset:2px;}   /* 全文の答え＝（　）に入る部分だけ太字と下線 2026-10-19 */
   .fs-figblk .fs-q{border-bottom:none;padding:0;}
   .fs-sheet.fs-roomy .fs-grid .fs-q .fs-ansline{height:36px;}
   .fs-aband{background:#eef2f7;border-radius:5px;padding:5px 10px;font-size:11.5px;margin:6px 0 7px;line-height:1.5;}
@@ -420,6 +424,7 @@
   .fs-atbl col.fs-c1{width:9mm;}
   .fs-atbl col.fs-c2{width:45mm;}
   .fs-atbl col.fs-c4{width:16mm;}
+  .fs-atbl.fs-wide col.fs-c2{width:74mm;}
   .fs-atbl td.fs-tn{text-align:center;font-weight:700;}
   .fs-atbl td.fs-ta{font-weight:700;font-size:12px;}
   .fs-atbl td.fs-ta .fs-rd{display:block;font-weight:400;font-size:10px;color:#555;margin-top:1px;}
@@ -3370,7 +3375,7 @@ function _pqPhQHtml_(it,cls){
   var head=(m==='read'||m==='say')?('<span class="pq-phw">'+esc(w)+'</span>'):'';
   var line=(m==='say')?'言えた <span class="pq-phchk"></span>'
        :((m==='read')?'読み方 <span class="pq-phline"></span>'
-       :((m==='blend')?'語 <span class="pq-phline"></span>':'つづり <span class="pq-phline"></span>'));
+       :((m==='blend')?'語 <span class="pp-l4" style="width:30mm"></span>':'つづり <span class="pp-l4" style="width:30mm"></span>'));   /* 4線（2026-10-19 川上さん OK）＝つづり・組み立て・ブレンド */
   return head+_pqPhBoxHtml_(pk,m)+'<div class="'+cls+'-lisans">'+line+'</div>';
 }
 /* 音の足し算の原稿。チェックプリントでは先生がこれを読む */
@@ -4015,17 +4020,55 @@ function sheetKindOf_(it){
 function fsIsEn_(it){ return String(it.subject||'')==='english'; }
 function fsQuestionOf_(it){
   var k=_pqKind_(it);
-  if(k==='fill') return _pqFillQ_(it);            /* 穴あき英文＋和訳（紙用・§5b）。文ぜんぶの穴は記号を穴の外に出さない 2026-09-28 */
+  if(k==='fill') return _pqFillQ_(it)+(fsIsEnSubj_(it)?'　→ 文全体を書く':'');   /* 穴あき英文＋和訳（紙用・§5b）。文ぜんぶの穴は記号を穴の外に出さない 2026-09-28／英語は文全体を書く 2026-10-19 */
   if(k==='order')return _pqOrdAsk_(it);
   if(k==='listen')return '🔊 聞き取り（QRで音を聞いて、合うものを記号で）';
   if(k==='lisx')  return '🔊 '+_pqLisName_(it)+((String(it.qtype||'')==='listen_print')?'（QRで音を聞いて、合うものを番号で）':(String(it.qtype||'')==='listen_pic')?'（QRで音を聞いて、番号で）':'（QRで音を聞いて、合う返事を番号で）');   /* 4級の名前も fmt で（2026-10-07） */
   if(k==='ph')    return _pqPhLead_(it);
   if(k==='read')  return _pqRdQText_(it);          /* 読解＝質問の文（rq は英語・rc は日本語）2026-09-30 */
-  if(k==='dial')  return _pqDfIsWord_(it)?'（　）に入る語を線の上に書く（選択肢を見ないで書けたら◎）':'会話に合う英文を線の上に書く（選択肢を見ないで書けたら◎）';
+  if(k==='dial')  return (_pqDfIsWord_(it)?'（　）に語を入れて':'（　）に合う英文を入れて')+'、（　）がある人のセリフ全体を線の上に書く（選択肢を見ないで書けたら◎）';   /* 全文を書く 2026-10-19 */
   return fsIsEn_(it)?String(it.english||''):fsQText_(it.japanese);
 }
 /* 【2026-09-13j・段E】穴うめ・語順・表は、いままでの英語の向きと**逆**（english が答え）。
    ここを見ていなかったのが §3-4 の「am → I に続く be動詞」＝問題として意味をなさない紙の正体。 */
+/* ===== 穴埋めは全文を書く（2026-10-19 09:37 川上さん「やってください」）=====
+   仕上げプリントの英語の 文の穴埋め（fill）・会話の穴埋め（dial）は、（　）の語だけでなく文全体を4線に書く。
+   会話は（　）がある人のセリフだけ（相手のセリフは書かない）。答えの紙は全文を出し、（　）に入る部分を太字にする。
+   4線は半分の幅（約90mm）に手書きで約32字なので、全文が32字を超えたら2行、64字を超えたら3行。
+   ★_pq*（realtime.html と写しを合わせている関数）は変えない。仕上げプリントの関数（fs*）の中だけで直す */
+/* （　）の前・答え・うしろをつなぐ。原文の（　）の前後に空白が無い形（I（　）a student.）でも、語と語のあいだに空白を1つ入れる */
+function fsJoinHole_(b,a,f,toH){
+  b=String(b||'').replace(/\s+$/,''); f=String(f||'').replace(/^\s+/,''); a=String(a||'').trim();
+  var sp1=(b&&/[A-Za-z0-9,.!?'’]$/.test(b))?' ':'', sp2=(f&&/^[A-Za-z0-9]/.test(f))?' ':'';
+  var plain=(b+sp1+a+sp2+f).replace(/\s+/g,' ').trim();
+  var html=(esc(b)+sp1+'<b>'+esc(a)+'</b>'+sp2+esc(f)).replace(/\s+/g,' ').trim();
+  return {plain:plain, html:html};
+}
+function fsFullSent_(it){
+  var k=_pqKind_(it);
+  if(!fsIsEnSubj_(it)) return null;
+  if(k==='fill'){
+    var ans=_pqFillAns_(it), j=String(it.japanese||'');
+    if(_pqFillWholeP_(it)) return {plain:ans, html:'<b>'+esc(ans)+'</b>'};
+    var t=j.replace(/（\s*）/,'\u0001').split('　')[0];
+    if(t.indexOf('\u0001')<0||!/[A-Za-z]/.test(t)) return null;
+    var a=t.split('\u0001');
+    return fsJoinHole_(a[0],ans,a.slice(1).join(''));
+  }
+  if(k==='dial'){
+    var o=_pqDfOrder_(it); if(!o) return null;
+    var c=String((o.chs[0]||{}).en||it.english||'');
+    for(var i=0;i<o.lines.length;i++){
+      var en=String(o.lines[i].en||''); if(!_DF_HOLE_P_.test(en)) continue;
+      var ps=en.split(_DF_HOLE_P_), r=fsJoinHole_(ps[0],c,ps.slice(1).join(''));
+      r.sub=o.mark+'番'+(o.lines[i].ja?('　'+String(o.lines[i].ja).replace(/[（(]\s*[）)]/,String((o.chs[0]||{}).ja||'')||'')):''); return r;
+    }
+    return {plain:c, html:'<b>'+esc(c)+'</b>', sub:o.mark+'番'+((o.chs[0]||{}).ja?('　'+String(o.chs[0].ja)):'')};
+  }
+  return null;
+}
+function fsIsEnSubj_(it){ return String((it&&it.subject)||'english')==='english'; }
+function fsL4Lines_(it){ var f=fsFullSent_(it); var n=f?f.plain.length:0; return n>64?3:(n>32?2:1); }
 function fsAnswerOf_(it){
   var a=_pqAnswerOf_(it); if(a!=null) return a;
   return fsIsEn_(it)?String(it.japanese||''):String(it.english||'');
@@ -4272,8 +4315,10 @@ function fsQBodyHtml_(it,no,ctx,pos){
   /* 列と行を明示する（上の fsGridPos_ のコメントが理由）。
      図のかたまり（.fs-figblk）の中はグリッドではないので pos を渡さない＝付かない */
   var cs=(pos&&(pos.col===1||pos.col===2))?(' style="grid-column:'+pos.col+';grid-row:'+pos.row+'"'):'';
+  /* 【2026-10-19 09:31 川上さん OK・4線】英語を書く解答らん（穴埋め・並べかえ（英文を書く形）・会話の穴埋め）は練習プリントと同じ4線 .pp-l4 */
+  var _l4=(String(it&&it.subject||'english')==='english')&&(k==='fill'||k==='order'||k==='dial');
   return '<div class="fs-q"'+cs+'><div class="fs-n">'+no+'</div><div class="fs-b">'
-    +'<div class="fs-txt">'+esc(fsQuestionOf_(it))+'</div>'+ex+(_noLine?'':'<div class="fs-ansline"></div>')+'</div></div>';
+    +'<div class="fs-txt">'+esc(fsQuestionOf_(it))+'</div>'+ex+(_noLine?'':(_l4?new Array(((k==='fill'||k==='dial')?fsL4Lines_(it):1)+1).join('<span class="pp-l4 blk fs-l4"></span>'):'<div class="fs-ansline"></div>'))+'</div></div>';
 }
 /* 図の高さは「読み込めているか」に左右されないよう、mmで直接指定する。
    値は CSS の max-width:58mm / max-height（3問58・2問48・1問36mm）で決まる寸法をそのまま数値にしたものなので、
@@ -4336,13 +4381,16 @@ function fsAnsRowHtml_(it,no){
     kaiH=(_loc?('<div class="fs-rdloc"><span class="pq-rdlocl">答えのありか</span><span class="pq-rdloc">'+esc(_loc)+'</span></div>'):'')
       +(_qja?('<div>質問の意味：'+esc(_qja)+'</div>'):'')+(kai?('<div>'+esc(kai).replace(/\n/g,'<br>')+'</div>'):'');
   }
-  return '<tr><td class="fs-tn">'+no+'</td><td class="fs-ta">'+esc(fsAnswerOf_(it))+rd+'</td>'
+  var _fu=fsFullSent_(it);   /* 穴埋めの答え＝全文（（　）の部分は太字）。会話は番号と訳を下に小さく 2026-10-19 */
+  var _taH=_fu?('<span class="fs-full">'+_fu.html+'</span>'+(_fu.sub?('<div class="fs-tasub">'+esc(_fu.sub)+'</div>'):'')):esc(fsAnswerOf_(it));
+  return '<tr><td class="fs-tn">'+no+'</td><td class="fs-ta">'+_taH+rd+'</td>'
     +'<td>'+kaiH+'</td><td class="fs-mk"><span class="fs-mkbox"></span></td></tr>';
 }
 function fsAnsTableHtml_(rows){
   /* 列幅は colgroup で決める。table-layout:fixed は「最初の行」で列幅を決めるので、
      td に付けた width は効かない（4列が等分され、覚え方の欄が半分になる）2026-08-30 */
-  return '<table class="fs-atbl"><colgroup><col class="fs-c1"><col class="fs-c2"><col><col class="fs-c4"></colgroup>'
+  /* 全文で答える問題がある紙は「答え」の列を広げる（全文が何行にも折れて、覚え方の列が余るのを防ぐ 2026-10-19 川上さん「空欄が多く無駄」）*/
+  return '<table class="fs-atbl'+(/class="fs-full"/.test(rows)?' fs-wide':'')+'"><colgroup><col class="fs-c1"><col class="fs-c2"><col><col class="fs-c4"></colgroup>'
     +'<thead><tr><th>No</th><th>答え</th><th>覚え方</th><th>○×</th></tr></thead>'
     +'<tbody>'+rows+'</tbody></table>';
 }

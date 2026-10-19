@@ -2565,7 +2565,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-19e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-19f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3387,7 +3387,7 @@ function renderQuiz(){
         +'<div class="nbk-body"><div class="nbk-nm">'+_jaRubySubj_(gp.lab,subj)+'</div>' /* 一覧のふりがな＝英語と国語だけ 2026-09-11 */
         +'<div class="nbk-meta">'+subjTag+metaMid
         +((soloBook&&rdyb>0)?(' <span class="qrdy"><i class="ti ti-checkup-list"></i>そろそろテスト '+rdyb+'</span>'):'')+'</div>'
-        +'<div class="nbk-bar"><i style="width:'+pct+'%"></i></div></div>'
+        +_qBookD1_(pas,tot,rdyb)+'</div>'   /* 細い青のバー → D1 の1行（✓合格 N ─ そろそろ N ─ トロフィー）2026-10-19 川上さん「おすすめでOK」 */
         +'<i class="ti ti-chevron-down nbk-arw"></i></div>'
         +'<div class="nbk-detail">';
       gp.items.forEach(function(g){
@@ -4110,6 +4110,16 @@ function _m1BookD1_(items){
   if(pas>0)nodes.push({cls:'done',ic:'ti-check',t:(pas===tot?rb('全部','ぜんぶ'):(one?(pas===1?'1':'1〜'+pas):(pas+rb('個','こ'))))});
   if(cur&&pas<tot)nodes.push({cls:'now',ic:'ti-player-play',t:'<b>'+cur+'</b>',v:0});
   if(one){var f=Math.floor((pas+1)/10+1)*10,k=0;while(f<tot&&k<2){nodes.push({cls:'',ic:'ti-flag',t:String(f)});f+=10;k++;}}
+  nodes.push({cls:pas===tot?'done':'goal',ic:'ti-trophy'});
+  return '<div class="nbk-d1">'+_d1Html_(nodes,0)+'</div>';
+}
+/* 確認テストの本の行の進み＝D1 の1行。済み＝合格した数・今＝「そろそろテスト」の数（あるときだけ）・最後＝トロフィー（全部合格で金）。
+   練習の本の行（_m1BookD1_）と同じ形にそろえる。数えているものが違うので名前は「合格」「そろそろ」 2026-10-19 */
+function _qBookD1_(pas,tot,rdy){
+  if(!tot)return '';
+  var nodes=[];
+  if(pas>0)nodes.push({cls:'done',ic:'ti-check',t:(pas===tot?rb('全部','ぜんぶ')+rb('合格','ごうかく'):rb('合格','ごうかく')+' '+pas)});
+  if(rdy>0&&pas<tot)nodes.push({cls:'now',ic:'ti-checkup-list',t:'そろそろ <b>'+rdy+'</b>',v:0});
   nodes.push({cls:pas===tot?'done':'goal',ic:'ti-trophy'});
   return '<div class="nbk-d1">'+_d1Html_(nodes,0)+'</div>';
 }
