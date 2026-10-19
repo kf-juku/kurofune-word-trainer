@@ -6648,7 +6648,7 @@ var _mpMid='';
 /* ===== 単元ワークシート（数学）のプレビュー 2026-10-17 段③ =====
    教材のプレビューで、ワークシートの教材だけは生徒の画面と同じ ws_app.js で出す（モックのプレビューのバー＝◀ ▶・答え・解説を出す）。
    数式（KaTeX）・図（math_fig.js）は初めて開いたときだけ読む。問題はシートで直さない（要件定義書 2026-10-16 21:04）ので、ここでは直す欄を出さない。 */
-var WS_LIB_V='20261019e',_wsLibP=null;
+var WS_LIB_V='20261019g',_wsLibP=null;
 function _wsLoadLibs_(){
   if(_wsLibP)return _wsLibP;
   var cssP=new Promise(function(ok){var l=document.querySelector('link[data-ws="katex"]');if(l){ok();return;}l=document.createElement('link');l.rel='stylesheet';l.href='ws/katex/katex.min.css';l.setAttribute('data-ws','katex');l.onload=function(){ok();};l.onerror=function(){ok();};document.head.appendChild(l);})
@@ -11619,7 +11619,7 @@ function _ppWsPrep_(mid,pid){
     var hide=document.getElementById('ppWsHide');if(!hide){hide=document.createElement('div');hide.id='ppWsHide';hide.style.cssText='position:absolute;left:-99999px;top:0;width:1000px;height:10px;overflow:hidden;';document.body.appendChild(hide);}
     var root=document.createElement('div');hide.appendChild(root); /* テストごとに1つずつ置く（章まとめテスト） */
     var api=wsMount(root,D,{katexCss:'ws/katex/katex.min.css'});
-    if(!document.getElementById('wsPaperCss')){var st=document.createElement('style');st.id='wsPaperCss';st.textContent=(window.WS_PAPER_CSS||'')+'.wsp .qr svg.fs-qr{width:21mm;height:21mm;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp .qr{display:block;text-align:center}.wsp .qr svg.fs-qr{margin:1.3mm auto 0}.wsp .qr .wsqr-cd{margin-top:.3mm}.wsp .wsqr-cd{font-size:9pt;letter-spacing:.06em;line-height:1}'+'.pp-pg.wsp-pg{width:190mm;height:293mm;page:wsp;break-inside:avoid;overflow:visible}.wsp-pg .pp-body{overflow:visible}.wsp-pg .pp-body *{page:auto!important;break-before:auto!important;break-after:auto!important;page-break-before:auto!important;page-break-after:auto!important}.wsp-pg .wsp-var{position:absolute;right:0;bottom:.5mm;width:8.5mm;height:8.5mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp-pg .wsp-band{position:relative;flex:0 0 12mm;display:flex;align-items:flex-end;font-size:9pt;line-height:1.2;color:#333;padding-bottom:2mm;font-family:"Noto Sans JP","Yu Gothic",sans-serif}.wsp-pg .pp-body{flex:0 0 272mm;height:272mm;display:block;column-gap:0}.wsp-pg .pp-ft{flex:0 0 9mm;align-items:center;font-size:9pt;color:#333}@page wsp{size:A4 portrait;margin:0 10mm;@bottom-center{content:none}}@media print{@page wsp{size:A4 portrait;margin:0 10mm;@bottom-center{content:none}}}';document.head.appendChild(st);}
+    if(!document.getElementById('wsPaperCss')){var st=document.createElement('style');st.id='wsPaperCss';st.textContent=(window.WS_PAPER_CSS||'')+'.wsp .qr svg.fs-qr{width:21mm;height:21mm;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp .qr{display:block;text-align:center}.wsp .qr svg.fs-qr{margin:1.3mm auto 0}.wsp .qr .wsqr-cd{margin-top:.3mm}.wsp .wsqr-cd{font-size:9pt;letter-spacing:.06em;line-height:1}'+'.pp-pg.wsp-pg{width:190mm;height:293mm;page:wsp;break-inside:avoid;overflow:visible}.wsp-pg .pp-body{overflow:visible}.wsp-pg .pp-body *{page:auto!important;break-before:auto!important;break-after:auto!important;page-break-before:auto!important;page-break-after:auto!important}.wsp-pg .wsp-rng{position:absolute;right:10.5mm;bottom:.5mm;height:8.5mm;line-height:8.5mm;font-size:17pt;font-weight:800;letter-spacing:.02em;color:#111;white-space:nowrap}.wsp-pg .wsp-var{position:absolute;right:0;bottom:.5mm;width:8.5mm;height:8.5mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp-pg .wsp-band{position:relative;flex:0 0 12mm;display:flex;align-items:flex-end;font-size:9pt;line-height:1.2;color:#333;padding-bottom:2mm;font-family:"Noto Sans JP","Yu Gothic",sans-serif}.wsp-pg .pp-body{flex:0 0 272mm;height:272mm;display:block;column-gap:0}.wsp-pg .pp-ft{flex:0 0 9mm;align-items:center;font-size:9pt;color:#333}@page wsp{size:A4 portrait;margin:0 10mm;@bottom-center{content:none}}@media print{@page wsp{size:A4 portrait;margin:0 10mm;@bottom-center{content:none}}}';document.head.appendChild(st);}
     if(!pid&&_ppWs.mid===mid)_ppWs.api=api;return api;});
   if(pid){_ppWsMap[mid+'|'+pid]=pr;pr.catch(function(){delete _ppWsMap[mid+'|'+pid];});return pr;}
   _ppWs.p=pr;pr.catch(function(){if(_ppWs.p===pr)_ppWs={mid:'',p:null,api:null};});
@@ -11743,14 +11743,14 @@ function _ppWsLayout_(api,kind,picked,xp,xref){
   pages.forEach(function(p){var sh=null;for(var i=0;i<leaves.length;i++){if(leaves[i].pg===pages.indexOf(p)){sh=leaves[i].path[0];break;}}
     p.el.firstChild.textContent=sh?api.paperBand(sh):'';p.el.setAttribute('data-lab',sh&&sh.getAttribute('data-sel')==='ansheet'?'解答用紙':(isA?'解答解説':'問題用紙'));
     /* テストの A・B・C を全ページの右上の角に大きく（2026-10-19 18:04 川上さん「ABCまじで見間違える。紙のとき」→ 案1）。A＝丸・B＝四角・C＝三角。形でも分かるようにする。SVG にしたのは PDF（html2canvas）でも同じ形で出るため */
-    var vk=sh&&/^(test|ansheet)$/.test(sh.getAttribute('data-sel')||'')&&String(p.el.firstChild.textContent).match(/）([A-C])$/);
-    if(vk)p.el.firstChild.insertAdjacentHTML('beforeend',_wsVarMark_(vk[1]));});
+    var vk=sh&&/^(test|ansheet)$/.test(sh.getAttribute('data-sel')||'')&&String(p.el.firstChild.textContent).match(/（([^）]*)）([A-C])$/);
+    if(vk)p.el.firstChild.insertAdjacentHTML('beforeend','<span class="wsp-rng">'+esc(vk[1])+'</span>'+_wsVarMark_(vk[2]));});   /* 範囲（①〜③・④・⑤）も角に大きく（2026-10-19 18:53 川上さん 案1） */
   meas.removeChild(src);
   var tot=pages.length;pages.forEach(function(p,i){var f=p.el.querySelector('.pp-ft');if(f)f.textContent=p.el.getAttribute('data-lab')+' '+(i+1)+'／'+tot;});
   return {meas:meas,tot:tot};
 }
 function _wsVarMark_(v){var sh=v==='A'?'<circle cx="50" cy="50" r="48"/>':v==='B'?'<rect x="3" y="3" width="94" height="94" rx="10"/>':'<polygon points="50,2 98,96 2,96"/>';
-  return '<svg class="wsp-var" viewBox="0 0 100 100" aria-label="'+v+'">'+sh.replace('/>',' fill="#111"/>')+'<text x="50" y="'+(v==='C'?78:68)+'" text-anchor="middle" font-size="'+(v==='C'?44:54)+'" font-weight="800" fill="#fff" font-family="Noto Sans JP,Yu Gothic,sans-serif">'+v+'</text></svg>';}
+  return '<svg class="wsp-var" viewBox="0 0 100 100" aria-label="'+v+'">'+sh.replace('/>',' fill="#111"/>')+'<text x="50" y="'+(v==='C'?88:68)+'" text-anchor="middle" font-size="'+(v==='C'?52:54)+'" font-weight="800" fill="#fff" font-family="Noto Sans JP,Yu Gothic,sans-serif">'+v+'</text></svg>';}
 /* 解答用紙の QR の番号（kwtGAS.gs の wsCodeOf_ と同じ計算）。part_id → 「W1-2345」 */
 function _wsCode_(pid){var s=String(pid||''),h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}var t=String(Math.floor(h/9)%10000);while(t.length<4)t='0'+t;return 'W'+(1+h%9)+'-'+t;}
 function _ppWsMake_(mid,how,fin){
