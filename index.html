@@ -1439,7 +1439,7 @@
 .shw-q{font-size:16px;line-height:1.8;}.shw-q b{font-size:20px;}
 .shw-me{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px 0 16px;}.shw-av{width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;}.shw-nm{font-size:24px;font-weight:800;}
 .shw-yn{display:flex;flex-direction:column;gap:10px;}.shw-yn .btn{padding:14px 12px;font-size:17px;}
-.shw-q{font-weight:800;font-size:16px;margin:4px 0 10px;}.shw-go{display:grid;grid-template-columns:1fr 1fr;gap:10px;}.shw-c{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px 12px;border:2px solid var(--line);border-radius:14px;background:var(--surface);color:inherit;font-family:inherit;cursor:pointer;text-align:center;}.shw-c:active{transform:scale(.98);}.shw-c .ti{font-size:30px;color:var(--accent);}.shw-c b{font-size:16px;color:var(--accent);}.shw-c small{font-size:11.5px;color:var(--sub);line-height:1.5;flex:1;}.shw-c .shw-act{margin-top:6px;display:block;width:100%;box-sizing:border-box;padding:9px 4px;border-radius:10px;background:var(--accent);color:#fff;font-weight:800;font-size:14px;}
+.shw-ask{font-weight:800;font-size:16px;margin:4px 0 10px;}.shw-go{display:grid;grid-template-columns:1fr 1fr;gap:10px;}.shw-c{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px 12px;border:2px solid var(--line);border-radius:14px;background:var(--surface);color:inherit;font-family:inherit;cursor:pointer;text-align:center;}.shw-c:active{transform:scale(.98);}.shw-c .ti{font-size:30px;color:var(--accent);}.shw-c b{font-size:16px;color:var(--accent);}.shw-c small{font-size:11.5px;color:var(--sub);line-height:1.5;flex:1;}.shw-c .shw-act{margin-top:6px;display:block;width:100%;box-sizing:border-box;padding:9px 4px;border-radius:10px;background:var(--accent);color:#fff;font-weight:800;font-size:14px;}
 /* 聞き取りのある紙（段7・2026-09-14）。順番をまちがえると解けないので、いちばん上で目立たせる */
 .sh-lis-lead{font-size:13px;line-height:1.8;color:#1f56b0;background:#eef4ff;border:1px solid #bcd7f7;
              border-radius:12px;padding:10px 12px;margin-bottom:10px;}
@@ -2566,7 +2566,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-19o"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-19p"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -2977,7 +2977,7 @@ function shWsChoose_(w,ok){
   if(!ok){ shAccAsk_(w.code,top,function(){shWsChoose_(w,true);}); return; }
   host.innerHTML=top+'<div class="shw-who"><i class="ti ti-user"></i> <b>'+(nm?esc(nm):'')+'</b>'+(nm?'さんとして':'')+rb('記録','きろく')+'します。</div>'
     /* どちらかを選ぶ画面だと分かるように、問いかけ＋同じ形のボタン2つを横に並べる（2026-10-19 19:03〜19:06 川上さん：配置は案A・ボタンの文字は「採点する」「結果を入力する」） */
-    +'<div class="shw-q">'+rb('答','こた')+'え'+rb('合','あ')+'わせのしかたを'+rb('選','えら')+'ぶ</div>'
+    +'<div class="shw-ask">'+rb('答','こた')+'え'+rb('合','あ')+'わせのしかたを'+rb('選','えら')+'ぶ</div>'
     +'<div class="shw-go"><button type="button" class="shw-c" id="shw-sym"><i class="ti ti-pencil"></i><b>'+rb('自動採点','じどうさいてん')+'</b><small>'+rb('解答用紙','かいとうようし')+'に'+rb('書','か')+'いた'+rb('記号','きごう')+'を'+rb('入','い')+'れる</small><span class="shw-act">'+rb('採点','さいてん')+'する</span></button>'
     +'<button type="button" class="shw-c" id="shw-ox"><i class="ti ti-circle-check"></i><b>○×'+rb('入力','にゅうりょく')+'</b><small>'+rb('丸付','まるつ')+'けが'+rb('終','お')+'わった'+rb('紙','かみ')+'の○×を'+rb('入','い')+'れる</small><span class="shw-act">'+rb('結果','けっか')+'を'+rb('入力','にゅうりょく')+'する</span></button></div>';
   host.style.display='block';
