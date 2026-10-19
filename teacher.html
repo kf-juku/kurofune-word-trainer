@@ -11828,7 +11828,10 @@ function _ppMakeMulti_(how){
   var fin=function(msg){_ppBusy=false;for(var j=0;j<btns.length;j++)btns[j].disabled=false;if(msg!=null)$('ppStat').textContent=msg;};
   var knm=kind==='a'?'解答解説':(kind==='s'?'解答用紙':'問題用紙'),groups=[];
   /* 組の印（2026-10-19 川上さん 14:51）：選んだ教材・範囲・英単語の向きから作る3文字。問題用紙と解答解説の下に刷り、同じ選び方で刷ったか紙で分かる */
-  var sig=(function(){var t=JSON.stringify(sel.map(function(mid){var pk=_ppPickedOf_(mid);return [mid,pk?Object.keys(pk).sort():'*'];}).concat([dir]));var h=2166136261;for(var i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return (h%46656).toString(36).toUpperCase();})();
+  /* 範囲がまだ読み込み中（＝全部）と、全部にチェックは同じ印にする（読み込みの途中で押しても、あとで押しても同じ紙なので） */
+  var sig=(function(){var t=JSON.stringify(sel.map(function(mid){var sec=$('ppParts').querySelector('.pp-msec[data-mid="'+mid+'"]')||(_ppSel.length===1?$('ppParts'):null);
+      var cs=sec?[].slice.call(sec.querySelectorAll('.pp-ptc')):[],on=cs.filter(function(c){return c.checked;});
+      return [mid,(!cs.length||on.length===cs.length)?'*':on.map(function(c){return c.value;}).sort()];}).concat([dir]));var h=2166136261;for(var i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return (h%46656).toString(36).toUpperCase();})();
   while(sig.length<3)sig='0'+sig;
   var build=function(kd,xref,label){var gs=[],k=0;var step=function(){if(k>=sel.length)return Promise.resolve(gs);var mid=sel[k];$('ppStat').textContent=label+(k+1)+'／'+sel.length+' 教材を組んでいます…';
     return _ppPagesOf_(mid,kd,dir,xref).then(function(pgs){if(pgs.length)gs.push({mid:mid,pages:pgs});k++;return step();});};return step();};

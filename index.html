@@ -1807,6 +1807,7 @@ mark.lx-mk{background:#fff3c4;color:var(--ink);border-radius:3px;padding:0 2px;}
   .ro-chip.ng{background:rgba(224,83,60,.14);color:var(--ng);cursor:default;}
   .ro-chip.okc{background:rgba(31,170,107,.14);color:var(--ok);cursor:default;}
   .ro-chip.ghost{position:fixed;pointer-events:none;z-index:99;box-shadow:0 10px 26px rgba(10,108,255,.28);transform:scale(1.06);opacity:.96;cursor:grabbing;}
+.ro-chip.ghost.out{opacity:.55;transform:scale(.94);box-shadow:none;}.ro-chip.leaving{opacity:.25;}
   .ro-slots.shake{animation:shake .3s;}
   .ro-hint{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--sub);font-size:12px;margin:-4px 0 12px;}
   /* 1語不要の知らせ。設問文の右に小さく出す（2026-09-22・教材の正 §0c 決まり2） */
@@ -2565,7 +2566,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-19g"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-19i"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4719,6 +4720,7 @@ function _wsPartSet_(pid,o){_wsMats.forEach(function(c){(c.parts||[]).forEach(fu
 /* パートができた・テストに合格した＝単元別・確認テストの合格と同じ音・光・紙吹雪（sndWin・flash・confetti(120)）2026-10-18 04:22 川上さん「同じ仕組みは揃える」 */
 function _wsCele_(){try{sndWin();flash();confetti(120);}catch(e){}}
 function _wsTestSend_(body){var q=_sqAdd_(body);_wsTq=_wsTq.then(function(){return call(body).then(function(d){if(!d||!d.ok){if(_sqGiveUp_(d))_sqDel_(q);return d;}_sqDel_(q);homeCacheClear_();return d;});});return _wsTq;}
+function _wsPlainTex_(t){return String(t||'').replace(/\\\(|\\\)/g,'').replace(/\\[a-zA-Z]+\s*/g,'').replace(/\s+/g,' ').trim();}
 function _wsIsTestT_(t){return /まとめテスト/.test(String(t||''));}
 function _wsRange_(t){return String(t||'').replace(/\s*[A-ZＡ-Ｚ]\s*$/,'');}
 function _wsVer_(t){var m=String(t||'').match(/([A-ZＡ-Ｚ])\s*$/);return m?m[1]:'';}
@@ -4739,21 +4741,33 @@ function renderWsZone_(materials){
     var subj=_subjGuess_(g.items[0])||'math';
     var units=g.items.filter(function(c){return !(c.parts||[]).every(function(l){return _wsIsTestT_(l.title);});});
     var uDone=0,rows='',rdyN=0;
+    /* 2026-10-19 川上さん「他の教材に合わせて」：単元別と同じ形（.qchw → .nchap → .nqparts → .nqp）。
+       行の → ＝次にやるパートへ直接入る（ws_app の opt.startPid）。右の矢印＝その場でパートの一覧を開く。パートの行を押すと、そのパートへ直接入る */
+    var _co=_unitChapOpenGet_();
+    var nqp=function(mid,pid,nm,sub,st,done,ttl){return '<div class="nqp" data-wsm="'+esc(String(mid))+'" data-wsp="'+esc(String(pid))+'" data-wst="'+esc(ttl)+'"><div class="nqp-nm">'+nm+(sub?' <small>'+sub+'</small>':'')+'</div>'+st+(done?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';};
+    var tagDone=function(t){return '<span class="utag done"><i class="ti ti-circle-check"></i>'+t+'</span>';};
+    var tagYet=function(t){return '<span class="utag"><i class="ti ti-player-play"></i>'+(t||'まだ')+'</span>';};
+    var arw='<i class="ti ti-chevron-down ncf-arw" data-utog="1" role="button" tabindex="0" aria-label="パートの一覧をひらく" style="padding:7px;margin:-7px -3px;"></i>';
     g.items.forEach(function(c){
-      var ps=c.parts||[];
+      var ps=(c.parts||[]).slice().sort(function(a,b){return (a.part_order||0)-(b.part_order||0);});
       var isCt=ps.length&&ps.every(function(l){return _wsIsTestT_(l.title);});
+      var uck='W:'+String(c.material_id);
       if(isCt){
-        /* 章まとめテスト：範囲ごとに1行（A・B・C は別々のテスト）。押すと、まだ合格していない一番前の版を開く */
+        /* 章まとめテスト：範囲ごとに1行（右の → ＝次に受ける版のテストへ直接）。開くと A・B・C の行 */
         var rg=[],rm={};
-        ps.slice().sort(function(a,b){return (a.part_order||0)-(b.part_order||0);}).forEach(function(l){var k=_wsRange_(l.title);if(!rm[k]){rm[k]={name:k,ps:[]};rg.push(rm[k]);}rm[k].ps.push(l);});
+        ps.forEach(function(l){var k=_wsRange_(l.title);if(!rm[k]){rm[k]={name:k,ps:[]};rg.push(rm[k]);}rm[k].ps.push(l);});
         rg.forEach(function(r){
-          /* 段④：A・B・C の点を別々に出し、範囲の「合格」は1つ（E-38）。右は確認テストと同じ形（合格＝緑・受ける＝青の塗り／枠／点線） */
           var inf=_wsRangeInfo_(r,g.items);if(inf.st==='go')rdyN++;
           var sc=r.ps.filter(function(l){return l.attempted&&l.latest_rate!=null;}).map(function(l){return _wsVer_(l.title)+' '+l.latest_rate+'点';}).join('・');
           var sm=inf.pass?(_wsVer_(inf.pass.title)+' で'+_nvRuby_('合格(ごうかく)',true)+(sc?'（'+sc+'）':'')):(sc?(sc+(inf.fix?' ・ '+_nvRuby_('直(なお)しの途中(とちゅう)',true):' → '+_nvRuby_('次(つぎ)は',true)+' '+_wsVer_(inf.nx.title))):(_nvRuby_('まだ受(う)けていない',true)+'（'+_wsVer_(r.ps[0].title)+' から）'));
-          var tgt=(inf.pass||inf.nx||r.ps[0]).part_id;
-          var rt=inf.pass?'<span class="qst"><span class="qp qp-ok">'+_nvRuby_('合格(ごうかく)',true)+'</span></span>':_wsPill_(inf.st,_nvRuby_('受(う)ける',true)+' '+_wsVer_(inf.nx.title));
-          rows+='<div class="qchw"><div class="nchap ws-ct" data-wsm="'+esc(String(c.material_id))+'" data-wsp="'+esc(String(tgt))+'" data-wst="'+esc(r.name)+'"><div class="ncf-nm"><i class="ti ti-checkup-list" style="color:var(--quiz)"></i> '+esc(r.name)+'<small>'+sm+'</small></div>'+rt+'</div></div>';
+          var tgt=(inf.pass||inf.nx||r.ps[0]).part_id,rk=uck+':'+r.name;
+          rows+='<div class="qchw'+(_co.indexOf(rk)>=0?' open':'')+'" data-uck="'+esc(rk)+'"><div class="nchap ws-ct'+(inf.pass?' done':'')+'" data-wsm="'+esc(String(c.material_id))+'" data-wsp="'+esc(String(tgt))+'" data-wst="'+esc(r.name)+'"><div class="ncf-nm"><i class="ti ti-checkup-list" style="color:var(--quiz)"></i> '+esc(r.name)+'<small>'+sm+'</small></div>'
+            +(inf.pass?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+arw+'</div><div class="nqparts">';
+          r.ps.forEach(function(l){
+            var st=l.passed?tagDone(_nvRuby_('合格(ごうかく)',true)+(l.latest_rate!=null?' '+l.latest_rate+'点':'')):tagYet(l.attempted&&l.latest_rate!=null?l.latest_rate+'点':'');
+            rows+=nqp(c.material_id,l.part_id,esc(_wsVer_(l.title)||l.title),'',st,false,r.name);
+          });
+          rows+='</div></div>';
         });
         return;
       }
@@ -4763,8 +4777,28 @@ function renderWsZone_(materials){
       var urd=tp?_wsUnitReady_(c):'';if(urd==='go')rdyN++;
       var sm2=_nvRuby_('パート',true)+' '+d+'/'+n+(d?' できた':'')+(tp?' ・ '+_nvRuby_('単元(たんげん)まとめテスト',true)+' '+(tPass?_nvRuby_('合格(ごうかく)',true):(tp.attempted&&tp.latest_rate!=null?tp.latest_rate+'点':'まだ')):'')
         +(urd==='go'?' <span class="qrdy"><i class="ti ti-checkup-list"></i>そろそろテスト</span>':'');
-      rows+='<div class="qchw"><div class="nchap ws-open'+(done?' done':'')+'" data-wsm="'+esc(String(c.material_id))+'" data-wst="'+esc(mtShortMt(c))+'"><div class="ncf-nm">'+esc(mtShortMt(c))+'<small>'+sm2+'</small></div>'
-        +(done?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div></div>';
+      /* 次にやるパート＝ ws_app を開いたときと同じ選び方（③もっと練習は飛ばす・全部できたらテスト） */
+      var nx=pr.filter(function(l){return !l.passed&&!/Exercise＋\s*$/.test(String(l.title||''));})[0]||(tp&&!tPass?tp:null);
+      var ttl=mtShortMt(c);
+      rows+='<div class="qchw'+(_co.indexOf(uck)>=0?' open':'')+'" data-uck="'+esc(uck)+'"><div class="nchap ws-open'+(done?' done':'')+'" data-wsm="'+esc(String(c.material_id))+'"'+(nx?' data-wsp="'+esc(String(nx.part_id))+'" data-wsd="1"':'')+' data-wst="'+esc(ttl)+'"><div class="ncf-nm">'+esc(ttl)+'<small>'+sm2+'</small></div>'
+        +(done?'<span class="ncf-done"><i class="ti ti-circle-check"></i></span>':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+(ps.length?arw:'')+'</div><div class="nqparts">';
+      /* パートの並び：復習パート → パターンごと（見出し＋①学ぶ ②練習 ③もっと練習）→ 単元まとめテスト */
+      var gPrev='';
+      ps.forEach(function(l){
+        var t=String(l.title||'');
+        if(_wsIsTestT_(t)){
+          var st0=l.passed?tagDone(_nvRuby_('合格(ごうかく)',true)):tagYet(l.attempted&&l.latest_rate!=null?l.latest_rate+'点':'');
+          rows+=nqp(c.material_id,l.part_id,'<i class="ti ti-checkup-list" style="color:var(--quiz)"></i> '+_nvRuby_('単元(たんげん)まとめテスト',true),'',st0,!!l.passed,ttl);return;}
+        var m=t.match(/^パターン\s*(\d+)\s+(.*?)\s+(Point・WarmUp・Try|Exercise＋|Exercise)\s*$/);
+        var st=l.passed?tagDone('できた'):tagYet('');
+        if(!m){rows+=nqp(c.material_id,l.part_id,_nvRuby_(/^復習パート/.test(t)?'復習(ふくしゅう)パート':esc(t),true),'',st,!!l.passed,ttl);return;}
+        if(m[1]!==gPrev){gPrev=m[1];
+          var gs=ps.filter(function(x){var mm=String(x.title||'').match(/^パターン\s*(\d+)\s/);return mm&&mm[1]===m[1]&&!/Exercise＋\s*$/.test(String(x.title||''));}),gp=gs.filter(function(x){return x.passed;}).length;
+          rows+='<div class="nqg"><span class="nqg-no">パターン'+esc(m[1])+'</span><span class="nqg-nm">'+esc(_wsPlainTex_(m[2]))+'</span><span class="nqg-cnt">できた '+gp+'/'+gs.length+'</span></div>';}
+        var R=m[3]==='Exercise'?['② ',_nvRuby_('練習(れんしゅう)',true)]:m[3]==='Exercise＋'?['③ ',_nvRuby_('もっと練習(れんしゅう)',true)]:['① ',_nvRuby_('学(まな)ぶ',true)];
+        rows+=nqp(c.material_id,l.part_id,R[0]+R[1],esc(m[3]),st,!!l.passed,ttl);
+      });
+      rows+='</div></div>';
     });
     var U=units.length,pct=U?Math.round(uDone/U*100):0;
     var book=document.createElement('div');book.className='nbook unitbook wsbook'+(U&&uDone===U?' done':'');
@@ -4775,7 +4809,13 @@ function renderWsZone_(materials){
       +'<div class="nbk-detail">'+rows+'</div>';
     if(_open.indexOf('W:'+g.key)>=0||groups.length===1)book.classList.add('open');
     book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_unitOpenToggle_('W:'+g.key,book.classList.contains('open'));};
-    book.querySelectorAll('.nchap').forEach(function(row){row.onclick=function(){var p=row.getAttribute('data-wsp');openWs_(row.getAttribute('data-wsm'),p?[p]:null,row.getAttribute('data-wst'));};});
+    /* 行の → ・パートの行：そのパートへ直接入る（startPid）。章まとめテストは、そのテスト1つだけを開く＝開始画面から。全部できた単元の行は、今までどおり一覧から */
+    var go=function(el){var m=el.getAttribute('data-wsm'),p=el.getAttribute('data-wsp'),t=el.getAttribute('data-wst'),ct=el.closest('.qchw')&&el.closest('.qchw').querySelector('.ws-ct');
+      if(!p){openWs_(m,null,t);return;}openWs_(m,ct?[p]:null,t,{startPid:p});};
+    book.querySelectorAll('.nchap').forEach(function(row){row.onclick=function(){go(row);};});
+    book.querySelectorAll('.qchw').forEach(function(w){var uk=w.getAttribute('data-uck'),a2=w.querySelector('.ncf-arw[data-utog="1"]');
+      if(a2)a2.onclick=function(ev){ev.stopPropagation();w.classList.toggle('open');_unitChapOpenToggle_(uk,w.classList.contains('open'));};
+      w.querySelectorAll('.nqp').forEach(function(pr2){pr2.onclick=function(ev){ev.stopPropagation();go(pr2);};});});
     host.appendChild(book);
   });
 }
@@ -4841,10 +4881,10 @@ function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
   $('ws-ttl').textContent=title||'';
   host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
-  ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;try{comboBreak_();}catch(e){}
+  ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;_wsDirect=!!(xo&&xo.startPid&&!xo.preview);try{comboBreak_();}catch(e){}
   Promise.all([_wsLoadLibs_(),call({action:'ws_unit',material_id:mid})]).then(function(r){
     var d=r[1];
-    if(!d||!d.ok||!d.data){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+(d&&d.error?esc(d.error):_NET_NG_MSG_)+'<br><button class="btn sub" style="margin-top:8px" id="ws-retry">'+_nvRuby_('もう一度(いちど)よみこむ',true)+'</button></div></div>';var rb=$('ws-retry');if(rb)rb.onclick=function(){openWs_(mid,pids,title);};return;}
+    if(!d||!d.ok||!d.data){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+(d&&d.error?esc(d.error):_NET_NG_MSG_)+'<br><button class="btn sub" style="margin-top:8px" id="ws-retry">'+_nvRuby_('もう一度(いちど)よみこむ',true)+'</button></div></div>';var rb=$('ws-retry');if(rb)rb.onclick=function(){openWs_(mid,pids,title,xo);};return;}
     var D0=d.data,parts=D0.parts||[];
     if(pids&&pids.length)parts=parts.filter(function(p){return pids.indexOf(String(p.id))>=0;});
     var U=wsBuildUnit(D0.material,parts,D0.words||[]);
@@ -4853,7 +4893,7 @@ function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（
     host.innerHTML='';var root=document.createElement('div');root.className='ws-root';host.appendChild(root);
     var rkey='kwtws_res_'+((typeof token!=='undefined'&&token)?_hash32_(token):'anon')+'_'+mid+(pids&&pids.length?'_'+pids.join('_'):'');
     if(xo&&xo.preview){_wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',preview:true,startPid:xo.startPid||'',dark:_wsDark_()});root.style.paddingBottom='70px';return;}
-    _wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',live:true,paper:(xo&&xo.paper)||'',shuffle:true,innerBack:false,dark:_wsDark_(),resumeKey:rkey,capMs:180000,/* 数学は計算に時間がかかるので1問3分まで数える（川上さん 2026-10-18 00:07）*/
+    _wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',live:true,paper:(xo&&xo.paper)||'',startPid:(xo&&xo.startPid)||'',shuffle:true,innerBack:false,dark:_wsDark_(),resumeKey:rkey,capMs:180000,/* 数学は計算に時間がかかるので1問3分まで数える（川上さん 2026-10-18 00:07）*/
       done:function(pid){return !!_wsDone[String(pid)];},
       onStart:function(pid){_wsLP={pid:String(pid),mid:mid,n:0,cor:0,miss:0};try{call({action:'activity_start',part_id:pid});}catch(e){}},
       onPartDone:function(pid,rec){_wsDone[String(pid)]=1;_wsSend_(pid,rec);_wsCele_();},
@@ -4897,7 +4937,8 @@ function closeWs_(){
   if(_wsSent){_wsSent=0;try{loadHomeData_(false);}catch(e){}}
 }
 /* 上の［← 戻る］：スマホの幅で問題を開いているときはパートの一覧へ。それ以外はタブに戻る */
-function wsBack_(){if(_wsApi&&_wsApi.mv&&_wsApi.mv()==='q'&&window.innerWidth<=760){_wsApi.goList();var h=$('ws-host');if(h)h.scrollTop=0;return;}closeWs_();}
+var _wsDirect=false; /* 一覧のパートの行から直接入った＝［戻る］でタブの一覧へ戻る（ws_app の中の一覧は出さない）2026-10-19 */
+function wsBack_(){if(!_wsDirect&&_wsApi&&_wsApi.mv&&_wsApi.mv()==='q'&&window.innerWidth<=760){_wsApi.goList();var h=$('ws-host');if(h)h.scrollTop=0;return;}closeWs_();}
 /* 間違いノート＝しきい値以上たまったときだけ nudge を出す */
 function renderNoteNudge_(totalN){
   var wrap=$('note-nudge-wrap');if(!wrap)return;
@@ -7923,7 +7964,7 @@ function renderRO_(s,w,q,pl){
      +'<path d="M10 5.5C14 1.5 38 1.5 42 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'
      +'<path d="M7.2 3.2L10 5.8L12.9 3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
      +'<path d="M39.1 3.6L42 5.8L44.8 3.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
-   +'</svg><span>ドラッグで<ruby>入<rt class="uf">い</rt></ruby>れ<ruby>替<rt class="uf">か</rt></ruby>え</span></div>'
+   +'</svg><span>ドラッグで<ruby>入<rt class="uf">い</rt></ruby>れ<ruby>替<rt class="uf">か</rt></ruby>え・<ruby>枠<rt class="uf">わく</rt></ruby>の<ruby>外<rt class="uf">そと</rt></ruby>へ<ruby>出<rt class="uf">だ</rt></ruby>すと<ruby>外<rt class="uf">はず</rt></ruby>れる</span></div>'
    +'<div class="ro-bank" id="ro-bank"></div>';
   var btn=document.createElement('button');btn.type='button';btn.className='btn ro-go';btn.style.marginTop='12px';btn.disabled=true;
   btn.innerHTML='<i class="ti ti-check"></i> <span>これでいい</span>';
@@ -7967,7 +8008,7 @@ function renderRO_(s,w,q,pl){
     chip.classList.add('dragging');
     var snap=[].map.call($('ro-slots').querySelectorAll('.ro-chip'),function(c){
       var b=c.getBoundingClientRect();return {x:b.left+b.width/2,y:b.top+b.height/2};});
-    drag={chip:chip,ghost:ghost,snap:snap,dx:e.clientX-r.left,dy:e.clientY-r.top,x0:e.clientX,y0:e.clientY,moved:false};
+    drag={chip:chip,ghost:ghost,snap:snap,dx:e.clientX-r.left,dy:e.clientY-r.top,x0:e.clientX,y0:e.clientY,moved:false,out:false};
     document.addEventListener('pointermove',onMove);
     document.addEventListener('pointerup',onUp);
     document.addEventListener('pointercancel',onUp);
@@ -7979,6 +8020,12 @@ function renderRO_(s,w,q,pl){
     drag.ghost.style.left=(e.clientX-drag.dx)+'px';
     drag.ghost.style.top=(e.clientY-drag.dy)+'px';
     if(!drag.moved)return;
+    /* 枠（並べる所）の外へ持っていったら、離したときに語群へ戻す（2026-10-19 川上さん「枠外にドラッグしたら外れるのが直感的」。タップで外すのもそのまま）。
+       外にいる間は並べ替えない。枠の周り 16px までは中とみなす（指が少しはみ出しても外れない） */
+    var R=$('ro-slots').getBoundingClientRect(),M=16;
+    var out=(e.clientX<R.left-M||e.clientX>R.right+M||e.clientY<R.top-M||e.clientY>R.bottom+M);
+    if(out!==drag.out){drag.out=out;drag.ghost.classList.toggle('out',out);drag.chip.classList.toggle('leaving',out);}
+    if(out)return;
     var best=0,bd=Infinity;
     for(var i=0;i<drag.snap.length;i++){
       var sp=drag.snap[i];
@@ -7997,9 +8044,9 @@ function renderRO_(s,w,q,pl){
     document.removeEventListener('pointerup',onUp);
     document.removeEventListener('pointercancel',onUp);
     if(drag.ghost&&drag.ghost.parentNode)drag.ghost.parentNode.removeChild(drag.ghost);
-    c.classList.remove('dragging');
-    var wasTap=!drag.moved;drag=null;
-    if(wasTap){bank.push(c.getAttribute('data-t'));if(c.parentNode)c.parentNode.removeChild(c);drawBank();}
+    c.classList.remove('dragging');c.classList.remove('leaving');
+    var wasTap=!drag.moved,wasOut=drag.moved&&drag.out;drag=null;
+    if(wasTap||wasOut){bank.push(c.getAttribute('data-t'));if(c.parentNode)c.parentNode.removeChild(c);drawBank();}
     fillEmpty();sync();
   }
   fillEmpty();drawBank();sync();
