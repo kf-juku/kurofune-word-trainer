@@ -2566,7 +2566,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-20g"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-20h"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3791,14 +3791,17 @@ function bootPrefetch_(){
 }
 /* 【2026-10-20】同時に先読みするのは3本まで（教室で一斉に開いたとき GAS の同時実行の上限に近づかないように）。
    3本を超えたぶんは読まない＝押したときに今までどおり取りに行くだけ。 */
-var _pfInFlight_=0;
-function prefetchOne_(pid){
+var _pfInFlight_=0,_pfQ_=[];
+/* 3本を超えたぶんは順番待ちにして、1本終わるごとに次を取る（2026-10-20 毎日学習を全部先読みするため）。
+   urgent＝いま本を開いた・タブを開いた＝順番待ちの先頭に入れる */
+function _pfNext_(){while(_pfInFlight_<3&&_pfQ_.length){var q=_pfQ_.shift();if(!_prefetch[q])prefetchOne_(q);}}
+function prefetchOne_(pid,urgent){
   pid=String(pid||'');if(!pid)return;
   if(_prefetch[pid])return; // 取得中・取得済みは再取得しない
-  if(_pfInFlight_>=3)return;
+  if(_pfInFlight_>=3){var qi=_pfQ_.indexOf(pid);if(qi>=0)_pfQ_.splice(qi,1);if(urgent)_pfQ_.unshift(pid);else _pfQ_.push(pid);return;}
   _pfInFlight_++;
   _prefetch[pid]=call({action:'student_today',part_id:pid}).then(function(d){
-    _pfInFlight_=Math.max(0,_pfInFlight_-1);
+    _pfInFlight_=Math.max(0,_pfInFlight_-1);setTimeout(_pfNext_,0);
     if(d&&d.ok){_gradeSync_(d);/* 先読みでも学年をそろえる＝ホームを開いただけでふりがなが直る 2026-09-19 */_prefetch[pid]=d;return d;}
     delete _prefetch[pid];return null; // 失敗分はタップ時に通常取得へ
   });
@@ -3813,7 +3816,7 @@ function prefetchParts_(cards){
 /* 【2026-10-20 軽量化】単元別も先読みする。単元別のタブを開いたとき（開いている本・無ければいちばん上の本）と、
    本を開いたときに、その本の章ごとの「次はこれ」（最初のまだのパート）を裏で取りに行く。
    これまでは単元別は先読みしておらず、押してから問題を取りに行く（往復5〜7秒）のを毎回待っていた。 */
-function unitPrefetchBook_(book){try{(book&&book._pfIds||[]).slice(0,3).forEach(prefetchOne_);}catch(e){}}
+function unitPrefetchBook_(book){try{(book&&book._pfIds||[]).slice(0,3).forEach(function(x){prefetchOne_(x,true);});}catch(e){}}
 function unitPrefetchVisible_(){
   try{var host=$('unit-list');if(!host)return;
     var bs=[].slice.call(host.querySelectorAll('.nbook.unitbook'));if(!bs.length)return;
@@ -4965,6 +4968,7 @@ function renderWsZone_(materials){
       w.querySelectorAll('.nqp').forEach(function(pr2){pr2.onclick=function(ev){ev.stopPropagation();go(pr2);};});});
     host.appendChild(book);
   });
+  if(_homeTab==='ws'){try{setTimeout(wsPrefetchVisible_,0);}catch(eWp){}} /* ワークシートのタブを見ているときに一覧が届いた 2026-10-20 */
 }
 /* 空のタブを薄い灰色にする（2026-10-16 22:59 川上さん）。押せるまま。毎日・単元別・ワークシート＝割り当てられた教材が無い／間違いノート＝間違えた問題が無い */
 function _navEmptySet_(tab,on){var e=$('ntab5-'+tab);if(e)e.classList.toggle('ntab-empty',!!on);}
@@ -5024,12 +5028,29 @@ function _wsPaperTip_(els,md,kind){
     setTimeout(function(){if(cur===c)h();},12000);};   /* 英検の吹き出しと同じく12秒で消える */
   setTimeout(put,300);
 }
+/* 【2026-10-20】ワークシートの先読み：ワークシートのタブを開いたとき、開いている本（無ければいちばん上）の、まだ全部できていない最初の単元を1つだけ。
+   1単元が大きい（約40万字）ので、ホームでは読まない。進み具合が中に入っているので、保存が届いた（_hrGen_ が進んだ）ら使わない */
+var _wsPre_={};
+function wsPrefetchVisible_(){
+  try{var host=$('ws-list');if(!host)return;
+    var bs=[].slice.call(host.querySelectorAll('.nbook.wsbook'));if(!bs.length)return;
+    var op=bs.filter(function(b){return b.classList.contains('open');});var b=(op.length?op:bs)[0];
+    var row=b.querySelector('.qchw:not(.done) .nchap[data-wsm], .nchap:not(.done)[data-wsm]');if(!row)return;
+    var mid=row.getAttribute('data-wsm');if(!mid)return;
+    if(_wsPre_[mid]&&_wsPre_[mid].gen===_hrGen_)return;
+    var me={gen:_hrGen_,p:null};_wsPre_[mid]=me;
+    try{_wsLoadLibs_();}catch(eL){}
+    me.p=call({action:'ws_unit',material_id:mid}).then(function(d){if(!(d&&d.ok)&&_wsPre_[mid]===me)delete _wsPre_[mid];return d;});
+  }catch(e){}
+}
 function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（#pv=）：記録しない・モックのプレビューのバーを出す */
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
   $('ws-ttl').textContent=title||'';
   host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
   ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;_wsDirect=!!(xo&&xo.startPid&&!xo.preview);try{comboBreak_();}catch(e){}
-  Promise.all([_wsLoadLibs_(),call({action:'ws_unit',material_id:mid})]).then(function(r){
+  var _wp=(!(xo&&xo.preview)&&_wsPre_[mid]&&_wsPre_[mid].gen===_hrGen_)?_wsPre_[mid].p:null;delete _wsPre_[mid]; /* 先読みがあれば使う（1回だけ）2026-10-20 */
+  var _wu=_wp?_wp.then(function(d){return (d&&d.ok)?d:call({action:'ws_unit',material_id:mid});}):call({action:'ws_unit',material_id:mid});
+  Promise.all([_wsLoadLibs_(),_wu]).then(function(r){
     var d=r[1];
     if(!d||!d.ok||!d.data){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+(d&&d.error?esc(d.error):_NET_NG_MSG_)+'<br><button class="btn sub" style="margin-top:8px" id="ws-retry">'+_nvRuby_('もう一度(いちど)よみこむ',true)+'</button></div></div>';var rb=$('ws-retry');if(rb)rb.onclick=function(){openWs_(mid,pids,title,xo);};return;}
     var D0=d.data,parts=D0.parts||[];
@@ -5130,7 +5151,7 @@ function openHome(){
   _bind('ntab5-daily',function(){showHomeTab('daily');});
   _bind('ntab5-review',function(){showHomeTab('review');});
   _bind('ntab5-unit',function(){showHomeTab('unit');});
-  _bind('ntab5-ws',function(){showHomeTab('ws');}); // ワークシート 2026-10-17
+  _bind('ntab5-ws',function(){showHomeTab('ws');try{setTimeout(wsPrefetchVisible_,0);}catch(eWp){}}); // ワークシート 2026-10-17・先読み 2026-10-20
   _bind('ntab5-record',function(){setTab5_('record');showSub('records');}); // showSub('records')側で新バッジ・新アイコンを既読化
   try{recomputeNewIcon_();}catch(e){} // 新しいアイコンの未読判定（記録タブ赤●）2026-07-26
   try{bootPrefetch_();}catch(eBp){} // ホームの返事を待たずに先読みを始める 2026-09-02
@@ -5183,6 +5204,10 @@ function loadHomeData_(showSkel){
     renderDaily();
     bootPartsSave_(cards);  // つぎに開いたとき、ホームを待たずに先読みするためのIDを覚える 2026-09-02
     prefetchParts_(cards); // 先読み：毎日学習＋単元別の現在パート
+    /* 【2026-10-20】毎日学習は上から3つだけでなく全部先読みする（順番待ちで同時3本まで）。今日の分を終えた教材は読まない */
+    try{if(!_cached)main.forEach(function(m){if(m&&m.part_id&&!m.cleared_today&&!(m.content_type==='test'&&m.graduated))prefetchOne_(m.part_id);});}catch(ePa){}
+    /* 間違いノート（今日の分）も先読みする。学習を終えたら（_hrGen_ が進んだら）使わない */
+    try{if(!_cached)noteTodayPrefetch_();}catch(eNp){}
     renderDailyList_(main); // 毎日学習＝今のDAY大＋先プレビュー（新ホーム 2026-07-24）
     if(false){$('main-list').innerHTML='';
     var _gkey=function(m){var k=mtSeriesKeyMt(m);return k?('S:'+k):('M:'+String(m.material_title||''));};
@@ -10594,10 +10619,21 @@ function noteGradCardHtml_(words){
 /* 間違いノートの「もう一回」：最新のactiveを取り直して再開（卒業済みは除外される） */
 /* 弱点集中：その日の10語を始める（§2-7）。毎日タブのデイリー枠と間違いノートのタブ、
    どちらから開いても同じ的・同じ10語になる（サーバーが その日の的を1つ決めて持っているため）。2026-08-26 */
+/* 【2026-10-20】間違いノート（今日の分・枠の指定なし）の先読み。中身は学習を終えるたびに変わるので、
+   先読みしたあとに保存が届いた（homeCacheRenew_ で _hrGen_ が進んだ）ら使わない。今日の分が済んでいるときは読まない */
+var _ntPre_=null;
+function noteTodayPrefetch_(){
+  if(dailyState&&dailyState.note===true)return;
+  if(_ntPre_&&_ntPre_.gen===_hrGen_)return;
+  var me={gen:_hrGen_,p:null};_ntPre_=me;
+  me.p=call({action:'mistake_set',mode:'today'}).then(function(d){if(!(d&&d.ok)&&_ntPre_===me)_ntPre_=null;return d;});
+}
 function openNoteToday_(k){   /* k＝何番目の枠か（集中攻略の枠 2026-10-03）。無ければサーバーが まだ済でない最初の枠を選ぶ */
   showPracticeLoading_(); /* 通信は10秒以上かかることがある＝先にスピナーを出す（2026-08-21⑯と同じ理由）*/
   var _req={action:'mistake_set',mode:'today'};if((k|0)>0)_req.frame=(k|0);
-  call(_req).then(function(d){
+  var _pre=(!((k|0)>0)&&_ntPre_&&_ntPre_.gen===_hrGen_)?_ntPre_.p:null;_ntPre_=null; /* 使うのは1回だけ */
+  (_pre||call(_req)).then(function(d){
+    if(_pre&&!(d&&d.ok))return call(_req);return d;}).then(function(d){
     if(_netNG_(d)){openHome();showSub('note');toastH(_NET_NG_MSG_);return;}   /* 通信失敗＝「無い」と言わない */
     if(d.data&&d.data.words&&d.data.words.length){
       if(d.data.frames)_ntFramesSet_(d.data.frames);
