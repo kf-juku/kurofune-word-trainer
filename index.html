@@ -2566,7 +2566,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-20e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-20f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3789,16 +3789,37 @@ function bootPrefetch_(){
     if(a&&a.length)prefetchParts_(a);
   }catch(e){}
 }
+/* 【2026-10-20】同時に先読みするのは3本まで（教室で一斉に開いたとき GAS の同時実行の上限に近づかないように）。
+   3本を超えたぶんは読まない＝押したときに今までどおり取りに行くだけ。 */
+var _pfInFlight_=0;
+function prefetchOne_(pid){
+  pid=String(pid||'');if(!pid)return;
+  if(_prefetch[pid])return; // 取得中・取得済みは再取得しない
+  if(_pfInFlight_>=3)return;
+  _pfInFlight_++;
+  _prefetch[pid]=call({action:'student_today',part_id:pid}).then(function(d){
+    _pfInFlight_=Math.max(0,_pfInFlight_-1);
+    if(d&&d.ok){_gradeSync_(d);/* 先読みでも学年をそろえる＝ホームを開いただけでふりがなが直る 2026-09-19 */_prefetch[pid]=d;return d;}
+    delete _prefetch[pid];return null; // 失敗分はタップ時に通常取得へ
+  });
+}
 function prefetchParts_(cards){
   (cards||[]).slice(0,3).forEach(function(m){
     if(!m.part_id)return;
     if(m.content_type==='test'&&m.graduated)return;
-    if(_prefetch[m.part_id])return; // 取得中・取得済みは再取得しない
-    _prefetch[m.part_id]=call({action:'student_today',part_id:m.part_id}).then(function(d){
-      if(d&&d.ok){_gradeSync_(d);/* 先読みでも学年をそろえる＝ホームを開いただけでふりがなが直る 2026-09-19 */_prefetch[m.part_id]=d;return d;}
-      delete _prefetch[m.part_id];return null; // 失敗分はタップ時に通常取得へ
-    });
+    prefetchOne_(m.part_id);
   });
+}
+/* 【2026-10-20 軽量化】単元別も先読みする。単元別のタブを開いたとき（開いている本・無ければいちばん上の本）と、
+   本を開いたときに、その本の章ごとの「次はこれ」（最初のまだのパート）を裏で取りに行く。
+   これまでは単元別は先読みしておらず、押してから問題を取りに行く（往復5〜7秒）のを毎回待っていた。 */
+function unitPrefetchBook_(book){try{(book&&book._pfIds||[]).slice(0,3).forEach(prefetchOne_);}catch(e){}}
+function unitPrefetchVisible_(){
+  try{var host=$('unit-list');if(!host)return;
+    var bs=[].slice.call(host.querySelectorAll('.nbook.unitbook'));if(!bs.length)return;
+    var op=bs.filter(function(b){return b.classList.contains('open');});
+    (op.length?op:[bs[0]]).forEach(unitPrefetchBook_);
+  }catch(e){}
 }
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 /* 【2026-10-13 川上さん】図の中の記号で答える問題（選択肢がア・イ・ウ・エや①②③…だけ）は、選択肢を記号の順に並べる。
@@ -4506,7 +4527,7 @@ function setDailyNavNum_(){var osDone=(dailyState.review===true),_nc=_ntCount_()
 function setReviewNavNum_(){setNavDot_('review',(_revNum.note||0)>0);try{_navEmptySet_('review',!(_revNum.note||0));}catch(e){}} // 間違いノート＝自主ペースの復習なので数字(9+)ではなく赤●で「たまってるよ」。実数は中の教科カードで見える 2026-07-26
 var _homeTab='daily',_quizMiss=0;
 function showHomeTab(name){if(!_navBack)_navStack.length=0;_homeTab=name;try{_renderResumeCard_();}catch(e){}$('home-sub').style.display='none';$('home-tiles').style.display='block';document.querySelectorAll('#home-tiles .tabpanel').forEach(function(p){p.classList.remove('on');});var el=$('tp-'+name);if(el)el.classList.add('on');setTab5_(name);try{sessionStorage.setItem('kwt_htab',name);sessionStorage.removeItem('kwt_view');}catch(e){}
-  if(name==='unit'){var _s=1;try{_s=parseInt(sessionStorage.getItem('kwt_useg'),10)||1;}catch(e){}try{unitSeg_(_s);}catch(e){}} // ①練習／②確認テスト は最後に見ていた側を開く 2026-08-20
+  if(name==='unit'){var _s=1;try{_s=parseInt(sessionStorage.getItem('kwt_useg'),10)||1;}catch(e){}try{unitSeg_(_s);}catch(e){}try{if(_s===1)unitPrefetchVisible_();}catch(ePf){}} // ①練習／②確認テスト は最後に見ていた側を開く 2026-08-20
   window.scrollTo(0,0);_fcRelease_();} // タブに戻ったらサブ画面の復元キーは消す＝リロードで今のタブに戻す（2026-07-24）
 function syncTestZone_(){setNavDot_('unit',false);} // 単元別のナビ赤●は出さない＝自主ペースで「今日やる必須」ではない。確認テストの直しは間違いノートに出る（川上さん 2026-07-26）
 /* スケルトン（読み込み中の形だけ先に見せる）2026-07-24 */
@@ -4772,7 +4793,9 @@ function renderUnitZone_(materials){
       detail+='</div>';
       book.innerHTML=head+detail;
       if(_open.indexOf(g.key)>=0)book.classList.add('open'); // リロード後も開いた本を保持
-      book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_unitOpenToggle_(g.key,book.classList.contains('open'));};
+      /* 先読みする「次はこれ」＝完走していない章の最初のまだのパート 2026-10-20 */
+      book._pfIds=[];g.items.forEach(function(c){var ps=(c.parts||[]);if(String(c.sm_status)==='completed')return;var fu=null;ps.forEach(function(l){if(!l.passed&&!fu)fu=l;});if(fu&&fu.part_id)book._pfIds.push(String(fu.part_id));});
+      book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_unitOpenToggle_(g.key,book.classList.contains('open'));if(book.classList.contains('open'))unitPrefetchBook_(book);};
       book.querySelectorAll('.nchap').forEach(function(row){var pid=row.getAttribute('data-pid');var isMap=row.getAttribute('data-map')==='1';row.onclick=function(){ if(isMap){goMapSub_(row.getAttribute('data-mid'));} else if(pid){startPractice(pid);} };}); // 完走章は学習マップ(復習)へ・未完走は練習へ 2026-08-08
       /* 矢印＝パート一覧の開閉だけ（章行の → の動きは変えないので stopPropagation する）。開いた状態は sessionStorage に持つ 2026-09-11 */
       book.querySelectorAll('.qchw').forEach(function(w){
@@ -4785,6 +4808,7 @@ function renderUnitZone_(materials){
       host.appendChild(book);
     });
     host.appendChild(uhint); // 本の一覧の下に置く（帯→本→学習マップ導線 の順）2026-08-20
+    if(_homeTab==='unit'){try{setTimeout(unitPrefetchVisible_,0);}catch(ePf){}} /* 単元別のタブを見ているときに一覧が届いた 2026-10-20 */
     if(_allClear&&groups.length){var fc=document.createElement('div');fc.className='fin-card mini';fc.innerHTML='<div class="dc-ic"><i class="ti ti-circle-check"></i></div><div class="dc-t"><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>、<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>クリア！</div><div class="dc-s"><ruby>割<rt class="uf">わ</rt></ruby>り<ruby>当<rt class="uf">あ</rt></ruby>てのテスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を<ruby>全部<rt class="uf">ぜんぶ</rt></ruby> 100%にした。すごい！</div>';host.insertBefore(fc,host.firstChild);} // 全クリアの祝い 2026-07-24
   }else{
     host.innerHTML='<div class="empty-note"><i class="ti ti-flag"></i><div><ruby>先生<rt class="uf">せんせい</rt></ruby>が<ruby>割<rt class="uf">わ</rt></ruby>り<ruby>当<rt class="uf">あ</rt></ruby>てたテスト<ruby>範囲<rt class="uf">はんい</rt></ruby>がここに<ruby>出<rt class="uf">で</rt></ruby>ます。<br><ruby>今<rt class="uf">いま</rt></ruby>は<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>を<ruby>進<rt class="uf">すす</rt></ruby>めよう。</div></div>';
