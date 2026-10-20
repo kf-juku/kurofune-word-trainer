@@ -7093,10 +7093,27 @@ function ensureQuizBoard_(cb,force){
 function _bgRefreshQuiz_(cb){ _fetchQuizBoard_(cb,true); } // 裏で最新取得。変わったときだけ描き直す
 /* ★点数表（全件）を取りに行くのは この1か所だけ。ほかから call({action:'quiz_board'}) を書かない。
    （1生徒だけの sdLoadQuiz_ は student_id つきの別物。弱点の表の _rpWkLoad_ は weak=1 つきの別物＝点数表は返らない） */
+/* 【2026-10-20 軽量化】GAS の点数表を軽い形（compact=1・data.c===1）で受け取り、今までと同じ形の行に組み立て直す。
+   組み立て直した行は、今までの quiz_board の行（enrichTitles_ で足していた本の名前などを含む）と1文字も変わらない＝画面のほかの所は直さない。
+   古い GAS（c が無い）が返したときは、そのまま使う。 */
+function qbExpand_(d){
+  if(!d||d.c!==1)return d;
+  var W=d.W||[],S=d.S||{},P=d.P||{},M=d.M||{};
+  var entries=(d.E||[]).map(function(a){
+    var pi=P[a[2]]||{},mi=M[a[1]]||{},tp=mi.tp||{};
+    return {student_id:a[0],student_name:S[a[0]],material_id:a[1],material_title:mi.t,part_id:a[2],part_title:pi.t,part_order:pi.o,
+      status:a[3],latest_rate:a[4],prev_rate:a[5],latest_mark:a[6],prev_mark:a[7],last_date:a[8],round_started_at:a[9],
+      attempt_count:a[10],correct_count:a[11],total_count:a[12],
+      missed_words:(a[13]||[]).map(function(i){var w=W[i]||[];return {en:w[0],ja:w[1],unit:w[2],qtype:w[3]};}),
+      ws:a[14],material_book:tp.book,material_chap:tp.chap,material_chap_no:tp.chap_no,material_short:tp.short,series_key:tp.series_key,series_label:tp.series_label};
+  });
+  return {entries:entries,materials:d.materials,pass_line:d.pass_line,part_mix:d.part_mix,has_attempts_sheet:d.has_attempts_sheet,student_id:d.student_id};
+}
 function _fetchQuizBoard_(cb,bg){
   if(_quizLoading)return; _quizLoading=true;
-  call({action:'quiz_board'}).then(function(d){
+  call({action:'quiz_board',compact:1}).then(function(d){
     _quizLoading=false;
+    try{if(d&&d.ok&&d.data)d.data=qbExpand_(d.data);}catch(eX){}
     if(!d||!d.ok||!d.data){ if(!bg&&cb)cb(null,(d&&d.error)||'取得に失敗しました'); return; } // 裏の失敗はキャッシュ表示を維持
     _quizBoardAt=Date.now();
     try{kvPut_('quiz',d.data);}catch(eK){}
