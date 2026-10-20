@@ -5709,8 +5709,8 @@ function renderTable(){try{searchClearSync_();}catch(eSc){}try{fltResetSync_();}
   });
   var _idi=$('inactiveDays');if(_idi&&String(_inactiveDays)!==_idi.value)_idi.value=_inactiveDays;
   var _rld=$('rowLegendDays');if(_rld)_rld.textContent=_inactiveDays;
-  if(_sortKey==='name'){rows.sort(function(a,b){return _sortDir*String(a.name||'').localeCompare(String(b.name||''),'ja');});}
-  else if(_sortKey){rows.sort(function(a,b){var d=sortVal_(a,_sortKey)-sortVal_(b,_sortKey);if(d===0)d=String(a.name||'').localeCompare(String(b.name||''),'ja');return _sortDir*d;});}
+  if(_sortKey==='name'){rows.sort(function(a,b){return _sortDir*_nmCmp_(a,b);});}
+  else if(_sortKey){rows.sort(function(a,b){var d=sortVal_(a,_sortKey)-sortVal_(b,_sortKey);if(d===0)d=_nmCmp_(a,b);return _sortDir*d;});}
   $('filterCount').textContent=rows.length+'名';
   if(!rows.length){$('tableWrap').style.display='none';$('emptyState').style.display='';return;}
   $('emptyState').style.display='none';$('tableWrap').style.display='';updateSortIndicators();
@@ -5959,7 +5959,7 @@ function openStudentDetail(sid,focusKey){
         +'<td><span class="qsu-print" title="この教材のチェックプリント" onclick="printOneMat(\''+esc(String(sid))+'\',\''+esc(String(m.material_id))+'\',\'daily\')">🖨 チェックプリント</span></td></tr>';}).join('')+'</tbody></table>'
       +'<details class="sd2-fold"><summary>回ごとの正答率を見る（赤＝基準未満）</summary>'+partsBlock(mvD)+'</details>')
     :'<div class="sd-none">毎日学習の割り当てはありません</div>';
-  var cv=s.completed_view||[], pm=s.past_materials||[];
+  var cv=(s.completed_view||[]).map(function(m){if(String(m.type)!=='worksheet')return m;var o={};for(var k in m)o[k]=m[k];o.parts=(m.parts||[]).filter(function(p){return !/まとめテスト/.test(String(p.name||''));});return o;}).filter(function(m){return String(m.type)!=='worksheet'||m.parts.length;}), pm=s.past_materials||[];   /* ワークシートのテストはクリア済に並べない（ワークシートの欄で見る）2026-10-20 */
   $('sdBody').innerHTML=''
     +'<div class="sd-head"><div><div class="sd-name">'+esc(s.name||'(無名)')+(s.nickname?' <span style="font-size:12px;font-weight:600;color:var(--text-light);">'+esc(s.nickname)+'</span>':'')+needBadge+'</div><div class="sd-chips">'+chips+'</div></div></div>'
     +'<div class="sd2">'+band
@@ -7540,7 +7540,7 @@ function _rtMatch(s){
   if(_rtSearch){if(String(s.name||'').indexOf(_rtSearch)<0&&String(s.nickname||'').indexOf(_rtSearch)<0)return false;}
   return true;
 }
-function _rtVisible(){return (_students||[]).filter(_rtMatch).sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);return d!==0?d:String(a.name||'').localeCompare(String(b.name||''),'ja');});}
+function _rtVisible(){return (_students||[]).filter(_rtMatch).sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);return d!==0?d:_nmCmp_(a,b);});}
 function openRosterTest(mid){
   _rtMid=String(mid);
   var m=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===_rtMid)m=x;});
@@ -7592,7 +7592,7 @@ function rtRenderCand(){
 function rtRenderRoster(){
   var ids=Object.keys(_rtSelA);
   var byId={};(_students||[]).forEach(function(s){byId[_rtSid(s)]=s;});
-  ids.sort(function(a,b){var sa=byId[a]||{},sb=byId[b]||{};var d=gradeRank(sa.grade)-gradeRank(sb.grade);return d!==0?d:String(sa.name||'').localeCompare(String(sb.name||''),'ja');});
+  ids.sort(function(a,b){var sa=byId[a]||{},sb=byId[b]||{};var d=gradeRank(sa.grade)-gradeRank(sb.grade);return d!==0?d:_nmCmp_(sa,sb);});
   $('rtRosterCnt').textContent=ids.length+'名';
   $('rtRoster').innerHTML=ids.map(function(id){var s=byId[id]||{};var on=_rtDeliver[id];
     return '<div class="rtx-row"><span class="nm">'+esc(s.name||'(無名)')+'<span class="g">'+esc([s.grade,s.class_name].filter(Boolean).join('・'))+'</span></span>'
@@ -7671,7 +7671,7 @@ function renderUnassigned_(){
   var box=$('teamUnassigned');if(!box)return;
   var un=(_unassigned||[]).slice();
   if(!un.length){box.innerHTML='';return;}
-  un.sort(function(a,b){var am=a.has_material?0:1,bm=b.has_material?0:1;if(am!==bm)return am-bm;return String(a.name||'').localeCompare(String(b.name||''),'ja');}); // 割当済みを上に
+  un.sort(function(a,b){var am=a.has_material?0:1,bm=b.has_material?0:1;if(am!==bm)return am-bm;return _nmCmp_(a,b);}); // 割当済みを上に
   var need=un.filter(function(u){return u.has_material;}).length;
   var chips=un.map(function(u){
     var nm=esc(u.name||'(無名)')+(u.nickname?'<span class="mc-nick">'+esc(u.nickname)+'</span>':'');
@@ -8105,7 +8105,7 @@ var Picker=(function(){
     if(search){var v=search;if(String(s.name||'').indexOf(v)<0&&String(s.nickname||'').indexOf(v)<0)return false;}
     return true;
   }
-  function leftPool(){return cand().filter(function(s){return !C.sel[sid_(s)]&&matches(s);}).sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);return d!==0?d:String(a.name||'').localeCompare(String(b.name||''),'ja');});}
+  function leftPool(){return cand().filter(function(s){return !C.sel[sid_(s)]&&matches(s);}).sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);return d!==0?d:_nmCmp_(a,b);});}
   function render(){
     var box=C.container;box.innerHTML='';
     var qh=document.createElement('div');qh.className='pk-qh2';
@@ -8211,7 +8211,7 @@ var Picker=(function(){
       ll.appendChild(row);
     });
     var rl=els.right;rl.innerHTML='';
-    var ids=Object.keys(C.sel).sort(function(a,b){var A=byId[a]||{},B=byId[b]||{};var d=gradeRank(A.grade)-gradeRank(B.grade);return d!==0?d:String(A.name||'').localeCompare(String(B.name||''),'ja');});
+    var ids=Object.keys(C.sel).sort(function(a,b){var A=byId[a]||{},B=byId[b]||{};var d=gradeRank(A.grade)-gradeRank(B.grade);return d!==0?d:_nmCmp_(A,B);});
     if(!ids.length){var e2=document.createElement('div');e2.className='pk-empty';e2.textContent='まだ選んでいません';rl.appendChild(e2);}
     ids.forEach(function(id){var s=byId[id]||{name:'',grade:''};
       var row=document.createElement('div');row.className='pk-row';
@@ -8592,7 +8592,7 @@ function lpPrint_(){
     var sts=(d.data&&d.data.students)||[];
     var byId={}; sts.forEach(function(x){ byId[String(x.student_id)]=x; });
     var order=tmPool().filter(function(s){ return tmSel[String(s.student_id)]; })   /* 並び＝学年→名前（窓の右側と同じ） */
-      .sort(function(a,b){ var g=gradeRank(a.grade)-gradeRank(b.grade); return g!==0?g:String(a.name||'').localeCompare(String(b.name||''),'ja'); });
+      .sort(function(a,b){ var g=gradeRank(a.grade)-gradeRank(b.grade); return g!==0?g:_nmCmp_(a,b); });
     var list=order.map(function(s){ return byId[String(s.student_id)]; }).filter(Boolean);
     var noPw=list.filter(function(x){ return !x.login_id||!x.passcode; });
     if(!list.length){ $('bulkErr').textContent='生徒の情報を読めませんでした（'+ids.length+'名）'; return; }
@@ -9324,6 +9324,8 @@ function rpSetsLoad_(first){
    Why: 段Dで紙を出す入口をこのタブに移したとき、判定を⑥のままにしてしまい、
         ④をOFF（＝先生を出す）にしても紙の対象に出てこなかった（川上さん報告 2026-09-14・本番で確認）。
    useP を渡さなければ、いま見ている面で決める。 */
+/* 名前の並び＝よみがな（students.name_kana＝会員管理の「読み（ふりがな）」）。無い子は漢字の名前で 2026-10-20 */
+function _nmCmp_(a,b){return String((a&&(a.name_kana||a.name))||'').localeCompare(String((b&&(b.name_kana||b.name))||''),'ja');}
 function _rpExT_(useP){
   if(useP===undefined)useP=(typeof RP_PANE!=='undefined'&&RP_PANE==='prn');
   return useP ? !(_cheerCfg&&_cheerCfg.exclude_print===false)
@@ -10638,7 +10640,7 @@ function _rpGrGroups_(allT,dr){
     g[k].all++;
     if(!dr[String(x.s.student_id)])g[k].stu.push(x.s);
   });
-  ord.forEach(function(o){ o.stu.sort(function(a,b){ return String(a.name||'').localeCompare(String(b.name||''),'ja'); }); });
+  ord.forEach(function(o){ o.stu.sort(function(a,b){ return _nmCmp_(a,b); }); });
   return ord.filter(function(o){ return o.stu.length; }).sort(function(a,b){
     return (_rpGradeRank(a.grade)-_rpGradeRank(b.grade))||(b.all-a.all)||a.school.localeCompare(b.school,'ja'); });
 }
@@ -11173,7 +11175,7 @@ function rpRender0_(){
     return;
   }
   var list=rpTargets();
-  var _nm=function(x,y){return String(x.s.name||'').localeCompare(String(y.s.name||''),'ja');};
+  var _nm=function(x,y){return _nmCmp_(x.s,y.s);};
   var _wkV=false;   /* 弱点（1人ずつ）を行に出すか。並べ替えのあとで rpWkRender_ を呼ぶ */
   list.sort(function(x,y){
     var d=RP_SORT.dir;
@@ -11267,7 +11269,7 @@ function rpDetailRow(x){
       +'<td class="rp-dc"><span class="qsu-print" onclick="event.stopPropagation();rpPrintOne_(\''+esc(sid)+'\',\''+esc(String(mid))+'\')">🖨 この範囲で出す</span></td></tr>';
   };
   /* 未着手（練習0＋テストも受けていない）の教材は1行に畳む＝やった教材が埋もれるのを防ぐ（川上さん 2026-08-17）*/
-  var mine=RP_SEL.filter(function(mid){return !!a[mid];}), done=[], na=[];
+  var mine=RP_SEL.filter(function(mid){return !!a[mid]&&!(String(a[mid].type)==='worksheet'&&!a[mid].total);}), done=[], na=[];   /* 練習パートの無いワークシート教材（章まとめテストだけ）は出さない＝テストの進み具合の表で見る 2026-10-20 */
   mine.forEach(function(mid){ var r=a[mid], e=q[mid]||{ok:0,ng:0};
     if(r.done===0&&(r.st||0)===0&&r.acc==null&&e.ok===0&&e.ng===0)na.push(mid); else done.push(mid); });
   var rows=done.map(mkRow).join('');
@@ -11290,7 +11292,7 @@ function rpNaToggle(sid){ RP_OPENNA[sid]=!RP_OPENNA[sid]; rpRender(); }
 /* ---- 印刷 / PDF（A4たて。2ページに収まるときだけ文字を小さくする）---- */
 /* 印刷・PDFは画面と同じ並び順で出す */
 function rpPrintList_(){
-  var l=rpTargets(true), d=RP_SORT.dir, nm=function(x,y){return String(x.s.name||'').localeCompare(String(y.s.name||''),'ja');};
+  var l=rpTargets(true), d=RP_SORT.dir, nm=function(x,y){return _nmCmp_(x.s,y.s);};
   l.sort(function(x,y){
     if(RP_SORT.key==='grade'){var gx=_rpGradeRank(x.s.grade),gy=_rpGradeRank(y.s.grade);return gx===gy?nm(x,y):(gx-gy)*d;}
     if(RP_SORT.key==='last'){var lx=(x.a.days&&x.a.days[0])||'0000-00-00',ly=(y.a.days&&y.a.days[0])||'0000-00-00';return lx===ly?nm(x,y):((lx<ly?-1:1)*d);}
@@ -11403,7 +11405,7 @@ function rpBuildPrint(list,fs){
         paceCell='<td class="c"><span class="lb">📘</span> '+pt2+(cp?'　':'<br>')+'<span class="lb">✅</span> '+pq2+'</td>';
       }
       /* 教材ごとの内訳。未着手（練習0＋テスト未受験だけ）は1行に畳む（川上さん 2026-08-17）*/
-      var mine=cp?[]:RP_SEL.filter(function(mid){return !!as[mid];});
+      var mine=cp?[]:RP_SEL.filter(function(mid){return !!as[mid]&&!(String(as[mid].type)==='worksheet'&&!as[mid].total);});   /* 練習パートの無いワークシート教材は出さない 2026-10-20 */
       var na=[], sub='';
       mine.forEach(function(mid){
         var r=as[mid], e=q[mid]||{ok:0,ng:0,miss:0,rs:0,rn:0}, m=_rpMat(mid), last='';
@@ -12221,9 +12223,9 @@ function _ptNext_(s,R){
 }
 function _ptStudents_(T){
   var gs=_pt.grade,rs=_pt.room,hasG=Object.keys(gs).length,hasR=Object.keys(rs).length;
-  return (_students||[]).filter(function(s){if(s.is_active===false)return false;try{if(_rpExT_(true)&&s.is_teacher_account)return false;}catch(e){}return T.some(function(t){return !!_ptMv_(s,t.mid);});})
+  return (_students||[]).filter(function(s){if(s.is_active===false)return false;try{if(_rpExT_(false)&&s.is_teacher_account)return false;}catch(e){}return T.some(function(t){return !!_ptMv_(s,t.mid);});})
     .filter(function(s){return (!hasG||gs[String(s.grade||'')])&&(!hasR||rs[String(s.class_name||'')]);})
-    .sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);if(d)return d;d=String(a.class_name||'').localeCompare(String(b.class_name||''),'ja');return d||String(a.name||'').localeCompare(String(b.name||''),'ja');});
+    .sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);if(d)return d;d=String(a.class_name||'').localeCompare(String(b.class_name||''),'ja');return d||_nmCmp_(a,b);});
 }
 function _ptDraw_(){
   var box=$('ptBox');if(!box||!_ppTest)return;
@@ -12231,7 +12233,7 @@ function _ptDraw_(){
   if(!T.length){box.innerHTML='<div style="color:var(--text-muted)">上でテスト（単元まとめテスト・章まとめテスト）を選ぶと、渡す生徒の表が出ます</div>';return;}
   if(!_pt.board){box.innerHTML='<div style="color:var(--text-muted)">テストの点を読み込んでいます…</div>';return;}
   if(!(_students||[]).length){box.innerHTML='<div style="color:var(--text-muted)">生徒一覧を読み込んでいます…（生徒一覧のタブが出てから、もう一度開いてください）</div>';return;}
-  var R=_ptRes_(),all=(_students||[]).filter(function(s){if(s.is_active===false)return false;try{if(_rpExT_(true)&&s.is_teacher_account)return false;}catch(e){}return T.some(function(t){return !!_ptMv_(s,t.mid);});});
+  var R=_ptRes_(),all=(_students||[]).filter(function(s){if(s.is_active===false)return false;try{if(_rpExT_(false)&&s.is_teacher_account)return false;}catch(e){}return T.some(function(t){return !!_ptMv_(s,t.mid);});});
   /* ✓ の初め＝「次」。選んだテストが変わったら付け直す */
   var key=T.map(function(t){return t.pid;}).join('|');
   if(_pt.pkKey!==key||!_pt.pk){_pt.pkKey=key;_pt.pk={};all.forEach(function(s){var nx=_ptNext_(s,R),o={};T.forEach(function(t){if(nx[t.pid]&&_ptMv_(s,t.mid))o[t.pid]=1;});_pt.pk[String(s.student_id)]=o;});}
@@ -12298,7 +12300,7 @@ function _ptReport_(){
   var T=_ptTestsOfMats_(mids);
   if(!T.length){box.innerHTML='<div class="qch">テストの進み具合</div><div class="rp-mute">選んだ教材にテストがありません</div>';return;}
   var R=_ptRes_(),S=rpTargets().map(function(x){return x.s;}).filter(function(s){return T.some(function(t){return !!_ptMv_(s,t.mid);});})
-    .sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);if(d)return d;d=String(a.class_name||'').localeCompare(String(b.class_name||''),'ja');return d||String(a.name||'').localeCompare(String(b.name||''),'ja');});
+    .sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);if(d)return d;d=String(a.class_name||'').localeCompare(String(b.class_name||''),'ja');return d||_nmCmp_(a,b);});
   var gs=[],prev='';T.forEach(function(t){if(t.g!==prev){gs.push([t.g,1]);prev=t.g;}else gs[gs.length-1][1]++;});
   var h='<div class="qch">テストの進み具合<span class="rp-mute" style="font-weight:600;">見るだけの表。刷るときは生徒一覧の［📝 テストを単体で印刷］</span></div>'
     +'<div class="pt-lg" style="margin-bottom:6px"><span class="pt-c ok" style="width:auto;padding:0 6px">90</span>合格<span class="pt-c dn" style="width:auto;padding:0 6px">75</span>直し済み・まだ合格していない<span class="pt-c fx" style="width:auto;padding:0 6px">65</span>直しの途中<span class="pt-c nx" style="width:auto;padding:0 6px">次</span>次に受けるテスト<span style="display:inline-block;width:22px;height:12px;background:#eef0f3;border:1px solid var(--border)"></span>割り当てなし</div>'
