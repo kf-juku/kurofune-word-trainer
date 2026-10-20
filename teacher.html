@@ -1352,6 +1352,32 @@
 .pp-mlab{flex:0 0 auto;white-space:nowrap}.pp-mnow{font-weight:800;color:var(--crimson);min-width:0}.pp-mnow.none{font-weight:600;color:var(--text-light)}
 .pp-mlist{min-height:0;max-height:min(58vh,520px)}
 .pp-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;align-items:start}
+/* テストを単体で印刷（2026-10-20）＝窓の下半分 */
+#ptBox{border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:10px}
+.pt-h{font-weight:800;font-size:14px}.pt-h small{font-weight:500;color:var(--text-muted);margin-left:6px;font-size:12px}
+.pt-kind{display:flex;gap:8px;flex-wrap:wrap}.pt-kind button{flex:1 1 260px;text-align:left;border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;background:#fff;font:inherit;font-weight:800;font-size:13.5px;cursor:pointer;color:var(--text)}
+.pt-kind button span{display:block;font-weight:500;font-size:11.5px;color:var(--text-muted)}.pt-kind button.on{border-color:#0a6cff;background:#eef4ff}
+.pt-flt{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px}.pt-flt b{font-weight:700;margin-right:2px}
+.pt-chip{border:1px solid var(--border);border-radius:999px;padding:2px 10px;background:#fff;font:inherit;font-size:12.5px;cursor:pointer}.pt-chip.on{background:#1d2230;color:#fff;border-color:#1d2230}
+.pt-lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:#444;align-items:center}
+table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12px}
+.pt-tb th,.pt-tb td{border:1px solid var(--border);padding:3px 2px;text-align:center;vertical-align:middle}
+.pt-tb thead th{background:#f6f7f9;font-weight:700}.pt-tb th.g{background:#eceff4}.pt-tb th.c{cursor:pointer;text-decoration:underline dotted}
+.pt-tb th.nm,.pt-tb td.nm{width:190px;text-align:left;padding-left:6px}.pt-tb th.n,.pt-tb td.n{width:44px}
+.pt-tb td.nm b{display:block;font-size:12.5px}.pt-tb td.nm small{display:block;color:var(--text-muted);font-size:10.5px}
+.pt-tb .nb{display:inline-block;font-size:10.5px;border:1px solid #b9d3ff;color:#0b4fbf;background:#fff;border-radius:7px;padding:0 5px;margin:2px 2px 0 0;cursor:pointer}
+.pt-tb td.na{background:#eef0f3}.pt-tb td.pk{cursor:pointer;user-select:none}.pt-tb td.pk.on{background:#eaf2ff;box-shadow:inset 0 0 0 2px #0a6cff}
+.pt-c{display:inline-block;width:100%;max-width:56px;border-radius:7px;padding:2px 2px;font-weight:800;line-height:1.25}
+.pt-c small{display:block;font-size:9.5px;font-weight:700}.pt-c.ok{background:#e3f6ec;color:#1faa6b}.pt-c.dn{background:#f1f2f5;color:#555}.pt-c.fx{background:#fff3d6;color:#b26a00}
+.pt-c.no{color:#bbb;font-weight:500}.pt-c.nx{outline:2px solid #0a6cff;color:#0a6cff}.pt-tb td.on .pt-c::before{content:"✓ ";color:#0a6cff}.pt-c small.pp{color:#555;font-weight:600}
+.pt-tb tfoot td{background:#f8f9fb;font-weight:800}
+.pt-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:#f6f8fc;border:1px solid #d8e2f4;border-radius:10px;padding:8px 10px}
+.pt-rows{display:flex;flex-direction:column}
+.pt-row{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(110px,1fr) 190px 190px 190px;gap:8px;align-items:center;padding:7px 2px;border-bottom:1px solid var(--border);font-size:12.5px}
+.pt-row.hd{font-size:11.5px;color:var(--text-muted);font-weight:700}.pt-row.one{background:#fbfcfe}.pt-row small{display:block;font-size:11px;color:var(--text-muted)}
+.pt-cel{display:flex;gap:4px;align-items:stretch}.pt-cel .btn-primary{flex:1 1 auto;width:auto!important;min-width:0;padding:6px 4px;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:2px}.pt-cel .btn-primary b{font-size:16px;margin-left:4px}.pt-cel .btn-outlineK{flex:0 0 auto;padding:6px 8px;font-size:12px}
+.pt-cel .pt-done{background:#e3f6ec!important;color:#1faa6b!important;border-color:#bfe5cf!important}
+@media(max-width:760px){.pt-row{grid-template-columns:1fr 1fr}.pt-tb th.nm,.pt-tb td.nm{width:120px}}
 .pp-cr{display:flex;flex-direction:column;gap:10px;min-width:0}
 @media(max-width:760px){.pp-cols{grid-template-columns:1fr}.pp-mlist{max-height:min(40vh,320px)}}
 /* .mt-selall は出す（2026-10-19 17:10 川上さん「教材1クリックでまとめて選択ボタンほしい」。まとめ刷りで onSeries が使える） */.pp-pth #ppPartsN{color:var(--text-muted);font-size:12px;margin-right:auto}
@@ -1517,7 +1543,7 @@
       <button class="btn-primary btn-outlineK" style="width:auto;" onclick="openTargetModal('print')">🖨 まとめて印刷</button>
       <button class="btn-primary btn-outlineK" style="width:auto;" onclick="openTargetModal('login')" title="新しく入った子に配る紙。1人＝A4両面（QR・URL・ID・パスワード・使い方）">🔑 ログイン用ペラ</button>
       <button class="btn-primary btn-outlineK" style="width:auto;" onclick="ppOpen_()" title="教材の問題をそのまま紙にする。全員同じ紙（問題用紙と解答解説を別々に刷る）">📝 練習プリント</button>
-      <button class="btn-primary btn-outlineK" style="width:auto;" onclick="ppOpenTest_()" title="単元ワークシートの単元まとめテスト・章まとめテストを紙で。問題用紙・解答用紙（QRつき）・解答解説を別々に刷る">📝 テストを印刷</button>
+      <button class="btn-primary btn-outlineK" style="width:auto;" onclick="ppOpenTest_()" title="単元ワークシートの単元まとめテスト・章まとめテストを紙で。テストを選び、渡す生徒に ✓ を付けて、テストごとに刷る。解答用紙は名前入り（その子専用の QR）か名前なしを選ぶ">📝 テストを単体で印刷</button>
     </div>
 
     <div id="alFilterBar"><span id="alFilterLabel"></span><button class="afb-clear" onclick="clearAlertFilter()">✕ 絞り込みを解除</button></div>
@@ -2251,6 +2277,7 @@
           <span style="width:100%;">行をクリックすると教材ごとの内訳が開きます。右の「詳細」でその子のまちがいまで見られます。未着手の教材は1行にまとめています（クリックで開きます）。内訳の各教材の右にある「🖨 この範囲で出す」は、<b>その子・その教材だけ</b>の紙を出します。</span>
         </div>
       </div>
+      <div class="qcard" id="rpWsTests" style="display:none;"></div>
 
       <!-- 【2026-09-13i・段D→2026-09-14 段F】プリントを出す＝ここで紙が出る。生徒一覧に戻らない（要件定義書 §5 段D）
            見る範囲＝「1. 教材をえらぶ」／出す範囲＝この中でさらに絞る。2つは別々に指定できる。 -->
@@ -2602,7 +2629,7 @@
 <div class="modal-back" id="ppModal">
   <div class="modal" style="max-width:none;width:min(96vw,1000px);">
     <h3 style="margin-bottom:8px;" id="ppTtl">📝 練習プリント</h3>
-    <div id="ppNote" style="display:none;background:var(--crimson-light);border:1px solid #f4c6c9;border-radius:8px;padding:7px 10px;font-size:13px;margin-bottom:12px;">単元ワークシートのテスト（単元まとめテスト・章まとめテスト）を紙で受けさせる。全員同じ紙。問題用紙・解答用紙・解答解説は別々に刷る（部数はプリンターの画面で人数に）。解答用紙は回収する紙なので問題用紙に留めない。生徒は解答用紙の QR を読んで、自動採点か○×入力で答えを入れる。　<a style="color:var(--crimson);font-weight:700;cursor:pointer;white-space:nowrap;" onclick="closeModal('ppModal');pgOpen_()">紙の使い分けを見る →</a></div>
+    <div id="ppNote" style="display:none;background:var(--crimson-light);border:1px solid #f4c6c9;border-radius:8px;padding:7px 10px;font-size:13px;margin-bottom:12px;">単元ワークシートのテスト（単元まとめテスト・章まとめテスト）を紙で受けさせる。テストを選ぶと、下に渡す生徒の表が出る。✓ の数がそのまま部数。問題用紙・解答解説は名前なしで、テストごとに1回ずつ刷る（部数はプリンターの画面で入れる）。解答用紙は名前入り（その子専用の QR）か名前なしを選ぶ。　<a style="color:var(--crimson);font-weight:700;cursor:pointer;white-space:nowrap;" onclick="closeModal('ppModal');pgOpen_()">紙の使い分けを見る →</a></div>
     <div id="ppNoteP" style="background:var(--crimson-light);border:1px solid #f4c6c9;border-radius:8px;padding:7px 10px;font-size:13px;margin-bottom:12px;">教材の問題をそのまま紙にする。アプリができない子・家でやらない子に、同じ問題を紙でやらせるときに使う。全員同じ紙。問題用紙と解答解説は別々に刷る（部数はプリンターの画面で人数に）。PDFは紙ごとに1部。　<a style="color:var(--crimson);font-weight:700;cursor:pointer;white-space:nowrap;" onclick="closeModal('ppModal');pgOpen_()">紙の使い分けを見る →</a></div>
     <div class="err" id="ppErr"></div>
     <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
@@ -2618,6 +2645,7 @@
         <div class="pp-out" id="ppOutS" style="display:none;"><span class="nm">解答用紙</span><button class="btn-primary" style="width:auto;" onclick="ppMake_('print_s')">🖨 印刷</button><button class="btn-primary btn-outlineK" style="width:auto;" onclick="ppMake_('pdf_s')">⬇ PDF</button></div>
       </div>
       </div></div>
+      <div id="ptBox" style="display:none;"></div>
     </div>
     <div class="modal-actions" style="align-items:center;">
       <button class="btn-ghost" onclick="ppReset_()">選んだものをリセット</button>
@@ -11068,7 +11096,8 @@ function _rpQuNg_(use){
   if(um.length&&RP_UF&&!um.some(function(mid){ return Object.keys(RP_UF).some(function(k){ return k.indexOf(mid+':')===0; }); }))return '出す第N回を1つ以上えらんでください。';
   return '';
 }
-function rpRender(){
+function rpRender(){ rpRender0_(); try{ _ptReport_(); }catch(e){} }   /* テストの進み具合（2026-10-20） */
+function rpRender0_(){
   var rows=$('rpRows'); if(!rows)return;
   _rpStdCache={};
   rpRenderStrip();
@@ -11649,7 +11678,8 @@ var _ppTest=false;
 function ppOpenTest_(){_ppTest=true;ppOpen_(true);}
 function ppOpen_(keep){
   if(!keep)_ppTest=false;
-  $('ppTtl').textContent=_ppTest?'📝 テストを印刷':'📝 練習プリント';
+  $('ppTtl').textContent=_ppTest?'📝 テストを単体で印刷':'📝 練習プリント';
+  _ptOpen_();   /* テストを単体で印刷＝下半分をテストの表にする（2026-10-20） */
   $('ppNote').style.display=_ppTest?'':'none';$('ppNoteP').style.display=_ppTest?'none':'';
   /* 紙の行の並び：テストは 問題用紙／解答用紙／解答解説（10/17 21:38 の決定）。練習プリントは 問題用紙／解答解説（／解答用紙） */
   (function(){var s=$('ppOutS'),box=s&&s.parentNode;if(!box)return;var rows=box.querySelectorAll('.pp-out');if(_ppTest)box.insertBefore(s,rows[1]===s?rows[2]:rows[1]);else box.appendChild(s);})();
@@ -11700,7 +11730,7 @@ function _ppWsPrep_(mid,pid){
     var hide=document.getElementById('ppWsHide');if(!hide){hide=document.createElement('div');hide.id='ppWsHide';hide.style.cssText='position:absolute;left:-99999px;top:0;width:1000px;height:10px;overflow:hidden;';document.body.appendChild(hide);}
     var root=document.createElement('div');hide.appendChild(root); /* テストごとに1つずつ置く（章まとめテスト） */
     var api=wsMount(root,D,{katexCss:'ws/katex/katex.min.css'});
-    if(!document.getElementById('wsPaperCss')){var st=document.createElement('style');st.id='wsPaperCss';st.textContent=(window.WS_PAPER_CSS||'')+'.wsp .qr svg.fs-qr{width:21mm;height:21mm;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp .qr{display:block;text-align:center}.wsp .qr svg.fs-qr{margin:1.3mm auto 0}.wsp .qr .wsqr-cd{margin-top:.3mm}.wsp .wsqr-cd{font-size:9pt;letter-spacing:.06em;line-height:1}'+'.pp-pg.wsp-pg{width:190mm;height:293mm;page:wsp;break-inside:avoid;overflow:visible}.wsp-pg .pp-body{overflow:visible}.wsp-pg .pp-body *{page:auto!important;break-before:auto!important;break-after:auto!important;page-break-before:auto!important;page-break-after:auto!important}.wsp-pg .wsp-rng{position:absolute;right:14.5mm;bottom:.5mm;height:8.5mm;line-height:8.5mm;font-size:17pt;font-weight:800;letter-spacing:.02em;color:#111;white-space:nowrap}.wsp-pg .wsp-var{position:absolute;right:4mm;bottom:.5mm;width:8.5mm;height:8.5mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp-pg .wsp-band{position:relative;flex:0 0 16mm;display:flex;align-items:flex-end;font-size:9pt;line-height:1.2;color:#333;padding-bottom:2mm;font-family:"Noto Sans JP","Yu Gothic",sans-serif}.wsp-pg .pp-body{flex:0 0 272mm;height:272mm;display:block;column-gap:0}.wsp-pg .pp-ft{flex:0 0 5mm;align-items:flex-start;font-size:9pt;color:#333}@page wsp{size:A4 portrait;margin:0 6mm 0 14mm;@bottom-center{content:none}}@media print{@page wsp{size:A4 portrait;margin:0 6mm 0 14mm;@bottom-center{content:none}}}';document.head.appendChild(st);}
+    if(!document.getElementById('wsPaperCss')){var st=document.createElement('style');st.id='wsPaperCss';st.textContent=(window.WS_PAPER_CSS||'')+'.wsp .qr svg.fs-qr{width:21mm;height:21mm;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp .qr{display:block;text-align:center}.wsp .qr svg.fs-qr{margin:1.3mm auto 0}.wsp .qr .wsqr-cd{margin-top:.3mm}.wsp .wsqr-cd{font-size:9pt;letter-spacing:.06em;line-height:1}'+'.wsp .sh-top.as3{display:grid;grid-template-columns:minmax(0,1fr) auto 56mm;column-gap:5mm;align-items:end}.wsp .as3 .as-c{text-align:center}.wsp .as3 .qr{display:inline-block;width:auto;height:auto;padding:1.5mm 2mm 1mm;margin:0}.wsp .as3 .qr svg.fs-qr{width:27mm;height:27mm;margin:0 auto}.wsp .as3 .wsqr-cd .dt{font-weight:400;font-size:8pt;letter-spacing:0;margin-left:1.5mm}.wsp .as3 .asnote{font-size:9.5pt;margin-top:1.2mm;white-space:nowrap}.wsp .as3 .as-r{display:flex;flex-direction:column;justify-content:space-between;align-self:stretch;gap:3mm;min-width:0}.wsp .as3 .as-nmr{display:flex;align-items:flex-end;gap:3mm;font-size:13pt;margin-top:4mm;min-width:0}.wsp .as3 .as-nm{flex:1;min-width:0;min-height:9mm;border-bottom:1.5px solid #333;font-size:19pt;font-weight:700;padding:0 2mm 1mm;white-space:nowrap;overflow:hidden}.wsp .as3 .as-dt{text-align:right;font-size:10pt;white-space:nowrap}.wsp .as3 .as-dt span{display:inline-block;width:22mm;border-bottom:1px solid #333}.wsp .as3 .as-sc{text-align:right;font-size:14pt;font-weight:700;white-space:nowrap}.wsp .as3 .as-sc span{display:inline-block;width:24mm;height:10mm;vertical-align:bottom;border-bottom:1.5px solid #333}.wsp .as3 .as-sc i{font-style:normal;font-weight:400;font-size:13pt}'+'.pp-pg.wsp-pg{width:190mm;height:293mm;page:wsp;break-inside:avoid;overflow:visible}.wsp-pg .pp-body{overflow:visible}.wsp-pg .pp-body *{page:auto!important;break-before:auto!important;break-after:auto!important;page-break-before:auto!important;page-break-after:auto!important}.wsp-pg .wsp-rng{position:absolute;right:14.5mm;bottom:.5mm;height:8.5mm;line-height:8.5mm;font-size:17pt;font-weight:800;letter-spacing:.02em;color:#111;white-space:nowrap}.wsp-pg .wsp-var{position:absolute;right:4mm;bottom:.5mm;width:8.5mm;height:8.5mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp-pg .wsp-band{position:relative;flex:0 0 16mm;display:flex;align-items:flex-end;font-size:9pt;line-height:1.2;color:#333;padding-bottom:2mm;font-family:"Noto Sans JP","Yu Gothic",sans-serif}.wsp-pg .pp-body{flex:0 0 272mm;height:272mm;display:block;column-gap:0}.wsp-pg .pp-ft{flex:0 0 5mm;align-items:flex-start;font-size:9pt;color:#333}@page wsp{size:A4 portrait;margin:0 6mm 0 14mm;@bottom-center{content:none}}@media print{@page wsp{size:A4 portrait;margin:0 6mm 0 14mm;@bottom-center{content:none}}}';document.head.appendChild(st);}
     if(!pid&&_ppWs.mid===mid)_ppWs.api=api;return api;});
   if(pid){_ppWsMap[mid+'|'+pid]=pr;pr.catch(function(){delete _ppWsMap[mid+'|'+pid];});return pr;}
   _ppWs.p=pr;pr.catch(function(){if(_ppWs.p===pr)_ppWs={mid:'',p:null,api:null};});
@@ -11735,6 +11765,19 @@ function _ppWsParts_(mid){
 }
 function _ppWsPick_(a){var cs=$('ppParts').querySelectorAll('.pp-ptc');for(var i=0;i<cs.length;i++){var k=cs[i].value;cs[i].checked=a==='test'?(k==='test'):a==='ep'?/-EP$/.test(k):(k!=='test');}ppPartsCnt_();}
 /* kind＝'q'（問題用紙）・'a'（解答解説）・'s'（解答用紙）。組んだページは #printArea に入れる（あとは練習プリントと同じ印刷・PDF） */
+
+/* 解答用紙の上の並び（川上さん 2026-10-20 16:39〜16:47）：左＝教材名・テスト名・解答用紙・配点と時間／真ん中＝QR（27mm）と番号・刷った日・「答えは記号で書く」／右＝名前（大きく）・日付・点数（大きく）。
+   ws_app.js が作る解答用紙の HTML はそのまま使い、紙に組むときにここで並べかえる（紙は先生画面でしか刷らないため） */
+function _ptAsHead_(sh){
+  var top=sh.querySelector('.sh-top'),t=top&&top.querySelector('.t'),body=sh.querySelector('.asbody'),qr=body&&body.querySelector('.qr'),note=body&&body.querySelector('.asnote');
+  if(!top||!t||!qr)return;
+  var f=top.querySelector('.f');if(f)f.remove();
+  var L=document.createElement('div');L.className='as-l';L.appendChild(t);
+  var C=document.createElement('div');C.className='as-c';C.appendChild(qr);if(note)L.appendChild(note);   /* 「答えは記号で書く」は左（配点の下）＝真ん中を QR だけにして、教材名が折り返さない幅を左に取る */
+  var Rr=document.createElement('div');Rr.className='as-r';Rr.innerHTML='<div class="as-nmr"><span>名前</span><span class="as-nm"></span></div><div class="as-dt">日付 <span></span></div><div class="as-sc">点数 <span></span><i>／100</i></div>';
+  top.classList.add('as3');top.innerHTML='';top.appendChild(L);top.appendChild(C);top.appendChild(Rr);
+  if(body)body.remove();
+}
 function _ppWsLayout_(api,kind,picked,xp,xref){
   var isA=(kind==='a'),cls='wsp '+(isA?'va':'vq');
   var meas=document.createElement('div');meas.style.cssText='position:absolute;left:-99999px;top:0;width:190mm;background:#fff;';document.body.appendChild(meas);
@@ -11753,7 +11796,8 @@ function _ppWsLayout_(api,kind,picked,xp,xref){
   if(kind==='s')[].slice.call(src.querySelectorAll('.sheet:not([data-sel="ansheet"])')).forEach(function(e){e.remove();});
   /* 段⑤（2026-10-18）：解答用紙の QR＝テストごとに決まった番号（全員同じ紙。読むと生徒アプリの「紙の答え合わせ」で 自動採点／○×入力 を選ぶ） */
   if(kind==='s'){var _pid=api.testPid?api.testPid():'',_cd=_pid?_wsCode_(_pid):'';
-    [].slice.call(src.querySelectorAll('.qr')).forEach(function(q){q.innerHTML=_cd?(fsQrHtml_(_cd.replace('-',''))+'<div class="wsqr-cd">'+esc(_cd)+'</div>'):'QR';});}
+    [].slice.call(src.querySelectorAll('.qr')).forEach(function(q){q.innerHTML=_cd?(fsQrHtml_(_cd.replace('-',''))+'<div class="wsqr-cd">'+esc(_cd)+'<span class="dt">'+_ptDayLab_()+' 刷</span></div>'):'QR';});
+    [].slice.call(src.querySelectorAll('.sheet.asheet')).forEach(_ptAsHead_);}
   /* 図の文字の置き直し（モックの lfFix）。横いっぱいにする Point のカードは、モックと同じく画面の見た目（紙の外枠と余白 10mm がある状態）で決める */
   [].slice.call(src.querySelectorAll('svg.gr')).forEach(function(s){api.lfFix(s);});
   var shs=[].slice.call(src.querySelectorAll('.sheet'));shs.forEach(function(e){e.style.padding='10mm 10mm 12mm';e.style.border='1px solid #bbb';});
@@ -11863,7 +11907,7 @@ function _ppMultiParts_(){
   var sel=_ppSel.slice(),M={};_ppMats.forEach(function(m){M[String(m.id)]=m;});
   var anyWs=sel.some(function(id){return _ppIsWs_(id);}),anyEn=sel.some(function(id){return M[id]&&M[id].subject==='english';});
   $('ppDirW').style.display=anyEn?'':'none';var _wsr=$('ppOutS');if(_wsr)_wsr.style.display=anyWs?'':'none';
-  $('ppParts').innerHTML='<div class="pp-wsn">'+sel.length+'教材をまとめて刷る。刷る順はこの並び。教材ごとに新しい紙から始まる（前の教材が奇数ページで終わったら白紙を1枚はさむ）。ページ番号は束の中で通し。</div>'
+  $('ppParts').innerHTML='<div class="pp-wsn">'+(_ppTest?(sel.length+'教材から、刷るテストを選ぶ。下の表で渡す生徒を選んで、テストごとに刷る。ページ番号はテストごとに1から。'):(sel.length+'教材をまとめて刷る。刷る順はこの並び。教材ごとに新しい紙から始まる（前の教材が奇数ページで終わったら白紙を1枚はさむ）。ページ番号は束の中で通し。'))+'</div>'
     +sel.map(function(id){return '<div class="pp-msec" data-mid="'+esc(id)+'"><div class="pp-mst">'+esc(mtLabel(M[id])||(M[id]&&M[id].title)||id)+'</div><div class="pp-msb"><span style="color:var(--text-muted)">読み込んでいます…</span></div></div>';}).join('');
   $('ppPartsN').textContent='';
   var still=function(){return _ppSel.join('|')===sel.join('|');};
@@ -11881,8 +11925,8 @@ function _ppMultiParts_(){
 }
 function _ppPickedOf_(mid){var sec=$('ppParts').querySelector('.pp-msec[data-mid="'+mid+'"]');if(!sec)return (_ppSel.length===1&&String(mid)===String($('ppMat').value))?_ppPicked_():null;var cs=sec.querySelectorAll('.pp-ptc');if(!cs.length)return null;var o={};for(var i=0;i<cs.length;i++)if(cs[i].checked)o[cs[i].value]=1;return o;}
 /* 1教材ぶんのページ（.pp-pg）を組んで返す。ワークシート＝_ppWsMake_ と同じ組み方／ほか＝ppMake_ と同じ組み方。刷る物が無ければ [] */
-function _ppPagesOf_(mid,kind,dir,xref){
-  var picked=_ppPickedOf_(mid);
+function _ppPagesOf_(mid,kind,dir,xref,pkOv){
+  var picked=pkOv||_ppPickedOf_(mid);   /* pkOv＝テストを単体で印刷が渡す範囲（2026-10-20） */
   if(_ppIsWs_(mid)){
     if(picked&&!Object.keys(picked).length)return Promise.resolve([]);
     var tps=picked?Object.keys(picked).filter(function(k){return /^T:/.test(k);}).map(function(k){return k.slice(2);}):[];
@@ -11916,10 +11960,11 @@ function _ppPagesOf_(mid,kind,dir,xref){
   });
 }
 var PP_MANY_=100; /* これより多いページは、刷る前に確かめる */
-function _ppMakeMulti_(how){
-  var kind=/_a$/.test(how)?'a':(/_s$/.test(how)?'s':'q'),dir=$('ppDir').value,sel=_ppSel.slice();
+function _ppMakeMulti_(how,opt){   /* opt＝テストを単体で印刷（2026-10-20）：{sel:[教材], pk:{教材:範囲}, done:刷ったら呼ぶ, post:組んだページを直す, name:ファイル名に足す} */
+  opt=opt||{};
+  var kind=/_a$/.test(how)?'a':(/_s$/.test(how)?'s':'q'),dir=$('ppDir').value,sel=(opt.sel||_ppSel).slice();
   _ppBusy=true;_ppStop=false;$('ppErr').textContent='';window.__ppDone=null;$('ppStopB').style.display='';
-  var btns=$('ppModal').querySelectorAll('.pp-outs button');for(var i=0;i<btns.length;i++)btns[i].disabled=true;
+  var btns=$('ppModal').querySelectorAll('.pp-outs button,#ptBox button');for(var i=0;i<btns.length;i++)btns[i].disabled=true;
   var fin=function(msg){_ppBusy=false;$('ppStopB').style.display='none';if(_ppStop){_ppStop=false;msg='止めました';}for(var j=0;j<btns.length;j++)btns[j].disabled=false;if(msg!=null)$('ppStat').textContent=msg;};
   var knm=kind==='a'?'解答解説':(kind==='s'?'解答用紙':'問題用紙'),groups=[];
   /* 組の印（2026-10-19 川上さん 14:51）：選んだ教材・範囲・英単語の向きから作る3文字。問題用紙と解答解説の下に刷り、同じ選び方で刷ったか紙で分かる */
@@ -11930,7 +11975,7 @@ function _ppMakeMulti_(how){
   while(sig.length<3)sig='0'+sig;
   var build=function(kd,xref,label){var gs=[],k=0;var step=function(){if(k>=sel.length)return Promise.resolve(gs);var mid=sel[k];$('ppStat').textContent=label+(k+1)+'／'+sel.length+' 教材を組んでいます…';
     /* 教材ごとに1回、画面に手を返す（［止める］の押しがここで届く） */
-    return new Promise(function(r){setTimeout(r,30);}).then(function(){if(_ppStop)throw new Error('止めました');return _ppPagesOf_(mid,kd,dir,xref);}).then(function(pgs){if(pgs.length)gs.push({mid:mid,pages:pgs});k++;return step();});};return step();};
+    return new Promise(function(r){setTimeout(r,30);}).then(function(){if(_ppStop)throw new Error('止めました');return _ppPagesOf_(mid,kd,dir,xref,opt.pk&&opt.pk[mid]);}).then(function(pgs){if(pgs.length)gs.push({mid:mid,pages:pgs});k++;return step();});};return step();};
   /* 束の中のページ番号（白紙は数えない）。教材が変わるとき、前の教材が奇数ページなら白紙をはさむ */
   var lay=function(gs){var out=[],no=0;gs.forEach(function(g,gi){g.pages.forEach(function(p){out.push({el:p,no:p.classList.contains('pp-blank')?0:++no});}); /* 教材の中の白紙（テストの前）は数えない */if(gi<gs.length-1&&g.pages.length%2===1)out.push({el:_ppBlankPg_(),no:0});  /* 解答用紙も白紙をはさむ（2026-10-19 17:03 川上さん「はさむ」。前は解答用紙だけはさまなかった） */});return out;};
   var pre=(kind==='a')?build('q',null,'問題用紙のページを数えています… ').then(function(qs){
@@ -11941,8 +11986,9 @@ function _ppMakeMulti_(how){
     return {qp:qp,xref:xref,rng:rng};}):Promise.resolve(null);
   pre.then(function(X){return build(kind,X?X.xref:null,'').then(function(gs){groups=gs;return X;});}).then(function(X){
     if(!groups.length){$('ppErr').textContent=kind==='s'?'解答用紙は、テストを選んだときに刷れます':'刷る所を1つ以上選んでください';fin('');return;}
-    var host=$('printArea');host.innerHTML='';var blank=0,L=lay(groups),real=L.filter(function(o){return o.no;}).length;
+    var host=$('printArea');host.innerHTML='';var blank=0,L=lay(groups);if(opt.post)L=opt.post(L)||L;var real=L.filter(function(o){return o.no;}).length;
     L.forEach(function(o){host.appendChild(o.el);if(!o.no){blank++;return;}
+      if(o.el.getAttribute('data-ftfix'))return;   /* 名前入りの解答用紙は1枚ずつ「1／1」（2026-10-20） */
       var f=o.el.querySelector('.pp-ft');if(!f)return;var t=(o.el.getAttribute('data-lab')||knm)+' '+o.no+'／'+real;
       /* 解答解説の各ページの下：このページの答えが問題用紙の何ページの分か */
       if(X){var ps=[].slice.call(o.el.querySelectorAll('[data-xi]')).map(function(e){return X.qp[e.getAttribute('data-xi')];}).filter(function(v){return v;});
@@ -11954,11 +12000,11 @@ function _ppMakeMulti_(how){
     var msg=(groups.length>1?groups.length+'教材・':'')+knm+' '+tot+'ページ'+(blank?'（白紙 '+blank+'枚を含む）':'')+(kind!=='s'?'・組 '+sig:'');
     $('ppStat').textContent=msg;
     var _m0=(_ppMats||[]).filter(function(x){return String(x.id)===String(groups[0].mid);})[0]||{};
-    var nm=_rpToday().replace(/-/g,'')+(_ppTest?'_テスト_':(_ppIsWs_(groups[0].mid)?'_ワークシート_':'_練習プリント_'))+knm+'_'+(groups.length>1?(groups.length+'教材'):String(mtLabel(_m0)||_m0.title||'').replace(/[\\\/:*?"<>|\s]+/g,''))+(kind!=='s'?'_組'+sig:'');
+    var nm=_rpToday().replace(/-/g,'')+(_ppTest?'_テスト_':(_ppIsWs_(groups[0].mid)?'_ワークシート_':'_練習プリント_'))+knm+'_'+(opt.name?String(opt.name).replace(/[\\\/:*?"<>|\s]+/g,''):(groups.length>1?(groups.length+'教材'):String(mtLabel(_m0)||_m0.title||'').replace(/[\\\/:*?"<>|\s]+/g,'')))+(kind!=='s'?'_組'+sig:'');
     var go=function(){
-      if(/^pdf_/.test(how)){_ppPdf_(nm,function(m){fin(m);},'auto');return;}
-      fin(msg);printWhenImagesReady_(host,nm);}; /* 窓は閉じない 2026-10-19 */
-    if(/^none/.test(how)){fin(msg);return;}
+      if(/^pdf_/.test(how)){_ppPdf_(nm,function(m){fin(m);if(opt.done)opt.done();},'auto');return;}
+      fin(msg);printWhenImagesReady_(host,nm);if(opt.done)opt.done();}; /* 窓は閉じない 2026-10-19 */
+    if(/^none/.test(how)){fin(msg);if(opt.done)opt.done();return;}
     if(tot>PP_MANY_){fin(msg);_ppAsk_(knm+'が '+tot+'ページになります。',(/^pdf_/.test(how)?'PDFを作るのに数分かかります。':'印刷の画面が出るまで少し待ちます。')+'このまま進めますか？',/^pdf_/.test(how)?'PDFを作る':'印刷する',function(){_ppBusy=true;for(var j=0;j<btns.length;j++)btns[j].disabled=true;go();});return;}
     go();
   })['catch'](function(e){if(!_ppStop)$('ppErr').textContent='紙を組めませんでした：'+String(e&&e.message||e);fin('');});
@@ -11984,7 +12030,7 @@ function ppMatChg_(){
 var _ppStop=false;function ppStop_(){if(!_ppBusy)return;_ppStop=true;$('ppStat').textContent='止めています…';}
 function ppReset_(){try{localStorage.removeItem(_ppTest?'kwt_pt_mat':'kwt_pp_mat');}catch(e){}$('ppMatSearch').value='';_ppMatOpen={};$('ppErr').textContent='';$('ppStat').textContent='';_ppSetSel_([]);_ppMatDraw_(true);}
 function ppPartsAll_(on){ var cs=$('ppParts').querySelectorAll('.pp-ptc'); for(var i=0;i<cs.length;i++) cs[i].checked=!!on; ppPartsCnt_(); }
-function ppPartsCnt_(){ var cs=$('ppParts').querySelectorAll('.pp-ptc'),n=0; for(var i=0;i<cs.length;i++) if(cs[i].checked) n++; $('ppPartsN').textContent=cs.length?('　'+n+' / '+cs.length+(_ppSel.length>1?'（'+_ppSel.length+'教材）':(_ppIsWs_($('ppMat').value)?' か所':' パート'))):''; }
+function ppPartsCnt_(){ if(_ppTest)_ptSoon_(); var cs=$('ppParts').querySelectorAll('.pp-ptc'),n=0; for(var i=0;i<cs.length;i++) if(cs[i].checked) n++; $('ppPartsN').textContent=cs.length?('　'+n+' / '+cs.length+(_ppSel.length>1?'（'+_ppSel.length+'教材）':(_ppIsWs_($('ppMat').value)?' か所':' パート'))):''; }
 function _ppPicked_(){ var cs=$('ppParts').querySelectorAll('.pp-ptc'); if(!cs.length) return null; var o={}; for(var i=0;i<cs.length;i++) if(cs[i].checked) o[cs[i].value]=1; return o; }
 /* 刷り方（川上さん 2026-10-17 20:51「部数はプリンターで設定すべき。部数分のPDFはいらない。PDFは1部で問題と解答解説を分けるだけ。解答用紙があるならそれもPDFは分ける」）
    ・印刷＝1部ぶんを「問題用紙 → 解答解説」の順に1回の印刷にする。部数はプリンターで人数・部単位で印刷。
@@ -12057,6 +12103,196 @@ function _ppPdf_(nm,fin,mg,wd){ /* mg・wd＝ワークシートの紙だけ（�
   }, function(){ fin(''); });
 }
 
+
+
+/* ===== テストを単体で印刷（2026-10-20）=====
+   正＝ジョブス用\仕様書\KWT_先生画面.md 末尾「2026-10-20 テストの印刷まわりで決まったこと」（モック＝モック\20261020_モック_テストを単体で印刷.html）
+   上半分（教材・範囲）は練習プリントと同じ窓のまま。下半分（#ptBox）を、解答用紙の種類・渡す生徒の表・刷る行にする。
+   ・表＝選んだテストの教材が割り当てられている生徒（生徒一覧の _students の materials_view・completed_view）×選んだテスト
+   ・点・合格・直しの途中＝ws_test_board（quiz_results の ws_state を持つ行だけ）
+   ・「次」＝章まとめはまだ受けていない次の記号（前の記号が直しの途中でも付ける）／単元まとめはまだ受けていないいちばん前の単元（練習が終わっていなくても付ける）
+   ・問題用紙・解答解説（と名前なしの解答用紙）＝テストごとに1回ずつ _ppMakeMulti_ で刷る（ページ番号はテストごとに1から・部数はプリンター）
+   ・名前入りの解答用紙＝ws_sheets_issue で1人×1テストの鍵を作り、組んだ解答用紙を人数ぶん写して名前と専用の QR を入れ、1回で刷る
+     （並び＝テストの順 → 学年 → 教室 → 名前。1枚ごとに白紙をはさむ＝回収する紙の裏に別の子の紙を刷らない・2026-10-19 17:03 の決まり） */
+var _pt={kind:'name',grade:{},room:{},pk:null,pkKey:'',done:{},board:null,boardAt:0,tm:0};
+function _ptDayLab_(){var d=new Date(Date.now()+9*3600*1000);return (d.getUTCMonth()+1)+'/'+d.getUTCDate();}
+function _ptOpen_(){
+  var box=$('ptBox'),outs=$('ppModal').querySelector('.pp-outs'),md=$('ppModal').querySelector('.modal');
+  if(outs)outs.style.display=_ppTest?'none':'';if(box)box.style.display=_ppTest?'':'none';
+  if(md)md.style.width=_ppTest?'min(96vw,1240px)':'min(96vw,1000px)';
+  if(!_ppTest)return;
+  _pt.done={};
+  if(box&&!box.innerHTML)box.innerHTML='<div style="color:var(--text-muted)">上でテストを選ぶと、渡す生徒の表が出ます</div>';
+  /* 点・直しは開くたびに読み直す（テストのあとの直しが進んでいることがある） */
+  call({action:'ws_test_board'}).then(function(d){if(d&&d.ok&&d.data){_pt.board=d.data;_pt.boardAt=Date.now();}else{_pt.board=_pt.board||{tests:{},rows:[],err:(d&&d.error)||'読み込めませんでした'};}_ptDraw_();});
+  _ptSoon_();
+}
+function _ptSoon_(){clearTimeout(_pt.tm);_pt.tm=setTimeout(_ptDraw_,60);}
+/* 上の範囲で選んだテスト（並び＝上の教材の並び・教材の中はテストの順） */
+function _ptMats_(){var M={};[].concat((typeof bulkMaterials!=='undefined'&&bulkMaterials)||[],_ppMats||[]).forEach(function(m){if(m&&m.id!=null)M[String(m.id)]=m;});return M;}
+function _ptTests_(){
+  var M=_ptMats_();
+  var B=(_pt.board&&_pt.board.tests)||{},out=[];
+  (_ppSel||[]).forEach(function(mid){
+    var sec=$('ppParts').querySelector('.pp-msec[data-mid="'+mid+'"]')||(_ppSel.length===1?$('ppParts'):null);if(!sec)return;
+    [].slice.call(sec.querySelectorAll('.pp-ptc')).forEach(function(c){if(!c.checked)return;var v=String(c.value);
+      if(v==='test'){var pid='';Object.keys(B).forEach(function(k){if(B[k].material_id===String(mid))pid=k;});if(!pid)return;
+        var t=String((M[mid]&&M[mid].title)||''),h=(t.match(/[①-⑳]/)||['?'])[0];
+        out.push({mid:String(mid),pid:pid,unit:true,g:'単元まとめテスト',h:h,lab:'単元'+h+' '+t.replace(/^.*[①-⑳]\s*/,''),pk:{test:1},ser:String((M[mid]&&M[mid].description)||'')});}
+      else if(/^T:/.test(v)){var pid2=v.slice(2),bt=B[pid2]||{},tt=String(bt.title||c.parentNode.textContent||''),mm=tt.match(/（([^）]*)）\s*([A-C])\s*$/);
+        var g=mm?('章まとめ（'+mm[1]+'）'):'章まとめテスト',h2=mm?mm[2]:'?';
+        var o={};o[v]=1;out.push({mid:String(mid),pid:pid2,unit:false,g:g,h:h2,lab:g+h2+({A:'●',B:'■',C:'▲'}[h2]||''),pk:o,ser:String((M[mid]&&M[mid].description)||'')});}});
+  });
+  return out;
+}
+function _ptRes_(){var R={};((_pt.board&&_pt.board.rows)||[]).forEach(function(r){(R[r.s]||(R[r.s]={}))[r.p]=r;});return R;}
+function _ptMv_(s,mid){var a=(s.materials_view||[]).concat(s.completed_view||[]);for(var i=0;i<a.length;i++)if(String(a[i].material_id)===String(mid))return a[i];return null;}
+function _ptPartsDone_(s,mid){var v=_ptMv_(s,mid);if(!v)return null;var ps=(v.parts||[]).filter(function(x){return !/まとめテスト/.test(String(x.name||''));});return {d:ps.filter(function(x){return x.status==='done';}).length,t:ps.length};}
+/* 「次」：この子について、テストの part_id ごとに true（川上さん 2026-10-20 16:39〜16:47） */
+function _ptNext_(s,R){
+  var B=(_pt.board&&_pt.board.tests)||{},M=_ptMats_(),nx={},mine=R[String(s.student_id)]||{};
+  /* 単元まとめ：シリーズごとに、割り当てのある単元の中で、まだ受けていないいちばん前の単元 */
+  var bySer={},cnt={};Object.keys(B).forEach(function(pid){var mid=B[pid].material_id;cnt[mid]=(cnt[mid]||0)+1;});
+  Object.keys(B).forEach(function(pid){var mid=B[pid].material_id,m=M[mid];if(!m||cnt[mid]!==1||!_ptMv_(s,mid))return;var k=String(m.description||'');(bySer[k]||(bySer[k]=[])).push({pid:pid,o:Number(m.display_order)||0});});
+  Object.keys(bySer).forEach(function(k){var a=bySer[k].sort(function(x,y){return x.o-y.o;});for(var i=0;i<a.length;i++){if(!mine[a[i].pid]){nx[a[i].pid]=true;break;}}});
+  /* 章まとめ：範囲（①〜③など）ごとに、受けたいちばん後ろの記号の次（受けていなければ A）。直しの途中でも次へ */
+  var grp={};Object.keys(B).forEach(function(pid){var mid=B[pid].material_id;if(cnt[mid]===1||!_ptMv_(s,mid))return;var mm=String(B[pid].title||'').match(/（([^）]*)）\s*([A-C])\s*$/);if(!mm)return;(grp[mid+'|'+mm[1]]||(grp[mid+'|'+mm[1]]=[])).push({pid:pid,o:B[pid].order||0});});
+  Object.keys(grp).forEach(function(k){var a=grp[k].sort(function(x,y){return x.o-y.o;}),last=-1;a.forEach(function(x,i){if(mine[x.pid])last=i;});if(last+1<a.length)nx[a[last+1].pid]=true;});
+  return nx;
+}
+function _ptStudents_(T){
+  var gs=_pt.grade,rs=_pt.room,hasG=Object.keys(gs).length,hasR=Object.keys(rs).length;
+  return (_students||[]).filter(function(s){if(s.is_active===false)return false;try{if(_rpExT_(true)&&s.is_teacher_account)return false;}catch(e){}return T.some(function(t){return !!_ptMv_(s,t.mid);});})
+    .filter(function(s){return (!hasG||gs[String(s.grade||'')])&&(!hasR||rs[String(s.class_name||'')]);})
+    .sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);if(d)return d;d=String(a.class_name||'').localeCompare(String(b.class_name||''),'ja');return d||String(a.name||'').localeCompare(String(b.name||''),'ja');});
+}
+function _ptDraw_(){
+  var box=$('ptBox');if(!box||!_ppTest)return;
+  var T=_ptTests_();
+  if(!T.length){box.innerHTML='<div style="color:var(--text-muted)">上でテスト（単元まとめテスト・章まとめテスト）を選ぶと、渡す生徒の表が出ます</div>';return;}
+  if(!_pt.board){box.innerHTML='<div style="color:var(--text-muted)">テストの点を読み込んでいます…</div>';return;}
+  if(!(_students||[]).length){box.innerHTML='<div style="color:var(--text-muted)">生徒一覧を読み込んでいます…（生徒一覧のタブが出てから、もう一度開いてください）</div>';return;}
+  var R=_ptRes_(),all=(_students||[]).filter(function(s){if(s.is_active===false)return false;try{if(_rpExT_(true)&&s.is_teacher_account)return false;}catch(e){}return T.some(function(t){return !!_ptMv_(s,t.mid);});});
+  /* ✓ の初め＝「次」。選んだテストが変わったら付け直す */
+  var key=T.map(function(t){return t.pid;}).join('|');
+  if(_pt.pkKey!==key||!_pt.pk){_pt.pkKey=key;_pt.pk={};all.forEach(function(s){var nx=_ptNext_(s,R),o={};T.forEach(function(t){if(nx[t.pid]&&_ptMv_(s,t.mid))o[t.pid]=1;});_pt.pk[String(s.student_id)]=o;});}
+  var S=_ptStudents_(T);
+  var uniq=function(f){var m={};all.forEach(function(s){var v=String(s[f]||'');if(v)m[v]=1;});var a=Object.keys(m);return f==='grade'?a.sort(function(x,y){return gradeRank(x)-gradeRank(y);}):a.sort(function(x,y){return x.localeCompare(y,'ja');});};
+  var chips=function(f,sel){return uniq(f).map(function(v){return '<button type="button" class="pt-chip'+(sel[v]?' on':'')+'" onclick="_ptFlt_(\''+f+'\',this.textContent)">'+esc(v)+'</button>';}).join('');};
+  var h='<div class="pt-h">解答用紙の種類<small>刷るたびに選ぶ</small></div><div class="pt-kind">'
+    +'<button type="button" class="'+(_pt.kind==='name'?'on':'')+'" onclick="_ptKind_(\'name\')">名前入り（その子専用の QR）<span>✓ の生徒ごとに1枚。QR を読むと、その子でログインする（刷った日から30日）</span></button>'
+    +'<button type="button" class="'+(_pt.kind==='plain'?'on':'')+'" onclick="_ptKind_(\'plain\')">名前なし（標準の QR）<span>テストごとに全員同じ紙。QR を読むと、ログイン中のアカウントが合っているかを確かめる</span></button></div>';
+  h+='<div class="pt-h">渡す生徒<small>上で選んだテストの教材が割り当てられている生徒。✓ の数がそのまま部数（名前なしでも同じ）</small></div>';
+  h+='<div class="pt-flt"><b>学年</b>'+chips('grade',_pt.grade)+'<b style="margin-left:8px">教室</b>'+chips('class_name',_pt.room)+'<span style="color:var(--text-muted)">（選ばなければ全部）</span></div>';
+  h+='<div class="pt-lg"><span class="pt-c ok" style="width:auto;padding:0 6px">90</span>合格<span class="pt-c dn" style="width:auto;padding:0 6px">75</span>直し済み・まだ合格していない<span class="pt-c fx" style="width:auto;padding:0 6px">65</span>直しの途中<span class="pt-c nx" style="width:auto;padding:0 6px">次</span>次に受けるテスト<span style="display:inline-block;width:22px;height:12px;background:#eef0f3;border:1px solid var(--border)"></span>割り当てなし</div>';
+  var gs=[],prev='';T.forEach(function(t){if(t.g!==prev){gs.push([t.g,1]);prev=t.g;}else gs[gs.length-1][1]++;});
+  h+='<table class="pt-tb"><thead><tr><th rowspan="2" class="nm">生徒</th>'+gs.map(function(x){return '<th colspan="'+x[1]+'" class="g">'+esc(x[0])+'</th>';}).join('')+'<th rowspan="2" class="n">本数</th></tr><tr>'
+    +T.map(function(t,i){return '<th class="c" onclick="_ptCol_('+i+')" title="この列の全員に ✓ を付ける／外す">'+esc(t.h)+'</th>';}).join('')+'</tr></thead><tbody>';
+  var cntOf=function(t){return S.filter(function(s){return (_pt.pk[String(s.student_id)]||{})[t.pid];}).length;};
+  S.forEach(function(s){var sid=String(s.student_id),pk=_pt.pk[sid]||(_pt.pk[sid]={}),nx=_ptNext_(s,R),mine=R[sid]||{},n=0;
+    h+='<tr><td class="nm"><b>'+esc(s.name||s.nickname||'')+'</b><small>'+esc([s.grade,s.class_name].filter(function(x){return x;}).join('・'))+'</small><span class="nb" onclick="_ptNextN_(\''+esc(sid)+'\',2)">次から2つ</span><span class="nb" onclick="_ptNextN_(\''+esc(sid)+'\',3)">次から3つ</span></td>';
+    T.forEach(function(t,i){
+      if(!_ptMv_(s,t.mid)){h+='<td class="na" title="割り当てなし"></td>';return;}
+      var c=_ptCell_(s,t,mine,nx);
+      if(pk[t.pid])n++;
+      h+='<td class="pk'+(pk[t.pid]?' on':'')+'" onclick="_ptPk_(\''+esc(sid)+'\','+i+')">'+c+'</td>';});
+    h+='<td class="n"><b>'+n+'</b></td></tr>';});
+  var tot=T.reduce(function(a,t){return a+cntOf(t);},0),kids=S.filter(function(s){var o=_pt.pk[String(s.student_id)]||{};return T.some(function(t){return o[t.pid];});}).length;
+  h+='</tbody><tfoot><tr><td class="nm">部数</td>'+T.map(function(t){return '<td>'+cntOf(t)+'</td>';}).join('')+'<td class="n">'+tot+'</td></tr></tfoot></table>';
+  if(!S.length)h+='<div style="color:var(--text-muted)">この絞り込みでは、割り当てのある生徒がいません</div>';
+  h+='<div class="pt-bar"><b>今回渡すテスト：'+tot+'本（'+kids+'人）　問題用紙 '+tot+'部・解答解説 '+tot+'部・解答用紙 '+tot+'枚（'+(_pt.kind==='name'?'名前入り':'名前なし')+'）</b><span><button type="button" class="btn-ghost" onclick="_ptClr_()">✓ を全部外す</button> <button type="button" class="btn-ghost" onclick="_ptReNext_()">「次」だけに戻す</button></span></div>';
+  /* 刷る行 */
+  var bt=function(id,lab,on){var d=_pt.done[id];return '<span class="pt-cel"><button type="button" class="btn-primary'+(d?' pt-done':'')+'" onclick="'+on.replace('%H','print')+'">'+(d?'✓ 刷った':lab)+'</button><button type="button" class="btn-primary btn-outlineK" onclick="'+on.replace('%H','pdf')+'">⬇ PDF</button></span>';};
+  var rows='<div class="pt-row hd"><span>テスト</span><span>受ける子</span><span>問題用紙</span><span>解答解説</span><span>解答用紙</span></div>';
+  if(_pt.kind==='name'&&tot){var ord=T.filter(function(t){return cntOf(t);}).map(function(t){return t.lab+'：'+S.filter(function(s){return (_pt.pk[String(s.student_id)]||{})[t.pid];}).map(function(s){return s.name||s.nickname;}).join('→');}).join('　／　');
+    rows+='<div class="pt-row one"><span><b>解答用紙（名前入り）全員分</b><small>テストの順 → この表の順に1枚ずつ出る。<b style="color:#c0392b">印刷の画面で［両面印刷］をオンにする</b>（白紙は裏になる＝紙は1人1枚）</small></span><span>'+tot+'枚（'+kids+'人）</span>'+bt('S*','🖨 印刷　<b>'+tot+'枚</b>',"_ptNamed_('%H')")+'<span style="grid-column:4/6"><small>出てくる順：'+esc(ord)+'</small></span></div>';}
+  T.forEach(function(t,i){var n=cntOf(t);if(!n)return;var who=S.filter(function(s){return (_pt.pk[String(s.student_id)]||{})[t.pid];}).map(function(s){return s.name||s.nickname;}).join('・');
+    rows+='<div class="pt-row"><span><b>'+esc(t.lab)+'</b></span><span>'+esc(who)+'（'+n+'人）</span>'+bt(t.pid+'q','🖨 印刷　<b>'+n+'部</b>',"_ptOne_("+i+",'q','%H')")+bt(t.pid+'a','🖨 印刷　<b>'+n+'部</b>',"_ptOne_("+i+",'a','%H')")
+      +(_pt.kind==='name'?'<span><small>名前入り '+n+'枚（いちばん上の行）</small></span>':bt(t.pid+'s','🖨 印刷　<b>'+n+'部</b>',"_ptOne_("+i+",'s','%H')"))+'</div>';});
+  if(!tot)rows+='<div class="pt-row"><span style="grid-column:1/-1;color:var(--text-muted)">✓ が付いたテストがありません。名前なしで予備を刷るときも、刷る数だけ ✓ を付けるか、1つ ✓ を付けて印刷の画面で部数を入れる</span></div>';
+  h+='<div class="pt-rows">'+rows+'</div><div style="font-size:12px;color:var(--text-muted)">部数の入ったボタンは、印刷の画面で部数にその数を入れて刷る（テストごとに1回＝プリンターの回転印刷が効く）。'+(_pt.kind==='name'?'名前入りの解答用紙は部数 1 のまま・<b>両面印刷で</b>刷る（1人1枚ずつ。裏に別の子の紙が来ないよう白紙をはさんであるので、両面なら白紙は紙の裏になる。片面で刷ると白紙が1枚ずつ出る）。':'')+'［⬇ PDF］は、となりの［🖨 印刷］と同じ紙を1部だけ PDF にする。</div>';
+  box.innerHTML=h;
+}
+
+/* レポートタブの「テストの進み具合」（見るだけ・2026-10-20 川上さん「推奨でOK」）。
+   選んだ教材にワークシートのテストがあるときだけ出す。表の作りは［テストを単体で印刷］の表と同じ（押しても何も起きない・✓ は無い）。生徒はレポートの絞り込みのまま */
+function _ptTestsOfMats_(mids){
+  var M=_ptMats_(),B=(_pt.board&&_pt.board.tests)||{},cnt={},out=[];Object.keys(B).forEach(function(pid){var mid=B[pid].material_id;cnt[mid]=(cnt[mid]||0)+1;});
+  var want={};(mids||[]).forEach(function(m){want[String(m)]=1;});
+  Object.keys(B).filter(function(pid){return want[B[pid].material_id];}).sort(function(a,b){var ma=M[B[a].material_id]||{},mb=M[B[b].material_id]||{};
+    var d=(cnt[B[a].material_id]===1?0:1)-(cnt[B[b].material_id]===1?0:1);if(d)return d;d=(Number(ma.display_order)||0)-(Number(mb.display_order)||0);return d||((B[a].order||0)-(B[b].order||0));})
+  .forEach(function(pid){var b=B[pid],mid=b.material_id,m=M[mid]||{};
+    if(cnt[mid]===1){var t=String(m.title||''),h=(t.match(/[①-⑳]/)||['?'])[0];out.push({mid:mid,pid:pid,unit:true,g:'単元まとめテスト',h:h,lab:'単元'+h});}
+    else{var mm=String(b.title||'').match(/（([^）]*)）\s*([A-C])\s*$/);var g=mm?('章まとめ（'+mm[1]+'）'):'章まとめテスト';out.push({mid:mid,pid:pid,unit:false,g:g,h:mm?mm[2]:'?',lab:g});}});
+  return out;
+}
+var _ptRepAsk=false;
+function _ptReport_(){
+  var box=$('rpWsTests');if(!box)return;
+  var M=_ptMats_(),mids=(RP_SEL||[]).filter(function(id){var m=M[String(id)];return m&&String(m.content_type||'')==='worksheet';});
+  if(!mids.length){box.style.display='none';return;}
+  box.style.display='';
+  if(!_pt.board||Date.now()-_pt.boardAt>5*60*1000){
+    if(!_ptRepAsk){_ptRepAsk=true;call({action:'ws_test_board'}).then(function(d){_ptRepAsk=false;if(d&&d.ok&&d.data){_pt.board=d.data;_pt.boardAt=Date.now();_ptReport_();}else if(!_pt.board){box.innerHTML='<div class="qch">テストの進み具合</div><div class="rp-mute">読み込めませんでした（GAS の再デプロイがまだかもしれません）</div>';}});}
+    if(!_pt.board){box.innerHTML='<div class="qch">テストの進み具合</div><div class="rp-mute">読み込み中…</div>';return;}
+  }
+  var T=_ptTestsOfMats_(mids);
+  if(!T.length){box.innerHTML='<div class="qch">テストの進み具合</div><div class="rp-mute">選んだ教材にテストがありません</div>';return;}
+  var R=_ptRes_(),S=rpTargets().map(function(x){return x.s;}).filter(function(s){return T.some(function(t){return !!_ptMv_(s,t.mid);});})
+    .sort(function(a,b){var d=gradeRank(a.grade)-gradeRank(b.grade);if(d)return d;d=String(a.class_name||'').localeCompare(String(b.class_name||''),'ja');return d||String(a.name||'').localeCompare(String(b.name||''),'ja');});
+  var gs=[],prev='';T.forEach(function(t){if(t.g!==prev){gs.push([t.g,1]);prev=t.g;}else gs[gs.length-1][1]++;});
+  var h='<div class="qch">テストの進み具合<span class="rp-mute" style="font-weight:600;">見るだけの表。刷るときは生徒一覧の［📝 テストを単体で印刷］</span></div>'
+    +'<div class="pt-lg" style="margin-bottom:6px"><span class="pt-c ok" style="width:auto;padding:0 6px">90</span>合格<span class="pt-c dn" style="width:auto;padding:0 6px">75</span>直し済み・まだ合格していない<span class="pt-c fx" style="width:auto;padding:0 6px">65</span>直しの途中<span class="pt-c nx" style="width:auto;padding:0 6px">次</span>次に受けるテスト<span style="display:inline-block;width:22px;height:12px;background:#eef0f3;border:1px solid var(--border)"></span>割り当てなし</div>'
+    +'<table class="pt-tb"><thead><tr><th rowspan="2" class="nm">生徒</th>'+gs.map(function(x){return '<th colspan="'+x[1]+'" class="g">'+esc(x[0])+'</th>';}).join('')+'</tr><tr>'+T.map(function(t){return '<th>'+esc(t.h)+'</th>';}).join('')+'</tr></thead><tbody>';
+  S.forEach(function(s){var sid=String(s.student_id),nx=_ptNext_(s,R),mine=R[sid]||{};
+    h+='<tr><td class="nm"><b>'+esc(s.name||s.nickname||'')+'</b><small>'+esc([s.grade,s.class_name].filter(function(x){return x;}).join('・'))+'</small></td>';
+    T.forEach(function(t){if(!_ptMv_(s,t.mid)){h+='<td class="na" title="割り当てなし"></td>';return;}h+='<td>'+_ptCell_(s,t,mine,nx)+'</td>';});
+    h+='</tr>';});
+  h+='</tbody></table>'+(S.length?'':'<div class="rp-mute">この絞り込みでは、テストのある教材が割り当てられた生徒がいません</div>');
+  box.innerHTML=h;
+}
+function _ptCell_(s,t,mine,nx){var r=mine[t.pid];
+  if(r){var cls=r.ok?'ok':(r.fx==='fixing'?'fx':'dn');return '<span class="pt-c '+cls+'">'+(r.r==null?'－':Math.round(r.r))+(cls==='fx'?'<small>直しの途中</small>':'')+'</span>';}
+  var pd=t.unit?_ptPartsDone_(s,t.mid):null,pt=pd&&pd.t?'<small class="pp">パート '+(pd.d>=pd.t?'済':(pd.d+'/'+pd.t))+'</small>':'';return '<span class="pt-c '+(nx[t.pid]?'nx':'no')+'">'+(nx[t.pid]?'次':'－')+pt+'</span>';}
+function _ptKind_(k){_pt.kind=k;_ptDraw_();}
+function _ptFlt_(f,v){var o=f==='grade'?_pt.grade:_pt.room;if(o[v])delete o[v];else o[v]=1;_ptDraw_();}
+function _ptPk_(sid,i){var t=_ptTests_()[i];if(!t)return;var o=_pt.pk[sid]||(_pt.pk[sid]={});if(o[t.pid])delete o[t.pid];else o[t.pid]=1;_ptDraw_();}
+function _ptCol_(i){var T=_ptTests_(),t=T[i];if(!t)return;var S=_ptStudents_(T).filter(function(s){return !!_ptMv_(s,t.mid);});var all=S.every(function(s){return (_pt.pk[String(s.student_id)]||{})[t.pid];});
+  S.forEach(function(s){var o=_pt.pk[String(s.student_id)]||(_pt.pk[String(s.student_id)]={});if(all)delete o[t.pid];else o[t.pid]=1;});_ptDraw_();}
+function _ptNextN_(sid,n){var T=_ptTests_(),s=(_students||[]).filter(function(x){return String(x.student_id)===sid;})[0];if(!s)return;var R=_ptRes_(),nx=_ptNext_(s,R),mine=R[sid]||{},o=_pt.pk[sid]||(_pt.pk[sid]={});
+  /* 選んだテストの並びで、最初の「次」から、まだ受けていないテストを n 個 */
+  var A=T.filter(function(t){return !!_ptMv_(s,t.mid);}),st=-1;for(var i=0;i<A.length;i++){if(nx[A[i].pid]){st=i;break;}}if(st<0)return;
+  for(var j=st,k=0;j<A.length&&k<n;j++){if(!mine[A[j].pid]){o[A[j].pid]=1;k++;}}_ptDraw_();}
+function _ptClr_(){Object.keys(_pt.pk||{}).forEach(function(k){_pt.pk[k]={};});_ptDraw_();}
+function _ptReNext_(){_pt.pk=null;_pt.pkKey='';_ptDraw_();}
+/* 問題用紙・解答解説・名前なしの解答用紙＝テスト1本ずつ（kd＝q/a/s・how＝print/pdf） */
+function _ptOne_(i,kd,how){if(_ppBusy)return;var t=_ptTests_()[i];if(!t)return;var pk={};pk[t.mid]=t.pk;
+  _ppMakeMulti_((how==='pdf'?'pdf_':'print_')+kd,{sel:[t.mid],pk:pk,name:t.lab,done:function(){if(how!=='pdf'){_pt.done[t.pid+kd]=1;_ptDraw_();}}});}
+/* 名前入りの解答用紙＝テストごとに1枚組み、✓ の子の数だけ写して名前と専用の QR を入れる。1回の印刷・1本の PDF */
+function _ptNamed_(how){
+  if(_ppBusy)return;var T=_ptTests_(),S=_ptStudents_(T),items=[];
+  T.forEach(function(t){S.forEach(function(s){if((_pt.pk[String(s.student_id)]||{})[t.pid])items.push({t:t,s:s});});});
+  if(!items.length){$('ppErr').textContent='✓ を付けた生徒がいません';return;}
+  $('ppErr').textContent='';$('ppStat').textContent='名前入りの QR を作っています…';
+  call({action:'ws_sheets_issue',items:items.map(function(x){return {student_id:String(x.s.student_id),part_id:x.t.pid};})}).then(function(d){
+    if(!d||!d.ok||!d.data||!(d.data.items||[]).length){$('ppErr').textContent='名前入りの QR を作れませんでした：'+((d&&d.error)||'通信に失敗しました')+'（GAS の再デプロイがまだかもしれません）';$('ppStat').textContent='';return;}
+    var keys=d.data.items;
+    var mids=[],pk={};T.forEach(function(t){if(!items.some(function(x){return x.t===t;}))return;if(mids.indexOf(t.mid)<0)mids.push(t.mid);var o=pk[t.mid]||(pk[t.mid]={});Object.keys(t.pk).forEach(function(k){o[k]=1;});});
+    _ppMakeMulti_((how==='pdf'?'pdf_':'print_')+'s',{sel:mids,pk:pk,name:'名前入り'+items.length+'枚',
+      post:function(L){
+        /* 組んだ解答用紙（1テスト1枚）を QR の番号で引けるようにする */
+        var byCode={};L.forEach(function(o){if(!o.no)return;var c=o.el.querySelector('.wsqr-cd');if(c)byCode[String(c.firstChild&&c.firstChild.nodeValue||'').trim()]=o.el;});
+        var out=[],no=0;items.forEach(function(x,k){var code=_wsCode_(x.t.pid),src=byCode[code];if(!src)return;var el=src.cloneNode(true),ky=keys[k]||{};
+          var nm=el.querySelector('.as-nm');if(nm)nm.textContent=x.s.name||x.s.nickname||'';
+          var q=el.querySelector('.qr');if(q&&ky.key)q.innerHTML=fsQrHtml_(code.replace('-','')+'&qa='+ky.key)+'<div class="wsqr-cd">'+esc(code)+'<span class="dt">'+_ptDayLab_()+' 刷</span></div>';
+          var f=el.querySelector('.pp-ft');if(f)f.textContent='解答用紙 1／1';el.setAttribute('data-ftfix','1');
+          out.push({el:el,no:++no});out.push({el:_ppBlankPg_(),no:0});});
+        var miss=items.length-out.filter(function(o){return o.no;}).length;if(miss)$('ppErr').textContent='組めなかった解答用紙が '+miss+'枚あります。もう一度押してください';
+        if(out.length)out.pop();   /* 最後の白紙は要らない */
+        return out;},
+      done:function(){if(how!=='pdf'){_pt.done['S*']=1;_ptDraw_();}}});
+  });
+}
 
 /* ===== 紙の使い分け（右上の「🖨 紙の使い分け」）2026-10-15 =====
    正＝ジョブス用\仕様書\要件定義書_練習プリントと単元ワークシート_Kurofune-Word-Trainer.md 1b。
