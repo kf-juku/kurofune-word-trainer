@@ -2566,7 +2566,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-20c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-20d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3633,17 +3633,18 @@ function homeCacheClear_(){try{localStorage.removeItem(HOME_CACHE_KEY);}catch(e)
    ・記録の後始末（complete_extras＝学習した日・フリーズの付与）が終わるのを待ってから取る＝連続の数が古いまま入らない
    ・ホームを開いている間は取らない（loadHomeData_ が取り直す）。あとから始めたホームの取得があれば、この返事は入れない
    ・何回続けて呼ばれても、取るのは最後の1回だけ */
-var _ceBusy_=0,_hrT_=null;
+var _ceBusy_=0,_hrT_=null,_hrGen_=0;
 function _ceCall_(b){_ceBusy_++;var f=function(){_ceBusy_=Math.max(0,_ceBusy_-1);};var pr=call(b);pr.then(f,f);return pr;}
-function homeCacheRenew_(){homeCacheClear_();if(_hrT_)clearTimeout(_hrT_);_hrT_=setTimeout(_hrRun_,1200);}
+function homeCacheRenew_(){_hrGen_++;homeCacheClear_();if(_hrT_)clearTimeout(_hrT_);_hrT_=setTimeout(_hrRun_,1200);}
 function _hrRun_(){
   _hrT_=null;
   if(_ceBusy_>0){_hrT_=setTimeout(_hrRun_,800);return;}
   try{var h=$('scr-home');if(h&&h.classList.contains('active'))return;}catch(e){}
   var tk=token;if(!tk)return;
-  var my=(_ccSeq_['student_home']||0);
+  var my=(_ccSeq_['student_home']||0),gen=_hrGen_;
   call({action:'student_home'}).then(function(d){
-    if(token!==tk||(_ccSeq_['student_home']||0)!==my)return;
+    /* 取りに行っている間に別の保存が届いた（gen が進んだ）・ホームを取り直した・生徒が変わった＝この返事は古いので入れない 2026-10-20 */
+    if(token!==tk||gen!==_hrGen_||(_ccSeq_['student_home']||0)!==my)return;
     if(d&&d.ok)homeCachePut_('student_home',d);
   });
 }
