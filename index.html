@@ -2566,7 +2566,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-20f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-20g"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -8853,6 +8853,10 @@ function _sqGiveUp_(d){
   if(!e)return false;
   if(e.indexOf('通信')>=0||e.indexOf('混')>=0)return false;
   if(/^locked/i.test(e)||e.indexOf('少し待')>=0)return false; // 確認テストの提出は混雑で「locked: 少し待って再試行…」を返す。これを捨てていた＝記録がどこにも残らなかった 2026-09-26
+  /* 【2026-10-20】サーバー（GAS）側の止まり・権限・時間切れは、直れば通る＝捨てない。
+     14:25〜 GAS がスプレッドシートの権限を失い、全部の保存が「…を呼び出す権限がありません」で返った。
+     これを「何度送っても通らない」と見て捨てていた＝その間に終えた学習の記録が消えた。 */
+  if(/権限|Service|timed out|Exception|上限|quota|Too many|内部|サーバー|しばらく/i.test(e))return false;
   return true; // 「再度ログインしてください」「〜が必要です」「シートがありません」など、何度送っても通らないもの
 }
 /* ===== 保存を待たずに画面を進める 2026-09-02 =====
