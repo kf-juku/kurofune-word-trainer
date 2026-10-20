@@ -2566,7 +2566,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-20j"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-20k"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -9921,6 +9921,7 @@ function effortChipsHtml_(d2){
   var chips='';
   if((d2.today_streak||0)>=2)chips+='<span class="chip streak"><i class="ti ti-flame"></i> <ruby>連続<rt class="uf">れんぞく</rt></ruby>'+d2.today_streak+'<ruby>日<rt class="uf">にち</rt></ruby></span>';
   if((d2.week_words||0)>0)chips+='<span class="chip week"><i class="ti ti-book"></i> <ruby>今週<rt class="uf">こんしゅう</rt></ruby>'+d2.week_words+'<ruby>語<rt class="uf">ご</rt></ruby></span>';
+  if((d2.week_ws_parts||0)>0)chips+='<span class="chip week"><i class="ti ti-math-function"></i> ワークシート '+d2.week_ws_parts+'パート</span>';   /* 語数と混ぜずに別に出す 2026-10-20 */
   if(d2.today_top_badge){var tb=d2.today_top_badge;var bic=(typeof BADGE_ICONS!=='undefined'&&BADGE_ICONS[tb.axis])||'ti-award';chips+='<span class="chip badge"><i class="ti '+bic+'"></i> '+tb.label+'</span>';}
   if(!chips)return '';
   return '<div class="today-did"><div class="h"><i class="ti ti-flame"></i> <span><ruby>君<rt class="uf">きみ</rt></ruby>の<ruby>今日<rt class="uf">きょう</rt></ruby>のがんばり</span></div><div class="row">'+chips+'</div></div>';
@@ -10912,6 +10913,10 @@ function loadBadges(){
     var head=document.createElement('div');head.className='muted';head.style.marginBottom='10px';
     head.innerHTML='ゲットしたバッジ <b style="color:var(--gold)">'+got+'</b> / '+tot;
     area.appendChild(head);
+    /* ワークシートのがんばり（称号の語数・DAY とは別に数える）2026-10-20 */
+    var _ws=d.data.stats||{};
+    if((_ws.ws_parts||0)>0||(_ws.ws_tests||0)>0){var wl=document.createElement('div');wl.className='muted';wl.style.margin='-4px 0 10px';
+      wl.innerHTML='<i class="ti ti-math-function"></i> ワークシート　'+rb('終','お')+'えたパート <b>'+(_ws.ws_parts||0)+'</b>　'+rb('受','う')+'けたテスト <b>'+(_ws.ws_tests||0)+'</b>'+rb('本','ほん');area.appendChild(wl);}
     var grid=document.createElement('div');grid.className='badge-grid';
     /* レア度：軸ごとに目標値の小さい順で 1段目=白/2段目=緑/3段目=青（川上さん確定 2026-07-25）。ゲット済みだけ枠色を出す */
     var _axG={};list.forEach(function(b){(_axG[b.axis]=_axG[b.axis]||[]).push(Number(b.goal));});Object.keys(_axG).forEach(function(a){_axG[a].sort(function(x,y){return x-y;});});

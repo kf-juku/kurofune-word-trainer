@@ -214,7 +214,8 @@
 .lv-m{display:flex;flex-direction:column;gap:3px;min-width:0}
 .lv-row{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
 .lv-k{font-size:10.5px;font-weight:800;border-radius:4px;padding:0 5px;line-height:16px;flex:0 0 auto}
-.lv-k.d{background:#e0edff;color:#1d4ed8}.lv-k.u{background:#efe7ff;color:#6d28d9}
+.lv-k.d{background:#e0edff;color:#1d4ed8}.lv-k.u{background:#efe7ff;color:#6d28d9}.lv-k.w{background:#e6f6ef;color:#047857}
+.sd2-ws td.ts{white-space:nowrap}.sd2-ws .wsok{color:#1f9d57;font-weight:800}.sd2-ws .wsng{color:#b91c1c;font-weight:800}.sd2-ws .wsfx{color:#b26a00;font-weight:800}.sd2-ws .wsmu{color:#94a3b8}.sd2-ws .wsbtn{display:inline-block;font-size:11.5px;border:1px solid #cbd5e1;border-radius:7px;padding:2px 8px;margin:0 4px 2px 0;cursor:pointer;background:#fff;white-space:nowrap}
 .lv-it{font-size:12.5px;cursor:pointer;color:#1f2937;border-bottom:1px dotted #cbd5e1;white-space:nowrap}
 .lv-it:hover{color:#b91c1c;border-bottom-color:#b91c1c}
 .lv-it .h{color:#64748b;font-size:11.5px;margin-left:3px}
@@ -1583,6 +1584,7 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
         <button class="filter-chip active" data-kd="all" onclick="setKindFilter('all',this)">すべて</button>
         <button class="filter-chip" data-kd="main" onclick="setKindFilter('main',this)">毎日学習</button>
         <button class="filter-chip" data-kd="test" onclick="setKindFilter('test',this)">単元別</button>
+        <button class="filter-chip" data-kd="worksheet" onclick="setKindFilter('worksheet',this)">ワークシート</button>
       </div>
       <div class="filter-grp"><!-- 周回 2026-10-05 川上さん：2周目以降に入っている子だけ・その教材をハイライト -->
         <span class="filter-label">周回</span>
@@ -3152,9 +3154,9 @@ function buildMatChips_(){
   (_students||[]).forEach(function(s){
     (s.materials_view||[]).forEach(function(m){
       var k=_bookKey(m);
-      if(!map[k]){ map[k]={label:(_bookLabel(m)||mtLabel(m)||k), dord:_dordMat_(m), test:false, main:false}; keys.push(k); }
+      if(!map[k]){ map[k]={label:(_bookLabel(m)||mtLabel(m)||k), dord:_dordMat_(m), test:false, main:false, ws:false}; keys.push(k); }
       if(_dordMat_(m)<map[k].dord) map[k].dord=_dordMat_(m);
-      if(String(m.type)==='test') map[k].test=true; else map[k].main=true;
+      if(String(m.type)==='test') map[k].test=true; else if(String(m.type)==='worksheet') map[k].ws=true; else map[k].main=true;
     });
   });
   keys.sort(function(a,b){ var d=map[a].dord-map[b].dord; return d!==0?d:String(map[a].label).localeCompare(String(map[b].label),'ja'); });
@@ -3165,7 +3167,7 @@ function buildMatChips_(){
   keys.forEach(function(k){
     var b=document.createElement('button');
     b.className='filter-chip'+(_matSel[k]?' active':'');b.type='button';b.textContent=map[k].label;
-    b.title=map[k].label+(map[k].test&&map[k].main?'（毎日学習・単元別の両方）':(map[k].test?'（単元別）':'（毎日学習）'));
+    b.title=map[k].label+(map[k].ws?'（ワークシート）':(map[k].test&&map[k].main?'（毎日学習・単元別の両方）':(map[k].test?'（単元別）':'（毎日学習）')));
     b.onclick=function(){toggleSelChip(_matSel,k,b);};
     w.appendChild(b);
   });
@@ -3203,7 +3205,9 @@ function doneDayText_(d){
    80%（緑）は固定のまま。変えるのは赤いライン1本だけ。 */
 function _accLine(){var v=(_alertCfg&&parseInt(_alertCfg.accuracy,10));return (v>=1&&v<=100)?v:60;}
 function hasTeach(s){return s.teach_rate!==''&&s.teach_rate!==null&&s.teach_rate!==undefined;}
-function needsHelp(s){return hasTeach(s)&&s.teach_rate<_accLine();}
+function needsHelp(s){return (hasTeach(s)&&s.teach_rate<_accLine())||!!(s.ws_weak&&s.ws_weak.length);}   /* ワークシートのテストのつまずきも要指導 2026-10-20 */
+function _wsWeakTxt_(w){var t=String(w.title||'');return (/^単元まとめテスト/.test(t)?String(w.mtitle||'').replace(/^.*\s/,'')+' ':'')+t.replace(/^章まとめテスト/,'章まとめ')+(w.rate==null?'':' '+w.rate+'点')+(w.fix==='fixing'?'・直しの途中':'');}
+function _sdWsOpen_(mid,kind){closeModal('studentModal');try{localStorage.setItem(kind==='pp'?'kwt_pp_mat':'kwt_pt_mat',String(mid));}catch(e){}if(kind==='pp')ppOpen_();else ppOpenTest_();}
 /* 次の一手（機能仕様書§先生ダッシュボード「次の一手」2026-07-10）。GAS next_actions を表示。 */
 /* 2026-07-22 2トラック化：idle=毎日未着手／test_idle=単元別未練習。2026-08-27③ やりかけ(half/test_half)は廃止＝やったか、やってないかだけで見る */
 var NA_META={done:{c:'na-done',t:'🎉完走'},idle:{c:'na-idle',t:'😴未着手'},test_idle:{c:'na-tidle',t:'📘未練習'},stuck:{c:'na-stuck',t:'⚠️つまずき'},rush:{c:'na-rush',t:'<svg class="na-scrib" viewBox="0 0 18 12" aria-hidden="true"><path d="M2 9C3.5 2 8 2 5.5 7S2.5 11 7 8.5 11.5 2 9 4.5 6.5 10.5 11 9 16.5 2.5 13.5 3.5 12 10 16.5 7.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>雑'},ok:{c:'na-ok',t:'✅順調'},na:{c:'na-na',t:'👀未評価'}};
@@ -5612,7 +5616,7 @@ function matViewCell(s){
   var mv=_sortByDord_(s.materials_view||[]);
   if(!mv.length)return '<span class="dash">未割当</span>';
   var sid=esc(String(s.student_id));
-  var daily=mv.filter(function(m){return String(m.type)!=='test';}), unit=mv.filter(function(m){return String(m.type)==='test';});
+  var daily=mv.filter(function(m){return String(m.type)!=='test'&&String(m.type)!=='worksheet';}), unit=mv.filter(function(m){return String(m.type)==='test';}), wsm=mv.filter(function(m){return String(m.type)==='worksheet';});   /* ワークシートは3つ目の行 2026-10-20 */
   var out='<div class="lv-m">';
   if(daily.length) out+='<div class="lv-row"><span class="lv-k d">毎日</span>'+daily.map(function(m){
     var hl=_lapSel&&lapOf_(m)>=2;   /* 周回のハイライト 2026-10-05 */
@@ -5626,6 +5630,13 @@ function matViewCell(s){
       var mark=ng>0?'<span class="lv-ng">未合格'+ng+'</span>':((!touched&&ok===0)?'<span class="lv-np">未練習</span>':'');
       var lp=0;g[k].ms.forEach(function(m){if(lapOf_(m)>lp)lp=lapOf_(m);});var hl=_lapSel&&lp>=2;   /* 周回のハイライト 2026-10-05 */
       return '<span class="lv-it'+(hl?' lv-lap2':'')+'" title="この子の詳細でこの本を開く" onclick="event.stopPropagation();openStudentDetail(\''+sid+'\',\''+esc(k)+'\')">'+esc(g[k].label)+(hl?' '+lp+'周目':'')+mark+'</span>';}).join('')+'</div>';
+  }
+  if(wsm.length){   /* ワークシート（2026-10-20）：本の名前と、テストのつまずき（直しの途中・未合格）の印 */
+    var gw={},ow=[];wsm.forEach(function(m){var k=_lvSerKey_(m);if(!gw[k]){gw[k]={label:(m.series_label||mtLabel(m)),mids:{}};ow.push(k);}gw[k].mids[String(m.material_id)]=1;});
+    out+='<div class="lv-row"><span class="lv-k w">ワーク</span>'+ow.map(function(k){
+      var wk=(s.ws_weak||[]).filter(function(w){return gw[k].mids[String(w.material_id)];}),fx=wk.filter(function(w){return w.fix==='fixing';}).length;
+      var mark=wk.length?'<span class="lv-ng">'+(fx?'直しの途中'+fx:'未合格'+wk.length)+'</span>':'';
+      return '<span class="lv-it" title="この子の詳細でこの本を開く" onclick="event.stopPropagation();openStudentDetail(\''+sid+'\',\''+esc(k)+'\')">'+esc(gw[k].label)+mark+'</span>';}).join('')+'</div>';
   }
   return out+'</div>';
 }
@@ -5687,8 +5698,8 @@ function renderTable(){try{searchClearSync_();}catch(eSc){}try{fltResetSync_();}
     if(_alertFilter&&!alertBucketMatch(s,_alertFilter))return false;
     /* 【2026-09-13d・段A】学習の種類・教材。どちらも「その教材を割り当てられている子」を残すだけ */
     if(_kindSel!=='all'){
-      var _wantTest=(_kindSel==='test');
-      if(!(s.materials_view||[]).some(function(m){return (String(m.type)==='test')===_wantTest;}))return false;
+      var _kd=function(m){var t=String(m.type);return t==='test'?'test':(t==='worksheet'?'worksheet':'main');};   /* ワークシートは別の種類 2026-10-20 */
+      if(!(s.materials_view||[]).some(function(m){return _kd(m)===_kindSel;}))return false;
     }
     if(msel.length){
       if(!(s.materials_view||[]).some(function(m){return msel.indexOf(_bookKey(m))>=0;}))return false;
@@ -5734,6 +5745,34 @@ function printOne(sid){closeModal('studentModal');openTargetModal('print',[sid])
    旧「覚える一覧」「まちがいプリント」は用語を「チェックプリント」に統一（要件定義書 §7）。 */
 /* 【2026-09-14】kind＝押した表の種別。'daily'＝毎日学習の表／'unit'＝単元別の表。
    これを渡すのは、教材の一覧（bulkMaterials）がまだ読めていないときでも種別を決められるようにするため。 */
+/* 生徒の詳細の「ワークシート」の欄（2026-10-20）。本ごとに、単元＝パートの進み（テストを除く）とテストの結果、章まとめテスト＝範囲ごとの結果。
+   紙は［練習プリント］［テストを単体で印刷］をその教材を選んだ状態で開く（チェックプリントは出さない＝ワークシートの定義） */
+function sdWsBlock_(s,ents,fk){
+  var ms=_sortByDord_((s.materials_view||[]).concat(s.completed_view||[]).filter(function(m){return String(m.type)==='worksheet';}));
+  if(!ms.length)return '<div class="sd-none">ワークシートの割り当てはありません</div>';
+  var byP={};(ents||[]).forEach(function(e){byP[String(e.part_id)]=e;});
+  var cell=function(e){if(!e||(e.attempt_count||0)===0&&e.latest_rate==null)return '<span class="wsmu">まだ</span>';
+    var w=e.ws||{},fx=(w.fix==='fixing');
+    if(e.status==='ok')return '<span class="wsok">合格 '+e.latest_rate+'点</span>';
+    return '<span class="'+(fx?'wsfx':'wsng')+'">'+e.latest_rate+'点・'+(fx?'直しの途中':'直し済み（未合格）')+'</span>';};
+  var g={},o=[];ms.forEach(function(m){var k=_lvSerKey_(m);if(!g[k]){g[k]={label:(m.series_label||mtLabel(m)),ms:[]};o.push(k);}g[k].ms.push(m);});
+  return o.map(function(k){var G=g[k],rows='';
+    G.ms.forEach(function(m){var mid=String(m.material_id),ps=m.parts||[],tps=ps.filter(function(p){return /まとめテスト/.test(String(p.name||''));}),pr=ps.filter(function(p){return !/まとめテスト/.test(String(p.name||''));});
+      var mE=(ents||[]).filter(function(e){return String(e.material_id)===mid;});
+      var btn=(pr.length?'<span class="wsbtn" onclick="_sdWsOpen_(\''+esc(mid)+'\',\'pp\')">📝 練習プリント</span>':'')+'<span class="wsbtn" onclick="_sdWsOpen_(\''+esc(mid)+'\',\'pt\')">📝 テストを単体で印刷</span>';
+      if(pr.length){var d=pr.filter(function(p){return p.status==='done';}).length;
+        var te=mE.filter(function(e){return /まとめテスト/.test(String(e.part_title||''));})[0];
+        rows+='<tr><td class="nm">'+esc(m.short||mtLabel(m))+'</td><td class="num mt">パート '+(d>=pr.length?'済':(d+'/'+pr.length))+'</td><td class="ts">'+(tps.length?cell(te):'<span class="wsmu">－</span>')+'</td><td>'+btn+'</td></tr>';}
+      else{ /* 章まとめテスト：範囲ごとに A・B・C を並べる */
+        var rg={},ro=[];tps.forEach(function(p){var mm=String(p.name||'').match(/（([^）]*)）\s*([A-C])\s*$/);var r=mm?mm[1]:String(p.name||'');if(!rg[r]){rg[r]=[];ro.push(r);}rg[r].push({v:mm?mm[2]:'',e:mE.filter(function(e){return String(e.part_title)===String(p.name);})[0]});});
+        ro.forEach(function(r,i){var taken=rg[r].filter(function(x){return x.e&&((x.e.attempt_count||0)>0||x.e.latest_rate!=null);});
+          var txt=taken.length?taken.map(function(x){return x.v+' '+cell(x.e);}).join(' → '):'<span class="wsmu">まだ</span>';
+          rows+='<tr><td class="nm">'+esc('章まとめテスト（'+r+'）')+'</td><td class="num mt">－</td><td class="ts">'+txt+'</td><td>'+(i===0?btn:'')+'</td></tr>';});}
+    });
+    var open=(fk&&(fk===k||G.ms.some(function(m){return String(m.material_id)===fk;})))?' open':' open';
+    return '<details class="sd2-bk"'+open+' data-k="'+esc(k)+'"><summary><span class="nm">'+esc(G.label)+'</span><span class="car">▾</span></summary><div class="in"><table class="sd2-tbl sd2-ws"><thead><tr><th>教材</th><th>練習</th><th>テスト</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></details>';
+  }).join('');
+}
 function printOneMat(sid,mid,kind){closeModal('studentModal');openTargetModal('print',[sid],[mid],kind);}
 /* 【2026-09-14】えらんだ教材に合う「印刷する種別」を決める。
    ★単元別の教材は「単元別」と「確認テスト」の両方をオンにする（川上さん確定 2026-09-14）。
@@ -5771,7 +5810,9 @@ function naWhy(s,k){
   }
   if(k==='idle')return {t:'😴 未着手',why:'昨日、毎日学習をやっていません（最終学習 '+esc(lastStudiedText(s))+'）。',btn:'<span class="sd-actnote">「今日のをやろう」と声かけ</span>'};
   if(k==='test_idle')return {t:'📘 未練習',why:'単元別対策を割当済みですが、昨日1つもさわっていません。',btn:'<span class="sd-actnote">テスト対策を進めるよう声かけ</span>'};
-  if(k==='stuck'){var wp=weakPartName(s);return {t:'⚠️ つまずき',why:'正答率が基準未満'+(wp?'（弱点：'+esc(wp)+'）':'')+'。下のパート内訳の赤を確認。',btn:'<span class="sd-actnote">→ 右の「まちがいを印刷」で対策プリント</span>'};}
+  if(k==='stuck'){var ww=s.ws_weak||[],byR=hasTeach(s)&&s.teach_rate<_accLine();
+    if(ww.length&&!byR)return {t:'⚠️ つまずき',why:'ワークシートのテスト：'+ww.map(function(w){return esc(_wsWeakTxt_(w));}).join('／')+'。下の「ワークシート」を確認。',btn:'<span class="sd-act"><span class="qsu-print" onclick="_sdWsOpen_(\''+esc(String(ww[0].material_id))+'\',\'pp\')">📝 練習プリント</span> <span class="qsu-print" onclick="_sdWsOpen_(\''+esc(String(ww[0].material_id))+'\',\'pt\')">📝 テストを単体で印刷</span></span>'};   /* ワークシートは紙が別 2026-10-20 */
+    var wp=weakPartName(s);return {t:'⚠️ つまずき',why:'正答率が基準未満'+(wp?'（弱点：'+esc(wp)+'）':'')+(ww.length?'。ワークシートのテスト：'+ww.map(function(w){return esc(_wsWeakTxt_(w));}).join('／'):'')+'。下のパート内訳の赤を確認。',btn:'<span class="sd-actnote">→ 右の「まちがいを印刷」で対策プリント</span>'};}
   if(k==='rush')return {t:'<svg class="na-scrib" viewBox="0 0 18 12" aria-hidden="true"><path d="M2 9C3.5 2 8 2 5.5 7S2.5 11 7 8.5 11.5 2 9 4.5 6.5 10.5 11 9 16.5 2.5 13.5 3.5 12 10 16.5 7.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> 雑（パッと押し）',why:'2秒未満の誤答が目立ちます。答えを見ずに押している可能性。'+((parseInt(s.rush_pops_7,10)||0)>0?'（適当押しの注意 直近7日で'+(parseInt(s.rush_pops_7,10)||0)+'回）':''),btn:'<span class="sd-actnote">ていねいにやるよう声かけ</span>'};
   if(k==='ok')return {t:'✅ 順調',why:'学習を続けていて基準クリア・弱点なし。',btn:'<span class="sd-actnote">手当て不要（そのまま）</span>'};
   if(k==='na')return {t:'👀 未評価',why:'まだ一度も学習していません（未着手・データなし）。',btn:'<span class="sd-actnote">学習を始めるよう声かけ</span>'};
@@ -5901,14 +5942,16 @@ function openStudentDetail(sid,focusKey){
   var chips=[s.grade,s.school,s.class_name].filter(Boolean).map(function(x){return '<span class="sd-chip">'+esc(x)+'</span>';}).join('');
   var needBadge=needsHelp(s)?'<span class="badge b-red" style="margin-left:8px;">要指導</span>':'';
   var col=function(a){return (a==null||a===''?'#c3cbd6':(a<_accLine()?'#d64545':(a<80?'#c98a12':'#1f9d57')));};
-  var weakM=(s.materials_view||[]).filter(function(m){return m.acc!==''&&m.acc!=null&&m.acc<_accLine();}).map(function(m){return esc(m.short||mtLabel(m))+'（'+m.acc+'%）';});
+  var weakM=(s.materials_view||[]).filter(function(m){return String(m.type)!=='worksheet'&&m.acc!==''&&m.acc!=null&&m.acc<_accLine();}).map(function(m){return esc(m.short||mtLabel(m))+'（'+m.acc+'%）';})
+    .concat((s.ws_weak||[]).map(function(w){return esc(_wsWeakTxt_(w));}));   /* ワークシートはテストの結果で 2026-10-20 */
   var band='<div class="sd2-band"><div><div class="sd2-kv" style="margin-bottom:3px;">デイリー（直近7日）</div><div class="sd2-days">'+_sdDays7_(s)+'</div></div>'
     +'<div class="sd2-kv">最終学習<b>'+esc(lastStudiedText(s))+'</b></div>'
     +'<div class="sd2-kv">弱点（いま間違えている語）<b>'+(parseInt(s.mistake_active,10)||0)+'語</b></div>'
     +(weakM.length?'<div class="sd2-kv">つまずいている教材<b class="red" style="font-size:13px;">'+weakM.join('・')+'</b></div>':'')
     +((parseInt(s.rush_pops_7,10)||0)>0?'<div class="sd2-kv">適当押しの注意<b class="red">直近7日で'+(parseInt(s.rush_pops_7,10)||0)+'回</b></div>':'')   /* 2026-10-04：0回なら出さない */
     +'</div>';
-  var mvD=_sortByDord_((s.materials_view||[]).filter(function(m){return String(m.type)!=='test';}));
+  var mvD=_sortByDord_((s.materials_view||[]).filter(function(m){return String(m.type)!=='test'&&String(m.type)!=='worksheet';}));
+  var _hasWs=(s.materials_view||[]).concat(s.completed_view||[]).some(function(m){return String(m.type)==='worksheet';});
   var dailyHtml=mvD.length?('<table class="sd2-tbl"><thead><tr><th>教材</th><th>いまの回</th><th>済んだ回</th><th>正答率</th><th></th></tr></thead><tbody>'+mvD.map(function(m){
       var pd=_lvPartsDone_(m), a=(m.acc===''||m.acc==null)?'未評価':(m.acc+'%');
       var on=fk&&(fk===String(m.material_id)||fk===_lvSerKey_(m));
@@ -5922,6 +5965,7 @@ function openStudentDetail(sid,focusKey){
     +'<div class="sd2">'+band
       +'<div><div class="sd2-h">毎日学習</div><div id="sdDaily">'+dailyHtml+'</div></div>'
       +'<div><div class="sd2-h">単元別（テスト対策）</div><div id="sdUnit">'+SD_LOADING_+'</div></div>'
+      +(_hasWs?'<div><div class="sd2-h">ワークシート</div><div id="sdWs">'+SD_LOADING_+'</div></div>':'')
       +'<div><div class="sd2-h">間違い</div><div id="sdWrong">'+SD_LOADING_+'</div></div>'
       +'<div>'+(cv.length?'<details class="sd2-fold"><summary>クリア済の教材（'+cv.length+'）</summary>'+partsBlock(cv)+'</details>':'')
         +(pm.length?'<details class="sd2-fold"><summary>過去にやった教材（'+pm.length+'）</summary>'+pm.map(function(x){return '<div class="pastrow">'+esc(mtLabel(x))+' <span class="t-sub">最終 '+esc(x.last||'')+'</span></div>';}).join('')+'</details>':'')
@@ -5936,7 +5980,11 @@ function openStudentDetail(sid,focusKey){
     var el=$('sdUnit');if(!el)return;
     if(err){el.innerHTML=_sdFail_(sid,fk,'取得に失敗しました（'+err+'）');return;}
     var ents=(pack&&pack.entries)||[], mats=(pack&&pack.materials)||[];
-    if(!ents.length){el.innerHTML=sdUnitBlock_(s,pack);return;}
+    /* ワークシートのテストは「単元別（テスト対策）」に出さない＝3つ目の欄へ 2026-10-20 */
+    var _wsM={};(s.materials_view||[]).concat(s.completed_view||[]).forEach(function(m){if(String(m.type)==='worksheet')_wsM[String(m.material_id)]=1;});
+    var wsEnts=ents.filter(function(e){return e.ws||_wsM[String(e.material_id)];});ents=ents.filter(function(e){return !(e.ws||_wsM[String(e.material_id)]);});
+    var _we=$('sdWs');if(_we)_we.innerHTML=sdWsBlock_(s,wsEnts,fk);
+    if(!ents.length){el.innerHTML=sdUnitBlock_(s,{entries:[],materials:mats});return;}
     var me=(_practiceIndex()[String(sid)]||{});
     var g={},o=[];ents.forEach(function(e){var k=String(e.series_key||e.series_label||e.material_id);if(!g[k]){g[k]={label:e.series_label||e.material_title||'',es:[],mids:{}};o.push(k);}g[k].es.push(e);g[k].mids[String(e.material_id)]=1;});
     el.innerHTML=o.map(function(k){var G=g[k],ok=0,ng=0,pr=0,tot=G.es.length;
@@ -6210,7 +6258,7 @@ function renderAlertsK(){
     var a=st.next_actions||[],nm=st.name||st.nickname||'',sid=String(st.student_id),cn=st.class_name||''; // cn＝教室（色分け用）2026-08-09
     if(a.indexOf('idle')>=0){var da=daysAgo(st.last_studied_at);idle.push({id:sid,n:nm,c:cn,d:(da===null?'未学習':'あき'+da+'日')});}
     if(a.indexOf('test_idle')>=0)tidle.push({id:sid,n:nm,c:cn});
-    if(a.indexOf('stuck')>=0)teach.push({id:sid,n:nm,c:cn,r:st.teach_rate});
+    if(a.indexOf('stuck')>=0){var _byR=(st.teach_rate!==''&&st.teach_rate!=null&&st.teach_rate<_accLine()),_ww=st.ws_weak||[];teach.push({id:sid,n:nm,c:cn,r:(_byR?st.teach_rate:999),lab:(_byR?st.teach_rate+'%':'')+(_ww.length?(_byR?'・':'')+'テスト'+_ww.length:'')});}   /* ワークシートのテストのつまずき 2026-10-20 */
     /* 🎉完走（2026-09-08）：完走した教材1つにつき1チップ。次の毎日学習が未割当の子は黄色。
        文言は doneDayText_ が唯一の置き場＝チップ・個人詳細・一覧バッジのツールチップが全部これを通る。 */
     if(a.indexOf('done')>=0){
@@ -6250,7 +6298,7 @@ function renderAlertsK(){
   var mk=function(host,arr,fmt){mkRooms(host,arr,fmt,'chipK');};
   mk('alIdleChips',idle,function(x){return x.n+'（'+x.d+'）';});
   mk('alTIdleChips',tidle,function(x){return x.n;});
-  mk('alTeachChips',teach,function(x){return x.n+'（'+x.r+'%）';});
+  mk('alTeachChips',teach,function(x){return x.n+'（'+x.lab+'）';});
   mkRooms('alDoneChips',doneL,function(x){return x.n+(x.t?'　'+x.t:'')+(x.day?'（'+x.day+'）':'')+(x.noNext?'　← 次を割り当て':'');},'chipK','完走した子は まだ いません');
   // 印刷ショートカット（川上さん承認モック 2026-07-05）：対象プリセットで印刷モーダルへ
   window._teachIds=teach.map(function(x){return x.id;});
@@ -8436,12 +8484,16 @@ function renderPrintMaterials(){
   if(!candEl||!selEl)return;
   if(!bulkMaterials.length){candEl.innerHTML=_bulkMatEmptyHtml_();selEl.innerHTML='<div class="pk-empty">まだ選んでいません</div>';return;}
   var q=(($('printMatSearch')||{}).value||'').trim();
-  renderMatCand_(candEl,{materials:bulkMaterials,assignedSet:null,pickedSet:printMat,openMap:_printMatOpen,search:q,keyPrefix:'print',
+  /* ワークシートはチェックプリント・仕上げプリントに出さない（定義 2026-10-20）。紙は［練習プリント］［テストを単体で印刷］から */
+  Object.keys(printMat).forEach(function(id){if(bulkMaterials.some(function(m){return String(m.id)===String(id)&&String(m.content_type)==='worksheet';}))delete printMat[id];});
+  var _pmM=bulkMaterials.filter(function(m){return String(m.content_type)!=='worksheet';});
+  renderMatCand_(candEl,{materials:_pmM,assignedSet:null,pickedSet:printMat,openMap:_printMatOpen,search:q,keyPrefix:'print',
     onOne:function(id){if(printMat[id])delete printMat[id];else printMat[id]=1;renderPrintMaterials();tmUpdateFoot();},
     onSeries:function(ids,st){ids.forEach(function(id){if(st==='all')delete printMat[id];else printMat[id]=1;});renderPrintMaterials();tmUpdateFoot();},
     onOpen:function(k){_printMatOpen[k]=!_printMatOpen[k];renderPrintMaterials();}
   });
-  renderMatSel_(selEl,{materials:bulkMaterials,pickedSet:printMat,onRemove:function(id){delete printMat[id];renderPrintMaterials();tmUpdateFoot();}});
+  if(bulkMaterials.length!==_pmM.length)candEl.insertAdjacentHTML('beforeend','<div class="pk-empty" style="text-align:left">ワークシートはここには出ません。紙は［📝 練習プリント］［📝 テストを単体で印刷］から。</div>');
+  renderMatSel_(selEl,{materials:_pmM,pickedSet:printMat,onRemove:function(id){delete printMat[id];renderPrintMaterials();tmUpdateFoot();}});
   var cnt=$('printMatCnt');if(cnt)cnt.textContent=Object.keys(printMat).length+'教材';
 }
 /* テスト範囲の選択をぜんぶ外す。前回の選択は覚えたままにする仕様なので、
@@ -8858,7 +8910,7 @@ function renderAssignList(){
   if(!_asgList.length){box.innerHTML='<div style="color:#94a3b8;font-size:13px;padding:6px 0 10px;">まだ教材が割り当てられていません。下から追加してください。</div>';return;}
   box.innerHTML='';
   _asgList.forEach(function(a){
-    var isTest=(a.content_type==='test');
+    var isTest=(a.content_type==='test'), isWs=(a.content_type==='worksheet'), isPt=isTest||isWs;   /* ワークシートもパート名で（2026-10-20） */
     var pill=isTest?'<span class="asg-pill test">単元別対策</span>':(a.content_type==='worksheet'?'<span class="asg-pill ws">ワークシート</span>':'<span class="asg-pill daily">毎日学習</span>');
     var lapTxt=(a.lap>=2)?' <span class="asg-pill" style="background:#ede9fe;color:#5b21b6;">'+a.lap+'周目</span>':'';
     // 進み表示
@@ -8866,16 +8918,18 @@ function renderAssignList(){
     if(a.total_parts>1){
       startSel='<span class="asg-field"><span class="asg-lbl">いまここ</span><select class="asg-sel" onchange="setStart('+"'"+esc(a.material_id)+"'"+',this.value)">';
       a.parts.forEach(function(pt){
-        var lbl=isTest?(pt.title||('パート'+pt.part_order)):('DAY '+(pt.part_order||1));
+        var lbl=isPt?(pt.title||('パート'+pt.part_order)):('DAY '+(pt.part_order||1));
         startSel+='<option value="'+esc(pt.part_id)+'"'+(String(pt.part_id)===String(a.current_part_id)?' selected':'')+'>'+esc(lbl)+'</option>';
       });
       startSel+='</select></span>';
     }else{
-      startSel='<span class="asg-field"><span class="asg-lbl">いまここ</span><b>'+(isTest?esc(a.current_part_title||'-'):('DAY '+(a.current_part_order||1)))+'</b></span>';
+      startSel='<span class="asg-field"><span class="asg-lbl">いまここ</span><b>'+(isPt?esc(a.current_part_title||'-'):('DAY '+(a.current_part_order||1)))+'</b></span>';
     }
     var dailyCtrl=isTest?('<span class="asg-field"><span class="asg-lbl">1日に出す数</span><span class="asg-step" onclick="bumpDaily('+"'"+esc(a.material_id)+"'"+',-1)">−</span><b id="dp-'+esc(a.material_id)+'">'+(a.daily_parts||1)+'</b><span class="asg-step" onclick="bumpDaily('+"'"+esc(a.material_id)+"'"+',1)">＋</span>パート</span>'):'';
-    var progLine=isTest?('<div class="asg-prog">進み：<b>'+esc(a.current_part_title||'-')+'</b>（'+(a.graduated_parts||0)+'/'+(a.total_parts||0)+' 終わった）</div>'):'';
-    var dailyNote=isTest?'':'<div class="asg-note2">毎日学習は1日1DAYずつ自動で進みます。</div>';
+    var _wsPr=isWs?(a.parts||[]).filter(function(pt){return !/まとめテスト/.test(String(pt.title||''));}).length:0;
+    var progLine=isTest?('<div class="asg-prog">進み：<b>'+esc(a.current_part_title||'-')+'</b>（'+(a.graduated_parts||0)+'/'+(a.total_parts||0)+' 終わった）</div>')
+      :(isWs?('<div class="asg-prog">進み：練習 '+Math.min(a.graduated_parts||0,_wsPr)+'/'+_wsPr+' 終わった（テストは除く）</div>'):'');
+    var dailyNote=isPt?'':'<div class="asg-note2">毎日学習は1日1DAYずつ自動で進みます。</div>';
     var card=document.createElement('div');card.className='asg-card';
     card.innerHTML=
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;flex-wrap:wrap;"><input type="checkbox" class="asg-ck" data-mid="'+esc(a.material_id)+'" onchange="asgCkToggle(this.getAttribute(\'data-mid\'),this.checked)" title="まとめて外すときに選ぶ">'+pill+lapTxt+'<span style="font-weight:700;font-size:13px;">'+esc(mtLabelMt(a))+'</span></div>'
@@ -9000,7 +9054,7 @@ function removeAssign(aid){
    B＝生徒の割当画面（assignModal）で教材にチェック→「選んだ教材を外す」。
    どちらも GAS は assignment_bulk_remove の1本＝単元別を外すと同じ教材の確認テストも外れる（記録は残る）。 */
 var remMat={};
-function _remPill_(m){return m.type==='test'?'<span class="asg-pill test">単元別対策</span>':'<span class="asg-pill daily">毎日学習</span>';}
+function _remPill_(m){return m.type==='test'?'<span class="asg-pill test">単元別対策</span>':(m.type==='worksheet'?'<span class="asg-pill ws">ワークシート</span>':'<span class="asg-pill daily">毎日学習</span>');}
 function _remConfirmMsg_(who,nMat){
   return who+nMat+'教材の割当と確認テストを外します。点数・進捗・間違いノートは残ります（もう一度割り当てれば続きから）。よろしいですか？';
 }
@@ -9025,7 +9079,7 @@ function _remHeld_(){
     var seen={};
     (st.materials_view||[]).map(function(m){return {m:m,done:false};}).concat((st.completed_view||[]).map(function(m){return {m:m,done:true};})).forEach(function(x){
       var m=x.m,mid=String(m.material_id);if(seen[mid])return;seen[mid]=1;
-      if(!by[mid]){by[mid]={material_id:mid,title:m.title||'',type:(m.type==='test'?'test':'main'),display_order:m.display_order||0,sids:[],who:[]};order.push(mid);}
+      if(!by[mid]){by[mid]={material_id:mid,title:m.title||'',type:(m.type==='test'?'test':(m.type==='worksheet'?'worksheet':'main')),display_order:m.display_order||0,sids:[],who:[]};order.push(mid);}
       by[mid].sids.push(String(sid));
       var pg=_remProg_(x.done?{__done:true}:m);
       by[mid].who.push({sid:String(sid),name:st.name||'',grade:st.grade||'',cls:st.class_name||'',prog:pg,lap:(x.done?1:lapOf_(m))});   /* 周回 2026-10-05 */
@@ -9289,7 +9343,7 @@ function _rpIsUnit(mid,r){
   var m=_rpMat(k), ct=m?String(m.content_type||''):'';
   /* materials_list に無いとき（削除済みなど）は割当側が持っている type で判定する */
   if(!m&&r&&r.type!=null)ct=String(r.type||'');
-  return (_rpUnitC[k]=(ct==='test'));
+  return (_rpUnitC[k]=(ct==='test'||ct==='worksheet'));   /* ワークシートも単元別と同じくペースを出す 2026-10-20 */
 }
 function rpPick(mid){ mid=String(mid); var i=RP_SEL.indexOf(mid); if(i>=0)RP_SEL.splice(i,1); else RP_SEL.push(mid); rpDirty_(); _rpStdCache={}; rpRenderMat(); rpRender(); }
 function rpPickBook(ids){ ids=ids.split('|');
@@ -9310,6 +9364,7 @@ function _rpMatBoxHtml_(sel, pfx, selTop){
   var fnBook=(pfx==='po')?'rpOutPickBook':'rpPickBook';
   var fnFold=(pfx==='po')?'rpOutFold':'rpFold';
   var mats=_rpMats(), grps=[], gm={};
+  if(pfx==='po')mats=mats.filter(function(m){return String(m.content_type||'')!=='worksheet';});   /* 生徒に配る紙（チェック・仕上げ）にワークシートは出さない 2026-10-20 */
   mats.forEach(function(m){var k=_bookKey(m);if(!gm[k]){gm[k]={key:k,lab:_bookLabel(m),items:[]};grps.push(gm[k]);}gm[k].items.push(m);});
   if(selTop){
     var hasSel=function(g){return g.items.some(function(m){return SEL[String(m.id)];})?0:1;};
@@ -9719,6 +9774,7 @@ function _rpAssign(){   /* sid → mid → {done,total,acc,type} 割当（active
     var sid=String(s.student_id); idx[sid]={};
     var add=function(m){
       var ps=m.parts||[], done=0, st=0;
+      if(String(m.type)==='worksheet')ps=ps.filter(function(p){return !/まとめテスト/.test(String(p.name||''));});   /* ワークシートのテストはパートに数えない（テストの進み具合の表で見る）2026-10-20 */
       /* status＝none（1回もやっていない）／try（さわったが1周終えていない）／done（1周終えた・旧値 pass も受ける）。
          st＝1回でも練習したパート数。「未着手」を合格0だけで決めると、練習中の子が未着手に入ってしまう（川上さん指摘 2026-08-17）*/
       ps.forEach(function(p){ if(p.status==='done'||p.status==='pass')done++; if(p.status&&p.status!=='none')st++; });
@@ -9732,6 +9788,7 @@ function _rpAssign(){   /* sid → mid → {done,total,acc,type} 割当（active
 function _rpQuiz(){     /* sid → mid → {ok,ng,miss,rs,rn} 確認テスト（配信ぶんだけ） */
   var idx={};
   ((_quizBoard&&_quizBoard.entries)||[]).forEach(function(e){
+    if(e.ws)return;   /* ワークシートのテストは確認テストに混ぜない（テストの進み具合の表で見る）2026-10-20 */
     var sid=String(e.student_id), mid=String(e.material_id);
     if(!idx[sid])idx[sid]={};
     if(!idx[sid][mid])idx[sid][mid]={ok:0,ng:0,miss:0,rs:0,rn:0};
@@ -11375,6 +11432,8 @@ function rpBuildPrint(list,fs){
         +'<td>'+(rpStaleTxt_(a,1)?('<span class="stale">\u25CF '+esc(rpStaleTxt_(a,1))+'</span>'):'')+days+'</td></tr>'+sub;
     }).join('')
     +'</tbody></table></div>';
+  /* テストの進み具合（ワークシート）も紙に入れる 2026-10-20 */
+  try{var _wb=$('rpWsTests');if(_wb&&_wb.style.display!=='none'&&_wb.querySelector('table'))h+='<div style="margin-top:'+Math.round(fs*1.2)+'px;page-break-inside:auto;font-size:'+f(0.95)+'px">'+_wb.innerHTML.replace(/<span class="rp-mute"[^>]*>見るだけの表。[^<]*<\/span>/,'')+'</div>';}catch(eW){}
   return h;
 }
 function _rpPxPerMm(){

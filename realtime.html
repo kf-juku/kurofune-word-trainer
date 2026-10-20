@@ -1437,8 +1437,8 @@ function openPrint(pickIds,since){
     var shown=ids.filter(function(id){ var s=byId[id]; return s && (s.items||[]).length>0; });
     var skipped=ids.length-shown.length;
     var html=shown.map(function(id){ var s=byId[id]; return '<div class="p-unit">'+unifiedStudentHtml_(s,{wrapClass:'p-sheet',docTitle:'確認テスト リアルタイム記録',date:(r.data.date||pdate),showSubmit:true})+'</div>'; }).join('');
-    $sheets.innerHTML=html||'<div style="padding:40px;color:#64748b;">まちがえた問題がある生徒がいません（'+ids.length+'名ぜんぶ0問）。</div>';
-    $n.textContent=shown.length?(shown.length+'名分（両面でも1人1枚に分けます）'+(skipped?('　／　まちがいなし '+skipped+'名は省略'):''))
+    $sheets.innerHTML=html||'<div style="padding:40px;color:#64748b;">まちがえた問題がある生徒がいません（'+ids.length+'名ぜんぶ0問）。<br>ワークシートのテスト（単元まとめテスト・章まとめテスト）は紙に出しません。点は先生画面のテストの表で見ます。</div>';
+    $n.textContent=shown.length?(shown.length+'名分（両面でも1人1枚に分けます）'+(skipped?('　／　まちがいなし '+skipped+'名は省略'):'')+'　※ワークシートのテストは紙に出しません')
                                :('0名分（'+ids.length+'名ぜんぶ まちがいなし）');
   }).catch(function(){ $sheets.innerHTML='<div style="padding:40px;color:#c0121e;">通信エラーで取得できませんでした。</div>'; $n.textContent=''; });
 }
