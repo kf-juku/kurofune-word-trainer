@@ -2566,7 +2566,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-20d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-20e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3336,6 +3336,7 @@ function _setQuizSegCnt_(mats){
 }
 function quizRenderHome_(d){
   if(!d||!d.ok)return;
+  try{clearedQzApply_(d);}catch(eQz){} /* 端末が覚えている「今日受けた確認テストの結果」を重ねる 2026-10-20 */
   var mats=(d.data&&d.data.materials)||[];_quizData=d.data;
   var miss=0;mats.forEach(function(g){(g.parts||[]).forEach(function(p){if(p.status==='miss'||p.status==='ng')miss++;});});
   /* 入口カード(tile-quiz)は廃止（2026-08-20）。件数は ②確認テスト の切り替えボタンに出す。
@@ -3657,8 +3658,8 @@ function _hrRun_(){
 var CLEARED_KEY_='kwt_cleared_today_v1';
 function clearedTodayGet_(){
   try{var o=JSON.parse(localStorage.getItem(CLEARED_KEY_)||'{}');
-      if(!o||o.d!==todayStr_())return {d:todayStr_(),parts:[],mats:[],os:false,nt:false,ntf:[]};
-      return {d:o.d,parts:o.parts||[],mats:o.mats||[],os:!!o.os,nt:!!o.nt,ntf:o.ntf||[]};}catch(e){return {d:todayStr_(),parts:[],mats:[],os:false,nt:false,ntf:[]};}
+      if(!o||o.d!==todayStr_())return {d:todayStr_(),parts:[],mats:[],os:false,nt:false,ntf:[],up:[],qz:{}};
+      return {d:o.d,parts:o.parts||[],mats:o.mats||[],os:!!o.os,nt:!!o.nt,ntf:o.ntf||[],up:o.up||[],qz:o.qz||{}};}catch(e){return {d:todayStr_(),parts:[],mats:[],os:false,nt:false,ntf:[],up:[],qz:{}};}
 }
 /* おさらい枠・間違いノート枠が「今日の分を終えた」ことを覚える 2026-09-03 */
 function clearedTodayFlag_(key){
@@ -3688,6 +3689,37 @@ function clearedTodayAdd_(partId,nextPartId){
     }}
     localStorage.setItem(CLEARED_KEY_,JSON.stringify(o));
   }catch(e){}
+}
+/* ===== 単元別・ワークシートの問題のパート・確認テストも、終えた瞬間の結果を端末が覚えて一覧に重ねる 2026-10-20 =====
+   川上さん「終わったのに一覧で終わっていない→もう一回やってしまう、は起きる？」。毎日学習だけに入れていた（2026-09-03）のを全部に広げた。
+   ★単元別・ワークシートの問題のパートは「最後まで解いたら完了」（サーバーも completed_all で必ず passed）＝終えた瞬間に覚えても嘘にならない。
+   ★確認テストは完了画面と同じ quizJudgeLocal_ の結果を覚える（式を増やさない）。重ね方はサーバーの quizUpsert_ と同じ
+     （一度合格した回のあとは落ちても合格のまま・回数は1つ増える・前回の点数が1つずれる）。サーバーの回数が覚えた時より増えていたら、サーバーが追いついた＝覚えは使わない。
+   ★保存がサーバーにはっきり断られたら（_sqGiveUp_ で !ok）、その覚えを消す。ログイン・ログアウトで全部消す。日付が変われば使わない。 */
+function clearedUpAdd_(pid){try{pid=String(pid||'');if(!pid)return;var o=clearedTodayGet_();if(o.up.indexOf(pid)<0)o.up.push(pid);localStorage.setItem(CLEARED_KEY_,JSON.stringify(o));}catch(e){}}
+function clearedQzAdd_(pid,v){try{pid=String(pid||'');if(!pid||!v)return;var o=clearedTodayGet_();o.qz[pid]=v;localStorage.setItem(CLEARED_KEY_,JSON.stringify(o));}catch(e){}}
+function clearedMemoDrop_(body){try{if(!body)return;var pid=String(body.part_id||'');if(!pid)return;var o=clearedTodayGet_();
+  if(body.action==='session_complete'){o.up=o.up.filter(function(x){return x!==pid;});}
+  else if(body.action==='quiz_submit'){delete o.qz[pid];}else return;
+  localStorage.setItem(CLEARED_KEY_,JSON.stringify(o));}catch(e){}}
+function clearedTodayReset_(){try{localStorage.removeItem(CLEARED_KEY_);}catch(e){}}
+/* パートの一覧（material_parts）に重ねる＝単元別とワークシートのタブの両方に効く */
+function clearedUpApply_(materials){
+  try{var up=clearedTodayGet_().up;if(!up.length)return materials;
+    (materials||[]).forEach(function(c){(c.parts||[]).forEach(function(l){if(!l.passed&&up.indexOf(String(l.part_id))>=0)l.passed=true;});});
+  }catch(e){}
+  return materials;
+}
+/* 確認テストの一覧（quiz_list）に重ねる */
+function clearedQzApply_(d){
+  try{var o=clearedTodayGet_(),qz=o.qz,ch=false;if(!d||!d.ok||!d.data||!Object.keys(qz).length)return d;
+    (d.data.materials||[]).forEach(function(g){var hit=false;(g.parts||[]).forEach(function(p){var m=qz[String(p.part_id)];if(!m)return;
+      if((p.attempt_count||0)>(m.base||0)){delete qz[String(p.part_id)];ch=true;return;} /* サーバーが追いついた */
+      p.prev_rate=(p.latest_rate==null?null:p.latest_rate);p.latest_rate=m.rate;p.status=(m.ok||p.status==='ok')?'ok':'ng';p.attempt_count=(m.base||0)+1;hit=true;});
+      if(hit)g.all_pass=(g.parts||[]).length>0&&g.parts.every(function(x){return x.status==='ok';});});
+    if(ch)localStorage.setItem(CLEARED_KEY_,JSON.stringify(o));
+  }catch(e){}
+  return d;
 }
 function clearedTodayApply_(main){
   try{
@@ -4068,8 +4100,8 @@ $('nick-cancel').onclick=closeNickModal;
 $('nick-save').onclick=saveNick;
 $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};var _icx=$('icon-cancel');if(_icx)_icx.onclick=closeIconModal;var _icm=$('icon-mask');if(_icm)_icm.onclick=function(e){if(e.target===this)closeIconModal();};
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
-$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass,with_home:1}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;try{localStorage.setItem('kwt_sid',String(d.data.student.id||''));}catch(eSid){}/* 案内の済み印を生徒ごとに持つ。ログアウトでは消さない 2026-09-23 */nickname=d.data.student.nickname||'きみ';familyName=d.data.student.family_name||'';try{localStorage.setItem('kwt_sei',familyName);}catch(eS){}/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();/* 別生徒のキャッシュ防止 2026-07-05 */try{if(d.data.home&&d.data.home.ok)window._ccFresh_={student_home:{t:Date.now(),d:d.data.home}};}catch(eH){}/* ログインの返事に入っていたホーム＝取り直さずに使う 2026-10-20 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();try{shGoIfPending_();}catch(e){}});};
-function doLogout_(){try{_sqFlush_();}catch(eSq){}/* 未送信があれば先に流す。1件ずつが自分のトークンを持つので token='' にしても届く 2026-09-02 */
+$('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass,with_home:1}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}token=d.data.token;try{localStorage.setItem('kwt_sid',String(d.data.student.id||''));}catch(eSid){}/* 案内の済み印を生徒ごとに持つ。ログアウトでは消さない 2026-09-23 */nickname=d.data.student.nickname||'きみ';familyName=d.data.student.family_name||'';try{localStorage.setItem('kwt_sei',familyName);}catch(eS){}/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();clearedTodayReset_();/* 別生徒のキャッシュ防止 2026-07-05・今日終えた覚えも消す 2026-10-20 */try{if(d.data.home&&d.data.home.ok)window._ccFresh_={student_home:{t:Date.now(),d:d.data.home}};}catch(eH){}/* ログインの返事に入っていたホーム＝取り直さずに使う 2026-10-20 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();try{shGoIfPending_();}catch(e){}});};
+function doLogout_(){try{_sqFlush_();}catch(eSq){}try{clearedTodayReset_();}catch(eCr){}/* 今日終えた覚えを消す＝共用タブレットで次の生徒に出さない 2026-10-20 *//* 未送信があれば先に流す。1件ずつが自分のトークンを持つので token='' にしても届く 2026-09-02 */
   homeCacheClear_();try{var _rsLo=_resumeAny_();if(_rsLo)_abandonLog_(_rsLo,'logout',true);}catch(e){}try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_sei');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_dc_cele');try{localStorage.removeItem('kwt_star_day');}catch(e){}localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');shPendLisSet_(false);}catch(e){}token='';show('scr-login');}
 $('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
 $('logout-cancel').onclick=function(){$('logout-mask').classList.remove('show');};
@@ -4987,7 +5019,7 @@ function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（
     _wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',live:true,paper:(xo&&xo.paper)||'',entryHead:(xo&&xo.entryHead)||null,startPid:(xo&&xo.startPid)||'',shuffle:true,innerBack:false,dark:_wsDark_(),resumeKey:rkey,capMs:180000,/* 数学は計算に時間がかかるので1問3分まで数える（川上さん 2026-10-18 00:07）*/
       done:function(pid){return !!_wsDone[String(pid)];},
       onStart:function(pid){_wsLP={pid:String(pid),mid:mid,n:0,cor:0,miss:0};try{call({action:'activity_start',part_id:pid});}catch(e){}},
-      onPartDone:function(pid,rec){_wsDone[String(pid)]=1;_wsSend_(pid,rec);_wsCele_();},
+      onPartDone:function(pid,rec){_wsDone[String(pid)]=1;clearedUpAdd_(pid);_wsSend_(pid,rec);_wsCele_();},
       tstate:_wsTState_(U.TEST,D0.tests||{}),tkey:'kwtws_t_'+((typeof token!=='undefined'&&token)?_hash32_(token):'anon')+'_'+(U.TEST?U.TEST.part_id:''),
       rangePass:function(){return _wsRangePassOf_(U.TEST,D0.parts||[],D0.tests||{});},
       testReady:function(pid){return _wsTestReadyOf_(mid,pid);},
@@ -5011,7 +5043,7 @@ function _wsSend_(pid,r){
   var body={action:'session_complete',part_id:pid,meaning_correct:ok,reverse_correct:ok,total:tot,completed_all:true,retry_rounds:1,miss_word_ids:r.miss_word_ids||[],word_ids:r.word_ids||[],mode:mode,pron_attempts:0,pron_successes:0,started_at:r.started_at,active_ms:r.active_ms||0,duration_ms:r.duration_ms||0,rush_wrong_count:r.rush_wrong_count||0,rush_pops:r.rush_pops||0};
   var q=_sqAdd_(body);_wsSent++;
   call(body).then(function(d){
-    if(!d||!d.ok){if(_sqGiveUp_(d))_sqDel_(q);return;}
+    if(!d||!d.ok){if(_sqGiveUp_(d)){_sqDel_(q);clearedMemoDrop_(body);}return;}
     _sqDel_(q);homeCacheRenew_();
     _ceCall_({action:'complete_extras',part_id:pid,word_ids:body.word_ids,miss_word_ids:body.miss_word_ids}).then(function(ex){
       if(!ex||!ex.ok||!ex.data)return;var d2=ex.data;
@@ -5210,6 +5242,7 @@ function loadHomeData_(showSkel){
       if(_ra&&!_ra.querySelector('.macc'))_ra.innerHTML='<p class="muted">'+_NET_NG_MSG_+'</p>';
       return;
     }
+    try{if(d&&d.ok&&d.data)clearedUpApply_(d.data.materials);}catch(eUp){} /* 端末が覚えている「今日終えたパート」を重ねる 2026-10-20 */
     try{renderUnitZone_((d&&d.ok&&d.data&&d.data.materials)||[]);}catch(e){} // 単元別ゾーン（新ホーム 2026-07-24）
     try{renderWsZone_((d&&d.ok&&d.data&&d.data.materials)||[]);}catch(e){} // ワークシートのタブ 2026-10-17
     try{if(d&&d.ok)_navEmptyFromMats_((d.data&&d.data.materials)||[]);}catch(e){} // 空のタブを灰色に 2026-10-17
@@ -8842,7 +8875,7 @@ function _sqFlush_(done){
     var b={};for(var k in it.body){if(Object.prototype.hasOwnProperty.call(it.body,k))b[k]=it.body[k];}
     b.resend=true;
     call(b).then(function(d){
-      if(_sqGiveUp_(d)){if(d&&d.ok&&!(d.data&&(d.data.duplicate||d.data.already)))sent++;_sqDel_(it.id);}
+      if(_sqGiveUp_(d)){if(d&&d.ok&&!(d.data&&(d.data.duplicate||d.data.already)))sent++;if(d&&!d.ok)clearedMemoDrop_(it.body);_sqDel_(it.id);}
       sleep(150).then(step);
     });
   };
@@ -10085,6 +10118,8 @@ function finishQuizSubmit_(){
   var _qzPre=false, _qzMiss=(missU.length&&_qrvHasSent_(s,missU))?quizReviewHtml_(s,missU):quizMissHtml_(s,missU); /* 文の問題があるテストは「見直す」に（4-70・案A）2026-09-25 */
   try{
     var _qj=quizJudgeLocal_(s);
+    try{if(_qj){var _qb=null;((_quizData&&_quizData.materials)||[]).forEach(function(g){(g.parts||[]).forEach(function(p){if(String(p.part_id)===String(s.quizPartId))_qb=p;});});
+      if(_qb)clearedQzAdd_(s.quizPartId,{ok:!!_qj.passed,rate:_qj.rate,base:(_qb.attempt_count||0)});}}catch(eQm){} /* 点数表に重ねる覚え（前の一覧が無いときは覚えない）2026-10-20 */
     if(_qj){
       if(_qj.passed){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+_qj.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';sndWin();flash();confetti(120);var _dgq3=$('done-guide-area');if(_dgq3)_dgq3.innerHTML=nextStepGuide_(true);}
       else{setDoneBadge_('accent');$('done-result').innerHTML='あと <b>'+Math.max(0,_qj.pass_line-_qj.rate)+'</b>％で<ruby>合格<rt class="uf">ごうかく</rt></ruby>！ もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>受<rt class="uf">う</rt></ruby>けてみよう';}
@@ -10099,7 +10134,7 @@ function finishQuizSubmit_(){
     try{if(d&&d.data&&d.data._t)_srvT_('quiz_save',d.data._t);}catch(eSt){}
     var _live=_doneAlive_(_mySeq);
     if(_live){var _db2=$('done-badge');if(_db2)_db2.style.display='';}
-    if(!d.ok){if(_sqGiveUp_(d))_sqDel_(_qzSq);if(!_live)return;$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>はこの<ruby>端末<rt class="uf">たんまつ</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>してあります。つぎに<ruby>開<rt class="uf">ひら</rt></ruby>いたとき<ruby>自動<rt class="uf">じどう</rt></ruby>でおくります';$('done-badge').innerHTML='<i class="ti ti-clock"></i>';return;} // 2026-09-02
+    if(!d.ok){if(_sqGiveUp_(d)){_sqDel_(_qzSq);clearedMemoDrop_(_qzBody);}if(!_live)return;$('star-area').innerHTML='';$('done-result').innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>はこの<ruby>端末<rt class="uf">たんまつ</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>してあります。つぎに<ruby>開<rt class="uf">ひら</rt></ruby>いたとき<ruby>自動<rt class="uf">じどう</rt></ruby>でおくります';$('done-badge').innerHTML='<i class="ti ti-clock"></i>';return;} // 2026-09-02
     _sqDel_(_qzSq); // 届いた＝もう送り直さない 2026-09-02
     homeCacheRenew_(); // 点数表を次に開くとき最新に
     if(!_live){_afterSaveSync_(_mySeq);return;} // 生徒が先に進んでいたら描かない 2026-09-02
@@ -10157,6 +10192,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     try{
       setDoneBadge_('ok'); var _db0=$('done-badge'); if(_db0)_db0.style.display='';
       if(_isUnit_){
+        clearedUpAdd_(s.listId); /* 最後まで解いた＝完了。一覧に重ねる覚え 2026-10-20 */
         /* 単元別＝「このパート、終わり！」だけ先に出す。「この教材はあと◯パート」の数は
            サーバーしか知らないので、返ってきたら足す（数を空で渡すとその一文が出ない）。 */
         $('done-result').innerHTML=doneUnitPartTtl_('');
@@ -10183,7 +10219,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     try{if(d&&d.data&&d.data._t)_srvT_('save',d.data._t);}catch(eSt){} // サーバー側の内訳をためる（画面には出さない）2026-09-02
     var _live=_doneAlive_(_mySeq); // 生徒がまだこの完了画面を見ているか
     if(_live){var _db2=$('done-badge');if(_db2)_db2.style.display='';}
-    if(!d.ok){if(_sqGiveUp_(d))_sqDel_(_scSq);if(!_live)return;
+    if(!d.ok){if(_sqGiveUp_(d)){_sqDel_(_scSq);clearedMemoDrop_(_scBody);}if(!_live)return;
       /* 【2026-09-02】先に完了画面を描いてあるときは、その見出しを消さない。
          記録は端末に残っていて自動で送り直すので、生徒に「終わった」ことは伝わってよい。
          知らせは案内の行に静かに足すだけにする。 */
