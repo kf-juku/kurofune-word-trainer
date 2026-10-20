@@ -2922,7 +2922,7 @@ $('btn-login').onclick=function(){
       openDash();
     }).catch(function(){$('btn-login').disabled=false;$('btn-login').textContent='ログイン';$('login-err').textContent='通信に失敗しました';});
 };
-$('btn-logout').onclick=function(){localStorage.removeItem('kwt_t_token');localStorage.removeItem('kwt_t_name');token='';$('scr-dash').style.display='none';$('scr-login').style.display='';};
+$('btn-logout').onclick=function(){try{dashCacheClear_();}catch(eC){}localStorage.removeItem('kwt_t_token');localStorage.removeItem('kwt_t_name');token='';$('scr-dash').style.display='none';$('scr-login').style.display='';};
 $('btn-reload').onclick=function(){loadDash(); if(RP_WK_ST!=='idle')_rpWkLoad_(true);};   /* 弱点の表も取り直す 2026-09-15b */
 $('btn-sync').onclick=function(){
   var b=this; if(b.disabled)return; b.disabled=true; var old=b.innerHTML; b.innerHTML='同期中…';
@@ -2956,27 +2956,63 @@ function openDash(){
   loadDash();
 }
 
+/* 【2026-10-20 軽量化】生徒一覧は、前に開いたときの内容をすぐ出し、裏で最新を読み直す（速度と読み込みの正 §2b の型B）。
+   これまでは dashboard の返事（約20秒）がそろうまで「読み込み中…」だけだった。
+   一覧の中身は約170万字あり、localStorage（生徒アプリと同じ場所・すでに約170万字）には入らないので IndexedDB に置く。
+   前の内容を出している間は、デイリーのカードの時刻に「前に開いたときの内容・最新を読み込み中…」と出す。
+   ログアウト・ログインし直しで消す（別の先生の一覧を出さない）。 */
+var DASH_IDB_='kwt_teacher_cache',DASH_IDB_KEY_='dash';
+function dashIdb_(){return new Promise(function(res,rej){try{var q=indexedDB.open(DASH_IDB_,1);q.onupgradeneeded=function(){q.result.createObjectStore('kv');};q.onsuccess=function(){res(q.result);};q.onerror=function(){rej(q.error);};}catch(e){rej(e);}});}
+function dashCacheGet_(){return dashIdb_().then(function(db){return new Promise(function(res){try{var r=db.transaction('kv').objectStore('kv').get(DASH_IDB_KEY_);r.onsuccess=function(){res(r.result||null);};r.onerror=function(){res(null);};}catch(e){res(null);}});}).catch(function(){return null;});}
+function dashCachePut_(v){return dashIdb_().then(function(db){try{db.transaction('kv','readwrite').objectStore('kv').put(v,DASH_IDB_KEY_);}catch(e){}}).catch(function(){});}
+function dashCacheClear_(){return dashIdb_().then(function(db){try{db.transaction('kv','readwrite').objectStore('kv').delete(DASH_IDB_KEY_);}catch(e){}}).catch(function(){});}
+window._dashStale=false;
+/* 一覧を描く（前の内容でも最新でも同じ関数で描く） */
+function applyDash_(students){
+  _students=students||[];
+  $('loadingMsg').style.display='none';
+  $('st-total').textContent=_students.length;
+  $('st-today').textContent=_students.filter(function(s){return s.did_today;}).length;
+  $('st-mistake').textContent=_students.reduce(function(a,s){return a+(s.mistake_active||0);},0);
+  buildFilterChips();
+  renderTable();
+}
+var _dashSeq_=0;
 function loadDash(){
   $('loadingMsg').style.display='';$('tableWrap').style.display='none';$('emptyState').style.display='none';
   (function(){
     var pl=localStorage.getItem('kwt_print_limit');if(pl&&$('printLimit'))$('printLimit').value=pl;
     })();
-  showLoading('読み込み中…');
+  var mySeq=++_dashSeq_,gotFresh=false,shownCache=false;
+  var who=String(teacherName||'');
+  /* 画面の途中で読み直すとき（割り当て・同期のあとなど）は、いま出ている一覧を残したまま裏で読む */
+  if(_students&&_students.length){
+    shownCache=true;window._dashStale=true;
+    try{applyDash_(_students);}catch(e){}
+  }else
+  /* 開いたばかりで、前に開いたときの内容があれば、すぐ出す（最新が先に届いていたら出さない） */
+  dashCacheGet_().then(function(c){
+    if(gotFresh||mySeq!==_dashSeq_||!c||!c.students||c.who!==who)return;
+    shownCache=true;window._dashStale=true;window._dashAt=new Date(c.at);
+    try{applyDash_(c.students);}catch(e){}
+  });
+  /* 前の内容が無いときだけ、これまでどおり全面の「読み込み中…」を出す */
+  var ovT=setTimeout(function(){if(!shownCache&&!gotFresh)showLoading('読み込み中…');},300);
   call({action:'dashboard'}).then(function(d){
+    if(mySeq!==_dashSeq_)return;
+    gotFresh=true;
     $('loadingMsg').style.display='none';
     if(!d.ok){
-      if(d.error&&d.error.indexOf('ログイン')>=0){localStorage.removeItem('kwt_t_token');token='';$('scr-dash').style.display='none';$('scr-login').style.display='';$('login-err').textContent='再度ログインしてください';return;}
-      toast('読み込み失敗：'+(d.error||''));return;
+      if(d.error&&d.error.indexOf('ログイン')>=0){dashCacheClear_();localStorage.removeItem('kwt_t_token');token='';$('scr-dash').style.display='none';$('scr-login').style.display='';$('login-err').textContent='再度ログインしてください';return;}
+      toast('読み込み失敗：'+(d.error||'')+(window._dashStale?'（前に開いたときの内容を出しています）':''));
+      try{renderTable();}catch(e){}
+      return;
     }
-    _students=d.data.students||[];window._dashAt=new Date(); /* デイリーのカードの「◯時点」2026-10-04 */
-    // 統計
-    $('st-total').textContent=_students.length;
-    $('st-today').textContent=_students.filter(function(s){return s.did_today;}).length;
-    $('st-mistake').textContent=_students.reduce(function(a,s){return a+(s.mistake_active||0);},0);
-    buildFilterChips();
-    renderTable();
+    window._dashStale=false;window._dashAt=new Date(); /* デイリーのカードの「◯時点」2026-10-04 */
+    applyDash_(d.data.students||[]);
+    dashCachePut_({at:window._dashAt.getTime(),who:who,students:_students});
   }).finally(function(){
-    hideLoading();
+    clearTimeout(ovT);hideLoading();
     /* 【2026-09-19】教材一覧を裏で先に取っておく（型B「待たせない」＝速度と読み込みの正 §2b）。
        ダッシュボードの返事が来てから投げる＝起動の待ち行列に割りこまない。 */
     if(!bulkMaterials.length&&_bulkMatSt!=='loading')setTimeout(bulkLoadMaterials_,0);
@@ -6211,7 +6247,7 @@ function renderAlertsK(){
     if($('alDyBadN'))$('alDyBadN').textContent=B.dy_bad.length;if($('alDyTN'))$('alDyTN').textContent=B.dy_t.length;if($('alDyYN'))$('alDyYN').textContent=B.dy_y.length;
     window._alIds=window._alIds||{};['dy_bad','dy_t','dy_y'].forEach(function(k){window._alIds[k]=B[k].map(function(st){return String(st.student_id);});});
     var pb=$('alDyBadPrintBtn');if(pb){$('alDyBadPrintN').textContent=B.dy_bad.length;pb.style.display=B.dy_bad.length?'inline-flex':'none';}
-    var at=$('alDyAt');if(at&&window._dashAt){var d=window._dashAt;at.textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+' 時点・開いている間は5分ごとに自動で更新';}
+    var at=$('alDyAt');if(at&&window._dashAt){var d=window._dashAt;at.textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+(window._dashStale?' 時点の内容・最新を読み込み中…':' 時点・開いている間は5分ごとに自動で更新');}
     document.querySelectorAll('#alCardDaily .dly-sec').forEach(function(sec,i){sec.classList.toggle('afon',_alertFilter===['dy_bad','dy_t','dy_y'][i]);});
   })();
   // 👏 今日ほめたい子（昨日ぶん・GASの praise と同基準）2026-07-23
@@ -9069,7 +9105,7 @@ function restartLap(mid){
   });
 }
 /* ダッシュボードを裏で静かに再読込（トースト・オーバーレイなし）2026-07-04 */
-function loadDash_silent(){call({action:'dashboard'}).then(function(d){if(d&&d.ok&&d.data){_students=d.data.students||_students;window._dashAt=new Date();try{$('st-today').textContent=_students.filter(function(s){return s.did_today;}).length;}catch(e){}renderTable();}});}
+function loadDash_silent(){call({action:'dashboard'}).then(function(d){if(d&&d.ok&&d.data){_students=d.data.students||_students;window._dashStale=false;window._dashAt=new Date();try{dashCachePut_({at:window._dashAt.getTime(),who:String(teacherName||''),students:_students});}catch(eC){}try{$('st-today').textContent=_students.filter(function(s){return s.did_today;}).length;}catch(e){}renderTable();}});}
 /* 【2026-10-04】デイリー（昨日・今日）を授業前・授業中に追えるよう、生徒一覧を開いている間は5分ごとに読み直す。
    画面が隠れている（別タブ・スリープ）ときは読まない。 */
 var DASH_AUTO_MS_=5*60*1000;
