@@ -6767,7 +6767,7 @@ var _mpMid='';
 /* ===== 単元ワークシート（数学）のプレビュー 2026-10-17 段③ =====
    教材のプレビューで、ワークシートの教材だけは生徒の画面と同じ ws_app.js で出す（モックのプレビューのバー＝◀ ▶・答え・解説を出す）。
    数式（KaTeX）・図（math_fig.js）は初めて開いたときだけ読む。問題はシートで直さない（要件定義書 2026-10-16 21:04）ので、ここでは直す欄を出さない。 */
-var WS_LIB_V='20261020a',_wsLibP=null;
+var WS_LIB_V='20261020b',_wsLibP=null;
 function _wsLoadLibs_(){
   if(_wsLibP)return _wsLibP;
   var cssP=new Promise(function(ok){var l=document.querySelector('link[data-ws="katex"]');if(l){ok();return;}l=document.createElement('link');l.rel='stylesheet';l.href='ws/katex/katex.min.css';l.setAttribute('data-ws','katex');l.onload=function(){ok();};l.onerror=function(){ok();};document.head.appendChild(l);})
@@ -11967,7 +11967,7 @@ function _ppWsMake_(mid,how,fin){
 function _ppMultiParts_(){
   var sel=_ppSel.slice(),M={};_ppMats.forEach(function(m){M[String(m.id)]=m;});
   var anyWs=sel.some(function(id){return _ppIsWs_(id);}),anyEn=sel.some(function(id){return M[id]&&M[id].subject==='english';});
-  $('ppDirW').style.display=anyEn?'':'none';var _wsr=$('ppOutS');if(_wsr)_wsr.style.display=anyWs?'':'none';
+  $('ppDirW').style.display=anyEn?'':'none';var _wsr=$('ppOutS');if(_wsr)_wsr.style.display=(anyWs&&_ppTest)?'':'none';/* 練習プリントは _ppOutSSync_ 2026-10-20 */
   $('ppParts').innerHTML='<div class="pp-wsn">'+(_ppTest?(sel.length+'教材から、刷るテストを選ぶ。下の表で渡す生徒を選んで、テストごとに刷る。ページ番号はテストごとに1から。'):(sel.length+'教材をまとめて刷る。刷る順はこの並び。教材ごとに新しい紙から始まる（前の教材が奇数ページで終わったら白紙を1枚はさむ）。ページ番号は束の中で通し。'))+'</div>'
     +sel.map(function(id){return '<div class="pp-msec" data-mid="'+esc(id)+'"><div class="pp-mst">'+esc(mtLabel(M[id])||(M[id]&&M[id].title)||id)+'</div><div class="pp-msb"><span style="color:var(--text-muted)">読み込んでいます…</span></div></div>';}).join('');
   $('ppPartsN').textContent='';
@@ -12076,7 +12076,7 @@ function ppMatChg_(){
   try{ localStorage.setItem(_ppTest?'kwt_pt_mat':'kwt_pp_mat',mid); }catch(e){}
   $('ppParts').innerHTML='<div style="color:var(--text-muted)">パートを読み込んでいます…</div>'; $('ppPartsN').textContent='';
   if(!mid) return;
-  var _wsr=$('ppOutS');if(_wsr)_wsr.style.display=_ppIsWs_(mid)?'':'none'; /* 解答用紙の行＝ワークシートだけ 2026-10-18 */
+  var _wsr=$('ppOutS');if(_wsr)_wsr.style.display=(_ppIsWs_(mid)&&_ppTest)?'':'none'; /* 解答用紙の行＝ワークシートだけ 2026-10-18。練習プリントは範囲が出てから _ppOutSSync_ が決める 2026-10-20 */
   if(_ppIsWs_(mid)){_ppWsParts_(mid);return;} /* 単元ワークシート＝モックの「印刷するところ」 2026-10-18 */
   _ppLoad_(mid).then(function(d){
     if($('ppMat').value!==mid) return;
@@ -12091,7 +12091,13 @@ function ppMatChg_(){
 var _ppStop=false;function ppStop_(){if(!_ppBusy)return;_ppStop=true;$('ppStat').textContent='止めています…';}
 function ppReset_(){try{localStorage.removeItem(_ppTest?'kwt_pt_mat':'kwt_pp_mat');}catch(e){}$('ppMatSearch').value='';_ppMatOpen={};$('ppErr').textContent='';$('ppStat').textContent='';_ppSetSel_([]);_ppMatDraw_(true);}
 function ppPartsAll_(on){ var cs=$('ppParts').querySelectorAll('.pp-ptc'); for(var i=0;i<cs.length;i++) cs[i].checked=!!on; ppPartsCnt_(); }
-function ppPartsCnt_(){ if(_ppTest)_ptSoon_(); var cs=$('ppParts').querySelectorAll('.pp-ptc'),n=0; for(var i=0;i<cs.length;i++) if(cs[i].checked) n++; $('ppPartsN').textContent=cs.length?('　'+n+' / '+cs.length+(_ppSel.length>1?'（'+_ppSel.length+'教材）':(_ppIsWs_($('ppMat').value)?' か所':' パート'))):''; }
+function ppPartsCnt_(){ if(_ppTest)_ptSoon_(); var cs=$('ppParts').querySelectorAll('.pp-ptc'),n=0; for(var i=0;i<cs.length;i++) if(cs[i].checked) n++; $('ppPartsN').textContent=cs.length?('　'+n+' / '+cs.length+(_ppSel.length>1?'（'+_ppSel.length+'教材）':(_ppIsWs_($('ppMat').value)?' か所':' パート'))):''; _ppOutSSync_(); }
+/* 練習プリントの［解答用紙］の行は、範囲でテストに ✓ が入っているときだけ出す（2026-10-20 川上さん「テストを外しているのに解答用紙いる？」）。
+   ワークシート以外の教材には今までどおり出さない。［テストを単体で印刷］の窓（_ppTest）は今のまま */
+function _ppOutSSync_(){ var r=$('ppOutS'); if(!r||_ppTest)return;
+  var ws=_ppSel.length?_ppSel.some(function(id){return _ppIsWs_(id);}):_ppIsWs_($('ppMat').value);
+  var t=[].some.call($('ppParts').querySelectorAll('.pp-ptc'),function(c){return c.checked&&(c.value==='test'||/^T:/.test(c.value));});
+  r.style.display=(ws&&t)?'':'none'; }
 function _ppPicked_(){ var cs=$('ppParts').querySelectorAll('.pp-ptc'); if(!cs.length) return null; var o={}; for(var i=0;i<cs.length;i++) if(cs[i].checked) o[cs[i].value]=1; return o; }
 /* 刷り方（川上さん 2026-10-17 20:51「部数はプリンターで設定すべき。部数分のPDFはいらない。PDFは1部で問題と解答解説を分けるだけ。解答用紙があるならそれもPDFは分ける」）
    ・印刷＝1部ぶんを「問題用紙 → 解答解説」の順に1回の印刷にする。部数はプリンターで人数・部単位で印刷。
