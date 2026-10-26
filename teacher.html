@@ -1429,6 +1429,16 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
   .pp-ar .a{flex:0 0 52mm;font-weight:700;overflow-wrap:anywhere}
   .pp-ar .x{flex:1;color:#333;font-size:8.3pt;overflow-wrap:anywhere}
   .pp-skip{width:100%;font-size:8.5pt;color:#777;padding:1mm 0}
+  /* 英検3級ライティング編の書く紙（2026-10-26） */
+  .pp-it.wr{border-bottom:0;font-size:10pt}.pp-it.wr .no{display:none}
+  .pp-wins{font-size:9.5pt;margin:0.5mm 0 2mm}
+  .pp-wbox{border:1px solid #333;padding:1.5mm 3mm;font-size:10.5pt;line-height:1.45;margin-bottom:2mm}.pp-wbox .u{text-decoration:underline}
+  .pp-wrep{font-size:11pt;margin-bottom:1.5mm}.pp-wrep>div{margin:0.4mm 0}.pp-wrep .br{color:#555}
+  .pp-l4.pp-wl{height:8.5mm;margin:1.8mm 0}
+  .pp-wcnt{font-size:9pt;border:1px dashed #555;padding:1.2mm 2mm;margin:1.5mm 0 2mm}
+  table.pp-wpts{border-collapse:collapse;width:100%;font-size:8.5pt;line-height:1.3}table.pp-wpts th,table.pp-wpts td{border:1px solid #999;padding:0.6mm 1.5mm;text-align:left}table.pp-wpts th{background:#f2f2f2;font-weight:600}
+  table.pp-wpts td:nth-child(n+2),table.pp-wpts th:nth-child(n+2){width:20mm;text-align:center}
+  .pp-wtc{border:1px solid #333;height:12mm;margin-top:2mm;font-size:9.5pt;padding:1.2mm 2mm}
   .pp-blank .pp-body{align-items:center;justify-content:center;color:#bbb;font-size:9pt}
   @media print{ .pp-blank .pp-body span{display:none} }
   .pp-blank .pp-ft{color:#ccc} /* 白紙にも薄い印を残す＝プリンタの「白紙ページを飛ばす」で消えて表裏がずれないように（KWT_紙と印刷.md 2026-07-30） */
@@ -10964,6 +10974,17 @@ function _rpWkNotesHtml_(sid,cols){
   return (lc.length?_rpWkNotesTbl_(N,lc,'聞き取りで間違えたあと（練習）','「分かった」が多い＝聞き取れていない／「分からない語」が多い＝語を知らない'):'')
     +(rc.length?_rpWkNotesTbl_(N,rc,'読解で間違えたあと（練習）','「分かった」が多い＝読み取れていない（読み方）／「分からない語」が多い＝語を知らない'):'');
 }
+/* 英検3級 ライティング編 段⑥（自分で書く・自己採点）＝正答率に入れない別の欄（要件定義書_英検教材 3-6）2026-10-26
+   書いた回数・できていない項目（多い順）・先生に見せる（分からないを押した回）。記録が無い生徒は出さない */
+function _rpWkWriteHtml_(sid){
+  var W=((RP_WK&&RP_WK.write)||{})[sid]; if(!W||!W.n)return '';
+  var it=Object.keys(W.items||{}).map(function(k){ return [k,W.items[k]]; }).sort(function(a,b){ return b[1]-a[1]; }).slice(0,5);
+  return '<div class="rpwk-self"><div class="t">ライティング（自分で書く・生徒の丸付け）</div><div style="overflow:auto;"><table>'
+    +'<tr><th>書いた回数</th><th>よく書けた</th><th>直す所あり</th><th>先生に見せる</th></tr>'
+    +'<tr><td>'+W.n+'回</td><td class="k1">'+(W.ok||0)+'回</td><td class="k2">'+(W.ng||0)+'回</td><td'+((W.ask||0)?' style="color:#b45309;font-weight:800;"':'')+'>'+(W.ask||0)+'回'+(W.last_ask?'<br><small>最後 '+esc(String(W.last_ask).slice(0,10))+'</small>':'')+'</td></tr></table></div>'
+    +(it.length?'<div class="rpwk-note">できていない項目（多い順）：'+it.map(function(x){ return esc(x[0])+' '+x[1]+'回'; }).join('／')+'</div>':'')
+    +'<div class="rpwk-note">正答率には入れていない。「先生に見せる」はノートを見てあげる</div></div>';
+}
 /* 1人ずつ（生徒の行を開いたところ） */
 function _rpWkUxHtml_(sid){
   var rows=_rpWkRows_(RP_SEL), cols=_rpWkColsOf_(rows);
@@ -10975,7 +10996,7 @@ function _rpWkUxHtml_(sid){
     if(r.mid!==lastMid){ lastMid=r.mid; h+='<tr class="mat"><th colspan="'+(cols.length+1)+'">'+esc(_rpWkMatName_(r.mid))+'</th></tr>'; }
     h+='<tr><th class="ul"><b>'+esc(r.label)+'</b><span>'+esc(r.sub)+'</span></th>'+cols.map(function(c){ return _rpWkCell_(r,sid,c,cols); }).join('')+'</tr>';
   });
-  return h+'</tbody></table></div>'+_rpWkNotesHtml_(sid,cols)+'</div><div class="rpwk-dh" style="margin-top:10px;"><b>教材ごとの内訳</b></div>';
+  return h+'</tbody></table></div>'+_rpWkNotesHtml_(sid,cols)+_rpWkWriteHtml_(sid)+'</div><div class="rpwk-dh" style="margin-top:10px;"><b>教材ごとの内訳</b></div>';
 }
 /* 【4-51 ⑩】次にやること（1人1つ・いちばん低いところから）。60% の線は 🔔 の「正答率の基準」（_accLine）を使う */
 function _rpWkTodo_(sid,mids){
@@ -11004,6 +11025,7 @@ function _rpWkTodo_(sid,mids){
       else if(low.v<line)cand.push({s:low.v+5,t:nm+' '+low.label+'の紙を出す（'+fx+'）',why:'そこだけ '+low.v+'%（合計 '+a.rate+'%）',go:[mid+'|'+low.u,c],prn:d.p?1:0});
     });
   });
+  try{ var _W=((RP_WK&&RP_WK.write)||{})[sid]; if(_W&&_W.ask)cand.push({s:-1,t:'ライティング：ノートを見る（先生に見せる '+_W.ask+'回）',why:'自分で書いた英文で「分からない」を押した'+(_W.last_ask?'（最後 '+String(_W.last_ask).slice(0,10)+'）':''),oral:1}); }catch(_eW){}   /* 英検3級 ライティング編 段⑥（3-6「先生に見せる」の子は一目で分かるように）2026-10-26 */
   cand.sort(function(a,b){ return a.s-b.s; });
   return cand[0]||null;
 }
@@ -11596,6 +11618,7 @@ function _ppBuild_(M,w,dir){
   var pl=as?as.p:null;
   var alt=q.alt?'（'+esc(q.alt)+' も正解）':'';
   var eng=(M.subject==='english');
+  if(M.wr&&qt!=='w_write') return {skip:true};
   if(qt===''){
     if(q.q_ruby||M.subject==='japanese'){
       var qh=(q.q_ruby?_ppRuby_(q.q_ruby):esc(ja)).replace(/（　）|（　）/,'<span class="pp-ans" style="min-width:30mm"></span>');
@@ -11670,7 +11693,23 @@ function _ppBuild_(M,w,dir){
     var c7=_ppCho_(chs7,id);
     return {cls:'',fig:figu,q:esc(ask)+c7.html+'<div class="pp-ansr">答え <span class="pp-ans" style="min-width:14mm"></span></div>',a:PP_KANA_[c7.order.indexOf(en)]+'　'+esc(en),x:_ppKai_(ks)};
   }
+  /* 【2026-10-26 川上さん 15:16「練習プリントは印刷ボタンにも対応」】英検3級ライティング編＝自分で書く問題（w_write）だけを1ページ1題の書く紙にする。ほかの問題（並べかえ・選ぶ）はアプリで解く */
+  if(qt==='w_write'&&pl) return _ppWrite_(pl);
   return {skip:true};
+}
+function _ppWrite_(pl){
+  var mail=(pl.kind==='mail'),mn=pl.min||(mail?15:25),mx=pl.max||(mail?25:35),rows=function(n){var h='';for(var i=0;i<n;i++)h+='<span class="pp-l4 blk pp-wl"></span>';return h;};
+  var h='<div class="pp-wins">'+(mail?'●外国の友達（James）からEメールが来た。返信を英語で書く。下線の質問2つに答えること。［　］に書く英文の語数の目安は'+mn+'〜'+mx+'語。':'●QUESTION について、あなたの考えと、その理由を2つ英語で書く。語数の目安は'+mn+'〜'+mx+'語。')+'</div>';
+  if(mail) h+='<div class="pp-wbox">'+(pl.lines||[]).map(function(l){return '<div'+(l.u?' class="u"':'')+'>'+esc(String(l.en||''))+'</div>';}).join('')+'</div>'
+    +'<div class="pp-wrep"><div>Hi, James!</div><div>Thank you for your e-mail.</div><div class="br">［</div>'+rows(5)+'<div class="br">］</div><div>Best wishes,</div></div>';
+  else h+='<div class="pp-wbox"><b>QUESTION</b><br>'+esc(String((pl.q&&pl.q.en)||''))+'</div><div class="pp-wrep">'+rows(7)+'</div>';
+  h+='<div class="pp-wcnt">語数（自分で数える）　　　　　語　　　→ '+mn+'〜'+mx+'語に入った？　□はい　□いいえ（書き足す・削る）</div>';
+  h+='<table class="pp-wpts"><tr><th>確かめる点（書いたあとに自分で）</th><th>できた</th><th>できていない</th></tr>'+(pl.pts||[]).map(function(p){return '<tr><td>'+esc(String(p.n||''))+'　'+esc(String(p.t||''))+'</td><td>□</td><td>□</td></tr>';}).join('')+'</table>';
+  h+='<div class="pp-wtc">先生　□見た　　コメント</div>';
+  var ex=pl.ex||[];
+  var a=(mail?'Hi, James! Thank you for your e-mail. ［ ':'')+ex.map(function(e){return esc(String(e.en||''));}).join(' ')+(mail?' ］ Best wishes,':'');
+  var wc=ex.reduce(function(t,e){return t+String(e.en||'').split(/\s+/).filter(function(x){return /[A-Za-z0-9]/.test(x);}).length;},0);
+  return {cls:'wr',wr:1,q:h,a:'解答例　'+a,x:ex.map(function(e){return esc(String(e.ja||''));}).join('')+'（'+(mail?'［　］の中は':'')+wc+'語）'};
 }
 /* ---- ページ分け ---- */
 var _ppPages=[],_ppCur=null;
@@ -11683,12 +11722,13 @@ function _ppKindName_(isAns){return isAns?'解答解説':'問題用紙';}
 function _ppPageHead_(M,isAns,cont){
   if(cont) return '<div class="pp-hd cont"><div class="k"><span>'+esc(M.title)+'　練習プリント</span><b>'+_ppKindName_(isAns)+'</b></div></div>';
   return '<div class="pp-hd first"><div class="t1">'+esc(M.title)+'</div><div class="t2"><span class="tt">練習プリント</span><span class="kind">'+_ppKindName_(isAns)+'</span></div>'+(isAns?'':'<div class="who"><span>名前</span><span class="sc">日付　　月　　日</span></div>')+'</div>';}
-function _ppPartHead_(pt,n,isAns,cont){return '<div class="pp-ph"><span class="t">'+esc(pt)+(cont?'（つづき）':'')+'</span>'+(isAns||cont?'':'<span class="sc">点数　　　／'+n+'</span>')+'</div>';}
+function _ppPartHead_(pt,n,isAns,cont){return '<div class="pp-ph"><span class="t">'+esc(pt)+(cont?'（つづき）':'')+'</span>'+(isAns||cont||!n?'':'<span class="sc">点数　　　／'+n+'</span>')+'</div>';}
 function _ppMeasure_(nodes){var m=$('ppMeasure');if(!m){m=document.createElement('div');m.id='ppMeasure';m.innerHTML='<div class="pp-body" style="height:auto"></div>';document.body.appendChild(m);}var b=m.firstChild;b.innerHTML='';nodes.forEach(function(n){b.appendChild(n.cloneNode(true));});return b.scrollHeight;}
 function _ppPlace_(host,M,pt,n,nodes,isAns,figs){
   var kind=isAns?'a':'q', need=_ppMeasure_(nodes);
   if(!_ppCur.fresh&&need>_ppCur.body.clientHeight-_ppUsed_()&&need<=_ppCur.body.clientHeight) _ppNewPage_(host,kind,_ppPageHead_(M,isAns,true)); /* 大きい見出しは1ページ目だけ。2ページ目からは小さい1行 2026-10-17 */
   nodes.forEach(function(nd,i){
+    if(i>1&&nd.className&&/\bwr\b/.test(nd.className)){_ppNewPage_(host,kind,_ppPageHead_(M,isAns,true));_ppCur.body.appendChild(_ppMk_(_ppPartHead_(pt,n,isAns,true)));}   /* 書く紙は1ページ1題（2026-10-26） */
     _ppCur.body.appendChild(nd);_ppCur.fresh=false;
     if(!_ppFits_()){_ppCur.body.removeChild(nd);_ppNewPage_(host,kind,_ppPageHead_(M,isAns,true));_ppCur.body.appendChild(_ppMk_(_ppPartHead_(pt,n,isAns,true)));
       if(figs[i])_ppCur.body.appendChild(_ppMk_(figs[i]));
@@ -11715,6 +11755,8 @@ function _ppLayout_(host,M,built,kind,xref){
       _ppPlace_(host,M,b.title,n,anodes,true,afigs);
       return;
     }
+    var wr=items.some(function(it){return it.wr;});
+    if(wr){if(!_ppCur.fresh)_ppNewPage_(host,'q',_ppPageHead_(M,false,true));n=0;skip=0;}   /* 書く紙は新しいページから（2026-10-26） */
     var nodes=[_ppMk_(_ppPartHead_(b.title,n,false,false))],figs=[null],lastFig='',lastPsg='';
     if(b.goi){nodes.push(_ppMk_('<div class="pp-gun"><b>語群</b>'+_ppShuf_(items.map(function(x){return x.gun;}),b.id).map(esc).join('　')+'</div>'));figs.push(null);}
     items.forEach(function(it,i){
@@ -12011,6 +12053,7 @@ function _ppPagesOf_(mid,kind,dir,xref,pkOv){
     var dt=d.data,parts=(dt.parts||[]).filter(function(p){return !picked||picked[String(p.part_id)];});
     var M={title:mtLabel(dt)||dt.title||'',subject:String(dt.subject||''),assets:{}};
     Object.keys(dt.assets||{}).forEach(function(k){var a=dt.assets[k],p=null;try{p=JSON.parse(a.payload||'{}');}catch(e){p={};}M.assets[k]={kind:a.kind,p:p||{},url:a.url||''};});
+    M.wr=(dt.parts||[]).some(function(p){return (p.words||[]).some(function(w){return /^w_/.test(String(w.qtype||''));});});   /* ライティング編＝書く紙だけ出す（2026-10-26） */
     var built=parts.map(function(p){var ws=p.words||[];var goi=ws.some(function(w){try{return !!JSON.parse(w.qdata||'{}').q_ruby;}catch(e){return false;}})||M.subject==='japanese';
       return {id:String(p.part_id),title:String(p.title||''),goi:goi&&ws.every(function(w){return !w.qtype;}),items:ws.map(function(w){return _ppBuild_(M,w,dir);})};}).filter(function(b){return b.items.length;});
     if(!built.length)return [];
@@ -12121,6 +12164,7 @@ function ppMake_(how){
     if(!hasQ&&parts.some(function(p){return (p.words||[]).length;})){ $('ppErr').textContent='サーバー（GAS）の更新がまだです。GASを再デプロイしてから、もう一度押してください。'; fin(''); return; }
     var M={title:mtLabel(dt)||dt.title||'',subject:String(dt.subject||''),assets:{}};
     Object.keys(dt.assets||{}).forEach(function(k){var a=dt.assets[k],p=null;try{p=JSON.parse(a.payload||'{}');}catch(e){p={};}M.assets[k]={kind:a.kind,p:p||{},url:a.url||''};});
+    M.wr=(dt.parts||[]).some(function(p){return (p.words||[]).some(function(w){return /^w_/.test(String(w.qtype||''));});});   /* ライティング編＝書く紙だけ出す（2026-10-26） */
     var built=parts.map(function(p){var ws=p.words||[];var goi=ws.some(function(w){try{return !!JSON.parse(w.qdata||'{}').q_ruby;}catch(e){return false;}})||M.subject==='japanese';
       return {id:String(p.part_id),title:String(p.title||''),goi:goi&&ws.every(function(w){return !w.qtype;}),items:ws.map(function(w){return _ppBuild_(M,w,dir);})};}).filter(function(b){return b.items.length;});
     if(!built.length){ $('ppErr').textContent='この教材にはまだ問題がありません'; fin(''); return; }
