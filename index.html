@@ -2737,7 +2737,7 @@ body.wr-s5 #step-sent .ro-bank button,body.wr-s5 #step-sent button.ro-tok{white-
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-26b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-26c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -9498,7 +9498,7 @@ function _resumeOrder_(words,rs){
 /* 【2026-10-10 川上さん確定】No＝カリキュラム表と共通のパート番号（parts.part_order・級ごとの通し番号）。
    出すのはカリキュラム表がある教材だけ。★今後、カリキュラム表がなくてもチェックプリントなどを作ったら No を付けることがある
    ＝そのときはこの一覧に1行足すだけ（teacher.html の _NO_MATS_ も同じにする）。正＝要件定義書_カリキュラム表とチェックプリント 2026-10-10 */
-var _NO_MATS_={'mat-eiken5-unit-01':1,'mat-eiken5-scene':1,'mat-eiken5-kakehashi':1,'mat-eiken4-bunpo':1,'mat-eiken4-kaiwa':1,'mat-eiken4-dokkai':1,'mat-eiken3-bunpo':1,'mat-eiken3-writing':1};
+var _NO_MATS_={'mat-eiken5-unit-01':1,'mat-eiken5-scene':1,'mat-eiken5-kakehashi':1,'mat-eiken4-bunpo':1,'mat-eiken4-kaiwa':1,'mat-eiken4-dokkai':1,'mat-eiken3-bunpo':1,'mat-eiken3-writing':1,'mat-eiken3-kaiwa':1};
 function _pnoOf_(mid,ord){ if(!_NO_MATS_[String(mid||'')])return ''; var n=parseInt(ord,10); return (n>0)?('No.'+n):''; }
 function _pnoHtml_(mid,ord){ var t=_pnoOf_(mid,ord); return t?('<span class="pno">'+t+'</span>'):''; }
 /* ===== 4段の階層（2026-10-19 作業4）=====
