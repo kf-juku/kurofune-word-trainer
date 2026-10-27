@@ -2811,7 +2811,7 @@ body.wr-s5 #step-sent .ro-bank button,body.wr-s5 #step-sent button.ro-tok{white-
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-28a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-28b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -7997,7 +7997,7 @@ _lxCard_=function(s,w,q){
       var _N=(_op.ov.pages||[1]).length,_pg=Math.min(_N-1,(s._ovPg||{})[String(w.id)]||0);
       $('sent-body').innerHTML=_ovHtml_(_op.ov,_pg);
       var _last=(_pg>=_N-1);
-      $('sent-choices').innerHTML=(_pg>0?'<button type="button" class="ovback" id="ov-back">'+_wrRb_('← もどる')+'</button>':'')+'<button type="button" class="ex-next lx-go" id="lx-go">'+_wrRb_(_last?'始める（分かったかを確かめる）':'次へ（'+(_pg+1)+' / '+_N+'）')+'</button>';
+      $('sent-choices').innerHTML=(_pg>0?'<button type="button" class="ovback" id="ov-back">'+_wrRb_('← もどる')+'</button>':'')+'<button type="button" class="ex-next lx-go" id="lx-go">'+_wrRb_(_last?'確認問題へ進む':'次へ（'+(_pg+1)+' / '+_N+'）')+'</button>';
       $('lx-go').onclick=function(){try{_tkClose_();}catch(e){} if(!_last){(s._ovPg||(s._ovPg={}))[String(w.id)]=_pg+1;_lxCard_(s,w,q);return;} (s._cardDone||(s._cardDone={}))[String(w.id)]=1;renderSENT(s);};
       var _bk=$('ov-back');if(_bk)_bk.onclick=function(){(s._ovPg||(s._ovPg={}))[String(w.id)]=_pg-1;_lxCard_(s,w,q);};
       try{window.scrollTo(0,0);}catch(e){}
@@ -8010,7 +8010,7 @@ _lxCard_=function(s,w,q){
   if(q.card==='ov'){   /* ライティングの全体像のパート（09-0）。2026-10-27 20:58 会話編・読解編と同じ1画面ずつめくる形（_WR_OV_）。「始める」で確認の問題へ */
     var _N=_WR_OV_.pages.length,_pg=Math.min(_N-1,(s._ovPg||{})[String(w.id)]||0),_last=(_pg>=_N-1);
     $('sent-body').innerHTML=_ovHtml_(_WR_OV_,_pg);
-    $('sent-choices').innerHTML=(_pg>0?'<button type="button" class="ovback" id="ov-back">'+_wrRb_('← もどる')+'</button>':'')+'<button type="button" class="ex-next lx-go" id="lx-go">'+_wrRb_(_last?'始める（分かったかを確かめる）':'次へ（'+(_pg+1)+' / '+_N+'）')+'</button>';
+    $('sent-choices').innerHTML=(_pg>0?'<button type="button" class="ovback" id="ov-back">'+_wrRb_('← もどる')+'</button>':'')+'<button type="button" class="ex-next lx-go" id="lx-go">'+_wrRb_(_last?'確認問題へ進む':'次へ（'+(_pg+1)+' / '+_N+'）')+'</button>';
     $('lx-go').onclick=function(){try{_tkClose_();}catch(e){} if(!_last){(s._ovPg||(s._ovPg={}))[String(w.id)]=_pg+1;_lxCard_(s,w,q);return;} (s._cardDone||(s._cardDone={}))[String(w.id)]=1;renderSENT(s);};
     var _bk=$('ov-back');if(_bk)_bk.onclick=function(){(s._ovPg||(s._ovPg={}))[String(w.id)]=_pg-1;_lxCard_(s,w,q);};
     try{window.scrollTo(0,0);}catch(e){}
