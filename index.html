@@ -2822,7 +2822,7 @@ body.wr-s5 #step-sent .ro-bank button,body.wr-s5 #step-sent button.ro-tok{white-
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-28d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-28e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -7821,7 +7821,7 @@ var _LX_FCARD_={
 var _LX_MEMO_={l1:'絵を見て場面をつかむ → 最後の文をよく聞く → 合う返事を選ぶ',l2:'先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ',l3:'先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ',listen_resp:'最初の英文をよく聞く → 全部聞く → 合う返事を選ぶ',listen_pic:'絵を見る → ちがうものを消す → 残りを選ぶ',listen_print:'先に選択肢を読む → 質問の最初の語をつかむ → 答えを選ぶ'};
 function _isIntroW_(w){try{var q=tfParse(w);return !!(q&&(q.intro===1||q.intro==='1'||q.intro===true));}catch(e){return false;}}
 function _qlDropIntro_(d){
-  try{((d&&d.data&&d.data.materials)||[]).forEach(function(g){if(g&&g.parts)g.parts=g.parts.filter(function(p){return !/-in$/.test(String((p&&p.part_id)||''));});});}catch(e){}
+  try{((d&&d.data&&d.data.materials)||[]).forEach(function(g){if(g&&g.parts)g.parts=g.parts.filter(function(p){return !/-in$|^part-eiken3-writing-\d+-(0|w)$/.test(String((p&&p.part_id)||''));});   /* 2026-10-28：3級ライティング編のウォームアップ・全体像（09-0・09-w・10-w）は id が -in で終わらないが、導入パートとして扱う（点検で見つけた・部品一覧「id は最後が -in」） */});}catch(e){}
   return d;
 }
 var _LX_BULB_='<svg class="lx-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3"/><path d="M9.7 17h4.6"/></svg>';

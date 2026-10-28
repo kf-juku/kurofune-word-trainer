@@ -3687,7 +3687,7 @@ function _pqRdQJa_(it){ var q=_pqData_(it)||{}; return (String(q.kind||'')==='rq
    opt_ja（選択肢を読んで何を聞かれそうか答える）のように、紙の部品が想定していない形が刷られないように */
 function _pqIsIntro_(it){
   if(!it) return false;
-  if(/-in$/.test(String(it.part_id||''))) return true;
+  if(/-in$|^part-eiken3-writing-\d+-(0|w)$/.test(String(it.part_id||''))) return true;   /* 2026-10-28：3級ライティング編のウォームアップ・全体像（09-0・09-w・10-w）は id が -in で終わらないが、導入パートとして扱う（点検で見つけた・部品一覧「id は最後が -in」） */
   var q=_pqData_(it); return !!(q&&(q.intro===1||q.intro==='1'||q.intro===true));
 }
 /* 答えの側。記号＋日本語＋**英文**（チェックプリントでは先生の読み上げ原稿になる） */
