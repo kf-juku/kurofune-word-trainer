@@ -1377,6 +1377,76 @@
   .dfx-pbg{display:inline-flex;align-items:center;gap:6px;margin-top:6px;background:linear-gradient(135deg,rgba(202,162,74,.18),rgba(202,162,74,.06));color:var(--gold);border:1px solid rgba(202,162,74,.45);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:800}.dfx-pbg b{font-family:Manrope}
   .dfx-pbg.go{animation:dfxPbIn .6s cubic-bezier(.2,1.5,.4,1) both}
   @keyframes dfxPbIn{0%{transform:scale(0) rotate(-10deg);opacity:0}100%{transform:none;opacity:1}}
+  /* ===== 採点画面の先生チェック（2026-10-31・見本＝20261030_モック_採点ページの統一.html）===== */
+  :root{--stk1:#dbe7ff;--stk2:#c7d9ff;--stk-ink:#0a56cc;--ok-soft:#e6f6ee;--chip:#f1f3f7;}
+  [data-theme="dark"]{--stk1:#17284a;--stk2:#1d3260;--stk-ink:#9fc0ff;--ok-soft:#10291d;--chip:#202634;}
+  #done-teach .tc-teach{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--ink);border-radius:14px;padding:12px;margin-top:14px;background:var(--surface)}
+  #done-teach .tc-teach .tc-ic{width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+  #done-teach .tc-teach .tc-tt{font-weight:800;font-size:18px}
+  #done-teach .tc-teach .tc-ts{font-size:13px;color:var(--sub)}
+  #done-teach .tc-teach .tc-cnt{font-size:13.5px;margin-top:4px;color:var(--ink)}#done-teach .tc-teach .tc-cnt b{font-family:Manrope;font-size:15px}
+  #done-teach .tc-teach .tc-nt{font-size:13px;font-weight:700;margin-top:6px;border-top:1px dashed var(--line);padding-top:6px}
+  #done-teach .tc-sec{margin-top:14px}
+  #done-teach .tc-sh{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;margin:0 0 4px}
+  #done-teach .tc-sh .tc-n{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-family:Manrope}
+  #done-teach .tc-ss{font-size:13px;color:var(--sub);margin:0 0 8px}
+  #done-teach .tc-ss u{text-decoration-color:var(--accent);text-underline-offset:3px}
+  #done-teach .tc-wl{display:grid;grid-template-columns:auto 1fr;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+  #done-teach .tc-wl div{padding:7px 12px;border-bottom:1px solid var(--line)}
+  #done-teach .tc-wl .tc-e{font-weight:700;border-right:1px solid var(--line)}
+  #done-teach .tc-wl div:nth-last-child(-n+2){border-bottom:none}
+  #done-teach .tc-q{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+  #done-teach .tc-qh{display:flex;gap:8px;align-items:flex-start}
+  #done-teach .tc-mk{font-weight:800;font-size:18px;line-height:1.3;width:18px;flex:none}
+  #done-teach .tc-mk.tc-ng{color:var(--ng)}#done-teach .tc-mk.tc-ok{color:var(--ok)}
+  #done-teach .tc-no{border:1.5px solid var(--ink);border-radius:4px;font-family:Manrope;font-weight:800;font-size:13px;padding:0 6px;flex:none;line-height:1.5}
+  #done-teach .tc-qb{flex:1;min-width:0}
+  #done-teach .tc-gh{font-size:13px;color:var(--sub)}
+  #done-teach .tc-en{font-weight:700;font-size:16px}
+  #done-teach .tc-ja{font-size:13.5px;color:var(--sub)}
+  #done-teach .tc-blank{display:inline-block;min-width:2.6em;border-bottom:2px solid var(--ink);text-decoration:none}
+  #done-teach .tc-chs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  #done-teach .tc-chs>span{background:var(--chip);border-radius:8px;padding:2px 9px;font-size:13.5px}
+  #done-teach .tc-chl{margin:6px 0 0;padding-left:1.4em;font-size:13.5px}
+  #done-teach .tc-dl{margin:4px 0}#done-teach .tc-dl b{font-size:12px;color:var(--sub);margin-right:6px}
+  #done-teach .tc-fig{margin:6px 0;text-align:center}#done-teach .tc-fig img{max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--line);background:#fff}
+  #done-teach .tc-au{display:inline-flex;align-items:center;gap:4px;border:1.5px solid var(--accent);color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 12px;font-weight:700;font-size:13px;cursor:pointer;margin:4px 0}
+  #done-teach .tc-chs>span.tc-me{outline:2px solid var(--ng);color:var(--ng);font-weight:700;position:relative;padding-left:20px}
+  #done-teach .tc-chs>span.tc-me::before{content:'×';position:absolute;left:6px;top:50%;transform:translateY(-52%);font-weight:800}
+  #done-teach .tc-chs>span.tc-me::after{content:'あなた';position:absolute;top:-9px;right:-4px;background:var(--surface);color:var(--ng);font-size:9.5px;font-weight:800;padding:0 4px;border-radius:4px;line-height:1.4;border:1px solid var(--ng)}
+  #done-teach .tc-chl li.tc-me{color:var(--ng);font-weight:700;outline:2px solid var(--ng);border-radius:6px;padding:0 6px;margin:2px 0;list-style-position:inside}
+  #done-teach .tc-chl li.tc-me::after{content:'　× あなた';font-size:11px;font-weight:800}
+  #done-teach .tc-youbox{margin-top:8px;border:2px solid var(--ng);border-radius:10px;padding:6px 10px;color:var(--ng);font-weight:700;font-size:14px}
+  #done-teach .tc-youbox b{font-size:11px;margin-right:6px}
+  #done-teach .tc-you{margin-top:8px;font-size:14px;color:var(--ng);font-weight:700}
+  #done-teach .tc-you small{font-weight:700;margin-right:6px}
+  #done-teach .tc-rv{width:100%;margin-top:8px;border:1.5px solid var(--accent);color:var(--accent);background:var(--surface);border-radius:12px;padding:9px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
+  #done-teach .tc-rv.on{background:var(--accent);color:#fff}
+  #done-teach .tc-ansb{display:none;margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+  #done-teach .tc-ansb.on{display:block}
+  #done-teach .tc-ansb .tc-a{font-weight:800;font-size:15px}
+  #done-teach .tc-ansb .tc-a small{color:var(--sub);font-weight:700;margin-right:6px}
+  #done-teach .tc-ansb .tc-x{font-size:13.5px;margin-top:4px}
+  #done-teach .tc-ansb .tc-sc{font-size:13px;margin-top:4px;color:var(--sub)}
+  #done-teach .tc-fold{width:100%;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-weight:800;font-size:15px;color:var(--ink);cursor:pointer;font-family:inherit}
+  #done-teach .tc-fold .tc-c{margin-left:auto;color:var(--sub)}
+  #done-teach .tc-fold .tc-mk{color:var(--ok)}
+  #done-teach .tc-fl{display:none;margin-top:6px}#done-teach .tc-fl.on{display:block}
+  #done-teach .tc-fr{display:flex;gap:8px;align-items:baseline;padding:7px 4px;border-bottom:1px solid var(--line);font-size:13.5px}
+  #done-teach .tc-fr .tc-p{flex:1;min-width:0;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #done-teach .tc-fr .tc-r{font-weight:700;flex:none;max-width:48%;text-align:right}
+  #done-teach .tc-hid{position:relative}
+  #done-teach .tc-hid>.tc-stk{position:absolute;inset:-2px;border-radius:10px;background:repeating-linear-gradient(135deg,var(--stk1) 0 10px,var(--stk2) 10px 20px);display:flex;align-items:center;justify-content:center;gap:4px;color:var(--stk-ink);font-size:12px;font-weight:700;cursor:pointer;transform-origin:100% 0;transition:transform .35s ease,opacity .35s ease;box-shadow:0 1px 3px rgba(0,0,0,.12);z-index:1}
+  #done-teach .tc-hid.tc-peel>.tc-stk{transform:rotate(-14deg) translate(30%,-60%);opacity:0;pointer-events:none}
+  #done-teach .tc-hid.tc-peel{cursor:pointer}
+  #done-teach .tc-ansb{display:block;margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+  #done-teach .tc-ansb .tc-hid{padding:6px 2px;min-height:44px}
+  #done-teach .tc-wl .tc-hid{min-height:22px}#done-teach .tc-wl .tc-hid>.tc-stk{inset:2px 0;font-size:11px}
+  #done-teach .tc-fr .tc-r.tc-hid{min-width:5em}#done-teach .tc-fr .tc-r.tc-hid>.tc-stk{inset:0;font-size:10.5px}
+  #done-teach .tc-bk{margin-left:auto;font-size:12px;font-weight:700;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer;font-family:inherit}
+  #done-teach .tc-wl>div{display:flex;align-items:center}
+  #done-teach .tc-wl .tc-hid{flex:1}
+  #done-teach .tc-allok{text-align:center;padding:14px;font-weight:700;color:var(--sub)}
   .dfx-cp{position:fixed;left:0;top:0;width:9px;height:13px;z-index:62;pointer-events:none;border-radius:2px}
   @keyframes dtilePop{to{opacity:1;transform:none;}}
   .dtile .dtl{font-size:10px;font-weight:700;padding:4px 0;margin-bottom:7px;color:#fff;}
@@ -2751,6 +2821,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
       </div>
       <div id="done-daily-area"></div><!-- 今日のデイリーの進み（ホームと同じバー）2026-08-22 -->
       <div id="done-tiles"></div>
+      <div id="done-teach"></div><!-- 先生チェック（単元別・確認テスト）2026-10-31 -->
       <div id="done-sum"></div><!-- ③ 終わったあとのまとめ 2026-09-06 -->
       <div id="today-did-area"></div>
       <div id="star-area"></div>
@@ -2906,7 +2977,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-31a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-31b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4409,6 +4480,112 @@ function _dfxPrevFetch_(s){
 
 function sndTick(){beep(1500,.03,'square',.06);}   /* 点数の数え上がりの「チッチッ」（モックで決めた音）2026-10-31 */
 var _dfxPerfect=false,_dfxScore=0;
+/* ===== 採点画面の先生チェック（2026-10-31 川上さん承認・見本＝20261030_モック_採点ページの統一.html）=====
+   入れる場面＝単元別（content_type test）と確認テスト。毎日学習・復習・おさらい・間違いノートには入れない。
+   順番＝①出てきた単語（英語の単元別だけ。問題そのものが単語の教材と確認テストは出さない）②まちがえた問題（1周目でまちがえた問題）③正解した問題（畳む）
+   → そのあとに今の「この単元の用語」（#done-sum）。答えと単語の意味はシール（青・タップではがす・もう一度で戻る）で隠す。
+   「つぎへ」を止めるのはぐるぐるだけ＝ここでは止めない。 */
+function _tcPl_(s,aid){try{var a=(s.assets||{})[aid];if(!a)return {};var p=a.payload;return (typeof p==='string')?JSON.parse(p||'{}'):(p||{});}catch(e){return {};}}
+function _tcQd_(w){var d=w&&w.qdata;if(typeof d==='string'){try{d=JSON.parse(d||'{}');}catch(e){d={};}}return d||{};}
+function _tcSplitJa_(t){var m=String(t||'').match(/^(.*[\.\?!])\s*[　]\s*([^A-Za-z].*)$/);return m?[m[1].trim(),m[2].trim()]:[String(t||''),''];}
+function _tcHole_(h){return String(h).replace(/（　）|\( \)|\(\s*\)/g,'<u class="tc-blank">　　</u>');}
+function _tcKai_(t){return esc(String(t||'')).replace(/\n/g,'<br>');}
+/* 選択肢は1番目が正解のデータが多い＝出したときの並びが無いときは、id で決まった並びに混ぜる（答えが分からないように）*/
+function _tcMix_(a,id){a=(a||[]).map(function(x){return String(x);});var h=7,k=String(id);for(var i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;for(var j=a.length-1;j>0;j--){h=(h*1103515245+12345)>>>0;var r=h%(j+1),x=a[j];a[j]=a[r];a[r]=x;}return a;}
+function _tcUnesc_(t){return String(t||'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&');}
+/* 1問ぶんの中身（gen.py の item と同じ組み立て） */
+function _tcItem_(s,w,no,ok,pick,shown){
+  var t=String(w.qtype||''),q=_tcQd_(w),p=_tcPl_(s,q.asset),it={id:String(w.id),t:t,no:no,ok:ok,ans:String(w.english||''),x:_tcKai_(w.kaisetsu)};
+  if(t==='sentence_fill'){var sp=_tcSplitJa_(w.japanese);it.en=_tcHole_(esc(sp[0]));it.ja=sp[1];it.ch=_tcMix_(q.choices,w.id);}
+  else if(t==='table_fill'){it.ja=String(w.japanese||'');it.ch=_tcMix_(q.choices,w.id);}
+  else if(t==='dialog_fill'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:_tcHole_(esc(l.en||'')),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);}
+  else if(t==='reorder'){var tk=(q.tokens||[]).concat(q.extra||[]);for(var i=tk.length-1;i>0;i--){var j=(Math.abs((String(w.id)+i).split('').reduce(function(a,c){return (a*31+c.charCodeAt(0))|0;},7))%(i+1));var x=tk[i];tk[i]=tk[j];tk[j]=x;}it.ja=String(w.japanese||'');it.toks=tk;}
+  else if(t==='listen'){it.ch=_tcMix_(q.choices_ja,w.id);it.au=(p.audios||[])[0]||p.audio||'';it.ans=String(w.japanese||'');it.script=String(w.english||'');}
+  else if(t==='listen_resp'||t==='listen_print'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:String(l.en||''),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);it.aus=(p.lines||[]).map(function(l){return l.audio||'';}).concat((p.q&&p.q.audio)?[p.q.audio]:[]).filter(Boolean);}
+  else if(t==='image_fill'){var _a0=(s.assets||{})[q.asset]||{};it.fig=String(p.url||p.src||_a0.url||'');it.ja=String(w.japanese||'');it.ch=_tcMix_(q.choices,w.id);it.rd=String(w.reading_hint||'');}
+  else if(t===''){
+    /* 英単語か用語か：教科（s.isEnglish）で決める（EU・DNA など英字の用語を英単語にしない）*/
+    if(s.isEnglish!==false&&/[A-Za-z]/.test(w.english||'')&&!/[ぁ-んァ-ン一-龥]/.test(w.english||'')){
+      if(shown&&shown.which==='j2e'){it.t='term';it.ja=String(w.japanese||'');it.ch=shown.ch;it.ans=String(w.english||'');}   /* 日本語→英語でまちがえた＝その向きで出す */
+      else{it.t='word';it.en=String(w.english||'');it.rd=String(w.reading_hint||'');it.ch=(shown&&shown.ch)?shown.ch:[];it.ans=String(w.japanese||'');it.au=String(w.audio||'');}}
+    else{it.t='term';it.ja=String(w.japanese||'');it.ch=(shown&&shown.ch)?shown.ch:[];it.rd=String(w.reading_hint||'');}   /* 選択肢は出したときの並び（無ければ出さない＝正解だけの札で答えが見えないように）*/
+  }else{it.ja='';}   /* 形の決まっていない問題は訳を出さない（答えが見えないように）*/
+  if(shown&&shown.ch&&t!==''&&shown.ch.length>1)it.ch=shown.ch.map(String);   /* 出したときの並びがあればそれを使う */
+  if(!ok&&pick!==undefined)it.you=(t==='reorder')?String(pick).split(' / ').join(' ').replace(/\s+([.,?!])/g,'$1'):String(pick);
+  return it;
+}
+function _tcAu_(it,lab){var l=(it.aus&&it.aus.length)?it.aus:(it.au?[it.au]:[]);if(!l.length)return '';return '<button type="button" class="tc-au" onclick=\'_tcPlay_('+JSON.stringify(l).replace(/'/g,'&#39;')+')\'><i class="ti ti-volume"></i>'+lab+'</button>';}
+var _tcAuEl=null;function _tcPlay_(list){try{if(_tcAuEl)_tcAuEl.pause();}catch(e){}var i=0;var nx=function(){if(i>=list.length)return;var a=new Audio(list[i++]);_tcAuEl=a;a.onended=nx;var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});};nx();}
+function _tcChs_(it){return '<div class="tc-chs">'+(it.ch||[]).map(function(c){return '<span'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+esc(c)+'</span>';}).join('')+'</div>';}
+function _tcChl_(it){return '<ol class="tc-chl">'+(it.ch||[]).map(function(c){return '<li'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+esc(c)+'</li>';}).join('')+'</ol>';}
+function _tcBody_(it){
+  switch(it.t){
+    case 'sentence_fill':return '<div class="tc-en">'+it.en+'</div><div class="tc-ja">'+_jaRubyIf_(it.ja)+'</div>'+_tcChs_(it);
+    case 'table_fill':return '<div class="tc-ja">'+_jaRubyIf_(it.ja)+'</div>'+_tcChs_(it);
+    case 'dialog_fill':return it.lines.map(function(l){return '<div class="tc-dl">'+(l.sp?'<b>'+esc(l.sp)+'</b>':'')+'<span class="tc-en" style="font-size:15px">'+l.en+'</span></div>';}).join('')+_tcChs_(it);
+    case 'reorder':return '<div class="tc-ja" style="color:var(--ink)">'+_jaRubyIf_(it.ja)+'</div><div class="tc-chs">'+(it.toks||[]).map(function(c){return '<span>'+esc(c)+'</span>';}).join('')+'</div>';
+    case 'listen':return _tcAu_(it,'<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChl_(it);
+    case 'listen_resp':case 'listen_print':return _tcAu_(it,'<ruby>会話<rt class="uf">かいわ</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChl_(it);
+    case 'word':return '<div class="tc-en" style="font-size:20px">'+esc(it.en)+'</div>'+_tcAu_(it,'<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChs_(it);
+    case 'term':return '<div>'+_jaRubyIf_(it.ja)+'</div>'+_tcChs_(it);
+    case 'image_fill':return '<div class="tc-fig"><img src="'+esc(it.fig)+'" alt="図" loading="lazy"></div><div>'+_jaRubyIf_(it.ja)+'</div>'+_tcChs_(it);
+  }
+  return '<div>'+_jaRubyIf_(it.ja||'')+'</div>';
+}
+function _tcAns_(it){
+  var a=esc(it.ans),ex='';
+  if(it.t==='listen')ex='<div class="tc-sc">'+esc(it.script)+'</div>';
+  if(it.t==='listen_resp'||it.t==='listen_print')ex='<div class="tc-sc">'+it.lines.map(function(l){return (l.sp?esc(l.sp)+'：':'')+esc(l.en)+'<br><span style="font-size:12px">'+esc(l.ja)+'</span>';}).join('<br>')+'</div>';
+  if((it.t==='term'||it.t==='image_fill')&&it.rd)a=esc(it.ans)+'（'+esc(it.rd)+'）';
+  return '<div class="tc-a"><small><ruby>正解<rt class="uf">せいかい</rt></ruby></small>'+a+'</div>'+ex+(it.x?'<div class="tc-x">'+it.x+'</div>':'');
+}
+function _tcShortP_(it){var p=_tcUnesc_(String(it.en||'').replace(/<[^>]+>/g,''))||it.ja||'';if(it.t==='dialog_fill')p=_tcUnesc_((it.lines||[]).map(function(l){return String(l.en).replace(/<[^>]+>/g,'');}).join(' '));if(it.t==='listen'||it.t==='listen_resp'||it.t==='listen_print')p='（聞き取り）';return String(p).replace(/<[^>]+>/g,'');}
+function _tcAnsShort_(it){var a=it.ans;if((it.t==='term'||it.t==='image_fill')&&it.rd)a+='（'+it.rd+'）';return esc(a);}
+var _TC_STK='<span class="tc-stk"><i class="ti ti-hand-finger"></i>タップしてはがす</span>';
+function _tcHid_(inner,cls){return '<div class="tc-hid '+(cls?'tc-'+cls:'')+'" onclick="_tcPk_(this)">'+inner+_TC_STK+'</div>';}
+function _tcHidS_(inner,cls){return '<span class="tc-hid '+(cls?'tc-'+cls:'')+'" onclick="_tcPk_(this)">'+inner+_TC_STK+'</span>';}
+function _tcPk_(el){el.classList.toggle('tc-peel');}
+function _tcBulk_(b){var sec=b.closest('.tc-sec');var hs=sec.querySelectorAll('.tc-hid');var all=[].slice.call(hs).every(function(h){return h.classList.contains('tc-peel');});[].forEach.call(hs,function(h){h.classList.toggle('tc-peel',!all);});b.textContent=all?'全部はがす':'全部隠す';var fl=sec.querySelector('.tc-fl');if(fl&&!all)fl.classList.add('on');}
+function _tcFold_(b){var a=b.nextElementSibling;a.classList.toggle('on');b.querySelector('.tc-c').innerHTML=a.classList.contains('on')?'<i class="ti ti-chevron-up"></i>':'<i class="ti ti-chevron-down"></i>';}
+/* 出てきた単語（gen.py の words_of と同じ：解説の「語 ＝ 意味」と素材の語の意味から）*/
+function _tcWords_(s){
+  var gl={};
+  var add=function(k,v){k=String(k||'').toLowerCase().trim();if(k&&v&&!gl[k]&&!/^（/.test(v))gl[k]=String(v).trim();};
+  Object.keys(s.assets||{}).forEach(function(aid){var p=_tcPl_(s,aid);(p.tokens||[]).forEach(function(tk,i){var g=(p.gloss||[])[i];if(typeof tk==='string'&&g&&/^[A-Za-z']+$/.test(tk))add(tk,g);});});
+  (s.words||[]).forEach(function(w){String(w.kaisetsu||'').split('\n').forEach(function(ln){var m=ln.match(/^([A-Za-z' ]+?)\s*＝\s*([^。\n<]+)/);if(m)add(m[1],m[2]);});});
+  var out=[],seen={};
+  (s.words||[]).forEach(function(w){var q=_tcQd_(w),t=String(w.qtype||'');
+    if((t==='sentence_fill'||t==='dialog_fill'||t==='table_fill')&&q.step!=='復習'){
+      var en=String(w.english||''),k=en.toLowerCase();if(seen[k])return;var m=gl[k];
+      if(!m){Object.keys(gl).some(function(kk){if(kk.indexOf(' ')>=0&&kk.split(' ').indexOf(k)>=0){m=gl[kk];en=kk;k=kk;return true;}return false;});}
+      if(m&&!seen[k]){seen[k]=1;out.push({en:en,ja:m});}
+    }});
+  return out;
+}
+/* 先生チェックを描く。s＝終えたセッション */
+function teachRender_(s){
+  var host=$('done-teach');if(!host)return;host.innerHTML='';
+  if(!s||s.fromReview||s.mode==='srs'||s.mode==='note')return;
+  var isQuiz=!!s.quizMode;if(!isQuiz&&s.content_type!=='test')return;   /* 毎日学習には入れない */
+  var ws=s.words||[];if(!ws.length)return;
+  var missSet={};(s.miss||[]).forEach(function(id){missSet[String(id)]=1;});
+  var picks=s._qrvPick||{},shownM=s._tcCh||{},nn=0;
+  var items=ws.filter(function(w){try{return !_isIntroW_(w);}catch(e){return true;}}).map(function(w){var id=String(w.id);return _tcItem_(s,w,++nn,!missSet[id],picks.hasOwnProperty(id)?picks[id]:undefined,shownM[id]);});   /* 例題は数えない */
+  var ng=items.filter(function(x){return !x.ok;}),ok=items.filter(function(x){return x.ok;});
+  /* 単語の段＝英語の単元別だけ。問題そのものが単語の教材（教科書英単語など）と確認テストには出さない */
+  var allWord=items.every(function(x){return x.t==='word'||x.t==='term';});
+  var words=(!isQuiz&&s.isEnglish!==false&&!allWord)?_tcWords_(s):[];
+  var h='<div class="tc-teach"><div class="tc-ic"><i class="ti ti-user"></i></div><div><div class="tc-tt"><ruby>先生<rt class="uf">せんせい</rt></ruby>に<ruby>見<rt class="uf">み</rt></ruby>せよう</div><div class="tc-ts"><ruby>先生<rt class="uf">せんせい</rt></ruby>を<ruby>呼<rt class="uf">よ</rt></ruby>んで、この<ruby>画面<rt class="uf">がめん</rt></ruby>で<ruby>一緒<rt class="uf">いっしょ</rt></ruby>に<ruby>確<rt class="uf">たし</rt></ruby>かめよう。</div>'
+    +((ng.length||words.length)?'<div class="tc-cnt">この<ruby>下<rt class="uf">した</rt></ruby>に　'+[words.length?'<ruby>単語<rt class="uf">たんご</rt></ruby> <b>'+words.length+'</b><ruby>語<rt class="uf">ご</rt></ruby>':'',ng.length?'まちがえた<ruby>問題<rt class="uf">もんだい</rt></ruby> <b>'+ng.length+'</b><ruby>問<rt class="uf">もん</rt></ruby>':''].filter(Boolean).join('・')+'</div>':'')+'</div></div>';
+  var n=0,secs='';
+  if(words.length){n++;secs+='<div class="tc-sec"><div class="tc-sh"><span class="tc-n">'+n+'</span><ruby>出<rt class="uf">で</rt></ruby>てきた<ruby>単語<rt class="uf">たんご</rt></ruby><button type="button" class="tc-bk" onclick="_tcBulk_(this)">全部はがす</button></div><p class="tc-ss"><u>ノートに1<ruby>回<rt class="uf">かい</rt></ruby>ずつ<ruby>書<rt class="uf">か</rt></ruby>こう。</u><ruby>家<rt class="uf">いえ</rt></ruby>でも<ruby>練習<rt class="uf">れんしゅう</rt></ruby>しよう。</p><div class="tc-wl">'+words.map(function(w){return '<div class="tc-e">'+esc(w.en)+'</div><div>'+_tcHid_(esc(w.ja))+'</div>';}).join('')+'</div></div>';}
+  if(ng.length){n++;secs+='<div class="tc-sec"><div class="tc-sh"><span class="tc-n">'+n+'</span>まちがえた<ruby>問題<rt class="uf">もんだい</rt></ruby> <span class="num">'+ng.length+'</span><ruby>問<rt class="uf">もん</rt></ruby></div><p class="tc-ss"><ruby>先生<rt class="uf">せんせい</rt></ruby>と1<ruby>問<rt class="uf">もん</rt></ruby>ずつ<ruby>確<rt class="uf">たし</rt></ruby>かめよう。シールをタップすると<ruby>答<rt class="uf">こた</rt></ruby>えが<ruby>出<rt class="uf">で</rt></ruby>る。</p>'
+    +ng.map(function(it){var inCh=(it.ch||[]).indexOf(it.you)>=0;return '<div class="tc-q"><div class="tc-qh"><span class="tc-mk tc-ng">×</span><span class="tc-no">'+it.no+'</span><div class="tc-qb">'+_tcBody_(it)+((it.you!==undefined&&!inCh)?'<div class="tc-youbox"><b>× あなた</b>'+(it.you===''?'<ruby>時間切<rt class="uf">じかんぎ</rt></ruby>れ':esc(it.you))+'</div>':'')+'</div></div><div class="tc-ansb">'+_tcHid_(_tcAns_(it))+'</div></div>';}).join('')+'</div>';}
+  secs+='<div class="tc-sec">'+(ng.length?'':('<div class="tc-sh"><span class="tc-n">'+(++n)+'</span>まちがえた<ruby>問題<rt class="uf">もんだい</rt></ruby></div><div class="tc-allok">まちがえた<ruby>問題<rt class="uf">もんだい</rt></ruby>はありません</div>'))
+    +(true?'<button type="button" class="tc-fold" onclick="_tcFold_(this)"><span class="tc-mk">○</span><ruby>正解<rt class="uf">せいかい</rt></ruby>した<ruby>問題<rt class="uf">もんだい</rt></ruby> <span class="num">'+ok.length+'</span><ruby>問<rt class="uf">もん</rt></ruby><span class="tc-c"><i class="ti ti-chevron-down"></i></span></button><div class="tc-fl"><div style="text-align:right;margin:2px 0 4px"><button type="button" class="tc-bk" style="margin:0" onclick="_tcBulk_(this)">全部はがす</button></div>'
+      +ok.map(function(it){return '<div class="tc-fr"><span class="tc-mk tc-ok">○</span><span class="tc-no">'+it.no+'</span><span class="tc-p">'+esc(_tcShortP_(it))+'</span>'+_tcHidS_(_tcAnsShort_(it),'r')+'</div>';}).join('')+'</div>':'')+'</div>';
+  host.innerHTML=h+secs;
+}
 /* 節目のアイキャッチ。kind='A'（カットイン）/'C'（迫って割れる）。演出の間は下の画面を押せない（guardTaps_）。
    正解のあとは解説が出て「つぎへ」が1秒止まるので、次の問題の時間（制限時間・適当押しの判定）には重ならない */
 function comboEyecatch_(kind,n){
@@ -6589,9 +6766,9 @@ function _fixBarSync_(s){
 }
 function _ansDone_(s,which){if(s&&s.fixMode)return !!s._fixAnswered;return !!(s&&s._answered&&s._answered[_ansKey_(s,which)]);}
 /* 確認テストの見直し（要件定義書_英検教材 4-70・案A）2026-09-25：いま選んだ答え。選択肢・聞き取り・並べ替えが入れて、_quizAns が受け取って片づける */
-var _qrvPick_=null;
+var _qrvPick_=null,_qrvChs_=null;   /* _qrvChs_＝4択で出した選択肢の並び（先生チェック用）2026-10-31 */
 function _quizAns(s,w,ok,_el,which){
-  var _qpk=_qrvPick_;_qrvPick_=null;
+  var _qpk=_qrvPick_;_qrvPick_=null;var _qch=_qrvChs_;_qrvChs_=null;
   if(_PV_)return;   /* 先生用プレビュー＝記録にさわらない。正解の演出と解説は buildChoices の中で出る 2026-09-09 */
   measAns_(_el,ok);
   try{_rushChk_(s,_el,ok);}catch(_eR){}   /* 適当押しのポップ 2026-10-04。中断の保存（_saveResumeNext_）より先に数える＝出した回数も保存に入る */
@@ -6599,7 +6776,7 @@ function _quizAns(s,w,ok,_el,which){
     if(s._fixAnswered)return; s._fixAnswered=true;
     if(!ok&&s.fixCur)s.fixNext.push(s.fixCur);
     try{_saveResumeNext_(s,which);}catch(e){} return; }
-  s._answered=s._answered||{}; var _ak=_ansKey_(s,which); if(s._answered[_ak])return; s._answered[_ak]=true; (s._ansOK||(s._ansOK={}))[_ak]=!!ok; if(s.quizMode&&!ok)(s._qrvPick||(s._qrvPick={}))[String(w.id)]=(_qpk==null?'':String(_qpk)); /* 見直しで「あなた」を出すため（時間切れは空） */ /* ②の既出リストで「あとで直す」を出すため 2026-09-06 */ if(s.mode==='daily'){ if(ok){ if(which==='e2j')s.meaningCorrect++; else s.reverseCorrect++; } else { if(!_isIntroW_(w))pushMiss(w.id); (s._firstWrong||(s._firstWrong=[])).push({i:s.idx,which:which}); } } else { if(!ok)s.wordOK=false; } try{_saveResumeNext_(s,which);}catch(e){} }
+  s._answered=s._answered||{}; var _ak=_ansKey_(s,which); if(s._answered[_ak])return; s._answered[_ak]=true; (s._ansOK||(s._ansOK={}))[_ak]=!!ok; if(!ok&&(s.quizMode||_qpk!=null)&&!(s._qrvPick&&s._qrvPick.hasOwnProperty(String(w.id))))(s._qrvPick||(s._qrvPick={}))[String(w.id)]=(_qpk==null?'':String(_qpk));   /* 先生チェックの「あなた」にも使う（1周目の最初の答え）2026-10-31 */ if(!ok&&_qch&&!(s._tcCh&&s._tcCh.hasOwnProperty(String(w.id))))(s._tcCh||(s._tcCh={}))[String(w.id)]={ch:_qch,which:which}; /* 見直しで「あなた」を出すため（時間切れは空） */ /* ②の既出リストで「あとで直す」を出すため 2026-09-06 */ if(s.mode==='daily'){ if(ok){ if(which==='e2j')s.meaningCorrect++; else s.reverseCorrect++; } else { if(!_isIntroW_(w))pushMiss(w.id); (s._firstWrong||(s._firstWrong=[])).push({i:s.idx,which:which}); } } else { if(!ok)s.wordOK=false; } try{_saveResumeNext_(s,which);}catch(e){} }
 function renderStep(){renderQz_(session);}
 function renderSrsStep(){renderQz_(srsSes);}
 function renderNoteStep(){renderQz_(noteSes);}
@@ -10531,7 +10708,7 @@ function buildChoices(containerId,correct,pool,onResult,opts){
     _lpAns_(ok); /* リアルタイムモードへ5問ごとに途中の様子 2026-10-19 */
     if(ok){combo++;if(combo>maxCombo)maxCombo=combo;comboHit_(combo);} /* コンボの演出は comboHit_ に1本化 2026-10-05 */
     else{combo=0;comboBreak_();sndWrong();Array.prototype.forEach.call(box.children,function(c){if(_choiceKey(c.getAttribute('data-val'))===_ck)c.classList.add('correct');});} /* data-val は必ず文字列・correct は数値のことがある 2026-08-18 */
-    ansCount++;_qrvPick_=picked?String(picked.getAttribute('data-val')):'';onResult(ok,(Date.now()-_t0));
+    ansCount++;_qrvPick_=picked?String(picked.getAttribute('data-val')):'';_qrvChs_=choices.map(function(x){return String(x);});onResult(ok,(Date.now()-_t0));
     afterAnswer(ok,correct,opts.kaisetsu,opts.reading,opts.next);
     if(opts.afterShow){try{opts.afterShow(ok);}catch(_e){}}   /* 解説を出したあとに動くもの（文の音声・単語をみるの出し直し）2026-09-11 */
   }
@@ -11015,7 +11192,7 @@ function doneGuideHtml_(){return '<div style="background:var(--surface);border:1
 /* 完了画面(scr-done)は毎日学習・単元別・確認テスト・間違いノート・おさらいで使い回すので、
    前のモードの表示が残らないよう共通で消す。今日のがんばりチップ・周目バッジ・ホームボタンの3つ。2026-08-21 */
 function _doneResetCommon_(){
-  try{dfxResetCard_();}catch(eDfx){}   /* 演出と自己ベストの札を前の回から持ち越さない 2026-10-31 */
+  try{dfxResetCard_();}catch(eDfx){}var _dtc=$('done-teach');if(_dtc)_dtc.innerHTML='';   /* 演出と自己ベストの札を前の回から持ち越さない 2026-10-31 */
   var a=$('today-did-area');if(a)a.innerHTML='';
   var dp=$('done-part');if(dp)dp.innerHTML='';       // 前のモードのパートの見出しを残さない 2026-10-19
   var dd=$('done-daily-area');if(dd)dd.innerHTML=''; // 前のモードのデイリーバーを残さない 2026-08-22
@@ -11204,6 +11381,7 @@ function finishQuizSubmit_(){
   animNum($('score-anim'),score,450); /* 数え上がりは残す（ただの演出で、これがあっても待たされない）。0.9秒→0.45秒 2026-09-02 川上さん確定 */
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（確認テストにも）2026-08-08
   try{_sumRender_(s);}catch(e){}  /* ③ 終わったあとのまとめ 2026-09-06 */
+  try{teachRender_(s);}catch(eTc){}  /* 先生チェック 2026-10-31 */
   try{doneQuoteShow_((s.miss||[]).length>0);}catch(eQt){}  /* 名言 2026-10-03 */
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').textContent='';
   /* 2026-09-02：保存を待たずに押せる（閉じても送り直しが効く）。ボタンを止める処理は無くした。 */
@@ -11220,7 +11398,7 @@ function finishQuizSubmit_(){
   var _qzSq=_sqAdd_(_qzBody); /* 送る前に端末へ積む＝ここで閉じられても記録は消えない 2026-09-02 */
   /* 【2026-09-02】合否・間違えた単語は端末で分かるので、保存の返事を待たずに出す。
      前回比（delta）だけはサーバーしか知らないので、返ってきたら足す。 */
-  var _qzPre=false, _qzMiss=(missU.length&&_qrvHasSent_(s,missU))?quizReviewHtml_(s,missU):quizMissHtml_(s,missU); /* 文の問題があるテストは「見直す」に（4-70・案A）2026-09-25 */
+  var _qzPre=false, _qzMiss=(missU.length&&_qrvHasSent_(s,missU))?quizReviewHtml_(s,missU):quizMissHtml_(s,missU);if((($('done-teach')||{}).innerHTML||''))_qzMiss='';   /* 先生チェックに出すので、ここには出さない 2026-10-31 */ /* 文の問題があるテストは「見直す」に（4-70・案A）2026-09-25 */
   try{
     var _qj=quizJudgeLocal_(s);
     try{if(_qj){var _qb=null;((_quizData&&_quizData.materials)||[]).forEach(function(g){(g.parts||[]).forEach(function(p){if(String(p.part_id)===String(s.quizPartId))_qb=p;});});
@@ -11275,6 +11453,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   _doneResetCommon_();var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
   try{_donePartSync_(s,'');}catch(eDp){}  /* 終えたパートの名前と進み 2026-10-19 */
   try{_sumRender_(s);}catch(e){}  /* ③ 終わったあとのまとめ（_doneResetCommon_ のあとに出す）2026-09-06 */
+  try{teachRender_(s);}catch(eTc){}  /* 先生チェック（単元別）2026-10-31 */
   try{doneQuoteShow_((s.miss||[]).length>0);}catch(eQt){}  /* 名言（1回目に間違いがあった回＝間違い）2026-10-03 */
   var _isUnit_=(s.content_type==='test'); // 単元別（テスト配信）かどうかは端末で分かる
   var _donePre=false;                      // 保存より先に描いたか
