@@ -2283,7 +2283,7 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
           <span style="margin-left:auto;display:inline-flex;gap:8px;align-items:center;">
             <span class="rp-mute" id="rpFitNote"></span>
             <button class="btn-teach-print rp-pbtn" onclick="rpPrint()">🖨 一覧を印刷</button>
-            <button class="btn-teach-print rp-pbtn" onclick="rpPdf()">⬇ PDFでダウンロード</button>
+            <button class="btn-teach-print rp-pbtn" onclick="rpPdf()">⬇ PDF</button>
           </span>
         </div>
         <div id="rpWkAll" style="display:none;"></div>
@@ -2786,14 +2786,14 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
     <div class="mhint" id="fsGoInfo"></div>
     <div class="tm-note" style="background:#f0f7ff;border-color:#bcd7f7;color:#1f56b0;">
       🖨 <b>両面（長辺とじ）で印刷してください。</b>1枚目の表裏＝問題、2枚目の表裏＝答えです。<br>
-      ⬇ <b>PDFで保存</b>を押すと、PDFファイルがそのままダウンロードされます（印刷ダイアログは開きません）。<br>
+      ⬇ <b>PDF</b>を押すと印刷の画面が開きます。送り先（プリンター）を「PDFに保存」にして保存してください。<br>
       この画面は<b>「閉じる」を押すまで消えません。</b>印刷してから続けてPDFも保存できます。
     </div>
     <div class="mhint" id="fsGoProg" style="display:none;color:var(--crimson);font-weight:700;"></div>
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal('fsGoModal')">閉じる</button>
       <span style="flex:1;"></span>
-      <button class="btn-ghost" id="fsPdfBtn" onclick="fsPdf_()">⬇ PDFで保存</button>
+      <button class="btn-ghost" id="fsPdfBtn" onclick="fsPdf_()">⬇ PDF</button>
       <button class="btn-primary" style="width:auto;" onclick="fsGo_('print')">🖨 印刷する</button>
     </div>
   </div>
@@ -5323,57 +5323,13 @@ function _pdfPageNo_(pdf,skip){
   }catch(e){}
 }
 var _fsPdfBusy=false;
-function fsPdf_(){
-  if(_fsPdfBusy) return;
-  var host=$('printArea');
-  var units=Array.prototype.slice.call(host.querySelectorAll('.p-unit'));
-  if(!units.length){ toast('PDFにする紙がありません'); return; }
-  _fsPdfBusy=true;
-  var btns=$('fsGoModal').querySelectorAll('button');
-  var prog=$('fsGoProg');
-  var setP=function(t){ if(!prog)return; prog.textContent=t||''; prog.style.display=t?'block':'none'; };
-  for(var i=0;i<btns.length;i++) btns[i].disabled=true;
-  var sx=window.pageXOffset||0, sy=window.pageYOffset||0;
-  var fin=function(msg){
-    document.body.classList.remove('fs-pdf');
-    host.style.cssText=''; window.scrollTo(sx,sy);
-    for(var j=0;j<btns.length;j++) btns[j].disabled=false;
-    setP(''); _fsPdfBusy=false; window._fsPdfDone=(msg?'ng':'ok');
-    if(msg) toast(msg);
-  };
-  setP('PDFの部品を読み込んでいます…');
-  window._fsPdfDone='';
-  _rpEnsureH2P(function(){
-    /* ★PDFも印刷とまったく同じ仕切り（白紙）にそろえる。2026-09-02
-       ここを通さないと、PDFだけ「計算で入れた仕切り」、印刷は「測って入れた仕切り」になり、
-       紙とPDFで生徒の表裏の分かれ方が食いちがう。 */
-    insertDuplexFillers_(host, function(){
-    units=Array.prototype.slice.call(host.querySelectorAll('.p-unit'));
-    document.body.classList.add('fs-pdf');
-    /* 紙の幅＝A4横210 − 左右余白12mm×2 ＝186mm。ここを@pageと合わせないとPDFのページ数がずれる */
-    host.style.cssText='display:block;position:absolute;left:-99999px;top:0;width:186mm;background:#fff;';
-    /* 【地雷】ページを下にスクロールした状態だと html2canvas が切り取る位置をまちがえて白紙になる（rpPdf と同じ） */
-    window.scrollTo(0,0);
-    /* 画質は実測で決めた（2026-08-31・生徒6名23ページ）。scale=2 のまま画質だけ落とす：
-       0.95→11.0MB / 0.85→8.0MB / 0.70→6.3MB。0.85 は 0.95 と見分けがつかず3割小さい。
-       scale を 1.5 まで下げると 4.9MB になるが、文字が眠くなるので下げない。
-       どの組み合わせでもQRは200dpiで6/6デコードできた。 */
-    var opt={ margin:H2P_MARGIN_, filename:_fsPdfName_()+'.pdf',
-      image:{type:'jpeg',quality:0.85},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:document.documentElement.clientWidth},
-      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-      pagebreak:{mode:['css','legacy']} };
-    setP('PDFを作っています… 1/'+units.length+'名');
-    var _skip=[]; function _mark(u){ return function(pdf){ if(u.querySelector('.p-filler'))_skip.push(pdf.internal.getNumberOfPages()); }; }   /* 仕切りの白紙＝その生徒の最後のページ 2026-10-10 */
-    var w=html2pdf().set(opt).from(units[0]).toPdf().get('pdf').then(_mark(units[0]));
-    units.slice(1).forEach(function(u,k){
-      w=w.get('pdf').then(function(pdf){ pdf.addPage(); setP('PDFを作っています… '+(k+2)+'/'+units.length+'名'); })
-         .set(opt).from(u).toContainer().toCanvas().toPdf().get('pdf').then(_mark(u));
-    });
-    w=w.get('pdf').then(function(pdf){ _pdfPageNo_(pdf,_skip); });   /* ページ番号 2026-10-10 */
-    w.save().then(function(){ fin(); })['catch'](function(e){ window._fsPdfErr=String(e&&e.stack||e); fin('PDFの作成に失敗しました。「印刷する」から「PDFに保存」を選んでください'); });
-    });
-  }, function(){ fin(); });
+function fsPdf_(){ /* 2026-10-30 川上さん「推奨１で統一」＝PDF ボタンは全部、印刷の画面から「PDFに保存」で作る（練習プリントと同じ）。
+     前は html2pdf で1人ずつ画像に撮っていた（8/31⑨）。数百ページで止まる・ページずれ・右はしの切れの地雷があったのでやめた。
+     下の H2P_MARGIN_・_pdfPageNo_ はもう呼ばれない（2026-10-30 時点）。 */
+  if(!$('printArea').querySelector('.p-unit')){ toast('PDFにする紙がありません'); return; }
+  var prog=$('fsGoProg'); if(prog){ prog.textContent='印刷の画面が開いたら、送り先（プリンター）を「PDFに保存」にして［保存］を押してください'; prog.style.display='block'; }
+  window._fsPdfDone='ok';
+  fsGo_('print');
 }
 /* mats＝教材idのカンマ区切り（任意・2026-09-07）。空なら全教材から。
    サーバー側は material_ids が空文字なら絞らない（kwtGAS.gs teacherMistakes）。 */
@@ -11544,27 +11500,10 @@ function _rpEnsureH2P(cb,ecb){
   s.onerror=function(){toast('PDFの部品を読み込めませんでした。「印刷」から「PDFに保存」を選んでください'); if(ecb)ecb();};
   document.head.appendChild(s);
 }
-function rpPdf(){
-  var list=rpPrintList_(); if(!list.length){toast('PDFにする生徒がいません');return;}
-  rpFit_(list);
-  var btns=document.querySelectorAll('.rp-pbtn'); for(var i=0;i<btns.length;i++)btns[i].disabled=true;
-  var note=$('rpFitNote'), old=note?note.textContent:''; if(note)note.textContent='PDFを作っています…';
-  _rpEnsureH2P(function(){
-    var host=$('printArea');
-    host.style.cssText='display:block;position:absolute;left:-99999px;top:0;width:'+RP_PRINT_W_MM+'mm;background:#fff;';
-    /* 【地雷】ページを下にスクロールした状態だと html2canvas が切り取る位置をまちがえて白紙のPDFになる。
-       いちど一番上に戻してから作り、終わったらスクロール位置を戻す。*/
-    var sx=window.pageXOffset||0, sy=window.pageYOffset||0; window.scrollTo(0,0);
-    var fin=function(){ host.style.cssText=''; window.scrollTo(sx,sy); for(var j=0;j<btns.length;j++)btns[j].disabled=false; if(note)note.textContent=old; };
-    var nm=_rpPdfName_(list);
-    html2pdf().set({
-      margin:H2P_MARGIN_, filename:nm,   /* 下だけ12.2146mm＝ページずれ対策（H2P_MARGIN_ の説明） */
-      image:{type:'jpeg',quality:0.98},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:document.documentElement.clientWidth},
-      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-      pagebreak:{mode:['css','legacy']}
-    }).from(host.querySelector('.rp-pa')||host).toPdf().get('pdf').then(function(pdf){ _pdfPageNo_(pdf); }).save().then(fin)   /* ページ番号 2026-10-10 */['catch'](function(){ fin(); toast('PDFの作成に失敗しました。「印刷」から「PDFに保存」を選んでください'); });
-  });
+function rpPdf(){ /* 2026-10-30 川上さん「推奨１で統一」＝印刷の画面から「PDFに保存」で作る（前は html2pdf） */
+  if(!rpPrintList_().length){toast('PDFにする生徒がいません');return;}
+  toast('印刷の画面が開いたら、送り先（プリンター）を「PDFに保存」にして［保存］を押してください');
+  setTimeout(rpPrint,120);
 }
 
 /* ===== 練習プリント 2026-10-15 =====
@@ -12170,7 +12109,7 @@ function _ppMakeMulti_(how,opt){   /* opt＝テストを単体で印刷（2026-1
       if(/^pdf_/.test(how)){_ppPdf_(nm,function(m){fin(m);if(opt.done)opt.done();},'auto');return;}
       fin(msg);printWhenImagesReady_(host,nm);if(opt.done)opt.done();}; /* 窓は閉じない 2026-10-19 */
     if(/^none/.test(how)){fin(msg);if(opt.done)opt.done();return;}
-    if(tot>PP_MANY_){fin(msg);_ppAsk_(knm+'が '+tot+'ページになります。',(/^pdf_/.test(how)?'PDFを作るのに数分かかります。':'印刷の画面が出るまで少し待ちます。')+'このまま進めますか？',/^pdf_/.test(how)?'PDFを作る':'印刷する',function(){_ppBusy=true;for(var j=0;j<btns.length;j++)btns[j].disabled=true;go();});return;}
+    if(tot>PP_MANY_){fin(msg);_ppAsk_(knm+'が '+tot+'ページになります。','印刷の画面が出るまで少し待ちます。'+'このまま進めますか？',/^pdf_/.test(how)?'PDFに保存する':'印刷する',function(){_ppBusy=true;for(var j=0;j<btns.length;j++)btns[j].disabled=true;go();});return;}
     go();
   })['catch'](function(e){if(!_ppStop)$('ppErr').textContent='紙を組めませんでした：'+String(e&&e.message||e);fin('');});
 }
@@ -12184,7 +12123,7 @@ function ppMatChg_(){
   if(_ppIsWs_(mid)){_ppWsParts_(mid);return;} /* 単元ワークシート＝モックの「印刷するところ」 2026-10-18 */
   _ppLoad_(mid).then(function(d){
     if($('ppMat').value!==mid) return;
-    if(!d||!d.ok){ $('ppParts').innerHTML='<div style="color:var(--text-muted)">読み込めませんでした（［PDFで保存］［印刷する］を押すと読み直します）</div>'; return; }
+    if(!d||!d.ok){ $('ppParts').innerHTML='<div style="color:var(--text-muted)">読み込めませんでした（［🖨 印刷］か［⬇ PDF］を押すと読み直します）</div>'; return; }
     var ps=(d.data.parts||[]).filter(function(p){return (p.words||[]).length;});
     $('ppParts').innerHTML=ps.map(function(p){return '<label><input type="checkbox" class="pp-ptc" value="'+esc(String(p.part_id))+'" checked onchange="ppPartsCnt_()"><span>'+esc(_pnoT_(mid,p.part_order,p.title))+'</span></label>';}).join('')||'<div style="color:var(--text-muted)">この教材にはまだ問題がありません</div>';
     ppPartsCnt_();
@@ -12254,25 +12193,11 @@ function ppMake_(how){
     });
   }).catch(function(){ $('ppErr').textContent='通信に失敗しました。もう一度押してください'; fin(''); });
 }
-function _ppPdf_(nm,fin,mg,wd){ /* mg・wd＝ワークシートの紙だけ（余白と幅）2026-10-18 */
-  var host=$('printArea');
-  var pages=Array.prototype.slice.call(host.querySelectorAll('.pp-pg'));
-  var skip=[]; pages.forEach(function(p,i){ if(p.classList.contains('pp-blank')) skip.push(i+1); });
-  _rpEnsureH2P(function(){
-    var sx=window.pageXOffset||0, sy=window.pageYOffset||0; window.scrollTo(0,0);
-    host.style.cssText='display:block;position:absolute;left:-99999px;top:0;width:'+(wd&&wd!=='auto'?wd:'186mm')+';background:#fff;';
-    /* mg==='auto'＝まとめて刷った束（2026-10-19）。ワークシートの紙（.wsp-pg）は余白 0・10mm と幅190mm、ほかは今までの余白と幅186mm をページごとに選ぶ */
-    var auto=(mg==='auto');
-    var optOf=function(pg){var ws=auto&&pg.classList.contains('wsp-pg');return {margin:auto?(ws?[0,14,0,6]:H2P_MARGIN_):(mg||H2P_MARGIN_),filename:nm+'.pdf',image:{type:'jpeg',quality:0.85},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:document.documentElement.clientWidth},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}};};
-    var widOf=function(pg){return auto?(pg.classList.contains('wsp-pg')?'190mm':'186mm'):(wd||'186mm');};
-    var done=function(msg){ host.style.cssText=''; window.scrollTo(sx,sy); fin(msg); };
-    var w=null;
-    pages.forEach(function(pg,k){
-      if(k===0){ host.style.width=widOf(pg); w=html2pdf().set(optOf(pg)).from(pg).toPdf(); return; }
-      w=w.get('pdf').then(function(pdf){ if(_ppStop) throw new Error('stop'); pdf.addPage(); host.style.width=widOf(pg); $('ppStat').textContent='PDFを作っています… '+(k+1)+'/'+pages.length+'ページ'; }).set(optOf(pg)).from(pg).toContainer().toCanvas().toPdf();
-    });
-    w.save().then(function(){ done('PDFを保存しました（'+pages.length+'ページ）'); }) /* ページ番号は紙の中に描いた（「問題用紙 3／12」）ので _pdfPageNo_ は呼ばない 2026-10-17 */['catch'](function(){ done(_ppStop?'止めました':'PDFの作成に失敗しました。「印刷する」から「PDFに保存」を選んでください'); });
-  }, function(){ fin(''); });
+function _ppPdf_(nm,fin,mg,wd){ /* 2026-10-30 16:4x 川上さん「PDFも印刷も死ぬほど時間かかる」→ 案A：PDF も印刷の画面から「PDFに保存」で作る。
+     前は html2canvas で1ページずつ画像に撮っていた＝本番で1ページ約4.6秒（3級単元別4教材 337ページで約26分）。1枚撮るたびに画面全体（約2.8万の部品）を写し直すのが遅さの元。
+     印刷の画面なら組んだ紙をそのまま出すので、印刷と PDF がまったく同じになり、文字も画像にならない。mg・wd は使わなくなった（余白と幅は印刷の CSS が決める） */
+  fin('印刷の画面が開いたら、送り先（プリンター）を「PDFに保存」にして［保存］を押してください');
+  printWhenImagesReady_($('printArea'),nm);
 }
 
 
