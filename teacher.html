@@ -1453,6 +1453,7 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
   .pp-alist div{display:flex;gap:1.5mm;min-width:0}.pp-alist b{flex:0 0 6mm;color:#1f4e8c;text-align:right}.pp-alist span{min-width:0;overflow-wrap:anywhere;font-weight:700}
   .pp-alist .pp-kana{font-weight:400;font-size:8pt}
   .pp-xh{width:100%;font-size:8pt;font-weight:700;color:#555;margin:0.5mm 0 0}
+  .pp-pg.pp-tight .pp-it{padding:0.8mm 0;font-size:9.5pt;line-height:1.4}
   .pp-ar.wr{flex-wrap:wrap}.pp-ar.wr .a{flex:1 1 0}.pp-ar.wr .x{flex:0 0 100%;padding-left:9.5mm}
   .pp-skip{width:100%;font-size:8.5pt;color:#777;padding:1mm 0}
   /* 英検3級ライティング編の書く紙（2026-10-26） */
@@ -11771,7 +11772,8 @@ function _ppPlace_(host,M,b,nodes,isAns,figs,keep){
     _ppCur.body.appendChild(nd);_ppCur.fresh=false;
     if(!_ppFits_()){_ppCur.body.removeChild(nd);head();
       if(figs[i])_ppCur.body.appendChild(_ppMk_(figs[i]));
-      _ppCur.body.appendChild(nd);_ppCur.fresh=false;}
+      _ppCur.body.appendChild(nd);_ppCur.fresh=false;
+      if(!_ppFits_())_ppCur.el.classList.add('pp-tight');}   /* 長い本文をもう一度刷ったページで1問が入らないとき＝そのページだけ問題の行間を前の詰めた形に戻す（3級読解の長文 2026-10-30） */
   });
 }
 var _ppImgDim={};   /* 図の縦横（読み込んでから測る＝ページ分けの高さを毎回同じにする 2026-10-15） */
