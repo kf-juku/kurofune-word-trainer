@@ -2977,7 +2977,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-31b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-31c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5525,7 +5525,7 @@ function renderUnitZone_(materials){
    KaTeX・math_fig.js・ws_load.js・ws_app.js は、初めてワークシートを開いたときだけ読む。
    できた＝サーバーの passed（material_parts）。パートの最後まで進んだら session_complete と complete_extras を送る（正答率＝1回目の答え）。
    途中でやめたら、その日のうちは同じパートのやめた題から（ws_app.js が localStorage に持つ・今の「途中の学習」のカードには出さない）。 */
-var WS_LIB_V='20261021c';
+var WS_LIB_V='20261031a';
 var _wsMats=[],_wsDone={},_wsLibP=null,_wsApi=null,_wsSent=0,_wsTL={},_wsTq=Promise.resolve();
 /* ===== ワークシートのテスト（段④ 2026-10-18）=====
    受けどきの色は確認テスト（_quizReady_・quizStatus2_）と同じ3つ：青の塗り＝いま受けるところ／枠＝受けられるが今ではない／点線＝先に練習。
@@ -5564,6 +5564,8 @@ function _wsPill_(st,lbl){var cls=st==='go'?'qp-go':(st==='can'?'qp-can':'qp-lat
 function _wsPartSet_(pid,o){_wsMats.forEach(function(c){(c.parts||[]).forEach(function(l){if(String(l.part_id)===String(pid)){for(var k in o)l[k]=o[k];}});});}
 /* パートができた・テストに合格した＝単元別・確認テストの合格と同じ音・光・紙吹雪（sndWin・flash・confetti(120)）2026-10-18 04:22 川上さん「同じ仕組みは揃える」 */
 function _wsCele_(){try{sndWin();flash();confetti(120);}catch(e){}}
+/* ワークシートの練習の採点画面（ws_app.js の wresShow・2026-10-31）：はんこが着地したら「ポン」、そのあと完了の音と紙吹雪（単元別の完了画面と同じ順）*/
+function _wsResFx_(lv){setTimeout(function(){try{DFX.pon();}catch(e){}},470);setTimeout(function(){try{sndWin();}catch(e){}try{confetti(120);}catch(e){}},1100);}
 function _wsTestSend_(body){var q=_sqAdd_(body);_wsTq=_wsTq.then(function(){return call(body).then(function(d){if(!d||!d.ok){if(_sqGiveUp_(d))_sqDel_(q);return d;}_sqDel_(q);homeCacheRenew_();return d;});});return _wsTq;}
 function _wsPlainTex_(t){return String(t||'').replace(/\\\(|\\\)/g,'').replace(/\\[a-zA-Z]+\s*/g,'').replace(/\s+/g,' ').trim();}
 function _wsIsTestT_(t){return /まとめテスト/.test(String(t||''));}
@@ -5763,7 +5765,7 @@ function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（
     _wsApi=wsMount(root,D,{katexCss:'ws/katex/katex.min.css',live:true,paper:(xo&&xo.paper)||'',entryHead:(xo&&xo.entryHead)||null,startPid:(xo&&xo.startPid)||'',shuffle:true,innerBack:false,dark:_wsDark_(),resumeKey:rkey,capMs:180000,/* 数学は計算に時間がかかるので1問3分まで数える（川上さん 2026-10-18 00:07）*/
       done:function(pid){return !!_wsDone[String(pid)];},
       onStart:function(pid){_wsLP={pid:String(pid),mid:mid,n:0,cor:0,miss:0};try{call({action:'activity_start',part_id:pid});}catch(e){}},
-      onPartDone:function(pid,rec){_wsDone[String(pid)]=1;clearedUpAdd_(pid);_wsSend_(pid,rec);_wsCele_();},
+      onPartDone:function(pid,rec,x){_wsDone[String(pid)]=1;clearedUpAdd_(pid);_wsSend_(pid,rec);if(!(x&&x.res))_wsCele_();},resFx:function(lv){_wsResFx_(lv);},
       tstate:_wsTState_(U.TEST,D0.tests||{}),tkey:'kwtws_t_'+((typeof token!=='undefined'&&token)?_hash32_(token):'anon')+'_'+(U.TEST?U.TEST.part_id:''),
       rangePass:function(){return _wsRangePassOf_(U.TEST,D0.parts||[],D0.tests||{});},
       testReady:function(pid){return _wsTestReadyOf_(mid,pid);},
