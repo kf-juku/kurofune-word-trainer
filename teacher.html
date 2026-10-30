@@ -1372,7 +1372,8 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
 .pt-c small{display:block;font-size:9.5px;font-weight:700}.pt-c.ok{background:#e3f6ec;color:#1faa6b}.pt-c.dn{background:#f1f2f5;color:#555}.pt-c.fx{background:#fff3d6;color:#b26a00}
 .pt-c.no{color:#bbb;font-weight:500}.pt-c.nx{outline:2px solid #0a6cff;color:#0a6cff}.pt-tb td.on .pt-c::before{content:"✓ ";color:#0a6cff}.pt-c small.pp{color:#555;font-weight:600}
 .pt-tb tfoot td{background:#f8f9fb;font-weight:800}
-.pt-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:#f6f8fc;border:1px solid #d8e2f4;border-radius:10px;padding:8px 10px}
+.pt-ops{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 6px}
+.pt-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#f6f8fc;border:1px solid #d8e2f4;border-radius:10px;padding:8px 10px}
 .pt-rows{display:flex;flex-direction:column}
 .pt-row{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(110px,1fr) 190px 190px 190px;gap:8px;align-items:center;padding:7px 2px;border-bottom:1px solid var(--border);font-size:12.5px}
 .pt-row.hd{font-size:11.5px;color:var(--text-muted);font-weight:700}.pt-row.one{background:#fbfcfe}.pt-row small{display:block;font-size:11px;color:var(--text-muted)}
@@ -1393,9 +1394,10 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
   .pp-it .no{flex:0 0 7mm;font-weight:700;color:#1f4e8c}
   .pp-it .q{flex:1;min-width:0}
   .pp-ans{display:inline-block;min-width:38mm;border-bottom:1px solid #1a1a1a;height:1.4em;vertical-align:bottom}
-  .pp-l4{position:relative;display:inline-block;height:6.3mm;vertical-align:-2.1mm;border-top:0.35mm solid #2f5fa7;border-bottom:0.35mm solid #2f5fa7;margin:0.5mm 0}
-  .pp-l4:before{content:"";position:absolute;left:0;right:0;top:33%;border-top:0.3mm dashed #2f5fa7}
-  .pp-l4:after{content:"";position:absolute;left:0;right:0;top:66%;border-top:0.45mm solid #e03030}
+  /* 4線（2026-10-30 川上さん OK・案A）：モノクロで刷っても見分けられるよう、色ではなく線の種類で分ける。上下＝細い実線・上から2本目＝点線・基線（3本目）＝太い実線 */
+  .pp-l4{position:relative;display:inline-block;height:6.3mm;vertical-align:-2.1mm;border-top:0.25mm solid #444;border-bottom:0.25mm solid #444;margin:0.5mm 0}
+  .pp-l4:before{content:"";position:absolute;left:0;right:0;top:33%;border-top:0.3mm dotted #444}
+  .pp-l4:after{content:"";position:absolute;left:0;right:0;top:66%;border-top:0.6mm solid #000}
   .pp-l4.blk{display:block;width:100%;vertical-align:baseline}
   .pp-ch{display:grid;grid-template-columns:1fr 1fr;gap:0.5mm 5mm;margin-top:0.5mm}
   .pp-ch span{white-space:normal;min-width:0}
@@ -12297,6 +12299,8 @@ function _ptDraw_(){
   h+='<div class="pt-flt"><b>学年</b>'+chips('grade',_pt.grade)+'<b style="margin-left:8px">教室</b>'+chips('class_name',_pt.room)+'<span style="color:var(--text-muted)">（選ばなければ全部）</span></div>';
   h+='<div class="pt-lg"><span class="pt-c ok" style="width:auto;padding:0 6px">90</span>合格<span class="pt-c dn" style="width:auto;padding:0 6px">75</span>直し済み・まだ合格していない<span class="pt-c fx" style="width:auto;padding:0 6px">65</span>直しの途中<span class="pt-c nx" style="width:auto;padding:0 6px">次</span>次に受けるテスト<span style="display:inline-block;width:22px;height:12px;background:#eef0f3;border:1px solid var(--border)"></span>割り当てなし</div>';
   var gs=[],prev='';T.forEach(function(t){if(t.g!==prev){gs.push([t.g,1]);prev=t.g;}else gs[gs.length-1][1]++;});
+  /* ✓ をまとめて変えるボタンは表の上（2026-10-30 川上さん「全部はずすとかはリストの上に表示すべき」） */
+  h+='<div class="pt-ops"><button type="button" class="btn-ghost" onclick="_ptClr_()">✓ を全部外す</button><button type="button" class="btn-ghost" onclick="_ptReNext_()">「次」だけに戻す</button></div>';
   h+='<table class="pt-tb"><thead><tr><th rowspan="2" class="nm">生徒</th>'+gs.map(function(x){return '<th colspan="'+x[1]+'" class="g">'+esc(x[0])+'</th>';}).join('')+'<th rowspan="2" class="n">本数</th></tr><tr>'
     +T.map(function(t,i){return '<th class="c" onclick="_ptCol_('+i+')" title="この列の全員に ✓ を付ける／外す">'+esc(t.h)+'</th>';}).join('')+'</tr></thead><tbody>';
   var cntOf=function(t){return S.filter(function(s){return (_pt.pk[String(s.student_id)]||{})[t.pid];}).length;};
@@ -12311,9 +12315,13 @@ function _ptDraw_(){
   var tot=T.reduce(function(a,t){return a+cntOf(t);},0),kids=S.filter(function(s){var o=_pt.pk[String(s.student_id)]||{};return T.some(function(t){return o[t.pid];});}).length;
   h+='</tbody><tfoot><tr><td class="nm">部数</td>'+T.map(function(t){return '<td>'+cntOf(t)+'</td>';}).join('')+'<td class="n">'+tot+'</td></tr></tfoot></table>';
   if(!S.length)h+='<div style="color:var(--text-muted)">この絞り込みでは、割り当てのある生徒がいません</div>';
-  h+='<div class="pt-bar"><b>今回渡すテスト：'+tot+'本（'+kids+'人）　問題用紙 '+tot+'部・解答解説 '+tot+'部・解答用紙 '+tot+'枚（'+(_pt.kind==='name'?'名前入り':'名前なし')+'）</b><span><button type="button" class="btn-ghost" onclick="_ptClr_()">✓ を全部外す</button> <button type="button" class="btn-ghost" onclick="_ptReNext_()">「次」だけに戻す</button></span></div>';
+  h+='<div class="pt-bar"><b>今回渡すテスト：'+tot+'本（'+kids+'人）　問題用紙 '+tot+'部・解答解説 '+tot+'部・解答用紙 '+tot+'枚（'+(_pt.kind==='name'?'名前入り':'名前なし')+'）</b></div>';
+  /* 刷った印の照合用＝行ごとの「刷る中身」（テスト・✓ の子・解答用紙の種類）。刷ったときの中身と今の中身が同じ行だけ「✓ 刷った」 */
+  _pt.sig={};var allSig=[_pt.kind];T.forEach(function(t){var ids=S.filter(function(s){return (_pt.pk[String(s.student_id)]||{})[t.pid];}).map(function(s){return String(s.student_id);}).join(',');
+    _pt.sig[t.pid+'q']=_pt.sig[t.pid+'a']=t.pid+':'+ids;_pt.sig[t.pid+'s']=t.pid+':'+ids+':'+_pt.kind;if(ids)allSig.push(t.pid+':'+ids);});
+  _pt.sig['S*']=allSig.join('|');
   /* 刷る行 */
-  var bt=function(id,lab,on){var d=_pt.done[id];return '<span class="pt-cel"><button type="button" class="btn-primary'+(d?' pt-done':'')+'" onclick="'+on.replace('%H','print')+'">'+(d?'✓ 刷った':lab)+'</button><button type="button" class="btn-primary btn-outlineK" onclick="'+on.replace('%H','pdf')+'">⬇ PDF</button></span>';};
+  var bt=function(id,lab,on){var d=!!_pt.done[id]&&_pt.done[id]===_pt.sig[id];return '<span class="pt-cel"><button type="button" class="btn-primary'+(d?' pt-done':'')+'" onclick="'+on.replace('%H','print')+'">'+(d?'✓ 刷った':lab)+'</button><button type="button" class="btn-primary btn-outlineK" onclick="'+on.replace('%H','pdf')+'">⬇ PDF</button></span>';};
   var rows='<div class="pt-row hd"><span>テスト</span><span>受ける子</span><span>問題用紙</span><span>解答解説</span><span>解答用紙</span></div>';
   if(_pt.kind==='name'&&tot){var ord=T.filter(function(t){return cntOf(t);}).map(function(t){return t.lab+'：'+S.filter(function(s){return (_pt.pk[String(s.student_id)]||{})[t.pid];}).map(function(s){return s.name||s.nickname;}).join('→');}).join('　／　');
     rows+='<div class="pt-row one"><span><b>解答用紙（名前入り）全員分</b><small>テストの順 → この表の順に1枚ずつ出る。<b style="color:#c0392b">印刷の画面で［両面印刷］をオンにする</b>（白紙は裏になる＝紙は1人1枚）</small></span><span>'+tot+'枚（'+kids+'人）</span>'+bt('S*','🖨 印刷　<b>'+tot+'枚</b>',"_ptNamed_('%H')")+'<span style="grid-column:4/6"><small>出てくる順：'+esc(ord)+'</small></span></div>';}
@@ -12377,11 +12385,11 @@ function _ptNextN_(sid,n){var T=_ptTests_(),s=(_students||[]).filter(function(x)
 function _ptClr_(){Object.keys(_pt.pk||{}).forEach(function(k){_pt.pk[k]={};});_ptDraw_();}
 function _ptReNext_(){_pt.pk=null;_pt.pkKey='';_ptDraw_();}
 /* 問題用紙・解答解説・名前なしの解答用紙＝テスト1本ずつ（kd＝q/a/s・how＝print/pdf） */
-function _ptOne_(i,kd,how){if(_ppBusy)return;var t=_ptTests_()[i];if(!t)return;var pk={};pk[t.mid]=t.pk;
-  _ppMakeMulti_((how==='pdf'?'pdf_':'print_')+kd,{sel:[t.mid],pk:pk,name:t.lab,done:function(){if(how!=='pdf'){_pt.done[t.pid+kd]=1;_ptDraw_();}}});}
+function _ptOne_(i,kd,how){if(_ppBusy)return;var t=_ptTests_()[i];if(!t)return;var pk={};pk[t.mid]=t.pk;var sg=(_pt.sig||{})[t.pid+kd]||'';
+  _ppMakeMulti_((how==='pdf'?'pdf_':'print_')+kd,{sel:[t.mid],pk:pk,name:t.lab,done:function(){if(how!=='pdf'){_pt.done[t.pid+kd]=sg;_ptDraw_();}}});}
 /* 名前入りの解答用紙＝テストごとに1枚組み、✓ の子の数だけ写して名前と専用の QR を入れる。1回の印刷・1本の PDF */
 function _ptNamed_(how){
-  if(_ppBusy)return;var T=_ptTests_(),S=_ptStudents_(T),items=[];
+  if(_ppBusy)return;var T=_ptTests_(),S=_ptStudents_(T),items=[],sgAll=(_pt.sig||{})['S*']||'';
   T.forEach(function(t){S.forEach(function(s){if((_pt.pk[String(s.student_id)]||{})[t.pid])items.push({t:t,s:s});});});
   if(!items.length){$('ppErr').textContent='✓ を付けた生徒がいません';return;}
   $('ppErr').textContent='';$('ppStat').textContent='名前入りの QR を作っています…';
@@ -12401,7 +12409,7 @@ function _ptNamed_(how){
         var miss=items.length-out.filter(function(o){return o.no;}).length;if(miss)$('ppErr').textContent='組めなかった解答用紙が '+miss+'枚あります。もう一度押してください';
         if(out.length)out.pop();   /* 最後の白紙は要らない */
         return out;},
-      done:function(){if(how!=='pdf'){_pt.done['S*']=1;_ptDraw_();}}});
+      done:function(){if(how!=='pdf'){_pt.done['S*']=sgAll;_ptDraw_();}}});
   });
 }
 

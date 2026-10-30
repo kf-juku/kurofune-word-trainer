@@ -894,6 +894,15 @@
   /* 練習 */
   .prac-top{display:flex;justify-content:space-between;align-items:center;min-height:44px;margin:-4px 0 6px;border-bottom:1px solid var(--line);}
   /* 学習中の帯＝いま何をやっているか（A-1・川上さん確定 2026-08-21）。色は識別色そのまま＝student-ui-design §18-1。押す対象ではない（カードにしない） */
+  /* 学習中、スクロールで上の帯（教材名・進み具合）が見えなくなったら、細い帯を上に出す（2026-10-30 川上さん「先生目線は困る」→推奨の形でOK）＝_miniSync_ */
+  .minibar{position:fixed;left:50%;top:0;width:100%;max-width:430px;z-index:40;transform:translate(-50%,-110%);transition:transform .18s ease;background:var(--glass);backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--line);padding:7px 16px 9px;pointer-events:none;}
+  .minibar.on{transform:translate(-50%,0);}
+  .minibar .mb-r{display:flex;align-items:center;gap:10px;line-height:1.35;}
+  .minibar .mb-n{flex:0 0 auto;font-size:13px;font-weight:800;color:var(--ink);}
+  .minibar .mb-n b{color:var(--accent);}
+  .minibar .mb-t{flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .minibar .mb-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--ring-track);}
+  .minibar .mb-p i{display:block;height:100%;background:var(--accent);transition:width .25s ease;}
   .nowbar{display:flex;align-items:center;gap:10px;margin:6px 0 2px;padding:0 2px;}
   .nowbar .nb-ic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto;}
   .nowbar .nb-b{flex:1;min-width:0;}
@@ -1317,8 +1326,11 @@
   /* 【2026-08-26】display:block のアイコンは margin auto で中央に。マスク方式は要素の幅が1emなので text-align:center では寄らない */
   .note-none i{font-size:24px;color:var(--gold);display:block;margin:0 auto 5px;}
   .err{color:var(--ng);font-size:14px;margin-bottom:8px;min-height:18px;}
-  .loading{text-align:center;color:var(--sub);padding:30px;}
-  .loading.sm{padding:4px 0 10px;font-size:11.5px;} /* スケルトンの上に添える小さい版 2026-08-21⑭ */
+  /* 2026-10-30 川上さん「読み込み中なら、見て分かるようにスピナーだせよ」：文字だけの「読み込み中…」（.loading）全部に、kwtSpin と同じ形の回るしるしを付ける（1か所で全部） */
+  .loading{text-align:center;color:var(--ink);font-weight:700;padding:30px;}
+  .loading::before{content:"";display:block;width:56px;height:56px;margin:0 auto 10px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><g><rect x='36' y='36' width='48' height='48' rx='3' fill='none' stroke='%23caa24a' stroke-width='3' opacity='.6' transform='rotate(45 60 60)'/><animateTransform attributeName='transform' type='rotate' from='0 60 60' to='360 60 60' dur='2.4s' repeatCount='indefinite'/></g><g><rect x='48' y='48' width='24' height='24' rx='2' fill='none' stroke='%230a6cff' stroke-width='3.4' opacity='.85'/><animateTransform attributeName='transform' type='rotate' from='0 60 60' to='-360 60 60' dur='1.7s' repeatCount='indefinite'/></g><circle cx='60' cy='60' r='5' fill='%230a6cff'/></svg>") no-repeat center/contain;}
+  .loading.sm{padding:4px 0 10px;font-size:11.5px;}
+  .loading.sm::before{width:28px;height:28px;margin-bottom:4px;} /* スケルトンの上に添える小さい版 2026-08-21⑭ */
 
   /* 完了画面の縦圧縮（川上さん承認モック 2026-07-05）：トロフィー・文言・点数・率を1枚に横組み */
   .done-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);}
@@ -1441,7 +1453,11 @@
 .sh-lead{font-size:13px;line-height:1.8;color:var(--sub);margin-bottom:12px;}
 .shw-t{font-size:13px;color:var(--sub);margin:4px 0 10px;}.shw-t b{display:block;font-size:17px;color:var(--ink);margin-top:2px;}
 .shw-who{font-size:14px;margin:0 0 14px;line-height:1.9;}.shw-not{border:1px solid var(--line,#ccd);background:transparent;color:var(--sub);border-radius:8px;padding:2px 10px;font:inherit;font-size:12.5px;cursor:pointer;margin-left:4px;}
-.shw-acc{border:2px solid var(--accent);border-radius:16px;padding:16px 14px;background:var(--card,#fff);text-align:center;}
+.shw-acc{border:2px solid var(--accent);border-radius:16px;padding:16px 14px;background:var(--surface);text-align:center;}
+/* 大きな読み込み中（2026-10-30）：画面全体をおおう。QR から来たときなど、待ちが数秒あるところで使う＝bigWait_() */
+.bigwait{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:var(--bg);color:var(--ink);padding:0 24px;}
+html.kwt-bw .bigwait{display:flex;}
+.bigwait .sw-load.sw-big{margin:0;text-align:center;}
 .shw-q{font-size:16px;line-height:1.8;}.shw-q b{font-size:20px;}
 .shw-me{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px 0 16px;}.shw-av{width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;}.shw-nm{font-size:24px;font-weight:800;}
 .shw-yn{display:flex;flex-direction:column;gap:10px;}.shw-yn .btn{padding:14px 12px;font-size:17px;}
@@ -2427,10 +2443,50 @@ body.wr-s5 #step-sent .ro-bank button,body.wr-s5 #step-sent button.ro-tok{white-
 #step-sent .wr-fixit{border-left:3px solid #b42318;background:#fff7f7;border-radius:0 10px 10px 0;padding:7px 10px;margin:6px 0;font-size:14px;line-height:1.65}
 #explain #wr-ptx{color:var(--ink)}
 #step-sent .wr-me{background:#fff4e6;border-left:3px solid #c2410c;padding-left:6px;display:inline-block}
+/* ダークモード（2026-10-30 川上さん「ダークモードで自然かすべてのページでチェックして」）：英検3級のライティング編・全体像・読解の紙の枠と、薄い色の下地を、暗い背景に合う色にする。ライトの見た目は変えない */
+[data-theme="dark"] #step-sent .ovex,[data-theme="dark"] #step-sent .ovq{background:var(--surface);border-color:#475569}
+[data-theme="dark"] #step-sent .ovexh,[data-theme="dark"] #step-sent .ovsec,[data-theme="dark"] #step-sent .ovq .l.hd,[data-theme="dark"] #step-sent .ovq .l i,[data-theme="dark"] #step-sent .ovq .nt i.ovb,[data-theme="dark"] #step-sent .ovnone,[data-theme="dark"] #step-sent .ovnt,[data-theme="dark"] #step-sent .ovflow em{color:#94a3b8}
+[data-theme="dark"] #step-sent .ovexh b{color:var(--ink)}
+[data-theme="dark"] #step-sent .ovins{background:rgba(255,255,255,.06);color:#cbd5e1}
+[data-theme="dark"] #step-sent .ovpap{background:rgba(255,255,255,.03);border-color:#475569}
+[data-theme="dark"] #step-sent .ovq .l.hd,[data-theme="dark"] #step-sent .ovq .nt{border-color:#475569}
+[data-theme="dark"] #step-sent .ovqs .c .tg,[data-theme="dark"] #step-sent .ovqs .c .tg.ok{color:#cbd5e1;border-color:#475569}
+[data-theme="dark"] #step-sent .ovflow span{background:var(--surface);border-color:#475569}
+[data-theme="dark"] #step-sent .ovst b{color:#93c5fd}
+[data-theme="dark"] #step-sent .c1,[data-theme="dark"] #step-sent .c2,[data-theme="dark"] #step-sent .c3,[data-theme="dark"] #step-sent .c4{background:rgba(234,88,12,.18)!important}
+[data-theme="dark"] #step-sent .wr-pt.c1,[data-theme="dark"] #step-sent .wr-pt.c2,[data-theme="dark"] #step-sent .wr-pt.c3,[data-theme="dark"] #step-sent .wr-pt.c4{background:var(--surface)!important}
+[data-theme="dark"] #step-sent .wd-n span{background:rgba(245,197,66,.25)}
+[data-theme="dark"] #step-sent .wr-sum.ok,[data-theme="dark"] #step-sent .c4b button.ok,[data-theme="dark"] #step-sent .wr-3 button.on.y{background:rgba(58,208,127,.16);color:#6ee7a0;border-color:#3ad07f}
+[data-theme="dark"] #step-sent .wr-sum.ng,[data-theme="dark"] #step-sent .c4b button.ng,[data-theme="dark"] #step-sent .wr-3 button.on.n{background:rgba(255,85,85,.16);color:#fca5a5;border-color:#ff5555}
+[data-theme="dark"] #step-sent .wr-3 button.on.q,[data-theme="dark"] #step-sent .wr-msg{background:rgba(245,197,66,.14);color:#fcd34d;border-color:#b26a00}
+[data-theme="dark"] #step-sent .wr-ov .wr-ovh{background:rgba(91,157,255,.14)}
+[data-theme="dark"] #step-sent .wr-ov .wr-ovn{background:rgba(245,197,66,.12);border-color:rgba(245,197,66,.35)}
+[data-theme="dark"] #step-sent .wl .me,[data-theme="dark"] #step-sent .wr-me{background:rgba(234,88,12,.18)}
+[data-theme="dark"] #step-sent .wl .me i{color:#fdba74}
+[data-theme="dark"] #step-sent .ov2 .wl .me{background:none}
+[data-theme="dark"] #step-sent .ov2 .wl .me i{color:#94a3b8}
+#step-sent .rp .wr-dln{background:#fff4e6;border-left:4px solid #c2410c;padding:3px 8px;margin:3px 0}
+#step-sent .wr-fixq{border-color:#b26a00;background:#fffaf0}
+#step-sent .wr-qn{color:#8a5a00}
+[data-theme="dark"] #step-sent .rp .wr-dln{background:rgba(234,88,12,.18)}
+[data-theme="dark"] #step-sent .wr-fixq{background:rgba(245,197,66,.10)}
+[data-theme="dark"] #step-sent .wr-qn{color:#fcd34d}
+[data-theme="dark"] #step-sent .rp .blank{background:rgba(234,88,12,.18);color:#fdba74}
+[data-theme="dark"] #step-sent .rp .blank.f{color:var(--ink)}
+[data-theme="dark"] #step-sent .wr-fixit{background:rgba(255,85,85,.10)}
+[data-theme="dark"] #step-sent .wr-u1,[data-theme="dark"] #step-sent .wr-u2{text-decoration-color:#e5e7eb!important}
+[data-theme="dark"] .sh-lis-lead{background:rgba(91,157,255,.14);color:#93c5fd;border-color:rgba(91,157,255,.35)}
+[data-theme="dark"] .shx-p{background:rgba(91,157,255,.18);color:#93c5fd}
+[data-theme="dark"] .d1 .s.fx .c{background:rgba(245,197,66,.18)}
 
 </style>
+<script>/* 2026-10-30 川上さん：①テーマは画面を描く前に決める（後ろのスクリプトで決めると、読み込みの遅い端末で白い画面が先に出る）
+   ②解答用紙の QR から来たら、最初の描画から「読み込み中」を大きく出す（ログイン画面だけが出て、止まって見えた） */
+(function(){var h=document.documentElement;try{var t=localStorage.getItem('kwt_theme');if(t)h.setAttribute('data-theme',t);else if(window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)h.setAttribute('data-theme','dark');}catch(e){}
+try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||'';}catch(e2){}if(/[?&]qa=/.test(q)||(/[?&]sheet=/.test(q)&&tk))h.classList.add('kwt-bw');}catch(e){}})();</script>
 </head>
 <body>
+<div class="bigwait" id="bigwait" role="status" aria-live="polite"><div class="sw-load sw-big"><svg class="kwtld" viewBox="0 0 120 120" width="76" height="76" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="よみこみ中"><g class="o" style="transform-origin:60px 60px"><rect x="36" y="36" width="48" height="48" rx="3" fill="none" stroke="#caa24a" stroke-width="2" opacity=".55" transform="rotate(45 60 60)"/></g><g class="i" style="transform-origin:60px 60px"><rect x="48" y="48" width="24" height="24" rx="2" fill="none" stroke="#0a6cff" stroke-width="2.6" opacity=".85"/></g><circle cx="60" cy="60" r="4" fill="#0a6cff"/></svg><span id="bigwait-t"><ruby>紙<rt class="uf">かみ</rt></ruby>の QR を<ruby>読<rt class="uf">よ</rt></ruby>んでいます…</span></div></div>
 <div class="wrap">
 
   <section id="scr-login" class="screen active">
@@ -2594,6 +2650,7 @@ body.wr-s5 #step-sent .ro-bank button,body.wr-s5 #step-sent button.ro-tok{white-
     <div class="body">
       <div class="prac-top"><button class="prac-quit" id="btn-quit" type="button"><i class="ti ti-x"></i> <span>やめる</span></button><div class="prac-acts"><button class="prac-refresh" id="btn-pause" type="button"><i class="ti ti-player-pause"></i> <span class="pr-t"><ruby>一時停止<rt class="uf">いちじていし</rt></ruby></span></button><button class="prac-refresh" id="btn-refresh" type="button"><i class="ti ti-refresh"></i> <span class="pr-t"><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div></div>
       <div class="nowbar" id="now-bar" style="display:none;"></div>
+      <div class="minibar" id="mini-bar" aria-hidden="true"></div>
       <div class="d1q" id="d1q"></div><!-- 進み具合 D1＋EB（2026-10-19 作業4） -->
       <div id="pt-wrap"></div>
       <div class="wl-bar" id="wl-bar" style="display:none;"><button class="wl-btn" id="wl-btn" type="button"><i class="ti ti-book"></i><span><ruby>単語<rt class="uf">たんご</rt></ruby>をみる</span></button></div>
@@ -2823,7 +2880,7 @@ body.wr-s5 #step-sent .ro-bank button,body.wr-s5 #step-sent button.ro-tok{white-
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-29a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-30a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -2982,7 +3039,7 @@ var _prevScr='';
 /* 画面を切り替えるところ。アプリの自動更新のフックを2つだけ足している（2026-08-21 川上さん指摘）
    ・学習を始めた瞬間＝解いている数分のあいだに裏で新しい版がないか見ておく（入れ替えはしない）
    ・完了画面からホームに戻った直後＝1つ終わって画面が切り替わる瞬間なので、ここで入れ替えるのが一番ストレスが小さい */
-function show(scr){try{_gdTipClose_();}catch(eGt){}try{if(_ptHidden_)_ptRestore_();}catch(e){}var _p=_prevScr;_prevScr=scr;try{var _sf=$('sfmask');if(_sf)_sf.classList.remove('on');}catch(e){} /* ②のシートを持ち越さない 2026-09-06 */try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */try{if(scr!=='scr-practice')comboBreak_();}catch(eCb){}try{if(scr!=='scr-practice'){_rdxReset_();_rdxFloat_(false);}}catch(eRx){}document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
+function show(scr){try{_gdTipClose_();}catch(eGt){}try{if(_ptHidden_)_ptRestore_();}catch(e){}var _p=_prevScr;_prevScr=scr;try{var _sf=$('sfmask');if(_sf)_sf.classList.remove('on');}catch(e){} /* ②のシートを持ち越さない 2026-09-06 */try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */try{if(scr!=='scr-practice')comboBreak_();}catch(eCb){}try{if(scr!=='scr-practice'){_rdxReset_();_rdxFloat_(false);}}catch(eRx){}document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');try{_miniSync_();}catch(eMb){}if(scr==='scr-login'){try{bigWait_(false);}catch(eBw){}}document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
 /* 学習マップのパート行のメタ：前回合格日・正答率・おさらいの進み（GAS material_parts が per-part で返す）2026-07-26 */
 function _mapMetaHtml_(l){
   if(!l||!l.last_pass_date)return ''; // 合格していないパートは出さない
@@ -3223,10 +3280,11 @@ function _qaGet_(){ try{ return sessionStorage.getItem('kwt_sheet_qa')||''; }cat
 function _qaLogin_(){
   var key=_qaGet_(); try{ sessionStorage.removeItem('kwt_sheet_qa'); }catch(e){}
   var had=!!token, mySid=''; try{ mySid=localStorage.getItem('kwt_sid')||''; }catch(e){}
-  var ng=function(msg){ shPendSet_(''); shPendLisSet_(false);
+  var ng=function(msg){ bigWait_(false); shPendSet_(''); shPendLisSet_(false);
     if(had){ openHome(); showSub('sheet'); setTimeout(function(){ try{ shMsg_(esc(msg)); }catch(e){} },80); }
     else { show('scr-login'); $('login-err').textContent=msg; } };
-  if(!had){ show('scr-login'); $('login-err').textContent='紙の QR を読んでいます…'; }
+  if(!had){ show('scr-login'); }
+  bigWait_(true);   /* show('scr-login') が消すので、そのあとに出す */
   call({action:'ws_sheet_login',key:key,with_home:1,prev_token:token||''}).then(function(d){
     if(!had) $('login-err').textContent='';
     if(_netNG_(d)){ ng((d&&d.error)||'紙の QR を読めませんでした。もう一度読むか、ログインしてから番号を入れてください。'); return; }
@@ -3239,7 +3297,14 @@ function _qaLogin_(){
 /* ログインの直後に呼ぶ＝QRから来ていたら答え合わせの画面へ直行する */
 function shGoIfPending_(){ if(!shPendGet_())return false; showSub('sheet'); return true; }
 
-function shMsg_(html){ var el=$('sheet-msg'); if(el)el.innerHTML=html||''; }
+function shMsg_(html){ if(html)bigWait_(false); var el=$('sheet-msg'); if(el)el.innerHTML=html||''; }
+/* 大きな読み込み中を出す／消す（2026-10-30 川上さん「読み込み中なら、見て分かるようにスピナーだせよ」）。
+   出しっぱなしにならないよう、30秒で必ず消す（消えたあとは、その時点の画面がそのまま見える） */
+function bigWait_(on,html){ try{
+  if(html){ var t=$('bigwait-t'); if(t)t.innerHTML=html; }
+  document.documentElement.classList.toggle('kwt-bw',!!on);
+  clearTimeout(window._bwT_); if(on)window._bwT_=setTimeout(function(){bigWait_(false);},30000);
+}catch(e){} }
 function shStep1_(){
   var s2=$('sheet-step2'); if(s2){ s2.style.display='none'; s2.innerHTML=''; }
   var s1=$('sheet-step1'); if(s1)s1.style.display='block';
@@ -3257,7 +3322,8 @@ function loadSheet_(){
   var el=$('sheet-code');
   if(el){ el.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); _shLisOnly=false; shOpen_(); } }; el.value=''; }
   var c=shPendGet_();
-  if(c){ var lis=shPendLisGet_(); shPendSet_(''); shPendLisSet_(false);
+  if(!c)bigWait_(false);
+  if(c){ bigWait_(true); var lis=shPendLisGet_(); shPendSet_(''); shPendLisSet_(false);
     _shLisOnly=!!lis;                                   /* 段7b：問題用紙のQRなら音だけ */
     if(el)el.value=c; shOpen_(); }
 }
@@ -3299,7 +3365,7 @@ function shAccAsk_(code,top,ok){
     +'<div class="shw-me"><span class="shw-av">'+esc((nm||'？').charAt(0))+'</span><span class="shw-nm">'+(nm?esc(nm)+seiSuffix_():rb('名前','なまえ')+'なし')+'</span></div>'
     +'<div class="shw-yn"><button type="button" class="btn" id="shw-yes">'+rb('合','あ')+'っている</button>'
     +'<button type="button" class="btn sub" id="shw-no">ちがう（ログアウト）</button></div></div>';
-  host.style.display='block'; window.scrollTo(0,0);
+  host.style.display='block'; window.scrollTo(0,0); bigWait_(false);
   $('shw-yes').onclick=function(){ok();};
   $('shw-no').onclick=function(){try{doLogout_();}catch(e){}shPendSet_(code);};   /* 覚えるのはログアウトのあと＝doLogout_ が紙の番号を消すので、先に覚えると消えて、ログインし直してもホームへ行っていた 2026-10-20 */
 }
@@ -3323,7 +3389,7 @@ function shWsChoose_(w,ok){
    ・○×は出さない（正誤を入れるのは解答と解説の紙のQRの方だけ）
    ・答え合わせが終わった紙・古い紙でも、音はここで聞ける
    ・鳴らし方は出題中・○×入力の画面とまったく同じ _sentPlay_ を通す */
-function shRenderListenOnly_(lisN){
+function shRenderListenOnly_(lisN){ bigWait_(false);
   if(!_shSet)return;
   /* 見出しも変える＝この画面は「答え合わせ」ではない（SUB_TITLES には足さない。
      あれは不具合報告の画面名の照合に使っているので、キーを増やすと照合が変わる） */
@@ -3362,7 +3428,7 @@ function shRenderListenOnly_(lisN){
   window.scrollTo(0,0);
 }
 /* 紙とまったく同じ並びで 1〜N を出す（並びは print_sets.word_ids の順＝サーバーが持っている） */
-function shRenderMarks_(){
+function shRenderMarks_(){ bigWait_(false);
   if(!_shSet)return;
   var s1=$('sheet-step1'); if(s1)s1.style.display='none';
   var host=$('sheet-step2'); if(!host)return;
@@ -4491,6 +4557,8 @@ function _d1Sync_(s){
     var i=Math.min(s.idx||0,tot-1);
     nodes.push(inPt?{cls:'',ic:'ti-pencil',t:qn}:{cls:'now',ic:'ti-pencil',t:qn+' <b>'+(i+1)+'/'+tot+'</b>',v:i/tot});
   }
+  /* 細い帯（_miniSync_）に出す数：今の段の文字と、ここまでの割合 */
+  try{ var _nw=nodes.filter(function(x){return x.v!=null;})[0]; _mini.n=_nw?_nw.t:(inPt?rb('要点','ようてん'):''); _mini.v=fix?(_nw?_nw.v:0):(inPt?0:(Math.min(s.idx||0,tot-1)+1)/tot); }catch(eM){}
   nodes.push({cls:'goal',ic:'ti-flag'});
   var chip='';
   if(!inPt&&!fix){
@@ -4508,6 +4576,7 @@ function _d1Sync_(s){
     }
   }
   el.innerHTML=_d1Html_(nodes,(typeof combo==='number')?combo:0)+chip;
+  try{_miniSync_();}catch(eM){}
 }
 /* ===== 学習マップ M1（2026-10-19 作業4の4・川上さん 2026-10-18 18:13 決定・モック\20261018_モック_英検パートと学習マップ.html の M1）=====
    parts を1行8つで並べ、行の終わりで下に曲がる（偶数行は左→右、奇数行は右→左）。済み＝緑のチェック・今＝青く光る丸に番号・
@@ -5630,7 +5699,7 @@ function loadHomeData_(showSkel){
         var passedN=parts.filter(function(l){return l.passed;}).length;
         var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
         var _cpH=curPart&&curPart.l.hier,_cpNo=curPart?_pnoOf_(c.material_id,curPart.l.part_order):'';
-        var curLbl=curPart?(isTest?((_cpNo?esc(_cpNo)+' ':'')+(_cpH?(([_cpH.group_no,_cpH.group_name].filter(Boolean).join(' ')?esc([_cpH.group_no,_cpH.group_name].filter(Boolean).join(' '))+' ／ ':'')+esc(_hPart_(_cpH,curPart.l.title))):_jaRubySubj_(curPart.l.title,subjB))):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
+        var curLbl=curPart?(isTest?((_cpNo?esc(_cpNo)+' ':'')+(_cpH?esc(_hGrpPart_([_cpH.group_no,_cpH.group_name].filter(Boolean).join(' '),_hPart_(_cpH,curPart.l.title))):_jaRubySubj_(curPart.l.title,subjB))):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
         var ov=document.createElement('div');ov.className='ov-card';ov.setAttribute('data-mid',String(c.material_id||'')); /* ピンポイント遷移の宛先 2026-08-21 */
         var lapPill=(c.lap>=2?' <span class="rnd">'+c.lap+'<ruby>周目<rt class="uf">しゅうめ</rt></ruby></span>':'');
         var right=passedN+' <small>/ '+total+' できた</small>';   /* M1：右上は「12 / 40 できた」2026-10-19 */
@@ -6381,9 +6450,22 @@ function renderNoteStep(){renderQz_(noteSes);}
    教材名は _partIdx（mtShortMt 経由で作った索引）から取る＝生タイトルを描かない（教材名_描画ガード）。
    押す対象ではない＝カードにしない・タップしても何も起きない（student-ui-design §18-2）。 */
 var _nowBarKey='';
+var _mini={t:'',n:'',v:0};
+/* 細い帯を出す／消す。上の帯（#d1q、無ければ #now-bar）の下の端が画面の上に隠れたら出す */
+function _miniSync_(){
+  var el=$('mini-bar'); if(!el)return;
+  var pr=$('scr-practice'), act=!!(pr&&pr.classList.contains('active')), past=false;
+  var d=$('d1q'), nb=$('now-bar'), an=(d&&d.innerHTML)?d:((nb&&nb.style.display!=='none')?nb:null);
+  if(act&&an){ past=an.getBoundingClientRect().bottom<0; }
+  var on=act&&past&&!!(_mini.n||_mini.t);
+  if(on){ var h='<div class="mb-r">'+(_mini.n?'<span class="mb-n">'+_mini.n+'</span>':'')+'<span class="mb-t">'+esc(_mini.t)+'</span></div><div class="mb-p"><i style="width:'+Math.round(Math.max(0,Math.min(1,_mini.v))*100)+'%"></i></div>';
+    if(el._h!==h){ el.innerHTML=h; el._h=h; } }
+  el.classList.toggle('on',on);
+}
+window.addEventListener('scroll',function(){try{_miniSync_();}catch(e){}},{passive:true});
 function _nowBarSync_(s){
   var el=$('now-bar'); if(!el)return;
-  if(!s){el.style.display='none';_nowBarKey='';return;}
+  if(!s){el.style.display='none';_nowBarKey='';_mini.t='';_mini.n='';try{_miniSync_();}catch(e){}return;}
   var kind='daily';
   if(s.mode==='srs')kind='srs';
   else if(s.mode==='note')kind='note';
@@ -6402,9 +6484,10 @@ function _nowBarSync_(s){
     else if(kind==='note'){ mat=(s.today?(noteTargetPlain_(s.target)||(rb('今日','きょう')+'の10'+rb('語','ご'))):subjLabel(s.subject||'')); part=(s.total||(s.words||[]).length)+'語'; }
     else{ var e=_partIdx[String(s.listId||'')]; if(e){mat=e.mat||'';part=e.part||'';
       /* 4段の階層（2026-10-19）：「英検5級 ①文法編」・「第1回 be動詞 ／（1）I am・You are」＋◆ */
-      if(e.hier){var _h=e.hier;mat=[_h.book,_h.material_label].filter(Boolean).join(' ')||mat;var _g=[_h.group_no,_h.group_name].filter(Boolean).join(' ');var _no=(part.match(/^No\.[0-9]+ /)||[''])[0];part=_no+(_g?_g+' ／ ':'')+_hPart_(_h,part);hImp=!!_h.important;hz=true;}} }
+      if(e.hier){var _h=e.hier;mat=[_h.book,_h.material_label].filter(Boolean).join(' ')||mat;var _g=[_h.group_no,_h.group_name].filter(Boolean).join(' ');var _no=(part.match(/^No\.[0-9]+ /)||[''])[0];part=_no+_hGrpPart_(_g,_hPart_(_h,part));hImp=!!_h.important;hz=true;}} }
   }catch(e){}
   var key=kind+'|'+mat+'|'+part+'|'+(hz?1:0);
+  _mini.t=[String(mat||'').replace(/<rt[^>]*>.*?<\/rt>/g,'').replace(/<[^>]+>/g,''),String(part||'')].filter(Boolean).join(' ');
   if(key===_nowBarKey&&el.style.display!=='none')return;   /* 毎問の再描画で作り直さない */
   _nowBarKey=key;
   el.className='nowbar k-'+K.c;
@@ -7385,7 +7468,7 @@ function _ptShow_(s){
   var f=card.querySelector('.bl:not(.done)'); if(f)openBl(f);
   return true;
 }
-function renderQz_(s){try{clearTimeout(_sentAfterT_);_sentAfterT_=null;}catch(eSa){}try{_d1Sync_(s);}catch(eD1){} /* 前の問題の答え合わせの音（600ms後）を取り消す。残すと次の聞き取りの音を止めて番号が押せなくなる 2026-09-25 */if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestore_();if(_ptShow_(_ps))return;}catch(e){}}/* 更新ボタンは要点カードのことを知らない。片づけて問題を描くと【要点を飛ばせてしまう】ので、終えていなければカードを描き直す（埋めた穴は復元する）2026-09-06③ */
+function renderQz_(s){_exCurS_=s;try{clearTimeout(_sentAfterT_);_sentAfterT_=null;}catch(eSa){}try{_d1Sync_(s);}catch(eD1){} /* 前の問題の答え合わせの音（600ms後）を取り消す。残すと次の聞き取りの音を止めて番号が押せなくなる 2026-09-25 */if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestore_();if(_ptShow_(_ps))return;}catch(e){}}/* 更新ボタンは要点カードのことを知らない。片づけて問題を描くと【要点を飛ばせてしまう】ので、終えていなければカードを描き直す（埋めた穴は復元する）2026-09-06③ */
   /* 英検5級：語を全部終えて文の問題に来た1回だけ、文法解説カードをはさむ。
      _ptShow_ の中で「文の問題かどうか」「もう出したか」を見るので、ここは呼ぶだけ 2026-09-09 */
   if(!_ptHidden_&&_ptKind_(s)==='sent'){try{if(_ptShow_(s))return;}catch(e){}}
@@ -8119,7 +8202,7 @@ function _wrDemo_(s,w,q,pl){
   hideQTimer();var ask=$('sent-ask'),body=$('sent-body'),gl=pl.gl||pl.gloss||{},v='',got=0,pi=0,cntOk=false,Q=pl.checks||[];$('sent-choices').innerHTML='';
   function head(t,sub){ask.innerHTML='<div class="wr-do">'+_wrMix_(t,gl)+(sub?'<span class="sub">'+_wrRb_(sub)+'</span>':'')+'</div>';window.scrollTo(0,0);}
   function mail(){return '<div class="rp"><div class="qq">'+_wrRb_(pl.qh||'James のメールの質問')+'</div>'+(pl.q||[]).map(function(l,qi){var uu=l.u||(pl.qh==='QUESTION'?0:qi+1);return '<div class="ln">'+(uu?'<span class="wr-u'+uu+'">':'<span>')+_wrTap_(l.en,gl)+'</span> <small style="color:var(--sub)">（'+_wrRb_(l.ja)+'）</small></div>';}).join('')+'</div>';}
-  function smp(){return '<div class="rp" style="margin-top:8px"><div class="qq">'+_wrRb_(pl.sh||'ある生徒がノートに書いた返信')+'</div>'+(pl.sample||[]).map(function(l){return '<div class="ln me" style="background:#fff4e6;border-left:4px solid #c2410c;padding:3px 8px;margin:3px 0">'+_wrTap_(l.en,gl)+'<small style="display:block;color:var(--sub);font-size:12px">'+_wrRb_(l.ja)+'</small></div>';}).join('')+'</div>';}
+  function smp(){return '<div class="rp" style="margin-top:8px"><div class="qq">'+_wrRb_(pl.sh||'ある生徒がノートに書いた返信')+'</div>'+(pl.sample||[]).map(function(l){return '<div class="ln me wr-dln">'+_wrTap_(l.en,gl)+'<small style="display:block;color:var(--sub);font-size:12px">'+_wrRb_(l.ja)+'</small></div>';}).join('')+'</div>';}
   function intro(){head('丸付けのしかたを、ある生徒の答えで練習しよう','');
     body.innerHTML='<div class="wr-kai" style="margin-top:0">'+_wrRb_(pl.lead||'この答えには、間違いが1つある。')+'<br>'+_wrRb_('① 語数を数える　② 確かめる点に、はい・いいえで答える')+'</div>'+mail()+smp()+'<button type="button" class="btn" id="wm-st" style="margin-top:12px">'+_wrRb_('はじめる')+'</button>';
     $('wm-st').onclick=cnt;}
@@ -8192,7 +8275,7 @@ function _wrWrite_(s,w,q,pl){
     /* 記録（3-5）：全部できた＝ok・1つでも できていない＝ng・分からない が1つでも＝ask（先生に見せる）。正答率には入れない（3-6） */
     try{if(!_PV_){(s._wrChecks||(s._wrChecks={}))[String(w.id)]={n:n,res:res.map(function(x){return x||'-';}).join(''),v:qn?'ask':(ng?'ng':'ok'),ng:bad.map(function(p){return p.t;}),ask:qq.map(function(p){return p.t;})};try{_saveResumeNext_(s,'e2j');}catch(_e2){}}}catch(_e){}
     DO6('結果','');var h='<div class="wr-res">';
-    if(qn){h+='<div class="big" style="color:#8a5a00">'+_wrRb_('先生に見せよう')+'</div><div class="wr-inst">'+_wrRb_('ノートを持って、先生に聞こう。分からなかったところ：')+'</div>'+qq.map(function(p){return '<div class="wr-fixit" style="border-color:#b26a00;background:#fffaf0"><b>'+esc(p.n)+'</b> '+_wrMix_(p.ft||p.t,gl)+'</div>';}).join('');}
+    if(qn){h+='<div class="big wr-qn">'+_wrRb_('先生に見せよう')+'</div><div class="wr-inst">'+_wrRb_('ノートを持って、先生に聞こう。分からなかったところ：')+'</div>'+qq.map(function(p){return '<div class="wr-fixit wr-fixq"><b>'+esc(p.n)+'</b> '+_wrMix_(p.ft||p.t,gl)+'</div>';}).join('');}
     if(ng){h+=(qn?'<div class="wr-inst" style="margin-top:12px;font-weight:700;color:var(--ink)">'+_wrRb_('先生に聞いたあと、ここを直そう')+'</div>':'<div class="big" style="color:#b42318">'+_wrRb_('ここを直そう')+'</div>')+bad.map(function(p){return '<div class="wr-fixit"><b>'+esc(p.n)+'</b> '+_wrMix_(p.ft||p.t,gl)+'<br>'+_wrMix_(p.auto?(n+'語。'+autoFix()):(p.fix||''),gl)+'</div>';}).join('');}
     if(!qn&&!ng){h+='<div class="big" style="color:#13703a">'+_wrRb_('よく書けた！')+'</div>';try{sndCorrect();}catch(e){}}
     h+='<div class="wr-inst" style="margin-top:10px">'+_wrRb_('解答例')+'（'+(pl.ex||[]).reduce(function(a,t){return a+_wrWc_(t.en);},0)+_wrRb_('語')+'）</div>';
@@ -9776,6 +9859,11 @@ function _pnoHtml_(mid,ord){ var t=_pnoOf_(mid,ord); return t?('<span class="pno
    GAS がパートの一覧に付ける hier（parts の book・material_label・group_no・group_name・part_no・part_name・important）から出す。
    hier が無い教材（英検以外）は今までどおり title をそのまま出す。正＝KWT_生徒アプリ.md 2026-10-18 21:05・KWT_教材づくり.md 2026-10-19 */
 function _hGrp_(h){ return (h&&(h.group_no||h.group_name))?(String(h.group_no||'')+'|'+String(h.group_name||'')):''; }
+/* まとまり（group）とパートの名前が同じとき（3級読解編の全体像・ウォームアップなど1パートだけのまとまり）は、まとまりの名前を出さない。
+   「No.82 読解編の全体像 質問が先… ／ No.82 読解編の全体像 質問が先…」と同じ名前が2回出ていた（2026-10-30 川上さん） */
+function _hNorm_(x){return String(x||'').replace(/^No\.[0-9]+\s*/,'').replace(/[\s　]+/g,'');}
+function _hSame_(g,p){var a=_hNorm_(g),b=_hNorm_(p);return !!a&&b.indexOf(a)>=0;}
+function _hGrpPart_(g,p){return _hSame_(g,p)?String(p||'').replace(/^No\.[0-9]+\s*/,''):((g?g+' ／ ':'')+String(p||''));}
 function _hPart_(h,title){ var t=h?(String(h.part_no||'')+String(h.part_name||'')):''; return t||String(title||''); }
 function _hImp_(h){ return (h&&h.important)?'<span class="imp" aria-label="重要マーク">◆</span>':''; }
 /* 行の左はしの◆の場所（◆の無い行も同じ幅を空ける＝名前の書き出しをそろえる）。CSS は .nqp-nm.hz .imps */
@@ -9789,7 +9877,7 @@ function _partName_(pid){
   if(e.hier){var h=e.hier;o.mat=[h.book,h.material_label].filter(Boolean).join(' ')||o.mat;o.grp=[h.group_no,h.group_name].filter(Boolean).join(' ');o.name=_hPart_(h,o.name);o.imp=!!h.important;}
   return o;
 }
-function _partNameHtml_(o,withGrp){ if(!o)return ''; return (o.imp?_hImp_({important:1}):'')+(o.no?esc(o.no)+' ':'')+((withGrp&&o.grp)?esc(o.grp)+' ／ ':'')+esc(o.name); }
+function _partNameHtml_(o,withGrp){ if(!o)return ''; return (o.imp?_hImp_({important:1}):'')+(o.no?esc(o.no)+' ':'')+((withGrp&&o.grp&&!_hSame_(o.grp,o.name))?esc(o.grp)+' ／ ':'')+esc(o.name); }
 var _partIdx={},_partIdxReady=false;
 /* 【2026-09-22 川上さん確定】教材ごとのパート一覧を part_order 順のまま覚える。
    単元別の完了画面で「順番どおりの次のパート」を端末だけで決めるために要る（kwtGAS.gs は触らない）。
@@ -10375,7 +10463,8 @@ function showExplain(correct,kaisetsu,reading,ok){
   $('explain').style.display='block';
   try{$('explain').scrollIntoView({behavior:'smooth',block:'end'});}catch(e){try{$('explain').scrollIntoView(false);}catch(e2){}}
   if(ok===false&&_isEigo_())setTimeout(function(){try{_tkCoach_('ans',$('explain'));}catch(_e){}},80);
-  try{_wrAfterExplain_();}catch(_eW){}   /* ライティング編のポイント 2026-10-26 */   /* 間違えたときだけ・1日1回（§17s-6）。聞き取りの英文はこのあとで描かれるので少し待つ */
+  try{_wrAfterExplain_();}catch(_eW){}
+  try{_exAgain_();}catch(_eAg){}   /* 解説の枠に「もう一回聞く」をそろえる 2026-10-30 */   /* ライティング編のポイント 2026-10-26 */   /* 間違えたときだけ・1日1回（§17s-6）。聞き取りの英文はこのあとで描かれるので少し待つ */
 }
 /* 解説なぞり（下線が伸びる）2026-07-26：不正解時、解説を1文字ずつ span 化し、読み進む所に金の下線を左から流す。時間で自動進行（クリック不要）。次へボタンには触れない＝目線を解説に留める */
 var _kaiTId=null;var _kaiWaitMs=0; // _kaiWaitMs＝不正解の「つぎへ」解禁までの時間＝解説なぞりの所要時間に合わせる 2026-07-26
@@ -10718,7 +10807,7 @@ function _donePartSync_(s,nextPid){
   var el=$('done-part');if(!el)return;el.innerHTML='';
   if(!s||s.fromReview||s.mode==='srs'||s.mode==='note')return;
   var o=_partName_(s.listId);if(!o||!o.name)return;
-  var h='<div class="dp-m">'+esc(o.mat)+(o.grp?' ・ '+esc(o.grp):'')+'</div><div class="dp-p">'+_partNameHtml_(o,false)+'</div>';
+  var h='<div class="dp-m">'+esc(o.mat)+((o.grp&&!_hSame_(o.grp,o.name))?' ・ '+esc(o.grp):'')+'</div><div class="dp-p">'+_partNameHtml_(o,false)+'</div>';
   if(!s.quizMode){
     var e=_partIdx[String(s.listId)]||{},a=_matParts_[String(e.mid||'')]||[],k=-1;
     for(var i=0;i<a.length;i++){if(a[i].id===String(s.listId)){k=i;break;}}
@@ -10895,6 +10984,42 @@ function _qrvItem_(s,w,mine){
   }
   return {h:h,play:play};
 }
+/* ===== 解説の枠の「もう一回聞く」をそろえる（2026-10-30 川上さん「正解した場合でも、正答の英文の音声はもう一度聞くボタンを解説の枠にいれたい」）=====
+   英語の問題は、正解でも不正解でも、解説の枠（#ex-audio）に「もう一回聞く」を1つ出す。
+   形ごとの描き方（_sentAfterAudio_・_dfAfter_・renderPH_・_lxExplain_）がすでに .ex-spk を出しているものはそのまま（2つにしない）。
+   鳴らす中身は確認テストの見直し（_qrvItem_ の play）と同じ。mp3 の無い読解の答え・音を使わない形（pic_ja・opt_ja・読解の日本語の質問・ライティング）は出さない。
+   showExplain の最後から呼ぶ＝各形が #ex-audio を書き終わったあと（同期で書くので setTimeout 0 で足りる） */
+var _exCurS_=null;
+function _exPlayFor_(s,w){
+  var qt=String(w.qtype||''),X={q:{},pl:{}};try{X=_sentPack_(s,w)||X;}catch(e){}
+  var q=X.q||{},pl=X.pl||{};
+  if(_isLx_(w)){var md=String(q.mode||'');
+    if(md==='opt_ja'||md==='pic_ja')return null;
+    if(md==='pic_yn'){var l=((pl.lines||[])[0])||{};return (l.audio||(l.audios&&l.audios.length))?function(){_sentPlay_(l);}:null;}}
+  if(qt==='reading'){ if(String(q.kind||'')!=='rq')return null;
+    var c0=(q.choices||[])[0];c0=(c0&&typeof c0==='object')?c0:{en:String(c0==null?'':c0)};
+    var au=c0.audio||((pl.ans&&pl.ans[c0.en])||'');return au?function(){_sentPlay_({en:c0.en,audio:au});}:null; }
+  if(/^w_/.test(qt))return null;
+  if(['listen','sentence_fill','reorder','dialog_fill','listen_resp','listen_pic','listen_print','phonics'].indexOf(qt)>=0){
+    var it=null;try{it=_qrvItem_(s,w,'');}catch(e){}return (it&&it.play)||null; }
+  /* 単語・表・図（英語）＝枠の外の「音を聞く」と同じ音 */
+  if(w.english)return function(){speak(w);};
+  return null;
+}
+function _exAgain_(){
+  setTimeout(function(){ try{
+    if(!_isEigo_())return;
+    var s=_exCurS_||window.session; if(!s||!s.words)return; var w=s.words[s.idx]; if(!w)return;
+    var ex=$('explain'); if(!ex||ex.style.display==='none')return;
+    if(ex.querySelector('.ex-spk'))return;   /* 形ごとのボタンがある */
+    var play=_exPlayFor_(s,w); if(!play)return;
+    var xa=$('ex-audio'); if(!xa)return;
+    xa.insertAdjacentHTML('beforeend','<button type="button" class="ex-spk ex-again">'+_LX_IC_.vol+'<span>もう'+rb('一回','いっかい')+rb('聞','き')+'く</span></button>');
+    xa.style.display='';
+    var b=xa.querySelector('.ex-again'); if(b)b.onclick=function(){try{play();}catch(e){}};
+    var qt=String(w.qtype||''); if(!qt||qt==='table_fill'||qt==='image_fill'){try{hideListen_();}catch(e){}}   /* 単語・表・図は枠の外の「音を聞く」を隠す＝同じボタンを2つ出さない */
+  }catch(e){} },0);
+}
 function qrvDraw_(){
   try{_sentStop_();}catch(e){}
   var R=_qrv_,s=R.s,host=$('qrv-body');if(!s||!host)return;
@@ -10902,7 +11027,7 @@ function qrvDraw_(){
   var w=byId[String(R.ids[R.i])]||{},pk=(s._qrvPick||{}),mine=pk.hasOwnProperty(String(w.id))?pk[String(w.id)]:undefined;
   var it=_qrvItem_(s,w,mine),last=(R.i>=R.ids.length-1);
   host.innerHTML='<div class="qrv-top"><span>'+rb('見直','みなお')+'し <span class="num">'+(R.i+1)+' / '+R.ids.length+'</span></span><button type="button" class="qrv-x" id="qrv-x" aria-label="閉じる"><i class="ti ti-x"></i></button></div>'
-    +'<div class="qrv-card">'+it.h+'</div>'
+    +'<div class="qrv-card">'+((it.play&&it.h.indexOf('id="qrv-play"')<0)?_qrvAgain_():'')+it.h+'</div>'
     +'<button type="button" class="btn" id="qrv-nx" style="margin-top:12px;"><span>'+(last?(rb('見直','みなお')+'し'+rb('終','お')+'わり'):(rb('次','つぎ')+'へ'))+'</span></button>';
   $('qrv-x').onclick=qrvClose_;
   $('qrv-nx').onclick=function(){ if(last){qrvClose_();return;} R.i++; qrvDraw_(); window.scrollTo(0,0); };
@@ -10961,10 +11086,10 @@ function finishQuizSubmit_(){
     var r=d.data;
     if(r.passed){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+r.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';if(!_qzPre){sndWin();flash();confetti(120);}var _dgq2=$('done-guide-area');if(_dgq2)_dgq2.innerHTML=nextStepGuide_(true);}
     else{setDoneBadge_('accent');$('done-result').innerHTML='あと <b>'+Math.max(0,r.pass_line-r.latest_rate)+'</b>％で<ruby>合格<rt class="uf">ごうかく</rt></ruby>！ もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>受<rt class="uf">う</rt></ruby>けてみよう';}
-    var delta=(r.delta==null)?'<span style="background:#eef1f5;color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>初<rt class="uf">はじ</rt></ruby>めての<ruby>受験<rt class="uf">じゅけん</rt></ruby></span>'
+    var delta=(r.delta==null)?'<span style="background:var(--neutral-bg);color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>初<rt class="uf">はじ</rt></ruby>めての<ruby>受験<rt class="uf">じゅけん</rt></ruby></span>'
       :(r.delta>0?'<span style="background:rgba(31,170,107,.15);color:var(--ok);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>より ＋'+r.delta+'％</span>'
       :(r.delta<0?'<span style="background:rgba(224,83,60,.13);color:var(--ng);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>より '+r.delta+'％</span>'
-      :'<span style="background:#eef1f5;color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>と<ruby>同<rt class="uf">おな</rt></ruby>じ</span>'));
+      :'<span style="background:var(--neutral-bg);color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>と<ruby>同<rt class="uf">おな</rt></ruby>じ</span>'));
     var missHtml=_qzMiss; // 保存の前に作ってある（同じものを2回作らない）2026-09-02
     $('star-area').innerHTML='<div style="text-align:center;margin:6px 0 2px;">'+delta+'</div>'+missHtml;
   });
@@ -11756,6 +11881,7 @@ function verOnReturn_(){
 })();
 verInit_();
 try{shReadUrl_();}catch(e){} // QRの ?sheet=XXXX を覚えてURLから消す（ログイン前でも拾う）2026-09-01
+if(document.documentElement.classList.contains('kwt-bw'))bigWait_(true);   /* 先頭で出した読み込み中に、30秒で消える見張りを付ける */
 if(_qaGet_()){_qaLogin_();}   /* 名前入りの解答用紙の QR＝その子でログインしてから紙の画面（2026-10-20） */
 else if(_PV_&&_PV_.pid&&token){_pvStart_();}   /* 先生用プレビュー＝画面の復元をしない。openHome() の【あと】に showSub/showHomeTab が走るので、ここで分けないとホームに戻される 2026-09-09 */
 else if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}try{_ht=sessionStorage.getItem('kwt_htab');}catch(e){}openHome();try{if(shPendGet_()){showSub('sheet');}else if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}else if(_ht&&['daily','review','unit','ws'].indexOf(_ht)>=0){showHomeTab(_ht);}}catch(e){}} // 更新後は今の画面を復元：サブ画面(kwt_view)優先、なければホームのタブ(kwt_htab)。openHome内のbackToTiles()が復元キーを消すので必ず先に読む（川上さん 2026-07-06/24）
