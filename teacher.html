@@ -11780,6 +11780,7 @@ function _ppOtoWarm_(mid,pids){
 var _ppTest=false;
 function ppOpenTest_(){_ppTest=true;ppOpen_(true);}
 function ppOpen_(keep){
+  _ppCacheM={};   /* 窓を開くたびにシートの最新を読み直す（2026-10-30） */
   if(!keep)_ppTest=false;
   $('ppTtl').textContent=_ppTest?'📝 テストを単体で印刷':'📝 練習プリント';
   _ptOpen_();   /* テストを単体で印刷＝下半分をテストの表にする（2026-10-20） */
@@ -11806,14 +11807,21 @@ function ppOpen_(keep){
   call({action:'materials_list'}).then(function(d){ fill((d&&d.ok)?(d.data.materials||[]):[]); });
 }
 /* 範囲＝刷るパートを選ぶ（要件定義書 §1d ①・2026-10-17）。教材を選んだらその場で中身を読み、パートを並べる。
-   読んだ中身は _ppCache に取っておき、［PDFで保存］［印刷する］でそのまま使う（もう一度読まない）。 */
-var _ppCache={mid:'',data:null,p:null};
+   読んだ中身は _ppCacheM（教材ごと）に取っておき、［🖨 印刷］［⬇ PDF］でそのまま使う（もう一度読まない）。 */
+/* 2026-10-30 17:0x 川上さん「高速化してほしい」：前は1教材分しか覚えておらず、まとめて刷ると教材を1つずつ読み直していた
+   （本番で 3級単元別4教材＝読み込み約34秒・紙を組む計算は約2秒）。教材ごとに覚える。窓を開くたびに忘れる（ppOpen_）＝窓で選んだときのシートの最新で刷る */
+var _ppCacheM={};
+function _ppCacheOf_(mid){var c=_ppCacheM[mid];return c&&c.data?c.data:null;}
 function _ppLoad_(mid){
-  if(_ppCache.mid===mid&&(_ppCache.data||_ppCache.p)) return _ppCache.p||Promise.resolve({ok:true,data:_ppCache.data});
-  _ppCache={mid:mid,data:null,p:null};
-  var pr=call({action:'material_preview',material_id:mid,with_qdata:'1'}).then(function(d){ if(_ppCache.mid===mid){ _ppCache.p=null; if(d&&d.ok) _ppCache.data=d.data; } return d; });
-  _ppCache.p=pr; return pr;
+  var c=_ppCacheM[mid];
+  if(c&&(c.data||c.p)) return c.p||Promise.resolve({ok:true,data:c.data});
+  c=_ppCacheM[mid]={data:null,p:null};
+  var pr=call({action:'material_preview',material_id:mid,with_qdata:'1'}).then(function(d){ if(_ppCacheM[mid]===c){ c.p=null; if(d&&d.ok) c.data=d.data; else delete _ppCacheM[mid]; } return d; },function(e){ if(_ppCacheM[mid]===c) delete _ppCacheM[mid]; throw e; });
+  c.p=pr; return pr;
 }
+/* まだ読んでいない教材を同時に読む（4本ずつ）。まとめて刷るとき、1つずつ順番に待たない（2026-10-30） */
+function _ppLoadAll_(mids){var q=mids.filter(function(m){return !_ppIsWs_(m);}).slice(),run=function(){if(!q.length)return Promise.resolve();var m=q.shift();return _ppLoad_(m).then(run,run);};
+  var w=[];for(var i=0;i<4;i++)w.push(run());return Promise.all(w);}
 /* ===== 単元ワークシートの紙（練習プリントの窓で刷る・2026-10-18 段③）=====
    中身＝ws_app.js のモックの paper()（問題用紙＝#v-q・解答解説＝#v-a）をそのまま使う。範囲の選び方もモックの「印刷するところ」と同じ行。
    モックはブラウザの印刷の余白にページの上の帯（単元・パターン）と下の番号を描いていたが、［⬇ PDF］では出ないので、ページの中に描く（要件定義書 18:06）。
@@ -11840,7 +11848,7 @@ function _ppWsPrep_(mid,pid){
   return pr;
 }
 /* 範囲＝モックの「印刷するところ」（はじめに／パターンごとに Point・やさしい説明・WarmUp・Try・Exercise・Exercise＋／まとめ）。値は data-sel の名前 */
-function _ppWsTests_(mid){var d=_ppCache.mid===mid?_ppCache.data:null;if(!d)return null;var ps=d.parts||[];return ps.length&&ps.every(function(p){return /まとめテスト/.test(String(p.title||''));})?ps:null;}
+function _ppWsTests_(mid){var d=_ppCacheOf_(mid);if(!d)return null;var ps=d.parts||[];return ps.length&&ps.every(function(p){return /まとめテスト/.test(String(p.title||''));})?ps:null;}
 function _ppWsParts_(mid){
   /* 章まとめテストの教材（パートが全部テスト）＝テストを1つずつ選ぶ */
   _ppLoad_(mid).then(function(){var ts=_ppWsTests_(mid);if(!ts||$('ppMat').value!==mid)return;
@@ -12082,12 +12090,13 @@ function _ppMakeMulti_(how,opt){   /* opt＝テストを単体で印刷（2026-1
     return new Promise(function(r){setTimeout(r,30);}).then(function(){if(_ppStop)throw new Error('止めました');return _ppPagesOf_(mid,kd,dir,xref,opt.pk&&opt.pk[mid]);}).then(function(pgs){if(pgs.length)gs.push({mid:mid,pages:pgs});k++;return step();});};return step();};
   /* 束の中のページ番号（白紙は数えない）。教材が変わるとき、前の教材が奇数ページなら白紙をはさむ */
   var lay=function(gs){var out=[],no=0;gs.forEach(function(g,gi){g.pages.forEach(function(p){out.push({el:p,no:p.classList.contains('pp-blank')?0:++no});}); /* 教材の中の白紙（テストの前）は数えない */if(gi<gs.length-1&&g.pages.length%2===1)out.push({el:_ppBlankPg_(),no:0});  /* 解答用紙も白紙をはさむ（2026-10-19 17:03 川上さん「はさむ」。前は解答用紙だけはさまなかった） */});return out;};
-  var pre=(kind==='a')?build('q',null,'問題用紙のページを数えています… ').then(function(qs){
+  $('ppStat').textContent='教材の中身を読み込んでいます…';
+  var pre=_ppLoadAll_(sel).then(function(){return (kind==='a')?build('q',null,'問題用紙のページを数えています… ').then(function(qs){
     var qp={},xk={},rng=function(a,b){return a===b?('問題用紙 P'+a):('問題用紙 P'+a+'〜'+b);};
     lay(qs).forEach(function(o){if(!o.no)return;[].slice.call(o.el.querySelectorAll('[data-xi]')).forEach(function(e){var x=e.getAttribute('data-xi');if(!qp[x])qp[x]=o.no;var b=x.split('#')[0];xk[b]=xk[b]||[o.no,o.no];xk[b][0]=Math.min(xk[b][0],o.no);xk[b][1]=Math.max(xk[b][1],o.no);});
       [].slice.call(o.el.querySelectorAll('[data-xk]')).forEach(function(e){var b=e.getAttribute('data-xk');xk[b]=xk[b]||[o.no,o.no];xk[b][0]=Math.min(xk[b][0],o.no);xk[b][1]=Math.max(xk[b][1],o.no);});});
     var xref={};Object.keys(xk).forEach(function(b){xref[b]=rng(xk[b][0],xk[b][1]);});
-    return {qp:qp,xref:xref,rng:rng};}):Promise.resolve(null);
+    return {qp:qp,xref:xref,rng:rng};}):Promise.resolve(null);});
   pre.then(function(X){return build(kind,X?X.xref:null,'').then(function(gs){groups=gs;return X;});}).then(function(X){
     if(!groups.length){$('ppErr').textContent=kind==='s'?'解答用紙は、テストを選んだときに刷れます':'刷る所を1つ以上選んでください';fin('');return;}
     var host=$('printArea');host.innerHTML='';var blank=0,L=lay(groups);if(opt.post)L=opt.post(L)||L;var real=L.filter(function(o){return o.no;}).length;
@@ -12158,7 +12167,7 @@ function ppMake_(how){
   if(_ppIsWs_(mid)){ _ppWsMake_(mid,how,fin); return; } /* 単元ワークシートの紙 2026-10-18 */
   if(picked&&!Object.keys(picked).length){ $('ppErr').textContent='刷るパートを1つ以上選んでください'; fin(''); return; }
   _ppLoad_(mid).then(function(d){
-    if(!d||!d.ok){ _ppCache={mid:'',data:null,p:null}; $('ppErr').textContent='読み込めませんでした：'+((d&&d.error)||'通信に失敗しました'); fin(''); return; }
+    if(!d||!d.ok){ delete _ppCacheM[mid]; $('ppErr').textContent='読み込めませんでした：'+((d&&d.error)||'通信に失敗しました'); fin(''); return; }
     var dt=d.data, parts=(dt.parts||[]).filter(function(p){return !picked||picked[String(p.part_id)];});
     var hasQ=parts.some(function(p){return (p.words||[]).some(function(w){return w.qdata!==undefined;});});
     if(!hasQ&&parts.some(function(p){return (p.words||[]).length;})){ $('ppErr').textContent='サーバー（GAS）の更新がまだです。GASを再デプロイしてから、もう一度押してください。'; fin(''); return; }
