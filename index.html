@@ -2880,7 +2880,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-30a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-30b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3276,6 +3276,8 @@ function shReadUrl_(){
    ほかの子がログインしていたら切り替える（前の子の送っていない記録は doLogout_ が先に送る）。同じ子ならログインし直さない（学習の途中を消さない）。
    ［ちがう］のあとは紙の番号（W…）だけが残る＝ログインし直した子で同じ確かめの画面。専用の鍵でもう一度ログインはしない。
    刷った日から30日を過ぎた紙は、ログインせずに「この紙は古いので記録できません」。 */
+var _qaSheet_=null;
+function _qaPre_(v){ var x=_qaSheet_; _qaSheet_=null; var n=function(c){return String(c||'').toUpperCase().replace(/[^0-9A-Z]/g,'');}; if(x&&n(x.code)===n(v))return Promise.resolve({ok:true,data:x}); return null; }
 function _qaGet_(){ try{ return sessionStorage.getItem('kwt_sheet_qa')||''; }catch(e){ return ''; } }
 function _qaLogin_(){
   var key=_qaGet_(); try{ sessionStorage.removeItem('kwt_sheet_qa'); }catch(e){}
@@ -3289,6 +3291,7 @@ function _qaLogin_(){
     if(!had) $('login-err').textContent='';
     if(_netNG_(d)){ ng((d&&d.error)||'紙の QR を読めませんでした。もう一度読むか、ログインしてから番号を入れてください。'); return; }
     shPendSet_(String(d.data.code||'')); shPendLisSet_(false);
+    _qaSheet_=d.data.sheet||null;   /* 紙の中身もログインの返事に入っている（2026-10-30）＝shOpen_ が sheet_open をもう一度呼ばない */
     if(had&&mySid&&String(d.data.student.id)===mySid){ openHome(); showSub('sheet'); return; }   /* 同じ子＝そのまま */
     if(had){ try{ doLogout_(); }catch(e){} shPendSet_(String(d.data.code||'')); }
     _loginApply_(d);
@@ -3334,7 +3337,7 @@ function shOpen_(){
   if(!btn)return;
   shMsg_('');
   btn.disabled=true; btn.innerHTML=kwtSpin(18)+'<span style="vertical-align:middle"> '+rb('読','よ')+'み'+rb('込','こ')+'み'+rb('中','ちゅう')+'…</span>';
-  call({action:'sheet_open',code:v}).then(function(d){
+  (_qaPre_(v)||call({action:'sheet_open',code:v})).then(function(d){
     btn.disabled=false; btn.innerHTML='<span>'+rb('開','ひら')+'く</span> <i class="ti ti-arrow-right"></i>';
     if(_netNG_(d)){ shMsg_(d&&d.error?esc(d.error):_NET_NG_MSG_); return; }
     if(d.data&&d.data.ws){ shWsChoose_(d.data); return; }   /* 段⑤：ワークシートのテストの解答用紙（全員同じ紙） */
@@ -9410,7 +9413,7 @@ function _lxPickMount_(s,w,ok2,needListen){
   var pk=document.createElement('div');pk.className='lx-pick';
   var nxt='<span class="lx-pgo">'+_jaRubyIf_('次へ')+' <i class="ti ti-arrow-right"></i></span>';
   pk.innerHTML='<div class="lx-pq">'+_jaRubyIf_('英文を読んで、どうだった？')+'<small>'+_jaRubyIf_('選ぶと、次の問題へ進む')+'</small></div>'
-    +(needListen?'<div class="lx-pw">'+_jaRubyIf_('↑「英文を見ながら聞く」を最後まで聞くと押せる')+'</div>':'')
+    +(needListen?'<div class="lx-pw">'+_jaRubyIf_('↑「もう一回聞く」を最後まで聞くと押せる')+'</div>':'')
     +'<button type="button" data-v="read" disabled><span>'+_jaRubyIf_('英文を読んだら分かった')+'</span>'+nxt+'</button>'
     +'<button type="button" data-v="word" disabled><span>'+_jaRubyIf_('読んでも分からない語があった')+'</span>'+nxt+'</button>';
   acts.insertBefore(pk,nx);acts.classList.add('lx-picking');nx.style.display='none';
@@ -9451,7 +9454,7 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
   });
   /* 【2026-09-25 川上さん「3 ア」】選び直した問題は、押すまで次へ進めないので、ボタンの上に1行だけ案内する */
   /* 【2026-10-11 案A】「押して、英文を見ながらもう一度聞こう」の1行はやめた（答えのボタンの上の1行と同じことを言うため） */
-  xh+='<button type="button" class="ex-spk lx-again" id="lx-wt">'+_LX_IC_.play+'<span><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>見<rt class="uf">み</rt></ruby>ながら<ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';
+  xh+='<button type="button" class="ex-spk lx-again" id="lx-wt">'+_LX_IC_.vol+'<span>もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>く</span></button>';   /* 2026-10-30 川上さん：解説の枠のボタンはどの形も「もう一回聞く」にそろえる（前は「英文を見ながら聞く」。押すと読んでいる行に色が付くのは同じ） */
   /* 【2026-10-11 案A】「英文を読んで、どうだった？」の2つは「次へ」の場所に出す（_lxPickMount_） */
 
 
