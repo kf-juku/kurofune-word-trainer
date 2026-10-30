@@ -1352,6 +1352,32 @@
   .dtiles.play .dtile:nth-child(1){animation-delay:.05s;}
   .dtiles.play .dtile:nth-child(2){animation-delay:.19s;}
   .dtiles.play .dtile:nth-child(3){animation-delay:.33s;}
+  /* ===== 完了画面のはんこと演出（2026-10-31 川上さん承認・生徒UI_02 §15-1・§24。見本＝20261030_モック_完了の演出.html） ===== */
+  :root{--hk-r:#d93025;--hk-g:#15803d;--hk-y:#b8892a;--hk-bg:rgba(255,255,255,.8);}
+  [data-theme="dark"]{--hk-r:#ff6b5e;--hk-g:#3ad08a;--hk-y:#e3c477;--hk-bg:rgba(22,26,35,.85);}
+  .done-ic.dfx-st{width:62px;height:62px;background:none!important;animation:none;}
+  .dfx-hk{width:62px;height:62px;flex:none;border:4px solid var(--c);border-radius:50%;color:var(--c);display:flex;align-items:center;justify-content:center;transform:rotate(-14deg);background:var(--hk-bg);box-sizing:border-box;}
+  .dfx-hk span{font-size:var(--fs,16px);font-weight:900;letter-spacing:1px;border-top:2px solid var(--c);border-bottom:2px solid var(--c);padding:1px 3px;line-height:1.2;white-space:nowrap;}
+  .dfx-hk.r{--c:var(--hk-r)}.dfx-hk.g{--c:var(--hk-g)}.dfx-hk.y{--c:var(--hk-y)}
+  .dfx-hk.pop{animation:dfxHk .55s cubic-bezier(.2,1.4,.5,1) .1s both}.dfx-hk.hide{opacity:0}
+  @keyframes dfxHk{0%{transform:rotate(-14deg) scale(2.6);opacity:0}60%{transform:rotate(-14deg) scale(.88);opacity:1}100%{transform:rotate(-14deg) scale(1);opacity:1}}
+  .dtiles.dfx-seq .dtile{animation:none!important;opacity:0}
+  .dtiles.dfx-seq .dtile.go{animation:dfxTile .5s cubic-bezier(.2,1.6,.4,1) forwards!important}
+  @keyframes dfxTile{0%{opacity:0;transform:translateY(24px) scale(.6)}60%{opacity:1;transform:translateY(-8px) scale(1.08)}100%{opacity:1;transform:none}}
+  .done-card{position:relative;}
+  .dfx-ring{position:absolute;left:12px;top:50%;width:80px;height:80px;margin-top:-40px;border-radius:50%;border:3px solid var(--hk-g);opacity:0;pointer-events:none}
+  .dfx-ring.go{animation:dfxRing .7s ease-out forwards}
+  @keyframes dfxRing{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(1.9)}}
+  .dfx-shake{animation:dfxShake .38s ease-out}
+  @keyframes dfxShake{0%{transform:translate(0,0)}15%{transform:translate(-7px,4px)}30%{transform:translate(6px,-5px)}45%{transform:translate(-5px,3px)}60%{transform:translate(4px,-2px)}75%{transform:translate(-2px,1px)}100%{transform:none}}
+  .dfx-big{position:fixed;left:50%;top:42%;z-index:70;pointer-events:none;transform-origin:center}
+  .dfx-big .dfx-hk{width:170px;height:170px;border-width:9px;background:var(--hk-bg);box-shadow:0 10px 40px rgba(0,0,0,.25)}
+  .dfx-big .dfx-hk span{font-size:var(--bfs,40px);border-top-width:4px;border-bottom-width:4px;padding:2px 8px}
+  .dfx-dim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}.dfx-dim.on{opacity:1}
+  .dfx-pbg{display:inline-flex;align-items:center;gap:6px;margin-top:6px;background:linear-gradient(135deg,rgba(202,162,74,.18),rgba(202,162,74,.06));color:var(--gold);border:1px solid rgba(202,162,74,.45);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:800}.dfx-pbg b{font-family:Manrope}
+  .dfx-pbg.go{animation:dfxPbIn .6s cubic-bezier(.2,1.5,.4,1) both}
+  @keyframes dfxPbIn{0%{transform:scale(0) rotate(-10deg);opacity:0}100%{transform:none;opacity:1}}
+  .dfx-cp{position:fixed;left:0;top:0;width:9px;height:13px;z-index:62;pointer-events:none;border-radius:2px}
   @keyframes dtilePop{to{opacity:1;transform:none;}}
   .dtile .dtl{font-size:10px;font-weight:700;padding:4px 0;margin-bottom:7px;color:#fff;}
   .dtile .dtv{font-family:"Manrope";font-weight:800;font-size:19px;line-height:1;}
@@ -2880,7 +2906,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-30b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-31a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3039,7 +3065,7 @@ var _prevScr='';
 /* 画面を切り替えるところ。アプリの自動更新のフックを2つだけ足している（2026-08-21 川上さん指摘）
    ・学習を始めた瞬間＝解いている数分のあいだに裏で新しい版がないか見ておく（入れ替えはしない）
    ・完了画面からホームに戻った直後＝1つ終わって画面が切り替わる瞬間なので、ここで入れ替えるのが一番ストレスが小さい */
-function show(scr){try{_gdTipClose_();}catch(eGt){}try{if(_ptHidden_)_ptRestore_();}catch(e){}var _p=_prevScr;_prevScr=scr;try{var _sf=$('sfmask');if(_sf)_sf.classList.remove('on');}catch(e){} /* ②のシートを持ち越さない 2026-09-06 */try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */try{if(scr!=='scr-practice')comboBreak_();}catch(eCb){}try{if(scr!=='scr-practice'){_rdxReset_();_rdxFloat_(false);}}catch(eRx){}document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');try{_miniSync_();}catch(eMb){}if(scr==='scr-login'){try{bigWait_(false);}catch(eBw){}}document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
+function show(scr){try{_gdTipClose_();}catch(eGt){}try{if(_ptHidden_)_ptRestore_();}catch(e){}var _p=_prevScr;_prevScr=scr;try{var _sf=$('sfmask');if(_sf)_sf.classList.remove('on');}catch(e){} /* ②のシートを持ち越さない 2026-09-06 */try{_nowBarSync_(null);}catch(e){} /* 読み込み中に前の学習の帯を残さない 2026-08-21⑬ */try{if(scr!=='scr-practice')comboBreak_();}catch(eCb){}try{if(scr!=='scr-practice'){_rdxReset_();_rdxFloat_(false);}}catch(eRx){}try{if(scr!=='scr-done')_dfxClear_();}catch(eDx){}document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});$(scr).classList.add('active');try{_miniSync_();}catch(eMb){}if(scr==='scr-login'){try{bigWait_(false);}catch(eBw){}}document.body.classList.toggle('on-home',scr==='scr-home');window.scrollTo(0,0);try{refreshBugFab();}catch(e){}try{rbFloatSync_();}catch(e){}try{if(scr==='scr-practice')verLook_(VER_MIN_MS);}catch(e){}try{if(scr==='scr-home'&&_p==='scr-done')setTimeout(function(){try{verApply_();}catch(e){}},400);}catch(e){}}
 /* 学習マップのパート行のメタ：前回合格日・正答率・おさらいの進み（GAS material_parts が per-part で返す）2026-07-26 */
 function _mapMetaHtml_(l){
   if(!l||!l.last_pass_date)return ''; // 合格していないパートは出さない
@@ -3936,7 +3962,7 @@ var CALL_TIMEOUT_MS=35000; /* 【2026-08-21⑮】20秒だと間違いノート(m
    ・通信の失敗（fetch の失敗）・時間切れの扱いは変えていない。
    ★action を足したら、読むだけなら CALL_SAFE_RE_ に足す（単体テスト 20260916d が分類漏れを見張る）。
    ★complete_extras は書き込みも含むが、いままでも取り直していて、二重になっても分析用の数だけなので一覧に入れた。 */
-var CALL_SAFE_RE_=/^(student_login|student_home|student_today|review_due|mistake_set|notes_summary|material_parts|ws_unit|quiz_list|quiz_words|badges|advisor_summary|overall_counter|team_feed|trio_stars|star_received|shooting_star|notice_mine|nickname_status|icon_unlocks|sheet_open|sheet_grade|complete_extras)$/;
+var CALL_SAFE_RE_=/^(part_prev_scores|student_login|student_home|student_today|review_due|mistake_set|notes_summary|material_parts|ws_unit|quiz_list|quiz_words|badges|advisor_summary|overall_counter|team_feed|trio_stars|star_received|shooting_star|notice_mine|nickname_status|icon_unlocks|sheet_open|sheet_grade|complete_extras)$/;
 function _callBadReply_(d){
   if(!d||typeof d!=='object')return true;
   return !!(d.ok===true&&d.data&&typeof d.data==='object'&&d.data.method==='GET'&&d.data.service);
@@ -4180,7 +4206,7 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(M
 var _SYM_ORD_='アイウエオカキクケコサシスセソタチツテト①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 function _isSymCh_(x){x=String(x==null?'':x).trim();return x.length===1&&_SYM_ORD_.indexOf(x)>=0;}
 function _symOrder_(arr){if(!arr||!arr.length||!arr.every(_isSymCh_))return arr;return arr.slice().sort(function(p,q){return _SYM_ORD_.indexOf(String(p).trim())-_SYM_ORD_.indexOf(String(q).trim());});}
-function animNum(el,to,dur){if(document.hidden){el.textContent=Math.round(to||0);return;} /* 裏タブ/非表示はrAFが止まり数字が0で残るので最終値を即表示 2026-07-27 */ var st=performance.now();function f(t){var p=Math.min(1,(t-st)/(dur||900));el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f);}requestAnimationFrame(f);}
+function animNum(el,to,dur){if(document.hidden){el.textContent=Math.round(to||0);return;} /* 裏タブ/非表示はrAFが止まり数字が0で残るので最終値を即表示 2026-07-27 */ var st=performance.now(),tok=(el._anTok=(el._anTok||0)+1);function f(t){if(el._anTok!==tok)return;var p=Math.min(1,(t-st)/(dur||900));el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f);}requestAnimationFrame(f);}
 
 /* テーマ：端末設定に追従＋手動切替 */
 (function(){
@@ -4255,8 +4281,134 @@ function sndCombo_(n){
     if(n>=10){setTimeout(function(){beep(1760*k,0.18,'sine',0.18);},270);setTimeout(function(){beep(2093*k,0.26,'sine',0.14);},350);}
   }
 }
-function sndWhoosh_(){try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();var c=audioCtx;if(!_kwtNoise){_kwtNoise=c.createBuffer(1,Math.floor(c.sampleRate*2),c.sampleRate);var dd=_kwtNoise.getChannelData(0);for(var i=0;i<dd.length;i++)dd[i]=Math.random()*2-1;}var s=c.createBufferSource();s.buffer=_kwtNoise;var bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.2;var g=c.createGain();s.connect(bp);bp.connect(g);g.connect(c.destination);var t=c.currentTime;bp.frequency.setValueAtTime(400,t);bp.frequency.exponentialRampToValueAtTime(3200,t+0.28);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.35,t+0.08);g.gain.exponentialRampToValueAtTime(0.0001,t+0.34);s.start(t);s.stop(t+0.4);}catch(e){}}
+/* sndWhoosh_ は下の DFX（完了画面の演出）に移した＝低めの「フォン」2026-10-31 */
 function sndShatter_(){beep(90,0.22,'sine',0.5);for(var i=0;i<7;i++){(function(k){setTimeout(function(){beep(2200+Math.random()*2600,0.08,'triangle',0.12);},k*35);})(i);}}
+/* ===== 完了画面のはんこと演出（2026-10-31 川上さん承認＝生徒UI_02 §15-1・§24）=====
+   見本＝KWT 直下 20261030_モック_完了の演出.html（動きと音はこの見本が正）。音の作り方の元＝20261030_聞く_演出の音_ぜんぶ.html
+   はんこ＝緑「完了」／赤「合格」／金「全問正解」「卒業」「クリア」。青スマイル（途中・不合格）は今のまま。
+   段＝下（完了）・中（合格・全問正解・卒業）・自己ベスト・上（クリア＝画面全体）。
+   音＝はんこ「ぼんっ」・大きなはんこ「ぼーんっ」＋和太鼓（録音）・帯「フォン」・教材クリアはトランペット（録音）。
+   鳴らさない＝クラッカー・3タイル・PERFECT のあとのコンボの音。ピロロン（sndWin）は全部の場面。 */
+var DFX=(function(){
+  var ac=null,master=null;
+  function ctx(){if(ac)return ac;ac=new (window.AudioContext||window.webkitAudioContext)();
+    var comp=ac.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=3;comp.attack.value=.003;comp.release.value=.2;comp.connect(ac.destination);
+    master=ac.createGain();master.gain.value=.9;master.connect(comp);return ac;}
+  function noiseBuf(sec,pink){var n=Math.floor(ac.sampleRate*sec),b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0),b0=0,b1=0,b2=0;for(var i=0;i<n;i++){var w=Math.random()*2-1;if(pink){b0=.99765*b0+w*.0990460;b1=.96300*b1+w*.2965164;b2=.57000*b2+w*1.0526913;d[i]=(b0+b1+b2+w*.1848)*.2;}else d[i]=w;}return b;}
+  function osc(type,f0,f1,t0,dur,vol,dst,att){var o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(f0,t0);if(f1)o.frequency.exponentialRampToValueAtTime(f1,t0+dur);g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+(att||.004));g.gain.exponentialRampToValueAtTime(.0001,t0+dur);o.connect(g);g.connect(dst);o.start(t0);o.stop(t0+dur+.05);}
+  function nz(t0,dur,vol,type,f0,f1,q,dst,att,pink,pan0,pan1){var s=ac.createBufferSource();s.buffer=noiseBuf(dur+.1,pink);var f=ac.createBiquadFilter();f.type=type;f.Q.value=q||.7;f.frequency.setValueAtTime(f0,t0);if(f1)f.frequency.exponentialRampToValueAtTime(f1,t0+dur);var g=ac.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+(att||.003));g.gain.exponentialRampToValueAtTime(.0001,t0+dur);var last=g;if(pan0!=null&&ac.createStereoPanner){var p=ac.createStereoPanner();p.pan.setValueAtTime(pan0,t0);p.pan.linearRampToValueAtTime(pan1,t0+dur);g.connect(p);last=p;}s.connect(f);f.connect(g);last.connect(dst);s.start(t0);s.stop(t0+dur+.1);}
+  function out(n){var g=ac.createGain();g.gain.value=n;g.connect(master);return g;}   /* n＝聞き比べのページの音量（NORM）*/
+  function popCore(t,f0,f1,dur,vol,dst,type){var o=ac.createOscillator(),g=ac.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur*.35);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.003);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(dst);o.start(t);o.stop(t+dur+.02);}
+  function modal(t,f,ratios,decs,amps,vol,dst){ratios.forEach(function(r,i){var o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f*r;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol*amps[i],t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+decs[i]);o.connect(g);g.connect(dst);o.start(t);o.stop(t+decs[i]+.02);});}
+  function marimba(t,f,vol,dst){modal(t,f,[1,3.9,9.2],[.55,.12,.05],[1,.35,.12],vol,dst);nz(t,.012,vol*.3,'bandpass',f*4,null,2,dst,.001);}
+  function lowNz(t,dur,vol,f0,f1,d){nz(t,dur,vol,'lowpass',f0,f1,.6,d,.004,true);}
+  function go(f){try{ctx();if(ac.state==='suspended')ac.resume();f(ac.currentTime);}catch(e){}}
+  var A={};
+  /* はんこ（完了・自己ベスト）＝まるく低い「ぼんっ」 */
+  A.pon=function(){go(function(t){var d=out(2.132);popCore(t,230,110,.22,.8,d,'sine');lowNz(t,.04,.2,600,250,d);});};
+  /* 大きなはんこ＝「ぼーんっ」＋和太鼓（録音） */
+  A.don=function(){go(function(t){var d=out(1.524);popCore(t,170,75,.38,.95,d,'sine');osc('sine',62,48,t,.45,.5,d,.008);lowNz(t,.07,.35,700,220,d);});A.file('img/sfx/big_stamp.mp3',1,0);};
+  /* 帯（CLEAR!・PERFECT!・コンボのカットイン）＝低めの「フォン」 */
+  A.whoosh=function(){go(function(t){var d=out(1.6);nz(t,.36,.6,'bandpass',260,1300,1.2,d,.09,true,-.6,.6);osc('sine',110,200,t+.03,.3,.12,d,.08);});};
+  /* コンボの3段目（20・30・40…）＝駆け上がる「ピロロロッ」＋「キン」 */
+  A.combo3=function(){go(function(t){var d=out(.8);[784,988,1175,1568,1976,2349].forEach(function(f,i){osc('triangle',f,null,t+i*.06,.22,.22,d,.004);});marimba(t+.4,2093,.35,d);marimba(t+.4,3136,.2,d);});};
+  A.file=function(u,vol,lead){try{var a=new Audio(u);a.volume=(vol==null?1:vol);if(lead)a.addEventListener('loadedmetadata',function(){try{a.currentTime=lead;}catch(e){}});var p=a.play();if(p&&p.catch)p.catch(function(){});}catch(e){}};
+  A.fanfare=function(){A.file('img/sfx/clear_fanfare.mp3',.3,.04);};   /* 教材クリア・全部クリア＝トランペット（音量0.3） */
+  return A;
+})();
+/* 帯の音は「フォン」に差し替え（コンボのカットイン・デイリークリアも同じ音）2026-10-31 */
+function sndWhoosh_(){DFX.whoosh();}
+
+var _dfxT=[];function _dfxClear_(){_dfxT.forEach(clearTimeout);_dfxT=[];try{document.querySelectorAll('.dfx-big,.dfx-cp,#dfx-full,.dfx-l,.dfx-ring').forEach(function(e){e.remove();});var d=$('dfx-dim');if(d)d.classList.remove('on');var sc=$('scr-done');if(sc)sc.classList.remove('dfx-shake');}catch(e){}}
+/* 自己ベストの札は次の完了画面に残さない（完了画面は使い回し）*/
+function dfxResetCard_(){_dfxClear_();try{document.querySelectorAll('.dfx-pbg').forEach(function(e){e.remove();});}catch(e){}}
+function _dfxAt_(f,ms){_dfxT.push(setTimeout(f,ms));}
+/* はんこの中身。kind＝'g'|'r'|'y'、t＝文字 */
+function dfxStampHtml_(kind,t,cls){var fs=t.length>=4?'12.5px':(t.length===3?'14px':'17px');return '<div class="dfx-hk '+kind+' '+(cls||'')+'" style="--fs:'+fs+'"><span>'+t+'</span></div>';}
+var DFX_ST={'完了':'g','合格':'r','全問正解':'y','卒業':'y','クリア':'y'};
+/* 結果カードのはんこを置く（見えない状態）。返り値＝はんこの要素 */
+function dfxSetStamp_(t){var b=$('done-badge');if(!b)return null;b.style.display='';b.classList.remove('dib-gold','dib-ok','dib-accent');b.classList.add('dfx-st');
+  b.innerHTML=dfxStampHtml_(DFX_ST[t]||'g',t,'hide');return b.firstChild;}
+function dfxShowStamp_(pop){var b=$('done-badge');var s=b&&b.firstChild;if(!s||!s.classList)return;s.classList.remove('hide');if(pop){s.classList.remove('pop');void s.offsetWidth;s.classList.add('pop');}}
+/* 3タイルは1枚ずつ1回だけ跳ねる（今の本番の出る動きと重ねない） */
+var _dfxKeepTiles=false,_dfxBestShown=false;
+function dfxTiles_(){var t=$('dtiles');if(!t||_dfxKeepTiles)return;t.classList.remove('play');t.classList.add('dfx-seq');[].slice.call(t.children).forEach(function(e,i){_dfxAt_(function(){e.classList.add('go');},i*170);});}
+function _dfxLines_(host){var h='';for(var i=0;i<7;i++)h+='<i class="eca-line" style="top:'+(18+i*11)+'%;width:'+(30+Math.random()*40)+'%;animation-delay:'+(i*40)+'ms"></i>';host.insertAdjacentHTML('beforeend',h);}
+function _dfxLayer_(D){var el=document.createElement('div');el.className='ec dfx-l';el.innerHTML='<div class="ec-dim" style="--d:'+D+'ms"></div>';document.body.appendChild(el);_dfxAt_(function(){el.remove();},D+120);return el;}
+/* 左右の下からクラッカー（音なし・10-30 決定） */
+function dfxCannons_(n){var cs=['#caa24a','#f5d77a','#0a6cff','#1faa6b','#e0533c','#9b6dd6','#ffffff'],W=innerWidth,H=innerHeight,ps=[];
+  [0,1].forEach(function(side){for(var i=0;i<n;i++){var e=document.createElement('i');e.className='dfx-cp';e.style.background=cs[i%cs.length];document.body.appendChild(e);var a=(side?-1:1)*(0.35+Math.random()*0.5),sp=11+Math.random()*9;ps.push({e:e,x:side?W-6:6,y:H-70,vx:Math.sin(a)*sp,vy:-Math.cos(a)*sp*1.25,r:Math.random()*360,vr:(Math.random()-.5)*30,t:0});}});
+  var step=function(){var alive=0;ps.forEach(function(p){if(p.t>140){if(p.e.parentNode)p.e.remove();return;}p.t++;p.vy+=0.32;p.vx*=0.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;p.e.style.transform='translate('+p.x+'px,'+p.y+'px) rotate('+p.r+'deg)';alive++;});if(alive)requestAnimationFrame(step);};requestAnimationFrame(step);}
+function _dfxDim_(){var d=$('dfx-dim');if(!d){d=document.createElement('div');d.id='dfx-dim';d.className='dfx-dim';document.body.appendChild(d);}return d;}
+/* 真ん中に大きなはんこ → 結果カードへ縮んで収まる */
+function _dfxBig_(t,then){if(!Element.prototype.animate){dfxShowStamp_(true);DFX.pon();if(then)then();return;}var d=_dfxDim_();d.classList.add('on');var L=document.createElement('div');L.className='ec dfx-l';L.style.zIndex=61;document.body.appendChild(L);_dfxLines_(L);_dfxAt_(function(){L.remove();},900);
+  var w=document.createElement('div');w.className='dfx-big';var len=t.length;w.innerHTML=dfxStampHtml_(DFX_ST[t]||'y',t).replace('style="','style="--bfs:'+(len>=4?'30px':(len===3?'36px':'44px'))+';');document.body.appendChild(w);
+  w.animate([{transform:'translate(-50%,-50%) scale(3)',opacity:0},{transform:'translate(-50%,-50%) scale(.9)',opacity:1,offset:.6},{transform:'translate(-50%,-50%) scale(1)',opacity:1}],{duration:380,easing:'cubic-bezier(.2,1.2,.5,1)',fill:'forwards'});
+  var scr=$('scr-done');
+  _dfxAt_(function(){DFX.don();if(scr){scr.classList.remove('dfx-shake');void scr.offsetWidth;scr.classList.add('dfx-shake');}try{flash();}catch(e){}},300);
+  _dfxAt_(function(){var b=$('done-badge');var r=b?b.getBoundingClientRect():{left:innerWidth/2-31,top:innerHeight*0.42-31};var k=62/170;
+    w.animate([{transform:'translate(-50%,-50%) scale(1)'},{transform:'translate('+(r.left+31-innerWidth/2)+'px,'+(r.top+31-innerHeight*0.42)+'px) translate(-50%,-50%) scale('+k+')'}],{duration:420,easing:'cubic-bezier(.5,0,.3,1)',fill:'forwards'});d.classList.remove('on');},900);
+  _dfxAt_(function(){w.remove();dfxShowStamp_(false);DFX.pon();if(then)then();},1330);}
+/* 演出を流す。lv＝'done'|'mid'|'perfect'|'clear'。t＝はんこの文字。opt.ttl＝クリアの画面の文字 */
+/* 点数の数え上がり（4点ごとに「チッチッ」）*/
+function dfxCount_(to,ms){var el=$('score-anim');if(!el||to==null)return;var tok=(el._anTok=(el._anTok||0)+1);if(document.hidden){el.textContent=Math.round(to);return;}var t0=performance.now(),last=-1;var f=function(n){if(!el.isConnected||el._anTok!==tok)return;var k=Math.min(1,(n-t0)/ms),v=Math.round(to*(1-Math.pow(1-k,3)));el.textContent=v;if(v!==last&&v%4===0&&v>0){try{sndTick();}catch(e){}}last=v;if(k<1)requestAnimationFrame(f);};requestAnimationFrame(f);}
+function dfxPlay_(lv,t,opt){opt=opt||{};_dfxClear_();dfxSetStamp_(t);window._dfxT0=performance.now();
+  var sc=opt.score;var tl=$('dtiles');
+  /* すでに跳ね終わったタイル（先に描いた画面・古い動きで出たもの）は跳ね直さない */
+  _dfxKeepTiles=!!(tl&&((tl.classList.contains('dfx-seq')&&tl.querySelector('.go'))||(tl.classList.contains('play')&&performance.now()-(tl._t0||0)>250)));
+  if(tl&&!_dfxKeepTiles){tl.classList.remove('play');tl.classList.add('dfx-seq');[].slice.call(tl.children).forEach(function(e){e.classList.remove('go');});}
+  /* 中の段・全問正解は、はんこが着地してから点数を数え上がる（それまで0）*/
+  if(sc!=null&&(lv==='mid'||lv==='perfect')){var se0=$('score-anim');if(se0){se0._anTok=(se0._anTok||0)+1;se0.textContent='0';}}
+  if(lv==='done'){
+    _dfxAt_(function(){dfxShowStamp_(true);},50);
+    _dfxAt_(function(){DFX.pon();var c=document.querySelector('#scr-done .done-card');if(c){var r=document.createElement('div');r.className='dfx-ring go';c.appendChild(r);_dfxAt_(function(){r.remove();},800);}},330);
+    _dfxAt_(function(){dfxCount_(sc,600);},450);
+    _dfxAt_(dfxTiles_,700);
+    _dfxAt_(function(){try{sndWin();}catch(e){}try{confetti(120);}catch(e){}},1100);
+  }else if(lv==='mid'){
+    _dfxBig_(t,function(){dfxCount_(sc,600);dfxTiles_();dfxCannons_(36);try{confetti(60);}catch(e){}try{sndWin();}catch(e){}});
+  }else if(lv==='perfect'){
+    var el=_dfxLayer_(1000);_dfxLines_(el);el.insertAdjacentHTML('beforeend','<div class="eca-band"></div><div class="eca-txt">PERFECT!</div>');DFX.whoosh();
+    _dfxAt_(function(){_dfxBig_(t,function(){dfxCount_(sc,600);dfxTiles_();dfxCannons_(40);try{confetti(120);}catch(e){}try{sndWin();}catch(e){}});},950);
+  }else if(lv==='best'){
+    /* 自己ベスト：はんこ（完了）→ 数え上がり → タイル → 700ms で金の数字（見本の best と同じ順）*/
+    _dfxBestShown=true;
+    _dfxAt_(function(){dfxShowStamp_(true);DFX.pon();dfxCount_(sc,500);},50);
+    _dfxAt_(dfxTiles_,400);
+    _dfxAt_(function(){dfxBest_(opt.prev,sc);},700);
+  }else if(lv==='clear'){
+    if(sc!=null){var se=$('score-anim');if(se)se.textContent=Math.round(sc);}
+    dfxClearFull_(opt.ttl||'この教材クリア！',function(){dfxShowStamp_(true);DFX.pon();dfxTiles_();try{confetti(120);}catch(e){}try{sndWin();}catch(e){}});
+  }
+}
+/* 上＝画面全体（デイリークリアと同じ作り・トランペット）。4秒かタップで閉じる */
+function dfxClearFull_(ttl,after){var f=document.createElement('div');f.id='dfx-full';f.className='dcv show';
+  f.innerHTML='<div class="dcv-box"><div class="dcv-hero"><div class="dcv-rays"></div><div class="dcv-tro"><i class="ti ti-trophy"></i></div></div><div class="dcv-t">'+ttl+'</div><div class="dcv-s on" style="font-size:13px">タップで<ruby>閉<rt class="uf">と</rt></ruby>じる</div></div><div class="dcv-cut" id="dfx-cut"></div>';
+  document.body.appendChild(f);var done=false;var close=function(){if(done)return;done=true;try{f.remove();}catch(e){}if(after)after();};f.onclick=close;
+  _dfxAt_(function(){var ct=$('dfx-cut');if(!ct)return;_dfxLines_(ct);ct.insertAdjacentHTML('beforeend','<div class="eca-band"></div><div class="eca-txt">CLEAR!</div>');DFX.whoosh();_dfxAt_(function(){if(ct)ct.innerHTML='';},1000);},200);
+  _dfxAt_(function(){f.classList.add('fin');DFX.fanfare();try{fireworks_('grad');}catch(e){}try{flash();}catch(e){}},1150);_dfxAt_(function(){try{fireworks_('empty');}catch(e){}},2000);
+  _dfxAt_(close,4300);}
+/* 自己ベスト：はんこ（完了）のあと、金の数字が迫って前回→今回まで数え上がり、割れる → 結果カードに札 */
+function dfxBest_(prev,now){
+  var el=_dfxLayer_(1700);el.insertAdjacentHTML('beforeend','<div class="ecc-num" id="dfx-bnum">'+prev+'</div><div class="ecc-w">NEW RECORD</div><div class="ecc-w" style="top:calc(44% + min(80px,21vw) + 40px);font-family:\'Noto Sans JP\';letter-spacing:.08em;font-size:min(24px,6vw);color:#f3d78a">自己ベスト<ruby>更新<rt class="uf">こうしん</rt></ruby>！</div>');
+  try{tone_(220,0.45,'sine',0.2,0,880);}catch(e){}
+  _dfxAt_(function(){var t0=performance.now();var f=function(n){var e=$('dfx-bnum');if(!e)return;var k=Math.min(1,(n-t0)/700);var v=Math.round(prev+(now-prev)*k);if(e.textContent!=String(v)){e.textContent=v;try{beep(440+(v-prev)*45,.05,'triangle',.16);}catch(x){}}if(k<1)requestAnimationFrame(f);};requestAnimationFrame(f);},350);
+  _dfxAt_(function(){var nm=$('dfx-bnum');if(nm)nm.classList.add('out');try{sndShatter_();}catch(e){}for(var k=0;k<20;k++){var s2=document.createElement('i');s2.className='ecc-sh';var a=Math.PI*2*k/20+Math.random()*.3,d=120+Math.random()*170;s2.style.setProperty('--dx',Math.cos(a)*d+'px');s2.style.setProperty('--dy',Math.sin(a)*d+'px');s2.style.setProperty('--r',(Math.random()*540-270)+'deg');s2.style.width=s2.style.height=(18+Math.random()*26)+'px';el.appendChild(s2);}try{confetti(90);}catch(e){}dfxCannons_(30);try{sndWin();}catch(e){}},1250);
+  _dfxAt_(function(){var m=$('done-miss');if(m&&!document.querySelector('#scr-done .dfx-pbg'))m.insertAdjacentHTML('afterend','<div class="dfx-pbg go"><i class="ti ti-trending-up"></i>自己ベスト <b>'+prev+'→'+now+'</b><ruby>点<rt class="uf">てん</rt></ruby></div>');DFX.pon();},1900);
+}
+
+/* 自己ベストの前の点を、問題を解いているあいだに取っておく（完了画面で待たせない）2026-10-31 川上さん */
+function _dfxPrevFetch_(s){
+  if(!s||s.quizMode)return; s._prevBest=undefined;
+  call({action:'part_prev_scores',part_id:s.listId}).then(function(d){
+    if(!d||!d.ok||!d.data||!d.data.scores)return;
+    var best=null;(d.data.scores||[]).forEach(function(x){var t=parseInt(x.total,10)||0;if(!t)return;var mr=Math.round((parseInt(x.mc,10)||0)/t*100),rr=Math.round((parseInt(x.rc,10)||0)/t*100);var v=_doneScore_(s,mr,rr);if(best===null||v>best)best=v;});
+    s._prevBest=best;   /* null＝初めて */
+  }).catch(function(){});
+}
+
+function sndTick(){beep(1500,.03,'square',.06);}   /* 点数の数え上がりの「チッチッ」（モックで決めた音）2026-10-31 */
+var _dfxPerfect=false,_dfxScore=0;
 /* 節目のアイキャッチ。kind='A'（カットイン）/'C'（迫って割れる）。演出の間は下の画面を押せない（guardTaps_）。
    正解のあとは解説が出て「つぎへ」が1秒止まるので、次の問題の時間（制限時間・適当押しの判定）には重ならない */
 function comboEyecatch_(kind,n){
@@ -4264,7 +4416,7 @@ function comboEyecatch_(kind,n){
   if(kind==='A'){D=950;
     var lines='';for(var i=0;i<7;i++){lines+='<i class="eca-line" style="top:'+(18+i*11)+'%;width:'+(30+Math.random()*40)+'%;animation-delay:'+(i*40)+'ms"></i>';}
     el.innerHTML='<div class="ec-dim" style="--d:'+D+'ms"></div>'+lines+'<div class="eca-band"></div><div class="eca-txt">'+n+'<small>COMBO!</small></div>';
-    sndWhoosh_();setTimeout(function(){sndCombo_(n);try{confetti(60);}catch(e){}},230);
+    sndWhoosh_();setTimeout(function(){if(n>=20)DFX.combo3();else sndCombo_(n);try{confetti(60);}catch(e){}},230);
   }else{D=900;
     el.innerHTML='<div class="ec-dim" style="--d:'+D+'ms"></div><div class="ecc-num">'+n+'</div><div class="ecc-w">COMBO!</div>';
     tone_(220,0.45,'sine',0.2,0,880);
@@ -4382,10 +4534,13 @@ function dcCeleTry_(){
 /* ===== モチベ演出（完了3タイル・連続記録カード・ホーム復帰お祝い）2026-07-24 ===== */
 function _fmtDur_(ms){var s=Math.max(0,Math.round((ms||0)/1000));var m=Math.floor(s/60);var ss=s%60;return m+':'+('0'+ss).slice(-2);}
 /* 完了バッジ 3層（途中=青スマイル/個別完了=緑チェック/大きな達成=金トロフィー）＝背景色も役割色に連動 2026-08-08 */
-function setDoneBadge_(tier){var b=$('done-badge');if(!b)return;b.style.display='';
-  var m={gold:['ti-trophy','var(--gold)','dib-gold'],ok:['ti-circle-check','var(--ok)','dib-ok'],accent:['ti-mood-smile','var(--accent)','dib-accent']};
-  var c=m[tier]||m.gold;b.classList.remove('dib-gold','dib-ok','dib-accent');b.classList.add(c[2]);
-  b.innerHTML='<i class="ti '+c[0]+'" style="color:'+c[1]+'"></i>';}
+function setDoneBadge_(tier,txt){var b=$('done-badge');if(!b)return;b.style.display='';
+  /* 【2026-10-31】緑・金のバッジは「はんこ」に（生徒UI_02 §15-1）。青スマイル（途中・不合格）だけ今のまま。演出は dfxPlay_ */
+  if(tier!=='accent'){var t=txt||(tier==='ok'?'完了':'クリア');var cur=b.firstChild;
+    if(cur&&cur.classList&&cur.classList.contains('dfx-hk')&&cur.textContent===t)return;   /* 同じはんこ＝そのまま（演出の途中で見せない） */
+    b.classList.remove('dib-gold','dib-ok','dib-accent');b.classList.add('dfx-st');b.innerHTML=dfxStampHtml_(DFX_ST[t]||'g',t);return;}
+  b.classList.remove('dfx-st','dib-gold','dib-ok');b.classList.add('dib-accent');
+  b.innerHTML='<i class="ti ti-mood-smile" style="color:var(--accent)"></i>';}
 function renderDoneTiles_(score,mc,ac,ms){
   var host=$('done-tiles');if(!host)return;
   var perfect=(ac>0&&mc>=ac); /* ノーミス＝最大コンボが総回答数に到達 */
@@ -4395,7 +4550,7 @@ function renderDoneTiles_(score,mc,ac,ms){
    +'<div class="dtile blue"><div class="dtl">タイム</div><div class="dtv">'+_fmtDur_(ms)+'</div></div>'
    +'<div class="dtile gold"><div class="dtl">コンボ</div><div class="dtv">'+comboCell+'</div></div>'
    +'</div>';
-  var box=$('dtiles');if(box){void box.offsetWidth;box.classList.add('play');}
+  var box=$('dtiles');if(box){void box.offsetWidth;box.classList.add('play');box._t0=performance.now();}
   setTimeout(function(){var r=$('dt-rate');if(r)animNum(r,score||0,700);var c=$('dt-combo');if(c)animNum(c,mc||0,700);},260);
 }
 /* 【2026-08-30】フリーズで守った日を、まだ知らせていないぶんだけトーストで出す。
@@ -6327,7 +6482,7 @@ function _startPracticeWith_(listId,d){_gradeSync_(d);if(!d.ok){_pendingResume=n
 var _rs=_pendingResume;_pendingResume=null;
 if(_rs){var _ord=_resumeOrder_(d.data.words,_rs);if(_ord){d.data.words=_ord;}else{_abandonLog_(_rs,'changed');_rs=null;_resumeClear_();toastH('<ruby>教材<rt class="uf">きょうざい</rt></ruby>が<ruby>変<rt class="uf">か</rt></ruby>わったので<ruby>最初<rt class="uf">さいしょ</rt></ruby>から<ruby>始<rt class="uf">はじ</rt></ruby>めます');}}
 /* 理社対応：english以外は聞く画面（発音・TTS）をスキップしstep2から（機能仕様書_テスト配信 §3-5・川上さん確定 2026-07-04） */
-session={mode:'daily',onNext:function(){nextWord();},listId:listId,quizMode:!!(d.data&&d.data.quiz),/* 【2026-08-21⑬】確認テストは session を作る時点で確定させる。startQuiz が後から session.quizMode=true を立てる形だと、_startPracticeWith_ の中で走る1問目の描画に間に合わず、帯が「単元別の練習」と出た（川上さん報告） */words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),dir:(d.data.direction||''),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now(),fixMode:false,fixQ:[],fixNext:[],fixCur:null,fixTotal:0,retryRounds:1,_firstWrong:[]};session.point=(d.data&&d.data.point)||'';session.pointDict=(d.data&&d.data.point_dict)||null;session.fromReview=_fromReviewTest;_fromReviewTest=false;_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});
+session={mode:'daily',onNext:function(){nextWord();},listId:listId,quizMode:!!(d.data&&d.data.quiz),/* 【2026-08-21⑬】確認テストは session を作る時点で確定させる。startQuiz が後から session.quizMode=true を立てる形だと、_startPracticeWith_ の中で走る1問目の描画に間に合わず、帯が「単元別の練習」と出た（川上さん報告） */words:d.data.words,idx:0,step:isEn?1:3,subject:sj,isEnglish:isEn,assets:(d.data.assets||{}),tfOnly:(d.data.words.length>0&&d.data.words.every(function(x){return x.qtype==='table_fill';})),content_type:(d.data.content_type||'daily'),dir:(d.data.direction||''),meaningCorrect:0,reverseCorrect:0,total:d.data.words.length,miss:[],pronAttempts:0,pronSuccesses:0,pronDoneIdx:{},activeMs:0,_rushWords:{},startedAtIso:new Date().toISOString(),startedMs:Date.now(),fixMode:false,fixQ:[],fixNext:[],fixCur:null,fixTotal:0,retryRounds:1,_firstWrong:[]};session.point=(d.data&&d.data.point)||'';session.pointDict=(d.data&&d.data.point_dict)||null;session.fromReview=_fromReviewTest;_fromReviewTest=false;try{if(!session.fromReview)_dfxPrevFetch_(session);}catch(eDpf){}_readingMap={};(d.data.words||[]).forEach(function(x){if(x&&x.english&&x.reading_hint)_readingMap[String(x.english)]=x.reading_hint;});
 if(_rs){session.idx=_rs.idx;session.step=_rs.step;session.meaningCorrect=_rs.mc||0;session.reverseCorrect=_rs.rc||0;session.miss=(_rs.miss||[]).slice();session._qrvPick=_rs.qp||{};session.activeMs=_rs.am||0;session.startedAtIso=_rs.at||session.startedAtIso;session.startedMs=Date.now()-(_rs.el||0);session.pronAttempts=_rs.pa||0;session.pronSuccesses=_rs.ps||0;
   session._rushPops=parseInt(_rs.rp,10)||0;   /* 適当押しのポップは続きからでも1回の学習で2回まで 2026-10-04 */
   session._rushWords={};(_rs.rk||[]).forEach(function(k){session._rushWords[k]=1;});   /* 速く押して間違えた問題も続きから数え続ける 2026-10-04 */
@@ -10830,8 +10985,9 @@ function _rateLbl_(s){
   try{var w=(s&&s.words)||[];if(w.length&&w.every(function(x){return _d1Form_(x)==='語'&&/^[\x00-\x7F]+$/.test(String((x&&x.english)||''));}))return rb('意味','いみ');}catch(e){}
   return rb('正解','せいかい');
 }
+function doneMainTtl_(t){return '<div style="font-weight:800;font-size:20px;letter-spacing:-.01em;">'+t+'</div>';}
 function doneDailyTtl_(left){
-  return doneAllCorrectTtl_((left===0)
+  return (_dfxPerfect?doneAllCorrectTtl_:doneMainTtl_)((left===0)
     ?'<ruby>今日<rt class="uf">きょう</rt></ruby>のデイリー、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！'
     :'この<ruby>教材<rt class="uf">きょうざい</rt></ruby>の<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>、<ruby>完了<rt class="uf">かんりょう</rt></ruby>！');
 }
@@ -10842,7 +10998,7 @@ function doneUnitPartTtl_(remain){
   var n=parseInt(remain,10);
   /* 【2026-08-26】「合格」は使わない（全問正解して終わる設計なので合否が無くなった） */
   /* 【2026-10-19 作業4の3】「この教材はあと N パート」は見出しから外し、点数の下の「はじめの◯問で◯問正解」のうしろへ（_doneRemain_）。見出しは短く */
-  return doneAllCorrectTtl_('このパート、<ruby>終<rt class="uf">お</rt></ruby>わり！');
+  return _dfxPerfect?doneAllCorrectTtl_('このパート、<ruby>終<rt class="uf">お</rt></ruby>わり！'):doneMainTtl_('このパート、<ruby>終<rt class="uf">お</rt></ruby>わり！');   /* 1周目にまちがいがあった回は「全問正解！おめでとう」を出さない 2026-10-31 */
 }
 function _doneRemain_(remain){
   var n=parseInt(remain,10),m=$('done-miss');if(!m||!(isFinite(n)&&n>0))return;
@@ -10859,6 +11015,7 @@ function doneGuideHtml_(){return '<div style="background:var(--surface);border:1
 /* 完了画面(scr-done)は毎日学習・単元別・確認テスト・間違いノート・おさらいで使い回すので、
    前のモードの表示が残らないよう共通で消す。今日のがんばりチップ・周目バッジ・ホームボタンの3つ。2026-08-21 */
 function _doneResetCommon_(){
+  try{dfxResetCard_();}catch(eDfx){}   /* 演出と自己ベストの札を前の回から持ち越さない 2026-10-31 */
   var a=$('today-did-area');if(a)a.innerHTML='';
   var dp=$('done-part');if(dp)dp.innerHTML='';       // 前のモードのパートの見出しを残さない 2026-10-19
   var dd=$('done-daily-area');if(dd)dd.innerHTML=''; // 前のモードのデイリーバーを残さない 2026-08-22
@@ -11069,7 +11226,7 @@ function finishQuizSubmit_(){
     try{if(_qj){var _qb=null;((_quizData&&_quizData.materials)||[]).forEach(function(g){(g.parts||[]).forEach(function(p){if(String(p.part_id)===String(s.quizPartId))_qb=p;});});
       if(_qb)clearedQzAdd_(s.quizPartId,{ok:!!_qj.passed,rate:_qj.rate,base:(_qb.attempt_count||0)});}}catch(eQm){} /* 点数表に重ねる覚え（前の一覧が無いときは覚えない）2026-10-20 */
     if(_qj){
-      if(_qj.passed){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+_qj.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';sndWin();flash();confetti(120);var _dgq3=$('done-guide-area');if(_dgq3)_dgq3.innerHTML=nextStepGuide_(true);}
+      if(_qj.passed){dfxPlay_('mid','合格',{score:score});$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+_qj.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';var _dgq3=$('done-guide-area');if(_dgq3)_dgq3.innerHTML=nextStepGuide_(true);}
       else{setDoneBadge_('accent');$('done-result').innerHTML='あと <b>'+Math.max(0,_qj.pass_line-_qj.rate)+'</b>％で<ruby>合格<rt class="uf">ごうかく</rt></ruby>！ もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>受<rt class="uf">う</rt></ruby>けてみよう';}
       var _dbq=$('done-badge');if(_dbq)_dbq.style.display='';
       $('star-area').innerHTML=_qzMiss;
@@ -11087,7 +11244,7 @@ function finishQuizSubmit_(){
     homeCacheRenew_(); // 点数表を次に開くとき最新に
     if(!_live){_afterSaveSync_(_mySeq);return;} // 生徒が先に進んでいたら描かない 2026-09-02
     var r=d.data;
-    if(r.passed){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+r.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';if(!_qzPre){sndWin();flash();confetti(120);}var _dgq2=$('done-guide-area');if(_dgq2)_dgq2.innerHTML=nextStepGuide_(true);}
+    if(r.passed){if(_qzPre)setDoneBadge_('ok','合格');else dfxPlay_('mid','合格',{score:score});$('done-result').innerHTML='<ruby>合格<rt class="uf">ごうかく</rt></ruby>！（'+r.pass_line+'％<ruby>以上<rt class="uf">いじょう</rt></ruby>）';var _dgq2=$('done-guide-area');if(_dgq2)_dgq2.innerHTML=nextStepGuide_(true);}
     else{setDoneBadge_('accent');$('done-result').innerHTML='あと <b>'+Math.max(0,r.pass_line-r.latest_rate)+'</b>％で<ruby>合格<rt class="uf">ごうかく</rt></ruby>！ もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>受<rt class="uf">う</rt></ruby>けてみよう';}
     var delta=(r.delta==null)?'<span style="background:var(--neutral-bg);color:var(--sub);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>初<rt class="uf">はじ</rt></ruby>めての<ruby>受験<rt class="uf">じゅけん</rt></ruby></span>'
       :(r.delta>0?'<span style="background:rgba(31,170,107,.15);color:var(--ok);font-weight:800;font-size:14px;padding:5px 13px;border-radius:20px;"><ruby>前回<rt class="uf">ぜんかい</rt></ruby>より ＋'+r.delta+'％</span>'
@@ -11106,10 +11263,13 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
   var termOnly=(s.isEnglish===false)||s.tfOnly;
   var e2jOnly=(s.dir==='e2j'); // 方向固定：英→日だけ 2026-07-28
   var score=_doneScore_(s,mr,rr);
+  /* 【2026-10-31】1周目で全問正解したか（金の「全問正解」・PERFECT!）。まちがいがあった回は「全問正解！おめでとう」を出さない（§24） */
+  var _dfxPerf=(function(){var per=(termOnly||e2jOnly)?1:2,tot=(s.total||0)*per,cor=termOnly?(s.reverseCorrect||0):(e2jOnly?(s.meaningCorrect||0):((s.meaningCorrect||0)+(s.reverseCorrect||0)));return tot>0&&cor>=tot;})();
+  _dfxPerfect=_dfxPerf;_dfxScore=score;_dfxBestShown=false;
   if(termOnly){$('done-rate').innerHTML=rb('正解','せいかい')+' <b>'+rr+'</b>％';}   /* 正答・用語 → 正解にそろえる 2026-10-19 */
   else if(e2jOnly){$('done-rate').innerHTML=_rateLbl_(s)+' <span id="done-mr">'+mr+'</span>％';}
   else{$('done-rate').innerHTML='<ruby>意味<rt class="uf">いみ</rt></ruby> <span id="done-mr">'+mr+'</span>％ ・ <ruby>日本語<rt class="uf">にほんご</rt></ruby>→<ruby>英語<rt class="uf">えいご</rt></ruby> <span id="done-rr">'+rr+'</span>％';}
-  animNum($('score-anim'),score,450); // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）。数え上がりは残す＝ただの演出で待たせない。0.9秒→0.45秒 2026-09-02 川上さん確定
+  if(s.fromReview)animNum($('score-anim'),score,450);else $('score-anim').textContent='0'; /* 【2026-10-31】数え上がりは演出（dfxPlay_）が出す */ // 点数は保存を待たず先に出す（ローカル計算・保存とは無関係）。数え上がりは残す＝ただの演出で待たせない。0.9秒→0.45秒 2026-09-02 川上さん確定
   try{renderDoneTiles_(score,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル 2026-07-24
   $('done-result').innerHTML='';var _db=$('done-badge');if(_db)_db.style.display='none';$('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);
   _doneResetCommon_();var _tdArea=$('today-did-area');if(_tdArea)_tdArea.innerHTML='';
@@ -11151,10 +11311,11 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
         $('done-guide-area').innerHTML=nextStepGuide_(false,s.listId);
       }
       try{renderEffort_(effortCacheGet_());}catch(eEf0){}          // 前回の値で先に出す
-      sndWin(); flash(); confetti(120);
+      var _pbv=s._prevBest,_isBest=(!_dfxPerf&&typeof _pbv==='number'&&score>_pbv);   /* 自己ベスト＝解いているあいだに取った前の点より高い 2026-10-31 */
+      dfxPlay_(_dfxPerf?'perfect':(_isBest?'best':'done'),_dfxPerf?'全問正解':'完了',{score:score,prev:_pbv});   /* 演出（はんこ・音）2026-10-31 */
       loadStar();                                                   // 先読みずみの流れ星
       _donePre=true;
-    }catch(ePre){ _donePre=false; }
+    }catch(ePre){ _donePre=false; try{animNum($('score-anim'),score,450);}catch(eAn){} }
   }
   if(!_donePre)$('star-area').innerHTML=_savingHtml_()+tipHtml_(); // 先に描けなかったときだけ「記録を保存中…」を出す
   var _svT0=_perfNow_(); // 保存の往復を測る 2026-08-22
@@ -11207,7 +11368,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
        ここで下の分岐に進むと passed が無いので「まだ終わっていない・80%」の文に落ちていた（実機で発生）。
        記録はできているので、完了の見出しのまま（先に描いていないときは端末で分かる見出しを出す）にして終わる。 */
     if(d.data&&d.data.duplicate){
-      if(!_donePre){setDoneBadge_('ok');$('done-result').innerHTML=_isUnit_?doneUnitPartTtl_(''):doneDailyTtl_(dailyLeftAfter_(s.listId));
+      if(!_donePre){dfxPlay_(_dfxPerfect?'perfect':'done',_dfxPerfect?'全問正解':'完了',{score:_dfxScore});$('done-result').innerHTML=_isUnit_?doneUnitPartTtl_(''):doneDailyTtl_(dailyLeftAfter_(s.listId));
         $('done-guide-area').innerHTML=nextStepGuide_(false,s.listId);$('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);loadStar();}
       _afterSaveSync_(_mySeq);return;
     }
@@ -11215,8 +11376,8 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     if(s.fromReview){
       /* テスト配信おさらい（卒業方式）の完了画面。機能仕様書_テスト配信 0章§5。2026-07-08 スライス3 */
       $('btn-next').style.display='none';
-      if(d.data.review_graduated){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓 このパートはもう<ruby>出<rt class="uf">で</rt></ruby>てこない';sndWin();flash();confetti(140);}
-      else if(d.data.review_full){setDoneBadge_('gold');$('done-result').innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>は 100%！ <ruby>明日<rt class="uf">あした</rt></ruby>もう<ruby>一度<rt class="uf">いちど</rt></ruby> 100%をとれたら<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>';sndWin();flash();}
+      if(d.data.review_graduated){dfxPlay_('mid','卒業',{score:_dfxScore});$('done-result').innerHTML='<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓 このパートはもう<ruby>出<rt class="uf">で</rt></ruby>てこない';}
+      else if(d.data.review_full){dfxPlay_('perfect','全問正解',{score:_dfxScore});$('done-result').innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>は 100%！ <ruby>明日<rt class="uf">あした</rt></ruby>もう<ruby>一度<rt class="uf">いちど</rt></ruby> 100%をとれたら<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>';}
       else{var _rem=termOnly?(s.total-s.reverseCorrect):((s.total-s.meaningCorrect)+(s.total-s.reverseCorrect));setDoneBadge_('accent');$('done-result').innerHTML='あと <b>'+_rem+'</b><ruby>問<rt class="uf">もん</rt></ruby>で 100%！<br><span class="done-guide"><ruby>今日<rt class="uf">きょう</rt></ruby>は「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で<ruby>練習<rt class="uf">れんしゅう</rt></ruby>できる。<ruby>明日<rt class="uf">あした</rt></ruby> 100%で<ruby>卒業<rt class="uf">そつぎょう</rt></ruby>（もう<ruby>出<rt class="uf">で</rt></ruby>てこない）</span>';}
       /* 点数は保存前に表示済み（2026-07-08）*/
       if(s.miss.length){$('done-miss').innerHTML='<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>単語<rt class="uf">たんご</rt></ruby>：'+s.miss.length+'<ruby>個<rt class="uf">こ</rt></ruby>（<ruby>間違<rt class="uf">まちが</rt></ruby>いノートに<ruby>入<rt class="uf">い</rt></ruby>れた）';}else{$('done-miss').textContent='';}
@@ -11224,22 +11385,24 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
     }
     if(d.data.is_test){
       // 2026-07-07 grill確定：テスト配信も毎日学習と同じ80%で前進（満点前進は廃止）。おさらいの100%卒業案内はスライス3で追加。正＝機能仕様書_テスト配信 0章。
-      if(d.data.passed){if(!_donePre){sndWin();flash();confetti(120);}
-        if(d.data.completed_material&&d.data.test_all_completed){setDoneBadge_('gold');$('done-result').innerHTML=doneUnitAllTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();
+      if(d.data.passed){if(!_donePre&&!d.data.completed_material){dfxPlay_(_dfxPerfect?'perfect':'done',_dfxPerfect?'全問正解':'完了',{score:_dfxScore});}
+        if(d.data.completed_material&&d.data.test_all_completed){dfxPlay_('clear','クリア',{ttl:'<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>、<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>クリア！',score:_dfxScore});$('done-result').innerHTML=doneUnitAllTtl_();$('done-guide-area').innerHTML=doneClearGuide_();
           _unitNextBtn_(s.listId,'');} /* 単元別タブ全完走＝金トロフィー＋クラッカー 2026-08-08／全部合格したあとも「次のパート」は出す 2026-09-22 */
-        else if(d.data.completed_material){setDoneBadge_('gold');confetti(180);$('done-result').innerHTML=doneMatClearTtl_();$('done-guide-area').innerHTML=doneClearGuide_();
+        else if(d.data.completed_material){dfxPlay_('clear','クリア',{ttl:'この<ruby>教材<rt class="uf">きょうざい</rt></ruby>クリア！',score:_dfxScore});$('done-result').innerHTML=doneMatClearTtl_();$('done-guide-area').innerHTML=doneClearGuide_();
           _unitNextBtn_(s.listId,'');} /* 1章まるごと完走＝金にそろえる（全部完了＝金）2026-08-08／同上 2026-09-22 */
-        else{setDoneBadge_('ok');$('done-result').innerHTML=doneUnitPartTtl_(d.data.remaining_parts);$('done-guide-area').innerHTML=nextStepGuide_(false,s.listId); /* 今日のぶん完了＝緑 2026-08-08／単元別は「今日の分」ではなくパート単位の文言に 2026-08-22 */
+        else{setDoneBadge_('ok',_dfxPerfect?'全問正解':'完了');$('done-result').innerHTML=doneUnitPartTtl_(d.data.remaining_parts);$('done-guide-area').innerHTML=nextStepGuide_(false,s.listId); /* 今日のぶん完了＝緑 2026-08-08／単元別は「今日の分」ではなくパート単位の文言に 2026-08-22 */
           _unitNextBtn_(s.listId,d.data.next_part_id);}} /* 行き先は part_order のすぐ次。材料が未着のときだけ next_part_id に落ちる 2026-09-22 */
       else{setDoneBadge_('accent');$('done-result').innerHTML='このパートは <b>まだ<ruby>合格<rt class="uf">ごうかく</rt></ruby>していない</b>。<br><span class=\"done-guide\">「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で <b>80%</b> とれたら、このパート<ruby>合格<rt class="uf">ごうかく</rt></ruby>！</span>';} /* 単元別は自分のペース＝「今日の分」の枠が無いのでパート単位の文言に 2026-08-22 */
-    }else if(d.data.passed){if(!_donePre){sndWin();flash();confetti(120);} // 先に描いていたら鳴らし直さない 2026-09-02
+    }else if(d.data.passed){if(!_donePre&&!d.data.completed_material){dfxPlay_(_dfxPerfect?'perfect':'done',_dfxPerfect?'全問正解':'完了',{score:_dfxScore});} // 先に描いていたら鳴らし直さない 2026-09-02
       dailyMarkCleared_(s.listId);renderDoneDaily_(s.listId); /* 今日のデイリーの進みをホームと同じバーで出す（教材クリアでも同じ）2026-08-22 川上さん確定 */
-      if(d.data.completed_material){setDoneBadge_('gold');$('done-result').innerHTML=doneClearTtl_();confetti(180);$('done-guide-area').innerHTML=doneClearGuide_();}
-      else{setDoneBadge_('ok');$('done-result').innerHTML=doneDailyTtl_(dailyLeftAfter_(s.listId));$('done-guide-area').innerHTML=nextStepGuide_(false,s.listId); /* 今日のぶん完了＝緑 2026-08-08／デイリー全部かどうかで文言を出し分け 2026-08-22 */
+      if(d.data.completed_material){dfxPlay_('clear','クリア',{ttl:'この<ruby>教材<rt class="uf">きょうざい</rt></ruby>クリア！',score:_dfxScore});$('done-result').innerHTML=doneClearTtl_();$('done-guide-area').innerHTML=doneClearGuide_();}
+      else{setDoneBadge_('ok',_dfxPerfect?'全問正解':'完了');$('done-result').innerHTML=doneDailyTtl_(dailyLeftAfter_(s.listId));$('done-guide-area').innerHTML=nextStepGuide_(false,s.listId); /* 今日のぶん完了＝緑 2026-08-08／デイリー全部かどうかで文言を出し分け 2026-08-22 */
         if(d.data.advanced&&d.data.next_part_id){$('btn-next').innerHTML=_nextBtnHtml_('<ruby>続<rt class="uf">つづ</rt></ruby>けて<ruby>先取<rt class="uf">さきど</rt></ruby>り（<ruby>次<rt class="uf">つぎ</rt></ruby>のDAY）',d.data.next_part_id,s.listId);$('btn-next').className='btn sub';try{_donePartSync_(s,d.data.next_part_id);}catch(eDp){}$('btn-next').style.display='flex';$('btn-next').onclick=function(){startPractice(d.data.next_part_id);};}}
     }else{setDoneBadge_('accent');$('done-result').innerHTML='<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby>は <b>まだ<ruby>終<rt class="uf">お</rt></ruby>わっていない</b>（<span style=\"color:#e0574b;\">●</span>が<ruby>残<rt class="uf">のこ</rt></ruby>っている）。<br><span class=\"done-guide\">「もう<ruby>一回<rt class="uf">いっかい</rt></ruby>やる」で <b>80%</b> とれたら、<ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby><ruby>完了<rt class="uf">かんりょう</rt></ruby>！</span>';}
     /* 点数は保存前に表示済み（2026-07-08）*/
-    $('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);try{if(d.data.is_test&&d.data.passed&&!d.data.completed_material)_doneRemain_(d.data.remaining_parts);}catch(eRm){}   /* 「あと N パート」は見出しからここへ 2026-10-19 */ /* 1周目の事実だけ。どこへ入ったか（おさらい・間違いノート）は生徒に説明しない 2026-08-26 */
+    $('done-miss').innerHTML=doneFirstRoundSub_(s,termOnly,e2jOnly);try{if(d.data.is_test&&d.data.passed&&!d.data.completed_material)_doneRemain_(d.data.remaining_parts);}catch(eRm){}
+    /* 自己ベスト（同じパートを前より高い点で終えた）＝サーバーの prev_best と比べる（§24）2026-10-31 */
+    try{if(d.data.passed&&!d.data.completed_material&&!_dfxPerfect&&!_dfxBestShown&&d.data.prev_best!=null&&_dfxScore>d.data.prev_best)_dfxAt_(function(){dfxBest_(d.data.prev_best,_dfxScore);},Math.max(0,1500-(performance.now()-(window._dfxT0||0))));}catch(eBst){}   /* 「あと N パート」は見出しからここへ 2026-10-19 */ /* 1周目の事実だけ。どこへ入ったか（おさらい・間違いノート）は生徒に説明しない 2026-08-26 */
     if(!_donePre)loadStar(); // 先に描いていたらもう出ている 2026-09-02
   });}
 $('btn-retry').onclick=function(){if(session){_fromReviewTest=!!session.fromReview;startPractice(session.listId);}};
@@ -11450,14 +11613,13 @@ function finishNote(){
      数はあとから増える方向にしか動かない（返事が届くたび s.cleared が増える）＝格上げなので裏切らない。 */
   var _notePre=false;
   try{
-    var _nc0=s.cleared||0;
+    var _nc0=s.cleared||0;s.cleared0=_nc0;
     if(_nc0>0){
-      setDoneBadge_('gold');
+      dfxPlay_('mid','卒業');   /* 金の「卒業」2026-10-31 */
       $('done-result').innerHTML='<span class="num" id="note-gnum">0</span><ruby>語<rt class="uf">ご</rt></ruby><ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓';
       $('done-miss').innerHTML='この<ruby>単語<rt class="uf">たんご</rt></ruby>はもう<ruby>出<rt class="uf">で</rt></ruby>てこない';
       $('star-area').innerHTML=noteGradCardHtml_(s.clearedWords||[])+nextStepGuide_();
       var _gn0=$('note-gnum');if(_gn0)animNum(_gn0,_nc0,450);
-      sndWin();flash();confetti(120);
     }else{
       setDoneBadge_('accent');
       $('done-result').innerHTML='<ruby>間違<rt class="uf">まちが</rt></ruby>いノート、おつかれさま！';
@@ -11478,12 +11640,12 @@ function finishNote(){
       homeCacheRenew_();/* ノート完了でホームキャッシュ無効化（案A 2026-07-08）*/
       var n=s.cleared||0;
       if(n>0){
-        setDoneBadge_('gold');
+        if(_notePre&&(s.cleared0||0)>0)setDoneBadge_('ok','卒業');else dfxPlay_('mid','卒業');
         $('done-result').innerHTML='<span class="num" id="note-gnum">0</span><ruby>語<rt class="uf">ご</rt></ruby><ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓';
         $('done-miss').innerHTML='この<ruby>単語<rt class="uf">たんご</rt></ruby>はもう<ruby>出<rt class="uf">で</rt></ruby>てこない';   /* 2回連続正解＝間隔反復の仕組みなので書かない（§20-1）。生徒に効くのは「もう出てこない」という予告 2026-08-26 */
         $('star-area').innerHTML=noteGradCardHtml_(s.clearedWords||[])+nextStepGuide_();
         var gn=$('note-gnum');if(gn)animNum(gn,n,450);
-        if(!_notePre){sndWin();flash();confetti(120);}  // 先に描いていたら鳴らし直さない 2026-09-02
+        /* 音と演出は dfxPlay_（2026-10-31） */
       }else{
         setDoneBadge_('accent');
         $('done-result').innerHTML='<ruby>間違<rt class="uf">まちが</rt></ruby>いノート、おつかれさま！';
@@ -11689,7 +11851,7 @@ function submitSrsWord(){
 function finishSrs(){
   var s=srsSes;$('prog').style.width='100%';show('scr-done');_doneResetCommon_();try{doneQuoteShow_((s.miss||[]).length>0);}catch(eQt){} /* 名言（おさらいは間違いが無ければ積み重ね）2026-10-03 */hideQTimer();hideExplain();var _dgs=$('done-guide-area');if(_dgs)_dgs.innerHTML='';
   var _sa=$('star-area');if(_sa)_sa.innerHTML=missWordsHtml(s.miss,s.words);
-  setDoneBadge_('ok'); // おさらい本日分＝個別完了＝緑チェック 2026-08-08
+  setDoneBadge_('ok','完了'); // おさらい本日分＝緑の「完了」（演出はあとの dfxPlay_）2026-10-31
   $('done-result').innerHTML='おさらい<ruby>完了<rt class="uf">かんりょう</rt></ruby>！'; // 表記は漢字（川上さん指示 2026-07-05）
   $('done-score-wrap').style.display='none';var _dtn=$('done-tiles');if(_dtn)_dtn.innerHTML='';
   try{var _st=((s.doneWords||[]).length||s.total||0),_sc=Math.max(0,_st-((s.miss||[]).length)),_sr=_st?Math.round(_sc/_st*100):0;renderDoneTiles_(_sr,maxCombo,ansCount,_elapsedMs_(s));}catch(e){} // 完了3タイル（おさらいにも）2026-08-08
@@ -11704,7 +11866,7 @@ function finishSrs(){
   $('btn-retry').style.display='none';
   $('btn-home').onclick=openHome;
   // 花火は即・保存やピークを待たない（保存が遅くても演出は必ず出す）2026-07-26。※以前は保存flush後に花火を出していて、保存が長引くと演出ゼロになっていた不具合を修正。
-  fireworks_(s.graduated?'grad':'batch');try{sndWin();flash();}catch(e){}
+  try{dfxPlay_('done','完了');}catch(e){}   /* ほかの「完了」と同じ演出にそろえる（花火・光をやめる）2026-10-31 */
   var _mkLines=function(){var a=[];if(s.graduated)a.push('<ruby>今回<rt class="uf">こんかい</rt></ruby> '+s.graduated+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓');if(s.nextDays)a.push('<ruby>次<rt class="uf">つぎ</rt></ruby>は '+s.nextDays+'<ruby>日<rt class="uf">にち</rt></ruby><ruby>後<rt class="uf">ご</rt></ruby>にまた<ruby>出<rt class="uf">で</rt></ruby>てくる');return a;};
   var _init=_mkLines();
   $('done-miss').innerHTML=_init.length?_init.join('　'):'<ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…';
@@ -11732,13 +11894,13 @@ function finishSrs(){
 }
 /* 全消化（おさらいが空）＝王冠フィナーレに格上げ（1回分の花火はすでに出ている）2026-07-26 */
 function srsUpgradeEmpty_(s){
-  setDoneBadge_('gold'); // おさらい全消化＝大きな達成＝金トロフィー 2026-08-08
+  try{var _sd=$('scr-done');if(!_sd||!_sd.classList.contains('active'))return;}catch(eSd){}   /* 先に進んでいたら出さない 2026-10-31 */
+  dfxPlay_('clear','クリア',{ttl:'おさらい<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>クリア！'}); // おさらい全消化＝金の「クリア」・画面全体の演出 2026-10-31
   $('done-result').innerHTML='おさらい<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>クリア！';
   $('btn-next').style.display='none'; // 空の日は「もっとやる」を出さない
   var _ls=['<ruby>今日<rt class="uf">きょう</rt></ruby>おさらいする<ruby>単語<rt class="uf">たんご</rt></ruby>はもう<ruby>無<rt class="uf">な</rt></ruby>い。<ruby>完璧<rt class="uf">かんぺき</rt></ruby>！'];
   if(s.graduated)_ls.push('<ruby>今回<rt class="uf">こんかい</rt></ruby> '+s.graduated+'<ruby>語<rt class="uf">ご</rt></ruby><ruby>卒業<rt class="uf">そつぎょう</rt></ruby>！🎓');
   $('done-miss').innerHTML=_ls.join('　');
-  fireworks_('empty');try{sndWin();}catch(e){}
 }
 /* おさらいを続ける：期限の来た次の分を出す（教科指定があればその教科）。無ければ今日の期限は完了 2026-07-26 */
 function osaraiMore_(subject){

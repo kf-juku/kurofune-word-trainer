@@ -8242,12 +8242,13 @@ function _bulkMatPaint_(){
   if(typeof renderPrintMaterials==='function')renderPrintMaterials();
 }
 function bulkLoadMaterials_(){
-  if(_bulkMatSt==='loading')return;
+  /* 【2026-10-31】ほかの画面がもう取りに行っているときも、待っている表示（と前の一覧）を出す。前はここで何も描かずに戻り、候補の欄が真っ白のまま数秒止まっていた */
+  if(_bulkMatSt==='loading'){ if(!bulkMaterials.length){kvGet_('mats').then(function(c){if(!bulkMaterials.length&&c&&c.data&&c.data.length){bulkMaterials=c.data;_bulkMatPaint_();}});} _bulkMatPaint_(); return; }
   _bulkMatSt='loading';
   /* 【2026-10-20】まだ一覧が無ければ、前に開いたときの一覧（IndexedDB）を先に出す。届いたら差し替える */
   if(!bulkMaterials.length){kvGet_('mats').then(function(c){if(!bulkMaterials.length&&c&&c.data&&c.data.length){bulkMaterials=c.data;_bulkMatSt='';_bulkMatPaint_();try{var vm=$('view-mat');if(vm&&vm.style.display!=='none')renderMatTab();}catch(e){}_bulkMatSt='loading';}});}
   _bulkMatPaint_();
-  call({action:'materials_list'}).then(function(d){
+  call({action:'materials_list',lite:1}).then(function(d){   /* lite＝パート無し（教材だけ）2026-10-31 */
     if(!(d&&d.ok)){ _bulkMatSt=bulkMaterials.length?'':'error'; _bulkMatPaint_(); return; }
     bulkMaterials=(d.data.materials||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');});
     window._bulkMatOnce=true;try{kvPut_('mats',bulkMaterials);}catch(eK){}
@@ -8257,7 +8258,7 @@ function bulkLoadMaterials_(){
 }
 function _bulkMatEmptyHtml_(){
   return (_bulkMatSt==='loading')
-      ? '<div class="pk-empty"><span class="rp-load"><span class="rp-spin"></span>教材を読み込み中…（10秒ほどかかります）</span></div>'
+      ? '<div class="pk-empty"><span class="rp-load"><span class="rp-spin"></span>教材を読み込み中…</span></div>'
     : (_bulkMatSt==='error')
       ? '<div class="pk-empty"><span class="rp-loaderr">⚠ 教材の一覧を取れませんでした。</span> <button type="button" class="rp-allbtn" onclick="bulkLoadMaterials_()">↻ もう一度読み込む</button></div>'
       : '<div class="pk-empty">教材がありません</div>';
