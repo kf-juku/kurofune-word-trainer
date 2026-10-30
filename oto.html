@@ -1,52 +1,112 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>クロトレ 音声</title>
 <style>
-:root{--crimson:#C6000B;--text:#1a2535;--muted:#5a6a7e;--bg:#f4f6f9}
+:root{--accent:#0a6cff;--accent-soft:#e8f0ff;--crimson:#C6000B;--text:#1a2535;--muted:#5a6a7e;--bg:#f4f6f9;--surface:#fff;--line:#e3e8ef;--dot:#dde3ec;--dotdone:#94a3b8}
+@media (prefers-color-scheme: dark){:root{--accent:#4f8cff;--accent-soft:#15233f;--crimson:#ff5a5f;--text:#e8edf4;--muted:#9fb0c4;--bg:#0f141b;--surface:#1a222d;--line:#2b3644;--dot:#334155;--dotdone:#64748b}}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--text);font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;padding:16px}
-.box{background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.08);padding:28px 22px;width:100%;max-width:380px;text-align:center}
+.box{background:var(--surface);border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.08);padding:28px 22px;width:100%;max-width:380px;text-align:center}
 h1{font-size:16px;margin:0 0 4px;color:var(--muted);font-weight:700}
-.big{display:block;width:100%;border:0;border-radius:14px;background:var(--crimson);color:#fff;font-size:22px;font-weight:800;padding:22px 0;margin:18px 0 10px;cursor:pointer;font-family:inherit}
+.big{display:block;width:100%;border:0;border-radius:14px;background:var(--accent);color:#fff;font-size:22px;font-weight:800;padding:22px 0;margin:18px 0 10px;cursor:pointer;font-family:inherit}
 .big:disabled{opacity:.55;cursor:default}
 .st{font-size:15px;min-height:1.6em}
 .dots{display:flex;justify-content:center;gap:8px;margin-top:10px}
-.dots span{width:12px;height:12px;border-radius:50%;background:#dde3ec}
-.dots span.on{background:var(--crimson)}.dots span.done{background:#94a3b8}
+.dots span{width:12px;height:12px;border-radius:50%;background:var(--dot)}
+.dots span.on{background:var(--accent)}.dots span.done{background:var(--dotdone)}
 .err{color:var(--crimson);font-size:14px}
+/* 一覧（パートのQR）2026-10-30。押して進める・鳴らすものは青（--accent＝生徒アプリと同じ値。生徒UI_01 の役割色：青＝やる・赤＝まちがい・注意）。赤はエラーの文字だけ */
+body.ls{align-items:flex-start}
+.ls .box{max-width:520px;text-align:left;padding:20px 16px}
+.ls h1{font-size:13px}
+.ptt{font-size:19px;font-weight:800;line-height:1.4;margin:2px 0 6px}
+.ptt .no{display:inline-block;border:2px solid var(--text);border-radius:5px;padding:0 6px;font-size:14px;margin-right:6px;vertical-align:2px}
+.how{font-size:14px;color:var(--muted);margin:0 0 12px}
+.row{display:flex;align-items:center;gap:12px;width:100%;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:12px;padding:12px 14px;margin:0 0 8px;font-family:inherit;font-size:15px;text-align:left;cursor:pointer}
+.row .n{flex:0 0 auto;min-width:40px;height:40px;border-radius:10px;background:var(--accent);color:#fff;font-size:19px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 6px}
+.row .t{flex:1;min-width:0}
+.row .s{flex:0 0 auto;font-size:13px;color:var(--muted);white-space:nowrap}
+.row.on{background:var(--accent-soft);border-color:var(--accent)}
+.row.on .s{color:var(--accent);font-weight:700}
+.wait{display:flex;flex-direction:column;align-items:center;gap:12px;padding:28px 0;font-size:15px;font-weight:700}
+.spin{width:44px;height:44px;border-radius:50%;border:5px solid var(--dot);border-top-color:var(--accent);animation:sp 0.9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
 </style></head><body>
-<div class="box">
+<div class="box" id="box">
   <h1>クロトレ 練習プリントの音声</h1>
   <button class="big" id="go">▶ 音声を流す</button>
   <div class="st" id="st"></div>
   <div class="dots" id="dots"></div>
 </div>
 <script>
-/* 練習プリント（先生画面の紙）の QR で開く「音だけを順番に鳴らす画面」2026-10-15
-   ログインも GAS も使わない。QR の中に鳴らす音のファイル名を入れておく。
-   ?d=フォルダ（img/audio/ の下）&a=名前,名前,…（名前の「~記号」は声の名前を縮めたもの。名前に / があればそれ自体がフォルダつきの道）
-   正＝ジョブス用\仕様書\要件定義書_練習プリントと単元ワークシート_Kurofune-Word-Trainer.md 1a */
+/* 練習プリント（先生画面の紙）の QR で開く音声の画面
+   ① ?m=教材ID&p=パートID（2026-10-30〜）＝そのパートの聞き取りの問題を、紙の番号の順に一覧で出す。番号をタップするとその問題の音が順番に流れる。
+      一覧は GAS の oto_part（ログインなしで読めるのは音のファイル名と番号だけ）から読む。紙の番号・選択肢の順は先生画面の紙と同じ決め方（GAS 側で同じ計算）。
+   ② ?d=フォルダ&a=名前,名前,…（2026-10-15〜10-30 に刷った紙の QR）＝その音だけを順番に鳴らす。ログインも GAS も使わない。
+      名前の「~記号」は声の名前を縮めたもの。名前に / があればそれ自体がフォルダつきの道
+   正＝ジョブス用\仕様書\要件定義書_練習プリントと単元ワークシート_Kurofune-Word-Trainer.md 1a・1-24 */
+var GAS_URL='https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec';
 var VOICE={a:'_chirp3-hd-achernar',n:'_neural2-d',f:'_chirp3-hd-fenrir',d:'_chirp3-hd-despina',g:'_chirp3-hd-algenib'};
-var qs=new URLSearchParams(location.search), dir=String(qs.get('d')||''), list=String(qs.get('a')||'').split(',').filter(Boolean);
-var files=list.map(function(x){
-  x=x.replace(/~([a-z])/g,function(m,c){return VOICE[c]||m;});
-  if(x.indexOf('/')<0) x=(dir?dir+'/':'')+x;
-  return 'img/audio/'+x+'.mp3';
-});
-var st=document.getElementById('st'), go=document.getElementById('go'), dots=document.getElementById('dots');
-dots.innerHTML=files.map(function(){return '<span></span>';}).join('');
-if(!files.length){ go.disabled=true; st.innerHTML='<span class="err">音声が見つかりませんでした。QRをもう一度読みこんでください。</span>'; }
-else st.textContent='全部で '+files.length+' つの音声が順番に流れます';
-var playing=false;
-function mark(i){ [].forEach.call(dots.children,function(s,k){ s.className=k<i?'done':(k===i?'on':''); }); }
-function playAt(i){
-  if(i>=files.length){ playing=false; go.disabled=false; go.textContent='▶ もう一度流す'; st.textContent='おわり'; mark(files.length); return; }
-  mark(i); st.textContent=(i+1)+' / '+files.length;
-  var au=new Audio(files[i]);
-  au.onended=function(){ setTimeout(function(){ playAt(i+1); },900); };
-  au.onerror=function(){ st.innerHTML='<span class="err">'+(i+1)+'つ目の音声を読めませんでした</span>'; setTimeout(function(){ playAt(i+1); },900); };
-  var pr=au.play(); if(pr&&pr['catch']) pr['catch'](function(){ playing=false; go.disabled=false; st.textContent='もう一度「▶」を押してください'; });
+var qs=new URLSearchParams(location.search);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function aPath(p){p=String(p||'');if(!p)return '';if(!/^img\//.test(p))p='img/audio/'+p;if(!/\.mp3$/.test(p))p+='.mp3';return p;}
+
+if(qs.get('m')&&qs.get('p')){
+  /* ---- ① 一覧 ---- */
+  document.body.className='ls';
+  var box=document.getElementById('box');
+  box.innerHTML='<h1>クロトレ 練習プリントの音声</h1><div class="wait"><div class="spin"></div>音声の一覧を読み込んでいます…</div>';
+  var cur=null,curRow=null,tok=0;
+  function stopAll(){tok++;if(cur){try{cur.pause();}catch(e){}cur=null;}if(curRow){curRow.classList.remove('on');curRow.querySelector('.s').textContent='▶ 聞く';curRow=null;}}
+  function playItem(row,files){
+    var again=(curRow===row);stopAll();if(again)return;   /* 流れている問題をもう一度押す＝止める */
+    var my=tok;curRow=row;row.classList.add('on');var s=row.querySelector('.s');
+    (function at(i){
+      if(my!==tok)return;
+      if(i>=files.length){row.classList.remove('on');s.textContent='▶ もう一度';curRow=null;cur=null;return;}
+      s.textContent='再生中 '+(i+1)+'/'+files.length;
+      var au=new Audio(files[i]);cur=au;
+      au.onended=function(){setTimeout(function(){at(i+1);},900);};
+      au.onerror=function(){s.textContent=(i+1)+'つ目を読めませんでした';setTimeout(function(){at(i+1);},900);};
+      var pr=au.play();if(pr&&pr['catch'])pr['catch'](function(){if(my!==tok)return;row.classList.remove('on');s.textContent='もう一度押してください';curRow=null;});
+    })(0);
+  }
+  var t0=setTimeout(function(){var w=box.querySelector('.wait');if(w)w.insertAdjacentHTML('beforeend','<span style="font-weight:400;font-size:13px;color:var(--muted)">時間がかかっています。そのまま待ってください</span>');},6000);
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'oto_part',m:qs.get('m'),p:qs.get('p')})}).then(function(r){return r.json();}).then(function(d){
+    clearTimeout(t0);
+    if(!d||!d.ok||!d.data){box.innerHTML='<h1>クロトレ 練習プリントの音声</h1><p class="err">音声の一覧を読めませんでした。QRをもう一度読みこんでください。'+(d&&d.error?'<br>（'+esc(d.error)+'）':'')+'</p>';return;}
+    var D=d.data,items=D.items||[];
+    var h='<h1>'+esc(D.mat||'クロトレ 練習プリントの音声')+'</h1><div class="ptt">'+(D.no?'<span class="no">'+esc(D.no)+'</span>':'')+esc(D.title||'')+'</div>';
+    if(!items.length){box.innerHTML=h+'<p class="err">このパートに音声はありません。</p>';return;}
+    h+='<p class="how">紙の問題番号をタップすると、その問題の音声が流れます。</p>';
+    h+=items.map(function(it,k){return '<button class="row" data-k="'+k+'"><span class="n">'+esc(it.n)+'</span><span class="t">'+esc(it.lead||'')+'</span><span class="s">▶ 聞く</span></button>';}).join('');
+    box.innerHTML=h;
+    [].forEach.call(box.querySelectorAll('.row'),function(b){b.onclick=function(){var it=items[+b.getAttribute('data-k')];playItem(b,(it.a||[]).map(aPath).filter(Boolean));};});
+  })['catch'](function(){clearTimeout(t0);box.innerHTML='<h1>クロトレ 練習プリントの音声</h1><p class="err">通信に失敗しました。電波のよいところで、QRをもう一度読みこんでください。</p>';});
+}else{
+  /* ---- ② 今までの QR（音の名前が QR に入っている） ---- */
+  var dir=String(qs.get('d')||''), list=String(qs.get('a')||'').split(',').filter(Boolean);
+  var files=list.map(function(x){
+    x=x.replace(/~([a-z])/g,function(m,c){return VOICE[c]||m;});
+    if(x.indexOf('/')<0) x=(dir?dir+'/':'')+x;
+    return 'img/audio/'+x+'.mp3';
+  });
+  var st=document.getElementById('st'), go=document.getElementById('go'), dots=document.getElementById('dots');
+  dots.innerHTML=files.map(function(){return '<span></span>';}).join('');
+  if(!files.length){ go.disabled=true; st.innerHTML='<span class="err">音声が見つかりませんでした。QRをもう一度読みこんでください。</span>'; }
+  else st.textContent='全部で '+files.length+' つの音声が順番に流れます';
+  var playing=false;
+  var mark=function(i){ [].forEach.call(dots.children,function(s,k){ s.className=k<i?'done':(k===i?'on':''); }); };
+  var playAt=function(i){
+    if(i>=files.length){ playing=false; go.disabled=false; go.textContent='▶ もう一度流す'; st.textContent='おわり'; mark(files.length); return; }
+    mark(i); st.textContent=(i+1)+' / '+files.length;
+    var au=new Audio(files[i]);
+    au.onended=function(){ setTimeout(function(){ playAt(i+1); },900); };
+    au.onerror=function(){ st.innerHTML='<span class="err">'+(i+1)+'つ目の音声を読めませんでした</span>'; setTimeout(function(){ playAt(i+1); },900); };
+    var pr=au.play(); if(pr&&pr['catch']) pr['catch'](function(){ playing=false; go.disabled=false; st.textContent='もう一度「▶」を押してください'; });
+  };
+  go.onclick=function(){ if(playing) return; playing=true; go.disabled=true; playAt(0); };
 }
-go.onclick=function(){ if(playing) return; playing=true; go.disabled=true; playAt(0); };
 </script>
 </body></html>
