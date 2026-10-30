@@ -11822,9 +11822,18 @@ function _ppLayout_(host,M,built,kind,xref){
   /* そのパートの何枚目か（問題用紙）＝上の帯の右。下の「問題用紙 3／12」は今までどおり全体の番号 */
   if(!isAns){var cnt={},at={};_ppPages.forEach(function(pg){var k=pg.el.getAttribute('data-part')||'';cnt[k]=(cnt[k]||0)+1;});
     _ppPages.forEach(function(pg){var k=pg.el.getAttribute('data-part')||'';at[k]=(at[k]||0)+1;var e=pg.el.querySelector('.pp-hd.bc .pn');if(e&&cnt[k]>1)e.textContent=at[k]+' / '+cnt[k]+'枚目';});}
+  if(!isAns&&M.id)_ppOtoWarm_(M.id,built.filter(function(b){return b.lis;}).map(function(b){return b.id;}));
   var tot=_ppPages.length, nm=_ppKindName_(isAns);
   _ppPages.forEach(function(pg,i){ var f=pg.el.querySelector('.pp-ft'); if(f) f.textContent=nm+' '+(i+1)+'／'+tot; });
   return {nq:isAns?0:tot,na:isAns?tot:0,tot:tot,blank:false,kind:kind};
+}
+/* 紙を組んだら、聞き取りのあるパートの音の一覧を GAS に先に作らせておく（隠しシート _oto_cache に残る）＝生徒が QR を読んだとき1行読むだけで出る（2026-10-30 高速化）。
+   待たない・失敗しても何もしない。同じパートはこの画面を開いている間に1回だけ。同時に3本まで */
+var _ppOtoWarmed={};
+function _ppOtoWarm_(mid,pids){
+  pids=pids.filter(function(p){var k=mid+'|'+p;if(_ppOtoWarmed[k])return false;_ppOtoWarmed[k]=1;return true;});
+  var i=0;function next(){if(i>=pids.length)return;var p=pids[i++];try{fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'oto_part',m:mid,p:p})}).then(next,next);}catch(e){next();}}
+  for(var k=0;k<3;k++)next();
 }
 /* ---- 窓 ---- */
 /* ===== 段⑥（2026-10-18）［📝 テストを印刷］＝練習プリントと同じ窓を、テストだけにしぼって開く（要件定義書 2-21 の 52・川上さん 2026-10-18 04:46「ワークシートだけ」）
