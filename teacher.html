@@ -176,6 +176,10 @@
   .lv-it.lv-lap2 .h{color:#6d28d9;}
   .pk-coltitle .flt-reset{padding:3px 10px;font-size:11px;}
   .rm-lap{display:inline-block;background:#ede9fe;color:#5b21b6;border-radius:6px;padding:0 6px;font-size:10.5px;font-weight:700;margin-left:6px;white-space:nowrap;}
+  /* 【2026-10-31】毎日学習の重複（同じ教科の毎日学習が割当中に2つ以上）。禁止ではないので赤ではなく黄 */
+  .rm-dup,.lv-dup{display:inline-block;background:#fef3c7;color:#92400e;border-radius:6px;padding:0 6px;font-size:10.5px;font-weight:700;margin-left:6px;white-space:nowrap;}
+  .lv-it .lv-dup{margin:0 4px 0 0;}
+  .rm-done{display:inline-block;background:#dcfce7;color:#166534;border-radius:6px;padding:0 6px;font-size:10.5px;font-weight:700;margin-left:6px;white-space:nowrap;}
   .filter-hint{flex-basis:100%;font-size:10.5px;color:var(--text-light);}
   th[data-sk]{cursor:pointer;user-select:none;}
   th[data-sk]:hover{color:var(--crimson);}
@@ -1624,8 +1628,9 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
         <button class="filter-chip" data-kd="worksheet" onclick="setKindFilter('worksheet',this)">ワークシート</button>
       </div>
       <div class="filter-grp"><!-- 周回 2026-10-05 川上さん：2周目以降に入っている子だけ・その教材をハイライト -->
-        <span class="filter-label">周回</span>
+        <span class="filter-label">周回・重複</span>
         <button class="filter-chip" data-lap="2" onclick="setLapFilter_(this)">2周目以降</button>
+        <button class="filter-chip" data-dup="1" onclick="setDupFilter_(this)" title="同じ教科の毎日学習が2つ以上割り当てられている子（完走した教材は数えない）">毎日学習の重複</button>
       </div>
       <div class="filter-grp">
         <span class="filter-label" id="matLabel" style="display:none;">教材</span>
@@ -3104,6 +3109,16 @@ var _lapSel=false;
 function lapOf_(m){return parseInt(m&&m.lap,10)||1;}
 function hasLap2_(s,msel){return (s.materials_view||[]).some(function(m){return lapOf_(m)>=2&&(!msel||!msel.length||msel.indexOf(_bookKey(m))>=0);});}
 function setLapFilter_(el){_lapSel=!_lapSel;if(el)el.classList.toggle('active',_lapSel);renderTable();}
+/* 【2026-10-31 川上さん】毎日学習は各教科1教材が基本（英単語・国語の語句）。同じ教科の毎日学習が割当中（完走していない）に2つ以上ある子＝重複。禁止ではないので注意の目印には入れない。
+   完走した教材は数えない（完走して次の英単語を割り当てた子は正常）。完走した教材は hasDone_ で別に拾う。 */
+var _dupSel=false;
+var SUBJ_JA_={english:'英語',japanese:'国語',science:'理科',history:'歴史',geography:'地理',civics:'公民',math:'数学'};
+function subjJa_(k){return SUBJ_JA_[k]||String(k||'');}
+function dupMainSubj_(s){var c={},r={};(s.materials_view||[]).forEach(function(m){var t=String(m.type);if(t==='test'||t==='worksheet')return;var k=String(m.subject||'english');c[k]=(c[k]||0)+1;});Object.keys(c).forEach(function(k){if(c[k]>=2)r[k]=c[k];});return r;}
+function hasDupMain_(s){return Object.keys(dupMainSubj_(s)).length>0;}
+function isDupMat_(s,m){var t=String(m.type);if(t==='test'||t==='worksheet')return 0;return dupMainSubj_(s)[String(m.subject||'english')]||0;}
+function hasDone_(s){return (s.completed_view||[]).length>0;}
+function setDupFilter_(el){_dupSel=!_dupSel;if(el)el.classList.toggle('active',_dupSel);renderTable();}
 function setFilter(f,el){
   _filter=f;
   document.querySelectorAll('.filter-chip[data-f]').forEach(function(c){c.classList.remove('active');});
@@ -5613,7 +5628,8 @@ function matViewCell(s){
   var out='<div class="lv-m">';
   if(daily.length) out+='<div class="lv-row"><span class="lv-k d">毎日</span>'+daily.map(function(m){
     var hl=_lapSel&&lapOf_(m)>=2;   /* 周回のハイライト 2026-10-05 */
-    return '<span class="lv-it'+(hl?' lv-lap2':'')+'" title="この子の詳細でこの教材を開く" onclick="event.stopPropagation();openStudentDetail(\''+sid+'\',\''+esc(_lvSerKey_(m))+'\')">'+esc(m.short||mtLabel(m))+(hl?' '+lapOf_(m)+'周目':'')+'<span class="h">→'+esc(m.here||'-')+'</span></span>';}).join('')+'</div>';
+    var dn=isDupMat_(s,m);   /* 毎日学習の重複＝いつも出す 2026-10-31 */
+    return '<span class="lv-it'+(hl?' lv-lap2':'')+'" title="この子の詳細でこの教材を開く" onclick="event.stopPropagation();openStudentDetail(\''+sid+'\',\''+esc(_lvSerKey_(m))+'\')">'+(dn?'<span class="lv-dup" title="'+esc(subjJa_(m.subject||'english'))+'の毎日学習が'+dn+'つ割り当てられています">重複</span>':'')+esc(m.short||mtLabel(m))+(hl?' '+lapOf_(m)+'周目':'')+'<span class="h">→'+esc(m.here||'-')+'</span></span>';}).join('')+'</div>';
   if(unit.length){
     var g={},o=[];unit.forEach(function(m){var k=_lvSerKey_(m);if(!g[k]){g[k]={label:(m.series_label||mtLabel(m)),ms:[]};o.push(k);}g[k].ms.push(m);});
     out+='<div class="lv-row"><span class="lv-k u">単元別</span>'+o.map(function(k){
@@ -5663,12 +5679,12 @@ function searchClearSync_(){var i=$('searchInput'),b=$('searchClear');if(b)b.sty
 /* 【2026-10-05】絞り込みのリセット（川上さん 案C）。表示・学習の種類＝すべて、教室・学年・中学校・受講・教材の選択を全部外す、名前の検索とアラートの絞り込みを消す。色分けの日数は戻さない。 */
 function fltActive_(){
   var i=$('searchInput');
-  return _filter!=='all'||_kindSel!=='all'||!!_alertFilter||_lapSel||!!(i&&String(i.value||'').trim())
+  return _filter!=='all'||_kindSel!=='all'||!!_alertFilter||_lapSel||_dupSel||!!(i&&String(i.value||'').trim())
     ||[_gradeSel,_classSel,_schoolSel,_courseSel,_matSel].some(function(o){return Object.keys(o||{}).some(function(k){return o[k];});});
 }
 function fltResetSync_(){var b=$('fltReset');if(b)b.disabled=!fltActive_();}
 function resetFilters_(){
-  _filter='all'; _kindSel='all'; _alertFilter=null; _lapSel=false;
+  _filter='all'; _kindSel='all'; _alertFilter=null; _lapSel=false; _dupSel=false;
   [_gradeSel,_classSel,_schoolSel,_courseSel,_matSel].forEach(function(o){Object.keys(o||{}).forEach(function(k){delete o[k];});});
   var i=$('searchInput'); if(i) i.value='';
   document.querySelectorAll('#advFilters .filter-chip').forEach(function(c){
@@ -5697,7 +5713,7 @@ function renderTable(){try{searchClearSync_();}catch(eSc){}try{fltResetSync_();}
     if(msel.length){
       if(!(s.materials_view||[]).some(function(m){return msel.indexOf(_bookKey(m))>=0;}))return false;
     }
-    if(_lapSel&&!hasLap2_(s,msel))return false;   /* 周回 2026-10-05 */
+    if((_lapSel||_dupSel)&&!((_lapSel&&hasLap2_(s,msel))||(_dupSel&&hasDupMain_(s))))return false;   /* 周回 2026-10-05・重複 2026-10-31（同じ段は OR） */
     return true;
   });
   var _idi=$('inactiveDays');if(_idi&&String(_inactiveDays)!==_idi.value)_idi.value=_inactiveDays;
@@ -8073,9 +8089,9 @@ function bugCardHtml_(r,i){
 var Picker=(function(){
   var C=null, els=null, filt={cls:{},grade:{},school:{},crs:{},status:{},newd:0}, search='';
   function reset(cfg){C=cfg;filt0_();search='';render();}
-  function filt0_(){filt={cls:{},grade:{},school:{},crs:{},status:{},newd:0,lap:false,unas:!!C.unassignedDefault};}
+  function filt0_(){filt={cls:{},grade:{},school:{},crs:{},status:{},newd:0,lap:false,done:false,dup:false,unas:!!C.unassignedDefault};}
   /* リセット（2026-10-05）：絞り込みと名前を「開いたときの形」に戻す。選んだ子（右の列）はそのまま */
-  function isAct_(){return ['cls','grade','school','crs','status'].some(function(f){return anyOn(filt[f]||{});})||!!filt.newd||!!filt.lap||!!search||(!!filt.unas)!==(!!C.unassignedDefault);}
+  function isAct_(){return ['cls','grade','school','crs','status'].some(function(f){return anyOn(filt[f]||{});})||!!filt.newd||!!filt.lap||!!filt.done||!!filt.dup||!!search||(!!filt.unas)!==(!!C.unassignedDefault);}
   function cand(){return (C.cand?C.cand():[])||[];}
   function sid_(s){return String(s.student_id!=null?s.student_id:(s.id!=null?s.id:''));}
   function candById(){var m={};cand().forEach(function(s){m[sid_(s)]=s;});return m;}
@@ -8083,7 +8099,7 @@ var Picker=(function(){
   function anyOn(o){return Object.keys(o).some(function(k){return o[k];});}
   function matches(s){
     if(C.isOther&&filt.unas&&C.isOther(sid_(s)))return false;   /* 未所属だけ（チーム編集）2026-10-04 */
-    if(C.showLap&&filt.lap&&!hasLap2_(s))return false;   /* 周回（まとめて外す）2026-10-05 */
+    if(C.showLap&&(filt.lap||filt.done||filt.dup)&&!((filt.lap&&hasLap2_(s))||(filt.done&&hasDone_(s))||(filt.dup&&hasDupMain_(s))))return false;   /* 周回 2026-10-05・完走と毎日学習の重複 2026-10-31（同じ段は OR） */
     if(anyOn(filt.cls)&&!filt.cls[String(s.class_name||'')])return false;
     if(anyOn(filt.grade)&&!filt.grade[String(s.grade||'')])return false;
     if(anyOn(filt.school)&&!filt.school[String(s.school||'')])return false;
@@ -8124,12 +8140,15 @@ var Picker=(function(){
     addGroup(left,'受講','crs',courseOpts_(cand()));   /* 受講コース 2026-10-03 */
     if(C.showLap){   /* 周回（まとめて外す）2026-10-05 川上さん */
       var lrow=document.createElement('div');lrow.className='pk-fgroup';
-      var llb=document.createElement('span');llb.className='pk-flabel';llb.textContent='周回';lrow.appendChild(llb);
+      var llb=document.createElement('span');llb.className='pk-flabel';llb.innerHTML='周回・<br>完走・<br>重複';lrow.appendChild(llb);
       var lch=document.createElement('div');lch.className='pk-chips';
-      var lb2=document.createElement('button');lb2.type='button';lb2.className='pk-chip'+(filt.lap?' on':'');lb2.setAttribute('data-pk','lap');
-      lb2.textContent=(filt.lap?'✓ ':'')+'2周目以降の教材がある子';
-      lb2.onclick=function(){filt.lap=!filt.lap;render();};
-      lch.appendChild(lb2);lrow.appendChild(lch);left.appendChild(lrow);
+      [['lap','2周目以降の教材がある子'],['done','完走した教材がある子'],['dup','毎日学習が同じ教科で2つ以上の子']].forEach(function(x){   /* 完走・重複 2026-10-31 */
+        var b=document.createElement('button');b.type='button';b.className='pk-chip'+(filt[x[0]]?' on':'');b.setAttribute('data-pk',x[0]);
+        b.textContent=(filt[x[0]]?'✓ ':'')+x[1];
+        b.onclick=function(){filt[x[0]]=!filt[x[0]];render();};
+        lch.appendChild(b);
+      });
+      lrow.appendChild(lch);left.appendChild(lrow);
     }
     if(C.showStatus){
       var row=document.createElement('div');row.className='pk-fgroup';
@@ -9076,7 +9095,7 @@ function _remHeld_(){
       if(!by[mid]){by[mid]={material_id:mid,title:m.title||'',type:(m.type==='test'?'test':(m.type==='worksheet'?'worksheet':'main')),display_order:m.display_order||0,sids:[],who:[]};order.push(mid);}
       by[mid].sids.push(String(sid));
       var pg=_remProg_(x.done?{__done:true}:m);
-      by[mid].who.push({sid:String(sid),name:st.name||'',grade:st.grade||'',cls:st.class_name||'',prog:pg,lap:(x.done?1:lapOf_(m))});   /* 周回 2026-10-05 */
+      by[mid].who.push({sid:String(sid),name:st.name||'',grade:st.grade||'',cls:st.class_name||'',prog:pg,lap:(x.done?1:lapOf_(m)),done:!!x.done,dup:(x.done?0:isDupMat_(st,m)),subj:String(m.subject||'english')});   /* 周回 2026-10-05・完走と重複 2026-10-31 */
     });
   });
   return order.map(function(mid){return by[mid];}).sort(function(a,b){return (a.display_order||0)-(b.display_order||0);});
@@ -9101,15 +9120,17 @@ function tmStepRemove_(body){
       +'<span class="rm-ck">'+(on?'✓':'')+'</span>'+_remPill_(m)+'<b>'+esc(m.title)+'</b>'
       +(m.type==='test'?'<span class="rm-qt">＋確認テスト</span>':'')
       +(function(){var l2=m.who.filter(function(w){return w.lap>=2;}).length;return l2?'<span class="rm-lap">2周目以降 '+l2+'名</span>':'';})()
+      +(function(){var d=m.who.filter(function(w){return w.done;}).length;return d?'<span class="rm-done">完走 '+d+'名</span>':'';})()
+      +(function(){var d=m.who.filter(function(w){return w.dup;}).length;return d?'<span class="rm-dup">重複 '+d+'名</span>':'';})()
       +'<span class="rm-whob'+((on&&k<all)?' part':'')+'" onclick="remOpenT(\''+emid+'\',event)"><span>'+wl+'</span><span class="cv">⌄</span></span></div>';
     if(op){
-      h+='<div class="rm-list"><div class="rm-lh"><span>外す生徒を選ぶ</span><a onclick="remAllStu(\''+emid+'\',true,event)">全員</a><a onclick="remAllStu(\''+emid+'\',false,event)">だれも外さない</a>'+(m.who.some(function(w){return w.lap>=2;})?'<a onclick="remLapStu(\''+emid+'\',event)">2周目以降の子だけ</a>':'')+'</div>'
+      h+='<div class="rm-list"><div class="rm-lh"><span>外す生徒を選ぶ</span><a onclick="remAllStu(\''+emid+'\',true,event)">全員</a><a onclick="remAllStu(\''+emid+'\',false,event)">だれも外さない</a>'+(m.who.some(function(w){return w.done;})?'<a onclick="remPickStu_(\''+emid+'\',\'done\',event)">完走した子だけ</a>':'')+(m.who.some(function(w){return w.dup;})?'<a onclick="remPickStu_(\''+emid+'\',\'dup\',event)">重複している子だけ</a>':'')+(m.who.some(function(w){return w.lap>=2;})?'<a onclick="remLapStu(\''+emid+'\',event)">2周目以降の子だけ</a>':'')+'</div>'
         +m.who.map(function(w){
           var son=!!(remMat[mid]&&remMat[mid][w.sid]);
           return '<div class="rm-st'+(son?' on':'')+'" onclick="remStu(\''+emid+'\',\''+esc(w.sid)+'\',event)">'
             +'<span class="rm-ck">'+(son?'✓':'')+'</span><span class="nm">'+esc(w.name)+(w.lap>=2?'<span class="rm-lap">'+w.lap+'周目</span>':'')+'</span>'
             +'<span class="meta">'+esc([w.grade,w.cls].filter(Boolean).join('・'))+'</span>'
-            +'<span class="pg'+(w.prog.done?' done':'')+'">'+esc(w.prog.t)+(w.prog.last?'　最後に解いた日 '+esc(w.prog.last.slice(5).replace('-','/')):'')+'</span></div>';
+            +'<span class="pg'+(w.prog.done?' done':'')+'">'+esc(w.prog.t)+(w.prog.last?'　最後に解いた日 '+esc(w.prog.last.slice(5).replace('-','/')):'')+(w.dup?'<span class="rm-dup">'+esc(subjJa_(w.subj))+'の毎日学習 '+w.dup+'つ</span>':'')+'</span></div>';
         }).join('')+'</div>';
     }
     return h+'</div>';
@@ -9128,6 +9149,14 @@ function remStu(mid,sid,ev){
   if(!remMat[mid])remMat[mid]={};
   if(remMat[mid][sid])delete remMat[mid][sid];else remMat[mid][sid]=1;
   if(!Object.keys(remMat[mid]).length)delete remMat[mid];
+  tmRender();
+}
+function remPickStu_(mid,k,ev){   /* 完走した子だけ・重複している子だけを外す対象にする 2026-10-31 */
+  if(ev)ev.stopPropagation();
+  var h=_remHeldOf_(mid);if(!h)return;
+  var ids=h.who.filter(function(w){return k==='done'?w.done:!!w.dup;}).map(function(w){return w.sid;});
+  if(!ids.length)return;
+  remMat[mid]={};ids.forEach(function(s){remMat[mid][s]=1;});
   tmRender();
 }
 function remLapStu(mid,ev){   /* 2周目以降の子だけを外す対象にする 2026-10-05 */
