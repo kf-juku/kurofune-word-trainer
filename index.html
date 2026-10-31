@@ -1450,6 +1450,7 @@
   #done-teach .tc-src{font-size:12px;color:var(--sub);margin-bottom:2px}#done-teach .tc-ask{font-size:13.5px;color:var(--ink);margin:2px 0}
   #done-teach .tc-rp{font-size:13.5px;border-left:3px solid var(--line);padding-left:8px;margin:4px 0}#done-teach .tc-rp small{display:block;color:var(--sub);font-size:12px}
   #done-teach .tc-wl .tc-e .tc-au.tc-aus{margin:0 0 0 auto;padding:2px 8px;font-size:12px}#done-teach .tc-wl .tc-e{gap:6px}
+  #done-teach .tc-chl .khs{display:inline-flex;vertical-align:middle;justify-content:flex-start}
   #done-teach .tc-allok{text-align:center;padding:14px;font-weight:700;color:var(--sub)}
   .dfx-cp{position:fixed;left:0;top:0;width:9px;height:13px;z-index:62;pointer-events:none;border-radius:2px}
   @keyframes dtilePop{to{opacity:1;transform:none;}}
@@ -2588,6 +2589,7 @@ html[data-theme=dark] .mz-hard{background:#3a2c08;color:#ffd77a;border-color:#c9
 .mz-hard.glint::after{content:"";position:absolute;top:-20%;left:-60%;width:40%;height:140%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.95),transparent);transform:skewX(-20deg);animation:mzSw .5s ease-out forwards}
 @keyframes mzGl{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(240,180,41,0)}35%{transform:scale(1.14);box-shadow:0 0 14px 4px rgba(240,180,41,.75)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(240,180,41,0)}}
 @keyframes mzSw{to{left:130%}}
+.khs{display:inline-flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center}.khc{display:inline-block;border:1.5px solid currentColor;border-radius:7px;padding:1px 7px;line-height:1.5}
 </style>
 <script>/* 2026-10-30 川上さん：①テーマは画面を描く前に決める（後ろのスクリプトで決めると、読み込みの遅い端末で白い画面が先に出る）
    ②解答用紙の QR から来たら、最初の描画から「読み込み中」を大きく出す（ログイン画面だけが出て、止まって見えた） */
@@ -2990,7 +2992,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-31e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-01a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4533,7 +4535,7 @@ function _tcItem_(s,w,no,ok,pick,shown){
   else if(t==='w_demo'||t==='w_write'){it.ja=String(w.japanese||'');}
   else if(t==='dialog_fill'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:_tcHole_(esc(l.en||'')),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);}
   else if(t==='reorder'){var tk=((q.tokens&&q.tokens.length)?q.tokens:(p.tokens||[])).concat(q.extra||[]);it.ask=String((q.do&&q.do[0])||'');it.rp=(q.qx||[]).map(function(r){return {lab:String(r.lab||''),q:String(r.en||''),en:'',ja:String(r.ja||'')};});for(var i=tk.length-1;i>0;i--){var j=(Math.abs((String(w.id)+i).split('').reduce(function(a,c){return (a*31+c.charCodeAt(0))|0;},7))%(i+1));var x=tk[i];tk[i]=tk[j];tk[j]=x;}it.ja=String(w.japanese||'');it.toks=tk;}
-  else if(t==='listen'){it.ch=_tcMix_(q.choices_ja,w.id);it.au=(p.audios||[])[0]||p.audio||'';it.ans=String(w.japanese||'');it.script=String(w.english||'');}
+  else if(t==='listen'){it.ch=_tcMix_(q.choices_ja,w.id);it.kh=_khMapFor_(w,q,p);it.au=(p.audios||[])[0]||p.audio||'';it.ans=String(w.japanese||'');it.script=String(w.english||'');}
   else if(t==='listen_resp'||t==='listen_print'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:String(l.en||''),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);it.aus=(p.lines||[]).map(function(l){return l.audio||'';}).concat((p.q&&p.q.audio)?[p.q.audio]:[]).filter(Boolean);}
   else if(t==='image_fill'){var _a0=(s.assets||{})[q.asset]||{};it.fig=String(p.url||p.src||_a0.url||'');it.ja=String(w.japanese||'');it.ch=_tcMix_(q.choices,w.id);it.rd=String(w.reading_hint||'');}
   else if(t===''){
@@ -4579,7 +4581,7 @@ function _tcGr_(s){var m=String((s&&s.listId)||'').match(/eiken(\d)/);if(!m){var
 function _tcSay_(s,en){var e=(_tcWAM||{})[String(en||'').toLowerCase().trim()]||{},g=_tcGr_(s);speak({english:String(en||''),audio:e[g]||e['5']||e['4']||e['3']||e.p||''});}
 var _tcAuEl=null;function _tcPlay_(list){try{if(_tcAuEl)_tcAuEl.pause();}catch(e){}var i=0;var nx=function(){if(i>=list.length)return;var a=new Audio(list[i++]);_tcAuEl=a;a.onended=nx;var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});};nx();}
 function _tcChs_(it){return '<div class="tc-chs">'+(it.ch||[]).map(function(c){return '<span'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+esc(c)+'</span>';}).join('')+'</div>';}
-function _tcChl_(it){return '<ol class="tc-chl">'+(it.ch||[]).map(function(c){return '<li'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+esc(c)+'</li>';}).join('')+'</ol>';}
+function _tcChl_(it){return '<ol class="tc-chl">'+(it.ch||[]).map(function(c){return '<li'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+((it.kh&&_khHtml_(it.kh,c))||esc(c))+'</li>';}).join('')+'</ol>';}
 function _tcBody_(it){
   switch(it.t){
     case 'sentence_fill':return '<div class="tc-en">'+it.en+'</div><div class="tc-ja">'+_jaRubyIf_(it.ja)+'</div>'+_tcChs_(it);
@@ -8011,6 +8013,50 @@ function _jaRubySubj_(t,subj){return (subj==='english'||subj==='japanese')?_jaRu
 function _boxBlank(h){return h.replace(/（[\s　]*）/g,'<span class="qblank"></span>');}
 function _isKokugo(){var s=_actSes()||session;if(!s)return false;var w=s.words&&s.words[s.idx];var subj=(w&&w.subject)||s.subject;return subj==='japanese';} // おさらいは教科混在＝語ごとに判定 2026-07-26
 function renderQ(w,showFuri){var q=tfParse(w);if(q&&q.q_ruby&&q.q_ruby.length){var h='';q.q_ruby.forEach(function(seg){var t=String((seg&&seg[0])||'');var y=(seg&&seg[1])?seg[1]:'';h+=(showFuri&&y)?_rubyTag(t,y):esc(t);});return _boxBlank(h);}return _boxBlank(esc(String(w.japanese||'')));}
+/* ===== 架け橋の聞き取り：選択肢を英語の順のかたまりで見せる（2026-11-01 川上さん 10-31 21:38「英語の順の選択肢に」・22:59「＝（です）な。他は推奨で」・11-01 00:07「架け橋の解説に合わせた分け方で」）=====
+   シートの選択肢（qdata.choices_ja）は自然な訳のまま＝採点・記録・先生画面の「誤答3つ」の直しはそのまま。見せるときだけここで組む。
+   分け方は架け橋の解説（わたしは（I）→ 読みます（read）→ 本を（books））と同じ。be動詞は「＝（です）」・否定「＝（ではない）」・疑問「＝（ですか）」を先頭。
+   1つでも組めない選択肢があれば、その問題は全部いまの自然な訳で出す。道具＝ジョブス用\作業\20261031_架け橋の聞き取りの選択肢\ */
+var _KH_VB_=['持っています','飼っています','勉強します','料理します','走ります','泳ぎます','歌います','読みます','見ます','飲みます','食べます','とびます','踊ります','話します','作ります','します'];
+var _KH_TM_=['毎週日曜日に','毎日','毎朝','毎晩','放課後','日曜日に','土曜日に','今日','正午に','夜に','朝に'];
+var _KH_PL_=['図書館','公園','学校','台所','家','海','駅','部屋','教室','庭'];
+function _khParse_(ja){
+  var s=String(ja||'').replace(/。$/,''),P={},m,i,k;
+  m=s.match(/^(はい|いいえ)、/);if(m){P.yn=m[1];s=s.slice(m[0].length);}
+  if(/か$/.test(s)){s=s.slice(0,-1);P.q=1;}
+  i=s.indexOf('は');if(i<0)return null;P.dare=s.slice(0,i+1);s=s.slice(i+1);
+  var hit=false;
+  for(k=0;k<_KH_TM_.length;k++){var t=_KH_TM_[k];if(s.indexOf(t)>=0){P.itsu=t;s=s.split(t+'、').join('').split(t).join('');hit=true;break;}}
+  if(!hit){m=s.match(/(朝|夜)(?!食)、?/);if(m){P.itsu=m[1];s=s.slice(0,m.index)+s.slice(m.index+m[0].length);}}
+  for(k=0;k<_KH_PL_.length;k++){m=s.match(new RegExp(_KH_PL_[k]+'(で|に)(?!す)'));if(m){P.doko=_KH_PL_[k]+m[1];s=s.slice(0,m.index)+s.slice(m.index+m[0].length);break;}}
+  if(s==='そうです'){P.desu='＝（です）';return P;}
+  if(s==='ちがいます'){P.desu='＝（ではない）';return P;}
+  m=s.match(/^(.*?)(ではありません|くありません)$/);if(m){P.desu='＝（ではない）';P.nani=m[1]+(m[2]==='くありません'?'い':'');return P;}
+  m=s.match(/^(.*?)が(\d+(?:個|冊|匹|つ))?(好き|ほしい)です$/);if(m){P.suru=m[3]+'です';P.nani=m[1]+'が'+(m[2]||'');return P;}
+  for(k=0;k<_KH_VB_.length;k++){var v=_KH_VB_[k];if(s.length>=v.length&&s.slice(-v.length)===v){P.suru=v;var o=s.slice(0,-v.length);if(o)P.nani=o;return P;}}
+  m=s.match(/^(.*)です$/);if(m){P.desu=P.q?'＝（ですか）':'＝（です）';P.nani=m[1];return P;}
+  return null;
+}
+function _khOrder_(P,roles){
+  if(P.yn)return [P.yn,P.dare,P.desu];
+  if(P.q)return [P.desu,P.dare,P.nani||''];
+  var rest=[],out=[];(roles||[]).forEach(function(r){if((r==='doko'||r==='itsu')&&rest.indexOf(r)<0)rest.push(r);});
+  ['doko','itsu'].forEach(function(r){if(P[r]&&rest.indexOf(r)<0)rest.push(r);});
+  ['dare',(P.desu?'desu':'suru'),'nani'].concat(rest).forEach(function(r){if(P[r])out.push(P[r]);});
+  return out;
+}
+/* 架け橋の聞き取りなら {自然な訳: [かたまり…]} を返す。架け橋でない・組めないときは null */
+function _khMapFor_(w,q,pl){
+  try{
+    if(String((w&&w.qtype)||'')!=='listen')return null;
+    if(!/^as-eiken5-kh/.test(String((q&&q.asset)||'')))return null;
+    var cs=(q.choices_ja||[]).map(String);if(!cs.length)return null;
+    var M={},ok=true;
+    cs.concat([String(w.japanese||'')]).forEach(function(c){if(!ok||M[c])return;var P=_khParse_(c);if(!P){ok=false;return;}var o=_khOrder_(P,(pl&&pl.roles)||[]);if(!o.length||o.some(function(x){return !x;})){ok=false;return;}M[c]=o;});
+    return ok?M:null;
+  }catch(e){return null;}
+}
+function _khHtml_(M,v){var o=M&&M[String(v)];if(!o)return null;return '<span class="ci khs">'+o.map(function(x){return '<span class="khc">'+_jaRubyIf_(x)+'</span>';}).join('')+'</span>';}
 function _choiceHtml(v){v=String(v);var _h=(furiC&&_isKokugo()&&_kanjiRe(v)&&_readingMap[v])?_rubyTag(v,_readingMap[v]):_jaRubyIf_(v);
   return '<span class="ci">'+_h+'</span>';}  /* .choice は display:flex。ruby を直接入れると1文字ずつ別の箱になって折り返しが壊れる 2026-09-09 */
 function _hasQRuby(w){var q=tfParse(w);return !!(q&&q.q_ruby&&q.q_ruby.length);}
@@ -9149,8 +9195,9 @@ function _renderSENT0_(ss){
        かたまりを出す素材（ウォームアップ）は、英文を下の枠にかたまりごとに出すので、上の枠は使わない */
     var _kai=w.kaisetsu||'';
     var _heard=(pl.c&&pl.c.length)?'':String(pl.en||'');
+    var _khM=_khMapFor_(w,q,pl);   /* 架け橋は選択肢を英語の順のかたまりで見せる 2026-11-01 */
     buildChoices('sent-choices',w.japanese,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
-      {fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:(q.intro?0:_tl),kaisetsu:_kai,next:s.onNext,
+      {labelFn:(_khM?function(v){return _khHtml_(_khM,v);}:null),fig:true,fixedChoices:(q.choices_ja||[]),timeLimit:(q.intro?0:_tl),kaisetsu:_kai,next:s.onNext,
        afterShow:function(){try{_wlSync_(s,w,true);}catch(e){}
          if(_heard){var xh=$('ex-heard');if(xh){xh.innerHTML='<span class="ex-lbl"><ruby>聞<rt class="uf">き</rt></ruby>こえた<ruby>英文<rt class="uf">えいぶん</rt></ruby></span><b>'+_tkAnsHtml_(_heard)+'</b><button type="button" class="rdx-spk" id="ex-heardspk" aria-label="聞こえた英文を聞く"><i class="ti ti-volume"></i></button>';xh.style.display='';var _hb=$('ex-heardspk');if(_hb)_hb.onclick=function(e){e.stopPropagation();_sentPlay_(pl);};}}   /* 文全体を鳴らすボタン（読解の正解 3-12 と同じ部品）2026-10-08b */
          if(pl.c&&pl.c.length){var xa=$('ex-audio');if(xa){xa.innerHTML='<div class="lx-xh"></div><div class="lx-xl"><div class="lx-xb">'+_lxChunks_(pl.c)+(_lxSameJa_(pl.c,pl.ja)?'':'<small>'+_jaRubyIf_(String(pl.ja||''))+'</small>')+'</div></div>';xa.style.display='';}}}});   /* 聞いたあとに単語をみるを出す 2026-09-11 */
@@ -10784,7 +10831,7 @@ function buildChoices(containerId,correct,pool,onResult,opts){
     if(opts.afterShow){try{opts.afterShow(ok);}catch(_e){}}   /* 解説を出したあとに動くもの（文の音声・単語をみるの出し直し）2026-09-11 */
   }
   applyChoiceCols(box,choices); // 2列/1列 自動分岐 2026-07-05
-  choices.forEach(function(opt){var b=document.createElement('button');b.className='choice';b.setAttribute('data-val',opt);b.innerHTML=_choiceHtml(opt);
+  choices.forEach(function(opt){var b=document.createElement('button');b.className='choice';b.setAttribute('data-val',opt);b.innerHTML=(opts.labelFn&&opts.labelFn(opt))||_choiceHtml(opt);
     b.onclick=function(){finish(_choiceKey(opt)===_ck,b);};box.appendChild(b);});   /* 2026-08-18 型ちがいで正解がバツになるのを防ぐ */
   if(opts.timeLimit>0){startQTimer(_qtSecFinal_(opts.timeLimit,choices,opts.fig),function(){finish(false,null);});}else{hideQTimer();} /* 秒数は「実際に出す4つ」が決まってから足す＝ランダムに選ばれた誤答の長さもちゃんと見る 2026-09-02 */
 }
