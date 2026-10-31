@@ -609,14 +609,14 @@ function redoResHtml(res){if(!res||!res.length)return '';const n=res.filter(r=>r
 function drawTRes(ph,ok,ov){const T=TEST,R=TSUM(),S=TSR(),L=tSteps(R),pp=S.paper||'';
  if(TSTEP===null||TSTEP>L.length){const i=L.findIndex(x=>!x.done&&!x.opt);TSTEP=i<0?L.length:i;}
  const at=TSTEP,st=L[at];
- const bar=WD1(L.map((x,i)=>({cls:i===at?'now':x.done?'done':'',ic:x.ic,t:(i===at&&x.k==='read'&&!x.opt)?`解説 <b>${x.c}</b>`:x.t,v:0})).concat([at>=L.length?{cls:'now',ic:'flag',t:'このあと'}:WD1G]));
+ const bar=WD1(L.map((x,i)=>({cls:i===at?'now':x.done?'done':'',ic:x.ic,t:(i===at&&x.k==='read'&&!x.opt)?`解説 <b>${x.c}</b>`:x.t,v:0})).concat([at>=L.length?{cls:'now',ic:'flag',t:'ゴール'}:WD1G]));
  const head=`<div class="trs"><div class="score">${ok*T.pt}点 <span>／100点</span></div>${__tDelta(ok*T.pt)}${ov?`<div class="tover">時間切れ（制限時間を ${mmss(ov)} こえた）</div>`:''}${ok===TFL.length?'<div class="okm" style="text-align:center">全問正解！おめでとう</div>':''}</div>`;
  const no=at+1,card=(t,d,body,btn)=>`<div class="tstep tcur"><div class="tsh"><span class="tsno">${no}</span>${t}</div>${d?`<div class="tsd">${d}</div>`:''}${body||''}${btn||''}</div>`;
  /* ①を飛ばしたときは、なぜ飛ばしたかを1行で */
  const lead='';
  let h='';
  const PASS=!st&&R.got>=80&&tDone(Object.assign({ans:tans,seen:TSEEN},S)),POP=PASS&&!S.stamp;
- if(!st){h=`<div class="tstep tcur tnext"><div class="tsh">このあと</div>${tPassHtml(R.got)||`<div class="passn tpass">${R.wr.length?(tDone(Object.assign({ans:tans,seen:TSEEN},S))?'直し済み。':'直しが残っている。上のバーで残りを確かめよう。'):'直し済み。'}</div>`}${tFixHtml()}${S.redo_res&&S.redo_res.length?`<details class="tdet rdbox"><summary>類題の結果を見る（${S.redo_res.filter(r=>r.o).length} / ${S.redo_res.length}問 正解）</summary>${redoResHtml(S.redo_res)}</details>`:''}<button class="next sub tagain">このテストをもう一度受ける</button></div><details class="tdet"><summary>大問ごとの点</summary>${R.sec}<table class="tsum">${R.bl}</table></details>`;}
+ if(!st){h=`<div class="tstep tcur tnext"><div class="tsh">次にやること</div>${tPassHtml(R.got)||`<div class="passn tpass">${R.wr.length?(tDone(Object.assign({ans:tans,seen:TSEEN},S))?'直し済み。':'直しが残っている。上のバーで残りを確かめよう。'):'直し済み。'}</div>`}${tFixHtml()}${S.redo_res&&S.redo_res.length?`<details class="tdet rdbox"><summary>類題の結果を見る（${S.redo_res.filter(r=>r.o).length} / ${S.redo_res.length}問 正解）</summary>${redoResHtml(S.redo_res)}</details>`:''}<button class="next sub tagain">このテストをもう一度受ける</button></div><details class="tdet"><summary>大問ごとの点</summary>${R.sec}<table class="tsum">${R.bl}</table></details>`;}
  else if(st.k==='mark'){const rows=T.blocks.map((b,bi)=>`<div class="tmr"><div class="tmn">${DN(b.num)}</div><div class="tmc">${tJs(bi).map(j=>{const o=tans[j]===TFL[j].st.a;const sb=b.ren?SN(TFL[j].k):b.grp?SNB(b,TFL[j].k):'';return `<span class="tmx ${o?'o':'x'}">${sb}<b>${o?'○':'×'}</b></span>`;}).join('')}</div></div>`).join('');
   h=card('丸つけして点数を書こう',`答えを書いた紙（解答用紙・ノート・プリント）に○×をつけて、上に <b>${ok*T.pt}点</b> と書こう。`,`<div class="tmk">${rows}</div>`,`<button class="next tsgo" data-go="mark">丸つけした</button>`);}
  else if(st.k==='read'&&!st.opt){const all=R.wr.every(j=>TSEEN[j]);
@@ -1015,7 +1015,7 @@ function __drawEntry(ph){const T=TEST,S=(TSTATE&&TSTATE.got!=null)?TSTATE:null,H
   const md=S.paper==='ox'?'○×入力':S.paper==='sym'?'自動採点':'クロトレで解いた',dt=__entDate(S.at);
   top+=`<div class="ent-prev"><div class="ent-ph">前の結果${dt?'（'+dt+'）':''}</div><div class="ent-sc">${S.got}点<small>${md}</small></div>`
    +`<span class="ent-tag ${dn?'ok':'fx'}">${ps?'合格':dn?'直し済み':'直しの途中'}</span>`
-   +`<div class="ent-st">${L.map((x,i)=>`<span class="${x[1]?'d':i===ci?'cur':''}">${x[0]}</span>`).join('')}<span class="${dn?'d':''}">このあと</span></div>`
+   +`<div class="ent-st">${L.map((x,i)=>`<span class="${x[1]?'d':i===ci?'cur':''}">${x[0]}</span>`).join('')}<span class="${dn?'d':''}">ゴール</span></div>`
    +`<button type="button" class="ent-big" data-e="cont">${dn?'点数と解説を見る':'続きから（解説・類題）'}</button></div>`;}
  const v=T.ver||'',nx=v&&v!=='C'?NEXTV(v):'';
  const ask=S?(v?`<span class="ent-v">${v}</span>をもう一度受ける`:'このテストをもう一度受ける'):'答え合わせのしかたを選ぶ';
