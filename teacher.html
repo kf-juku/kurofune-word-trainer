@@ -1732,6 +1732,14 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
           <label class="cheer-sw"><input type="checkbox" id="cheerT5" onchange="saveCheerConfig()"><span class="cheer-track"></span></label>
         </div>
       </div>
+
+      <!-- みんなの正答率（2026-10-31・要件定義書_みんなの正答率） -->
+      <div class="cheer-setK" id="rateSetBox" style="margin-top:12px;">
+        <div class="cheer-title">📊 みんなの正答率（生徒画面・試し）</div>
+        <div class="cheer-lead">毎日学習の英単語・国語の語句で、生徒が答えたあとに「みんなの正答率 ◯%」を出します。難問（下の％未満）を正解すると「難問クリア！」の札がピーンと光ります。塾で1つの値です。</div>
+        <div class="cheer-trow"><div class="cheer-tmain"><div class="cheer-tlbl">出す問題</div><div class="cheer-tdesc">この回数以上解かれた問題だけに出します（少ないと数字がぶれるため）。満たない問題には何も出ません。</div></div><span><input id="rateMin" type="number" min="1" max="9999" value="20" style="width:64px" onchange="saveRateConfig()"> 回以上</span></div>
+        <div class="cheer-trow"><div class="cheer-tmain"><div class="cheer-tlbl">難問の線</div><div class="cheer-tdesc">正答率がこの値より低い問題を「難問」にします。</div></div><span><input id="rateHard" type="number" min="1" max="100" value="70" style="width:64px" onchange="saveRateConfig()"> %未満</span></div>
+      </div>
     </div><!-- /#view-settings -->
 
     <!-- ===== 教材ごとビュー 2026-07-09 ===== -->
@@ -2937,7 +2945,7 @@ function hideLoading(){var el=$('loadingOverlay');if(el)el.classList.remove('sho
    ・書く action … doGet の返事・JSONでない返事は取り直さない（書けたか分からない＝二重に書くのを防ぐ）。ok:false で「読み込み直して確かめて」。
      通信の失敗（fetch が失敗）は、いままでどおり取り直す（2026-09-16c では変えていない）。
    ★action を足したら、読むだけなら CALL_READ_RE_ に足す（単体テスト 20260916c が分類漏れを見張る）。 */
-var CALL_READ_RE_=/^(dashboard|teacher_mistakes|teacher_login|abandon_summary|material_preview|materials_list|assignment_list|teams_list|notice_list|bug_list|quiz_board|quiz_delivery_dates|quiz_student_dates|report_sets_get|alert_config_get|cheer_config_get)$/;
+var CALL_READ_RE_=/^(dashboard|teacher_mistakes|teacher_login|abandon_summary|material_preview|materials_list|assignment_list|teams_list|notice_list|bug_list|quiz_board|quiz_delivery_dates|quiz_student_dates|report_sets_get|alert_config_get|cheer_config_get|rate_config_get)$/;
 var CALL_BUSY_MSG_='サーバーが混み合っています。少し待ってから、もう一度お試しください。';
 var CALL_UNSURE_MSG_='サーバーの返事を受け取れませんでした。保存できたか分からないので、画面を読み込み直して確かめてください。';
 function _callIsGetEcho_(d){ return !!(d&&d.ok===true&&d.data&&typeof d.data==='object'&&d.data.method==='GET'&&d.data.service); }
@@ -6211,6 +6219,17 @@ function saveAlertConfig(){
     _alertCfg=d.data;toast('しきい値を保存しました（生徒一覧の色・メール通知・リアルタイムにも反映されます）');renderAlertsK();if(_students&&_students.length)renderTable();
   });
 }
+/* --- みんなの正答率の設定（2026-10-31）。Script Property kwt_rate_min・kwt_rate_hard（GAS rate_config_get/set） --- */
+var _rateCfg={min:20,hard:70};
+function loadRateConfig(){call({action:'rate_config_get'}).then(function(d){if(d&&d.ok){_rateCfg=d.data;var m=$('rateMin'),h=$('rateHard');if(m)m.value=_rateCfg.min;if(h)h.value=_rateCfg.hard;}});}
+function saveRateConfig(){
+  var m=parseInt($('rateMin').value,10),h=parseInt($('rateHard').value,10);
+  toast('⏳ 保存中…');
+  call({action:'rate_config_set',min:m,hard:h}).then(function(d){
+    if(!d||!d.ok){toast('⚠ '+((d&&d.error)||'保存に失敗しました'));$('rateMin').value=_rateCfg.min;$('rateHard').value=_rateCfg.hard;return;}
+    _rateCfg=d.data;toast('みんなの正答率の設定を保存しました（次にパートを始めた生徒から変わります）');
+  });
+}
 /* --- 先生応援の設定（先生アカウントの特別仕様・全項目ON/OFF）2026-07-07 --- */
 var _cheerCfg={enabled:false,senders:[],exclude_alert:true,exclude_print:true,exclude_report:true,star_teacher:false};
 function loadCheerConfig(){
@@ -6525,6 +6544,7 @@ function switchTab(t){
   if(t==='mat') renderMatTab();
   if(t==='report') renderReportTab();
   if(t==='notice') renderNoticeTab(); // 開いたら最新を取り直す（原則6）2026-08-28
+  if(t==='settings'){ try{loadRateConfig();}catch(eRc){} }
   if(t==='settings') renderCheerPanel(); // 設定タブを開いたら最新状態で描画（loadCheerConfigは起動時に実行済み）
 }
 
