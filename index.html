@@ -1446,6 +1446,10 @@
   #done-teach .tc-bk{margin-left:auto;font-size:12px;font-weight:700;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer;font-family:inherit}
   #done-teach .tc-wl>div{display:flex;align-items:center}
   #done-teach .tc-wl .tc-hid{flex:1}
+  #done-teach .tc-tbl{margin:4px 0 6px;overflow-x:auto}#done-teach .tc-tbl table.tf-table{font-size:14px}#done-teach .tc-tbl .tf-hole.tc-cur{background:var(--accent-soft);border-bottom-color:var(--accent);color:var(--accent)}
+  #done-teach .tc-src{font-size:12px;color:var(--sub);margin-bottom:2px}#done-teach .tc-ask{font-size:13.5px;color:var(--ink);margin:2px 0}
+  #done-teach .tc-rp{font-size:13.5px;border-left:3px solid var(--line);padding-left:8px;margin:4px 0}#done-teach .tc-rp small{display:block;color:var(--sub);font-size:12px}
+  #done-teach .tc-wl .tc-e .tc-au.tc-aus{margin:0 0 0 auto;padding:2px 8px;font-size:12px}#done-teach .tc-wl .tc-e{gap:6px}
   #done-teach .tc-allok{text-align:center;padding:14px;font-weight:700;color:var(--sub)}
   .dfx-cp{position:fixed;left:0;top:0;width:9px;height:13px;z-index:62;pointer-events:none;border-radius:2px}
   @keyframes dtilePop{to{opacity:1;transform:none;}}
@@ -2986,7 +2990,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-10-31d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-10-31e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4498,7 +4502,7 @@ function _tcPl_(s,aid){try{var a=(s.assets||{})[aid];if(!a)return {};var p=a.pay
 function _tcQd_(w){var d=w&&w.qdata;if(typeof d==='string'){try{d=JSON.parse(d||'{}');}catch(e){d={};}}return d||{};}
 function _tcSplitJa_(t){var m=String(t||'').match(/^(.*[\.\?!])\s*[　]\s*([^A-Za-z].*)$/);return m?[m[1].trim(),m[2].trim()]:[String(t||''),''];}
 function _tcHole_(h){return String(h).replace(/（　）|\( \)|\(\s*\)/g,'<u class="tc-blank">　　</u>');}
-function _tcKai_(t){return esc(String(t||'')).replace(/\n/g,'<br>');}
+function _tcKai_(t){return esc(String(t||'').replace(/\{\{([^|{}]*)\|([^{}]*)\}\}/g,'$1（$2）').replace(/\{\{([^{}]*)\}\}/g,'$1')).replace(/\n/g,'<br>');}
 /* 選択肢は1番目が正解のデータが多い＝出したときの並びが無いときは、id で決まった並びに混ぜる（答えが分からないように）*/
 function _tcMix_(a,id){a=(a||[]).map(function(x){return String(x);});var h=7,k=String(id);for(var i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;for(var j=a.length-1;j>0;j--){h=(h*1103515245+12345)>>>0;var r=h%(j+1),x=a[j];a[j]=a[r];a[r]=x;}return a;}
 function _tcUnesc_(t){return String(t||'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&');}
@@ -4506,9 +4510,29 @@ function _tcUnesc_(t){return String(t||'').replace(/&lt;/g,'<').replace(/&gt;/g,
 function _tcItem_(s,w,no,ok,pick,shown){
   var t=String(w.qtype||''),q=_tcQd_(w),p=_tcPl_(s,q.asset),it={id:String(w.id),t:t,no:no,ok:ok,ans:String(w.english||''),x:_tcKai_(w.kaisetsu)};
   if(t==='sentence_fill'){var sp=_tcSplitJa_(w.japanese);it.en=_tcHole_(esc(sp[0]));it.ja=sp[1];it.ch=_tcMix_(q.choices,w.id);}
-  else if(t==='table_fill'){it.ja=String(w.japanese||'');it.ch=_tcMix_(q.choices,w.id);}
+  else if(t==='table_fill'){it.ja=String(w.japanese||'');it.ch=_tcMix_(q.choices,w.id);it.tbl=_tcTbl_(s,q);if(s.isEnglish!==false&&w.english){var _en=String(w.english);it.ap=function(){_tcSay_(s,_en);};}}
+  else if(t==='reading'){var _rq=String(q.kind||'')==='rq',_rch=(q.choices||[]).map(function(c){return (c&&typeof c==='object')?c:{en:String(c==null?'':c),ja:''};}),_r0=_rch[0]||{};
+    it.q=String(q.q||w.japanese||'');it.qja=_rq?String(q.q_ja||''):'';it.rq=_rq;it.src=String(p.title||'');it.ch=_tcMix_(_rch.map(function(c){return String(c.en||'');}),w.id);
+    it.ans=String(_r0.en||w.english||'');it.ansja=_rq?String(_r0.ja||''):'';
+    it.hl=_rdLocs_(q).map(function(k){return k===-1?{en:p.title,ja:''}:(p.lines||[])[k];}).filter(function(x){return x&&x.en;}).map(function(x){return {en:String(x.en||''),ja:String(x.ja||'')};});
+    if(String(q.step||'')==='語句チェック'&&it.hl.length){it.word=it.hl.map(function(x){return x.en;}).join(' / ');it.hl=[];it.src='';}
+    try{it.ap=_exPlayFor_(s,w);}catch(e){}}
+  else if(t==='listen_pic'){var _md=String(q.mode||'');it.fig=String(p.img||'');
+    if(_md==='pic_ja'||_md==='pic_yn'){it.ask=String(q.ask||'');var _cj=(q.choices_ja||[]).map(String);it.ch=(_md==='pic_yn')?_cj:_tcMix_(_cj,w.id);it.ans=String((_md==='pic_yn'?w.japanese:w.english)||w.japanese||'');
+      if(_md==='pic_yn'){var _l=((p.lines||[])[0])||{};it.qa=function(){_sentPlay_(_l);};it.scr=[{en:String(_l.en||''),ja:String(_l.ja||'')}];}}
+    else{var _pc=p.choices||[],_ix=_tcMix_(_pc.map(function(_,i){return String(i);}),w.id).map(Number),_ps=_ix.map(function(i){return _pc[i]||{};}),_c0=_pc[0]||{};
+      it.ch=_ps.map(function(c){return String(c.en||'');});it.ans=String(_c0.en||w.english||'');it.ansja=String(_c0.ja||'');
+      it.qa=function(){_lxRunSeq_(_ps.map(function(c){return {it:c,gap:350};}));};}}
+  else if(t==='phonics'){var _pm=String(q.mode||'read'),_pp=p;it.ask=(_pm==='say')?'':_phAsk_(_pm);it.ch=_tcMix_(q.choices,w.id);
+    if(_pm==='read'||_pm==='say'){it.en=String(p.word||'');it.ap=function(){_phWhole_(_pp);};it.ans=(_pm==='say')?String(p.read||''):String(w.japanese||'');}
+    else{it.qa=function(){_phWhole_(_pp);};it.ans=String(w.english||p.word||'');}}
+  else if(t==='w_add'){var _C=p.choices||[],_a0=_C[0]||{};it.ask=String((q.do&&q.do[0])||'返信の最後に足す1文を選ぼう');
+    it.rp=(p.reply||[]).map(function(r){return {lab:String(r.lab||''),q:String(r.q||''),en:String(r.en||''),ja:String(r.ja||'')};});
+    it.ch=_tcMix_(_C.map(function(c){return String(c.en||'');}),w.id);it.ans=String(_a0.en||w.english||'');it.ansja=String(_a0.ja||'');
+    it.ap=function(){_sentPlay_({en:_a0.en,audios:_a0.audios||null,audio:_a0.audio||''});};}
+  else if(t==='w_demo'||t==='w_write'){it.ja=String(w.japanese||'');}
   else if(t==='dialog_fill'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:_tcHole_(esc(l.en||'')),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);}
-  else if(t==='reorder'){var tk=(q.tokens||[]).concat(q.extra||[]);for(var i=tk.length-1;i>0;i--){var j=(Math.abs((String(w.id)+i).split('').reduce(function(a,c){return (a*31+c.charCodeAt(0))|0;},7))%(i+1));var x=tk[i];tk[i]=tk[j];tk[j]=x;}it.ja=String(w.japanese||'');it.toks=tk;}
+  else if(t==='reorder'){var tk=((q.tokens&&q.tokens.length)?q.tokens:(p.tokens||[])).concat(q.extra||[]);it.ask=String((q.do&&q.do[0])||'');it.rp=(q.qx||[]).map(function(r){return {lab:String(r.lab||''),q:String(r.en||''),en:'',ja:String(r.ja||'')};});for(var i=tk.length-1;i>0;i--){var j=(Math.abs((String(w.id)+i).split('').reduce(function(a,c){return (a*31+c.charCodeAt(0))|0;},7))%(i+1));var x=tk[i];tk[i]=tk[j];tk[j]=x;}it.ja=String(w.japanese||'');it.toks=tk;}
   else if(t==='listen'){it.ch=_tcMix_(q.choices_ja,w.id);it.au=(p.audios||[])[0]||p.audio||'';it.ans=String(w.japanese||'');it.script=String(w.english||'');}
   else if(t==='listen_resp'||t==='listen_print'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:String(l.en||''),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);it.aus=(p.lines||[]).map(function(l){return l.audio||'';}).concat((p.q&&p.q.audio)?[p.q.audio]:[]).filter(Boolean);}
   else if(t==='image_fill'){var _a0=(s.assets||{})[q.asset]||{};it.fig=String(p.url||p.src||_a0.url||'');it.ja=String(w.japanese||'');it.ch=_tcMix_(q.choices,w.id);it.rd=String(w.reading_hint||'');}
@@ -4520,19 +4544,52 @@ function _tcItem_(s,w,no,ok,pick,shown){
     else{it.t='term';it.ja=String(w.japanese||'');it.ch=(shown&&shown.ch)?shown.ch:[];it.rd=String(w.reading_hint||'');}   /* 選択肢は出したときの並び（無ければ出さない＝正解だけの札で答えが見えないように）*/
   }else{it.ja='';}   /* 形の決まっていない問題は訳を出さない（答えが見えないように）*/
   if(shown&&shown.ch&&t!==''&&shown.ch.length>1)it.ch=shown.ch.map(String);   /* 出したときの並びがあればそれを使う */
+  if(s.isEnglish!==false&&(t==='sentence_fill'||t==='dialog_fill'||t==='reorder')){try{it.ap=_exPlayFor_(s,w);}catch(e){}}   /* 2026-10-31 答えが入った音＝シールをはがしたあと（答えの枠の中）に出す */
   if(!ok&&pick!==undefined)it.you=(t==='reorder')?String(pick).split(' / ').join(' ').replace(/\s+([.,?!])/g,'$1'):String(pick);
   return it;
 }
 function _tcAu_(it,lab){var l=(it.aus&&it.aus.length)?it.aus:(it.au?[it.au]:[]);if(!l.length)return '';return '<button type="button" class="tc-au" onclick=\'_tcPlay_('+JSON.stringify(l).replace(/'/g,'&#39;')+')\'><i class="ti ti-volume"></i>'+lab+'</button>';}
+/* 【2026-10-31 川上さん「何の問題か分からないやつがある」「音聞くボタンがない」「最初の単語にも音聞くボタン欲しい」】
+   表＝解いたときと同じ表。この問題の穴だけ（　）で目立たせ、ほかの穴は①②の番号だけ（ほかの問題の答えを見せない）。
+   音＝答えが入った音（文・会話の穴うめ・表・並べかえ・読解の答え・足す1文・フォニックスの読み）は答えの枠（シールの下）に、
+   聞き取りの問題の音は問題の側に出す。単語の音＝img/audio/word_audio.json（本番シートの毎日学習の英単語から作る表。
+   作り方＝ジョブス用\道具\20261031_採点画面の単語の音\make_word_audio.py）。表に無い語は今の speak と同じく端末の読み上げ。 */
+function _tcTbl_(s,q){
+  var a=(s.assets||{})[q.asset]||{},pl=_tcPl_(s,q.asset);if(!(pl.rows&&pl.rows.length))return '';
+  var keys=[],seen={};var addK=function(r,c){var k=(+r)+'_'+(+c);if(!seen[k]){seen[k]=1;keys.push(k);}};
+  if(a.holes){Object.keys(a.holes).forEach(function(k){var rc=k.split('_');addK(rc[0],rc[1]);});}
+  else{(s.words||[]).forEach(function(x){if(String(x.qtype||'')==='table_fill'){var qq=_tcQd_(x);if(String(qq.asset)===String(q.asset))addK(qq.r,qq.c);}});}
+  keys.sort(function(A,B){var a1=A.split('_'),b1=B.split('_');return (a1[0]-b1[0])||(a1[1]-b1[1]);});
+  var num={};keys.forEach(function(k,i){num[k]=i+1;});var me=(+q.r)+'_'+(+q.c);
+  var h=(a.title?'<div class="tf-title">'+esc(a.title)+'</div>':'')+'<table class="tf-table"><tr><th></th>';(pl.cols||[]).forEach(function(c){h+='<th>'+esc(c)+'</th>';});h+='</tr>';
+  (pl.rows||[]).forEach(function(row,ri){h+='<tr><td class="tf-rowh">'+esc(row.label||'')+'</td>';
+    (row.cells||[]).forEach(function(cell,ci){var k=ri+'_'+ci;
+      if(k===me)h+='<td><span class="tf-hole tc-cur">（　）</span></td>';
+      else if(num[k]!=null)h+='<td><span class="tf-hole">'+(TF_CIRC[num[k]]||num[k])+'</span></td>';
+      else h+='<td class="tf-en">'+esc(cell)+'</td>';});
+    h+='</tr>';});
+  return h+'</table>';
+}
+var _tcPlays=[];
+function _tcAB_(fn,lab,cls){if(!fn)return '';var i=_tcPlays.push(fn)-1;return '<button type="button" class="tc-au'+(cls?' '+cls:'')+'" onclick="event.stopPropagation();try{_tcPlays['+i+']();}catch(e){}"><i class="ti ti-volume"></i>'+(lab||'')+'</button>';}
+var _TC_AUL='<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く';
+var _tcWAM=null,_tcWAP=null;
+function _tcWAload_(){if(_tcWAP)return;try{_tcWAP=fetch('img/audio/word_audio.json?v='+encodeURIComponent(typeof APP_VERSION!=='undefined'?APP_VERSION:'')).then(function(r){return r.ok?r.json():{};}).then(function(m){_tcWAM=m||{};}).catch(function(){_tcWAP=null;});}catch(e){_tcWAP=null;}}
+function _tcGr_(s){var m=String((s&&s.listId)||'').match(/eiken(\d)/);if(!m){var w=((s&&s.words)||[])[0]||{};m=String(w.part_id||w.id||'').match(/eiken(\d)/);}return m?m[1]:'';}
+function _tcSay_(s,en){var e=(_tcWAM||{})[String(en||'').toLowerCase().trim()]||{},g=_tcGr_(s);speak({english:String(en||''),audio:e[g]||e['5']||e['4']||e['3']||e.p||''});}
 var _tcAuEl=null;function _tcPlay_(list){try{if(_tcAuEl)_tcAuEl.pause();}catch(e){}var i=0;var nx=function(){if(i>=list.length)return;var a=new Audio(list[i++]);_tcAuEl=a;a.onended=nx;var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});};nx();}
 function _tcChs_(it){return '<div class="tc-chs">'+(it.ch||[]).map(function(c){return '<span'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+esc(c)+'</span>';}).join('')+'</div>';}
 function _tcChl_(it){return '<ol class="tc-chl">'+(it.ch||[]).map(function(c){return '<li'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+esc(c)+'</li>';}).join('')+'</ol>';}
 function _tcBody_(it){
   switch(it.t){
     case 'sentence_fill':return '<div class="tc-en">'+it.en+'</div><div class="tc-ja">'+_jaRubyIf_(it.ja)+'</div>'+_tcChs_(it);
-    case 'table_fill':return '<div class="tc-ja">'+_jaRubyIf_(it.ja)+'</div>'+_tcChs_(it);
+    case 'table_fill':return (it.tbl?'<div class="tc-tbl">'+it.tbl+'</div>':'')+'<div class="tc-ja">'+_jaRubyIf_(it.ja)+'</div>'+_tcChs_(it);
+    case 'reading':if(it.word)return '<div class="tc-ask">'+_jaRubyIf_(it.q)+'</div><div class="tc-en" style="font-size:20px">'+esc(it.word)+'</div>'+_tcChl_(it);return (it.src?'<div class="tc-src"><ruby>本文<rt class="uf">ほんぶん</rt></ruby>：'+esc(it.src)+'</div>':'')+'<div class="tc-en" style="font-size:15px">'+(it.rq?esc(it.q):_jaRubyIf_(it.q))+'</div>'+(it.qja?'<div class="tc-ja">'+_jaRubyIf_(it.qja)+'</div>':'')+_tcChl_(it);
+    case 'listen_pic':return (it.fig?'<div class="tc-fig"><img src="'+esc(it.fig)+'" alt="絵" loading="lazy"></div>':'')+(it.ask?'<div class="tc-ask">'+_jaRubyIf_(it.ask)+'</div>':'')+_tcAB_(it.qa,_TC_AUL)+_tcChl_(it);
+    case 'phonics':return (it.ask?'<div class="tc-ask">'+it.ask+'</div>':'')+(it.en?'<div class="tc-en" style="font-size:20px">'+esc(it.en)+'</div>':'')+_tcAB_(it.qa,_TC_AUL)+((it.ch&&it.ch.length)?_tcChs_(it):'');
+    case 'w_add':return '<div class="tc-ask">'+_jaRubyIf_(it.ask)+'</div>'+(it.rp||[]).map(function(r){return '<div class="tc-rp">'+(r.q?'<small>'+_jaRubyIf_(r.lab)+' '+esc(r.q)+'</small>':'')+esc(r.en)+(r.ja?'<small>'+_jaRubyIf_(r.ja)+'</small>':'')+'</div>';}).join('')+_tcChl_(it);
     case 'dialog_fill':return it.lines.map(function(l){return '<div class="tc-dl">'+(l.sp?'<b>'+esc(l.sp)+'</b>':'')+'<span class="tc-en" style="font-size:15px">'+l.en+'</span></div>';}).join('')+_tcChs_(it);
-    case 'reorder':return '<div class="tc-ja" style="color:var(--ink)">'+_jaRubyIf_(it.ja)+'</div><div class="tc-chs">'+(it.toks||[]).map(function(c){return '<span>'+esc(c)+'</span>';}).join('')+'</div>';
+    case 'reorder':return (it.ask?'<div class="tc-ask">'+_jaRubyIf_(it.ask)+'</div>':'')+(it.rp||[]).map(function(r){return '<div class="tc-rp"><small>'+_jaRubyIf_(r.lab)+'</small>'+esc(r.q)+(r.ja?'<small>'+_jaRubyIf_(r.ja)+'</small>':'')+'</div>';}).join('')+'<div class="tc-ja" style="color:var(--ink)">'+_jaRubyIf_(it.ja)+'</div><div class="tc-chs">'+(it.toks||[]).map(function(c){return '<span>'+esc(c)+'</span>';}).join('')+'</div>';
     case 'listen':return _tcAu_(it,'<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChl_(it);
     case 'listen_resp':case 'listen_print':return _tcAu_(it,'<ruby>会話<rt class="uf">かいわ</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChl_(it);
     case 'word':return '<div class="tc-en" style="font-size:20px">'+esc(it.en)+'</div>'+_tcAu_(it,'<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChs_(it);
@@ -4546,9 +4603,11 @@ function _tcAns_(it){
   if(it.t==='listen')ex='<div class="tc-sc">'+esc(it.script)+'</div>';
   if(it.t==='listen_resp'||it.t==='listen_print')ex='<div class="tc-sc">'+it.lines.map(function(l){return (l.sp?esc(l.sp)+'：':'')+esc(l.en)+'<br><span style="font-size:12px">'+esc(l.ja)+'</span>';}).join('<br>')+'</div>';
   if((it.t==='term'||it.t==='image_fill')&&it.rd)a=esc(it.ans)+'（'+esc(it.rd)+'）';
-  return '<div class="tc-a"><small><ruby>正解<rt class="uf">せいかい</rt></ruby></small>'+a+'</div>'+ex+(it.x?'<div class="tc-x">'+it.x+'</div>':'');
+  if(it.ansja)a+='<small style="display:block;font-weight:500;margin:2px 0 0">'+_jaRubyIf_(it.ansja)+'</small>';
+  var hl=(it.hl||[]).concat(it.scr||[]);if(hl.length)ex+='<div class="tc-sc">'+hl.map(function(l){return esc(l.en)+(l.ja?'<br><span style="font-size:12px">'+_jaRubyIf_(l.ja)+'</span>':'');}).join('<br>')+'</div>';
+  return '<div class="tc-a"><small><ruby>正解<rt class="uf">せいかい</rt></ruby></small>'+a+'</div>'+ex+(it.ap?'<div>'+_tcAB_(it.ap,_TC_AUL)+'</div>':'')+(it.x?'<div class="tc-x">'+it.x+'</div>':'');
 }
-function _tcShortP_(it){var p=_tcUnesc_(String(it.en||'').replace(/<[^>]+>/g,''))||it.ja||'';if(it.t==='dialog_fill')p=_tcUnesc_((it.lines||[]).map(function(l){return String(l.en).replace(/<[^>]+>/g,'');}).join(' '));if(it.t==='listen'||it.t==='listen_resp'||it.t==='listen_print')p='（聞き取り）';return String(p).replace(/<[^>]+>/g,'');}
+function _tcShortP_(it){var p=_tcUnesc_(String(it.en||'').replace(/<[^>]+>/g,''))||it.ja||'';if(it.t==='dialog_fill')p=_tcUnesc_((it.lines||[]).map(function(l){return String(l.en).replace(/<[^>]+>/g,'');}).join(' '));if(it.t==='listen'||it.t==='listen_resp'||it.t==='listen_print'||it.t==='listen_pic'||(it.t==='phonics'&&!it.en))p='（聞き取り）';if(it.t==='reading')p=it.q||'';if(it.t==='w_add')p=it.ask||'';return String(p).replace(/<[^>]+>/g,'');}
 function _tcAnsShort_(it){var a=it.ans;if((it.t==='term'||it.t==='image_fill')&&it.rd)a+='（'+it.rd+'）';return esc(a);}
 var _TC_STK='<span class="tc-stk"><i class="ti ti-hand-finger"></i>タップしてはがす</span>';
 function _tcHid_(inner,cls){return '<div class="tc-hid '+(cls?'tc-'+cls:'')+'" onclick="_tcPk_(this)">'+inner+_TC_STK+'</div>';}
@@ -4573,7 +4632,7 @@ function _tcWords_(s){
 }
 /* 先生チェックを描く。s＝終えたセッション */
 function teachRender_(s){
-  var host=$('done-teach');if(!host)return;host.innerHTML='';
+  var host=$('done-teach');if(!host)return;host.innerHTML='';_tcPlays=[];
   if(!s||s.fromReview||s.mode==='srs'||s.mode==='note')return;
   var isQuiz=!!s.quizMode;if(!isQuiz&&s.content_type!=='test')return;   /* 毎日学習には入れない */
   var ws=s.words||[];if(!ws.length)return;
@@ -4584,10 +4643,11 @@ function teachRender_(s){
   /* 単語の段＝英語の単元別だけ。問題そのものが単語の教材（教科書英単語など）と確認テストには出さない */
   var allWord=items.every(function(x){return x.t==='word'||x.t==='term';});
   var words=(!isQuiz&&s.isEnglish!==false&&!allWord)?_tcWords_(s):[];
+  if(s.isEnglish!==false)_tcWAload_();
   var h='<div class="tc-teach"><div class="tc-ic"><i class="ti ti-user"></i></div><div><div class="tc-tt"><ruby>先生<rt class="uf">せんせい</rt></ruby>に<ruby>見<rt class="uf">み</rt></ruby>せよう</div><div class="tc-ts"><ruby>先生<rt class="uf">せんせい</rt></ruby>を<ruby>呼<rt class="uf">よ</rt></ruby>んで、この<ruby>画面<rt class="uf">がめん</rt></ruby>で<ruby>一緒<rt class="uf">いっしょ</rt></ruby>に<ruby>確<rt class="uf">たし</rt></ruby>かめよう。</div>'
     +((ng.length||words.length)?'<div class="tc-cnt">この<ruby>下<rt class="uf">した</rt></ruby>に　'+[words.length?'<ruby>単語<rt class="uf">たんご</rt></ruby> <b>'+words.length+'</b><ruby>語<rt class="uf">ご</rt></ruby>':'',ng.length?'まちがえた<ruby>問題<rt class="uf">もんだい</rt></ruby> <b>'+ng.length+'</b><ruby>問<rt class="uf">もん</rt></ruby>':''].filter(Boolean).join('・')+'</div>':'')+'</div></div>';
   var n=0,secs='';
-  if(words.length){n++;secs+='<div class="tc-sec"><div class="tc-sh"><span class="tc-n">'+n+'</span><ruby>出<rt class="uf">で</rt></ruby>てきた<ruby>単語<rt class="uf">たんご</rt></ruby><button type="button" class="tc-bk" onclick="_tcBulk_(this)">全部はがす</button></div><p class="tc-ss"><u>ノートに1<ruby>回<rt class="uf">かい</rt></ruby>ずつ<ruby>書<rt class="uf">か</rt></ruby>こう。</u><ruby>家<rt class="uf">いえ</rt></ruby>でも<ruby>練習<rt class="uf">れんしゅう</rt></ruby>しよう。</p><div class="tc-wl">'+words.map(function(w){return '<div class="tc-e">'+esc(w.en)+'</div><div>'+_tcHid_(esc(w.ja))+'</div>';}).join('')+'</div></div>';}
+  if(words.length){n++;secs+='<div class="tc-sec"><div class="tc-sh"><span class="tc-n">'+n+'</span><ruby>出<rt class="uf">で</rt></ruby>てきた<ruby>単語<rt class="uf">たんご</rt></ruby><button type="button" class="tc-bk" onclick="_tcBulk_(this)">全部はがす</button></div><p class="tc-ss"><u>ノートに1<ruby>回<rt class="uf">かい</rt></ruby>ずつ<ruby>書<rt class="uf">か</rt></ruby>こう。</u><ruby>家<rt class="uf">いえ</rt></ruby>でも<ruby>練習<rt class="uf">れんしゅう</rt></ruby>しよう。</p><div class="tc-wl">'+words.map(function(w){var _we=w.en;return '<div class="tc-e">'+esc(w.en)+_tcAB_(function(){_tcSay_(s,_we);},'','tc-aus')+'</div><div>'+_tcHid_(esc(w.ja))+'</div>';}).join('')+'</div></div>';}
   if(ng.length){n++;secs+='<div class="tc-sec"><div class="tc-sh"><span class="tc-n">'+n+'</span>まちがえた<ruby>問題<rt class="uf">もんだい</rt></ruby> <span class="num">'+ng.length+'</span><ruby>問<rt class="uf">もん</rt></ruby></div><p class="tc-ss"><ruby>先生<rt class="uf">せんせい</rt></ruby>と1<ruby>問<rt class="uf">もん</rt></ruby>ずつ<ruby>確<rt class="uf">たし</rt></ruby>かめよう。シールをタップすると<ruby>答<rt class="uf">こた</rt></ruby>えが<ruby>出<rt class="uf">で</rt></ruby>る。</p>'
     +ng.map(function(it){var inCh=(it.ch||[]).indexOf(it.you)>=0;return '<div class="tc-q"><div class="tc-qh"><span class="tc-mk tc-ng">×</span><span class="tc-no">'+it.no+'</span><div class="tc-qb">'+_tcBody_(it)+((it.you!==undefined&&!inCh)?'<div class="tc-youbox"><b>× あなた</b>'+(it.you===''?'<ruby>時間切<rt class="uf">じかんぎ</rt></ruby>れ':esc(it.you))+'</div>':'')+'</div></div><div class="tc-ansb">'+_tcHid_(_tcAns_(it))+'</div></div>';}).join('')+'</div>';}
   secs+='<div class="tc-sec">'+(ng.length?'':('<div class="tc-sh"><span class="tc-n">'+(++n)+'</span>まちがえた<ruby>問題<rt class="uf">もんだい</rt></ruby></div><div class="tc-allok">まちがえた<ruby>問題<rt class="uf">もんだい</rt></ruby>はありません</div>'))
