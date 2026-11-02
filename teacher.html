@@ -1113,6 +1113,10 @@
   .mgpill.daily{background:var(--blue-light);color:var(--blue-dark);}
   .mgpill.test{background:var(--amber-light);color:var(--amber-dark);}
   .mgpill.ws{background:#ede9fe;color:#5b21b6;} /* 単元ワークシート 2026-10-17 */
+  .mgpill.gg{background:#ecfdf5;color:#047857;} /* ぐるぐる（content_type='guruguru'・先生のプレビューだけ）2026-11-02 */
+  .mgrow.gg .mgmem{color:var(--text-light);font-size:11px;}
+  .mp-ggnote{flex:1 1 auto;min-width:0;font-size:12px;color:var(--text-muted);font-weight:700;line-height:1.5;} /* ぐるぐるのプレビューの説明（折り返す）2026-11-02 */
+  .mp-ggdk{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;} /* ぐるぐるのプレビュー：暗い画面で見る 2026-11-02 */
   .mgtitle{font-weight:800;min-width:130px;}
   .mgcount{font-size:12px;color:var(--text-muted);font-weight:700;min-width:52px;}
   .mgmem{font-size:11px;color:var(--text-light);flex:1;}
@@ -1834,7 +1838,7 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
           ・grade（学年）：中1／中2／中3／全学年（空欄=学年未設定）<br>
           ・display_order（番号）：教科×学年の中の並び順。1,2,3…＝単元順<br>
           ・target（レベル）：beginner=基礎／junior_high=中学／entrance_exam=受験／eiken=英検／school_test=学校テスト<br>
-          ・content_type（形式）：daily=毎日学習／test=単元別対策<br>
+          ・content_type（形式）：daily=毎日学習／test=単元別対策／worksheet=ワークシート／guruguru=ぐるぐる（いまは［中身］で先生が見るだけ。割り当てられない）<br>
           <b>大事なルール</b>：番号（display_order）を変えても生徒の履歴は影響なし（教材はIDで管理）。改修は同じIDのまま中身を直す。足すのは新規、消して作り直さない。
         </div>
       </details>
@@ -3122,9 +3126,9 @@ function setLapFilter_(el){_lapSel=!_lapSel;if(el)el.classList.toggle('active',_
 var _dupSel=false;
 var SUBJ_JA_={english:'英語',japanese:'国語',science:'理科',history:'歴史',geography:'地理',civics:'公民',math:'数学'};
 function subjJa_(k){return SUBJ_JA_[k]||String(k||'');}
-function dupMainSubj_(s){var c={},r={};(s.materials_view||[]).forEach(function(m){var t=String(m.type);if(t==='test'||t==='worksheet')return;var k=String(m.subject||'english');c[k]=(c[k]||0)+1;});Object.keys(c).forEach(function(k){if(c[k]>=2)r[k]=c[k];});return r;}
+function dupMainSubj_(s){var c={},r={};(s.materials_view||[]).forEach(function(m){var t=String(m.type);if(t==='test'||t==='worksheet'||t==='guruguru')return;var k=String(m.subject||'english');c[k]=(c[k]||0)+1;});Object.keys(c).forEach(function(k){if(c[k]>=2)r[k]=c[k];});return r;}
 function hasDupMain_(s){return Object.keys(dupMainSubj_(s)).length>0;}
-function isDupMat_(s,m){var t=String(m.type);if(t==='test'||t==='worksheet')return 0;return dupMainSubj_(s)[String(m.subject||'english')]||0;}
+function isDupMat_(s,m){var t=String(m.type);if(t==='test'||t==='worksheet'||t==='guruguru')return 0;return dupMainSubj_(s)[String(m.subject||'english')]||0;}
 function hasDone_(s){return (s.completed_view||[]).length>0;}
 function setDupFilter_(el){_dupSel=!_dupSel;if(el)el.classList.toggle('active',_dupSel);renderTable();}
 function setFilter(f,el){
@@ -5632,7 +5636,7 @@ function matViewCell(s){
   var mv=_sortByDord_(s.materials_view||[]);
   if(!mv.length)return '<span class="dash">未割当</span>';
   var sid=esc(String(s.student_id));
-  var daily=mv.filter(function(m){return String(m.type)!=='test'&&String(m.type)!=='worksheet';}), unit=mv.filter(function(m){return String(m.type)==='test';}), wsm=mv.filter(function(m){return String(m.type)==='worksheet';});   /* ワークシートは3つ目の行 2026-10-20 */
+  var daily=mv.filter(function(m){return String(m.type)!=='test'&&String(m.type)!=='worksheet'&&String(m.type)!=='guruguru';}), unit=mv.filter(function(m){return String(m.type)==='test';}), wsm=mv.filter(function(m){return String(m.type)==='worksheet';});   /* ワークシートは3つ目の行 2026-10-20 */
   var out='<div class="lv-m">';
   if(daily.length) out+='<div class="lv-row"><span class="lv-k d">毎日</span>'+daily.map(function(m){
     var hl=_lapSel&&lapOf_(m)>=2;   /* 周回のハイライト 2026-10-05 */
@@ -5808,7 +5812,7 @@ function _prnTypesForMats_(ids,kind){
       var m=null;
       for(var i=0;i<bulkMaterials.length;i++){ if(String(bulkMaterials[i].id)===String(id)){ m=bulkMaterials[i]; break; } }
       if(!m){ unknown=true; return; }
-      if(String(m.content_type||'')==='test'){ out.unit=1; out.quiz=1; } else if(String(m.content_type||'')==='worksheet'){ /* ワークシートの紙は段③で別に作る 2026-10-17 */ } else { out.daily=1; }
+      if(String(m.content_type||'')==='test'){ out.unit=1; out.quiz=1; } else if(String(m.content_type||'')==='worksheet'||String(m.content_type||'')==='guruguru'){ /* ワークシートの紙は段③で別に作る 2026-10-17／ぐるぐるの紙はまだ無い 2026-11-02 */ } else { out.daily=1; }
     });
     if(unknown){ out.daily=1; out.unit=1; out.quiz=1; }
   }
@@ -5967,7 +5971,7 @@ function openStudentDetail(sid,focusKey){
     +(weakM.length?'<div class="sd2-kv">つまずいている教材<b class="red" style="font-size:13px;">'+weakM.join('・')+'</b></div>':'')
     +((parseInt(s.rush_pops_7,10)||0)>0?'<div class="sd2-kv">適当押しの注意<b class="red">直近7日で'+(parseInt(s.rush_pops_7,10)||0)+'回</b></div>':'')   /* 2026-10-04：0回なら出さない */
     +'</div>';
-  var mvD=_sortByDord_((s.materials_view||[]).filter(function(m){return String(m.type)!=='test'&&String(m.type)!=='worksheet';}));
+  var mvD=_sortByDord_((s.materials_view||[]).filter(function(m){return String(m.type)!=='test'&&String(m.type)!=='worksheet'&&String(m.type)!=='guruguru';}));   /* 2026-11-02 ぐるぐるも毎日学習に入れない */
   var _hasWs=(s.materials_view||[]).concat(s.completed_view||[]).some(function(m){return String(m.type)==='worksheet';});
   var dailyHtml=mvD.length?('<table class="sd2-tbl"><thead><tr><th>教材</th><th>いまの回</th><th>済んだ回</th><th>正答率</th><th></th></tr></thead><tbody>'+mvD.map(function(m){
       var pd=_lvPartsDone_(m), a=(m.acc===''||m.acc==null)?'未評価':(m.acc+'%');
@@ -6599,18 +6603,19 @@ function renderMatTab(){
     arr.forEach(function(m){
       var _gk=_bookKey(m);
       if(_gk!==_curg){_curg=_gk;var _gh=document.createElement('div');_gh.className='mggroup';_gh.innerHTML='<span class="mgg-subj">'+esc(_bookLabel(m))+'</span>';box.appendChild(_gh);}
-      var isTest=(m.content_type==='test'), isWs=(m.content_type==='worksheet');
+      var isTest=(m.content_type==='test'), isWs=(m.content_type==='worksheet'), isGg=_isGgMat_(m);   /* ぐるぐる 2026-11-02 */
       var hs=holders[String(m.id)]||[];
       var chips=hs.slice(0,8).map(function(s){return '<span class="mchipname">'+esc(s.name||s.nickname||'(無名)')+'</span>';}).join('')+(hs.length>8?'<span class="mchipname more">＋'+(hs.length-8)+'</span>':'');
       if(!hs.length)chips='<span style="color:var(--text-light);font-size:11px;">まだ誰も持っていません</span>';
-      var row=document.createElement('div');row.className='mgrow';row.onclick=(function(mid){return function(){openRosterMaterial(mid);};})(String(m.id));
+      var row=document.createElement('div');row.className='mgrow'+(isGg?' gg':'');row.onclick=(function(mid){return function(){if(isGg){openMatPreview(mid);return;}openRosterMaterial(mid);};})(String(m.id));   /* ぐるぐるは名簿（割り当て）を開かず中身を出す 2026-11-02 */
+      if(isGg)chips='生徒には出していません（先生のプレビューだけ）';
       var _num=_ordNum(m.display_order);var _nb=(_num<99999)?('<span class="mgnum">'+_num+'</span>'):'';
       var _lv=_levelLabel(m.target);var _lb=_lv?('<span class="mglevel">'+_lv+'</span>'):'';
-      row.innerHTML='<span class="mgpill '+(isTest?'test':(isWs?'ws':'daily'))+'">'+(isTest?'単元別対策':(isWs?'ワークシート':'毎日学習'))+'</span>'
+      row.innerHTML='<span class="mgpill '+(isTest?'test':(isWs?'ws':(isGg?'gg':'daily')))+'">'+(isTest?'単元別対策':(isWs?'ワークシート':(isGg?'ぐるぐる':'毎日学習')))+'</span>'
         +_nb
         +'<span class="mgtitle">'+esc(mtShort(m)||'(無題)')+'</span>'
         +_lb
-        +'<span class="mgcount">'+hs.length+'名</span>'
+        +'<span class="mgcount">'+(isGg?'':hs.length+'名')+'</span>'
         +'<span class="mgmem">'+chips+'</span>'
         +'<button class="mgpeek" onclick="event.stopPropagation();openMatPreview(\''+esc(String(m.id))+'\')">中身</button>'
         +'<span class="mgarrow">›</span>';
@@ -6806,6 +6811,43 @@ function _wsLoadLibs_(){
   _wsLibP.catch(function(){_wsLibP=null;});
   return _wsLibP;
 }
+/* ===== ぐるぐる（数学）のプレビュー 2026-11-02 本番係 段2 =====
+   教材タブ［中身］でぐるぐるの教材（content_type 'guruguru'・1単元＝1教材）を開くと、guru/gg_shell.js の外側（左の一覧・表紙・回の選び方・類題・章まとめ）を
+   先生のプレビュー（preview:true＝記録しない・全部の回を開ける・上の帯の［確かめる］で1パートの全問の問題・選択肢・正解・解説）で出す。
+   生徒には出さない（割り当ては作れない＝GAS が断る・student.html は変えていない）。問題はここでは直さない（作る道具で直してシートに入れ直す）。
+   部品は初めて開いたときだけ読む：KaTeX → ws/math_fig.js →（ワークシートの部品）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js。
+   ノートの書き方の絵は guru/img/gg/*.svg（画面に出たときに読む）。部品を直したら GG_LIB_V を上げる */
+var GG_LIB_V='20261102a',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false;
+function _ggLoadLibs_(){
+  if(_ggLibP)return _ggLibP;
+  var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
+  _ggLibP=_wsLoadLibs_().then(function(){return js('guru/gg_fig.js');}).then(function(){return js('guru/gg_load.js');}).then(function(){return js('guru/gg_app.js');}).then(function(){return js('guru/gg_shell.js');});
+  _ggLibP.catch(function(){_ggLibP=null;});
+  return _ggLibP;
+}
+function _isGgMat_(m){return !!m&&String(m.content_type||'').trim()==='guruguru';}
+function _ggDestroy_(){if(_ggApi){try{_ggApi.destroy();}catch(e){}_ggApi=null;}}
+function mpGgMount_(){
+  if(!_ggData)return;_ggDestroy_();
+  var b=$('mpBody');b.innerHTML='';
+  if(!_ggData.parts.length&&!_ggData.cts.length){var n=document.createElement('div');n.style.cssText='padding:10px 14px 0;color:var(--text-muted);font-size:13px;';n.textContent='この単元は、まだ問題が入っていません（パートの名前だけ）。';b.appendChild(n);}
+  var root=document.createElement('div');root.style.paddingBottom='70px';root.style.position='relative';b.appendChild(root);   /* relative＝中の position:absolute（KaTeX の MathML など）を #mpBody の中に収める。無いと窓（.modal）ごと縦に伸びて上の帯が隠れる */
+  var g0=(_ggData.units[0]&&_ggData.units[0].grade)||'';
+  _ggApi=ggShellMount(root,_ggData,{preview:true,katexCss:'ws/katex/katex.min.css',dark:_ggDark,grade:g0,imgBase:'guru/',libV:GG_LIB_V});
+}
+function mpGgPreview_(mid){
+  var tb=$('mpToolbar');if(tb)tb.innerHTML='<span class="mp-ggnote">ぐるぐる：生徒には出していません。左の一覧で回を選ぶと解く画面、［確かめる］で1パートの全問（問題・選択肢・正解・解説）。記録はしません。問題はここでは直せません。</span>'
+    +'<label class="mp-ggdk"><input type="checkbox" id="mpGgDark"'+(_ggDark?' checked':'')+' onchange="_ggDark=this.checked;mpGgMount_();">暗い画面で見る</label>';
+  $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…（大きい単元は数秒かかります）</div>';
+  _ggDestroy_();_ggData=null;
+  Promise.all([_ggLoadLibs_(),call({action:'material_preview',material_id:mid,with_qdata:'1'})]).then(function(r){
+    var d=r[1];if(!d||!d.ok||!d.data){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
+    if(String(_mpMid)!==String(mid))return;   /* 読み込み中にほかの教材を開いた */
+    var R=_wsRowsFromPreview_(d.data);
+    _ggData=ggBuildData({material:R.mat,parts:R.parts,words:R.words});
+    mpGgMount_();
+  }).catch(function(e){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">数式・図・ぐるぐるの部品を読めませんでした（'+esc(String(e&&e.message||e))+'）</div>';});
+}
 /* material_preview（with_qdata）の返りを、シートの行の形（materials・parts・words）に直して ws_load.js に渡す */
 function _wsRowsFromPreview_(dt){
   var mat={id:dt.material_id,title:dt.title,subject:dt.subject,content_type:dt.content_type};
@@ -6831,6 +6873,7 @@ function mpWsPreview_(mid,dt0,startPid){
 }
 function openMatPreview(mid){
   _mpMid=String(mid||''); // サーバー確認で再取得する教材ID
+  _ggDestroy_();   /* 前に開いたぐるぐるのプレビューを片づける 2026-11-02 */
   $('mpTitle').textContent='教材の中身';
   $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';var _tbld=$('mpToolbar');if(_tbld)_tbld.innerHTML='';
   $('matPreviewModal').classList.add('show');
@@ -6838,6 +6881,7 @@ function openMatPreview(mid){
     if(!d||!d.ok){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
     var dt=d.data;
     if(dt&&dt.content_type==='worksheet'){$('mpTitle').textContent=esc(mtLabel(dt)||'教材の中身');mpWsPreview_(mid,dt);return;} /* 単元ワークシート＝生徒の画面と同じ形で見る 2026-10-17 */
+    if(_isGgMat_(dt)){$('mpTitle').textContent=esc(mtLabel(dt)||'教材の中身');mpGgPreview_(mid);return;} /* ぐるぐる＝外側（左の一覧）ごと先生のプレビューで見る 2026-11-02 */
     var _isEng=(dt&&dt.subject==='english'); // 英→日教材＝選択肢の誤答(choices_ja)をインライン編集 2026-07-28
     _mpAssets=dt.assets||{};
     $('mpTitle').textContent=esc(mtLabel(dt)||'教材の中身');
@@ -7509,6 +7553,7 @@ var _rosterMid=null,_rosterInit=[],_rosterSel={};
 function openRosterMaterial(mid){
   var _rm=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===String(mid))_rm=x;});
   if(_rm&&_rm.content_type==='test'){openRosterTest(mid);return;} /* 単元別対策は2列（割当＋確認テスト配信）へ 2026-07-13 */
+  if(_isGgMat_(_rm)){openMatPreview(mid);return;} /* ぐるぐるは割り当てない＝名簿を開かず中身へ 2026-11-02 */
   _rosterMid=String(mid);
   var m=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===_rosterMid)m=x;});
   $('rmTitle').textContent=(mtLabel(m)||'教材')+' の名簿';
@@ -8519,7 +8564,7 @@ function renderPrintMaterials(){
   var q=(($('printMatSearch')||{}).value||'').trim();
   /* ワークシートはチェックプリント・仕上げプリントに出さない（定義 2026-10-20）。紙は［練習プリント］［テストを単体で印刷］から */
   Object.keys(printMat).forEach(function(id){if(bulkMaterials.some(function(m){return String(m.id)===String(id)&&String(m.content_type)==='worksheet';}))delete printMat[id];});
-  var _pmM=bulkMaterials.filter(function(m){return String(m.content_type)!=='worksheet';});
+  var _pmM=bulkMaterials.filter(function(m){return String(m.content_type)!=='worksheet'&&!_isGgMat_(m);});   /* 2026-11-02 ぐるぐるも出さない */
   renderMatCand_(candEl,{materials:_pmM,assignedSet:null,pickedSet:printMat,openMap:_printMatOpen,search:q,keyPrefix:'print',
     onOne:function(id){if(printMat[id])delete printMat[id];else printMat[id]=1;renderPrintMaterials();tmUpdateFoot();},
     onSeries:function(ids,st){ids.forEach(function(id){if(st==='all')delete printMat[id];else printMat[id]=1;});renderPrintMaterials();tmUpdateFoot();},
@@ -8686,7 +8731,7 @@ function sortMaterials_(arr){
   // 「教材ごと」タブ(renderMatTab)・まとめて割り当て・教材を追加 が同じこの1本を使う。
   var bo=_bookOrdMap_(arr);
   return (arr||[]).slice().sort(function(a,b){
-    var ta=(a.content_type==='test')?1:(a.content_type==='worksheet'?2:0), tb=(b.content_type==='test')?1:(b.content_type==='worksheet'?2:0); // ワークシートは単元別のあと 2026-10-17
+    var ta=(a.content_type==='test')?1:(a.content_type==='worksheet'?2:(a.content_type==='guruguru'?3:0)), tb=(b.content_type==='test')?1:(b.content_type==='worksheet'?2:(b.content_type==='guruguru'?3:0)); // ワークシートは単元別のあと 2026-10-17／ぐるぐるはその次 2026-11-02
     if(ta!==tb)return ta-tb;
     var sa=_subjOrder(a.subject),sb=_subjOrder(b.subject);
     if(sa!==sb)return sa-sb;
@@ -8706,10 +8751,11 @@ function sortMaterials_(arr){
    シリーズ全選択□は見出しタイトルの左端、□以外のバナー全体クリックで開閉。
    分類は mtSeriesKey（サーバー series_key／_mSeries が控え）＝1か所判定。 */
 var _bulkOpen={}, _asgOpen={};
-function _matType(m){return (m.content_type==='test')?'test':(m.content_type==='worksheet'?'worksheet':'daily');} /* worksheet＝単元ワークシート 2026-10-17 */
-function _matTypeLabel(t){return t==='test'?'単元別対策':(t==='worksheet'?'ワークシート':'毎日学習');}
+function _matType(m){return (m.content_type==='test')?'test':(m.content_type==='worksheet'?'worksheet':(m.content_type==='guruguru'?'guruguru':'daily'));} /* worksheet＝単元ワークシート 2026-10-17／guruguru＝ぐるぐる 2026-11-02 */
+function _matTypeLabel(t){return t==='test'?'単元別対策':(t==='worksheet'?'ワークシート':(t==='guruguru'?'ぐるぐる':'毎日学習'));}
 function matGroupPool_(materials, assignedSet, q){
   var pool=sortMaterials_(materials).filter(function(m){
+    if(_isGgMat_(m))return false;   /* ぐるぐるは割り当て・プリントの候補に出さない 2026-11-02 */
     if(assignedSet&&assignedSet[String(m.id)])return false;
     if(q&&String(m.title||'').indexOf(q)<0&&String(mtLabel(m)||'').indexOf(q)<0)return false;
     return true;
@@ -8944,7 +8990,7 @@ function renderAssignList(){
   box.innerHTML='';
   _asgList.forEach(function(a){
     var isTest=(a.content_type==='test'), isWs=(a.content_type==='worksheet'), isPt=isTest||isWs;   /* ワークシートもパート名で（2026-10-20） */
-    var pill=isTest?'<span class="asg-pill test">単元別対策</span>':(a.content_type==='worksheet'?'<span class="asg-pill ws">ワークシート</span>':'<span class="asg-pill daily">毎日学習</span>');
+    var pill=isTest?'<span class="asg-pill test">単元別対策</span>':(a.content_type==='worksheet'?'<span class="asg-pill ws">ワークシート</span>':(a.content_type==='guruguru'?'<span class="asg-pill ws">ぐるぐる</span>':'<span class="asg-pill daily">毎日学習</span>'));   /* ぐるぐるは割り当てられないが、来ても毎日学習と書かない 2026-11-02 */
     var lapTxt=(a.lap>=2)?' <span class="asg-pill" style="background:#ede9fe;color:#5b21b6;">'+a.lap+'周目</span>':'';
     // 進み表示
     var startSel='';
@@ -9375,7 +9421,7 @@ function _rpExT_(useP){
               : !(_cheerCfg&&_cheerCfg.exclude_report===false);
 }
 function _rpMats(){
-  return (bulkMaterials||[]).slice().sort(function(a,b){return (parseInt(a.display_order,10)||0)-(parseInt(b.display_order,10)||0);});
+  return (bulkMaterials||[]).filter(function(m){return !_isGgMat_(m);}).sort(function(a,b){return (parseInt(a.display_order,10)||0)-(parseInt(b.display_order,10)||0);});   /* 2026-11-02 ぐるぐるはレポート・プリントに出さない */
 }
 function _rpMat(mid){ var ms=_rpMats(); for(var i=0;i<ms.length;i++){ if(String(ms[i].id)===String(mid)) return ms[i]; } return null; }
 /* 単元別対策＝content_type==='test'（教材ごとタブ・_matType と同じ判定）。それ以外は毎日学習。
@@ -10651,7 +10697,7 @@ function _rpTreeHtml_(o){
 function _rpOutSt_(id){ var v=RP_OUT[id]; if(v===1)return 2; if(Array.isArray(v)){ var n=_rpPartsOf_(id).length; if(!n)return (v.length&&RP_PARTS_LOADED)?2:1; return (v.length&&v.length>=n)?2:1; } return 0; }   /* パート未着なら途中の印 2026-09-16b */
 function _rpOutTreeHtml_(){
   var mats=_rpMats();
-  var secs=[{t:'毎日学習',mats:mats.filter(function(m){ var ct=String(m.content_type||''); return ct!=='test'&&ct!=='worksheet'; })}, /* ワークシートは毎日学習に入れない 2026-10-17 */
+  var secs=[{t:'毎日学習',mats:mats.filter(function(m){ var ct=String(m.content_type||''); return ct!=='test'&&ct!=='worksheet'&&ct!=='guruguru'; })}, /* ワークシートは毎日学習に入れない 2026-10-17／ぐるぐるも 2026-11-02 */
             {t:'単元別対策',mats:mats.filter(function(m){ return String(m.content_type||'')==='test'; })}];
   return '<div class="rg-tree">'+_rpTreeHtml_({secs:secs,fn:'rpOutTree',bopen:RP_OOPEN,mopen:RP_OMOPEN,state:_rpOutSt_,
     partOn:function(id,pid){ var v=RP_OUT[id]; return v===1||(Array.isArray(v)&&v.indexOf(pid)>=0); },
@@ -11839,7 +11885,7 @@ function ppOpen_(keep){
   (function(){var s=$('ppOutS'),box=s&&s.parentNode;if(!box)return;var rows=box.querySelectorAll('.pp-out');if(_ppTest)box.insertBefore(s,rows[1]===s?rows[2]:rows[1]);else box.appendChild(s);})();
   $('ppErr').textContent=''; $('ppStat').textContent='';
   var fill=function(mats){
-    _ppMats=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}).sort(function(a,b){return (Number(a.display_order)||0)-(Number(b.display_order)||0);});
+    _ppMats=mats.filter(function(m){return !(m.is_active===false||m.is_active==='FALSE')&&!_isGgMat_(m);}).sort(function(a,b){return (Number(a.display_order)||0)-(Number(b.display_order)||0);});
     var _all=_ppMats;if(_ppTest)_ppMats=_ppMats.filter(function(m){return String(m.content_type||'')==='worksheet';});
     $('ppMatSearch').value='';_ppMatOpen={};
     if(_ppTest&&!_ppMats.length){$('ppMat').value='';$('ppMatList').innerHTML='<div class="pk-empty">テストのあるワークシートがありません</div>';_ppMatNow_();$('ppParts').innerHTML='';return;}
