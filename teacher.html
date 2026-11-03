@@ -6941,6 +6941,7 @@ function _ggprCssOnce_(){
   var st=document.createElement('style');st.id='ggPaperCss';
   st.textContent=scope(String(ggPaper.css||'')+'\n'+String(ggPaper.cssEn||''))
     +'.ggp-doc{width:210mm;background:#fff}.ggp-doc .sheet{box-shadow:none;margin:0}'
+    +'.wsp .eqg.ggpr-n2{grid-template-columns:max-content max-content!important}.wsp .eqg.ggpr-n2>.eqn{grid-column:1/-1;padding-left:2em!important}.wsp .eqg.ggpr-stk{display:block!important}.wsp .eqg.ggpr-stk>*{display:block;text-align:left!important}.wsp .eqg.ggpr-stk>.eqr{padding-left:1em}.wsp .eqg.ggpr-stk>.eql:empty{display:none}'
     +'.ggp .sh-qr svg.fs-qr{width:100%;height:auto;display:block}.ggp .sh-qr.has{border:0;flex-direction:column;gap:0}.ggp .sh-qr .ggqr-cd{font-size:8pt;color:#111;letter-spacing:.04em;margin-top:.5mm;white-space:nowrap}'
     /* 印刷：紙の余白を @page で取り、.sheet は中身の大きさ（186×277mm）だけにする。紙の幅 210mm の箱のまま刷ると、ほかの紙（186mm）より広いので Chrome が全部のページを縮めて刷る（2026-11-03 試験で発覚） */
     /* ページからはみ出す物（KaTeX の \\underbrace の線は 40万 px の幅の図）があると、Chrome が全部のページを縮めて刷る＝ぐるぐる印刷のページははみ出しを切る */
@@ -6992,6 +6993,15 @@ function ggPrAll_(v){[].slice.call(document.querySelectorAll('#ggPrJobs .ggpr-j'
 function ggPrCnt_(noSave){var J=_ggprJobs_(),K=_ggprKinds_();var np=J.filter(function(j){return j.kind==='part';}).length,nc=J.length-np;
   $('ggPrN').textContent='　'+(np?('通常回 '+np):'')+(np&&nc?'・':'')+(nc?('章まとめ '+nc):'')+(J.length?'':'まだ選んでいません');
   if(!noSave)_ggprSave_();}
+/* 解答解説の2段組みで、式の並び（.eqg＝左辺｜＝右辺｜… 説明）が段の幅に入らないとき（2026-11-03 本物の Chrome で章まとめの解答解説の式が段の右へ最大 624px はみ出していた）：
+   ① 説明（.eqn）を式の下の行へ ② それでも入らなければ、左辺と右辺を1行ずつ縦に並べる ③ それでも入らなければ、入るまで縮める（いちばん小さくて 6割） */
+function _ggprEqFit_(src){
+  var over=function(e){return e.scrollWidth>e.clientWidth+1;};
+  [].slice.call(src.querySelectorAll('.eqg')).forEach(function(g){
+    if(!over(g))return;g.classList.add('ggpr-n2');if(!over(g))return;g.classList.add('ggpr-stk');if(!over(g))return;
+    g.style.zoom=Math.max(0.6,g.clientWidth/g.scrollWidth).toFixed(3);});
+  [].slice.call(src.querySelectorAll('.katex-display,.exp > .katex')).forEach(function(k){var w=k.parentElement.clientWidth;if(k.scrollWidth>w+1)k.style.zoom=Math.max(0.6,w/k.scrollWidth).toFixed(3);});
+}
 /* 1つの紙（回×刷る物）を組んで、ページ（要素）の配列を返す */
 function _ggprDoc_(j,k){
   var D=_ggData,isCt=j.kind==='ct',x=isCt?(D.cts||[]).filter(function(c){return c.id===j.id;})[0]:(D.parts||[]).filter(function(p){return p.id===j.id;})[0];if(!x)return Promise.resolve([]);
@@ -7015,7 +7025,7 @@ function _ggprDoc_(j,k){
   var root=document.createElement('div');hide.appendChild(root);
   var api=_ggApi.paperMount(isCt?'ct':'part',j.id,j.R,root);if(!api){hide.removeChild(root);return Promise.resolve([]);}
   return fr.then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
-    var r=_ppWsLayout_(api,k==='cs'?'s':(k==='cq'?'q':'a'),null);var pg=[].slice.call(r.meas.querySelectorAll('.pp-pg'));pg.forEach(function(p){r.meas.removeChild(p);p.classList.add('ggpr-pg');});document.body.removeChild(r.meas);
+    var r=_ppWsLayout_(api,k==='cs'?'s':(k==='cq'?'q':'a'),null,null,null,_ggprEqFit_);var pg=[].slice.call(r.meas.querySelectorAll('.pp-pg'));pg.forEach(function(p){r.meas.removeChild(p);p.classList.add('ggpr-pg');});document.body.removeChild(r.meas);
     try{hide.removeChild(root);}catch(e){}
     return pg;});
 }
@@ -12189,7 +12199,7 @@ function _ptAsHead_(sh){
   top.classList.add('as3');top.innerHTML='';top.appendChild(L);top.appendChild(C);top.appendChild(Rr);
   if(body)body.remove();
 }
-function _ppWsLayout_(api,kind,picked,xp,xref){
+function _ppWsLayout_(api,kind,picked,xp,xref,fit){   /* fit＝ページ分けの前に中身を直す（ぐるぐる印刷の式の幅 2026-11-03） */
   var isA=(kind==='a'),cls='wsp '+(isA?'va':'vq');
   var meas=document.createElement('div');meas.style.cssText='position:absolute;left:-99999px;top:0;width:190mm;background:#fff;';document.body.appendChild(meas);
   var src=document.createElement('div');src.className=cls;src.style.width='190mm';src.innerHTML=api.paperHtml(isA);meas.appendChild(src);
@@ -12214,6 +12224,7 @@ function _ppWsLayout_(api,kind,picked,xp,xref){
   var shs=[].slice.call(src.querySelectorAll('.sheet'));shs.forEach(function(e){e.style.padding='10mm 10mm 12mm';e.style.border='1px solid #bbb';});
   [].slice.call(src.querySelectorAll('.pgrid .pc')).forEach(function(c){if(!c.style.gridColumn&&c.scrollWidth>c.clientWidth+2){c.style.gridColumn='1/-1';c.classList.add('wide');}});
   shs.forEach(function(e){e.style.padding='';e.style.border='';});
+  if(typeof fit==='function')fit(src);
   /* ページ分け：ブラウザの段組み（1段＝1ページ・高さ 272mm）に流して、ブラウザの印刷と同じ切り方をそのまま使う。
      モックの印刷と同じ仕組み（ページの切れ目で問題・カードを切らない・切れ目の余白は消える・囲みの枠は切れ目の側を出さない）。
      そのあと、どの部品が何ページ目のどの段にあるかを測り、ページごとの箱に入れ直す（PDF＝html2canvas は段組みを描けないため） */
