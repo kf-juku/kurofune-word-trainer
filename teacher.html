@@ -1295,6 +1295,14 @@
   .mp-kai b{color:var(--text);}
   .mggroup{display:flex;align-items:center;gap:8px;padding:9px 13px 5px;background:var(--surface2);border-bottom:1px solid var(--surface2);}
   .mgg-subj{font-size:12px;font-weight:800;color:var(--text);}
+  /* 2026-11-03 教材ごと：本の見出しで開け閉め（川上さん 20:04「本でトグルで閉じたい」・20:06 推奨でOK）。UI標準 17-B と同じ並び＝[▶] [本の名前] [○教材]・帯のどこを押しても開け閉め */
+  .mggroup.fold{cursor:pointer;user-select:none;}
+  .mggroup.fold:hover{background:#e8edf3;}
+  .mgg-cr{font-size:10px;color:var(--text-muted);width:12px;flex-shrink:0;}
+  .mgg-n{font-size:11px;font-weight:700;color:var(--text-muted);}
+  .mgrow.mgshut{display:none;}
+  .mgfoldbtn{background:#fff;color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .mgfoldbtn:hover{border-color:#94a3b8;color:var(--text);}
   .mgg-grade{font-size:11px;font-weight:700;color:var(--text-muted);background:#fff;border-radius:8px;padding:1px 8px;}
   .mgnum{font-size:11px;font-weight:800;color:var(--text-muted);min-width:20px;text-align:center;flex-shrink:0;}
   .mglevel{font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;background:#eef2f7;color:#64748b;flex-shrink:0;}
@@ -1829,7 +1837,7 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
       </style>
     <div id="view-mat" style="display:none;">
       <div style="background:#fff;border-radius:var(--radius);padding:8px 12px;margin-bottom:10px;box-shadow:var(--shadow-sm);font-size:12px;color:var(--text-muted);">教材ごとに「今 誰が持っているか」を見て、行をクリックすると名簿（追加・外す）を編集できます。外しても進捗・間違いノートは残ります。</div>
-      <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><button type="button" onclick="refreshMatList(this)" style="background:var(--crimson);color:#fff;border:1px solid var(--crimson-dark);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:var(--shadow-sm);white-space:nowrap;">↻ 最新に更新</button><span style="font-size:11px;color:var(--text-muted);">シートに貼った教材がまだ出ないときに押す（キャッシュを消して読み直します）</span><span id="matAtNote" style="font-size:12px;color:var(--text-muted);font-weight:700;"></span></div>
+      <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><button type="button" onclick="refreshMatList(this)" style="background:var(--crimson);color:#fff;border:1px solid var(--crimson-dark);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:var(--shadow-sm);white-space:nowrap;">↻ 最新に更新</button><span style="font-size:11px;color:var(--text-muted);">シートに貼った教材がまだ出ないときに押す（キャッシュを消して読み直します）</span><span id="matAtNote" style="font-size:12px;color:var(--text-muted);font-weight:700;"></span><button type="button" class="mgfoldbtn" onclick="matFoldAll_(true)">全部閉じる</button><button type="button" class="mgfoldbtn" onclick="matFoldAll_(false)">全部開く</button></div>
       <details style="background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:10px;font-size:12px;color:var(--text-muted);">
         <summary style="cursor:pointer;padding:8px 12px;font-weight:800;color:var(--text);">教材の並び・ラベルの仕組み（メモ）</summary>
         <div style="padding:0 14px 12px;line-height:1.75;">
@@ -5585,7 +5593,7 @@ function _mSeries(t){t=String(t||'');
   var _nh=t.match(/教科書英単語 New Horizon 中([123])/);if(_nh){var _g=_nh[1],_j=/（日→英）|\(日→英\)/.test(t);return {k:'nh'+_g+'eng_'+(_j?'j2e':'e2j'),label:'教科書英単語 New Horizon 中'+_g+'（'+(_j?'日→英':'英→日')+'）'};} /* 英→日/日→英でシリーズを分ける 2026-07-29 */
   var _fd=t.match(/^FD 中学地理 中([123])/);if(_fd){return {k:'fd_chiri_j'+_fd[1],label:'FD 中学地理 中'+_fd[1]};} /* FD 中学地理：数字は学年。中1の教材が何冊でも同じシリーズ 2026-08-14 */
   var _ek=t.match(/^英検([0-9])級 単元別/);if(_ek)return {k:'eiken'+_ek[1]+'_unit',label:'英検'+_ek[1]+'級 単元別'}; /* 4級も同じ形 2026-10-02。5級のキーは eiken5_unit のまま */ /* ①文法編・②会話編を1つの本にまとめる 2026-09-19 */
-  var _ws=t.match(/^(中[123]数学)[ 　]+(\S+)[ 　]+(.+)$/);if(_ws)return {k:'ws_'+_ws[1]+'_'+_ws[2],label:_ws[1]+' '+_ws[2]}; /* 単元ワークシート（数学）：本「中2数学 1次関数」・章「②直線の式を求める」。サーバー _seriesOf_ と同じ 2026-10-17 */
+  var _ws=t.match(/^(中[123]数学)[ 　]+(\S+)[ 　]+(.+)$/);if(_ws)return {k:'ws_'+_ws[1]+'_'+_ws[2],label:_ws[1]+' '+_ws[2]}; var _ge=t.match(/^(中[123]英語)[ 　]+(ぐるぐる)[ 　]+(.+)$/);if(_ge)return {k:'ws_'+_ge[1]+'_'+_ge[2],label:_ge[1]+' '+_ge[2]}; /* 2026-11-03 ぐるぐる英語も数学と同じく「中1英語 ぐるぐる」で1冊（教材ごとの本の見出し）。サーバーの _seriesOf_ と student.html の _mSeries はまだ数学だけ */ /* 単元ワークシート（数学）：本「中2数学 1次関数」・章「②直線の式を求める」。サーバー _seriesOf_ と同じ 2026-10-17 */
   return null;
 }
 function _mWorst(list){var lo=false,mi=false,hi=false,allNa=true;list.forEach(function(m){var a=m.acc;if(a===''||a==null)return;allNa=false;if(a<_accLine())lo=true;else if(a<80)mi=true;else hi=true;});return allNa?'m-na':(lo?'m-low':(mi?'m-mid':'m-hi'));}
@@ -6602,15 +6610,18 @@ function renderMatTab(){
     var arr=sortMaterials_((mats||[]).filter(function(m){return !(m.is_active===false||m.is_active==='FALSE');}));
     box.innerHTML='';
     if(!arr.length){box.innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">教材がありません</div>';return;}
-    var _curg=null;
+    var _curg=null,_shut=matFoldGet_(),_gn={};
+    arr.forEach(function(m){var k=_bookKey(m);_gn[k]=(_gn[k]||0)+1;});   /* 本ごとの教材の数（見出しに出す） */
     arr.forEach(function(m){
       var _gk=_bookKey(m);
-      if(_gk!==_curg){_curg=_gk;var _gh=document.createElement('div');_gh.className='mggroup';_gh.innerHTML='<span class="mgg-subj">'+esc(_bookLabel(m))+'</span>';box.appendChild(_gh);}
+      if(_gk!==_curg){_curg=_gk;var _gh=document.createElement('div');_gh.className='mggroup fold';_gh.setAttribute('data-gk',_gk);_gh.setAttribute('role','button');_gh.setAttribute('aria-expanded',_shut[_gk]?'false':'true');
+        _gh.innerHTML='<span class="mgg-cr">'+(_shut[_gk]?'▶':'▼')+'</span><span class="mgg-subj">'+esc(_bookLabel(m))+'</span><span class="mgg-n">'+_gn[_gk]+'教材</span>';
+        _gh.onclick=(function(k){return function(){matFoldToggle_(k);};})(_gk);box.appendChild(_gh);}
       var isTest=(m.content_type==='test'), isWs=(m.content_type==='worksheet'), isGg=_isGgMat_(m);   /* ぐるぐる 2026-11-02 */
       var hs=holders[String(m.id)]||[];
       var chips=hs.slice(0,8).map(function(s){return '<span class="mchipname">'+esc(s.name||s.nickname||'(無名)')+'</span>';}).join('')+(hs.length>8?'<span class="mchipname more">＋'+(hs.length-8)+'</span>':'');
       if(!hs.length)chips='<span style="color:var(--text-light);font-size:11px;">まだ誰も持っていません</span>';
-      var row=document.createElement('div');row.className='mgrow'+(isGg?' gg':'');row.onclick=(function(mid){return function(){openRosterMaterial(mid);};})(String(m.id));   /* 2026-11-03 ぐるぐるも名簿（割り当て）を開く（2026-11-02 は中身を出していた） */
+      var row=document.createElement('div');row.className='mgrow'+(isGg?' gg':'')+(_shut[_gk]?' mgshut':'');row.setAttribute('data-gk',_gk);row.onclick=(function(mid){return function(){openRosterMaterial(mid);};})(String(m.id));   /* 2026-11-03 ぐるぐるも名簿（割り当て）を開く（2026-11-02 は中身を出していた） */
       if(isGg&&!hs.length)chips='生徒の画面には出ていません（テスト用アカウントに割り当てて #pv= で見る）';   /* 2026-11-03 ぐるぐる */
       var _num=_ordNum(m.display_order);var _nb=(_num<99999)?('<span class="mgnum">'+_num+'</span>'):'';
       var _lv=_levelLabel(m.target);var _lb=_lv?('<span class="mglevel">'+_lv+'</span>'):'';
@@ -6629,6 +6640,16 @@ function renderMatTab(){
   else if(window._bulkMatOnce){ draw([]); }   /* 一度取って0件だった＝取り直さない（くり返し読みに入らない）*/
   else{ try{bulkLoadMaterials_();}catch(e){} } /* 【2026-10-20】教材の一覧を取りに行くのは bulkLoadMaterials_ の1か所に（前の内容を先に出す・届いたら描き直す）*/
 }
+/* 2026-11-03 教材ごと：本の見出しで開け閉め。閉じた本を端末に覚える（localStorage kwt_t_matfold＝{本のキー:1}）。初めては全部開いた今までの見え方。
+   描き直さずに、見出しの ▼▶ と行の mgshut だけ切りかえる（一覧のスクロールの位置を動かさない） */
+var MATFOLD_KEY_='kwt_t_matfold';
+function matFoldGet_(){try{var o=JSON.parse(localStorage.getItem(MATFOLD_KEY_)||'{}');return (o&&typeof o==='object')?o:{};}catch(e){return {};}}
+function matFoldSet_(o){try{localStorage.setItem(MATFOLD_KEY_,JSON.stringify(o));}catch(e){}}
+function matFoldApply_(o){var box=$('matList');if(!box)return;
+  box.querySelectorAll('.mggroup.fold').forEach(function(h){var k=h.getAttribute('data-gk'),c=!!o[k];h.setAttribute('aria-expanded',c?'false':'true');var cr=h.querySelector('.mgg-cr');if(cr)cr.textContent=c?'▶':'▼';});
+  box.querySelectorAll('.mgrow[data-gk]').forEach(function(r){r.classList.toggle('mgshut',!!o[r.getAttribute('data-gk')]);});}
+function matFoldToggle_(k){var o=matFoldGet_();if(o[k])delete o[k];else o[k]=1;matFoldSet_(o);matFoldApply_(o);}
+function matFoldAll_(close){var o={};if(close){var box=$('matList');if(box)box.querySelectorAll('.mggroup.fold').forEach(function(h){o[h.getAttribute('data-gk')]=1;});}matFoldSet_(o);matFoldApply_(o);}
 /* 教材タブの「最新に更新」＝サーバーの教材キャッシュを消して materials_list を取り直す（シート直貼りを待たずに反映）2026-07-28 */
 function refreshMatList(btn){
   var _o = btn ? btn.textContent : '';
