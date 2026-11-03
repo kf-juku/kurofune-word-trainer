@@ -145,7 +145,8 @@ window.ggShellMount=function(root,GG,opt){
  const nyDone=q=>q.ready&&P_(q.id)&&['A1','A2'].every(R=>rState(q.id,R).k==='done');
  function drawLeft(){if(!GR){GR=LS.get('grade')||MY_GRADE;if(!ASSIGNED.includes(GR))GR=MY_GRADE;}const all=BOOKS(),bks=all.filter(b=>b.grade===GR&&b.subj===SUBJ);
   const SJH=SJS.length>1?`<span class="gsj" role="group" aria-label="教科">${SJS.map(k=>`<button type="button" class="${k===SUBJ?'on':''}" data-sj="${k}" aria-pressed="${k===SUBJ}">${SJN[k]}</button>`).join('')}</span>`:(SJN[SJS[0]]||'数学');
-  let h=`<div class="lh"><b>ぐるぐる</b><span>${SJH}${PV?'（先生のプレビュー：記録しない）':''}</span></div><div class="gtab">${['中1','中2','中3'].map(g=>{const has=ASSIGNED.includes(g);return `<button type="button" class="${g===GR?'on':''}" data-gr="${g}" ${has?'':'disabled'}>${g}</button>`;}).join('')}</div>`
+  /* 2026-11-04 01:17 川上さん「こんな2行にする必要あんの？」：左の見出しは1行（折り返さない）。「先生のプレビュー：記録しない」は先生画面の右の列と下の黒いバーに出ているので外した */
+  let h=`<div class="lh" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b>ぐるぐる</b><span>${SJH}</span></div><div class="gtab">${['中1','中2','中3'].map(g=>{const has=ASSIGNED.includes(g);return `<button type="button" class="${g===GR?'on':''}" data-gr="${g}" ${has?'':'disabled'}>${g}</button>`;}).join('')}</div>`
    +`<div class="lflt" role="group" aria-label="絞り込み">${[['all','全部'],['ny','入試パターン'],['ct','章まとめテスト']].map(([k,t])=>`<button type="button" class="${FLT===k?'on':''}" data-flt="${k}" aria-pressed="${FLT===k}">${t}</button>`).join('')}</div>`;
   const ob=OPEN.get('bk')||DEF_BK(),oc=OPEN.get('ch')||DEF_CH();const NY=(GG.ny||[]).filter(q=>SJ_(q)===SUBJ);
   if(FLT==='ny'){/* 学年のタブに関係なく、中1〜中3 の入試パターンを分野ごとに */
