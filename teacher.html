@@ -1391,6 +1391,9 @@
 .ggpr-go{display:flex;gap:8px;flex-wrap:wrap}
 .ggpr-stat{color:var(--text-muted);min-height:1.4em;margin-top:8px}
 @media (max-width:760px){.ggpr-cols{grid-template-columns:1fr}}
+.ggpr-snote{font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:4px}
+.ggpr-stus{display:flex;flex-wrap:wrap;gap:4px 12px;max-height:150px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:6px 10px}
+.ggpr-stus label{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;cursor:pointer}
 /* テストを単体で印刷（2026-10-20）＝窓の下半分 */
 #ptBox{border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:10px}
 .pt-h{font-weight:800;font-size:14px}.pt-h small{font-weight:500;color:var(--text-muted);margin-left:6px;font-size:12px}
@@ -6942,6 +6945,7 @@ function _ggprCssOnce_(){
   st.textContent=scope(String(ggPaper.css||'')+'\n'+String(ggPaper.cssEn||''))
     +'.ggp-doc{width:210mm;background:#fff}.ggp-doc .sheet{box-shadow:none;margin:0}'
     +'.wsp .eqg.ggpr-n2{grid-template-columns:max-content max-content!important}.wsp .eqg.ggpr-n2>.eqn{grid-column:1/-1;padding-left:2em!important}.wsp .eqg.ggpr-stk{display:block!important}.wsp .eqg.ggpr-stk>*{display:block;text-align:left!important}.wsp .eqg.ggpr-stk>.eqr{padding-left:1em}.wsp .eqg.ggpr-stk>.eql:empty{display:none}'
+    +'.ggp .sh-f .nm .ggpr-nm{font-size:15pt;font-weight:700;margin-left:2mm}'
     +'.ggp .sh-qr svg.fs-qr{width:100%;height:auto;display:block}.ggp .sh-qr.has{border:0;flex-direction:column;gap:0}.ggp .sh-qr .ggqr-cd{font-size:8pt;color:#111;letter-spacing:.04em;margin-top:.5mm;white-space:nowrap}'
     /* 印刷：紙の余白を @page で取り、.sheet は中身の大きさ（186×277mm）だけにする。紙の幅 210mm の箱のまま刷ると、ほかの紙（186mm）より広いので Chrome が全部のページを縮めて刷る（2026-11-03 試験で発覚） */
     /* ページからはみ出す物（KaTeX の \\underbrace の線は 40万 px の幅の図）があると、Chrome が全部のページを縮めて刷る＝ぐるぐる印刷のページははみ出しを切る */
@@ -6966,6 +6970,7 @@ function ggPrintOpen_(){
     +'<h3 style="margin-bottom:8px;" id="ggPrTtl">🖨 ぐるぐる印刷</h3><div class="err" id="ggPrErr"></div>'
     +'<div class="ggpr-cols"><div><div class="ggpr-h">回<span id="ggPrN" class="ggpr-n"></span><button type="button" class="btn-ghost pp-ptb" onclick="ggPrAll_(false)">全部外す</button></div><div id="ggPrJobs" class="ggpr-jobs"></div></div>'
     +'<div><div class="ggpr-h">刷る物</div><div id="ggPrKinds" class="ggpr-kinds"></div>'
+    +'<div class="ggpr-h" style="margin-top:12px">名前入りの解答用紙<button type="button" class="btn-ghost pp-ptb" onclick="ggPrStuAll_(true)">全員</button><button type="button" class="btn-ghost pp-ptb" onclick="ggPrStuAll_(false)">外す</button></div><div class="ggpr-snote">生徒を選ぶと、章まとめテストの解答用紙をその子の名前と専用の QR 入りで1人1枚ずつ刷ります。選ばなければ名前なし（全員同じ紙）を1枚。</div><div id="ggPrStus" class="ggpr-stus"></div>'
     +'<div class="ggpr-note">紙ごと・回ごとに新しい紙の表から始まります（奇数ページなら白紙を1枚はさむ）。部数はプリンターで決めます。PDF は印刷の画面で送り先を「PDFに保存」にします。</div>'
     +'<div class="ggpr-go"><button type="button" class="btn-primary" style="width:auto;" id="ggPrP" onclick="ggPrMake_(\'print\')">🖨 印刷</button><button type="button" class="btn-primary btn-outlineK" style="width:auto;" id="ggPrD" onclick="ggPrMake_(\'pdf\')">⬇ PDF</button></div>'
     +'<div id="ggPrStat" class="ggpr-stat"></div></div></div>'
@@ -6985,8 +6990,12 @@ function _ggprDraw_(){
   $('ggPrJobs').innerHTML=h||'<div style="color:var(--text-muted)">この教材には、まだ回がありません</div>';
   var ks=sv.kinds||GGPR_DEF_;
   $('ggPrKinds').innerHTML=GGPR_KINDS_.map(function(k){return '<label class="ggpr-k"><input type="checkbox" class="ggpr-kc" value="'+k[0]+'"'+(ks.indexOf(k[0])>=0?' checked':'')+' onchange="ggPrCnt_()"><span>'+esc(k[1])+(k[2]?'<small>'+esc(k[2])+'</small>':'')+'</span></label>';}).join('');
+  var hs=(_holdersMap()[String(_ggpr.mid)]||[]).slice().sort(function(a,b){return String(a.grade||'').localeCompare(String(b.grade||''))||String(a.name||'').localeCompare(String(b.name||''),'ja');});
+  $('ggPrStus').innerHTML=hs.length?hs.map(function(s){return '<label><input type="checkbox" class="ggpr-s" value="'+esc(String(s.student_id))+'" onchange="ggPrCnt_(true)"><span>'+esc(s.name||s.nickname||'(無名)')+'</span></label>';}).join(''):'<span class="ggpr-snote">この教材を割り当てている生徒はいません</span>';
   ggPrCnt_(true);
 }
+function _ggprStus_(){var by={};(_holdersMap()[String(_ggpr.mid)]||[]).forEach(function(s){by[String(s.student_id)]=s;});return [].slice.call(document.querySelectorAll('#ggPrStus .ggpr-s')).filter(function(c){return c.checked&&by[c.value];}).map(function(c){return by[c.value];});}
+function ggPrStuAll_(v){[].slice.call(document.querySelectorAll('#ggPrStus .ggpr-s')).forEach(function(c){c.checked=!!v;});ggPrCnt_(true);}
 function _ggprJobs_(){return [].slice.call(document.querySelectorAll('#ggPrJobs .ggpr-j')).filter(function(c){return c.checked;}).map(function(c){var a=c.value.split(':');return {key:c.value,kind:a[0],id:a[1],R:a[2]};});}
 function _ggprKinds_(){return [].slice.call(document.querySelectorAll('#ggPrKinds .ggpr-kc')).filter(function(c){return c.checked;}).map(function(c){return c.value;});}
 function ggPrAll_(v){[].slice.call(document.querySelectorAll('#ggPrJobs .ggpr-j')).forEach(function(c){c.checked=!!v;});ggPrCnt_();}
@@ -7002,6 +7011,15 @@ function _ggprEqFit_(src){
     g.style.zoom=Math.max(0.6,g.clientWidth/g.scrollWidth).toFixed(3);});
   [].slice.call(src.querySelectorAll('.katex-display,.exp > .katex')).forEach(function(k){var w=k.parentElement.clientWidth;if(k.scrollWidth>w+1)k.style.zoom=Math.max(0.6,w/k.scrollWidth).toFixed(3);});
 }
+/* ぐるぐるの章まとめテストの解答用紙の番号（2026-11-03 23:08〜23:18 川上さん）＝「GM7-23456」：G＋教科（M＝数学・E＝英語）＋学年の数字（小1〜小6＝1〜6・中1〜中3＝7〜9）＋数字5けた。
+   学年はテストの grade（中1 など）から。数字は行の id（gg_ctm1u4k_A1 など）から計算する（kwtGAS.gs の ggCodeOf_ と同じ式。ワークシートの _wsCode_ と同じ計算で、桁だけ5）。単元の番号は入れない */
+function _ggGradeNo_(rid,grade){var g=String(grade||'').replace(/[１-６]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}),m=/^(小|中)([1-6])$/.exec(g);if(m)return (m[1]==='中'?6:0)+Number(m[2]);var k=/^gg_ct[a-z](\d)/.exec(String(rid||''));return k?6+Number(k[1]):0;}
+function _ggCode_(rid,grade){var s=String(rid||''),m=/^gg_ct([a-z])\d/.exec(s);if(!m)return '';var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}var t=String(Math.floor(h/9)%100000);while(t.length<5)t='0'+t;return 'G'+m[1].toUpperCase()+_ggGradeNo_(s,grade)+'-'+t;}
+/* 解答用紙の QR を入れる。key＝名前入りの鍵（無ければ名前なし＝全員同じ紙）。英語の紙は .sh-qr、数学（アプリの紙）は .qr（_ptAsHead_ が真ん中に置いた所） */
+function _ggprQr_(pages,cd,key){if(!cd)return;var url=cd.replace('-','')+(key?'&qa='+key:''),lab='<div class="ggqr-cd">'+esc(cd)+' '+_ptDayLab_()+' 刷</div>';
+  pages.forEach(function(p){[].slice.call(p.querySelectorAll('.sh-qr')).forEach(function(q){q.classList.add('has');q.innerHTML=fsQrHtml_(url)+lab;});
+    [].slice.call(p.querySelectorAll('.wsp .qr')).forEach(function(q){q.innerHTML=fsQrHtml_(url)+'<div class="wsqr-cd">'+esc(cd)+'<span class="dt">'+_ptDayLab_()+' 刷</span></div>';});});}
+function _ggprName_(pages,nm){pages.forEach(function(p){var a=p.querySelector('.as-nm');if(a)a.textContent=nm;var b=p.querySelector('.ggp .sh-f .nm');if(b)b.innerHTML='名前　<b class="ggpr-nm">'+esc(nm)+'</b>';});}
 /* 1つの紙（回×刷る物）を組んで、ページ（要素）の配列を返す */
 function _ggprDoc_(j,k){
   var D=_ggData,isCt=j.kind==='ct',x=isCt?(D.cts||[]).filter(function(c){return c.id===j.id;})[0]:(D.parts||[]).filter(function(p){return p.id===j.id;})[0];if(!x)return Promise.resolve([]);
@@ -7012,7 +7030,7 @@ function _ggprDoc_(j,k){
     var meas=document.createElement('div');meas.className='ggp ggp-doc';meas.style.cssText='position:absolute;left:-99999px;top:0;';document.body.appendChild(meas);
     meas.innerHTML=isCt?ggPaper.ctEn(D,j.id,j.R,k==='cs'?'a':'q'):(en?ggPaper.roundEn(D,j.id,j.R):ggPaper.round(D,j.id,j.R));
     if(!meas.querySelector('.sheet')){document.body.removeChild(meas);return Promise.resolve([]);}
-    if(k==='cs'){var rid=(x.rowIds||{})[j.R]||'',cd=rid?_wsCode_(rid):'';[].slice.call(meas.querySelectorAll('.sh-qr')).forEach(function(q){if(!cd)return;q.classList.add('has');q.innerHTML=fsQrHtml_(cd.replace('-',''))+'<div class="ggqr-cd">'+esc(cd)+' '+_ptDayLab_()+' 刷</div>';});}
+    if(k==='cs')_ggprQr_([meas],_ggCode_((x.rowIds||{})[j.R]||'',x.grade),'');
     try{ggPaper.KX(meas);}catch(e){}
     return fr.then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
       if(en)ggPaper.layoutEn(meas);else ggPaper.layout(meas);
@@ -7027,6 +7045,7 @@ function _ggprDoc_(j,k){
   return fr.then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
     var r=_ppWsLayout_(api,k==='cs'?'s':(k==='cq'?'q':'a'),null,null,null,_ggprEqFit_);var pg=[].slice.call(r.meas.querySelectorAll('.pp-pg'));pg.forEach(function(p){r.meas.removeChild(p);p.classList.add('ggpr-pg');});document.body.removeChild(r.meas);
     try{hide.removeChild(root);}catch(e){}
+    if(k==='cs')_ggprQr_(pg,_ggCode_((x.rowIds||{})[j.R]||'',x.grade),'');
     return pg;});
 }
 function ggPrMake_(how){
@@ -7041,14 +7060,26 @@ function ggPrMake_(how){
   var need=[];J.forEach(function(j){need.push(j);});
   var chain=Promise.resolve();need.forEach(function(j){chain=chain.then(function(){return _ggApi.paperLoad(j.kind,j.id,j.R);});});
   var out=[],nm={};
-  chain.then(_ggprLibs_).then(function(){var i=0;var step=function(){if(i>=docs.length)return Promise.resolve();var d=docs[i++];st.textContent='紙を組んでいます… '+i+'／'+docs.length;
+  /* 名前入りの解答用紙（2026-11-03 23:05 川上さん「名前入りの鍵を使うのは賛成・仕組みはワークシートと同じ」）：
+     生徒を選んだときは、章まとめテストの解答用紙を 生徒×テスト の枚数だけ刷る。鍵は ws_sheets_issue（1人×1テスト・刷った日から30日）。
+     並び＝テストの順 → 選んだ生徒の順。1枚ごとに新しい紙（裏に別の子の紙を刷らない） */
+  var S=_ggprStus_(),keys={};
+  var issue=(S.length&&K.indexOf('cs')>=0)?function(){var its=[];J.filter(function(j){return j.kind==='ct';}).forEach(function(j){var c=(_ggData.cts||[]).filter(function(x){return x.id===j.id;})[0],rid=c&&(c.rowIds||{})[j.R];if(!rid)return;S.forEach(function(s){its.push({student_id:String(s.student_id),part_id:rid});});});
+      if(!its.length)return Promise.resolve();st.textContent='名前入りの QR を作っています…';
+      return call({action:'ws_sheets_issue',items:its}).then(function(d){if(!d||!d.ok||!d.data)throw new Error('名前入りの QR を作れませんでした：'+((d&&d.error)||'通信に失敗しました'));(d.data.items||[]).forEach(function(x){keys[x.part_id+'|'+x.student_id]=x.key;});});}:function(){return Promise.resolve();};
+  chain.then(_ggprLibs_).then(issue).then(function(){var i=0;var step=function(){if(i>=docs.length)return Promise.resolve();var d=docs[i++];st.textContent='紙を組んでいます… '+i+'／'+docs.length;
       return new Promise(function(r){setTimeout(r,30);}).then(function(){return _ggprDoc_(d.j,d.k);}).then(function(pg){if(!pg.length)return step();
-        if(out.length%2===1)out.push(_ppBlankPg_());pg.forEach(function(p){out.push(p);});nm[d.k]=(nm[d.k]||0)+1;return step();});};return step();})
+        var put=function(ps){if(out.length%2===1)out.push(_ppBlankPg_());ps.forEach(function(p){out.push(p);});};
+        if(d.k==='cs'&&S.length){var c=(_ggData.cts||[]).filter(function(x){return x.id===d.j.id;})[0],rid=c&&(c.rowIds||{})[d.j.R],cd=_ggCode_(rid,c&&c.grade);
+          S.forEach(function(s){var key=keys[rid+'|'+String(s.student_id)];if(!key)return;var ps=pg.map(function(p){return p.cloneNode(true);});_ggprQr_(ps,cd,key);_ggprName_(ps,s.name||s.nickname||'');put(ps);nm.named=(nm.named||0)+1;});}
+        else put(pg);
+        nm[d.k]=(nm[d.k]||0)+1;return step();});};return step();})
   .then(function(){
     if(!out.length){fin('');$('ggPrErr').textContent='刷る紙がありませんでした';return;}
     var host=$('printArea');host.innerHTML='';out.forEach(function(p){host.appendChild(p);});
     var real=out.filter(function(p){return !p.classList.contains('pp-blank');}).length,blank=out.length-real;
     var lab=GGPR_KINDS_.filter(function(k){return nm[k[0]];}).map(function(k){return k[1]+' '+nm[k[0]]+'回';}).join('・');
+    if(nm.named)lab+='（名前入り '+nm.named+'枚）';
     var msg=lab+'／'+out.length+'ページ'+(blank?'（白紙 '+blank+'枚を含む）':'');
     window.__ggprDone={tot:out.length,real:real,blank:blank,nm:nm};
     var fn=_rpToday().replace(/-/g,'')+'_ぐるぐる_'+String($('mpTitle').textContent||'').replace(/[\\\/:*?"<>|\s]+/g,'');
