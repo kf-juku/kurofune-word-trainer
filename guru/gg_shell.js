@@ -18,7 +18,7 @@
      opt.loadParts(行idの配列, {backs:true|false})＝問題をあとで読む（2026-11-02 段3）。GG が ggBuildData(rows,{lazy:true}) で作ったものなら、回・章まとめを開く前に
        そのパートの行（回6つ＋類題・章まとめの回）の words を Promise で返してもらい、ggFillWords（gg_load.js）で入れる。backs＝章まとめテストの「類題へ戻る所」の類題の行も一緒に（先生画面は GAS の gg_preview_part・生徒アプリの #pv= は gg_unit_part 2026-11-03）
    記録をサーバーに送る形：window.ggRecBridge(call, records)（下）＝ opt.tstateOf と opt.onRecord を作る（GAS の gg_records・gg_submit・gg_state）
-   返り＝{render(), open(パートid, 回), openCt(テストid, 回), state(), destroy()}（review は 2026-11-03 に外した）
+   返り＝{render(), open(パートid, 回), openCt(テストid, 回), state(), paperLoad(種類, id, 回), paperMount(種類, id, 回, host), destroy()}（review は 2026-11-03 に外した）
    ぐるぐる英語（2026-11-03。川上さん 17:47 の質問への答え 18:19「進めて」＝一覧の見出しで教科を切り替える）：
      GG の units・parts・ny・cts の subj（'ma' 数学｜'en' 英語。gg_load.js が materials.subject から入れる）で教科を分ける。
      両方の教科があるときだけ、一覧の見出しの「数学」の所を［数学｜英語］の切り替えにする（1教科だけのときは今までと同じ字）。前に開いた教科を覚える（端末の subj）。opt.subject＝最初に開く教科
@@ -292,8 +292,18 @@ window.ggShellMount=function(root,GG,opt){
   const host=$id('host');API=ctMount(host,c,R);appImp(host,!!c.imp,'ct');   /* 2026-11-03 ぐるぐる 重要マーク ◆ */
   host.addEventListener('click',()=>setTimeout(()=>{if(VIEW==='ct'&&SEL===id)drawLeft();},400));}
  /* 2026-11-03 ぐるぐる：確かめる画面（rvW の形・openReview・drawReview・rvEntries・RVP・rvW・rvRow）は外した（決まり §0c 解説の決まり 24。モックの叩き台の点検用だった） */
+ /* 2026-11-03 ぐるぐる印刷（先生画面）：紙を組むためだけのアプリを、見えない host に置く。画面（左の一覧・M）にはさわらない。
+    load(kind,id,R)＝その回の問題をまだ読んでいなければ読む（Promise）。paper(kind,id,R,host)＝ggMount の返り（paperHtml(解答解説か)・K(要素) を使う）。
+    kind＝'part'（通常回・入試パターン）｜'ct'（章まとめテスト）。通常回はテストの形（T.test）で置き、paperHtml(true) が「問題・正解・解説」の解答解説になる */
+ function paperLoad(kind,id,R){const n=needOf(kind,id,R);if(!n.L.length)return Promise.resolve();return Promise.resolve().then(()=>opt.loadParts(n.L,{backs:!!n.backs})).then(ws=>{ggFillWords(GG,ws||[]);});}
+ function paperMount(kind,id,R,host){
+  if(kind==='ct'){const c=CT_(id);if(!c||!c.rounds[R]||!c.rounds[R].items)return null;const T=ctTest(c,R);delete T.__pool;delete T.__nm;
+   return ggMount(host,{UNIT_TITLE:c.ut,PATS:[],TEST:T,POOL:{}},{katexCss:KCSS,dark:false,book:c.grade+(SJN[SJ_(c)]||'数学')+' '+c.unit,shuffle:false,innerBack:false,tkey:'ggpp_'+c.id+R,startPid:T.part_id,en:SJ_(c)==='en',audioBase:opt.audioBase,preview:true});}
+  const p=P_(id);if(!p||!p.rounds[R])return null;const H=HD(id);const SN=SJN[SJ_(p)]||'数学';
+  const T={k:'X',min:p.min||10,name:CALL(id,R),ver:R,test:true,pt:GPTof(id),ins:'正しいものを選ぼう',items:CL(p.rounds[R]),part_id:rowOf(id,R),gr:1};
+  return ggMount(host,{UNIT_TITLE:H.ny?H.main:'単元'+H.k+' '+H.main,PATS:[],TEST:T,POOL:{}},{katexCss:KCSS,dark:false,book:H.ny?p.grade+SN+' 入試パターン '+H.main:p.grade+SN+' '+p.unit,shuffle:false,innerBack:false,tkey:'ggpp_'+id+R,startPid:T.part_id,en:SJ_(p)==='en',audioBase:opt.audioBase,preview:true});}
  render();
- return {render,open:(id,R)=>openRound(id,R||nextR(id)),openCt:(id,R)=>openCt(id,R),state:()=>({SEL,VIEW,CUR_R,GR,FLT}),app:()=>API,
+ return {render,open:(id,R)=>openRound(id,R||nextR(id)),openCt:(id,R)=>openCt(id,R),state:()=>({SEL,VIEW,CUR_R,GR,FLT}),app:()=>API,paperLoad,paperMount,
   destroy:()=>{API=null;sh.innerHTML='';if(PV)Object.keys(localStorage).filter(k=>/^ggpv_/.test(k)).forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});}};
 };
 /* 記録をサーバーに送る形（2026-11-02 段3・生徒にはまだ出していない＝student.html はまだ使っていない）

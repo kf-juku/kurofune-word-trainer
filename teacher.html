@@ -1371,6 +1371,26 @@
 .pp-mlab{flex:0 0 auto;white-space:nowrap}.pp-mnow{font-weight:800;color:var(--crimson);min-width:0}.pp-mnow.none{font-weight:600;color:var(--text-light)}
 .pp-mlist{min-height:0;max-height:min(58vh,520px)}
 .pp-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;align-items:start}
+/* ぐるぐる印刷の窓（2026-11-03） */
+.ggpr-x{position:absolute;top:10px;right:12px;width:32px;height:32px;border:0;background:none;font-size:22px;line-height:1;color:var(--text-muted);cursor:pointer;border-radius:8px}
+.ggpr-x:hover{background:#f1f5f9;color:var(--text)}
+.ggpr-cols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;align-items:start;font-size:13px}
+.ggpr-h{display:flex;align-items:center;gap:8px;font-weight:800;margin-bottom:6px}
+.ggpr-n{font-weight:600;color:var(--text-muted)}
+.ggpr-jobs{border:1px solid var(--border);border-radius:10px;max-height:min(56vh,520px);overflow:auto}
+.ggpr-r{display:flex;flex-direction:column;gap:3px;padding:7px 10px;border-bottom:1px solid var(--border)}
+.ggpr-r:last-child{border-bottom:0}
+.ggpr-r .t{font-weight:700;min-width:0}
+.ggpr-r.ny .t{color:#7c3aed}.ggpr-r.ct .t{color:#0f766e}
+.ggpr-r .rs{display:flex;flex-wrap:wrap;gap:4px 12px}
+.ggpr-r label{display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap}
+.ggpr-kinds{display:flex;flex-direction:column;gap:6px}
+.ggpr-k{display:flex;align-items:flex-start;gap:6px;cursor:pointer}
+.ggpr-k span{display:flex;flex-direction:column}.ggpr-k small{font-size:11.5px;color:var(--text-muted)}
+.ggpr-note{font-size:12px;color:var(--text-muted);margin:10px 0 8px;line-height:1.5}
+.ggpr-go{display:flex;gap:8px;flex-wrap:wrap}
+.ggpr-stat{color:var(--text-muted);min-height:1.4em;margin-top:8px}
+@media (max-width:760px){.ggpr-cols{grid-template-columns:1fr}}
 /* テストを単体で印刷（2026-10-20）＝窓の下半分 */
 #ptBox{border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:10px}
 .pt-h{font-weight:800;font-size:14px}.pt-h small{font-weight:500;color:var(--text-muted);margin-left:6px;font-size:12px}
@@ -6844,7 +6864,7 @@ function _wsLoadLibs_(){
    ノートの書き方の絵は guru/img/gg/*.svg（画面に出たときに読む）。部品を直したら GG_LIB_V を上げる
    2026-11-02 段3 速くした：開いたときは［中身］の最初の material_preview の返事（ぐるぐるは words を読まない＝parts の行と表紙の説明だけ）で一覧を出す（ggBuildData の lazy）。
    回・［確かめる］・章まとめを開いたときに、そのパートの行だけ gg_preview_part で読む（gg_shell.js の opt.loadParts → ggFillWords）。読んだパートはこの窓を閉じるまで覚えておく */
-var GG_LIB_V='20261103e',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-03 ぐるぐる：20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
+var GG_LIB_V='20261103f',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-03 ぐるぐる：20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -6886,7 +6906,7 @@ function mpGgPreview_(mid,dt0){
   var tb=$('mpToolbar');if(tb){tb.classList.add('mp-ggtb');tb.innerHTML='<span class="mp-ggnote">ぐるぐる：生徒と同じ形です。左の一覧で回を選ぶと解く画面。下の黒いバーの ◀ ▶ で1画面ずつ送れます（「答え・解説を出す」を外すと、生徒が解く前の画面）。記録はしません。問題はここでは直せません。'
     +'<br>実機で見る：テスト用アカウントにこの教材を割り当てて［生徒の画面で見る］か［QR］。'+(_hs.length?'いま割り当てている子：'+esc(_hs.join('・')):'まだ誰にも割り当てていません。')+'</span>'
     +'<label class="mp-ggdk"><input type="checkbox" id="mpGgDark"'+(_ggDark?' checked':'')+' onchange="_ggDark=this.checked;mpGgMount_();">暗い画面で見る</label>'
-    +'<button class="mp-pv" type="button" id="mpGgPv" onclick="_ggPv_(0)">生徒の画面で見る</button><button class="mp-pv" type="button" onclick="_ggPv_(1)">QR</button>';}
+    +'<button class="mp-pv" type="button" id="mpGgPv" onclick="_ggPv_(0)">生徒の画面で見る</button><button class="mp-pv" type="button" onclick="_ggPv_(1)">QR</button><button class="mp-pv" type="button" id="mpGgPr" onclick="ggPrintOpen_()">🖨 ぐるぐる印刷</button>';}   /* 2026-11-03 ぐるぐる印刷 */
   $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
   _ggDestroy_();_ggData=null;_ggRow0='';_ggMid=String(mid);
   var _pv0=(dt0&&dt0.parts)?Promise.resolve({ok:true,data:dt0}):call({action:'material_preview',material_id:mid,parts_only:'1'});   /* 2026-11-02 段3 問題（words）はここでは読まない */
@@ -6898,6 +6918,135 @@ function mpGgPreview_(mid,dt0){
     _ggData=ggBuildData({material:R.mat,parts:R.parts,words:R.words},{lazy:true});   /* 2026-11-02 段3 一覧だけ。問題は開いたときに読む */
     mpGgMount_();
   }).catch(function(e){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">数式・図・ぐるぐるの部品を読めませんでした（'+esc(String(e&&e.message||e))+'）</div>';});
+}
+/* ===== ぐるぐる印刷（2026-11-03 21:4x 川上さん「推奨でOK」）=====
+   正＝ジョブス用\仕様書\ぐるぐる_作り方の決まり.md の頭・ぐるぐる英語_作り方の決まり.md 9d（紙と印刷）。
+   教材タブ［中身］でぐるぐるの教材を開いた帯の［🖨 ぐるぐる印刷］から開く。回（A-1〜C-2・章まとめ A-1〜B-2）と刷る物（5種類）を選んで1回で刷る。
+   刷る物：通常回の問題（A4 表裏1枚・guru/gg_paper.js・gg_paper_en.js）／通常回の解答解説／章まとめテストの問題用紙・解答用紙・解答解説
+     ・通常回の問題・英語の章まとめの問題用紙と解答用紙＝ggPaper（川上さんが PDF で確かめた形）
+     ・数学の章まとめの問題用紙・解答用紙と、解答解説（全部）＝アプリの紙（gg_shell の paperMount → paperHtml）をワークシートと同じ _ppWsLayout_ で組む
+   はじめから印が付いているのは章まとめテストの問題用紙と解答用紙。並び＝刷る物の順 → 回の順。紙ごと・回ごとに新しい紙の表から（奇数ページなら白紙を1枚）。
+   回と刷る物の選び方は端末に覚える（kwt_ggpr＝{教材: {jobs:[], kinds:[]}}）。印刷と PDF は練習プリントと同じ（印刷の画面。PDF は送り先を「PDFに保存」） */
+var GGPR_KINDS_=[['rq','通常回の問題','A4 表裏1枚'],['ra','通常回の解答解説','問題・正解・解説'],['cq','章まとめテストの問題用紙',''],['cs','章まとめテストの解答用紙','QR つき'],['ca','章まとめテストの解答解説','']];
+var GGPR_DEF_=['cq','cs'];
+var _ggpr={mid:'',busy:false};
+function _ggprCssOnce_(){
+  if(document.getElementById('ggPaperCss'))return;
+  /* ggPaper の CSS は .ggp の中だけに効かせる（頭に .ggp の無い所に足す）。@media print（@page の余白 0）は入れない＝ほかの印刷の余白を変えない */
+  var scope=function(css){var out='',i=0,n=css.length;
+    while(i<n){var b=css.indexOf('{',i);if(b<0)break;var sel=css.slice(i,b).trim();var d=1,j=b+1;while(j<n&&d){if(css[j]==='{')d++;else if(css[j]==='}')d--;j++;}var body=css.slice(b+1,j-1);
+      if(/^@media\s+print/.test(sel)){}else if(sel.charAt(0)==='@')out+=sel+'{'+scope(body)+'}';
+      else out+=sel.split(',').map(function(s){s=s.trim();return /(^|\s)\.ggp(\s|$|[.:#\[])/.test(s)?s:'.ggp '+s;}).join(',')+'{'+body+'}';
+      i=j;}return out;};
+  var st=document.createElement('style');st.id='ggPaperCss';
+  st.textContent=scope(String(ggPaper.css||'')+'\n'+String(ggPaper.cssEn||''))
+    +'.ggp-doc{width:210mm;background:#fff}.ggp-doc .sheet{box-shadow:none;margin:0}'
+    +'.ggp .sh-qr svg.fs-qr{width:100%;height:auto;display:block}.ggp .sh-qr.has{border:0;flex-direction:column;gap:0}.ggp .sh-qr .ggqr-cd{font-size:8pt;color:#111;letter-spacing:.04em;margin-top:.5mm;white-space:nowrap}'
+    /* 印刷：紙の余白を @page で取り、.sheet は中身の大きさ（186×277mm）だけにする。紙の幅 210mm の箱のまま刷ると、ほかの紙（186mm）より広いので Chrome が全部のページを縮めて刷る（2026-11-03 試験で発覚） */
+    /* ページからはみ出す物（KaTeX の \\underbrace の線は 40万 px の幅の図）があると、Chrome が全部のページを縮めて刷る＝ぐるぐる印刷のページははみ出しを切る */
+    +'@page ggp{size:A4 portrait;margin:11mm 10mm 9mm 14mm;@bottom-center{content:none}}'
+    +'@media print{#printArea .ggp-doc{width:auto}#printArea .ggp-doc .sheet{page:ggp;width:186mm;height:276.5mm;padding:0;margin:0!important;box-shadow:none!important;break-after:page;page-break-after:always;overflow:visible}#printArea .ggp-doc .sh-ft{bottom:-3mm}#printArea .ggpr-pg{overflow:hidden!important}#printArea .ggp-doc:last-child .sheet:last-child{break-after:auto;page-break-after:auto}}';
+  document.head.appendChild(st);
+}
+function _ggprLibs_(){
+  return _ggLoadLibs_().then(function(){if(window.ggPaper&&window.ggPaper.roundEn)return;
+    var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
+    return js('guru/gg_paper.js').then(function(){return js('guru/gg_paper_en.js');});}).then(function(){_ggprCssOnce_();if(typeof _ppWsCss_==='function')_ppWsCss_();});
+}
+function _ggprGet_(){try{var o=JSON.parse(localStorage.getItem('kwt_ggpr')||'{}');return (o&&typeof o==='object')?o:{};}catch(e){return {};}}
+function _ggprSave_(){var o=_ggprGet_();o[_ggpr.mid]={jobs:_ggprJobs_().map(function(j){return j.key;}),kinds:_ggprKinds_()};try{localStorage.setItem('kwt_ggpr',JSON.stringify(o));}catch(e){}}
+function _ggprRs_(x){return ['A1','A2','B1','B2','C1','C2'].filter(function(R){return x.rowIds&&x.rowIds[R];});}
+function _ggprRd_(R){return String(R).replace(/^([ABC])([12])$/,'$1-$2');}
+function ggPrintOpen_(){
+  if(!_ggData||!_ggApi){toast('ぐるぐるの教材を開いてから押してください');return;}
+  _ggpr.mid=_ggMid;
+  var m=$('ggPrModal');if(!m){document.body.insertAdjacentHTML('beforeend','<div class="modal-back" id="ggPrModal"><div class="modal" style="max-width:none;width:min(96vw,900px);position:relative;">'
+    +'<button type="button" class="ggpr-x" onclick="closeModal(\'ggPrModal\')" aria-label="閉じる">×</button>'
+    +'<h3 style="margin-bottom:8px;" id="ggPrTtl">🖨 ぐるぐる印刷</h3><div class="err" id="ggPrErr"></div>'
+    +'<div class="ggpr-cols"><div><div class="ggpr-h">回<span id="ggPrN" class="ggpr-n"></span><button type="button" class="btn-ghost pp-ptb" onclick="ggPrAll_(false)">全部外す</button></div><div id="ggPrJobs" class="ggpr-jobs"></div></div>'
+    +'<div><div class="ggpr-h">刷る物</div><div id="ggPrKinds" class="ggpr-kinds"></div>'
+    +'<div class="ggpr-note">紙ごと・回ごとに新しい紙の表から始まります（奇数ページなら白紙を1枚はさむ）。部数はプリンターで決めます。PDF は印刷の画面で送り先を「PDFに保存」にします。</div>'
+    +'<div class="ggpr-go"><button type="button" class="btn-primary" style="width:auto;" id="ggPrP" onclick="ggPrMake_(\'print\')">🖨 印刷</button><button type="button" class="btn-primary btn-outlineK" style="width:auto;" id="ggPrD" onclick="ggPrMake_(\'pdf\')">⬇ PDF</button></div>'
+    +'<div id="ggPrStat" class="ggpr-stat"></div></div></div>'
+    +'<div class="modal-actions"><button class="btn-ghost" style="margin-left:auto;" onclick="closeModal(\'ggPrModal\')">閉じる</button></div></div></div>');m=$('ggPrModal');}
+  $('ggPrJobs').innerHTML='<div style="color:var(--text-muted);padding:10px">読み込み中…</div>';$('ggPrKinds').innerHTML='';m.classList.add('show');
+  _ggprLibs_().then(function(){_ggprDraw_();})['catch'](function(e){$('ggPrErr').textContent='紙の部品を読めませんでした：'+String(e&&e.message||e);});
+}
+function _ggprDraw_(){
+  var D=_ggData,sv=_ggprGet_()[_ggpr.mid]||{},on={};(sv.jobs||[]).forEach(function(k){on[k]=1;});
+  $('ggPrTtl').textContent='🖨 ぐるぐる印刷　'+($('mpTitle').textContent||'');
+  $('ggPrErr').textContent='';$('ggPrStat').textContent='';
+  var row=function(kind,x,nm,cls){var rs=_ggprRs_(x);if(!rs.length)return '';
+    return '<div class="ggpr-r '+cls+'"><span class="t">'+esc(nm)+'</span><span class="rs">'+rs.map(function(R){var k=kind+':'+x.id+':'+R;return '<label><input type="checkbox" class="ggpr-j" value="'+esc(k)+'"'+(on[k]?' checked':'')+' onchange="ggPrCnt_()"><span>'+_ggprRd_(R)+'</span></label>';}).join('')+'</span></div>';};
+  var h='';
+  (D.parts||[]).forEach(function(p){var H=ggPaper.HD(D,p.id)||{};var nm=H.ny?('入試パターン '+(H.main||'')):((H.unit||p.unit||'')+(H.maru||'')+' '+(H.main||''));h+=row('part',p,nm,H.ny?'ny':'');});
+  (D.cts||[]).forEach(function(c){h+=row('ct',c,'章まとめテスト '+String(c.name||'').replace(/^章まとめテスト\s*/,''),'ct');});
+  $('ggPrJobs').innerHTML=h||'<div style="color:var(--text-muted)">この教材には、まだ回がありません</div>';
+  var ks=sv.kinds||GGPR_DEF_;
+  $('ggPrKinds').innerHTML=GGPR_KINDS_.map(function(k){return '<label class="ggpr-k"><input type="checkbox" class="ggpr-kc" value="'+k[0]+'"'+(ks.indexOf(k[0])>=0?' checked':'')+' onchange="ggPrCnt_()"><span>'+esc(k[1])+(k[2]?'<small>'+esc(k[2])+'</small>':'')+'</span></label>';}).join('');
+  ggPrCnt_(true);
+}
+function _ggprJobs_(){return [].slice.call(document.querySelectorAll('#ggPrJobs .ggpr-j')).filter(function(c){return c.checked;}).map(function(c){var a=c.value.split(':');return {key:c.value,kind:a[0],id:a[1],R:a[2]};});}
+function _ggprKinds_(){return [].slice.call(document.querySelectorAll('#ggPrKinds .ggpr-kc')).filter(function(c){return c.checked;}).map(function(c){return c.value;});}
+function ggPrAll_(v){[].slice.call(document.querySelectorAll('#ggPrJobs .ggpr-j')).forEach(function(c){c.checked=!!v;});ggPrCnt_();}
+function ggPrCnt_(noSave){var J=_ggprJobs_(),K=_ggprKinds_();var np=J.filter(function(j){return j.kind==='part';}).length,nc=J.length-np;
+  $('ggPrN').textContent='　'+(np?('通常回 '+np):'')+(np&&nc?'・':'')+(nc?('章まとめ '+nc):'')+(J.length?'':'まだ選んでいません');
+  if(!noSave)_ggprSave_();}
+/* 1つの紙（回×刷る物）を組んで、ページ（要素）の配列を返す */
+function _ggprDoc_(j,k){
+  var D=_ggData,isCt=j.kind==='ct',x=isCt?(D.cts||[]).filter(function(c){return c.id===j.id;})[0]:(D.parts||[]).filter(function(p){return p.id===j.id;})[0];if(!x)return Promise.resolve([]);
+  var en=String(x.subj||'')==='en'||((ggPaper.HD(D,j.id)||{}).subj==='en');
+  var fr=(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve());
+  var gp=(k==='rq')||(en&&isCt&&(k==='cq'||k==='cs'));
+  if(gp){   /* ggPaper の紙 */
+    var meas=document.createElement('div');meas.className='ggp ggp-doc';meas.style.cssText='position:absolute;left:-99999px;top:0;';document.body.appendChild(meas);
+    meas.innerHTML=isCt?ggPaper.ctEn(D,j.id,j.R,k==='cs'?'a':'q'):(en?ggPaper.roundEn(D,j.id,j.R):ggPaper.round(D,j.id,j.R));
+    if(!meas.querySelector('.sheet')){document.body.removeChild(meas);return Promise.resolve([]);}
+    if(k==='cs'){var rid=(x.rowIds||{})[j.R]||'',cd=rid?_wsCode_(rid):'';[].slice.call(meas.querySelectorAll('.sh-qr')).forEach(function(q){if(!cd)return;q.classList.add('has');q.innerHTML=fsQrHtml_(cd.replace('-',''))+'<div class="ggqr-cd">'+esc(cd)+' '+_ptDayLab_()+' 刷</div>';});}
+    try{ggPaper.KX(meas);}catch(e){}
+    return fr.then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
+      if(en)ggPaper.layoutEn(meas);else ggPaper.layout(meas);
+      document.body.removeChild(meas);meas.style.cssText='';
+      /* 1枚ずつの箱に分ける（ページ数を数えて、白紙をはさめるように） */
+      return [].slice.call(meas.querySelectorAll('.sheet')).map(function(sh){var w=document.createElement('div');w.className='ggp ggp-doc';w.appendChild(sh);return w;});});
+  }
+  /* アプリの紙（ワークシートと同じ組み方） */
+  var hide=document.getElementById('ppWsHide');if(!hide){hide=document.createElement('div');hide.id='ppWsHide';hide.style.cssText='position:absolute;left:-99999px;top:0;width:1000px;height:10px;overflow:hidden;';document.body.appendChild(hide);}
+  var root=document.createElement('div');hide.appendChild(root);
+  var api=_ggApi.paperMount(isCt?'ct':'part',j.id,j.R,root);if(!api){hide.removeChild(root);return Promise.resolve([]);}
+  return fr.then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
+    var r=_ppWsLayout_(api,k==='cs'?'s':(k==='cq'?'q':'a'),null);var pg=[].slice.call(r.meas.querySelectorAll('.pp-pg'));pg.forEach(function(p){r.meas.removeChild(p);p.classList.add('ggpr-pg');});document.body.removeChild(r.meas);
+    try{hide.removeChild(root);}catch(e){}
+    return pg;});
+}
+function ggPrMake_(how){
+  if(_ggpr.busy)return;var J=_ggprJobs_(),K=_ggprKinds_();
+  if(!J.length){$('ggPrErr').textContent='刷る回を1つ以上選んでください';return;}
+  if(!K.length){$('ggPrErr').textContent='刷る物を1つ以上選んでください';return;}
+  var docs=[];K.forEach(function(k){J.forEach(function(j){if((k.charAt(0)==='r')===(j.kind==='part'))docs.push({j:j,k:k});});});
+  if(!docs.length){$('ggPrErr').textContent=K.every(function(k){return k.charAt(0)==='c';})?'章まとめテストの回を選んでください（刷る物が章まとめテストだけです）':'通常回の回を選んでください（刷る物が通常回だけです）';return;}
+  $('ggPrErr').textContent='';_ggpr.busy=true;var bs=[$('ggPrP'),$('ggPrD')];bs.forEach(function(b){b.disabled=true;});
+  var fin=function(msg){_ggpr.busy=false;bs.forEach(function(b){b.disabled=false;});if(msg!=null)$('ggPrStat').textContent=msg;};
+  var st=$('ggPrStat');st.textContent='問題を読み込んでいます…';
+  var need=[];J.forEach(function(j){need.push(j);});
+  var chain=Promise.resolve();need.forEach(function(j){chain=chain.then(function(){return _ggApi.paperLoad(j.kind,j.id,j.R);});});
+  var out=[],nm={};
+  chain.then(_ggprLibs_).then(function(){var i=0;var step=function(){if(i>=docs.length)return Promise.resolve();var d=docs[i++];st.textContent='紙を組んでいます… '+i+'／'+docs.length;
+      return new Promise(function(r){setTimeout(r,30);}).then(function(){return _ggprDoc_(d.j,d.k);}).then(function(pg){if(!pg.length)return step();
+        if(out.length%2===1)out.push(_ppBlankPg_());pg.forEach(function(p){out.push(p);});nm[d.k]=(nm[d.k]||0)+1;return step();});};return step();})
+  .then(function(){
+    if(!out.length){fin('');$('ggPrErr').textContent='刷る紙がありませんでした';return;}
+    var host=$('printArea');host.innerHTML='';out.forEach(function(p){host.appendChild(p);});
+    var real=out.filter(function(p){return !p.classList.contains('pp-blank');}).length,blank=out.length-real;
+    var lab=GGPR_KINDS_.filter(function(k){return nm[k[0]];}).map(function(k){return k[1]+' '+nm[k[0]]+'回';}).join('・');
+    var msg=lab+'／'+out.length+'ページ'+(blank?'（白紙 '+blank+'枚を含む）':'');
+    window.__ggprDone={tot:out.length,real:real,blank:blank,nm:nm};
+    var fn=_rpToday().replace(/-/g,'')+'_ぐるぐる_'+String($('mpTitle').textContent||'').replace(/[\\\/:*?"<>|\s]+/g,'');
+    fin(msg);
+    if(how==='none')return;
+    if(how==='pdf'){$('ggPrStat').textContent=msg+'　印刷の画面が開いたら、送り先を「PDFに保存」にして［保存］を押してください';}
+    printWhenImagesReady_(host,fn);
+  })['catch'](function(e){fin('');$('ggPrErr').textContent='紙を組めませんでした：'+String(e&&e.message||e);});
 }
 /* material_preview（with_qdata）の返りを、シートの行の形（materials・parts・words）に直して ws_load.js に渡す */
 function _wsRowsFromPreview_(dt){
@@ -11978,6 +12127,8 @@ function _ppLoadAll_(mids){var q=mids.filter(function(m){return !_ppIsWs_(m);}).
    解答用紙は回収する紙なので問題用紙に入れず、3つ目の行［解答用紙］で刷る（2026-10-17 21:38）。 */
 var _ppWs={mid:'',p:null,api:null},_ppWsMap={}; /* _ppWsMap＝章まとめテストの教材はテスト1つずつ（キー＝教材ID|パートID） */
 function _ppIsWs_(mid){var m=(_ppMats||[]).filter(function(x){return String(x.id)===String(mid);})[0];return !!(m&&String(m.content_type||'')==='worksheet');}
+/* ワークシートの紙の CSS（1回だけ入れる）。ぐるぐる印刷も使う（2026-11-03 _ppWsPrep_ から出した） */
+function _ppWsCss_(){if(document.getElementById('wsPaperCss'))return;var st=document.createElement('style');st.id='wsPaperCss';st.textContent=(window.WS_PAPER_CSS||'')+'.wsp .qr svg.fs-qr{width:21mm;height:21mm;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp .qr{display:block;text-align:center}.wsp .qr svg.fs-qr{margin:1.3mm auto 0}.wsp .qr .wsqr-cd{margin-top:.3mm}.wsp .wsqr-cd{font-size:9pt;letter-spacing:.06em;line-height:1}'+'.wsp .sh-top.as3{display:grid;grid-template-columns:minmax(0,1fr) auto 56mm;column-gap:5mm;align-items:end}.wsp .as3 .as-c{text-align:center}.wsp .as3 .qr{display:inline-block;width:auto;height:auto;padding:1.5mm 2mm 1mm;margin:0}.wsp .as3 .qr svg.fs-qr{width:27mm;height:27mm;margin:0 auto}.wsp .as3 .wsqr-cd .dt{font-weight:400;font-size:8pt;letter-spacing:0;margin-left:1.5mm}.wsp .as3 .asnote{font-size:9.5pt;margin-top:1.2mm;white-space:nowrap}.wsp .as3 .as-r{display:flex;flex-direction:column;justify-content:space-between;align-self:stretch;gap:3mm;min-width:0}.wsp .as3 .as-nmr{display:flex;align-items:flex-end;gap:3mm;font-size:13pt;margin-top:4mm;min-width:0}.wsp .as3 .as-nm{flex:1;min-width:0;min-height:9mm;border-bottom:1.5px solid #333;font-size:19pt;font-weight:700;padding:0 2mm 1mm;white-space:nowrap;overflow:hidden}.wsp .as3 .as-dt{text-align:right;font-size:10pt;white-space:nowrap}.wsp .as3 .as-dt span{display:inline-block;width:22mm;border-bottom:1px solid #333}.wsp .as3 .as-sc{text-align:right;font-size:14pt;font-weight:700;white-space:nowrap}.wsp .as3 .as-sc span{display:inline-block;width:24mm;height:10mm;vertical-align:bottom;border-bottom:1.5px solid #333}.wsp .as3 .as-sc i{font-style:normal;font-weight:400;font-size:13pt}'+'.pp-pg.wsp-pg{width:190mm;height:293mm;page:wsp;break-inside:avoid;overflow:visible}.wsp-pg .pp-body{overflow:visible}.wsp-pg .pp-body *{page:auto!important;break-before:auto!important;break-after:auto!important;page-break-before:auto!important;page-break-after:auto!important}.wsp-pg .wsp-rng{position:absolute;right:14.5mm;bottom:.5mm;height:8.5mm;line-height:8.5mm;font-size:17pt;font-weight:800;letter-spacing:.02em;color:#111;white-space:nowrap}.wsp-pg .wsp-var{position:absolute;right:4mm;bottom:.5mm;width:8.5mm;height:8.5mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp-pg .wsp-band{position:relative;flex:0 0 16mm;display:flex;align-items:flex-end;font-size:9pt;line-height:1.2;color:#333;padding-bottom:2mm;font-family:"Noto Sans JP","Yu Gothic",sans-serif}.wsp-pg .pp-body{flex:0 0 272mm;height:272mm;display:block;column-gap:0}.wsp-pg .pp-ft{flex:0 0 5mm;align-items:flex-start;font-size:9pt;color:#333}@page wsp{size:A4 portrait;margin:0 6mm 0 14mm;@bottom-center{content:none}}@media print{@page wsp{size:A4 portrait;margin:0 6mm 0 14mm;@bottom-center{content:none}}}';document.head.appendChild(st);}
 function _ppWsPrep_(mid,pid){
   if(pid){var key=mid+'|'+pid;if(_ppWsMap[key])return _ppWsMap[key];}
   else{if(_ppWs.mid===mid&&_ppWs.p)return _ppWs.p;
@@ -11990,7 +12141,7 @@ function _ppWsPrep_(mid,pid){
     var hide=document.getElementById('ppWsHide');if(!hide){hide=document.createElement('div');hide.id='ppWsHide';hide.style.cssText='position:absolute;left:-99999px;top:0;width:1000px;height:10px;overflow:hidden;';document.body.appendChild(hide);}
     var root=document.createElement('div');hide.appendChild(root); /* テストごとに1つずつ置く（章まとめテスト） */
     var api=wsMount(root,D,{katexCss:'ws/katex/katex.min.css'});
-    if(!document.getElementById('wsPaperCss')){var st=document.createElement('style');st.id='wsPaperCss';st.textContent=(window.WS_PAPER_CSS||'')+'.wsp .qr svg.fs-qr{width:21mm;height:21mm;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp .qr{display:block;text-align:center}.wsp .qr svg.fs-qr{margin:1.3mm auto 0}.wsp .qr .wsqr-cd{margin-top:.3mm}.wsp .wsqr-cd{font-size:9pt;letter-spacing:.06em;line-height:1}'+'.wsp .sh-top.as3{display:grid;grid-template-columns:minmax(0,1fr) auto 56mm;column-gap:5mm;align-items:end}.wsp .as3 .as-c{text-align:center}.wsp .as3 .qr{display:inline-block;width:auto;height:auto;padding:1.5mm 2mm 1mm;margin:0}.wsp .as3 .qr svg.fs-qr{width:27mm;height:27mm;margin:0 auto}.wsp .as3 .wsqr-cd .dt{font-weight:400;font-size:8pt;letter-spacing:0;margin-left:1.5mm}.wsp .as3 .asnote{font-size:9.5pt;margin-top:1.2mm;white-space:nowrap}.wsp .as3 .as-r{display:flex;flex-direction:column;justify-content:space-between;align-self:stretch;gap:3mm;min-width:0}.wsp .as3 .as-nmr{display:flex;align-items:flex-end;gap:3mm;font-size:13pt;margin-top:4mm;min-width:0}.wsp .as3 .as-nm{flex:1;min-width:0;min-height:9mm;border-bottom:1.5px solid #333;font-size:19pt;font-weight:700;padding:0 2mm 1mm;white-space:nowrap;overflow:hidden}.wsp .as3 .as-dt{text-align:right;font-size:10pt;white-space:nowrap}.wsp .as3 .as-dt span{display:inline-block;width:22mm;border-bottom:1px solid #333}.wsp .as3 .as-sc{text-align:right;font-size:14pt;font-weight:700;white-space:nowrap}.wsp .as3 .as-sc span{display:inline-block;width:24mm;height:10mm;vertical-align:bottom;border-bottom:1.5px solid #333}.wsp .as3 .as-sc i{font-style:normal;font-weight:400;font-size:13pt}'+'.pp-pg.wsp-pg{width:190mm;height:293mm;page:wsp;break-inside:avoid;overflow:visible}.wsp-pg .pp-body{overflow:visible}.wsp-pg .pp-body *{page:auto!important;break-before:auto!important;break-after:auto!important;page-break-before:auto!important;page-break-after:auto!important}.wsp-pg .wsp-rng{position:absolute;right:14.5mm;bottom:.5mm;height:8.5mm;line-height:8.5mm;font-size:17pt;font-weight:800;letter-spacing:.02em;color:#111;white-space:nowrap}.wsp-pg .wsp-var{position:absolute;right:4mm;bottom:.5mm;width:8.5mm;height:8.5mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wsp-pg .wsp-band{position:relative;flex:0 0 16mm;display:flex;align-items:flex-end;font-size:9pt;line-height:1.2;color:#333;padding-bottom:2mm;font-family:"Noto Sans JP","Yu Gothic",sans-serif}.wsp-pg .pp-body{flex:0 0 272mm;height:272mm;display:block;column-gap:0}.wsp-pg .pp-ft{flex:0 0 5mm;align-items:flex-start;font-size:9pt;color:#333}@page wsp{size:A4 portrait;margin:0 6mm 0 14mm;@bottom-center{content:none}}@media print{@page wsp{size:A4 portrait;margin:0 6mm 0 14mm;@bottom-center{content:none}}}';document.head.appendChild(st);}
+    _ppWsCss_();
     if(!pid&&_ppWs.mid===mid)_ppWs.api=api;return api;});
   if(pid){_ppWsMap[mid+'|'+pid]=pr;pr.catch(function(){delete _ppWsMap[mid+'|'+pid];});return pr;}
   _ppWs.p=pr;pr.catch(function(){if(_ppWs.p===pr)_ppWs={mid:'',p:null,api:null};});
