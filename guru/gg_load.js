@@ -11,6 +11,9 @@
    ggFillWords(GG, words, opt)：words（回・類題・章まとめ・図の行）を GG の中の該当するパート・テストに入れる。返り＝入れた行の id（parts の行）の一覧。opt.fig は ggBuildData と同じ
    重要マーク ◆（2026-11-03 ぐるぐる）：表紙の行・章まとめテストの行の description の gg.imp（gg_export.js が ◆ の行に "imp":1 を入れる）か、行の important 列が「◆」なら imp:true。
      units[].parts[].imp・parts[].imp・cts[].imp に入る。入試パターンは ◆ なし（imp を見ない）
+   ぐるぐる英語（2026-11-03）：materials.subject が 'english' の教材は subj:'en'（それ以外は 'ma'）。units[]・units[].parts[]・parts[]・ny[]・cts[] に subj が入る。
+     表紙の行の gg.rs（問題のある回の一覧。見本は ['A1'] だけ）があるパートは、その回がそろえば「問題あり」（無い回は gg_shell.js が「準備中」にする）。rs が無い行（数学）は今までどおり6回そろって「問題あり」。
+     表紙の行の gg.min（分）・gg.meta（表紙の「何問・何分」の行）は parts[].min・parts[].meta に入る
    図の行（qtype ws_gg_fig）：大きい問題の SVG を別の行にしたもの。MathFig.ns.ggref.S(md5の頭12字) で引けるようにしてから描く */
 (function(G){
 var RS=['A1','A2','B1','B2','C1','C2'];
@@ -31,23 +34,23 @@ function ggBuildData(rows,opt){
   var ms=mats.slice().sort(function(a,b){return (+a.display_order||0)-(+b.display_order||0);});
   ms.forEach(function(m){
     var ps=parts.filter(function(p){return String(p.material_id)===String(m.id);}).sort(function(a,b){return (+a.part_order||0)-(+b.part_order||0);});
-    var u=null;
+    var u=null;var SJ=String(m.subject||'')==='english'?'en':'ma';
     ps.forEach(function(pt){var d=ggDesc_(pt);if(!d)return;out.pid[String(pt.id)]={k:d.k,pid:d.pid||d.ct,r:d.r||''};
       if(d.k==='CV'){
-        if(d.kind==='ny'){var q={id:d.pid,no:d.ny.no,grade:d.grade,name:d.name,field:d.ny.field,after:d.ny.after,after_ui:d.ny.after_ui,after_pi:d.ny.after_pi,ready:!!d.ready};out.ny.push(q);}
-        else{if(!u){u={key:d.grade+'_'+d.unit,mid:m.id,grade:d.grade,unit:d.unit,ui:d.ui,parts:[]};out.units.push(u);}
-          u.parts.push({id:d.pid,no:d.pi,name:d.name,ready:!!d.ready,cu:d.cu||{},pre:d.pid,imp:ggImp_(d,pt)});}
-        if(d.ready){var x=P[d.pid]={id:d.pid,ready:true,grade:d.grade,unit:d.unit,ui:d.ui||0,no:d.kind==='ny'?d.ny.no:d.pi,name:d.name,catch:d.catch||'',cover:d.cover||[],types:d.types||{},kiso:d.kiso||{},meta_name:d.meta_name||'',rounds:{},rui:{},rowIds:{CV:String(pt.id)},point:{sections:[]}};
-          if(d.kind==='ny')x.ny=true;else x.imp=ggImp_(d,pt);out.parts.push(x);}
+        if(d.kind==='ny'){var q={id:d.pid,subj:SJ,no:d.ny.no,grade:d.grade,name:d.name,field:d.ny.field,after:d.ny.after,after_ui:d.ny.after_ui,after_pi:d.ny.after_pi,ready:!!d.ready};out.ny.push(q);}
+        else{if(!u){u={key:(SJ==='en'?'en_':'')+d.grade+'_'+d.unit,subj:SJ,mid:m.id,grade:d.grade,unit:d.unit,ui:d.ui,parts:[]};out.units.push(u);}
+          u.parts.push({id:d.pid,subj:SJ,no:d.pi,name:d.name,ready:!!d.ready,cu:d.cu||{},pre:d.pid,imp:ggImp_(d,pt)});}
+        if(d.ready){var x=P[d.pid]={id:d.pid,subj:SJ,ready:true,grade:d.grade,unit:d.unit,ui:d.ui||0,no:d.kind==='ny'?d.ny.no:d.pi,name:d.name,catch:d.catch||'',cover:d.cover||[],types:d.types||{},kiso:d.kiso||{},meta_name:d.meta_name||'',rounds:{},rui:{},rowIds:{CV:String(pt.id)},point:{sections:[]}};
+          if(d.kind==='ny')x.ny=true;else x.imp=ggImp_(d,pt);if(d.rs)x.rs=d.rs.slice();if(d.min)x.min=+d.min;if(d.meta)x.meta=d.meta;out.parts.push(x);}
         return;}
       if(d.k==='RD'){var p=P[d.pid];if(!p)return;p.rowIds[d.r]=String(pt.id);(p.nqR=p.nqR||{})[d.r]=+d.nq||0;if(!LZ)p.rounds[d.r]=qs(pt.id,'ws_gg_q');return;}
       if(d.k==='RU'){var p2=P[d.pid];if(!p2)return;p2.rowIds.RU=String(pt.id);if(!LZ)ruiPut_(p2,qs(pt.id,'ws_gg_rui'));return;}
-      if(d.k==='CT'){var c=CT[d.ct];if(!c){c=CT[d.ct]={id:d.ct,grade:d.grade,ukey:d.grade+'_'+d.unit,unit:d.unit,ui:d.ui,kind:d.kind,rng:d.rng,upto:d.upto,name:d.name,ut:d.ut,after:d.after,rounds:{},rowIds:{},imp:false};out.cts.push(c);}if(ggImp_(d,pt))c.imp=true;
+      if(d.k==='CT'){var c=CT[d.ct];if(!c){c=CT[d.ct]={id:d.ct,subj:SJ,grade:d.grade,ukey:(SJ==='en'?'en_':'')+d.grade+'_'+d.unit,unit:d.unit,ui:d.ui,kind:d.kind,rng:d.rng,upto:d.upto,name:d.name,ut:d.ut,after:d.after,rounds:{},rowIds:{},imp:false};out.cts.push(c);}if(ggImp_(d,pt))c.imp=true;
         var T={};Object.keys(d.test||{}).forEach(function(k){T[k]=d.test[k];});T.nq=+d.nq||0;T.items=LZ?null:qs(pt.id,'ws_gg_ct');c.rounds[d.r]=T;c.rowIds[d.r]=String(pt.id);return;}
     });
   });
-  if(LZ)out.parts.forEach(function(p){p.lazy=true;p.nq=RS.map(function(R){return (p.nqR||{})[R]||0;});if(RS.some(function(R){return !p.rowIds[R]||!(p.nqR||{})[R];}))p.ready=false;});   /* 問題はまだ読んでいない：回の行が6つそろっていれば「問題あり」 */
-  else out.parts.forEach(function(p){p.nq=RS.map(function(R){return p.rounds[R]?NQ(p.rounds[R]):0;});if(RS.some(function(R){return !p.rounds[R]||!p.rounds[R].length;}))p.ready=false;});
+  if(LZ)out.parts.forEach(function(p){p.lazy=true;p.nq=RS.map(function(R){return (p.nqR||{})[R]||0;});if((p.rs||RS).some(function(R){return !p.rowIds[R]||!(p.nqR||{})[R];}))p.ready=false;});   /* 問題はまだ読んでいない：回の行が6つそろっていれば「問題あり」 */
+  else out.parts.forEach(function(p){p.nq=RS.map(function(R){return p.rounds[R]?NQ(p.rounds[R]):0;});if((p.rs||RS).some(function(R){return !p.rounds[R]||!p.rounds[R].length;}))p.ready=false;});
   out.parts=out.parts.filter(function(p){return p.ready;});
   /* 問題がそろっていないパートは「問題はまだ」 */
   var ok={};out.parts.forEach(function(p){ok[p.id]=1;});out.units.forEach(function(u){u.parts.forEach(function(x){if(!ok[x.id])x.ready=false;});});out.ny.forEach(function(q){if(!ok[q.id])q.ready=false;});

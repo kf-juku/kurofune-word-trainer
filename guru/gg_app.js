@@ -14,12 +14,47 @@ window.ggMount=function(root,D,opt){
  var sh=root.shadowRoot||root.attachShadow({mode:'open'});
  sh.innerHTML='<link rel="stylesheet" href="'+(opt.katexCss||'ws/katex/katex.min.css')+'"><style>'+WS_CSS+'</style><div class="wsbody">'+WS_BODY+'</div>';
  var __realDoc=window.document;
+ /* 2026-11-03 ぐるぐる英語：英語の CSS・音のボタン（.eau の data-au）。数学（opt.en なし）では何もしない */
+ if(opt.en){const __es=__realDoc.createElement('style');__es.textContent='.eaf{display:none}.wres .eaf,.tr .eaf,.tfl .eaf,.rdr .eaf,.gtr .eaf,.wr-q .eaf{display:block;margin:8px 0 2px;padding:8px 10px;border-radius:8px;background:#f1f5f9;font-size:14px;line-height:1.6}.eafh{font-size:12px;font-weight:700;color:#475569;margin-bottom:2px}.ejp{font-size:17px;font-weight:700;line-height:1.6;margin:2px 0 6px}.een{font-size:19px;line-height:1.7;font-family:inherit}.ebl{display:inline-block;min-width:3.2em;text-align:center;color:#1d4ed8}.ebl.wide{min-width:5em}.eword{font-size:26px;font-weight:700;letter-spacing:.02em;margin:4px 0 8px}.edlg{display:grid;gap:4px;margin:4px 0 8px}.edl{display:flex;gap:8px;align-items:baseline;font-size:17px;line-height:1.6}.esp{flex:none;min-width:2.6em;font-weight:700;color:#475569}.edoc{border:1.5px solid #94a3b8;border-radius:10px;padding:8px 10px;margin:4px 0 10px;background:#fff}.edoct{font-weight:700;text-align:center;margin-bottom:4px}.edtb{border-collapse:collapse;width:100%;font-size:15px}.edtb td{border:1px solid #cbd5e1;padding:4px 8px}.ememo{border-collapse:collapse;margin:6px 0 8px;font-size:15px}.ememo th,.ememo td{border:1px solid #cbd5e1;padding:4px 10px;text-align:left}.ememo th{background:#f8fafc;font-weight:700}.eqq{font-weight:700;margin:6px 0 2px}.egh{font-weight:700;margin:2px 0 8px}.eau{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;margin:2px 0 8px;border-radius:12px;border:1.5px solid #2563eb;background:#eff6ff;color:#1d4ed8;font:inherit;font-weight:700;cursor:pointer}.eau small{font-weight:400;color:#64748b}.eau:disabled{border-color:#cbd5e1;background:#f8fafc;color:#64748b;cursor:default}.eau.on{background:#2563eb;color:#fff}.eex{font-size:18px;font-weight:700}.eexj{font-size:14px;color:#475569;margin-left:4px}.eo{margin:8px 0 4px}.eo-ex{display:inline-block;margin:0 0 8px;padding:2px 9px;border-radius:20px;background:rgba(224,87,75,.12);border:1px solid rgba(224,87,75,.3);color:#c0392b;font-size:12px;font-weight:800}.eo-slots{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;min-height:48px;margin:0 0 12px;padding:10px 6px;border-radius:14px;background:#f1f5f9}.eo-sl{min-width:52px;height:46px;border:2px dashed #cbd5e1;border-radius:12px;box-sizing:border-box}.eo-chip{height:46px;min-width:52px;padding:0 12px;border:none;border-radius:12px;background:#dbeafe;color:#1d4ed8;font:inherit;font-size:17px;font-weight:700;cursor:pointer}.eo-chip:disabled{cursor:default;opacity:1}.eo-fx{font-size:17px;font-weight:700;padding:0 2px;white-space:normal;overflow-wrap:anywhere}.eo-bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:46px;margin-bottom:4px}.eo-tok{height:46px;min-width:52px;padding:0 12px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;color:#0f172a;font:inherit;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.08)}.eo-tok:disabled{opacity:.35;cursor:default}.eo-hint{text-align:center;font-size:12px;color:#64748b;margin-top:6px}@media (max-width:380px){.eo-chip,.eo-tok{padding:0 8px;font-size:16px;min-width:44px}.eo-sl{min-width:44px}}';sh.appendChild(__es);
+  let __eA=null,__eAB=null;sh.addEventListener('click',function(e){const b=e.target&&e.target.closest?e.target.closest('.eau'):null;if(!b||!b.dataset.au)return;
+   if(__eA){try{__eA.pause();}catch(x){}if(__eAB)__eAB.classList.remove('on');if(__eAB===b){__eA=null;__eAB=null;return;}}
+   __eA=new Audio((opt.audioBase||'')+b.dataset.au);__eAB=b;b.classList.add('on');__eA.onended=function(){b.classList.remove('on');__eA=null;__eAB=null;};__eA.play().catch(function(){b.classList.remove('on');});});}
  var document={getElementById:function(id){return sh.getElementById(id);},querySelector:function(q){return sh.querySelector(q);},querySelectorAll:function(q){return sh.querySelectorAll(q);},
    createElement:function(t){return __realDoc.createElement(t);},createElementNS:function(a,b){return __realDoc.createElementNS(a,b);},createTextNode:function(t){return __realDoc.createTextNode(t);},createDocumentFragment:function(){return __realDoc.createDocumentFragment();},createRange:function(){return __realDoc.createRange();},get defaultView(){return window;},get hidden(){return __realDoc.hidden;},
    addEventListener:function(a,b,c){return sh.addEventListener(a,b,c);},removeEventListener:function(a,b,c){return sh.removeEventListener(a,b,c);},
    get body(){return sh.querySelector('.wsbody');},get head(){return sh;},get documentElement(){return sh.querySelector('.wsbody');},get activeElement(){return sh.activeElement;}};
  var setInterval=function(f,t){var id=window.setInterval(function(){if(!root.isConnected){window.clearInterval(id);return;}f();},t);return id;};
  const UNIT_TITLE=D.UNIT_TITLE, PATS=D.PATS||[], REVIEW=D.REVIEW||undefined, TEST=D.TEST, POOL=D.POOL||{};
+ /* ===== ぐるぐる英語（2026-11-03）：並び替え・答えの出し方・配点。数学の問題（st.ord なし・TEST.wpt なし）では今までと同じ値を返す ===== */
+ const __EN=!!opt.en;
+ const __eO=st=>!!(st&&st.ord);
+ const __eE=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ function __eK(st,v){return __eO(st)?(v==null||v===-1?'':__eE(v)):KANA[v];}
+ function __eAV(st,v,cv){if(__eO(st))return v==null?'未回答':__eE(v);return KANA[v]+'　'+(cv?cv(st.c[v]):st.c[v]);}
+ const __eN=x=>String(x).replace(/\s+/g,' ').trim();
+ const __eNeed=o=>o.tok.length-(o.ex?1:0);
+ function __eS(o,ids){const w=ids.map(i=>o.tok[i]).join(' '),p=o.post||'';return !p?w:/^[A-Za-z]/.test(p)?w+' '+p:w+p;}
+ function __eNorm(st,s){if(__eN(s)===__eN(st.a)||(st.ord.alt||[]).some(x=>__eN(x)===__eN(s)))return st.a;return s;}
+ const __eOS={};
+ function __eIds(st,v){if(v==null)return [];const o=st.ord,p=o.post||'';let s=__eN(v);if(p&&s.endsWith(p))s=s.slice(0,s.length-p.length).trim();const ids=[];
+  for(const w of s.split(' ')){const i=o.tok.findIndex((t,k)=>t===w&&!ids.includes(k));if(i<0)return [];ids.push(i);}return ids.length===__eNeed(o)?ids:[];}
+ /* 並び替えの札の画面。mode＝''（解く）｜'show'（先生のプレビューの答え）｜'note'（解き直しのノート＝使う語だけ） */
+ function __eUI(st,key,v,mode){const o=st.ord,n=__eNeed(o),dis=mode==='note'||mode==='show';
+  const ids=mode==='show'?__eIds(st,st.a):(__eOS[key]=__eOS[key]||__eIds(st,v));
+  let sl='';for(let k=0;k<n;k++){const i=ids[k];sl+=i==null?'<span class="eo-sl"></span>':`<button type="button" class="eo-chip" data-ec="${k}"${dis?' disabled':''}>${__eE(o.tok[i])}</button>`;}
+  const fx=o.post?`<span class="eo-fx">${__eE(o.post)}</span>`:'';
+  const bank=o.tok.map((t,i)=>`<button type="button" class="eo-tok" data-et="${i}"${dis||ids.includes(i)?' disabled':''}>${__eE(t)}</button>`).join('');
+  if(mode==='note')return `<div class="eo"><div class="eo-bank">${bank}</div></div>`;
+  return `<div class="eo" data-ek="${key}"><div class="eo-slots">${sl}${fx}</div><div class="eo-bank">${bank}</div>${dis?'':'<div class="eo-hint">語をタップして並べる。枠の中の語をタップすると戻る</div>'}</div>`;}
+ /* 札を押したとき：__eOS[key] を変えて、全部並んだら set(key, 英文)・途中なら set(key, undefined) */
+ function __eBind(ph,find,set){ph.querySelectorAll('.eo[data-ek]').forEach(box=>{const key=box.dataset.ek,st=find(key);if(!st||!st.ord)return;
+  const go=()=>{const ids=__eOS[key]||[];const v=ids.length===__eNeed(st.ord)?__eNorm(st,__eS(st.ord,ids)):undefined;set(key,v);box.outerHTML=__eUI(st,key,v,'');__eBind(ph,find,set);};
+  box.querySelectorAll('[data-et]').forEach(b=>b.onclick=()=>{const ids=__eOS[key]=__eOS[key]||[];const i=+b.dataset.et;if(ids.includes(i)||ids.length>=__eNeed(st.ord))return;ids.push(i);go();});
+  box.querySelectorAll('[data-ec]').forEach(b=>b.onclick=()=>{const ids=__eOS[key]||[];ids.splice(+b.dataset.ec,1);__eOS[key]=ids;go();});});}
+ /* 配点が問題ごと（章まとめテスト・TEST.wpt）のときの点。無いときは 問題の数×T.pt（今まで） */
+ const __ePt=j=>{const x=TFL[j];return +(x.st.pt||x.it.pt||TEST.pt)||0;};
+ function __eGot(ok,T){if(!(T||TEST).wpt)return ok*(T||TEST).pt;return TFL.reduce((s,x,j)=>s+(tans[j]===x.st.a?__ePt(j):0),0);}
+ function __eJs(js,T){return (T||TEST).wpt?js.reduce((s,j)=>s+__ePt(j),0):js.length*(T||TEST).pt;}
 
  /* ===== ぐるぐる（2026-10-21 川上さん）：1パート＝表紙 → ポイント → ぐるぐる（7問・A1〜C2。2026-10-31 に8問から7問へ）→ 丸つけ → 解説 → 解き直し → 類題 → 旗 =====
     opt.guru＝{id, no, name, unit, catch, cover:[{q}], round:'A', pointDone:bool, onPoint(), onCover()}。1回分（TEST）ごとに開く */
@@ -49,24 +84,24 @@ window.ggMount=function(root,D,opt){
  /* 結果の点数（14:47「右上は見づらい」→ 上の1行の下に、真ん中に大きく。はんこは点数の右に押す） */
  function __gHero(ok,n,all){return `<div class="ghero"><div class="ghsc"><b>${ok}</b><span> / ${n}</span><small>問 正解</small></div>${all?'<div class="gall">全問正解！</div>':''}</div>`;}
  const __gTI='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg>';
- function __gTeach(t,fix){return `<div class="gteach"><span class="gtic">${__gTI}</span><span><b>先生に見せよう</b><small>${t}</small><span class="gtck"><span class="gtckh">ノートも見せる</span><i>＝が縦にそろっている</i><i>途中式が1行ずつ</i><i>分数が2行</i>${fix?'<i>右側に解き直し</i>':''}</span></span></div>`;}
+ function __gTeach(t,fix){return `<div class="gteach"><span class="gtic">${__gTI}</span><span><b>先生に見せよう</b><small>${t}</small>${GURU&&GURU.en?(fix?'<span class="gtck"><span class="gtckh">ノートも見せる</span><i>右側に解き直し</i></span>':''):`<span class="gtck"><span class="gtckh">ノートも見せる</span><i>＝が縦にそろっている</i><i>途中式が1行ずつ</i><i>分数が2行</i>${fix?'<i>右側に解き直し</i>':''}</span>`}</span></div>`;}
  /* 2026-11-01 見出しの形と名前の決まり：呼び名＝単元名＋丸数字＋回（例「1次方程式① A-1」＝上の黒い札。shell2 が TEST.name に入れる）。
     GURU.hd＝{grade, unit, k（単元の中で何番目）, n（単元のパートの数）, maru（①）, main（パート名＝単元表の name の最初の「（」より前）, sub（（ ）の中。無ければ ''）}。hd が無いときは今までの「(1) パート名」 */
  function __gPN(){const h=GURU.hd;return h?`${h.main}`:`(${GURU.no}) ${GURU.name}`;}
  function __gPM(){const h=GURU.hd;return h?h.main:GURU.name;}
  function __gCvHd(){const h=GURU.hd;if(!h)return __gHd(TEST.name,null,TFL.length);
   const dots=Array.from({length:h.n},(_,i)=>`<span class="${i+1===h.k?'on':''}">${i+1}</span>`).join('');
-  return `<div class="gcvh"><div class="gcvk">${h.grade}数学　ぐるぐる</div><div class="gcvt">${h.n?`${h.unit}${h.n>1?`<span class="gdots gdi" aria-label="${h.unit}の${h.k}番目のパート（全${h.n}パート）">${dots}</span>`:''}`:`${h.unit} ${h.maru}`}</div><div class="gcvs">${h.main}${h.sub?`<small>${h.sub}</small>`:''}</div>`
+  return `<div class="gcvh"><div class="gcvk">${h.grade}${GURU.en?'英語':'数学'}　ぐるぐる</div><div class="gcvt">${h.n?`${h.unit}${h.n>1?`<span class="gdots gdi" aria-label="${h.unit}の${h.k}番目のパート（全${h.n}パート）">${dots}</span>`:''}`:`${h.unit} ${h.maru}`}</div><div class="gcvs">${h.main}${h.sub?`<small>${h.sub}</small>`:''}</div>`
    +(h.n?'':(h.aft?`<div class="gcvk" style="margin-top:6px">${h.aft} が終わったら挑戦</div>`:''))  /* 2026-11-01 入試パターン（hd.n＝0）：丸の列の代わりに「○○ のあと」 */
-   +`<div class="gcvr"><span class="gcvrd">${__gRD(TEST.ver||'A1')}</span><span class="gcvrt">${TFL.length}問・10分</span></div></div>`;}
+   +`<div class="gcvr"><span class="gcvrd">${__gRD(TEST.ver||'A1')}</span><span class="gcvrt">${TFL.length}問・${TEST.min||10}分</span></div></div>`;}
  function __gHd(lab,sc,n,pre){return `<div class="ghd"><div class="ghl"><span class="tag X">${lab}</span><span class="ghn">${__gPN()}</span></div>${sc!=null?`<div class="ghs">${pre?`<small class="ghp">${pre}</small>`:''}<b>${sc}</b><span> / ${n}</span><small>正解</small></div>`:''}</div>`;}
  const __gCV=c=>/<svg/.test(String(c))?`<span class="gsv">${c}</span>`:c;
  function __gLab(j){const x=TFL[j],b=TEST.blocks[x.b];return b.ren?`${DN(b.num)}${SN(x.k)}`:b.grp?`${DN(b.num)}${SNB(b,x.k)}`:DN(b.num);}
  function __gQ(j){const x=TFL[j],b=TEST.blocks[x.b];const main=b.grp?b.head:x.it.q;const sub=b.ren?`<div class="stepq">${SN(x.k)}${STRIP(x.st.s)}</div>`:b.grp?`<div class="stepq">${x.it.q}</div>`:'';return main+sub;}
  /* 解説のページ＝先生を呼ぶ所（11:14「1回目解いたら先生に見せようと言ってほしい。先生が1つの画面で、何問中何問正解か・どこをまちがえたか・解説を一緒に追う」）。7問全部を問題文つきで */
- function __gTList(){return TFL.map((x,j)=>{const o=tans[j]===x.st.a,st=x.st,my=tans[j]===undefined?'未回答':`${KANA[tans[j]]}　${__gCV(st.c[tans[j]])}`;
+ function __gTList(){return TFL.map((x,j)=>{const o=tans[j]===x.st.a,st=x.st,my=tans[j]===undefined?'未回答':`${__eAV(st,tans[j],__gCV)}`;
   return `<div class="tr gtr ${o?'o':'x'}" data-j="${j}"><div class="gtq"><span class="gtm">${o?'○':'×'}</span><div class="gtb">${__gLab(j)} ${__gQ(j)}</div></div>`
-   +`<div class="gta">${o?`<span class="gok">正解 ${KANA[st.a]}　${__gCV(st.c[st.a])}</span>`:`<span class="gmy">あなた ${my}</span><span class="gok">正解 ${KANA[st.a]}　${__gCV(st.c[st.a])}</span>`}</div>${o?'':__gPcs(x)}`
+   +`<div class="gta">${o?`<span class="gok">正解 ${__eAV(st,st.a,__gCV)}</span>`:`<span class="gmy">あなた ${my}</span><span class="gok">正解 ${__eAV(st,st.a,__gCV)}</span>`}</div>${o?'':__gPcs(x)}`
    +`<button type="button" class="trh">${o?'':`<span class="must ${TSEEN[j]?'seen':''}">${TSEEN[j]?'見た':'必ず見る'}</span>`}<span class="tro">解説 ▼</span></button><div class="trb" hidden>${__gKiso(x.st.ty||x.it.ty||'')}<div class="trw">${WTXT(st.w)}</div></div></div>`;}).join('');}
  /* ×の問題のそばに、その型のポイントのカード（12:01 ポイントの減らし方 A。「このパートの前に」のカードもここで出る） */
  function __gPcs(x){return '';}
@@ -133,7 +168,7 @@ window.ggMount=function(root,D,opt){
   return `<div class="wres wr-in"><div class="wr-card"><div class="wr-top"><span class="wr-lb">${lb}</span><span class="wr-pt">${__gPN()}</span></div>${sub?`<div class="wr-sub">${sub}</div>`:''}`
    +(st?`<div class="wr-hk ${st[0]}${pop?(opt.resFx?' hide':' pop'):''}" style="--fs:${st[1].length>=4?'12.5px':'17px'}"><span>${st[1]}</span></div>`:'')
    +`<div class="wr-score"><b>${ok}</b><span> / ${n}</span><small>問 正解</small></div>${ok===n?'<div class="wr-state">全問正解！</div>':''}</div></div>`;}
- function __gWrTeach(nw,fix){return `<div class="wres wr-in"><div class="wr-teach"><div class="wr-ic">${__WR_USER}</div><div><div class="wr-tt">先生に見せよう</div><div class="wr-ts">先生を呼んで、この画面で一緒に確かめよう。</div>${nw?`<div class="wr-cnt">この下に　まちがえた問題 <b>${nw}</b>問</div>`:''}<span class="gtck"><span class="gtckh">ノートも見せる</span><i>＝が縦にそろっている</i><i>途中式が1行ずつ</i><i>分数が2行</i>${fix?'<i>右側に解き直し</i>':''}</span></div></div></div>`;}
+ function __gWrTeach(nw,fix){return `<div class="wres wr-in"><div class="wr-teach"><div class="wr-ic">${__WR_USER}</div><div><div class="wr-tt">先生に見せよう</div><div class="wr-ts">先生を呼んで、この画面で一緒に確かめよう。</div>${nw?`<div class="wr-cnt">この下に　まちがえた問題 <b>${nw}</b>問</div>`:''}${GURU&&GURU.en?(fix?'<span class="gtck"><span class="gtckh">ノートも見せる</span><i>右側に解き直し</i></span>':''):`<span class="gtck"><span class="gtckh">ノートも見せる</span><i>＝が縦にそろっている</i><i>途中式が1行ずつ</i><i>分数が2行</i>${fix?'<i>右側に解き直し</i>':''}</span>`}</div></div></div>`;}
  const __gSTK=()=>__WR_STK.replace('タップしてはがす','タップして解説を読む');
  const __gLeftT=n=>`まちがえた問題を確かめよう（あと ${n} 問）`;
  function __gReadCard(R,no){const wr=R.wr,sn=wr.filter(j=>TSEEN[j]).length,left=wr.length-sn;
@@ -150,7 +185,7 @@ window.ggMount=function(root,D,opt){
  function __gNoteCard(R){const wr=R.wr,G=[];wr.forEach(j=>{const b=TFL[j].b;let g=G.find(x=>x.b===b);if(!g){g={b,js:[]};G.push(g);}g.js.push(j);});
   const body=G.map(g=>{const b=TEST.blocks[g.b],x0=TFL[g.js[0]];const q=`<div class="q">${DN(b.num)}${b.grp?b.head:x0.it.q}</div>`;
    const subs=g.js.map(j=>{const x=TFL[j],st=x.st;const sq=b.ren?`${SN(x.k)}${STRIP(st.s)}`:b.grp?`${SNB(b,x.k)}${x.it.q}`:(x.it.ins||TEST.ins||'');
-    return `<div class="tsq"><div class="stepq">${sq}</div><div class="ch ${st.c.some(c=>GURU?__gLong(c):String(c).length>14)?'long':''}">${st.c.map((c,k)=>`<button type="button" disabled>${KANA[k]}　${c}</button>`).join('')}</div></div>`;}).join('');
+    return `<div class="tsq"><div class="stepq">${sq}</div>${__eO(st)?__eUI(st,'n'+j,undefined,'note'):`<div class="ch ${st.c.some(c=>GURU?__gLong(c):String(c).length>14)?'long':''}">${st.c.map((c,k)=>`<button type="button" disabled>${KANA[k]}　${c}</button>`).join('')}</div>`}</div>`;}).join('');
    return `<div class="gnb">${q}${subs}</div>`;}).join('');
   return `<div class="gnote-h"><b>解き直し</b><small>まちがえた ${wr.length}問を、ノートにもう一度解こう。解説は閉じて、自分の力で。</small>${GURU.noteSvg?`<div class="gnfx"><b>始める前にあけておいた、ノートの<span class="gnR">右側</span>に解き直す</b><span>左の自分の式は消さない。どこでまちがえたか、ポイントを赤で書く。</span><div class="gnfs" role="img" aria-label="見本：左の×の問題を、右側に解き直したノート">${GURU.noteSvg.fix}</div></div>`:""}</div><div class="gnote">${body}</div><button class="next tsgo" data-go="note">ノートに解き直した</button>`;}
  /* 16:32 ノートのきまり1行（解く画面の「ノートに式を書いて計算しよう」の横。押すとその決まりの絵） */
@@ -159,7 +194,7 @@ window.ggMount=function(root,D,opt){
  function __gCalc(w){const L=(Array.isArray(w)?w:[w]).filter(l=>typeof l==='string');if(L.some(l=>l.includes('筆算')||l.includes('begin{array}{r}')))return '<div class="gcal"><span class="gcalt">✎ ノートに式を書いて計算しよう</span></div>';const r=L.some(l=>l.includes('frac'))?2:L.filter(l=>l.startsWith('\\(')).length>=4?1:0;const im=GURU&&GURU.noteSvg&&GURU.noteSvg['r'+r];
   return `<div class="gcal"><span class="gcalt">✎ ノートに式を書いて計算しよう</span>${im?`<button type="button" class="gcalr" onclick="this.parentNode.classList.toggle('open')">${__gNR[r]} <i>⌄</i></button><div class="gcali" role="img" aria-label="${__gNR[r]}（ノートの例）">${im}</div>`:`<span class="gcalr0">${__gNR[r]}</span>`}</div>`;}
  /* 見直しのしかた（11:14。ぐるぐる・章まとめ・類題の見直しの画面） */
- const __gMinao=`<div class="tvg"><b>見直しのしかた</b><ol><li>答えの入れまちがい・ずれがないか。問題の番号と答えを1つずつ見る</li><li>自信のない問題は、ノートでもう一度計算して、答えが合うかを確かめる。見るだけにしない（テストの本番でも同じ）</li></ol></div>`;
+ const __gMinao=GURU&&GURU.en?`<div class="tvg"><b>見直しのしかた</b><ol><li>答えの入れまちがい・ずれがないか。問題の番号と答えを1つずつ見る</li><li>自信のない問題は、英文をもう一度読む（聞く）。並び替えは、できた英文を声に出して読んで、日本語と合うかを確かめる</li></ol></div>`:`<div class="tvg"><b>見直しのしかた</b><ol><li>答えの入れまちがい・ずれがないか。問題の番号と答えを1つずつ見る</li><li>自信のない問題は、ノートでもう一度計算して、答えが合うかを確かめる。見るだけにしない（テストの本番でも同じ）</li></ol></div>`;
  /* 表紙の前回の結果（右上の小さい点数＋1行） */
  function __gPrev(){const S=(TSTATE&&TSTATE.got!=null)?TSTATE:null;if(!S)return null;const L=__entSteps(S),dn=L.every(x=>x[1]);return {S,dn,dt:__entDate(S.at),n:Math.round(S.got/TEST.pt)};}
 
@@ -169,7 +204,7 @@ window.ggMount=function(root,D,opt){
    +(P?`<div class="gprev"><span class="gpvl">前回 ${P.dt}</span><b class="gpvs">${P.n} / ${TFL.length}<small> 正解</small></b><span class="ent-tag ${P.dn?'ok':'fx'}">${P.dn?'完了':'直しの途中'}</span><button type="button" class="next sub" data-e="cont">${P.dn?'前回の解説を見る':'続きから'}</button></div>`:'')
    +`<div class="gcc">${g.catch||''}</div>`
    +(ex?`<div class="gcl">こんな問題が解けるようになる</div><div class="gcxs">${ex}</div>`:'')
-   +`<div class="gmeta">${TFL.length}問（${GURU.hd&&GURU.hd.aft?'基礎5問・入試の形'+(TFL.length-5):(GURU.hd&&GURU.hd.unit==='小学校の総復習'?'基礎計算':'復習')+'3問・'+__gPM()+(TFL.length-3)}問）・10分。ノートと鉛筆を用意しよう。</div>`
+   +(GURU.en&&GURU.en.meta?`<div class="gmeta">${GURU.en.meta}</div>`:`<div class="gmeta">ノートと鉛筆を用意しよう。</div>`)
    +(g.onPoint?`<button type="button" class="gpt">ポイントを見る<small>問題を解く前に、使う言葉と考え方を確かめる</small></button>`:'');}
  function __gToTest(){cur={n:NAV.length-1,i:0,s:0,pt:0};tans=[];TSEEN={};TSTEP=null;try{__entPass=false;}catch(e){}drawPhone();}
  function __gPass(got){const d=LIVE()&&TSTATE?tDone(TSTATE):false;const nx=NEXTV(TEST.ver||'A1'),n=Math.round(got/TEST.pt),N=TFL.length,same=/1$/.test(TEST.ver||'');
@@ -188,7 +223,7 @@ window.ggMount=function(root,D,opt){
  const __gTyOf=j=>{const x=TFL[j];return x.st.ty||x.it.ty||'';};
  const __gRui=(ty,k)=>{const L=(GURU.rui&&GURU.rui[ty])||[];return L.length?L[k%L.length]:null;};
  function __gPlan(){return TFL.map((x,j)=>tans[j]===x.st.a?-1:j).filter(j=>j>=0).map(j=>({id:__gTyOf(j),it:{q:'',steps:[0]}}));}
- function __gFlat(list){const o=[];list.forEach(x=>{const it=__gRui(x.ty,x.k);if(!it)return;if(it.ren)it.steps.forEach((st,si)=>o.push({ty:x.ty,k:x.k,q:it.q,s:st.s,c:st.c,a:st.a,w:st.w,gh:it.gh}));else o.push({ty:x.ty,k:x.k,q:it.q,s:'',c:it.c,a:it.a,w:it.w,gh:it.gh});});return o;}
+ function __gFlat(list){const o=[];list.forEach(x=>{const it=__gRui(x.ty,x.k);if(!it)return;if(it.ren)it.steps.forEach((st,si)=>o.push({ty:x.ty,k:x.k,q:it.q,s:st.s,c:st.c,a:st.a,w:st.w,gh:it.gh,ord:st.ord}));else o.push({ty:x.ty,k:x.k,q:it.q,s:'',c:it.c,a:it.a,w:it.w,gh:it.gh,ord:it.ord});});return o;}
  function __gRedoStart(){const S=TSR();let g=__gRLoad();
   if(!g||g.at!==S.at){const k0=/2$/.test(TEST.ver||'')?1:0;g={at:S.at,round:1,ph:'solve',i:0,list:REDO_PLAN.map(x=>({ty:x.id,k:k0})),ans:[],res:[],list2:null,ans2:[],res2:[]};}
   __gR=g;__gRSave();drawPhone();}
@@ -199,10 +234,11 @@ window.ggMount=function(root,D,opt){
   if(g.ph==='solve'){if(g.i>n)g.i=n;
    const strip=`<div class="tstrip">${L.map((x,i)=>`<button type="button" data-g="${i}" class="${g.i===i?'on ':''}${A[i]!=null?'done':''}">${i+1}</button>`).join('')}<button type="button" data-g="${n}" class="rv ${g.i===n?'on':''}">見直し</button></div>`;
    if(g.i===n){const un=L.map((x,i)=>A[i]==null?i:-1).filter(i=>i>=0);
-    ph.innerHTML=`<div class="phone">${head}${__gRBar(n,n,two)}${strip}<div class="tvh">見直し${un.length?`<span class="tvu">未回答 ${un.length}問</span>`:'<span class="tvok">全部答えた</span>'}</div>${__gMinao}<div class="tvl">${L.map((x,i)=>`<button type="button" class="tvr ${A[i]==null?'un':''}" data-g="${i}"><span class="dn">${i+1}</span><span class="tva">${A[i]==null?'未回答':KANA[A[i]]+'　'+x.c[A[i]]}</span></button>`).join('')}</div><button class="next gsub" ${un.length?'disabled':''}>採点する</button>${un.length?'<div class="tsneed">全部答えると採点できる</div>':''}</div>`;}
+    ph.innerHTML=`<div class="phone">${head}${__gRBar(n,n,two)}${strip}<div class="tvh">見直し${un.length?`<span class="tvu">未回答 ${un.length}問</span>`:'<span class="tvok">全部答えた</span>'}</div>${__gMinao}<div class="tvl">${L.map((x,i)=>`<button type="button" class="tvr ${A[i]==null?'un':''}" data-g="${i}"><span class="dn">${i+1}</span><span class="tva">${A[i]==null?'未回答':__eAV(x,A[i])}</span></button>`).join('')}</div><button class="next gsub" ${un.length?'disabled':''}>採点する</button>${un.length?'<div class="tsneed">全部答えると採点できる</div>':''}</div>`;}
    else{const x=L[g.i];
-    ph.innerHTML=`<div class="phone">${head}${__gRBar(g.i+1,n,two)}${strip}<div class="q"><div class="gqh"><span class="dn">${g.i+1}</span><span class="gqht">${x.gh||''}</span>${needCalc(x.w)?__gCalc(x.w):''}</div>${x.q}${x.s?`<div class="stepq">${x.s}</div>`:''}</div><div class="tsd">${__gTn(x.ty)}</div><div class="ch ${x.c.some(c=>GURU?__gLong(c):String(c).length>14)?'long':''}">${x.c.map((c,k)=>`<button data-k="${k}" class="${A[g.i]===k?'sel':''}">${KANA[k]}　${c}</button>`).join('')}</div><button class="next gnx2">${g.i<n-1?'次の問題 ▶':'見直しへ ▶'}</button></div>`;
+    ph.innerHTML=`<div class="phone">${head}${__gRBar(g.i+1,n,two)}${strip}<div class="q"><div class="gqh"><span class="dn">${g.i+1}</span><span class="gqht">${x.gh||''}</span>${needCalc(x.w)?__gCalc(x.w):''}</div>${x.q}${x.s?`<div class="stepq">${x.s}</div>`:''}</div><div class="tsd">${__gTn(x.ty)}</div>${__eO(x)?__eUI(x,'r'+g.round+'_'+g.i,A[g.i],''):`<div class="ch ${x.c.some(c=>GURU?__gLong(c):String(c).length>14)?'long':''}">${x.c.map((c,k)=>`<button data-k="${k}" class="${A[g.i]===k?'sel':''}">${KANA[k]}　${c}</button>`).join('')}</div>`}<button class="next gnx2">${g.i<n-1?'次の問題 ▶':'見直しへ ▶'}</button></div>`;
     ph.querySelectorAll('.ch button').forEach(b=>b.onclick=()=>{A[g.i]=+b.dataset.k;__gRSave();ph.querySelectorAll('.ch button').forEach(z=>z.classList.toggle('sel',z===b));});
+    if(__EN)__eBind(ph,()=>x,(k,v)=>{A[g.i]=v===undefined?null:v;__gRSave();});
     ph.querySelector('.gnx2').onclick=()=>{g.i++;__gRSave();drawPhone();};}
    ph.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{g.i=+b.dataset.g;__gRSave();drawPhone();});
    const sb=ph.querySelector('.gsub');if(sb)sb.onclick=()=>{const R=L.map((x,i)=>({ty:x.ty,k:x.k,o:A[i]===x.a?1:0,p:A[i],r:g.round}));if(two)g.res2=R;else g.res=R;g.ph='res';__gRSave();drawPhone();};
@@ -223,14 +259,14 @@ window.ggMount=function(root,D,opt){
    const S=TSR();S.redo_res=g.res.concat(g.res2||[]);S.redo=true;if(LIVE()&&TSTATE)tSave();g.done=true;__gRSave();__gR=null;TSTEP=null;drawPhone();};}
  /* 類題の一覧（wr- の形）。×＝問題・選択肢の中の自分の答え（赤い枠と「あなた」）・シールの下に正解と解説。○＝たたむ（答えもシール・［全部はがす］） */
  function __gRWrList(L,A,R,SN_){const ng=[],okk=[];L.forEach((x,i)=>(R[i].o?okk:ng).push(i));let h='<div class="wres wr-in">';
-  if(ng.length)h+='<div class="wr-sec">'+ng.map(i=>{const x=L[i];return `<div class="wr-q" data-r="${i}"><div class="wr-qh"><span class="wr-mk ng">×</span><span class="wr-no">${i+1}</span><div class="wr-qb">${R[i].r===2?'<div class="gwty">もう1問</div>':''}${x.gh?`<div>${x.gh}</div>`:''}<div>${x.q}</div>${x.s?`<div class="wr-sq">${x.s}</div>`:''}<div class="wr-chs">${x.c.map((c,k)=>`<span${k===A[i]?' class="me"':''}>${KANA[k]}　${__wrTCV(c)}</span>`).join('')}</div>${A[i]==null?'<div class="wr-you"><b>× あなた</b>未回答</div>':''}</div></div><div class="wr-ansb"><div class="wr-hid${SN_[i]?' peel':''}"><div class="wr-a"><small>正解</small>${KANA[x.a]}　${__wrTCV(x.c[x.a])}</div><div class="wr-x trw">${__gKiso(x.ty)}${WTXT(x.w)}</div><div class="wr-seen"${SN_[i]?'':' hidden'}>見た</div>${__gSTK()}</div></div></div>`;}).join('')+'</div>';
+  if(ng.length)h+='<div class="wr-sec">'+ng.map(i=>{const x=L[i];return `<div class="wr-q" data-r="${i}"><div class="wr-qh"><span class="wr-mk ng">×</span><span class="wr-no">${i+1}</span><div class="wr-qb">${R[i].r===2?'<div class="gwty">もう1問</div>':''}${x.gh?`<div>${x.gh}</div>`:''}<div>${x.q}</div>${x.s?`<div class="wr-sq">${x.s}</div>`:''}<div class="wr-chs">${__eO(x)?`<span class="me">${__eAV(x,A[i])}</span>`:x.c.map((c,k)=>`<span${k===A[i]?' class="me"':''}>${KANA[k]}　${__wrTCV(c)}</span>`).join('')}</div>${A[i]==null?'<div class="wr-you"><b>× あなた</b>未回答</div>':''}</div></div><div class="wr-ansb"><div class="wr-hid${SN_[i]?' peel':''}"><div class="wr-a"><small>正解</small>${__eAV(x,x.a,__wrTCV)}</div><div class="wr-x trw">${__gKiso(x.ty)}${WTXT(x.w)}</div><div class="wr-seen"${SN_[i]?'':' hidden'}>見た</div>${__gSTK()}</div></div></div>`;}).join('')+'</div>';
   else h+='<div class="wr-sec"><div class="wr-allok">まちがえた問題はありません</div></div>';
-  if(okk.length)h+=`<div class="wr-sec"><button type="button" class="wr-fold"><span class="wr-mk ok">○</span>正解した問題 <span class="wr-num">${okk.length}</span>問<span class="wr-c">${__WR_DOWN}</span></button><div class="wr-fl"><div class="wr-bkr"><button type="button" class="wr-bk">全部はがす</button></div>${okk.map(i=>{const x=L[i];return `<div class="wr-fr"><span class="wr-mk ok">○</span><span class="wr-no">${i+1}</span><span class="wr-p">${String(x.q).replace(/<div class="grq">[\s\S]*$/,'').replace(/<[^>]+>/g,'')}</span><span class="wr-r wr-hid">${KANA[x.a]}　${__wrCVs(x.c[x.a])}${__WR_STK}</span></div>`;}).join('')}</div></div>`;
+  if(okk.length)h+=`<div class="wr-sec"><button type="button" class="wr-fold"><span class="wr-mk ok">○</span>正解した問題 <span class="wr-num">${okk.length}</span>問<span class="wr-c">${__WR_DOWN}</span></button><div class="wr-fl"><div class="wr-bkr"><button type="button" class="wr-bk">全部はがす</button></div>${okk.map(i=>{const x=L[i];return `<div class="wr-fr"><span class="wr-mk ok">○</span><span class="wr-no">${i+1}</span><span class="wr-p">${String(x.q).replace(/<div class="grq">[\s\S]*$/,'').replace(/<[^>]+>/g,'')}</span><span class="wr-r wr-hid">${__eAV(x,x.a,__wrCVs)}${__WR_STK}</span></div>`;}).join('')}</div></div>`;
   return h+'</div>';}
  function bindRdr(ph){ph.querySelectorAll('details.rdr').forEach(d=>d.addEventListener('toggle',()=>{if(d.open&&!d.dataset.k){K(d);d.dataset.k=1;}}));}
  function __gRedoResHtml(res,open){if(!res||!res.length)return '';const n=res.filter(r=>r.o).length;
   const rows=res.map((r,i)=>{const it=__gRui(r.ty,r.k);if(!it)return '';const st=it.ren?it.steps[0]:it;
-   return `<details class="rdr ${r.o?'o':'x'}"><summary><span class="rdm">${r.o?'○':'×'}</span><span class="rdb"><span class="rdp">${i+1}．${__gTn(r.ty)}${r.r===2?'（もう1問）':''}</span><span class="rdq">${it.q}${it.ren&&st.s?`<div class="stepq">${st.s}</div>`:''}</span></span><span class="rdv">解説 ▼</span></summary><div class="rdd">${__gKiso(r.ty)}<div class="rda">正解 ${KANA[st.a]}　${st.c[st.a]}${r.o?'':`<span class="rdy">あなたは ${r.p==null?'未回答':KANA[r.p]}</span>`}</div>${WTXT(st.w)}</div></details>`;}).join('');
+   return `<details class="rdr ${r.o?'o':'x'}"><summary><span class="rdm">${r.o?'○':'×'}</span><span class="rdb"><span class="rdp">${i+1}．${__gTn(r.ty)}${r.r===2?'（もう1問）':''}</span><span class="rdq">${it.q}${it.ren&&st.s?`<div class="stepq">${st.s}</div>`:''}</span></span><span class="rdv">解説 ▼</span></summary><div class="rdd">${__gKiso(r.ty)}<div class="rda">正解 ${__eAV(st,st.a)}${r.o?'':`<span class="rdy">あなたは ${r.p==null?'未回答':__eK(st,r.p)}</span>`}</div>${WTXT(st.w)}</div></details>`;}).join('');
   return `<div class="rdl">${open?'':`<div class="rdh">類題の結果　<b>${n}</b> / ${res.length}問 正解</div>`}${rows}</div>`;}
  
 const HAJIKI=`<svg viewBox="0 0 160 120" width="150" aria-label="はじきの図"><circle cx="80" cy="60" r="56" fill="#fff" stroke="#6b21a8" stroke-width="2.5"/><line x1="24" y1="60" x2="136" y2="60" stroke="#6b21a8" stroke-width="2.5"/><line x1="80" y1="60" x2="80" y2="116" stroke="#6b21a8" stroke-width="2.5"/><text x="72" y="46" text-anchor="middle" font-size="26" font-weight="700" fill="#1a1a1a">み</text><text x="100" y="45" text-anchor="middle" font-size="13" fill="#555">(き)</text><text x="54" y="96" text-anchor="middle" font-size="26" font-weight="700" fill="#1a1a1a">は</text><text x="106" y="96" text-anchor="middle" font-size="26" font-weight="700" fill="#1a1a1a">じ</text></svg>`;
@@ -521,8 +557,8 @@ function tPassHtml(got){if(GURU)return __gPass(got);if(!TEST.ver&&opt.live)retur
 function tSideTxt(){if(!LIVE())return '';const rp=rangePass();if(!TSTATE)return rp?`<span class="tst done">${RANGE()}は ${rp} で合格</span>`:'';const d=tDone(TSTATE);return `<span class="tst ${d?'done':''}">${TSTATE.got}点・${d?'直し済み':'直し途中'}${rp?'・範囲は合格':''}</span>`;}
 function tlist(js){js=js||TFL.map((x,j)=>j);return js.map(j=>{const x=TFL[j],b=TEST.blocks[x.b],o=tans[j]===x.st.a,st=x.st;const lab=b.ren?`${DN(b.num)}${SN(x.k)}`:b.grp?`${DN(b.num)}${SNB(b,x.k)}`:DN(b.num);
   const fq=String(x.it.q||''),fi=fq.indexOf('<div class="grq">'),fig=fi>=0?fq.slice(fi):'';
-  const CV=c=>/<svg/.test(String(c))?'（グラフ）':c;const my=tans[j]===undefined?'未回答':`${KANA[tans[j]]}　${CV(st.c[tans[j]])}`;
-  return `<div class="tr ${o?'o':'x'}" data-j="${j}"><button type="button" class="trh"><span class="trm">${o?'○':'×'}</span>${lab}<span class="trq">${(b.ren?SHORT(STRIP(st.s)):SHORT(x.it.q))||SHORT(b.head||'')}</span>${o?'':`<span class="must ${TSEEN[j]?'seen':''}">${TSEEN[j]?'見た':'必ず見る'}</span>`}<span class="tro">解説 ▼</span></button>${o?'':`<div class="tra"><b>正解　${KANA[st.a]}　${CV(st.c[st.a])}</b>${tans[j]===-1?'':`<span class="trmy">あなたは ${tans[j]===undefined?'未回答':KANA[tans[j]]}</span>`}</div>`}<div class="trb" hidden>${fig?`<div class="trfig">${fig}</div>`:''}<div class="trw">${WTXT(st.w)}</div></div></div>`}).join('');}
+  const CV=c=>/<svg/.test(String(c))?'（グラフ）':c;const my=tans[j]===undefined?'未回答':`${__eAV(st,tans[j],CV)}`;
+  return `<div class="tr ${o?'o':'x'}" data-j="${j}"><button type="button" class="trh"><span class="trm">${o?'○':'×'}</span>${lab}<span class="trq">${(b.ren?SHORT(STRIP(st.s)):SHORT(x.it.q))||SHORT(b.head||'')}</span>${o?'':`<span class="must ${TSEEN[j]?'seen':''}">${TSEEN[j]?'見た':'必ず見る'}</span>`}<span class="tro">解説 ▼</span></button>${o?'':`<div class="tra"><b>正解　${__eAV(st,st.a,CV)}</b>${tans[j]===-1?'':`<span class="trmy">あなたは ${tans[j]===undefined?'未回答':__eK(st,tans[j])}</span>`}</div>`}<div class="trb" hidden>${fig?`<div class="trfig">${fig}</div>`:''}<div class="trw">${WTXT(st.w)}</div></div></div>`}).join('');}
 /* ===== 練習の採点画面（2026-10-31 川上さん 01:24「モックで作った採点画面・完了画面・演出、モック通りに」）=====
    見本＝KWT\20261030_モック_採点ページの統一.html の「ws」。② 練習・③ もっと練習・おさらい を解き終えたら出す（① 学ぶ は出さない）。
    はじめて答えたときの○×（選ぶ問題だけ・うめる問題は数えない）で、何問正解・まちがえた問題（あなたの答え・シールの下に正解と解説）・正解した問題（たたむ）。
@@ -587,14 +623,14 @@ const __wrTCV=c=>/<svg/.test(String(c))?`<span class="tfsv">${c}</span>`:c;
 function __wrTHead(ok,ov,PASS,POP){const T=TEST,n=TFL.length;
  return `<div class="wres wr-in"><div class="wr-card"><div class="wr-top"><span class="wr-lb">${TEST.lb||'ワークシート'}</span><span class="wr-pt">${(BOOK+' '+(UTN()||'')).trim()}</span></div><div class="wr-sub">${T.name}</div>`
   +(PASS?`<div class="wr-hk ${ok===n?'y':'r'}${POP?' pop':''}" style="--fs:${ok===n?'12.5px':'17px'}"><span>${GURU?'完了':(ok===n?'全問正解':'合格')}</span></div>`:'')
-  +`<div class="wr-score"><b>${ok*T.pt}</b><small>点</small></div><div class="wr-cnt2">${n}問中 <b>${ok}</b>問正解</div>${typeof __tDelta==='function'?__tDelta(ok*T.pt):''}${ov?`<div class="tover">時間切れ（制限時間を ${mmss(ov)} こえた）</div>`:''}${ok===n?'<div class="wr-state">全問正解！</div>':''}</div></div>`;}
+  +`<div class="wr-score"><b>${__eGot(ok,T)}</b><small>点</small></div><div class="wr-cnt2">${n}問中 <b>${ok}</b>問正解</div>${typeof __tDelta==='function'?__tDelta(__eGot(ok,T)):''}${ov?`<div class="tover">時間切れ（制限時間を ${mmss(ov)} こえた）</div>`:''}${ok===n?'<div class="wr-state">全問正解！</div>':''}</div></div>`;}
 function __wrTeach(nw){return `<div class="wres wr-in"><div class="wr-teach"><div class="wr-ic">${__WR_USER}</div><div><div class="wr-tt">先生に見せよう</div><div class="wr-ts">先生を呼んで、この画面で一緒に確かめよう。</div>${nw?`<div class="wr-cnt">この下に　まちがえた問題 <b>${nw}</b>問</div>`:''}</div></div></div>`;}
 function __wrTList(){const ng=[],ok=[];TFL.forEach((x,j)=>(tans[j]===x.st.a?ok:ng).push(j));
  let h='<div class="wres wr-in">';
  if(ng.length)h+=`<div class="wr-sec">`+ng.map(j=>{const x=TFL[j],b=TEST.blocks[x.b],st=x.st;const q=b.grp?`${b.head}<div class="wr-gq">${SNB(b,x.k)}${x.it.q}</div>`:x.it.q;const sq=b.ren?`${SN(x.k)}${STRIP(st.s)}`:'';
-  return `<div class="wr-q" data-j="${j}"><div class="wr-qh"><span class="wr-mk ng">×</span><span class="wr-no">${__wrTNo(j)}</span><div class="wr-qb"><div>${q}</div>${sq?`<div class="wr-sq">${sq}</div>`:''}<div class="wr-chs">${st.c.map((c,k)=>`<span${k===tans[j]?' class="me"':''}>${KANA[k]}　${__wrTCV(c)}</span>`).join('')}</div>${tans[j]===undefined?'<div class="wr-you"><b>× あなた</b>未回答</div>':''}</div></div><div class="wr-ansb"><div class="wr-hid${GURU&&TSEEN[j]?' peel':''}"><div class="wr-a"><small>正解</small>${KANA[st.a]}　${__wrTCV(st.c[st.a])}</div><div class="wr-x trw">${WTXT(st.w)}</div><div class="wr-seen"${TSEEN[j]?'':' hidden'}>見た</div>${GURU?__gSTK():__WR_STK}</div></div></div>`;}).join('')+'</div>';
+  return `<div class="wr-q" data-j="${j}"><div class="wr-qh"><span class="wr-mk ng">×</span><span class="wr-no">${__wrTNo(j)}</span><div class="wr-qb"><div>${q}</div>${sq?`<div class="wr-sq">${sq}</div>`:''}<div class="wr-chs">${__eO(st)?`<span class="me">${__eAV(st,tans[j])}</span>`:st.c.map((c,k)=>`<span${k===tans[j]?' class="me"':''}>${KANA[k]}　${__wrTCV(c)}</span>`).join('')}</div>${tans[j]===undefined?'<div class="wr-you"><b>× あなた</b>未回答</div>':''}</div></div><div class="wr-ansb"><div class="wr-hid${GURU&&TSEEN[j]?' peel':''}"><div class="wr-a"><small>正解</small>${__eAV(st,st.a,__wrTCV)}</div><div class="wr-x trw">${WTXT(st.w)}</div><div class="wr-seen"${TSEEN[j]?'':' hidden'}>見た</div>${GURU?__gSTK():__WR_STK}</div></div></div>`;}).join('')+'</div>';
  else h+=`<div class="wr-sec"><div class="wr-allok">まちがえた問題はありません</div></div>`;
- if(ok.length)h+=`<div class="wr-sec"><button type="button" class="wr-fold"><span class="wr-mk ok">○</span>正解した問題 <span class="wr-num">${ok.length}</span>問<span class="wr-c">${__WR_DOWN}</span></button><div class="wr-fl"><div class="wr-bkr"><button type="button" class="wr-bk">全部はがす</button></div>${ok.map(j=>{const x=TFL[j],st=x.st;return `<div class="wr-fr"><span class="wr-mk ok">○</span><span class="wr-no">${__wrTNo(j)}</span><span class="wr-p">${String(x.it.q).replace(/<div class="grq">[\s\S]*$/,'').replace(/<[^>]+>/g,'')}</span><span class="wr-r wr-hid">${KANA[st.a]}　${__wrCVs(st.c[st.a])}${__WR_STK}</span></div>`;}).join('')}</div></div>`;
+ if(ok.length)h+=`<div class="wr-sec"><button type="button" class="wr-fold"><span class="wr-mk ok">○</span>正解した問題 <span class="wr-num">${ok.length}</span>問<span class="wr-c">${__WR_DOWN}</span></button><div class="wr-fl"><div class="wr-bkr"><button type="button" class="wr-bk">全部はがす</button></div>${ok.map(j=>{const x=TFL[j],st=x.st;return `<div class="wr-fr"><span class="wr-mk ok">○</span><span class="wr-no">${__wrTNo(j)}</span><span class="wr-p">${String(x.it.q).replace(/<div class="grq">[\s\S]*$/,'').replace(/<div class="eaf">[\s\S]*$/,'').replace(/<[^>]+>/g,'')}</span><span class="wr-r wr-hid">${__eAV(st,st.a,__wrCVs)}${__WR_STK}</span></div>`;}).join('')}</div></div>`;
  return h+'</div>';}
 function __wrTBind(ph){
  ph.querySelectorAll('.wr-q[data-j] .wr-hid').forEach(e=>e.onclick=()=>{if(GURU&&e.classList.contains('peel'))return;e.classList.toggle('peel');if(!e.classList.contains('peel'))return;const j=+e.closest('.wr-q').dataset.j;if(TSEEN[j])return;
@@ -612,12 +648,12 @@ function tlistFull(){const CV=c=>/<svg/.test(String(c))?`<span class="tfsv">${c}
  TFL.forEach((x,j)=>{const b=TEST.blocks[x.b],st=x.st,o=tans[j]===st.a;
   if(x.b!==pb){if(pb>=0)h+='</div>';pb=x.b;h+=`<div class="tfb"><div class="tfq">${DN(b.num)}${b.grp?b.head:x.it.q}</div>`;}
   const sub=b.ren?`${SN(x.k)}${STRIP(st.s)}`:b.grp?`${SNB(b,x.k)}${x.it.q}`:'';
-  const my=tans[j]===undefined?'未回答':`${KANA[tans[j]]}　${CV(st.c[tans[j]])}`;
-  h+=`<div class="tr tfr ${o?'o':'x'}" data-j="${j}"><div class="tfs"><span class="tfm">${o?'○':'×'}</span><div class="tfsb">${sub?`<div class="stepq">${sub}</div>`:''}<div class="tfa">${o?`<span class="tfok">正解 ${KANA[st.a]}　${CV(st.c[st.a])}</span>`:`<span class="tfmy">あなた ${my}</span><span class="tfok">正解 ${KANA[st.a]}　${CV(st.c[st.a])}</span>`}</div></div></div>`
+  const my=tans[j]===undefined?'未回答':`${__eAV(st,tans[j],CV)}`;
+  h+=`<div class="tr tfr ${o?'o':'x'}" data-j="${j}"><div class="tfs"><span class="tfm">${o?'○':'×'}</span><div class="tfsb">${sub?`<div class="stepq">${sub}</div>`:''}<div class="tfa">${o?`<span class="tfok">正解 ${__eAV(st,st.a,CV)}</span>`:`<span class="tfmy">あなた ${my}</span><span class="tfok">正解 ${__eAV(st,st.a,CV)}</span>`}</div></div></div>`
    +`<button type="button" class="trh">${o?'':`<span class="must ${TSEEN[j]?'seen':''}">${TSEEN[j]?'見た':'必ず見る'}</span>`}<span class="tro">解説 ▼</span></button><div class="trb" hidden><div class="trw">${WTXT(st.w)}</div></div></div>`;});
  if(pb>=0)h+='</div>';return `<div class="tfl">${h}</div>`;}
 function tbind(ph){const wrong=TFL.map((x,j)=>tans[j]!==x.st.a?j:-1).filter(j=>j>=0);
- const upd=()=>{const sc=ph.querySelector('.tsc');if(sc)sc.textContent=`${wrong.filter(j=>TSEEN[j]).length} / ${wrong.length} 見た`;const bb=ph.querySelector('.wd1 .w-now b');if(bb)bb.textContent=`${wrong.filter(j=>TSEEN[j]).length}/${wrong.length}`;if(LIVE()&&TSTATE){TSTATE.seen=Object.assign({},TSEEN);tSave();}const f=ph.querySelector('.tfix');if(f)f.outerHTML=tFixHtml();const nb=ph.querySelector('.tsgo[data-need]');if(nb){const ok=wrong.every(j=>TSEEN[j]);nb.disabled=!ok;const hn=ph.querySelector('.tsneed');if(hn)hn.hidden=ok;}const p=ph.querySelector('.tpass');if(p){const got=TFL.filter((x,j)=>tans[j]===x.st.a).length*TEST.pt;p.outerHTML=tPassHtml(got);}};
+ const upd=()=>{const sc=ph.querySelector('.tsc');if(sc)sc.textContent=`${wrong.filter(j=>TSEEN[j]).length} / ${wrong.length} 見た`;const bb=ph.querySelector('.wd1 .w-now b');if(bb)bb.textContent=`${wrong.filter(j=>TSEEN[j]).length}/${wrong.length}`;if(LIVE()&&TSTATE){TSTATE.seen=Object.assign({},TSEEN);tSave();}const f=ph.querySelector('.tfix');if(f)f.outerHTML=tFixHtml();const nb=ph.querySelector('.tsgo[data-need]');if(nb){const ok=wrong.every(j=>TSEEN[j]);nb.disabled=!ok;const hn=ph.querySelector('.tsneed');if(hn)hn.hidden=ok;}const p=ph.querySelector('.tpass');if(p){const got=__eGot(TFL.filter((x,j)=>tans[j]===x.st.a).length,TEST);p.outerHTML=tPassHtml(got);}};
  ph.querySelectorAll('.tr').forEach(tr=>{const j=+tr.dataset.j,bd=tr.querySelector('.trb');tr.querySelector('.trh').onclick=()=>{bd.hidden=!bd.hidden;tr.querySelector('.tro').textContent=bd.hidden?'解説 ▼':'閉じる ▲';
    if(!bd.hidden){if(!bd.dataset.k){K(bd);bd.dataset.k=1;}const my=++TRACE_RUN;traceEls([...bd.querySelectorAll('.trw .we,.trw .wn,.trw .wt,.trw .eql,.trw .eqr')],my,6000).then(done=>{if((done||!bd.hidden)&&tans[j]!==TFL[j].st.a){TSEEN[j]=1;const m=tr.querySelector('.must');if(m){m.textContent='見た';m.classList.add('seen');}upd();}});}};});
  upd();}
@@ -805,11 +841,11 @@ document.addEventListener('click',e=>{const b=e.target.closest('.peek');if(!b)re
  document.body.appendChild(ov);K(ov);__fitL(ov.querySelector('.peekin'));ov.addEventListener('click',ev=>{if(ev.target===ov||ev.target.closest('.peekx'))ov.remove();});});
 /* テストの結果：大問ごとの点と、TEST.secs（小問の数で区切る。例 [{name:'前の章',n:6},{name:'1次関数',n:14}]）ごとの点（2026-10-16 川上さん ④推奨で OK） */
 function TSUM(){const T=TEST;const okAt=j=>tans[j]===TFL[j].st.a;
- const bl=T.blocks.map((b,bi)=>{const js=TFL.map((x,j)=>x.b===bi?j:-1).filter(j=>j>=0);const got=js.filter(okAt).length*T.pt;return `<tr><td>${DN(b.num)}</td><td>${(()=>{const bs=js.map(j=>(TFL[j].st.back||TFL[j].it.back)||'');if(D.BACKN){const ns=[...new Set(bs.map(x=>{const B=BACK(x);return B?B.name:'';}).filter(Boolean))];if(ns.length)return ns.join('<br>');}const B=bs.every(x=>x&&x===bs[0])?BACK(bs[0]):null;return B?B.name:(b.grp?b.head:SHORT(T.items[b.items[0]].q));})()}</td><td style="text-align:right;white-space:nowrap">${got} / ${js.length*T.pt}</td></tr>`;}).join('');
- let sec='';if(T.secs){let j0=0;sec='<div class="tsec">'+T.secs.map(c=>{const js=[...Array(c.n).keys()].map(k=>k+j0);j0+=c.n;return `<span>${c.name} <b>${js.filter(okAt).length*T.pt}</b> / ${c.n*T.pt}</span>`;}).join('')+'</div>';}
+ const bl=T.blocks.map((b,bi)=>{const js=TFL.map((x,j)=>x.b===bi?j:-1).filter(j=>j>=0);const got=__eJs(js.filter(okAt),T);return `<tr><td>${DN(b.num)}</td><td>${(()=>{const bs=js.map(j=>(TFL[j].st.back||TFL[j].it.back)||'');if(D.BACKN){const ns=[...new Set(bs.map(x=>{const B=BACK(x);return B?B.name:'';}).filter(Boolean))];if(ns.length)return ns.join('<br>');}const B=bs.every(x=>x&&x===bs[0])?BACK(bs[0]):null;return B?B.name:(b.grp?b.head:SHORT(T.items[b.items[0]].q));})()}</td><td style="text-align:right;white-space:nowrap">${got} / ${__eJs(js,T)}</td></tr>`;}).join('');
+ let sec='';if(T.secs){let j0=0;sec='<div class="tsec">'+T.secs.map(c=>{const js=[...Array(c.n).keys()].map(k=>k+j0);j0+=c.n;return `<span>${c.name} <b>${__eJs(js.filter(okAt),T)}</b> / ${__eJs(js,T)}</span>`;}).join('')+'</div>';}
  const miss={};TFL.forEach((x,j)=>{if(okAt(j))return;const B=BACK(x.st.back||x.it.back);if(!B)return;(miss[B.id]=miss[B.id]||{B,n:0}).n++;});
  const ms=Object.values(miss).sort((a,b)=>b.n-a.n).slice(0,3);
- const got=TFL.filter((x,j)=>okAt(j)).length*T.pt;
+ const got=__eJs(TFL.map((x,j)=>j).filter(okAt),T);
  REDO_PLAN=GURU?__gPlan():redoPlan(ms);const nq=REDO_PLAN.reduce((a,x)=>a+x.it.steps.length,0);
  const wr=TFL.map((x,j)=>okAt(j)?-1:j).filter(j=>j>=0),rt=TFL.map((x,j)=>okAt(j)?j:-1).filter(j=>j>=0);
  return {bl,sec,ms,nq,got,wr,rt};}
@@ -836,14 +872,14 @@ function tNoteHtml(wr){const G=[];wr.forEach(j=>{const b=TFL[j].b;let g=G.find(x
 function redoResHtml(res){if(GURU)return __gRedoResHtml(res);if(!res||!res.length)return '';const n=res.filter(r=>r.o).length;
  const rows=res.map((r,i)=>{const it=POOLOF(r.id).find(x=>H32(x.q)===r.h),B=BACK(r.id),st=it&&it.steps[r.k];const ren=!!(it&&it.steps.length>1);
   const qq=st?(it.q+(STRIP(st.s)?`<div class="stepq">${ren?SN(r.k):''}${STRIP(st.s)}</div>`:'')):'';
-  const body=st?`<div class="rda">正解 ${KANA[st.a]}　${st.c[st.a]}${r.o?'':`<span class="rdy">あなたは ${KANA[r.p]}</span>`}</div>${WTXT(st.w)}`:'<div class="tsd">この問題は読み込めなかった。</div>';
+  const body=st?`<div class="rda">正解 ${__eAV(st,st.a)}${r.o?'':`<span class="rdy">あなたは ${__eK(st,r.p)}</span>`}</div>${WTXT(st.w)}`:'<div class="tsd">この問題は読み込めなかった。</div>';
   return `<details class="rdr ${r.o?'o':'x'}"><summary><span class="rdm">${r.o?'○':'×'}</span><span class="rdb"><span class="rdp">${i+1}．${B?B.name:''}</span><span class="rdq">${qq}</span></span><span class="rdv">解説 ▼</span></summary><div class="rdd">${body}</div></details>`;}).join('');
  return `<div class="rdl"><div class="rdh">類題の結果　<b>${n}</b> / ${res.length}問 正解</div>${rows}</div>`;}
 function drawTRes(ph,ok,ov){const T=TEST,R=TSUM(),S=TSR(),L=tSteps(R),pp=S.paper||'';
  if(TSTEP===null||TSTEP>L.length){const i=L.findIndex(x=>!x.done&&!x.opt);TSTEP=i<0?L.length:i;}
  const at=TSTEP,st=L[at];
  const bar=(GURU?GBAR2:WD1)(L.map((x,i)=>({cls:i===at?'now':x.done?'done':'',ic:x.ic,t:(i===at&&x.k==='read'&&!x.opt)?`解説 <b>${x.c}</b>`:x.t,v:0})).concat([at>=L.length?{cls:'now',ic:'flag',t:'ゴール'}:WD1G]));
- const head=GURU?'':`<div class="trs"><div class="score">${GURU?`${ok}<span> / ${TFL.length}問 正解</span>`:`${ok*T.pt}点 <span>／100点</span>`}</div>${__tDelta(ok*T.pt)}${ov?`<div class="tover">時間切れ（制限時間を ${mmss(ov)} こえた）</div>`:''}${ok===TFL.length?'<div class="okm" style="text-align:center">全問正解！おめでとう</div>':''}</div>`;
+ const head=GURU?'':`<div class="trs"><div class="score">${GURU?`${ok}<span> / ${TFL.length}問 正解</span>`:`${__eGot(ok,T)}点 <span>／100点</span>`}</div>${__tDelta(__eGot(ok,T))}${ov?`<div class="tover">時間切れ（制限時間を ${mmss(ov)} こえた）</div>`:''}${ok===TFL.length?'<div class="okm" style="text-align:center">全問正解！おめでとう</div>':''}</div>`;
  const no=at+1,card=(t,d,body,btn)=>`<div class="tstep tcur"><div class="tsh"><span class="tsno">${no}</span>${t}</div>${d?`<div class="tsd">${d}</div>`:''}${body||''}${btn||''}</div>`;
  /* ①を飛ばしたときは、なぜ飛ばしたかを1行で */
  const lead='';
@@ -851,7 +887,7 @@ function drawTRes(ph,ok,ov){const T=TEST,R=TSUM(),S=TSR(),L=tSteps(R),pp=S.paper
  const PASS=!st&&(GURU?true:R.got>=80)&&tDone(Object.assign({ans:tans,seen:TSEEN},S)),POP=PASS&&!S.stamp;
  if(!st){h=(GURU&&!R.wr.length?__gWrTeach(0,false)+`<div class="tstep">${__wrTList()}</div>`:'')+`<div class="tstep tcur tnext"><div class="tsh">次にやること</div>${tPassHtml(R.got)||`<div class="passn tpass">${R.wr.length?(tDone(Object.assign({ans:tans,seen:TSEEN},S))?'直し済み。':'直しが残っている。上のバーで残りを確かめよう。'):'直し済み。'}</div>`}${tFixHtml()}${S.redo_res&&S.redo_res.length?`<details class="tdet rdbox"><summary>類題の結果を見る（${GURU?(()=>{const a=S.redo_res.filter(r=>r.r!==2),b=S.redo_res.filter(r=>r.r===2);return a.filter(r=>r.o).length+' / '+a.length+'問 正解'+(b.length?'・もう1問 '+b.filter(r=>r.o).length+' / '+b.length:'');})():S.redo_res.filter(r=>r.o).length+' / '+S.redo_res.length+'問 正解'}）</summary>${redoResHtml(S.redo_res)}</details>`:''}<button class="next sub tagain">${GURU?'もう一度解く':'このテストをもう一度受ける'}</button></div><details class="tdet tsec"><summary>大問ごとの点</summary>${R.sec}<table class="tsum">${R.bl}</table></details>`;}
  else if(st.k==='mark'){const rows=T.blocks.map((b,bi)=>`<div class="tmr"><div class="tmn">${DN(b.num)}</div><div class="tmc">${tJs(bi).map(j=>{const o=tans[j]===TFL[j].st.a;const sb=b.ren?SN(TFL[j].k):b.grp?SNB(b,TFL[j].k):'';return `<span class="tmx ${o?'o':'x'}">${sb}<b>${o?'○':'×'}</b></span>`;}).join('')}</div></div>`).join('');
-  h=card('丸つけして点数を書こう',`答えを書いた紙${GURU?'（プリント・ノート）':'（解答用紙・ノート・プリント）'}に○×をつけて、${GURU?`上に <b>${ok} / ${TFL.length}</b> と書こう（${TFL.length}問中 ${ok}問 正解）。`:`上に <b>${ok*T.pt}点</b> と書こう。`}`,`<div class="tmk">${rows}</div>`,`<button class="next tsgo" data-go="mark">丸つけした</button>`);}
+  h=card('丸つけして点数を書こう',`答えを書いた紙${GURU?'（プリント・ノート）':'（解答用紙・ノート・プリント）'}に○×をつけて、${GURU?`上に <b>${ok} / ${TFL.length}</b> と書こう（${TFL.length}問中 ${ok}問 正解）。`:`上に <b>${__eGot(ok,T)}点</b> と書こう。`}`,`<div class="tmk">${rows}</div>`,`<button class="next tsgo" data-go="mark">丸つけした</button>`);}
  else if(st.k==='read'&&GURU){h=__gReadCard(R,no);}
  else if(st.k==='read'&&!st.opt){const all=R.wr.every(j=>TSEEN[j]);
   h=__wrTeach(R.wr.length)+card(`まちがえた問題の解説を読もう<span class="tsc">${R.wr.filter(j=>TSEEN[j]).length} / ${R.wr.length} 見た</span>`,'×の問題のシールをタップすると、正解と解説が出る。×の解説を全部読むと、次へ進める。',__wrTList(),`${TEST.lb?`<button type="button" class="next tsgo gwnx${all?'':' left'}" data-go="read">${all?'つぎへ':__gLeftT(R.wr.filter(j=>!TSEEN[j]).length)}</button>`:`<div class="tsneed" ${all?'hidden':''}>まだ読んでいない解説がある</div><button class="next tsgo" data-go="read" data-need="1" ${all?'':'disabled'}>次へ</button>`}`);}
@@ -892,14 +928,14 @@ function drawRedo(ph){const L=REDO.list;
    if(!REDO.extra[x.id]){const more=redoNext(x.id,REDO.used);if(more){REDO.extra[x.id]=1;REDO.used.add(more.q);L.splice(REDO.i+1,0,{id:x.id,it:more});}}}
   K(fb);const nb=document.createElement('button');nb.className='next';nb.textContent='次へ';nb.onclick=()=>{if(REDO.s<it.steps.length-1)REDO.s++;else{REDO.i++;REDO.s=0;}drawRedo(ph);};ph.querySelector('.phone').appendChild(nb);});}
 {const _drF=drawRedo;drawRedo=function(ph){__toTop();const r=_drF.apply(this,arguments);__fitL(ph);return r;};} /* 類題も1問ごとに上へ・はみ出しを収める（2026-10-18）*/
-document.addEventListener('click',e=>{if(!e.target.closest('.redogo'))return;if(GURU){__gRedoStart();return;}const ph=document.getElementById('ph');const got=TFL.filter((x,j)=>tans[j]===x.st.a).length*TEST.pt;
+document.addEventListener('click',e=>{if(!e.target.closest('.redogo'))return;if(GURU){__gRedoStart();return;}const ph=document.getElementById('ph');const got=__eGot(TFL.filter((x,j)=>tans[j]===x.st.a).length,TEST);
  REDO={list:REDO_PLAN.map(x=>({id:x.id,it:x.it})),i:0,s:0,extra:{},used:new Set(REDO_PLAN.map(x=>x.it.q)),got};drawRedo(ph);});
 function drawTest(ph){if(__PAPER)return __drawPaper(ph);if(__entNeed())return __drawEntry(ph);
  const T=TEST;
  if(cur.i===0&&cur.s===0&&!tans.length&&!TFRESH&&LIVE()&&TSTATE){__tPerm(TSTATE.perm||null);__tMarkFix();tans=TSTATE.ans.map(a=>a===null?undefined:a);TSEEN=Object.assign({},TSTATE.seen);cur.i=TFL.length;cur.loaded=true;}
  if(cur.i>=TFL.length){const ok=TFL.filter((x,j)=>tans[j]===x.st.a).length;const ov=cur.loaded&&TSTATE?(TSTATE.over||0):(window._ggTOver||0);
   if(!cur.loaded){TSUM();TSTEP=null;TLOC={v:2,note:false,mark:false,paper:''};}
-  if(!cur.loaded&&LIVE()){__tNew=true;TSTATE={prev:(TSTATE&&TSTATE.got!=null?TSTATE.got:null),got:ok*T.pt,ans:tans.slice(),seen:{},redo:false,nq:REDO_PLAN.length,over:window._ggTOver||0,perm:__TP,paper:__tPaperMode||'',at:new Date().toLocaleString('ja-JP'),v:2,note:false,mark:false};TFRESH=false;cur.loaded=true;tSave();}
+  if(!cur.loaded&&LIVE()){__tNew=true;TSTATE={prev:(TSTATE&&TSTATE.got!=null?TSTATE.got:null),got:__eGot(ok,T),ans:tans.slice(),seen:{},redo:false,nq:REDO_PLAN.length,over:window._ggTOver||0,perm:__TP,paper:__tPaperMode||'',at:new Date().toLocaleString('ja-JP'),v:2,note:false,mark:false};TFRESH=false;cur.loaded=true;tSave();}
   cur.loaded=true;drawTRes(ph,ok,ov);return}
  return drawTestTaking(ph);
 }
@@ -920,14 +956,14 @@ function drawTestTaking(ph){const T=TEST,B=T.blocks,show=!LIVE();
  /* 開始画面 */
  if(cur.s===0){const d=LIVE()?tDraftLoad():null;
   ph.innerHTML=`<div class="phone">${GURU?GBAR('guru',{k:0,n:TFL.length}):''}<div class="tstart"><div class="tsn">${T.name}</div><div class="tsr">${HEAD1()}</div>
-  <table class="tsinfo"><tr><th>問題</th><td>${GURU?TFL.length+(GURU.hd&&GURU.hd.aft?'問（基礎 5問・入試の形 '+(TFL.length-5)+'問）':'問（'+(GURU.hd&&GURU.hd.unit==='小学校の総復習'?'基礎計算':'復習')+' 3問・'+__gPM()+' '+(TFL.length-3)+'問）'):B.length+'題（小問 '+TFL.length+'問）'}</td></tr>${GURU?'':`<tr><th>配点</th><td>各${T.pt}点（100点満点）</td></tr>`}<tr><th>制限時間</th><td>${T.min||20}分</td></tr></table>
+  <table class="tsinfo"><tr><th>問題</th><td>${GURU?TFL.length+(GURU.hd&&GURU.hd.aft?'問（基礎 5問・入試の形 '+(TFL.length-5)+'問）':'問（'+(GURU.hd&&GURU.hd.unit==='小学校の総復習'?'基礎計算':'復習')+' 3問・'+__gPM()+' '+(TFL.length-3)+'問）'):B.length+'題（小問 '+TFL.length+'問）'}</td></tr>${GURU?'':`<tr><th>配点</th><td>${T.wpt?T.wpt:'各'+T.pt+'点'}（100点満点）</td></tr>`}<tr><th>制限時間</th><td>${T.min||20}分</td></tr></table>
   <ul class="tsl"><li>ノートと鉛筆を用意しよう。</li><li>計算はノートに書いてから答えを選ぼう。</li></ul>${GURU&&GURU.noteSvg?`<div class="gnr"><div class="gnrh">ノートの書き方</div><div class="gnri"><div class="gnrs" role="img" aria-label="ノートの例：左で解き、右側はあけておく">${GURU.noteSvg.start}</div><ol class="gnrl"><li>＝は縦にそろえる</li><li>途中式は1行ずつ書く</li><li>分数は2行で書く</li><li><b>右側は少しあけておく</b><span>たて線を1本引く。まちがえた問題を、あとでここに解き直す</span></li></ol></div></div>`:""}
   ${d?`<div class="tsd">前の続きがあります（答えた問題 ${d.ans.filter(a=>a!==undefined&&a!==null).length} / ${TFL.length}・${mmss(d.el)} 経過）</div><button class="next" data-a="cont">続きから</button> <button class="next sub" data-a="new">はじめから</button>`:`<button class="next tsgo" data-a="new">準備ができたらスタート</button>`}</div></div>`;
   ph.querySelectorAll('[data-a]').forEach(bt=>bt.onclick=()=>{if(bt.dataset.a==='cont'){tans=d.ans.map(a=>a===null?undefined:a);TEL=d.el;__tPerm(d.perm||null);}else{tans=[];TEL=0;tDraftClear();__tPerm('new');}cur.s=1;if(opt.live&&opt.onTestStart){try{opt.onTestStart(TEST.part_id);}catch(e){}}drawPhone();});K(ph);return;}
  /* 見直し */
  if(cur.s===B.length+1){const un=tUnans();
   const rows=TFL.map((x,j)=>{const b=B[x.b];const lab=b.ren?`${DN(b.num)}${SN(x.k)}`:b.grp?`${DN(b.num)}${SNB(b,x.k)}`:DN(b.num);const a=tans[j];
-   return `<button type="button" class="tvr ${a===undefined?'un':''}" data-s="${x.b+1}">${lab}<span class="tva">${a===undefined?'未回答':KANA[a]+'　'+x.st.c[a]}</span></button>`;}).join('');
+   return `<button type="button" class="tvr ${a===undefined?'un':''}" data-s="${x.b+1}">${lab}<span class="tva">${a===undefined?'未回答':__eAV(x.st,a)}</span></button>`;}).join('');
   ph.innerHTML=`<div class="phone">${head}${GURU?GBAR('guru',{k:tans.filter(a=>a!==undefined&&a!==null).length,n:TFL.length}):''}${tStrip()}<div class="tvh">見直し${un.length?`<span class="tvu">未回答 ${un.length}問</span>`:'<span class="tvok">全部答えた</span>'}</div>${typeof __gMinao!=='undefined'?__gMinao:''}<div class="tvl">${rows}</div><div class="tconf"></div><button class="next tsub">提出して採点</button></div>`;
   K(ph);bindStrip(ph);ph.querySelectorAll('.tvr').forEach(r=>r.onclick=()=>{cur.s=+r.dataset.s;drawPhone();});
   ph.querySelector('.tsub').onclick=()=>{const u=tUnans().length;const cf=ph.querySelector('.tconf');
@@ -939,11 +975,12 @@ function drawTestTaking(ph){const T=TEST,B=T.blocks,show=!LIVE();
  const __gcw=GURU?js.map(j=>TFL[j].st.w).find(w=>needCalc(w)):null;const __gch=__gcw?__gCalc(__gcw):'';
  const q=b.ren?`<div class="q">${DN(b.num)}${__gch}${it0.q}</div>`:b.grp?`<div class="q">${DN(b.num)}${b.head}${__gch}</div>`:`<div class="q">${DN(b.num)}${__gch}${it0.q}</div>`;
  const subs=js.map(j=>{const x=TFL[j],st=x.st;const sq=b.ren?`${SN(x.k)}${STRIP(st.s)}`:b.grp?`${SNB(b,x.k)}${x.it.q}`:(x.it.ins||T.ins||'');
-  return `<div class="tsq" data-j="${j}"><div class="stepq">${sq}</div>${needCalc(st.w)?(GURU?'':CALC):''}<div class="ch ${st.c.some(c=>GURU?__gLong(c):String(c).length>14)?'long':''}">${st.c.map((c,k)=>`<button data-k="${k}" class="${tans[j]===k?'sel':''}${show&&k===st.a?' ok':''}">${KANA[k]}　${c}</button>`).join('')}</div></div>`;}).join('');
+  return `<div class="tsq" data-j="${j}"><div class="stepq">${sq}</div>${needCalc(st.w)?(GURU?'':CALC):''}${__eO(st)?__eUI(st,'t'+j,tans[j],show?'show':''):`<div class="ch ${st.c.some(c=>GURU?__gLong(c):String(c).length>14)?'long':''}">${st.c.map((c,k)=>`<button data-k="${k}" class="${tans[j]===k?'sel':''}${show&&k===st.a?' ok':''}">${KANA[k]}　${c}</button>`).join('')}</div>`}</div>`;}).join('');
  const last=bi===B.length-1;
  ph.innerHTML=`<div class="phone">${head}${GURU?GBAR('guru',{k:tans.filter(a=>a!==undefined&&a!==null).length,n:TFL.length}):''}${tStrip()}${q}${subs}<div class="tnav">${bi>0?'<button class="next sub" data-a="prev">◀ 前の大問</button>':''}<button class="next" data-a="next">${last?'見直しへ':'次の大問 ▶'}</button></div></div>`;
  K(ph);bindStrip(ph);
  ph.querySelectorAll('.tsq').forEach(sq=>{const j=+sq.dataset.j;sq.querySelectorAll('.ch button').forEach(bt=>bt.onclick=()=>{tans[j]=+bt.dataset.k;sq.querySelectorAll('.ch button').forEach(z=>z.classList.toggle('sel',z===bt));tDraftSave();const st=ph.querySelector('.tstrip');if(st){st.outerHTML=tStrip();bindStrip(ph);}});});
+ if(__EN)__eBind(ph,k=>{const x=TFL[+k.slice(1)];return x&&x.st;},(k,v)=>{tans[+k.slice(1)]=v;tDraftSave();const st=ph.querySelector('.tstrip');if(st){st.outerHTML=tStrip();bindStrip(ph);}});
  ph.querySelectorAll('.tnav [data-a]').forEach(bt=>bt.onclick=()=>{cur.s+=bt.dataset.a==='prev'?-1:1;drawPhone();ph.scrollIntoView&&window.scrollTo(0,0);});}
 function bindStrip(ph){ph.querySelectorAll('.tstrip button').forEach(bt=>bt.onclick=()=>{cur.s=+bt.dataset.s;drawPhone();});}
 function tSubmit(){const over=TEL-(TEST.min||20)*60000;TFRESH=false;cur.i=TFL.length;cur.loaded=false;tDraftClear();window._ggTOver=over>0?over:0;drawPhone();}
@@ -954,7 +991,7 @@ const blankFor=(s)=>s.s.includes('言葉の式')?'<span class="blank w"></span>'
 function stepPaper(s,P,ans,L){
  const lab=L!==undefined?L:s.s.replace(/^ステップ(\d)\s*/,'ステップ$1　');
  if(s.fill)return ans?`<div class="row">${lab}</div><div class="row">${blHtml(s.t,'ans')}</div><div class="exp">${WTXT(s.w)}</div>`:`<div class="row">${lab}</div><div class="row">${blHtml(s.t,'paper')}</div>`;
- if(s.pc){const opts=s.c.map((c,k)=>`${KANA[k]} ${c}`).join('　');return ans?`<div class="row">${P.k==='E'?'':lab+'　'}<span class="ans">${KANA[s.a]} ${s.c[s.a]}</span></div><div class="exp">${WTXT(s.w)}</div>`:`<div class="row">${P.k==='E'?'':lab+'　'}<span class="opts">${opts}</span>　記号 <span class="blank s"></span></div>`;}
+ if(s.pc){const opts=s.c.map((c,k)=>`${KANA[k]} ${c}`).join('　');return ans?`<div class="row">${P.k==='E'?'':lab+'　'}<span class="ans">${__eO(s)?__eE(s.a):KANA[s.a]+' '+s.c[s.a]}</span></div><div class="exp">${WTXT(s.w)}</div>`:`<div class="row">${P.k==='E'?'':lab+'　'}<span class="opts">${opts}</span>　記号 <span class="blank s"></span></div>`;}
  if(P.k==='E')return ans?`<div class="row"><span class="ans">${s.c[s.a]}</span></div><div class="exp">${WTXT(s.w)}</div>`:(/^\\\(y=/.test(s.c[s.a])?`<div class="row">\\(y=\\) <span class="blank"></span></div>`:`<div class="row">${s.s.replace(/は？$/,'')}：<span class="blank w"></span></div>`)+`<div class="memo s">計算</div>`;
  return ans?`<div class="row">${lab}　<span class="ans">${s.c[s.a]}</span></div><div class="exp">${WTXT(s.w)}</div>`:`<div class="row">${lab}　${blankFor(s)}</div>`;
 }
@@ -963,7 +1000,7 @@ const UT=()=>typeof UNIT_TITLE!=='undefined'?UNIT_TITLE:'単元1'+' 文章を式
 /* 小問（連問の (1)(2)・まとめた (1)(2)）の答え欄 */
 function subPaper(st,P,ans,lab){
  if(st.fill)return ans?`<div class="row">${lab}${blHtml(st.t,'ans')}</div><div class="exp">${WTXT(st.w)}</div>`:`<div class="row">${lab}${blHtml(st.t,'paper')}</div>`;
- if(st.pc){const opts=st.c.map((c,k)=>`${KANA[k]} ${c}`).join('　');return ans?`<div class="row">${lab}<span class="ans">${KANA[st.a]} ${st.c[st.a]}</span></div><div class="exp">${WTXT(st.w)}</div>`:`<div class="row">${lab}<span class="opts">${opts}</span>　記号 <span class="blank s"></span></div>`;}
+ if(st.pc){const opts=st.c.map((c,k)=>`${KANA[k]} ${c}`).join('　');return ans?`<div class="row">${lab}<span class="ans">${__eO(st)?__eE(st.a):KANA[st.a]+' '+st.c[st.a]}</span></div><div class="exp">${WTXT(st.w)}</div>`:`<div class="row">${lab}<span class="opts">${opts}</span>　記号 <span class="blank s"></span></div>`;}
  const isY=/^\\\(y=/.test(st.c[st.a]);
  return ans?`<div class="row">${lab}<span class="ans">${st.c[st.a]}</span></div><div class="exp">${WTXT(st.w)}</div>`:`<div class="row">${lab}${isY?'\\(y=\\) <span class="blank"></span>':'<span class="blank w"></span>'}</div>`;
 }
@@ -1004,7 +1041,7 @@ function paper(ans){
  });
  const TT=`<div class="sh-top"><div class="t">${HEAD1()}<br><span class="tt">${String(TEST.name).replace(/（([^）]*)）([A-C])$/,(m,r,v)=>'<b class="trg">（'+r+'）</b><svg class="tv" viewBox="0 0 100 100">'+(v==='A'?'<circle cx="50" cy="50" r="48" fill="#111"/>':v==='B'?'<rect x="3" y="3" width="94" height="94" rx="10" fill="#111"/>':'<polygon points="50,2 98,96 2,96" fill="#111"/>')+'<text x="50" y="'+(v==='C'?88:68)+'" text-anchor="middle" font-size="'+(v==='C'?52:54)+'" font-weight="800" fill="#fff">'+v+'</text></svg>')}</span>${ans?'<span class="kind">解答解説</span>':'<span class="kind">問題用紙</span>'}<div class="tinfo">配点：各5点（100点満点）／ 制限時間：${TEST.min||20}分</div></div>${ans?'':'<div class="f">名前 <span style="min-width:110px"></span></div>'}</div>`;
  h+=`<div class="sheet" data-sel="test" style="page:${kk}t">${TT}${ans?'<div class="acol">':`<div style="font-size:13px;margin-bottom:4px">正しいものを、ア〜カから1つずつ選び、解答用紙に記号で答えなさい。</div>`}`;
- const tsub=(st,lab,bk)=>ans?`<div class="row">${lab}<span class="ans">${KANA[st.a]} ${st.c[st.a]}</span>　（5点）</div><div class="exp">${WTXT(st.w)}</div>${BACK(bk)?`<div class="bk">戻る所：${BACK(bk).name}</div>`:''}`:`<div class="row">${lab}</div><div class="opt6${OPTLEN(st.c)<=14?' c3':''}">${st.c.map((c,k)=>`<div>${KANA[k]}　${c}</div>`).join('')}</div>${needCalc(st.w)?`<div class="tcalc"><div class="memo tm">計算</div></div>`:''}`;
+ const tsub=(st,lab,bk)=>ans?`<div class="row">${lab}<span class="ans">${__eO(st)?__eE(st.a):KANA[st.a]+' '+st.c[st.a]}</span>　（5点）</div><div class="exp">${WTXT(st.w)}</div>${BACK(bk)?`<div class="bk">戻る所：${BACK(bk).name}</div>`:''}`:`<div class="row">${lab}</div><div class="opt6${OPTLEN(st.c)<=14?' c3':''}">${st.c.map((c,k)=>`<div>${KANA[k]}　${c}</div>`).join('')}</div>${needCalc(st.w)?`<div class="tcalc"><div class="memo tm">計算</div></div>`:''}`;
  TEST.blocks.forEach(b=>{const its=b.items.map(i=>TEST.items[i]);
   if(b.ren){const it=its[0];h+=ans?`<div class="ah">${DN(b.num)}<span class="st">${SHORT(it.q)}</span></div>`:QFIG(DN(b.num),it.q,' dq').h;it.steps.forEach((st,k)=>{h+=`<div class="qi">${ans?`<div class="ah sqp">${SN(k)}<span class="st">${SHORT(STRIP(st.s))}</span></div>`:`<div class="sqp">${SN(k)}${STRIP(st.s)}</div>`}${tsub(st,'',st.back||it.back)}</div>`;});return;}
   if(b.grp){h+=`<div class="qq gh">${DN(b.num)}${ans?`<span class="st">${b.head}</span>`:b.head}</div>`;its.forEach((it,k)=>{h+=`<div class="qi">${ans?`<div class="ah sqp">${SNB(b,k)}<span class="st">${SHORT(it.q)}</span></div>`:QFIG(SNB(b,k),it.q,' sqp').h}${tsub(it,'',it.back)}</div>`;});return;}
@@ -1262,8 +1299,8 @@ function __drawEntry(ph){const T=TEST,S=(TSTATE&&TSTATE.got!=null)?TSTATE:null,H
  const card=(k,t,d,a,w)=>`<button type="button" class="ent-c${w?' wide':''}" data-e="${k}">${__eic(k)}<b>${t}</b><small>${d}</small><span class="ent-act">${a}</span></button>`;
  ph.innerHTML=`<div class="phone tent${GURU?' gent':''}"><div class="prog"><span class="tag X">${T.tag||T.name}</span>${GURU?'　'+__gPN():''}</div>${GURU?__gEntHead():''}${top}<div class="ent-ask">${ask}</div>${sub}<div class="ent-go">`
   +card('app','クロトレで解く','このタブレット・スマホで問題を解く',GURU?'解きはじめる':'テストを始める',true)
-  +card('sym','自動採点','解答用紙に書いた記号を入れる','採点する')
-  +card('ox','○×入力','丸付けが終わった紙の○×を入れる','結果を入力する')+`</div></div>`;
+  +(__EN?'':card('sym','自動採点','解答用紙に書いた記号を入れる','採点する')
+  +card('ox','○×入力','丸付けが終わった紙の○×を入れる','結果を入力する'))+`</div></div>`;
  {const gp=ph.querySelector('.gpt');if(gp)gp.onclick=()=>{try{GURU.onPoint();}catch(e){}};}
  ph.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const e=b.dataset.e;__entPass=true;
   if(e==='cont'){TFRESH=false;TSTEP=null;}
