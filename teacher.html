@@ -1118,6 +1118,10 @@
   .mp-ggnote{flex:1 1 auto;min-width:0;font-size:12px;color:var(--text-muted);font-weight:700;line-height:1.5;} /* ぐるぐるのプレビューの説明（折り返す）2026-11-02 */
   .mp-toolbar.mp-ggtb{flex-wrap:wrap;row-gap:6px;} /* 2026-11-03 ぐるぐるの帯：説明・暗い画面・［生徒の画面で見る］［QR］を折り返す */
   .mp-toolbar.mp-ggtb .mp-pv{margin-left:0;flex:none;}
+  .mp-ggrow{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;}.mp-ggrow .mp-pv{margin-left:0;flex:none;}
+  .mp-gggrp{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 10px;border:1px solid var(--border);border-radius:10px;padding:5px 10px;background:#f8fafc;}
+  .mp-gglab{font-size:11px;font-weight:800;color:var(--text-muted);white-space:nowrap;}
+  .mgprep{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:#e5e7eb;color:#4b5563;font-size:11px;font-weight:700;vertical-align:middle;white-space:nowrap;} /* 2026-11-03 ぐるぐる：問題の入っている回が1つもない教材 */
   .mp-ggdk{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;} /* ぐるぐるのプレビュー：暗い画面で見る 2026-11-02 */
   .mgtitle{font-weight:800;min-width:130px;}
   .mgcount{font-size:12px;color:var(--text-muted);font-weight:700;min-width:52px;}
@@ -6650,7 +6654,7 @@ function renderMatTab(){
       var _lv=_levelLabel(m.target);var _lb=_lv?('<span class="mglevel">'+_lv+'</span>'):'';
       row.innerHTML='<span class="mgpill '+(isTest?'test':(isWs?'ws':(isGg?'gg':'daily')))+'">'+(isTest?'単元別対策':(isWs?'ワークシート':(isGg?'ぐるぐる':'毎日学習')))+'</span>'
         +_nb
-        +'<span class="mgtitle">'+esc(mtShort(m)||'(無題)')+'</span>'
+        +'<span class="mgtitle">'+esc(mtShort(m)||'(無題)')+(isGg&&m.gg_ready===false?'<span class="mgprep" title="問題の入っている回がまだありません">準備中</span>':'')+'</span>'   /* 2026-11-03 23:56 ぐるぐるの準備中（GAS materials_list の gg_ready） */
         +_lb
         +'<span class="mgcount">'+hs.length+'名</span>'   /* 2026-11-03 ぐるぐるも数える */
         +'<span class="mgmem">'+chips+'</span>'
@@ -6907,9 +6911,8 @@ function mpGgPreview_(mid,dt0){
   /* 2026-11-03 ぐるぐる：［確かめる］の説明を外し、ワークシートと同じ説明に。［生徒の画面で見る］［QR］（#pv=）と、いま割り当てている子を出す */
   var _hs=(_holdersMap()[String(mid)]||[]).map(function(x){return x.name||x.nickname||'(無名)';});
   var tb=$('mpToolbar');if(tb){tb.classList.add('mp-ggtb');tb.innerHTML='<span class="mp-ggnote">ぐるぐる：生徒と同じ形です。左の一覧で回を選ぶと解く画面。下の黒いバーの ◀ ▶ で1画面ずつ送れます（「答え・解説を出す」を外すと、生徒が解く前の画面）。記録はしません。問題はここでは直せません。'
-    +'<br>実機で見る：テスト用アカウントにこの教材を割り当てて［生徒の画面で見る］か［QR］。'+(_hs.length?'いま割り当てている子：'+esc(_hs.join('・')):'まだ誰にも割り当てていません。')+'</span>'
-    +'<label class="mp-ggdk"><input type="checkbox" id="mpGgDark"'+(_ggDark?' checked':'')+' onchange="_ggDark=this.checked;mpGgMount_();">暗い画面で見る</label>'
-    +'<button class="mp-pv" type="button" id="mpGgPv" onclick="_ggPv_(0)">生徒の画面で見る</button><button class="mp-pv" type="button" onclick="_ggPv_(1)">QR</button><button class="mp-pv" type="button" id="mpGgPr" onclick="ggPrintOpen_()">🖨 ぐるぐる印刷</button>';}   /* 2026-11-03 ぐるぐる印刷 */
+    +'<br>実機で見る：テスト用アカウントにこの教材を割り当てて［生徒の画面で見る］か［スマホで見る（QR）］。'+(_hs.length?'いま割り当てている子：'+esc(_hs.join('・')):'まだ誰にも割り当てていません。')+'</span>'
+    +'<div class="mp-ggrow"><button class="mp-pv mp-ggpr" type="button" id="mpGgPr" onclick="ggPrintOpen_()">🖨 ぐるぐる印刷</button>'+'<span class="mp-gggrp"><span class="mp-gglab">プレビュー</span><label class="mp-ggdk"><input type="checkbox" id="mpGgDark"'+(_ggDark?' checked':'')+' onchange="_ggDark=this.checked;mpGgMount_();">暗い画面（ダークモード）で見る</label><span class="mp-gglab">実機で見る</span><button class="mp-pv" type="button" id="mpGgPv" onclick="_ggPv_(0)">生徒の画面で見る</button><button class="mp-pv" type="button" onclick="_ggPv_(1)">スマホで見る（QR）</button></span></div>';}   /* 2026-11-03 23:56 川上さん「推奨で」：［ぐるぐる印刷］は左に離して置き、プレビューの見え方と実機で見る2つを1つの枠にまとめた */
   $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
   _ggDestroy_();_ggData=null;_ggRow0='';_ggMid=String(mid);
   var _pv0=(dt0&&dt0.parts)?Promise.resolve({ok:true,data:dt0}):call({action:'material_preview',material_id:mid,parts_only:'1'});   /* 2026-11-02 段3 問題（words）はここでは読まない */
