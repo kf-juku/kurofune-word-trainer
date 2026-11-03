@@ -1116,6 +1116,8 @@
   .mgpill.gg{background:#ecfdf5;color:#047857;} /* ぐるぐる（content_type='guruguru'・先生のプレビューだけ）2026-11-02 */
   .mgrow.gg .mgmem{color:var(--text-light);font-size:11px;}
   .mp-ggnote{flex:1 1 auto;min-width:0;font-size:12px;color:var(--text-muted);font-weight:700;line-height:1.5;} /* ぐるぐるのプレビューの説明（折り返す）2026-11-02 */
+  .mp-toolbar.mp-ggtb{flex-wrap:wrap;row-gap:6px;} /* 2026-11-03 ぐるぐるの帯：説明・暗い画面・［生徒の画面で見る］［QR］を折り返す */
+  .mp-toolbar.mp-ggtb .mp-pv{margin-left:0;flex:none;}
   .mp-ggdk{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;} /* ぐるぐるのプレビュー：暗い画面で見る 2026-11-02 */
   .mgtitle{font-weight:800;min-width:130px;}
   .mgcount{font-size:12px;color:var(--text-muted);font-weight:700;min-width:52px;}
@@ -1838,7 +1840,7 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
           ・grade（学年）：中1／中2／中3／全学年（空欄=学年未設定）<br>
           ・display_order（番号）：教科×学年の中の並び順。1,2,3…＝単元順<br>
           ・target（レベル）：beginner=基礎／junior_high=中学／entrance_exam=受験／eiken=英検／school_test=学校テスト<br>
-          ・content_type（形式）：daily=毎日学習／test=単元別対策／worksheet=ワークシート／guruguru=ぐるぐる（いまは［中身］で先生が見るだけ。割り当てられない）<br>
+          ・content_type（形式）：daily=毎日学習／test=単元別対策／worksheet=ワークシート／guruguru=ぐるぐる（2026-11-03 割り当てられる。生徒アプリのタブ・ホームにはまだ出ない＝テスト用アカウントの #pv= で見る）<br>
           <b>大事なルール</b>：番号（display_order）を変えても生徒の履歴は影響なし（教材はIDで管理）。改修は同じIDのまま中身を直す。足すのは新規、消して作り直さない。
         </div>
       </details>
@@ -6559,6 +6561,7 @@ function _holdersMap(){
     (s.materials_view||[]).forEach(function(m){
       var mid=String(m.material_id); (h[mid]=h[mid]||[]).push(s);
     });
+    (s.gg_mats||[]).forEach(function(x){ var mid=String(x); (h[mid]=h[mid]||[]).push(s); });   /* 2026-11-03 ぐるぐる：materials_view には入らないので gg_mats（GAS dashboard）から */
   });
   return h;
 }
@@ -6607,15 +6610,15 @@ function renderMatTab(){
       var hs=holders[String(m.id)]||[];
       var chips=hs.slice(0,8).map(function(s){return '<span class="mchipname">'+esc(s.name||s.nickname||'(無名)')+'</span>';}).join('')+(hs.length>8?'<span class="mchipname more">＋'+(hs.length-8)+'</span>':'');
       if(!hs.length)chips='<span style="color:var(--text-light);font-size:11px;">まだ誰も持っていません</span>';
-      var row=document.createElement('div');row.className='mgrow'+(isGg?' gg':'');row.onclick=(function(mid){return function(){if(isGg){openMatPreview(mid);return;}openRosterMaterial(mid);};})(String(m.id));   /* ぐるぐるは名簿（割り当て）を開かず中身を出す 2026-11-02 */
-      if(isGg)chips='生徒には出していません（先生のプレビューだけ）';
+      var row=document.createElement('div');row.className='mgrow'+(isGg?' gg':'');row.onclick=(function(mid){return function(){openRosterMaterial(mid);};})(String(m.id));   /* 2026-11-03 ぐるぐるも名簿（割り当て）を開く（2026-11-02 は中身を出していた） */
+      if(isGg&&!hs.length)chips='生徒の画面には出ていません（テスト用アカウントに割り当てて #pv= で見る）';   /* 2026-11-03 ぐるぐる */
       var _num=_ordNum(m.display_order);var _nb=(_num<99999)?('<span class="mgnum">'+_num+'</span>'):'';
       var _lv=_levelLabel(m.target);var _lb=_lv?('<span class="mglevel">'+_lv+'</span>'):'';
       row.innerHTML='<span class="mgpill '+(isTest?'test':(isWs?'ws':(isGg?'gg':'daily')))+'">'+(isTest?'単元別対策':(isWs?'ワークシート':(isGg?'ぐるぐる':'毎日学習')))+'</span>'
         +_nb
         +'<span class="mgtitle">'+esc(mtShort(m)||'(無題)')+'</span>'
         +_lb
-        +'<span class="mgcount">'+(isGg?'':hs.length+'名')+'</span>'
+        +'<span class="mgcount">'+hs.length+'名</span>'   /* 2026-11-03 ぐるぐるも数える */
         +'<span class="mgmem">'+chips+'</span>'
         +'<button class="mgpeek" onclick="event.stopPropagation();openMatPreview(\''+esc(String(m.id))+'\')">中身</button>'
         +'<span class="mgarrow">›</span>';
@@ -6813,13 +6816,14 @@ function _wsLoadLibs_(){
 }
 /* ===== ぐるぐる（数学）のプレビュー 2026-11-02 本番係 段2 =====
    教材タブ［中身］でぐるぐるの教材（content_type 'guruguru'・1単元＝1教材）を開くと、guru/gg_shell.js の外側（左の一覧・表紙・回の選び方・類題・章まとめ）を
-   先生のプレビュー（preview:true＝記録しない・全部の回を開ける・上の帯の［確かめる］で1パートの全問の問題・選択肢・正解・解説）で出す。
-   生徒には出さない（割り当ては作れない＝GAS が断る・student.html は変えていない）。問題はここでは直さない（作る道具で直してシートに入れ直す）。
+   先生のプレビュー（preview:true＝記録しない・全部の回を開ける）で出す。2026-11-03 ぐるぐる：上の帯の［確かめる］（確かめる画面）は外した＝ワークシートと同じ形（生徒と同じ解く画面＋下の黒いバー ◀ ▶・答え・解説を出す）だけ。
+   2026-11-03 ぐるぐる：［生徒の画面で見る］［QR］＝ワークシートと同じ #pv= の道（テスト用アカウントに割り当てておき、その子でログインして実機の画面を見る）。生徒アプリのタブ・ホームには出していない。
+   問題はここでは直さない（作る道具で直してシートに入れ直す）。
    部品は初めて開いたときだけ読む：KaTeX → ws/math_fig.js →（ワークシートの部品）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js。
    ノートの書き方の絵は guru/img/gg/*.svg（画面に出たときに読む）。部品を直したら GG_LIB_V を上げる
    2026-11-02 段3 速くした：開いたときは［中身］の最初の material_preview の返事（ぐるぐるは words を読まない＝parts の行と表紙の説明だけ）で一覧を出す（ggBuildData の lazy）。
    回・［確かめる］・章まとめを開いたときに、そのパートの行だけ gg_preview_part で読む（gg_shell.js の opt.loadParts → ggFillWords）。読んだパートはこの窓を閉じるまで覚えておく */
-var GG_LIB_V='20261103a',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false;
+var GG_LIB_V='20261103b',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-03 ぐるぐる：20261103b（確かめる画面を外した gg_shell.js）。student.html の GG_LIB_V と同じ値にする */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -6837,19 +6841,39 @@ function mpGgMount_(){
   var g0=(_ggData.units[0]&&_ggData.units[0].grade)||'';
   _ggApi=ggShellMount(root,_ggData,{preview:true,katexCss:'ws/katex/katex.min.css',dark:_ggDark,grade:g0,imgBase:'guru/',libV:GG_LIB_V,loadParts:_ggLoadParts_});
 }
+/* 2026-11-03 ぐるぐる：［生徒の画面で見る］［QR］＝ワークシートと同じ #pv=<パートの行 id>（mpPvOpen_・mpPvQr_）。開いている回の行（無ければ最初のパートの A-1・表紙の行）。
+   生徒アプリは student_today（start なし）で教材の id を受け取り、gg_unit・gg_unit_part（割り当てのある子だけ）で ぐるぐるの部品で開く */
+function _ggPvPid_(){
+  var st=(_ggApi&&_ggApi.state)?_ggApi.state():{},D=_ggData||{},hit=null;
+  if(st.SEL){(D.parts||[]).concat(D.cts||[]).forEach(function(x){if(x.id===st.SEL)hit=x;});}
+  if(!hit)hit=(D.parts||[])[0]||null;
+  var ri=(hit&&hit.rowIds)||{};
+  return ri[st.CUR_R]||ri.A1||ri.CV||_ggRow0||'';
+}
+function _ggPv_(qr){
+  var pid=_ggPvPid_();if(!pid){toast('この教材には、まだパートがありません');return;}
+  var t=($('mpTitle').textContent||'ぐるぐる');
+  if(qr)mpPvQr_(pid,t);else mpPvOpen_(pid,t);
+  var n=document.querySelector('#pvCard .pvnote');if(n)n.insertAdjacentHTML('afterbegin','<b>ぐるぐる：この教材を割り当てたテスト用アカウントで入ってください。</b>生徒アプリのタブには出ていません（この #pv= のときだけ開きます）。<br>');
+}
 function _ggLoadParts_(ids,o){   /* gg_shell.js から：パートの行 id の配列 → words の行（章まとめの「類題へ戻る所」の類題の行も GAS が足して返す）*/
   return call({action:'gg_preview_part',part_ids:ids,backs:(o&&o.backs===false)?'':'1'}).then(function(d){if(!d||!d.ok)throw new Error((d&&d.error)||'問題を読めませんでした');return d.data.words||[];});
 }
 function mpGgPreview_(mid,dt0){
-  var tb=$('mpToolbar');if(tb)tb.innerHTML='<span class="mp-ggnote">ぐるぐる：生徒には出していません。左の一覧で回を選ぶと解く画面、［確かめる］で1パートの全問（問題・選択肢・正解・解説）。記録はしません。問題はここでは直せません。</span>'
-    +'<label class="mp-ggdk"><input type="checkbox" id="mpGgDark"'+(_ggDark?' checked':'')+' onchange="_ggDark=this.checked;mpGgMount_();">暗い画面で見る</label>';
+  /* 2026-11-03 ぐるぐる：［確かめる］の説明を外し、ワークシートと同じ説明に。［生徒の画面で見る］［QR］（#pv=）と、いま割り当てている子を出す */
+  var _hs=(_holdersMap()[String(mid)]||[]).map(function(x){return x.name||x.nickname||'(無名)';});
+  var tb=$('mpToolbar');if(tb){tb.classList.add('mp-ggtb');tb.innerHTML='<span class="mp-ggnote">ぐるぐる：生徒と同じ形です。左の一覧で回を選ぶと解く画面。下の黒いバーの ◀ ▶ で1画面ずつ送れます（「答え・解説を出す」を外すと、生徒が解く前の画面）。記録はしません。問題はここでは直せません。'
+    +'<br>実機で見る：テスト用アカウントにこの教材を割り当てて［生徒の画面で見る］か［QR］。'+(_hs.length?'いま割り当てている子：'+esc(_hs.join('・')):'まだ誰にも割り当てていません。')+'</span>'
+    +'<label class="mp-ggdk"><input type="checkbox" id="mpGgDark"'+(_ggDark?' checked':'')+' onchange="_ggDark=this.checked;mpGgMount_();">暗い画面で見る</label>'
+    +'<button class="mp-pv" type="button" id="mpGgPv" onclick="_ggPv_(0)">生徒の画面で見る</button><button class="mp-pv" type="button" onclick="_ggPv_(1)">QR</button>';}
   $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
-  _ggDestroy_();_ggData=null;
+  _ggDestroy_();_ggData=null;_ggRow0='';_ggMid=String(mid);
   var _pv0=(dt0&&dt0.parts)?Promise.resolve({ok:true,data:dt0}):call({action:'material_preview',material_id:mid,parts_only:'1'});   /* 2026-11-02 段3 問題（words）はここでは読まない */
   Promise.all([_ggLoadLibs_(),_pv0]).then(function(r){
     var d=r[1];if(!d||!d.ok||!d.data){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
     if(String(_mpMid)!==String(mid))return;   /* 読み込み中にほかの教材を開いた */
     var R=_wsRowsFromPreview_(d.data);
+    _ggRow0=(R.parts[0]&&R.parts[0].id)||'';   /* 2026-11-03 #pv= の行（回を開いていないとき） */
     _ggData=ggBuildData({material:R.mat,parts:R.parts,words:R.words},{lazy:true});   /* 2026-11-02 段3 一覧だけ。問題は開いたときに読む */
     mpGgMount_();
   }).catch(function(e){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">数式・図・ぐるぐるの部品を読めませんでした（'+esc(String(e&&e.message||e))+'）</div>';});
@@ -6881,7 +6905,7 @@ function openMatPreview(mid){
   _mpMid=String(mid||''); // サーバー確認で再取得する教材ID
   _ggDestroy_();   /* 前に開いたぐるぐるのプレビューを片づける 2026-11-02 */
   $('mpTitle').textContent='教材の中身';
-  $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';var _tbld=$('mpToolbar');if(_tbld)_tbld.innerHTML='';
+  $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';var _tbld=$('mpToolbar');if(_tbld){_tbld.innerHTML='';_tbld.classList.remove('mp-ggtb');}   /* 2026-11-03 ぐるぐるの帯の折り返しを戻す */
   $('matPreviewModal').classList.add('show');
   call({action:'material_preview',material_id:mid}).then(function(d){
     if(!d||!d.ok){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
@@ -7559,13 +7583,13 @@ var _rosterMid=null,_rosterInit=[],_rosterSel={};
 function openRosterMaterial(mid){
   var _rm=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===String(mid))_rm=x;});
   if(_rm&&_rm.content_type==='test'){openRosterTest(mid);return;} /* 単元別対策は2列（割当＋確認テスト配信）へ 2026-07-13 */
-  if(_isGgMat_(_rm)){openMatPreview(mid);return;} /* ぐるぐるは割り当てない＝名簿を開かず中身へ 2026-11-02 */
+  /* 2026-11-03 ぐるぐる：名簿を開く（2026-11-02 は割り当てられないので中身へ回していた） */
   _rosterMid=String(mid);
   var m=null;(bulkMaterials||[]).forEach(function(x){if(String(x.id)===_rosterMid)m=x;});
-  $('rmTitle').textContent=(mtLabel(m)||'教材')+' の名簿';
+  $('rmTitle').textContent=(mtLabel(m)||'教材')+' の名簿'+(_isGgMat_(m)?'（ぐるぐる：生徒の画面にはまだ出ません。テスト用アカウントに）':'');   /* 2026-11-03 ぐるぐる */
   $('rmErr').textContent='';
   var init={};
-  (_students||[]).forEach(function(s){ (s.materials_view||[]).forEach(function(mm){ if(String(mm.material_id)===_rosterMid) init[String(s.student_id)]=1; }); });
+  (_students||[]).forEach(function(s){ (s.materials_view||[]).forEach(function(mm){ if(String(mm.material_id)===_rosterMid) init[String(s.student_id)]=1; }); (s.gg_mats||[]).forEach(function(x){ if(String(x)===_rosterMid) init[String(s.student_id)]=1; }); });   /* 2026-11-03 ぐるぐるは gg_mats */
   _rosterInit=Object.keys(init);
   _rosterSel={}; _rosterInit.forEach(function(id){_rosterSel[id]=1;});
   Picker.open({container:$('rmBody'),sel:_rosterSel,cand:function(){return _students||[];},showStatus:false,rightTitle:'この教材を持っている子',onChange:function(ids){rmFoot(ids);}});
@@ -8761,7 +8785,7 @@ function _matType(m){return (m.content_type==='test')?'test':(m.content_type==='
 function _matTypeLabel(t){return t==='test'?'単元別対策':(t==='worksheet'?'ワークシート':(t==='guruguru'?'ぐるぐる':'毎日学習'));}
 function matGroupPool_(materials, assignedSet, q){
   var pool=sortMaterials_(materials).filter(function(m){
-    if(_isGgMat_(m))return false;   /* ぐるぐるは割り当て・プリントの候補に出さない 2026-11-02 */
+    /* 2026-11-03 ぐるぐる：割り当ての候補には出す（札「ぐるぐる」）。プリントの候補（renderPrintMaterials の _pmM）・練習プリント（_ppMats）・レポート（_rpMats）は呼ぶ側で外したまま */
     if(assignedSet&&assignedSet[String(m.id)])return false;
     if(q&&String(m.title||'').indexOf(q)<0&&String(mtLabel(m)||'').indexOf(q)<0)return false;
     return true;
@@ -8996,7 +9020,8 @@ function renderAssignList(){
   box.innerHTML='';
   _asgList.forEach(function(a){
     var isTest=(a.content_type==='test'), isWs=(a.content_type==='worksheet'), isPt=isTest||isWs;   /* ワークシートもパート名で（2026-10-20） */
-    var pill=isTest?'<span class="asg-pill test">単元別対策</span>':(a.content_type==='worksheet'?'<span class="asg-pill ws">ワークシート</span>':(a.content_type==='guruguru'?'<span class="asg-pill ws">ぐるぐる</span>':'<span class="asg-pill daily">毎日学習</span>'));   /* ぐるぐるは割り当てられないが、来ても毎日学習と書かない 2026-11-02 */
+    var isGg=(a.content_type==='guruguru'||a.type==='guruguru');   /* 2026-11-03 ぐるぐる：進み・1日に出す数・もう一周は出さない */
+    var pill=isTest?'<span class="asg-pill test">単元別対策</span>':(a.content_type==='worksheet'?'<span class="asg-pill ws">ワークシート</span>':(a.content_type==='guruguru'?'<span class="asg-pill ws">ぐるぐる</span>':'<span class="asg-pill daily">毎日学習</span>'));   /* ぐるぐるは割り当てられないが、来ても毎日学習と書かない 2026-11-02／2026-11-03 割り当てられるようになった */
     var lapTxt=(a.lap>=2)?' <span class="asg-pill" style="background:#ede9fe;color:#5b21b6;">'+a.lap+'周目</span>':'';
     // 進み表示
     var startSel='';
@@ -9012,9 +9037,10 @@ function renderAssignList(){
     }
     var dailyCtrl=isTest?('<span class="asg-field"><span class="asg-lbl">1日に出す数</span><span class="asg-step" onclick="bumpDaily('+"'"+esc(a.material_id)+"'"+',-1)">−</span><b id="dp-'+esc(a.material_id)+'">'+(a.daily_parts||1)+'</b><span class="asg-step" onclick="bumpDaily('+"'"+esc(a.material_id)+"'"+',1)">＋</span>パート</span>'):'';
     var _wsPr=isWs?(a.parts||[]).filter(function(pt){return !/まとめテスト/.test(String(pt.title||''));}).length:0;
-    var progLine=isTest?('<div class="asg-prog">進み：<b>'+esc(a.current_part_title||'-')+'</b>（'+(a.graduated_parts||0)+'/'+(a.total_parts||0)+' 終わった）</div>')
+    if(isGg){startSel='';dailyCtrl='';}
+    var progLine=isGg?'<div class="asg-prog">生徒の画面（タブ・ホーム）にはまだ出ません。先生画面の教材の［中身］→［生徒の画面で見る］（#pv=）で、この子でログインして確かめます。</div>':isTest?('<div class="asg-prog">進み：<b>'+esc(a.current_part_title||'-')+'</b>（'+(a.graduated_parts||0)+'/'+(a.total_parts||0)+' 終わった）</div>')
       :(isWs?('<div class="asg-prog">進み：練習 '+Math.min(a.graduated_parts||0,_wsPr)+'/'+_wsPr+' 終わった（テストは除く）</div>'):'');
-    var dailyNote=isPt?'':'<div class="asg-note2">毎日学習は1日1DAYずつ自動で進みます。</div>';
+    var dailyNote=(isPt||isGg)?'':'<div class="asg-note2">毎日学習は1日1DAYずつ自動で進みます。</div>';   /* 2026-11-03 ぐるぐるには出さない */
     var card=document.createElement('div');card.className='asg-card';
     card.innerHTML=
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;flex-wrap:wrap;"><input type="checkbox" class="asg-ck" data-mid="'+esc(a.material_id)+'" onchange="asgCkToggle(this.getAttribute(\'data-mid\'),this.checked)" title="まとめて外すときに選ぶ">'+pill+lapTxt+'<span style="font-weight:700;font-size:13px;">'+esc(mtLabelMt(a))+'</span></div>'
@@ -9029,7 +9055,7 @@ function renderAssignList(){
        ★2026-09-02：毎日学習には出していなかったので、**完走した子の英単語を2周目にする手段が画面に無かった**。
          教材を割り当て直すだけだと status が active に戻るだけで lap は1のまま＝記録は1周目の続きになる。
          GAS の assignment_restart_lap は main も test も受けるので、ボタンを出すだけで正しく回せる。 */
-    var _lapOk = isTest ? ((a.graduated_parts||0)>=a.total_parts && a.total_parts>0)
+    var _lapOk = isGg ? false : isTest ? ((a.graduated_parts||0)>=a.total_parts && a.total_parts>0)   /* 2026-11-03 ぐるぐるは もう一周 を出さない */
                         : (String(a.status||'')==='completed');
     if(_lapOk){
       var note=document.createElement('div');note.className='asg-note';

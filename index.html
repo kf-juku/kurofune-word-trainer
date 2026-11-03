@@ -2992,7 +2992,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-01c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-03a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3029,7 +3029,7 @@ var _PV_=null;
   var _oc=call;
   call=function(b,t){
     var a=b&&b.action;
-    if(a==='student_login'||a==='student_home'||(a==='student_today'&&!b.start)||a==='ws_unit')return _oc(b,t); /* ws_unit＝ワークシートの中身を読むだけ（記録しない）2026-10-17 */
+    if(a==='student_login'||a==='student_home'||(a==='student_today'&&!b.start)||a==='ws_unit'||a==='gg_unit'||a==='gg_unit_part')return _oc(b,t); /* ws_unit＝ワークシートの中身を読むだけ（記録しない）2026-10-17／gg_unit・gg_unit_part＝ぐるぐるの中身を読むだけ 2026-11-03 */
     return Promise.resolve({ok:true,data:{}});
   };
 })();
@@ -4047,8 +4047,9 @@ var CALL_TIMEOUT_MS=35000; /* 【2026-08-21⑮】20秒だと間違いノート(m
      それ以外の書く action（ニックネーム・いいね等）は取り直さない＝二重に書かない。
    ・通信の失敗（fetch の失敗）・時間切れの扱いは変えていない。
    ★action を足したら、読むだけなら CALL_SAFE_RE_ に足す（単体テスト 20260916d が分類漏れを見張る）。
-   ★complete_extras は書き込みも含むが、いままでも取り直していて、二重になっても分析用の数だけなので一覧に入れた。 */
-var CALL_SAFE_RE_=/^(part_prev_scores|student_login|student_home|student_today|review_due|mistake_set|notes_summary|material_parts|ws_unit|quiz_list|quiz_words|badges|advisor_summary|overall_counter|team_feed|trio_stars|star_received|shooting_star|notice_mine|nickname_status|icon_unlocks|sheet_open|sheet_grade|complete_extras)$/;
+   ★complete_extras は書き込みも含むが、いままでも取り直していて、二重になっても分析用の数だけなので一覧に入れた。
+   ★2026-11-03 gg_unit・gg_unit_part（ぐるぐるの #pv= の読み口・読むだけ）を足した。 */
+var CALL_SAFE_RE_=/^(part_prev_scores|student_login|student_home|student_today|review_due|mistake_set|notes_summary|material_parts|ws_unit|gg_unit|gg_unit_part|quiz_list|quiz_words|badges|advisor_summary|overall_counter|team_feed|trio_stars|star_received|shooting_star|notice_mine|nickname_status|icon_unlocks|sheet_open|sheet_grade|complete_extras)$/;
 function _callBadReply_(d){
   if(!d||typeof d!=='object')return true;
   return !!(d.ok===true&&d.data&&typeof d.data==='object'&&d.data.method==='GET'&&d.data.service);
@@ -5746,7 +5747,7 @@ function renderWsZone_(materials){
 function _navEmptySet_(tab,on){var e=$('ntab5-'+tab);if(e)e.classList.toggle('ntab-empty',!!on);}
 function _navEmptyFromMats_(ms){
   ms=ms||[];
-  _navEmptySet_('daily',!ms.some(function(c){return c.content_type!=='test'&&c.content_type!=='worksheet';}));
+  _navEmptySet_('daily',!ms.some(function(c){return c.content_type!=='test'&&c.content_type!=='worksheet'&&c.content_type!=='guruguru';}));   /* 2026-11-03 ぐるぐるは毎日学習ではない */
   _navEmptySet_('unit',!ms.some(function(c){return c.content_type==='test';}));
   _navEmptySet_('ws',!ms.some(function(c){return c.content_type==='worksheet';}));
 }
@@ -5762,6 +5763,38 @@ function _wsLoadLibs_(){
   return _wsLibP;
 }
 function _wsDark_(){return document.documentElement.getAttribute('data-theme')==='dark';}
+/* ===== ぐるぐる（数学）の #pv=（先生用プレビュー）2026-11-03 本番係 段4（決まり §0c 解説の決まり 24）=====
+   いまは #pv= のときだけ開く（openGgPv_ を呼ぶのは _pvStart_ だけ）。タブ・ナビ・ホーム・学習マップ・毎日学習には出していない（差しかえる予定のワークシートをまだ使っている子がいるため）。
+   先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
+   部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
+   中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
+var GG_LIB_V='20261103b',_ggLibP=null,_ggApi=null;
+function _ggLoadLibs_(){
+  if(_ggLibP)return _ggLibP;
+  var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
+  _ggLibP=_wsLoadLibs_().then(function(){return js('guru/gg_fig.js');}).then(function(){return js('guru/gg_load.js');}).then(function(){return js('guru/gg_app.js');}).then(function(){return js('guru/gg_shell.js');});
+  _ggLibP.catch(function(){_ggLibP=null;});
+  return _ggLibP;
+}
+function openGgPv_(mid,startPid){
+  var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
+  $('ws-ttl').textContent='プレビュー';
+  host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
+  ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;_wsDirect=false;
+  if(_ggApi){try{_ggApi.destroy();}catch(e0){}_ggApi=null;}
+  Promise.all([_ggLoadLibs_(),call({action:'gg_unit',material_id:mid})]).then(function(r){
+    var d=r[1];
+    if(!d||!d.ok||!d.data){host.innerHTML='<div class="pointcard" style="font-size:13px;line-height:1.9">この教材を開けませんでした。<br>いまログインしているアカウントに、この ぐるぐるの教材が割り当てられているか確かめてください。'+((d&&d.error)?'<br><br>'+esc(d.error):'')+'<br><br><code style="font-size:11px;color:#888">'+esc(String(startPid||''))+'</code></div>';return;}
+    var GG=ggBuildData({materials:d.data.materials||[],parts:d.data.parts||[],words:[]},{lazy:true});
+    host.innerHTML='';var root=document.createElement('div');root.className='gg-root';root.style.paddingBottom='70px';root.style.position='relative';host.appendChild(root);
+    var g0=(GG.units[0]&&GG.units[0].grade)||'';
+    _ggApi=ggShellMount(root,GG,{preview:true,katexCss:'ws/katex/katex.min.css',dark:_wsDark_(),grade:g0,imgBase:'guru/',libV:GG_LIB_V,
+      loadParts:function(ids,o){return call({action:'gg_unit_part',part_ids:ids,backs:(o&&o.backs===false)?'':'1'}).then(function(x){if(!x||!x.ok)throw new Error((x&&x.error)||'問題を読めませんでした');return (x.data&&x.data.words)||[];});}});
+    /* #pv= の行が回（RD）・章まとめテスト（CT）ならその回を、表紙・類題の行ならそのパートを開く */
+    var m=GG.pid&&GG.pid[String(startPid||'')];
+    if(m){if(m.k==='CT')_ggApi.openCt(m.pid,m.r);else if(m.k==='RD')_ggApi.open(m.pid,m.r);else if(GG.parts.some(function(p){return p.id===m.pid;}))_ggApi.open(m.pid);}
+  }).catch(function(e){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';try{console.log(e);}catch(e2){}});
+}
 /* テストの最後の回の記録：この画面で送ったばかりのもの（_wsTL）がサーバーの返事より新しければ、そちらを使う */
 function _wsTState_(T,tests){if(!T)return null;var pid=String(T.part_id),sv=tests[pid]&&tests[pid].state,lc=_wsTL[pid]&&_wsTL[pid].state;
   if(lc&&(!sv||String(sv.at)!==String(lc.at)))return lc;
@@ -6072,11 +6105,11 @@ function loadHomeData_(showSkel){
       try{_buildPartIdx_(_mpAll);}catch(e){} // 中断カード・確認モーダルに出す「教科 パート名」の索引 2026-08-20
       /* 確認テスト一覧の「練習ずみ／まだ練習していない」はこの索引が要る。quiz_list が先に描き終わっていたら描き直す 2026-08-20 */
       try{if(_unitSeg===2&&typeof renderQuiz==='function')renderQuiz();}catch(e){}
-      _dailyCompletedMains=_mpAll.filter(function(c){return c.content_type!=='test'&&c.content_type!=='worksheet'&&String(c.sm_status)==='completed';}); /* ワークシートは毎日学習の完走に入れない 2026-10-17 */
+      _dailyCompletedMains=_mpAll.filter(function(c){return c.content_type!=='test'&&c.content_type!=='worksheet'&&c.content_type!=='guruguru'&&String(c.sm_status)==='completed';}); /* ワークシートは毎日学習の完走に入れない 2026-10-17／2026-11-03 ぐるぐるも */
       if(_dailyMain)renderDailyList_(_dailyMain); // studentHome先着でも後着でも完走セクションを反映
     }catch(e){}
     if(!d.ok){$('review-area').innerHTML='<p class="muted">—</p>';return;}
-    var cs=(d.data.materials||[]).filter(function(c){return c.content_type!=='worksheet';}); /* 学習マップに単元ワークシートは出さない（ワークシートのタブに出す）2026-10-17 */
+    var cs=(d.data.materials||[]).filter(function(c){return c.content_type!=='worksheet'&&c.content_type!=='guruguru';}); /* 学習マップに単元ワークシートは出さない（ワークシートのタブに出す）2026-10-17／2026-11-03 ぐるぐるも出さない */
     if(!cs.length){$('review-area').innerHTML='<p class="muted">まだ<ruby>教材<rt class="uf">きょうざい</rt></ruby>がありません。</p>';return;}
     $('review-area').innerHTML='';
     // 学習マップ アコーディオン（A案・既定全畳み・川上さん確定 2026-07-08：2教材以上でも各教材カードが上に並び、2つ目が埋もれない）
@@ -11664,7 +11697,7 @@ function finishSession(){var s=session;if(s&&s.quizMode){return finishQuizSubmit
        生徒が先に進んでいても実行する（画面ではなく端末の覚えを直すだけ）2026-09-02 */
     try{if(d.data&&d.data.next_part_id)bootPartsAdvance_(s.listId,d.data.next_part_id);}catch(eBa){}
     /* 保存が届いた回だけ「今日終えた」と端末に覚えさせる。ホームに戻ったとき保存の返事を待たずに出せる 2026-09-03 */
-    try{if(s.content_type!=='test'&&s.content_type!=='worksheet')clearedTodayAdd_(s.listId,(d.data&&d.data.next_part_id)||'');}catch(eCt){}
+    try{if(s.content_type!=='test'&&s.content_type!=='worksheet'&&s.content_type!=='guruguru')clearedTodayAdd_(s.listId,(d.data&&d.data.next_part_id)||'');}catch(eCt){}   /* 2026-11-03 ぐるぐるは毎日学習のクリアに数えない */
     homeCacheRenew_();/* 完了時にホームキャッシュ無効化→裏で取り直して入れておく（案A 2026-07-08・2026-10-20 取り直しを足した）*/
     /* 高速化 2026-07-15：今日のがんばり集計＋word_statsは保存(session_complete)の待ちから外し、
        完了後に complete_extras を裏で取得してチップを出す。保存本体はこの前に確定済み＝失敗しても学習データは無事。 */
@@ -12744,6 +12777,7 @@ function _pvStart_(){
   show('scr-practice');
   try{showPracticeLoading_();}catch(e){}
   call({action:'student_today',part_id:_PV_.pid}).then(function(d){
+    if(d&&d.ok&&d.data&&d.data.content_type==='guruguru'&&d.data.material_id){openGgPv_(d.data.material_id,_PV_.pid);return;} /* 2026-11-03 ぐるぐる＝gg_shell.js で開く（問題は返ってこないので、words の数を見る前に分ける） */
     if(!d||!d.ok||!d.data||!(d.data.words||[]).length){
       var er=String((d&&d.error)||'');
       if(er.indexOf('ログイン')>=0){ _PV_.started=false; try{show('scr-login');}catch(e){} return; }  /* 入り直せばまた開く。画面を壊さない */
