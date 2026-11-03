@@ -2,18 +2,21 @@
    ws_load.js の wsBuildUnit に当たる。2026-11-02 本番係。行は tools\gg_export.js が作る形（description の JSON は {"gg":{k,…}}）。
    使い方：var GG=ggBuildData(rows, {fig:true})
      rows＝{materials:[…], parts:[…], words:[…]}（何単元でも）か、ws_unit の返事と同じ形 {material:{…}, parts:[…], words:[…]}（1単元）
-     返り＝{units:[{key,mid,grade,unit,ui,parts:[{id,no,name,ready,cu}]}], parts:[パート], ny:[入試パターン], cts:[章まとめテスト], pid:{パートの行の id → {k,pid,r}}}
+     返り＝{units:[{key,mid,grade,unit,ui,parts:[{id,no,name,ready,cu,imp}]}], parts:[パート], ny:[入試パターン], cts:[章まとめテスト], pid:{パートの行の id → {k,pid,r}}}
        パート＝{id, ready:true, grade, unit, ui, no, name, catch, cover, types, kiso, rounds:{A1:[問題],…,C2}, rui:{a1:[問題],…}, nq:[小問の数×6], ny?, rowIds:{A1:'gg_m1u4p1_A1',…,RU:'…'}}
        章まとめテスト＝{id, grade, ukey, unit, ui, kind, rng, upto, name, ut, after, rounds:{A1:TEST,…}, rowIds:{A1:'gg_ctm1u4k_A1',…}}
      opt.fig＝true（省いたとき）なら、図の印（⟦F:…⟧）を MathFig.data で描いた形にして返す。先に ws\math_fig.js・guru\gg_fig.js を読んでおく
      opt.lazy＝true：words が無くても（parts の行だけで）一覧を作る（2026-11-02 段3・先生のプレビューを速くする）。回の行（RD）が6つそろったパートを「問題あり」にし、
        問題は空のまま（p.rounds={}・章まとめは c.rounds[R].items=null）。あとで ggFillWords(GG, words) で、読んだパートの分だけ入れる
    ggFillWords(GG, words, opt)：words（回・類題・章まとめ・図の行）を GG の中の該当するパート・テストに入れる。返り＝入れた行の id（parts の行）の一覧。opt.fig は ggBuildData と同じ
+   重要マーク ◆（2026-11-03 ぐるぐる）：表紙の行・章まとめテストの行の description の gg.imp（gg_export.js が ◆ の行に "imp":1 を入れる）か、行の important 列が「◆」なら imp:true。
+     units[].parts[].imp・parts[].imp・cts[].imp に入る。入試パターンは ◆ なし（imp を見ない）
    図の行（qtype ws_gg_fig）：大きい問題の SVG を別の行にしたもの。MathFig.ns.ggref.S(md5の頭12字) で引けるようにしてから描く */
 (function(G){
 var RS=['A1','A2','B1','B2','C1','C2'];
 function jp(s,d){try{var v=JSON.parse(String(s==null?'':s));return v==null?d:v;}catch(e){return d;}}
 function ggDesc_(pt){var d=jp(pt.description,null);return d&&d.gg?d.gg:null;}
+function ggImp_(d,pt){return !!(d&&d.imp)||String(pt&&pt.important||'').trim()==='\u25c6';}   /* 2026-11-03 ぐるぐる 重要マーク ◆ */
 function ggQ_(w){var q=jp(w.qdata,null);if(q&&typeof q==='object'&&w.id!=null)Object.defineProperty(q,'wid',{value:String(w.id),enumerable:false});return q;}
 var NQ=function(items){return items.reduce(function(s,it){return s+(it&&it.ren?it.steps.length:1);},0);};
 function ggBuildData(rows,opt){
@@ -33,13 +36,13 @@ function ggBuildData(rows,opt){
       if(d.k==='CV'){
         if(d.kind==='ny'){var q={id:d.pid,no:d.ny.no,grade:d.grade,name:d.name,field:d.ny.field,after:d.ny.after,after_ui:d.ny.after_ui,after_pi:d.ny.after_pi,ready:!!d.ready};out.ny.push(q);}
         else{if(!u){u={key:d.grade+'_'+d.unit,mid:m.id,grade:d.grade,unit:d.unit,ui:d.ui,parts:[]};out.units.push(u);}
-          u.parts.push({id:d.pid,no:d.pi,name:d.name,ready:!!d.ready,cu:d.cu||{},pre:d.pid});}
+          u.parts.push({id:d.pid,no:d.pi,name:d.name,ready:!!d.ready,cu:d.cu||{},pre:d.pid,imp:ggImp_(d,pt)});}
         if(d.ready){var x=P[d.pid]={id:d.pid,ready:true,grade:d.grade,unit:d.unit,ui:d.ui||0,no:d.kind==='ny'?d.ny.no:d.pi,name:d.name,catch:d.catch||'',cover:d.cover||[],types:d.types||{},kiso:d.kiso||{},meta_name:d.meta_name||'',rounds:{},rui:{},rowIds:{CV:String(pt.id)},point:{sections:[]}};
-          if(d.kind==='ny')x.ny=true;out.parts.push(x);}
+          if(d.kind==='ny')x.ny=true;else x.imp=ggImp_(d,pt);out.parts.push(x);}
         return;}
       if(d.k==='RD'){var p=P[d.pid];if(!p)return;p.rowIds[d.r]=String(pt.id);(p.nqR=p.nqR||{})[d.r]=+d.nq||0;if(!LZ)p.rounds[d.r]=qs(pt.id,'ws_gg_q');return;}
       if(d.k==='RU'){var p2=P[d.pid];if(!p2)return;p2.rowIds.RU=String(pt.id);if(!LZ)ruiPut_(p2,qs(pt.id,'ws_gg_rui'));return;}
-      if(d.k==='CT'){var c=CT[d.ct];if(!c){c=CT[d.ct]={id:d.ct,grade:d.grade,ukey:d.grade+'_'+d.unit,unit:d.unit,ui:d.ui,kind:d.kind,rng:d.rng,upto:d.upto,name:d.name,ut:d.ut,after:d.after,rounds:{},rowIds:{}};out.cts.push(c);}
+      if(d.k==='CT'){var c=CT[d.ct];if(!c){c=CT[d.ct]={id:d.ct,grade:d.grade,ukey:d.grade+'_'+d.unit,unit:d.unit,ui:d.ui,kind:d.kind,rng:d.rng,upto:d.upto,name:d.name,ut:d.ut,after:d.after,rounds:{},rowIds:{},imp:false};out.cts.push(c);}if(ggImp_(d,pt))c.imp=true;
         var T={};Object.keys(d.test||{}).forEach(function(k){T[k]=d.test[k];});T.nq=+d.nq||0;T.items=LZ?null:qs(pt.id,'ws_gg_ct');c.rounds[d.r]=T;c.rowIds[d.r]=String(pt.id);return;}
     });
   });
