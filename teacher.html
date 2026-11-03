@@ -2949,7 +2949,7 @@ function hideLoading(){var el=$('loadingOverlay');if(el)el.classList.remove('sho
    ・書く action … doGet の返事・JSONでない返事は取り直さない（書けたか分からない＝二重に書くのを防ぐ）。ok:false で「読み込み直して確かめて」。
      通信の失敗（fetch が失敗）は、いままでどおり取り直す（2026-09-16c では変えていない）。
    ★action を足したら、読むだけなら CALL_READ_RE_ に足す（単体テスト 20260916c が分類漏れを見張る）。 */
-var CALL_READ_RE_=/^(dashboard|teacher_mistakes|teacher_login|abandon_summary|material_preview|materials_list|assignment_list|teams_list|notice_list|bug_list|quiz_board|quiz_delivery_dates|quiz_student_dates|report_sets_get|alert_config_get|cheer_config_get|rate_config_get)$/;
+var CALL_READ_RE_=/^(dashboard|teacher_mistakes|teacher_login|abandon_summary|material_preview|gg_preview_part|materials_list|assignment_list|teams_list|notice_list|bug_list|quiz_board|quiz_delivery_dates|quiz_student_dates|report_sets_get|alert_config_get|cheer_config_get|rate_config_get)$/;
 var CALL_BUSY_MSG_='サーバーが混み合っています。少し待ってから、もう一度お試しください。';
 var CALL_UNSURE_MSG_='サーバーの返事を受け取れませんでした。保存できたか分からないので、画面を読み込み直して確かめてください。';
 function _callIsGetEcho_(d){ return !!(d&&d.ok===true&&d.data&&typeof d.data==='object'&&d.data.method==='GET'&&d.data.service); }
@@ -6816,8 +6816,10 @@ function _wsLoadLibs_(){
    先生のプレビュー（preview:true＝記録しない・全部の回を開ける・上の帯の［確かめる］で1パートの全問の問題・選択肢・正解・解説）で出す。
    生徒には出さない（割り当ては作れない＝GAS が断る・student.html は変えていない）。問題はここでは直さない（作る道具で直してシートに入れ直す）。
    部品は初めて開いたときだけ読む：KaTeX → ws/math_fig.js →（ワークシートの部品）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js。
-   ノートの書き方の絵は guru/img/gg/*.svg（画面に出たときに読む）。部品を直したら GG_LIB_V を上げる */
-var GG_LIB_V='20261102a',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false;
+   ノートの書き方の絵は guru/img/gg/*.svg（画面に出たときに読む）。部品を直したら GG_LIB_V を上げる
+   2026-11-02 段3 速くした：開いたときは［中身］の最初の material_preview の返事（ぐるぐるは words を読まない＝parts の行と表紙の説明だけ）で一覧を出す（ggBuildData の lazy）。
+   回・［確かめる］・章まとめを開いたときに、そのパートの行だけ gg_preview_part で読む（gg_shell.js の opt.loadParts → ggFillWords）。読んだパートはこの窓を閉じるまで覚えておく */
+var GG_LIB_V='20261102c',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false;
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -6833,18 +6835,22 @@ function mpGgMount_(){
   if(!_ggData.parts.length&&!_ggData.cts.length){var n=document.createElement('div');n.style.cssText='padding:10px 14px 0;color:var(--text-muted);font-size:13px;';n.textContent='この単元は、まだ問題が入っていません（パートの名前だけ）。';b.appendChild(n);}
   var root=document.createElement('div');root.style.paddingBottom='70px';root.style.position='relative';b.appendChild(root);   /* relative＝中の position:absolute（KaTeX の MathML など）を #mpBody の中に収める。無いと窓（.modal）ごと縦に伸びて上の帯が隠れる */
   var g0=(_ggData.units[0]&&_ggData.units[0].grade)||'';
-  _ggApi=ggShellMount(root,_ggData,{preview:true,katexCss:'ws/katex/katex.min.css',dark:_ggDark,grade:g0,imgBase:'guru/',libV:GG_LIB_V});
+  _ggApi=ggShellMount(root,_ggData,{preview:true,katexCss:'ws/katex/katex.min.css',dark:_ggDark,grade:g0,imgBase:'guru/',libV:GG_LIB_V,loadParts:_ggLoadParts_});
 }
-function mpGgPreview_(mid){
+function _ggLoadParts_(ids,o){   /* gg_shell.js から：パートの行 id の配列 → words の行（章まとめの「類題へ戻る所」の類題の行も GAS が足して返す）*/
+  return call({action:'gg_preview_part',part_ids:ids,backs:(o&&o.backs===false)?'':'1'}).then(function(d){if(!d||!d.ok)throw new Error((d&&d.error)||'問題を読めませんでした');return d.data.words||[];});
+}
+function mpGgPreview_(mid,dt0){
   var tb=$('mpToolbar');if(tb)tb.innerHTML='<span class="mp-ggnote">ぐるぐる：生徒には出していません。左の一覧で回を選ぶと解く画面、［確かめる］で1パートの全問（問題・選択肢・正解・解説）。記録はしません。問題はここでは直せません。</span>'
     +'<label class="mp-ggdk"><input type="checkbox" id="mpGgDark"'+(_ggDark?' checked':'')+' onchange="_ggDark=this.checked;mpGgMount_();">暗い画面で見る</label>';
-  $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…（大きい単元は数秒かかります）</div>';
+  $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
   _ggDestroy_();_ggData=null;
-  Promise.all([_ggLoadLibs_(),call({action:'material_preview',material_id:mid,with_qdata:'1'})]).then(function(r){
+  var _pv0=(dt0&&dt0.parts)?Promise.resolve({ok:true,data:dt0}):call({action:'material_preview',material_id:mid,parts_only:'1'});   /* 2026-11-02 段3 問題（words）はここでは読まない */
+  Promise.all([_ggLoadLibs_(),_pv0]).then(function(r){
     var d=r[1];if(!d||!d.ok||!d.data){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
     if(String(_mpMid)!==String(mid))return;   /* 読み込み中にほかの教材を開いた */
     var R=_wsRowsFromPreview_(d.data);
-    _ggData=ggBuildData({material:R.mat,parts:R.parts,words:R.words});
+    _ggData=ggBuildData({material:R.mat,parts:R.parts,words:R.words},{lazy:true});   /* 2026-11-02 段3 一覧だけ。問題は開いたときに読む */
     mpGgMount_();
   }).catch(function(e){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">数式・図・ぐるぐるの部品を読めませんでした（'+esc(String(e&&e.message||e))+'）</div>';});
 }
@@ -6881,7 +6887,7 @@ function openMatPreview(mid){
     if(!d||!d.ok){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
     var dt=d.data;
     if(dt&&dt.content_type==='worksheet'){$('mpTitle').textContent=esc(mtLabel(dt)||'教材の中身');mpWsPreview_(mid,dt);return;} /* 単元ワークシート＝生徒の画面と同じ形で見る 2026-10-17 */
-    if(_isGgMat_(dt)){$('mpTitle').textContent=esc(mtLabel(dt)||'教材の中身');mpGgPreview_(mid);return;} /* ぐるぐる＝外側（左の一覧）ごと先生のプレビューで見る 2026-11-02 */
+    if(_isGgMat_(dt)){$('mpTitle').textContent=esc(mtLabel(dt)||'教材の中身');mpGgPreview_(mid,dt);return;} /* ぐるぐる＝外側（左の一覧）ごと先生のプレビューで見る 2026-11-02 */
     var _isEng=(dt&&dt.subject==='english'); // 英→日教材＝選択肢の誤答(choices_ja)をインライン編集 2026-07-28
     _mpAssets=dt.assets||{};
     $('mpTitle').textContent=esc(mtLabel(dt)||'教材の中身');
