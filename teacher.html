@@ -1236,7 +1236,16 @@
   #pvCard{background:#fff;border-radius:14px;padding:10px;box-shadow:0 12px 44px rgba(0,0,0,.35);max-height:calc(100vh - 20px);display:flex;flex-direction:column;min-height:0;}
   /* 画面（iframe）を出すときだけ高さを持たせる。持たせないと iframe が既定の150pxに縮む。
      QRのときは中身なりの高さでよいので付けない */
-  #pvCard.pv-frame{height:min(820px,calc(100vh - 20px));}
+  #pvCard.pv-frame{height:calc(100vh - 20px);display:grid;grid-template-columns:auto 240px;grid-template-rows:auto minmax(0,1fr);column-gap:12px;}   /* 2026-11-04 高さは画面いっぱい・説明は右の列 */
+  #pvCard.pv-frame .pvh{grid-column:1/-1;}
+  #pvCard.pv-frame iframe{grid-column:1;grid-row:2;height:100%;align-self:start;}
+  #pvCard.pv-frame[data-dev="phone"] iframe{width:390px;max-height:844px;}
+  #pvCard.pv-frame[data-dev="tab"] iframe{width:820px;max-width:calc(100vw - 300px);max-height:1180px;}
+  #pvCard.pv-frame .pvnote{grid-column:2;grid-row:2;margin-top:0;max-width:none;overflow:auto;}
+  #pvCard .pvdev{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-left:8px;}
+  #pvCard .pvdev button{border:0;background:#fff;font:inherit;font-size:12px;font-weight:700;padding:4px 10px;cursor:pointer;color:var(--text-muted);}
+  #pvCard .pvdev button+button{border-left:1px solid var(--border);}
+  #pvCard[data-dev="phone"] .pvdev button[data-dv="phone"],#pvCard[data-dev="tab"] .pvdev button[data-dv="tab"]{background:#1d2230;color:#fff;}
   #pvCard .pvh{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px;font-weight:800;color:var(--text);flex:none;}
   #pvCard .pvh .pvx{margin-left:auto;border:0;background:#eef2f7;border-radius:8px;padding:5px 11px;font:inherit;font-weight:700;cursor:pointer;}
   #pvCard iframe{width:390px;flex:1 1 auto;min-height:0;height:auto;border:1px solid var(--line,#dbe3ee);border-radius:12px;background:#fff;display:block;}
@@ -1290,7 +1299,19 @@
   .mp-st{flex:none;font-size:11px;font-weight:700;min-width:16px;margin-top:3px;color:#64748b;}
   .mp-ro-note{font-size:11px;color:#94a3b8;font-style:normal;}
   .mp-q .qb{font-size:10px;font-weight:800;border-radius:6px;padding:1px 6px;flex-shrink:0;margin-top:3px;}
-  #matPreviewModal .modal{max-width:960px;width:96vw;height:95vh;max-height:95vh;display:flex;flex-direction:column;position:relative;}
+  /* 2026-11-04 01:00 川上さん：教材の［中身］の窓は画面いっぱい（下の 64px はプレビューの黒いバーの分＝窓の下の［閉じる］が隠れない）。説明は右の列（.mp-side）。上は題名と帯だけ、残りの高さは全部 .mp-body（問題の画面） */
+  #matPreviewModal .modal{max-width:none;width:calc(100vw - 20px);height:calc(100vh - 74px);max-height:none;align-self:flex-start;margin-top:10px;display:grid;grid-template-columns:minmax(0,1fr) 260px;grid-template-rows:auto auto minmax(0,1fr);column-gap:14px;position:relative;padding:12px 16px 10px;}
+  #matPreviewModal .modal:has(#mpSide:empty){grid-template-columns:minmax(0,1fr) auto;}
+  #matPreviewModal .mp-head{grid-column:1/-1;grid-row:1;}
+  #matPreviewModal .mp-toolbar{grid-column:1;grid-row:2;}
+  #matPreviewModal .mp-toolbar:empty{display:none;}
+  #matPreviewModal .mp-body{grid-column:1;grid-row:3;}
+  #matPreviewModal .mp-side{grid-column:2;grid-row:2/4;min-height:0;overflow:auto;font-size:12px;line-height:1.6;color:var(--text-muted);border-left:1px solid var(--border);padding:4px 0 48px 12px;}
+  #matPreviewModal .mp-side:empty{display:none;}
+  #matPreviewModal .mp-side b{color:var(--text);}
+  #matPreviewModal .mp-side p{margin:0 0 8px;}
+  #matPreviewModal .modal-actions{grid-column:2;grid-row:3;align-self:end;justify-self:end;margin:0;position:relative;z-index:1;}   /* 閉じるは右の列の下（下に空きの行を作らない） */
+  #matPreviewModal.mp-ro-off .mp-ro{display:none;}   /* ワークシート・ぐるぐるは直せないので「クリックで編集」を出さない */
   .mp-fig{margin:4px 0 8px 32px;}
   .mp-fig img{max-height:160px;width:auto;max-width:100%;border:1px solid var(--border);border-radius:8px;display:block;background:#fff;cursor:zoom-in;}
   .mp-fig .zoomhint{font-size:10.5px;color:var(--accent);font-weight:700;margin-top:2px;}
@@ -2600,6 +2621,7 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
     <div class="mp-head"><h3 id="mpTitle">教材の中身</h3><span class="mp-ro">（クリックで編集・自動保存）</span><button class="mp-srvbtn" id="mpSrvBtn" style="margin-left:auto;" onclick="mpServerCheck()" title="サーバー（スプレッドシート）の最新と、この画面の内容が一致しているか確認します">☁︎ サーバー確認</button></div>
     <div class="mp-toolbar" id="mpToolbar"></div>
     <div class="mp-body" id="mpBody"></div>
+    <div class="mp-side" id="mpSide"></div>   <!-- 2026-11-04 説明は横の列（問題の画面を狭くしない） -->
     <div class="modal-actions">
       <button class="btn-ghost" style="margin-left:auto;" onclick="closeModal('matPreviewModal')">閉じる</button>
     </div>
@@ -6710,10 +6732,14 @@ function mpQrSvg_(url,px){
     +'<rect width="'+side+'" height="'+side+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';
 }
 function mpPvClose_(){ var b=$('pvBack'); if(b){ b.classList.remove('show'); $('pvCard').classList.remove('pv-frame'); $('pvCard').innerHTML=''; } }
+/* 2026-11-04 生徒の画面で見る：端末の幅（スマホ＝390×844・タブレット＝820×1180）。高さは画面に入るだけ（入らない分は枠の中で上下に送る）。選んだ端末は覚える（kwt_pv_dev） */
+function mpPvDev_(d){var c=$('pvCard');if(!c)return;c.setAttribute('data-dev',d==='phone'?'phone':'tab');try{localStorage.setItem('kwt_pv_dev',d==='phone'?'phone':'tab');}catch(e){}}
 function mpPvOpen_(pid,title){
   var u=pvUrl_(pid);
   $('pvCard').classList.add('pv-frame');
+  var _dv='tab';try{_dv=localStorage.getItem('kwt_pv_dev')==='phone'?'phone':'tab';}catch(e){}$('pvCard').setAttribute('data-dev',_dv);   /* 2026-11-04 川上さん「スマホとタブレットを切り替え・一般的なサイズ」 */
   $('pvCard').innerHTML='<div class="pvh">'+esc(title||'')+' <span style="font-weight:600;color:#64748b">生徒の画面</span>'
+    +'<span class="pvdev"><button type="button" data-dv="phone" onclick="mpPvDev_(\'phone\')">スマホ（390×844）</button><button type="button" data-dv="tab" onclick="mpPvDev_(\'tab\')">タブレット（820×1180）</button></span>'
     +'<button class="pvx" type="button" onclick="mpPvClose_()">閉じる</button></div>'
     +'<iframe src="'+esc(u)+'" title="生徒の画面"></iframe>'
     +'<div class="pvnote">公開中の画面をそのまま開いています。ここで直した文章を見るときは、先に自動保存（✓）が出たのを確かめてから、枠を開き直してください。'
@@ -6881,6 +6907,18 @@ function _ggLoadLibs_(){
 }
 function _isGgMat_(m){return !!m&&String(m.content_type||'').trim()==='guruguru';}
 function _ggDestroy_(){if(_ggApi){try{_ggApi.destroy();}catch(e){}_ggApi=null;}}
+/* 2026-11-04 ダークモードの切り替え（川上さん 00:46「押すと画面がリセットされて未選択の状態になる」）：作り直す前に、開いていた回（state）・黒いバーで送っていた画面（cur）・「答え・解説を出す」を覚え、作り直したあと同じ所を開く */
+function _ggDarkSet_(v){
+  var st=(_ggApi&&_ggApi.state)?_ggApi.state():{},app=(_ggApi&&_ggApi.app)?_ggApi.app():null,cu=null,ans=null;
+  try{cu=app&&app.cur?JSON.parse(JSON.stringify(app.cur())):null;var cb=app&&app.sh&&app.sh.getElementById('pv-ans');if(cb)ans=cb.checked;}catch(e){}
+  _ggDark=!!v;mpGgMount_();
+  if(!_ggApi||!st.SEL)return;
+  try{if(st.VIEW==='ct')_ggApi.openCt(st.SEL,st.CUR_R);else if(st.VIEW==='ws')_ggApi.open(st.SEL,st.CUR_R);else return;}catch(e){return;}
+  var n=0,back=function(){var a=_ggApi&&_ggApi.app?_ggApi.app():null;if(!a||!a.SCR||!a.SCR.length){if(++n<30)setTimeout(back,100);return;}
+    try{if(ans!==null){var c=a.sh&&a.sh.getElementById('pv-ans');if(c&&c.checked!==ans){c.checked=ans;c.dispatchEvent(new Event('change',{bubbles:true}));}}
+      if(cu){var k=-1;a.SCR.forEach(function(x,i){if(k<0&&x.n===cu.n&&x.i===cu.i&&x.s===cu.s&&x.pt===cu.pt)k=i;});if(k>=0)a.pvGo(k);}}catch(e){}};
+  setTimeout(back,50);
+}
 function mpGgMount_(){
   if(!_ggData)return;_ggDestroy_();
   var b=$('mpBody');b.innerHTML='';
@@ -6910,9 +6948,9 @@ function _ggLoadParts_(ids,o){   /* gg_shell.js から：パートの行 id の�
 function mpGgPreview_(mid,dt0){
   /* 2026-11-03 ぐるぐる：［確かめる］の説明を外し、ワークシートと同じ説明に。［生徒の画面で見る］［QR］（#pv=）と、いま割り当てている子を出す */
   var _hs=(_holdersMap()[String(mid)]||[]).map(function(x){return x.name||x.nickname||'(無名)';});
-  var tb=$('mpToolbar');if(tb){tb.classList.add('mp-ggtb');tb.innerHTML='<span class="mp-ggnote">ぐるぐる：生徒と同じ形です。左の一覧で回を選ぶと解く画面。下の黒いバーの ◀ ▶ で1画面ずつ送れます（「答え・解説を出す」を外すと、生徒が解く前の画面）。記録はしません。問題はここでは直せません。'
-    +'<br>実機で見る：テスト用アカウントにこの教材を割り当てて［生徒の画面で見る］か［スマホで見る（QR）］。'+(_hs.length?'いま割り当てている子：'+esc(_hs.join('・')):'まだ誰にも割り当てていません。')+'</span>'
-    +'<div class="mp-ggrow"><button class="mp-pv mp-ggpr" type="button" id="mpGgPr" onclick="ggPrintOpen_()">🖨 ぐるぐる印刷</button>'+'<span class="mp-gggrp"><span class="mp-gglab">プレビュー</span><label class="mp-ggdk"><input type="checkbox" id="mpGgDark"'+(_ggDark?' checked':'')+' onchange="_ggDark=this.checked;mpGgMount_();">暗い画面（ダークモード）で見る</label><span class="mp-gglab">実機で見る</span><button class="mp-pv" type="button" id="mpGgPv" onclick="_ggPv_(0)">生徒の画面で見る</button><button class="mp-pv" type="button" onclick="_ggPv_(1)">スマホで見る（QR）</button></span></div>';}   /* 2026-11-03 23:56 川上さん「推奨で」：［ぐるぐる印刷］は左に離して置き、プレビューの見え方と実機で見る2つを1つの枠にまとめた */
+  var tb=$('mpToolbar');if(tb){tb.classList.add('mp-ggtb');var sd=$('mpSide');if(sd)sd.innerHTML='<p><b>ぐるぐる</b>：生徒と同じ形です。左の一覧で回を選ぶと解く画面。下の黒いバーの ◀ ▶ で1画面ずつ送れます（「答え・解説を出す」を外すと、生徒が解く前の画面）。記録はしません。問題はここでは直せません。'
+    +'</p><p><b>実機で見る</b>：テスト用アカウントにこの教材を割り当てて［生徒の画面で見る］か［スマホで見る（QR）］。'+(_hs.length?'いま割り当てている子：'+esc(_hs.join('・')):'まだ誰にも割り当てていません。')+'</p>';$('matPreviewModal').classList.add('mp-ro-off');   /* 2026-11-04 説明は横の列へ */
+    tb.innerHTML='<div class="mp-ggrow"><button class="mp-pv mp-ggpr" type="button" id="mpGgPr" onclick="ggPrintOpen_()">🖨 ぐるぐる印刷</button>'+'<span class="mp-gggrp"><span class="mp-gglab">プレビュー</span><label class="mp-ggdk"><input type="checkbox" id="mpGgDark"'+(_ggDark?' checked':'')+' onchange="_ggDarkSet_(this.checked)">暗い画面（ダークモード）で見る</label><span class="mp-gglab">実機で見る</span><button class="mp-pv" type="button" id="mpGgPv" onclick="_ggPv_(0)">生徒の画面で見る</button><button class="mp-pv" type="button" onclick="_ggPv_(1)">スマホで見る（QR）</button></span></div>';}   /* 2026-11-03 23:56 川上さん「推奨で」：［ぐるぐる印刷］は左に離して置き、プレビューの見え方と実機で見る2つを1つの枠にまとめた */
   $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
   _ggDestroy_();_ggData=null;_ggRow0='';_ggMid=String(mid);
   var _pv0=(dt0&&dt0.parts)?Promise.resolve({ok:true,data:dt0}):call({action:'material_preview',material_id:mid,parts_only:'1'});   /* 2026-11-02 段3 問題（words）はここでは読まない */
@@ -7103,7 +7141,7 @@ function _wsRowsFromPreview_(dt){
   return {mat:mat,parts:parts,words:words};
 }
 function mpWsPreview_(mid,dt0,startPid){
-  var tb=$('mpToolbar');if(tb)tb.innerHTML='<span class="mp-count">ワークシート：生徒の画面と同じ形です。下の黒いバーの ◀ ▶ で1画面ずつ送れます（「答え・解説を出す」を外すと、生徒が解く前の画面）。問題はここでは直せません。</span>';
+  var tb=$('mpToolbar');if(tb)tb.innerHTML='';var sd=$('mpSide');if(sd)sd.innerHTML='<p>ワークシート：生徒の画面と同じ形です。下の黒いバーの ◀ ▶ で1画面ずつ送れます（「答え・解説を出す」を外すと、生徒が解く前の画面）。問題はここでは直せません。</p>';$('matPreviewModal').classList.add('mp-ro-off');   /* 2026-11-04 説明は横の列へ */
   $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';
   Promise.all([_wsLoadLibs_(),call({action:'material_preview',material_id:mid,with_qdata:'1'})]).then(function(r){
     var d=r[1];if(!d||!d.ok||!d.data){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
@@ -7119,7 +7157,7 @@ function openMatPreview(mid){
   _mpMid=String(mid||''); // サーバー確認で再取得する教材ID
   _ggDestroy_();   /* 前に開いたぐるぐるのプレビューを片づける 2026-11-02 */
   $('mpTitle').textContent='教材の中身';
-  $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';var _tbld=$('mpToolbar');if(_tbld){_tbld.innerHTML='';_tbld.classList.remove('mp-ggtb');}   /* 2026-11-03 ぐるぐるの帯の折り返しを戻す */
+  $('mpBody').innerHTML='<div style="padding:14px;color:#94a3b8;font-size:13px;">読み込み中…</div>';var _tbld=$('mpToolbar');if(_tbld){_tbld.innerHTML='';_tbld.classList.remove('mp-ggtb');}var _sdld=$('mpSide');if(_sdld)_sdld.innerHTML='';$('matPreviewModal').classList.remove('mp-ro-off');   /* 2026-11-04 */   /* 2026-11-03 ぐるぐるの帯の折り返しを戻す */
   $('matPreviewModal').classList.add('show');
   call({action:'material_preview',material_id:mid}).then(function(d){
     if(!d||!d.ok){$('mpBody').innerHTML='<div style="color:var(--crimson);font-size:13px;padding:10px;">取得に失敗しました'+(d&&d.error?'（'+esc(d.error)+'）':'')+'</div>';return;}
