@@ -207,6 +207,90 @@ function TBL(rows){return `<table class="tb inc">${rows.map(r=>`<tr>${r.map((c,j
 return {ANG,LINES3,PARPERP,DIST,BISECT,PERP,HEIGHT,TRI60,SEG,TBL};})();
 return {"M1U6P1_ZU_ANG":(...a)=>M1U6P1_ZU.ANG(...a),"M1U6P1_ZU_TBL":(...a)=>M1U6P1_ZU.TBL(...a),"M1U6P1_ZU_LINES3":(...a)=>M1U6P1_ZU.LINES3(...a),"M1U6P1_ZU_PARPERP":(...a)=>M1U6P1_ZU.PARPERP(...a),"M1U6P1_ZU_DIST":(...a)=>M1U6P1_ZU.DIST(...a),"M1U6P1_ZU_BISECT":(...a)=>M1U6P1_ZU.BISECT(...a),"M1U6P1_ZU_PERP":(...a)=>M1U6P1_ZU.PERP(...a),"M1U6P1_ZU_HEIGHT":(...a)=>M1U6P1_ZU.HEIGHT(...a),"M1U6P1_ZU_SEG":(...a)=>M1U6P1_ZU.SEG(...a),"M1U6P1_ZU_TRI60":(...a)=>M1U6P1_ZU.TRI60(...a)};
 })();
+NS["gg_m2n12"]=(function(){
+const M2N12_ZU=(()=>{
+ const RED='#c2410c',BLU='#005AFF',ON='#FFD9C4',GR='#6b7280',SH='stroke="#fff" stroke-width="4" paint-order="stroke"';
+ const n_=v=>{let s=(Math.round(v*10)/10).toFixed(1);s=s.replace(/\.0$/,'');return s==='-0'?'0':s;};
+ const TX=(x,y,t,o)=>{o=o||{};return `<text x="${n_(x)}" y="${n_(y)}" text-anchor="${o.a||'middle'}" font-size="${o.fs||13}" font-weight="bold"${o.it?' font-style="italic"':''} fill="${o.c||'#111'}"${o.halo?' '+SH:''}>${t}</text>`;};
+ /* T({t:[6つの文字列。1行＝大きいさいころの目 a、空白で区切った6つ＝小さいさいころの目 b＝1〜6 のマスの字], on:[6つの '0'/'1' の文字列], cw:マスの幅, note:'表の上に書く説明'})
+    色のマス＝淡い朱の地・朱の太いわく・字は黒。ほかのマスの字は灰色。字のないマスで色のあるマスには ○。rect に data-ab="a,b" と class="on" を付ける（確かめ用） */
+ const T=(o)=>{
+  const cw=o.cw||34,ch=26,hw=34,top=o.note?22:4,left=4;
+  const W=left+hw+6*cw+4,H=top+ch*7+4;
+  const out=[`<svg class="gr" viewBox="0 0 ${n_(W)} ${n_(H)}" width="${n_(W)}" height="${n_(H)}" role="img" aria-label="2つのさいころの目の表">`];
+  if(o.note)out.push(TX(left,15,o.note,{a:'start',fs:12}));
+  const x0=left,y0=top;
+  out.push(`<rect x="${x0}" y="${y0}" width="${hw}" height="${ch}" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/>`);
+  out.push(TX(x0+hw/2,y0+17,'a＼b',{fs:11}));
+  for(let j=0;j<6;j++){out.push(`<rect x="${n_(x0+hw+j*cw)}" y="${y0}" width="${cw}" height="${ch}" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/>`);out.push(TX(x0+hw+j*cw+cw/2,y0+18,String(j+1),{fs:13}));}
+  for(let i=0;i<6;i++){out.push(`<rect x="${x0}" y="${n_(y0+(i+1)*ch)}" width="${hw}" height="${ch}" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/>`);out.push(TX(x0+hw/2,y0+(i+1)*ch+18,String(i+1),{fs:13}));}
+  const tt=(o.t||[]).map(r=>r.split(' ')),on=o.on||[];
+  const cells=[],hi=[];
+  for(let i=0;i<6;i++)for(let j=0;j<6;j++){
+   const v=(tt[i]&&tt[i][j]!=null)?tt[i][j]:'';const isOn=on[i]&&on[i][j]==='1';
+   const x=x0+hw+j*cw,y=y0+(i+1)*ch;
+   const r=`<rect x="${n_(x)}" y="${n_(y)}" width="${cw}" height="${ch}" fill="${isOn?ON:'#fff'}" stroke="${isOn?RED:'#9ca3af'}" stroke-width="${isOn?2:1}" data-ab="${i+1},${j+1}"${isOn?' class="on"':''}/>`;
+   const sv=v==='_'?'':v;const t=sv!==''?TX(x+cw/2,y+18,sv,{fs:sv.length>=4?11:12,c:isOn?'#111':GR}):(isOn?TX(x+cw/2,y+18,'○',{fs:13,c:RED}):'');
+   (isOn?hi:cells).push(r+t);}
+  out.push(...cells,...hi);
+  out.push('</svg>');return out.join('');};
+ /* カード1枚 */
+ const CARD=(x,y,num,st)=>{
+  const w=30,h=38;
+  if(st==='gone')return `<rect x="${n_(x)}" y="${n_(y)}" width="${w}" height="${h}" rx="4" fill="none" stroke="#9ca3af" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+  let s=`<rect x="${n_(x)}" y="${n_(y)}" width="${w}" height="${h}" rx="4" fill="#fff" stroke="#111" stroke-width="${st==='x'?1.2:1.6}"/>`+TX(x+w/2,y+25,String(num),{fs:16,c:st==='x'?GR:'#111'});
+  if(st==='x')s+=`<line x1="${n_(x+4)}" y1="${n_(y+5)}" x2="${n_(x+w-4)}" y2="${n_(y+h-5)}" stroke="${RED}" stroke-width="2.6" stroke-linecap="round"/><line x1="${n_(x+w-4)}" y1="${n_(y+5)}" x2="${n_(x+4)}" y2="${n_(y+h-5)}" stroke="${RED}" stroke-width="2.6" stroke-linecap="round"/>`;
+  return s;};
+ /* CARDS({n:6}) 問題の図：1〜n のカード */
+ const CARDS=(o)=>{const n=(o&&o.n)||6,W=n*36+8,H=48;
+  let s=`<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="カードの図">`;
+  for(let k=1;k<=n;k++)s+=CARD(4+(k-1)*36+3,5,k,'');
+  return s+'</svg>';};
+ /* STEP({rows:[{h:'見出し', gone:[前の操作までに取り除いたカード], x:[この操作で取り除くカード]}, …], end:'いちばん下の行の字'})
+    カード＝ふつう：黒のわく／この操作で取り除く：× の印／前に取り除いた：点線のわくだけ。行と行の間に下向きの矢印 */
+ const STEP=(o)=>{
+  const rows=o.rows,rh=80,W=o.w||300;let y=4;
+  const H=4+rows.length*rh+(o.end?22:0)-10;
+  let s=`<svg class="gr" viewBox="0 0 ${W} ${n_(H)}" width="${W}" height="${n_(H)}" role="img" aria-label="操作の手順の図">`;
+  rows.forEach((r,i)=>{
+   s+=TX(4,y+13,r.h,{a:'start',fs:12,c:i===0?'#111':(r.c||RED)});
+   for(let k=1;k<=6;k++){const st=(r.gone||[]).indexOf(k)>=0?'gone':((r.x||[]).indexOf(k)>=0?'x':'');s+=CARD(8+(k-1)*36,y+20,k,st);}
+   if(i<rows.length-1){const ax=23;s+=`<line x1="${ax}" y1="${y+61}" x2="${ax}" y2="${y+70}" stroke="#111" stroke-width="1.6"/><polygon points="${ax-5},${y+69} ${ax+5},${y+69} ${ax},${y+76}" fill="#111"/>`;}
+   y+=rh;});
+  y-=10;
+  if(o.end)s+=TX(4,y+12,o.end,{a:'start',fs:13});
+  return s+'</svg>';};
+ /* POLY({n:頂点の数, P:[動く数, 1＝反時計回り／-1＝時計回り], Q:[…], show:'start'（問題の図：A に P・Q と向きの矢印）|'end'（解説：動いた道すじと止まった頂点）, w})
+    頂点は A から反時計回りに A、B、C…。A はいちばん下 */
+ const POLY=(o)=>{
+  const n=o.n,W=o.w||250,H=W,cx=W/2,cy=H/2,R=W*0.25;
+  const ang=k=>-90+360*k/n;const pt=(k,r)=>[cx+(r||R)*Math.cos(ang(k)*Math.PI/180),cy-(r||R)*Math.sin(ang(k)*Math.PI/180)];
+  const L='ABCDEFGH';
+  let s=`<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="正多角形と点の動きの図">`;
+  s+=`<polygon points="${Array.from({length:n},(_,k)=>pt(k).map(n_).join(',')).join(' ')}" fill="none" stroke="#111" stroke-width="2"/>`;
+  for(let k=0;k<n;k++){const p=pt(k);s+=`<circle cx="${n_(p[0])}" cy="${n_(p[1])}" r="3" fill="#111"/>`;const q=pt(k,R-17);s+=TX(q[0],q[1]+5,L[k],{fs:14});}
+  const arcPath=(a0,a1,r0,r1)=>{const N=Math.max(8,Math.ceil(Math.abs(a1-a0)/6));let d='';for(let i=0;i<=N;i++){const t=i/N,a=(a0+(a1-a0)*t)*Math.PI/180,r=r0+(r1-r0)*t;d+=(i?' L':'M')+n_(cx+r*Math.cos(a))+' '+n_(cy-r*Math.sin(a));}return d;};
+  const head=(a,r,dir,col)=>{const ar=a*Math.PI/180,x=cx+r*Math.cos(ar),y=cy-r*Math.sin(ar);const tx=-Math.sin(ar)*dir,ty=-Math.cos(ar)*dir;const nx=Math.cos(ar),ny=-Math.sin(ar);
+   return `<polygon points="${n_(x+tx*7)},${n_(y+ty*7)} ${n_(x-tx*3+nx*5)},${n_(y-ty*3+ny*5)} ${n_(x-tx*3-nx*5)},${n_(y-ty*3-ny*5)}" fill="${col}"/>`;};
+  const mv=[['P',o.P,RED,R+14],['Q',o.Q,BLU,R+30]];
+  if(o.show==='start'){
+   mv.forEach(([nm,m,col,r])=>{const a0=ang(0),a1=a0+m[1]*38;s+=`<path d="${arcPath(a0+m[1]*6,a1,r,r)}" fill="none" stroke="${col}" stroke-width="2.4"/>`+head(a1,r,m[1],col);
+    const lp=[cx+(r)*Math.cos((a1+m[1]*14)*Math.PI/180),cy-(r)*Math.sin((a1+m[1]*14)*Math.PI/180)];s+=TX(lp[0],lp[1]+5,nm,{fs:14,c:col,halo:true});});
+   const p=pt(0);s+=`<circle cx="${n_(p[0])}" cy="${n_(p[1])}" r="5" fill="#111"/>`;
+  }else{
+   const ends={};
+   mv.forEach(([nm,m,col,r])=>{const a0=ang(0),deg=m[1]*m[0]*360/n,a1=a0+deg;const r1=r+(Math.abs(deg)>360?8:0);
+    s+=`<path d="${arcPath(a0,a1-m[1]*4,r,r1)}" fill="none" stroke="${col}" stroke-width="2.4"/>`+head(a1-m[1]*4,r1,m[1],col);
+    const k=(((m[1]*m[0])%n)+n)%n;ends[nm]=k;});
+   ['P','Q'].forEach((nm,i)=>{const k=ends[nm],col=i?BLU:RED;const p=pt(k);s+=`<circle cx="${n_(p[0])}" cy="${n_(p[1])}" r="6" fill="${col}"/>`;
+    const same=ends.P===ends.Q;const da=same?(i?-16:16):0;const r=R+(i?52:46);const a=(ang(k)+da)*Math.PI/180;
+    s+=TX(cx+r*Math.cos(a),cy-r*Math.sin(a)+5,nm,{fs:14,c:col,halo:true});});
+  }
+  return s+'</svg>';};
+ return {T,CARDS,STEP,POLY};
+})();
+return {"M2N12_ZU_T":(...a)=>M2N12_ZU.T(...a),"M2N12_ZU_CARDS":(...a)=>M2N12_ZU.CARDS(...a),"M2N12_ZU_STEP":(...a)=>M2N12_ZU.STEP(...a),"M2N12_ZU_POLY":(...a)=>M2N12_ZU.POLY(...a)};
+})();
 NS["gg_m2u4p4"]=(function(){
 function GQ4(o){const nx=o.xmax/o.xs,ny=o.ymax/o.ys,csx=230/nx,csy=Math.min(170/ny,csx*1.6),L=42,B=28,T=24,Rm=56,PW=nx*csx,PH=ny*csy,W=L+PW+Rm,H=T+PH+B;
  const X=x=>L+x/o.xs*csx,Y=y=>T+PH-y/o.ys*csy;
