@@ -1,6 +1,6 @@
 /* gg_fig.js：ぐるぐる（数学）の図を描く関数。tools\gg_export.js が問題データ（helpers.js・{パート}_meta.js）から作る。手で直さない（直すときは問題データを直して gg_export.js を回し直す）
    本番の ws\math_fig.js のあとに読む。MathFig.ns に名前空間を足すだけ（math_fig.js は変えない）。
-   gg＝helpers.js の図の道具（GS・G6・TB・TBA）／gg_<パートid>＝そのパートの meta.js の図の道具
+   gg＝helpers.js の図の道具（TB・TBA・GS・G6）／gg_<パートid>＝そのパートの meta.js の図の道具
    シートの問題（words の qdata）には図の印 ⟦F:名前空間.関数:[引数]⟧ だけが入っている。MathFig.data(qdata) で SVG にもどる */
 (function(){
 var NS=window.MathFig&&window.MathFig.ns;if(!NS){if(window.console)console.log('gg_fig.js：math_fig.js を先に読んでください');return;}
@@ -26,7 +26,7 @@ function GS(o){const R=o.R||5,U=20,L=R+.5,W=(2*R+1)*U,c=W/2,X=x=>c+x*U,Y=y=>c-y*
 const G6=(a,b)=>GS({sm:true,w:140,lines:[[a,b]]});
 const TBA=(xs,ys,yn,xn)=>{const n=xs.length;const gap=(arr,cls)=>arr?`<tr class="${cls}"><th></th><td class="g"></td>${arr.map(t=>`<td colspan="2" class="g">${t?`<span>${t}</span>`:''}</td>`).join('')}<td class="g"></td></tr>`:'';
  return `<table class="tb tba">${gap(xn,'xn')}<tr><th>\\(x\\)</th>${xs.map(v=>`<td colspan="2">${v}</td>`).join('')}</tr><tr><th>\\(y\\)</th>${ys.map(v=>`<td colspan="2">${v}</td>`).join('')}</tr>${gap(yn,'yn')}</table>`;};
-return {"GS":GS,"G6":G6,"TB":TB,"TBA":TBA};
+return {"TB":TB,"TBA":TBA,"GS":GS,"G6":G6};
 })();
 NS["gg_m1u1p1"]=(function(){
 const M1U1P1_ZU=(()=>{
@@ -65,6 +65,89 @@ function HISSAN(n,d){const ds=String(n).split('').map(Number),k=ds.length,cw=12,
  return `<svg viewBox="0 0 ${X(k-1)+30} ${16+row*20-8}" width="${X(k-1)+30}" height="${16+row*20-8}" aria-label="わり算の筆算">${s}</svg>`;}
 return {YAKU,BAI,WAKE,MEMORI,HISSAN};})();
 return {"M1U1P1_ZU_HISSAN":(...a)=>M1U1P1_ZU.HISSAN(...a),"M1U1P1_ZU_YAKU":(...a)=>M1U1P1_ZU.YAKU(...a),"M1U1P1_ZU_BAI":(...a)=>M1U1P1_ZU.BAI(...a),"M1U1P1_ZU_WAKE":(...a)=>M1U1P1_ZU.WAKE(...a),"M1U1P1_ZU_MEMORI":(...a)=>M1U1P1_ZU.MEMORI(...a)};
+})();
+NS["gg_m1u5p3"]=(function(){
+const mi=v=>String(v).replace(/^-/,'−');
+const S=(o)=>{if(o.ren){o.steps.forEach(st=>st.a=st.c.r);}else o.a=o.c.r;return o;};
+function HG(o){const R=o.R||6,U=20,L=R+.5,W=(2*R+1)*U,c=W/2,X=x=>c+x*U,Y=y=>c-y*U,sm=!!o.sm,S=(2*R+1)/11,K=(sm?1.35:1)*S,f1=v=>(Math.round(v*10)/10);
+ const H=`stroke="#fff" stroke-width="${f1(4*K)}" paint-order="stroke"`,mi=v=>String(v).replace(/^-/,'−');
+ const hs=o.hyp||[],ls=o.lines||[],ps=o.pts||[],w=o.w||(sm?140:220);
+ const pd=f1(13*K);
+ let s=`<svg class="${sm?'gch':'gr'}" viewBox="0 ${-pd} ${W+pd} ${W+pd}" width="${w}" height="${w}" data-h="${hs.join(',')}" data-l="${ls.join(',')}" data-p="${ps.map(p=>p[0]+','+p[1]).join(';')}">`;
+ for(let i=-R;i<=R;i++){s+=`<line x1="${X(i)}" y1="${Y(-L)}" x2="${X(i)}" y2="${Y(L)}" stroke="#d1d5db" stroke-width="${f1(S)}"/><line x1="${X(-L)}" y1="${Y(i)}" x2="${X(L)}" y2="${Y(i)}" stroke="#d1d5db" stroke-width="${f1(S)}"/>`;}
+ s+=`<line x1="${X(-L)}" y1="${c}" x2="${X(L)}" y2="${c}" stroke="#111" stroke-width="${f1(1.4*S)}"/><line x1="${c}" y1="${Y(-L)}" x2="${c}" y2="${Y(L)}" stroke="#111" stroke-width="${f1(1.4*S)}"/>`;
+ s+=`<text x="${f1(X(L)+3*S)}" y="${f1(c+4.5*K)}" font-size="${f1(13*K)}" font-style="italic" ${H}>x</text><text x="${c}" y="${f1(Y(L)-4*S)}" font-size="${f1(13*K)}" font-style="italic" text-anchor="middle" ${H}>y</text><text x="${f1(c-4*S)}" y="${f1(c+14*K)}" font-size="${f1(12*K)}" text-anchor="end" ${H}>O</text>`;
+ const st=o.step||(sm&&R>6?4:2);
+ for(let v=st;v<=R-1;v+=st)[v,-v].forEach(t=>{s+=`<text x="${X(t)}" y="${f1(c+14*K)}" font-size="${f1(11*K)}" text-anchor="middle" fill="#555" ${H}>${mi(t)}</text><text x="${f1(c-5*S)}" y="${f1(Y(t)+4*K)}" font-size="${f1(11*K)}" text-anchor="end" fill="#555" ${H}>${mi(t)}</text>`;});
+ const sw=f1((sm?3:2.4)*S);
+ hs.forEach(a=>{const m=Math.abs(a)/L;[1,-1].forEach(sg=>{let d='';const N=90;for(let i=0;i<=N;i++){const x=sg*m*Math.pow(L/m,i/N),y=a/x;d+=(i?'L':'M')+X(x).toFixed(1)+' '+Y(y).toFixed(1);}s+=`<path d="${d}" fill="none" stroke="#111" stroke-width="${sw}"/>`;});});
+ ls.forEach(k=>{const xe=Math.abs(k)<=1?L:L/Math.abs(k);s+=`<line x1="${f1(X(-xe))}" y1="${f1(Y(-k*xe))}" x2="${f1(X(xe))}" y2="${f1(Y(k*xe))}" stroke="#111" stroke-width="${sw}"/>`;});
+ const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
+ ps.forEach(q=>{const f=OF[q[3]||'tr'];s+=`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="${f1(4.5*S)}" fill="${q[4]?'#fff':'#111'}" stroke="#111" stroke-width="${f1(2*S)}"/>`;if(q[2])s+=`<text x="${f1(X(q[0])+f[0]*S)}" y="${f1(Y(q[1])+f[1]*S)}" text-anchor="${f[2]}" font-size="${f1(13*S)}" font-weight="700" ${H}>${q[2]}</text>`;});
+ (o.labs||[]).forEach(q=>{s+=`<text x="${X(q[0])}" y="${Y(q[1])}" text-anchor="${q[3]||'middle'}" font-size="${f1(14*S)}" font-weight="700" ${H}>${q[2]}</text>`;});
+ return s+'</svg>';}
+const HGP_=(f,R)=>{const p=[];for(let x=-(R-1);x<=R-1;x++){if(!x)continue;const y=f(x);if(Math.abs(y-Math.round(y))<1e-9&&Math.abs(y)<=R-1&&y!==0)p.push([x,Math.round(y)]);}return p;};
+const HG6=(a,R)=>HG({sm:true,R:R,hyp:[a],pts:HGP_(x=>a/x,R)});
+const HL6=(k,R)=>HG({sm:true,R:R,lines:[k],pts:HGP_(x=>k*x,R)});
+return {"HG":HG,"HG6":HG6,"HL6":HL6};
+})();
+NS["gg_m1u5p4"]=(function(){
+const M1U5P4_H='stroke="#fff" stroke-width="4" paint-order="stroke"';
+const M1U5P4_IT=s=>String(s).replace(/([a-z])/g,'<tspan font-style="italic">$1</tspan>');
+function M1U5P4_RECT(o){const W=330,x0=40,Bw=220,ab=o.ab,bc=o.bc;let h=Math.round(Bw*ab/bc);h=Math.max(70,Math.min(130,h));
+ const yA=26,yB=yA+h,xB=x0,xC=x0+Bw,xP=x0+Bw*(o.r==null?0.42:o.r),Hh=yB+(o.bp?62:50);const H=M1U5P4_H;
+ let s=`<svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" font-size="13" font-family="sans-serif" role="img" aria-label="長方形と動く点の図">`;
+ s+=`<polygon points="${xB},${yA} ${xB},${yB} ${xP},${yB}" fill="#d1d5db" stroke="none"/>`;
+ s+=`<rect x="${xB}" y="${yA}" width="${Bw}" height="${h}" fill="none" stroke="#111" stroke-width="1.6"/>`;
+ s+=`<line x1="${xB}" y1="${yA}" x2="${xP}" y2="${yB}" stroke="#111" stroke-width="1.6"/>`;
+ s+=`<circle cx="${xP}" cy="${yB}" r="3.5" fill="#111"/>`;
+ s+=`<text x="${xB-6}" y="${yA-6}" text-anchor="end" font-weight="700">A</text><text x="${xB-6}" y="${yB+15}" text-anchor="end" font-weight="700">B</text><text x="${xC+6}" y="${yB+15}" font-weight="700">C</text><text x="${xC+6}" y="${yA-6}" font-weight="700">D</text><text x="${xP}" y="${yB+16}" text-anchor="middle" font-weight="700">P</text>`;
+ s+=`<text x="${xB-6}" y="${(yA+yB)/2+5}" text-anchor="end">${ab} cm</text>`;
+ const yd=yB+(o.bp?50:34);
+ s+=`<line x1="${xB}" y1="${yd}" x2="${xC}" y2="${yd}" stroke="#111"/><line x1="${xB}" y1="${yd-5}" x2="${xB}" y2="${yd+5}" stroke="#111"/><line x1="${xC}" y1="${yd-5}" x2="${xC}" y2="${yd+5}" stroke="#111"/><text x="${(xB+xC)/2}" y="${yd+4}" text-anchor="middle" ${H}>${bc} cm</text>`;
+ if(o.bp){const yb=yB+30;s+=`<line x1="${xB}" y1="${yb}" x2="${xP}" y2="${yb}" stroke="#c2410c"/><line x1="${xB}" y1="${yb-4}" x2="${xB}" y2="${yb+4}" stroke="#c2410c"/><line x1="${xP}" y1="${yb-4}" x2="${xP}" y2="${yb+4}" stroke="#c2410c"/><text x="${(xB+xP)/2}" y="${yb+4}" text-anchor="middle" font-weight="700" fill="#c2410c" ${H}>BP＝${M1U5P4_IT(o.bp)} cm</text>`;}
+ if(o.v){const ya=yB-12;s+=`<line x1="${xP+8}" y1="${ya}" x2="${xP+52}" y2="${ya}" stroke="#111" stroke-width="1.4"/><path d="M${xP+58},${ya} L${xP+50},${ya-4} L${xP+50},${ya+4} z" fill="#111"/><text x="${xP+10}" y="${ya-7}" ${H}>秒速 ${o.v} cm</text>`;}
+ if(o.lab)s+=`<text x="${xB+(xP-xB)/3+4}" y="${yB-h/3+4}" text-anchor="middle" font-size="12" ${H}>${o.lab}</text>`;
+ return s+'</svg>';}
+function M1U5P4_TRI(o){const W=280,Hh=150,H=M1U5P4_H,bx0=96,bx1=256,by=112,ay=20;
+ let s=`<svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" font-size="13" font-family="sans-serif" role="img" aria-label="三角形の底辺と高さの図">`;
+ s+=`<polygon points="${bx0},${by} ${bx1},${by} ${bx0},${ay}" fill="#e5e7eb" stroke="#111" stroke-width="1.6"/><path d="M${bx0},${by-10} L${bx0+10},${by-10} L${bx0+10},${by}" fill="none" stroke="#111"/>`;
+ s+=`<text x="${(bx0+bx1)/2}" y="${by+20}" text-anchor="middle">底辺 ${M1U5P4_IT(o.b)} cm</text><text x="${bx0-8}" y="${(ay+by)/2+5}" text-anchor="end">高さ ${M1U5P4_IT(o.h)} cm</text>`;
+ if(o.s)s+=`<text x="${bx0+48}" y="${by-14}" text-anchor="middle" font-weight="700">面積 ${o.s} cm²</text>`;
+ return s+'</svg>';}
+function M1U5P4_CANDLE(o){const W=330,Hh=176,H=M1U5P4_H,top=20,bot=150,cw=26,L=o.L,d=o.d;const hh=bot-top,hd=Math.max(16,hh*d/L);
+ let s=`<svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" font-size="13" font-family="sans-serif" role="img" aria-label="ろうそくの図">`;
+ const c1=64,c2=170;
+ s+=`<rect x="${c1-cw/2}" y="${top}" width="${cw}" height="${hh}" fill="#fff" stroke="#111" stroke-width="1.6"/><line x1="${c1}" y1="${top}" x2="${c1}" y2="${top-8}" stroke="#111" stroke-width="2"/>`;
+ s+=`<text x="${c1}" y="${bot+20}" text-anchor="middle">火をつける前</text><text x="${c1-cw/2-6}" y="${(top+bot)/2+5}" text-anchor="end">${L} cm</text>`;
+ s+=`<rect x="${c2-cw/2}" y="${top}" width="${cw}" height="${hd}" fill="none" stroke="#111" stroke-dasharray="4 3"/><rect x="${c2-cw/2}" y="${top+hd}" width="${cw}" height="${hh-hd}" fill="#fff" stroke="#111" stroke-width="1.6"/><line x1="${c2}" y1="${top+hd}" x2="${c2}" y2="${top+hd-8}" stroke="#111" stroke-width="2"/>`;
+ s+=`<text x="${c2}" y="${bot+20}" text-anchor="middle">${o.t}</text>`;
+ s+=`<line x1="${c2+cw/2+6}" y1="${top}" x2="${c2+cw/2+6}" y2="${top+hd}" stroke="#c2410c" stroke-width="2"/><text x="${c2+cw/2+12}" y="${top+hd/2+5}" font-weight="700" fill="#c2410c" ${H}>${M1U5P4_IT(o.dl)}</text>`;
+ return s+'</svg>';}
+function M1U5P4_NL(lo,hi,a,b,cl,cr){const W=340,x0=20,x1=320,n=hi-lo,X=v=>x0+(v-lo)*(x1-x0)/n;
+ let s=`<svg viewBox="0 0 ${W} 56" width="${W}" height="56" font-size="12" font-family="sans-serif" role="img" aria-label="数直線"><line x1="8" y1="30" x2="332" y2="30" stroke="#111" stroke-width="1.4"/><path d="M334,30 L326,26 L326,34 z" fill="#111"/>`;
+ for(let v=lo;v<=hi;v++)s+=`<line x1="${X(v)}" y1="26" x2="${X(v)}" y2="34" stroke="#111"/><text x="${X(v)}" y="48" text-anchor="middle">${String(v).replace('-','−')}</text>`;
+ s+=`<line x1="${X(a)}" y1="21" x2="${X(b)}" y2="21" stroke="#111" stroke-width="4"/><circle cx="${X(a)}" cy="21" r="5" fill="${cl?'#111':'#fff'}" stroke="#111" stroke-width="2"/><circle cx="${X(b)}" cy="21" r="5" fill="${cr?'#111':'#fff'}" stroke="#111" stroke-width="2"/>`;
+ return s+'</svg>';}
+function M1U5P4_QG(o){const W=300,Hh=250,L=46,R=262,T=22,B=212,H=M1U5P4_H,X=v=>L+v*(R-L)/o.xm,Y=v=>B-v*(B-T)/o.ym;
+ let s=`<svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" font-size="12" font-family="sans-serif" role="img" aria-label="グラフ">`;
+ for(let v=o.xs;v<=o.xm;v+=o.xs)s+=`<line x1="${X(v)}" y1="${T}" x2="${X(v)}" y2="${B}" stroke="#d1d5db"/><text x="${X(v)}" y="${B+15}" text-anchor="middle" fill="#555">${v}</text>`;
+ for(let v=o.ys;v<=o.ym;v+=o.ys)s+=`<line x1="${L}" y1="${Y(v)}" x2="${R}" y2="${Y(v)}" stroke="#d1d5db"/><text x="${L-5}" y="${Y(v)+4}" text-anchor="end" fill="#555">${v}</text>`;
+ s+=`<line x1="${L}" y1="${B}" x2="${R+18}" y2="${B}" stroke="#111" stroke-width="1.4"/><path d="M${R+22},${B} L${R+14},${B-4} L${R+14},${B+4} z" fill="#111"/><line x1="${L}" y1="${B}" x2="${L}" y2="${T-12}" stroke="#111" stroke-width="1.4"/><path d="M${L},${T-16} L${L-4},${T-8} L${L+4},${T-8} z" fill="#111"/>`;
+ s+=`<text x="${L-5}" y="${B+15}" text-anchor="end" font-size="13">O</text><text x="${R+6}" y="${B-8}" text-anchor="middle" font-size="13">${o.xl}</text><text x="${L+8}" y="${T-6}" font-size="13">${o.yl}</text>`;
+ const x0=o.x0||0,x1=o.x1;s+=`<line x1="${X(x0)}" y1="${Y(o.k*x0)}" x2="${X(x1)}" y2="${Y(o.k*x1)}" stroke="#111" stroke-width="${o.ends?4:2.4}"/>`;
+ (o.pts||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[0])}" y2="${B}" stroke="#c2410c" stroke-width="1.4" stroke-dasharray="4 3"/><line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${L}" y2="${Y(q[1])}" stroke="#c2410c" stroke-width="1.4" stroke-dasharray="4 3"/><circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])-8}" y="${Y(q[1])-8}" text-anchor="end" font-weight="700" ${H}>${q[2]}</text>`;});
+ if(o.ends){[[x0,o.ends[0]],[x1,o.ends[1]]].forEach(([v,c])=>{s+=`<circle cx="${X(v)}" cy="${Y(o.k*v)}" r="5" fill="${c?'#111':'#fff'}" stroke="#111" stroke-width="2"/>`;});}
+ return s+'</svg>';}
+function M1U5P4_OIT(o){const W=340,Hh=118,H=M1U5P4_H,xm=o.goal?236:300;
+ let s=`<svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" font-size="13" font-family="sans-serif" role="img" aria-label="追いつく道のりの線分図">`;
+ s+=`<line x1="20" y1="52" x2="${xm}" y2="52" stroke="#111"/><circle cx="20" cy="52" r="3" fill="#111"/><circle cx="${xm}" cy="52" r="3" fill="#111"/>`;
+ if(o.goal)s+=`<line x1="${xm}" y1="52" x2="320" y2="52" stroke="#111" stroke-dasharray="4 3"/><circle cx="320" cy="52" r="3" fill="#111"/><text x="320" y="112" text-anchor="middle">${o.goal}</text>`;
+ s+=`<line x1="20" y1="30" x2="${xm-6}" y2="30" stroke="#111"/><path d="M${xm},30 L${xm-8},26 L${xm-8},34 z" fill="#111"/><text x="${(20+xm)/2}" y="22" text-anchor="middle" ${H}>${o.a}：分速 ${o.va} m で（${M1U5P4_IT('x')}＋${o.d}）分</text>`;
+ s+=`<line x1="20" y1="74" x2="${xm-6}" y2="74" stroke="#111"/><path d="M${xm},74 L${xm-8},70 L${xm-8},78 z" fill="#111"/><text x="${(20+xm)/2}" y="92" text-anchor="middle" ${H}>${o.b}：分速 ${o.vb} m で ${M1U5P4_IT('x')} 分</text>`;
+ s+=`<text x="20" y="112" text-anchor="middle">家</text><text x="${xm}" y="112" text-anchor="middle">追いついた所</text>`;
+ return s+'</svg>';}
+return {"M1U5P4_CANDLE":M1U5P4_CANDLE,"M1U5P4_QG":M1U5P4_QG,"M1U5P4_TRI":M1U5P4_TRI,"M1U5P4_OIT":M1U5P4_OIT,"M1U5P4_RECT":M1U5P4_RECT,"M1U5P4_NL":M1U5P4_NL};
 })();
 NS["gg_m1u6p1"]=(function(){
 const M1U6P1_ZU=(()=>{
