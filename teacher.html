@@ -1121,6 +1121,7 @@
   .mp-ggrow{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;}.mp-ggrow .mp-pv{margin-left:0;flex:none;}
   .mp-gggrp{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 10px;border:1px solid var(--border);border-radius:10px;padding:5px 10px;background:#f8fafc;}
   .mp-gglab{font-size:11px;font-weight:800;color:var(--text-muted);white-space:nowrap;}
+  .mgdone{display:inline-block;margin-left:8px;font-size:11px;font-weight:700;color:var(--text-muted);vertical-align:middle;white-space:nowrap;font-variant-numeric:tabular-nums;} /* 2026-11-04 13:31 できたパート n / m */
   .mgprep{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:#e5e7eb;color:#4b5563;font-size:11px;font-weight:700;vertical-align:middle;white-space:nowrap;} /* 2026-11-03 ぐるぐる：問題の入っている回が1つもない教材 */
   .mp-ggdk{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;} /* ぐるぐるのプレビュー：暗い画面で見る 2026-11-02 */
   .mgtitle{font-weight:800;min-width:130px;}
@@ -6677,7 +6678,7 @@ function renderMatTab(){
       var _lv=_levelLabel(m.target);var _lb=_lv?('<span class="mglevel">'+_lv+'</span>'):'';
       row.innerHTML='<span class="mgpill '+(isTest?'test':(isWs?'ws':(isGg?'gg':'daily')))+'">'+(isTest?'単元別対策':(isWs?'ワークシート':(isGg?'ぐるぐる':'毎日学習')))+'</span>'
         +_nb
-        +'<span class="mgtitle">'+esc(mtShort(m)||'(無題)')+(isGg&&m.gg_ready===false?'<span class="mgprep" title="問題の入っている回がまだありません">準備中</span>':'')+'</span>'   /* 2026-11-03 23:56 ぐるぐるの準備中（GAS materials_list の gg_ready） */
+        +'<span class="mgtitle">'+esc(mtShort(m)||'(無題)')+(isGg?_ggDoneTag_(m):'')+'</span>'   /* 2026-11-04 13:31 ぐるぐるの「できたパート n / m」と準備中（GAS materials_list の gg_np・gg_nd。古い GAS のときは gg_ready で準備中だけ） */
         +_lb
         +'<span class="mgcount">'+hs.length+'名</span>'   /* 2026-11-03 ぐるぐるも数える */
         +'<span class="mgmem">'+chips+'</span>'
@@ -6905,6 +6906,12 @@ function _ggLoadLibs_(){
   _ggLibP=_wsLoadLibs_().then(function(){return js('guru/gg_fig.js');}).then(function(){return js('guru/gg_load.js');}).then(function(){return js('guru/gg_app.js');}).then(function(){return js('guru/gg_shell.js');});
   _ggLibP.catch(function(){_ggLibP=null;});
   return _ggLibP;
+}
+/* 2026-11-04 13:31 ぐるぐるの教材の名前の横：できたパート n / m（ふつうのパート）。n が 0 なら［準備中］も出す */
+function _ggDoneTag_(m){
+  if(typeof m.gg_np!=='number')return m.gg_ready===false?'<span class="mgprep" title="問題の入っている回がまだありません">準備中</span>':'';
+  var t=m.gg_np?'<span class="mgdone" title="ふつうのパートのうち、A-1〜C-2 の6回がそろったパートの数（入試パターン・章まとめテストは数えない）">できたパート '+m.gg_nd+' / '+m.gg_np+'</span>':'';
+  return t+(m.gg_nd===0?'<span class="mgprep" title="ふつうのパートの問題がまだありません">準備中</span>':'');
 }
 function _isGgMat_(m){return !!m&&String(m.content_type||'').trim()==='guruguru';}
 function _ggDestroy_(){if(_ggApi){try{_ggApi.destroy();}catch(e){}_ggApi=null;}}
