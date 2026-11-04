@@ -20,7 +20,18 @@ var RS=['A1','A2','B1','B2','C1','C2'];
 function jp(s,d){try{var v=JSON.parse(String(s==null?'':s));return v==null?d:v;}catch(e){return d;}}
 function ggDesc_(pt){var d=jp(pt.description,null);return d&&d.gg?d.gg:null;}
 function ggImp_(d,pt){return !!(d&&d.imp)||String(pt&&pt.important||'').trim()==='\u25c6';}   /* 2026-11-03 ぐるぐる 重要マーク ◆ */
-function ggQ_(w){var q=jp(w.qdata,null);if(q&&typeof q==='object'&&w.id!=null)Object.defineProperty(q,'wid',{value:String(w.id),enumerable:false});return q;}
+function ggQ_(w){var q=jp(w.qdata,null);if(q&&typeof q==='object'&&w.id!=null)Object.defineProperty(q,'wid',{value:String(w.id),enumerable:false});ggMk_(q);return q;}
+/* 2026-11-04 よくあるまちがいの印：解説の '#' の行の頭の '#[選択肢の文字そのまま]説明' を、その問題の c の番号に直して '#{番号}説明' にする（gg_app.js の WTXT が番号で出し分ける）。
+   [] の中が c のどれとも1字も同じでないとき（と、c の無い所＝連問の全体の w）は印を外して、印なしの '#説明' にする。連問は steps の1つずつ。類題・章まとめも ggQ_ を通るので同じ。
+   [] の中に [] があってもよい（\sqrt[3]{} など）：c の文字と頭から合わせ、合わなければ [ と ] の数を数えて印の終わりを決める */
+function ggMkLine_(l,c){if(typeof l!=='string'||l.charAt(0)!=='#'||l.charAt(1)!=='[')return l;
+  var best=-1,bl=-1;(c||[]).forEach(function(x,k){x=String(x);if(l.lastIndexOf('#['+x+']',0)===0&&x.length>bl){best=k;bl=x.length;}});
+  if(best>=0)return '#{'+best+'}'+l.slice(bl+3);
+  var d=0;for(var i=1;i<l.length;i++){var ch=l.charAt(i);if(ch==='[')d++;else if(ch===']'){d--;if(d===0)return '#'+l.slice(i+1);}}
+  return l;}
+function ggMkW_(o,c){if(o&&Array.isArray(o.w))o.w=o.w.map(function(l){return ggMkLine_(l,c);});}
+function ggMk_(q){if(!q||typeof q!=='object')return;ggMkW_(q,Array.isArray(q.c)?q.c:null);
+  if(Array.isArray(q.steps))q.steps.forEach(function(st){if(st&&typeof st==='object')ggMkW_(st,Array.isArray(st.c)?st.c:null);});}
 var NQ=function(items){return items.reduce(function(s,it){return s+(it&&it.ren?it.steps.length:1);},0);};
 function ggBuildData(rows,opt){
   opt=opt||{};
@@ -81,6 +92,6 @@ function ggFillWords(GG,words,opt){
 /* 図の行 → MathFig.ns.ggref（同じページで前に読んだ単元の分も残す） */
 function regFig_(words){var REF=(G.__ggRef=G.__ggRef||{});(words||[]).forEach(function(w){if(w.qtype!=='ws_gg_fig')return;var o=jp(w.qdata,null);if(o&&o.h)REF[o.h]=o.svg;});
   if(G.MathFig&&G.MathFig.ns&&!G.MathFig.ns.ggref)G.MathFig.ns.ggref={S:function(h){return REF[h]||'<span class="ws-figerr">図が読めません（'+h+'）</span>';}};}
-G.ggBuildData=ggBuildData;G.ggFillWords=ggFillWords;
-if(typeof module!=='undefined')module.exports={ggBuildData:ggBuildData,ggFillWords:ggFillWords};
+G.ggBuildData=ggBuildData;G.ggFillWords=ggFillWords;G.ggMarkWrong=ggMk_;
+if(typeof module!=='undefined')module.exports={ggBuildData:ggBuildData,ggFillWords:ggFillWords,ggMarkWrong:ggMk_};
 })(typeof window!=='undefined'?window:globalThis);

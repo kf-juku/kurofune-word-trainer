@@ -19,7 +19,7 @@ function HD(GG,id){const ny=(GG.ny||[]).find(q=>q.id===id);
  for(const u of GG.units){const k=u.parts.findIndex(x=>x.id===id);if(k>=0){const x=u.parts[k],nm=NMS(x.name);return {subj:u.subj||'ma',grade:u.grade,unit:u.unit,k:k+1,n:u.parts.length,maru:MARU[k]||'('+(k+1)+')',main:nm.main,sub:nm.sub,name:x.name};}}
  return {subj:'ma',grade:'',unit:'',k:0,n:0,maru:'',main:'',sub:''};}
 const CALL=(GG,id,R)=>{const h=HD(GG,id);return (h.ny?'入試パターン '+h.main:h.unit+h.maru)+(R?' '+RD(R):'');};
-const GMAC={'\\UA':'\\htmlClass{gsa}{#1}','\\UB':'\\htmlClass{gsb}{#1}','\\UC':'\\htmlClass{gsc}{#1}','\\UD':'\\htmlClass{gsd}{#1}','\\UE':'\\htmlClass{gse}{#1}','\\UR':'\\htmlClass{gsr}{#1}','\\AF':'\\htmlData{af=#1}{#2}','\\AT':'\\htmlData{at=1}{#1}','\\ATD':'\\htmlData{atd=1}{#1}'};
+const GMAC={'\\UA':'\\htmlClass{gsa}{#1}','\\UB':'\\htmlClass{gsb}{#1}','\\UC':'\\htmlClass{gsc}{#1}','\\UD':'\\htmlClass{gsd}{#1}','\\UE':'\\htmlClass{gse}{#1}','\\UR':'\\htmlClass{gsr}{#1}','\\AF':'\\htmlData{af=#1}{#2}','\\AT':'\\htmlData{at=1}{#1}','\\ATD':'\\htmlData{atd=1}{#1}','\\AFB':'\\htmlData{afb=#1}{#2}','\\ATB':'\\htmlData{atb=1}{#1}','\\ATDB':'\\htmlData{atdb=1}{#1}'};   /* 2026-11-04 矢印の2つ目の組（gg_app.js と同じ）。紙は矢印を描かないが、式が赤いエラーにならないように */
 const KX=el=>{try{renderMathInElement(el,{delimiters:[{left:'\\(',right:'\\)',display:false}],throwOnError:false,trust:true,strict:false,macros:GMAC});}catch(e){}};
 function sheetHtml(GG,p,R){const rd=p.rounds[R];const H=HD(GG,p.id);const GN=NQ(rd);
  /* 2026-11-01 23:13 川上さん「OKです」：番号は大問式（アプリの mkBlocks と同じ分け方）。連問＝1つの大問、続けて同じ g の問題＝1つの大問（指示文は1回・小問は (1)(2)…）。決まり §0c 点検1 */

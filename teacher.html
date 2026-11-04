@@ -6899,7 +6899,7 @@ function _wsLoadLibs_(){
    ノートの書き方の絵は guru/img/gg/*.svg（画面に出たときに読む）。部品を直したら GG_LIB_V を上げる
    2026-11-02 段3 速くした：開いたときは［中身］の最初の material_preview の返事（ぐるぐるは words を読まない＝parts の行と表紙の説明だけ）で一覧を出す（ggBuildData の lazy）。
    回・［確かめる］・章まとめを開いたときに、そのパートの行だけ gg_preview_part で読む（gg_shell.js の opt.loadParts → ggFillWords）。読んだパートはこの窓を閉じるまで覚えておく */
-var GG_LIB_V='20261104b',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-04 ぐるぐる：20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
+var GG_LIB_V='20261104c',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-04 ぐるぐる：20261104c（よくあるまちがいの枠と選んだ答えでの出し分け・矢印の2組目・紙の補足ボックスと矢印＝gg_app.js・gg_load.js・gg_shell.js）。20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -12300,7 +12300,7 @@ function _ppWsLayout_(api,kind,picked,xp,xref,fit){   /* fit＝ページ分け�
     [].slice.call(src.querySelectorAll('.qr')).forEach(function(q){q.innerHTML=_cd?(fsQrHtml_(_cd.replace('-',''))+'<div class="wsqr-cd">'+esc(_cd)+'<span class="dt">'+_ptDayLab_()+' 刷</span></div>'):'QR';});
     [].slice.call(src.querySelectorAll('.sheet.asheet')).forEach(_ptAsHead_);}
   /* 図の文字の置き直し（モックの lfFix）。横いっぱいにする Point のカードは、モックと同じく画面の見た目（紙の外枠と余白 10mm がある状態）で決める */
-  [].slice.call(src.querySelectorAll('svg.gr')).forEach(function(s){api.lfFix(s);});
+  [].slice.call(src.querySelectorAll('svg.gr')).forEach(function(s){api.lfFix(s);});if(api.arr)api.arr(src);   /* 2026-11-04 紙にも矢印を描く（gg_app.js の paperMount の arr） */
   var shs=[].slice.call(src.querySelectorAll('.sheet'));shs.forEach(function(e){e.style.padding='10mm 10mm 12mm';e.style.border='1px solid #bbb';});
   [].slice.call(src.querySelectorAll('.pgrid .pc')).forEach(function(c){if(!c.style.gridColumn&&c.scrollWidth>c.clientWidth+2){c.style.gridColumn='1/-1';c.classList.add('wide');}});
   shs.forEach(function(e){e.style.padding='';e.style.border='';});
