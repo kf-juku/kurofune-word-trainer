@@ -3504,7 +3504,7 @@ function _pqGlossText_(it){
   for(var i=0;i<tk.length;i++){
     var g=String(gl[i]||'').trim(); if(!g) continue;            /* 記号は空 */
     /* ★区切りは「＝」にしない。be動詞の gloss は文字そのものが「＝」なので am＝＝ になる（17i）*/
-    out.push(String(tk[i])+'（'+g+'）');
+    out.push(/（/.test(g)?String(tk[i])+' '+g:String(tk[i])+'（'+g+'）');   /* 2026-11-07 be動詞の訳を ＝（です）・≠（ではない）にした＝かっこが二重にならないよう、訳にかっこがあるときは空白でつなぐ */
   }
   return out.join('　');
 }

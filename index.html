@@ -1516,7 +1516,7 @@
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:24px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:70;}
   .toast.show{opacity:1;}
   /* 【2026-10-10】mp3 の読み込み中・失敗の案内（_auMsg_） */
-  .au-msg{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);max-width:min(92vw,420px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:16px;font-size:13.5px;font-weight:700;line-height:1.6;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;z-index:71;}
+  .au-msg{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);max-width:min(92vw,420px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:16px;font-size:13.5px;font-weight:700;line-height:1.6;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;z-index:71;}
   .au-msg.show{opacity:1;}
   /* 演出の登場直後、貯まっていた先行タップを一定時間すべて飲み込む透明レイヤー（要件：しっかり見えてからのタップで消す/押すのはOK）2026-07-25 */
   .tap-guard{position:fixed;inset:0;z-index:9999;background:transparent;}
@@ -2992,7 +2992,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-06"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-07"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4535,7 +4535,7 @@ function _tcItem_(s,w,no,ok,pick,shown){
     it.ap=function(){_sentPlay_({en:_a0.en,audios:_a0.audios||null,audio:_a0.audio||''});};}
   else if(t==='w_demo'||t==='w_write'){it.ja=String(w.japanese||'');}
   else if(t==='dialog_fill'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:_tcHole_(esc(l.en||'')),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);}
-  else if(t==='reorder'){var tk=((q.tokens&&q.tokens.length)?q.tokens:(p.tokens||[])).concat(q.extra||[]);it.ask=String((q.do&&q.do[0])||'');it.rp=(q.qx||[]).map(function(r){return {lab:String(r.lab||''),q:String(r.en||''),en:'',ja:String(r.ja||'')};});for(var i=tk.length-1;i>0;i--){var j=(Math.abs((String(w.id)+i).split('').reduce(function(a,c){return (a*31+c.charCodeAt(0))|0;},7))%(i+1));var x=tk[i];tk[i]=tk[j];tk[j]=x;}it.ja=String(w.japanese||'');it.toks=tk;}
+  else if(t==='reorder'){var tk=((q.tokens&&q.tokens.length)?q.tokens:(p.tokens||[])).concat(q.extra||[]);it.ask=String((q.do&&q.do[0])||'');it.rp=(q.qx||[]).map(function(r){return {lab:String(r.lab||''),q:String(r.en||''),en:'',ja:String(r.ja||'')};});for(var i=tk.length-1;i>0;i--){var j=(Math.abs((String(w.id)+i).split('').reduce(function(a,c){return (a*31+c.charCodeAt(0))|0;},7))%(i+1));var x=tk[i];tk[i]=tk[j];tk[j]=x;}it.ja=String(w.japanese||'');it.toks=tk;var _fp=String(q.pre||'').trim(),_fo=String(q.post||'').trim(),_tq=(q.tokens&&q.tokens.length)?q.tokens:((p.tokens&&p.tokens.length)?p.tokens:[]);if(!_fp&&!_fo&&q.tokens&&q.tokens.length&&p&&p.en){try{var _ft=_sentTok_(p.en),_fq=_sentTok_(q.tokens.join(' ')),_fn=_fq.length;if(_ft.length>_fn&&_ft.slice(0,_fn).join(' ').toLowerCase()===_fq.join(' ').toLowerCase())_fo=_sentJoin_(_ft.slice(_fn));}catch(e){}}it.pre=_fp;it.post=_fo;it.nsl=_tq.length;}   /* 2026-11-07 解く画面（renderRO_）と同じ前後の固定の語・枠の数 */
   else if(t==='listen'){it.ch=_tcMix_(q.choices_ja,w.id);it.kh=_khMapFor_(w,q,p);it.au=(p.audios||[])[0]||p.audio||'';it.ans=String(w.japanese||'');it.script=String(w.english||'');}
   else if(t==='listen_resp'||t==='listen_print'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:String(l.en||''),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);it.aus=(p.lines||[]).map(function(l){return l.audio||'';}).concat((p.q&&p.q.audio)?[p.q.audio]:[]).filter(Boolean);}
   else if(t==='image_fill'){var _a0=(s.assets||{})[q.asset]||{};it.fig=String(p.url||p.src||_a0.url||'');it.ja=String(w.japanese||'');it.ch=_tcMix_(q.choices,w.id);it.rd=String(w.reading_hint||'');}
@@ -4548,7 +4548,7 @@ function _tcItem_(s,w,no,ok,pick,shown){
   }else{it.ja='';}   /* 形の決まっていない問題は訳を出さない（答えが見えないように）*/
   if(shown&&shown.ch&&t!==''&&shown.ch.length>1)it.ch=shown.ch.map(String);   /* 出したときの並びがあればそれを使う */
   if(s.isEnglish!==false&&(t==='sentence_fill'||t==='dialog_fill'||t==='reorder')){try{it.ap=_exPlayFor_(s,w);}catch(e){}}   /* 2026-10-31 答えが入った音＝シールをはがしたあと（答えの枠の中）に出す */
-  if(!ok&&pick!==undefined)it.you=(t==='reorder')?String(pick).split(' / ').join(' ').replace(/\s+([.,?!])/g,'$1'):String(pick);
+  if(!ok&&pick!==undefined)it.you=(t==='reorder')?[it.pre||'',String(pick).split(' / ').join(' '),it.post||''].join(' ').trim().replace(/\s+([.,?!])/g,'$1'):String(pick);   /* 2026-11-07 並べかえの答えは前後の語を付けた文の全部 */
   return it;
 }
 function _tcAu_(it,lab){var l=(it.aus&&it.aus.length)?it.aus:(it.au?[it.au]:[]);if(!l.length)return '';return '<button type="button" class="tc-au" onclick=\'_tcPlay_('+JSON.stringify(l).replace(/'/g,'&#39;')+')\'><i class="ti ti-volume"></i>'+lab+'</button>';}
@@ -4592,7 +4592,7 @@ function _tcBody_(it){
     case 'phonics':return (it.ask?'<div class="tc-ask">'+it.ask+'</div>':'')+(it.en?'<div class="tc-en" style="font-size:20px">'+esc(it.en)+'</div>':'')+_tcAB_(it.qa,_TC_AUL)+((it.ch&&it.ch.length)?_tcChs_(it):'');
     case 'w_add':return '<div class="tc-ask">'+_jaRubyIf_(it.ask)+'</div>'+(it.rp||[]).map(function(r){return '<div class="tc-rp">'+(r.q?'<small>'+_jaRubyIf_(r.lab)+' '+esc(r.q)+'</small>':'')+esc(r.en)+(r.ja?'<small>'+_jaRubyIf_(r.ja)+'</small>':'')+'</div>';}).join('')+_tcChl_(it);
     case 'dialog_fill':return it.lines.map(function(l){return '<div class="tc-dl">'+(l.sp?'<b>'+esc(l.sp)+'</b>':'')+'<span class="tc-en" style="font-size:15px">'+l.en+'</span></div>';}).join('')+_tcChs_(it);
-    case 'reorder':return (it.ask?'<div class="tc-ask">'+_jaRubyIf_(it.ask)+'</div>':'')+(it.rp||[]).map(function(r){return '<div class="tc-rp"><small>'+_jaRubyIf_(r.lab)+'</small>'+esc(r.q)+(r.ja?'<small>'+_jaRubyIf_(r.ja)+'</small>':'')+'</div>';}).join('')+'<div class="tc-ja" style="color:var(--ink)">'+_jaRubyIf_(it.ja)+'</div><div class="tc-chs">'+(it.toks||[]).map(function(c){return '<span>'+esc(c)+'</span>';}).join('')+'</div>';
+    case 'reorder':return (it.ask?'<div class="tc-ask">'+_jaRubyIf_(it.ask)+'</div>':'')+(it.rp||[]).map(function(r){return '<div class="tc-rp"><small>'+_jaRubyIf_(r.lab)+'</small>'+esc(r.q)+(r.ja?'<small>'+_jaRubyIf_(r.ja)+'</small>':'')+'</div>';}).join('')+'<div class="tc-ja" style="color:var(--ink)">'+_jaRubyIf_(it.ja)+'</div>'+((it.pre||it.post)?'<div class="tc-en tc-ro">'+esc(it.pre||'')+' '+new Array((it.nsl||0)+1).join('（　）')+' '+esc(it.post||'')+'</div>':'')+'<div class="tc-chs">'+(it.toks||[]).map(function(c){return '<span>'+esc(c)+'</span>';}).join('')+'</div>';
     case 'listen':return _tcAu_(it,'<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChl_(it);
     case 'listen_resp':case 'listen_print':return _tcAu_(it,'<ruby>会話<rt class="uf">かいわ</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChl_(it);
     case 'word':return '<div class="tc-en" style="font-size:20px">'+esc(it.en)+'</div>'+_tcAu_(it,'<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChs_(it);
@@ -4641,7 +4641,8 @@ function teachRender_(s){
   var ws=s.words||[];if(!ws.length)return;
   var missSet={};(s.miss||[]).forEach(function(id){missSet[String(id)]=1;});
   var picks=s._qrvPick||{},shownM=s._tcCh||{},nn=0;
-  var items=ws.filter(function(w){try{return !_isIntroW_(w);}catch(e){return true;}}).map(function(w){var id=String(w.id);return _tcItem_(s,w,++nn,!missSet[id],picks.hasOwnProperty(id)?picks[id]:undefined,shownM[id]);});   /* 例題は数えない */
+  var _tcAllIn=ws.every(function(w){try{return _isIntroW_(w);}catch(e){return false;}});   /* 2026-11-07 導入パート（全部の問題が intro）は外さない＝外すと一覧が空になり「まちがえた問題はありません」と出ていた */
+  var items=ws.filter(function(w){if(_tcAllIn)return true;try{return !_isIntroW_(w);}catch(e){return true;}}).map(function(w){var id=String(w.id);return _tcItem_(s,w,++nn,!missSet[id],picks.hasOwnProperty(id)?picks[id]:undefined,shownM[id]);});   /* 例題は数えない */
   var ng=items.filter(function(x){return !x.ok;}),ok=items.filter(function(x){return x.ok;});
   /* 単語の段＝英語の単元別だけ。問題そのものが単語の教材（教科書英単語など）と確認テストには出さない */
   var allWord=items.every(function(x){return x.t==='word'||x.t==='term';});
@@ -8208,40 +8209,57 @@ var _AU_PRE_={};
 function _auPreload_(urls){
   var keep={};
   (urls||[]).forEach(function(u){u=String(u||'');if(!u)return;keep[u]=1;
-    if(!_AU_PRE_[u]){try{var a=new Audio();a.preload='auto';a.src=u;try{a.load();}catch(e){}_AU_PRE_[u]=a;}catch(e){}}});
+    if(!_AU_PRE_[u]){try{var a=new Audio();a.preload='auto';a.src=u;try{a.load();}catch(e){}_AU_PRE_[u]=a;if(_auGestNow_())_auPrime_(a);}catch(e){}}});
   Object.keys(_AU_PRE_).forEach(function(u){if(keep[u])return;var a=_AU_PRE_[u];delete _AU_PRE_[u];
     try{if(a.paused){a.removeAttribute('src');a.load();}}catch(e){}});
 }
+/* 【2026-11-07 修正メモ「英検4級の読解 音声が流れない」iPad】iPad は画面を押した直後でないと音を鳴らさせない。
+   指示の音声のあとに英文を鳴らす流れでは、英文の番に止められて「音声のボタンを押して聞いてください」になっていた。
+   画面を押したとき（と押した直後に先読みしたとき）に、先読みした音を音なしで一度鳴らして止め、あとで鳴らせる状態にしておく。
+   ほかの音が鳴っている間はしない（iPad は音を1つしか鳴らさないので、鳴っている音が止まる） */
+var _AU_ON_=0;
+function _auPrime_(a){
+  if(!a||a._kwtPr||a._kwtUse||_AU_ON_>0)return;a._kwtPr=1;
+  try{a.muted=true;var p=a.play();
+    var back=function(){try{if(!a._kwtUse){a.pause();a.currentTime=0;}}catch(e){}a.muted=false;};
+    if(p&&p.then)p.then(back,function(){a.muted=false;a._kwtPr=0;});else back();
+  }catch(e){try{a.muted=false;}catch(e2){}a._kwtPr=0;}
+}
+function _auPrimeAll_(){try{Object.keys(_AU_PRE_).forEach(function(u){_auPrime_(_AU_PRE_[u]);});}catch(e){}}
+function _auGestNow_(){try{var ua=navigator.userActivation;return !!(ua&&ua.isActive);}catch(e){return false;}}
+(function(){var f=function(){_auPrimeAll_();setTimeout(_auPrimeAll_,0);};
+  ['pointerup','touchend','click','keydown'].forEach(function(ev){try{window.addEventListener(ev,f,false);}catch(e){}});})();
 function _auTake_(u,fresh){
   var a=_AU_PRE_[u];
-  if(a&&!fresh&&!a.error){try{a.pause();a.currentTime=0;}catch(e){}return a;}
+  if(a&&!fresh&&!a.error){a._kwtUse=1;try{a.muted=false;a.pause();a.currentTime=0;}catch(e){}return a;}
   if(a)delete _AU_PRE_[u];
   return new Audio(u);
 }
-var _auMsgT_=null,_auMsgOwn_=null;
+var _auMsgT_=null,_auMsgOwn_=null,_auMsgK_='';
 function _auMsg_(k,own){
   var el=$('au-msg');
   if(!el){el=document.createElement('div');el.id='au-msg';el.className='au-msg';el.setAttribute('role','status');document.body.appendChild(el);}
+  /* 2026-11-07 以前は消す前に6秒の予約を取り消していたので、ほかの音が鳴り始めると「音声のボタンを押して聞いてください」が消えずに残った */
+  if(!k){if(!own||own===_auMsgOwn_||_auMsgK_!=='wait'){clearTimeout(_auMsgT_);el.classList.remove('show');_auMsgK_='';}return;}
   clearTimeout(_auMsgT_);
-  if(!k){if(!own||own===_auMsgOwn_)el.classList.remove('show');return;}
-  _auMsgOwn_=own||null;
+  _auMsgOwn_=own||null;_auMsgK_=k;
   el.innerHTML=(k==='wait')?'<ruby>音声<rt class="uf">おんせい</rt></ruby>を<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>んでいます…'
     :(k==='blocked')?'<ruby>音声<rt class="uf">おんせい</rt></ruby>のボタンを<ruby>押<rt class="uf">お</rt></ruby>して<ruby>聞<rt class="uf">き</rt></ruby>いてください'
     :'<ruby>音声<rt class="uf">おんせい</rt></ruby>が<ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>めませんでした。<ruby>通信<rt class="uf">つうしん</rt></ruby>を<ruby>確<rt class="uf">たし</rt></ruby>かめて、もう<ruby>一度<rt class="uf">いちど</rt></ruby><ruby>押<rt class="uf">お</rt></ruby>してください';
   el.classList.add('show');
-  if(k!=='wait')_auMsgT_=setTimeout(function(){el.classList.remove('show');},6000);
+  if(k!=='wait')_auMsgT_=setTimeout(function(){el.classList.remove('show');_auMsgK_='';},6000);
 }
 function _auPlay_(url,_noUse,o){
   o=o||{};
   var tries=0,au=null,started=false,done=false,tW=null,tR=null,tE=null,ctl={};
-  var clr=function(){clearTimeout(tW);clearTimeout(tR);clearTimeout(tE);};
+  var clr=function(){clearTimeout(tW);clearTimeout(tR);clearTimeout(tE);},_on=false,off=function(){if(_on){_on=false;_AU_ON_=Math.max(0,_AU_ON_-1);}};
   var detach=function(){if(au){au.onplaying=null;au.onended=null;au.onerror=null;}};
-  var finish=function(cb,arg){if(done)return;done=true;clr();detach();try{if(cb)cb(arg);}catch(e){}};
+  var finish=function(cb,arg){if(done)return;done=true;clr();detach();off();try{if(cb)cb(arg);}catch(e){}};
   var fail=function(why){if(done)return;try{if(au)au.pause();}catch(e){}_auMsg_(why,ctl);finish(o.onFail,why);};
   var again=function(){if(done)return;clr();detach();try{if(au)au.pause();}catch(e){}if(tries<2)go(true);else fail('fail');};
   function go(fresh){
     tries++;started=false;au=_auTake_(url,fresh);
-    au.onplaying=function(){if(done||started)return;started=true;clearTimeout(tW);clearTimeout(tR);_auMsg_('',ctl);
+    au.onplaying=function(){if(done||started)return;started=true;if(!_on){_on=true;_AU_ON_++;}clearTimeout(tW);clearTimeout(tR);_auMsg_('',ctl);
       try{if(o.onStart)o.onStart();}catch(e){}
       var d=au.duration;tE=setTimeout(function(){finish(o.onEnd);},(isFinite(d)&&d>0)?Math.round(d*1000)+3000:30000);};
     au.onended=function(){finish(o.onEnd);};
