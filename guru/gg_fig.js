@@ -761,6 +761,8 @@ const D2=(v,t)=>Number.isInteger(nr(v*100))?t:null;
 /* 方眼の目もり：横は5分ごと・数字は10分ごと。たては 100 m ごと（2000 m をこえて全部 200 の倍数なら 200 m ごと）・数字は5目もりごと */
 const AX=(X,ys)=>{const top=Math.max(...ys);const s=(top>2000&&ys.every(v=>v%200===0))?200:(ys.every(v=>v%100===0)?100:50);const yt=s*5;return {xmax:Math.ceil((X+1)/10)*10,xs:5,xt:10,ymax:Math.ceil((top+1)/yt)*yt,ys:s,yt};};
 const PICK=(ok,cands)=>{const out=[];cands.forEach(c=>{if(c!==ok&&!out.includes(c)&&c!=null)out.push(c);});if(out.length<5)throw new Error('まちがいの選択肢が5つない '+ok+' / '+cands.join(' | '));return out.slice(0,5);};
+/* よくあるまちがいの組に選択肢の印 #[選択肢] を付ける（決まり44）。mk が選択肢にないときは付けない */
+const WM=(c,mk,L)=>c.includes(mk)?L.map(l=>'#['+mk+']'+l.slice(1)):L;
 
 /* ---------- グラフ（第1象限・方眼）。sm:true は選択肢の小さいグラフ ---------- */
 function GQ(o){const sm=!!o.sm,nx=o.xmax/o.xs,ny=o.ymax/o.ys;
@@ -864,7 +866,7 @@ function subst(o){const {m:p,q,a,b,c:cc}=o;const k=a+b*p,r=cc-b*q;const x=r/k,y=
  push(w,...SOLVE(C,[tm(k,'x'),tm(bq)],[tm(cc)],'x',{}).w);
  const eBad=R`${ax}x${bs}${ba}(${inner})=${ax}x${bp<0?'-':'+'}${Math.abs(bp)===1?'':N(Math.abs(bp))}x${qq}=${N(cc)}`,eX=FR(x2n,k);
  push(w,...EVAL(C,'y',[tm(p,'x'),tm(q)].filter(t=>t.c[0]!==0),{x:[x,UA]},{origNote:'\\(y\\) を求める。① の式を書く',tag:R`\quad\text{…①}`}).w,M(R`x=${N(x)},\ y=${N(y)}`),
-  `#まちがい：かっこをはずすとき、${T(q)} に ${T(b)} をかけ忘れた`,`#❌ \\(${eBad}\\)　→　\\(x=${eX}\\)`,`#${T(b)} はかっこの中の両方の項にかける`);
+  ...WM(c,S(FR(x2n,k),FR(y2n,k)),[`#まちがい：かっこをはずすとき、${T(q)} に ${T(b)} をかけ忘れた`,`#❌ \\(${eBad}\\)　→　\\(x=${eX},\\ y=${FR(y2n,k)}\\)`,`#${T(b)} はかっこの中の両方の項にかける`]));
  return {ty:o.ty||'a2',g:o.g||'a2',gh:'次の連立方程式を解きなさい。',q:M(R`\begin{cases}${EQ(p,q)}\\${E2(a,b)}=${N(cc)}\end{cases}`),c:C6(ok,c,o.p),w:CL(w),chk:{t:'subst',p,q,a,b,c:cc,ans:[x,y]}};}
 /* ===== a3 文章から式（線香・ろうそく・水そう） ===== s：+1 増える／−1 減る */
 function bun(o){const {b0,r,s}=o;const ok=M(EQ(s*r,b0));
@@ -875,7 +877,7 @@ function bun(o){const {b0,r,s}=o;const ok=M(EQ(s*r,b0));
  const w=[BOX(TBL([['時間（分）','1','2',M('x')],[`${ch}（${o.u}）`,T(r),M(`${N(r)}\\times 2`),M(`${N(r)}\\times x`)]]),`!${ch} ＝ 1分間に${o.unitw} × 時間`),
   `${o.what} ＝ 初めの${o.what} ${s<0?'−':'＋'} ${ch}`,`${ch} ＝ 1分間に${o.unitw} × 時間`,M(fc),'>代入する',M(R`\text{${ch}}=${U(R`\UA{${N(r)}}\times\UB{x}`,`${N(r)}x`)}`),DAI(C,fc,sc,false),M(R`\text{${ch}}=${N(r)}x`),
   `>\\(y\\) が${o.what}`,M(fy),'>代入する',M(sy),'>\\(x\\) の項を前に書く（項の順番を入れかえる）',M(EQ(s*r,b0)),
-  ...(s<0?[`#まちがい：\\(x\\) の係数をプラスにした`,`#❌ \\(y=${N(r)}x+${N(b0)}\\)`,`#${o.verb2}ので、\\(x\\) の係数はマイナス`]:[`#まちがい：初めの ${T(b0)} ${o.u} を入れ忘れた`,`#❌ \\(y=${N(r)}x\\)`,`#初めの${o.what}をたす。\\(${EQ(s*r,b0)}\\)`])];
+  ...(s<0?[...WM(c,M(EQ(-s*r,b0)),[`#まちがい：\\(x\\) の係数をプラスにした`,`#❌ \\(y=${N(r)}x+${N(b0)}\\)`,`#${o.verb2}ので、\\(x\\) の係数はマイナス`])]:[...WM(c,M(EQ(s*r,0)),[`#まちがい：初めの ${T(b0)} ${o.u} を入れ忘れた`,`#❌ \\(y=${N(r)}x\\)`,`#初めの${o.what}をたす。\\(${EQ(s*r,b0)}\\)`])])];
  return {ty:o.ty||'a3',g:o.g||'a3',gh:'次の問いに答えなさい。',q:o.q,c:C6(ok,c,o.p),w:CL(w),chk:{t:'bun',b0,r,s,ans:[s*r,b0]}};}
 /* ===== a4・a5 道のりのグラフ（1本）と、後から追いかける人 ===== */
 function walk(o){const {who,ap,h,dest,T1,D}=o;const ax=o.ax||AX(T1,[D]);const w0=D/T1;const L=o.later;const xm=L.u*L.dl/(L.u-w0),ym=w0*xm;
@@ -887,7 +889,7 @@ function walk(o){const {who,ap,h,dest,T1,D}=o;const ax=o.ax||AX(T1,[D]);const w0
  /* a4 速さ */
  const ok4=`分速 ${T(w0)} m`;
  const c4=PICK(ok4,[I(D/(T1+ax.xs),`分速 ${T(D/(T1+ax.xs))} m`),I(D/(T1-ax.xs),`分速 ${T(D/(T1-ax.xs))} m`),`分速 ${T(D)} m`,`分速 ${T(w0/10)} m`,`分速 ${T(w0*10)} m`,`分速 ${FRT(T1,D)} m`,`分速 ${T(w0*2)} m`,I(w0/2,`分速 ${T(w0/2)} m`),`分速 ${T1} m`]);
- const w4=[fig1,...SPEED({},{from:'家',to:dest,D,T1,v:w0,note:`グラフから、${T1} 分で ${D} m 進んでいる（点 \\((${T1},\\ ${D})\\)）`}),`答え　分速 ${T(w0)} m`,`>この速さは、グラフの傾き（1分間に \\(y\\) が増える量）と同じ`,...((c4.includes(I(D/(T1+ax.xs),`分速 ${T(D/(T1+ax.xs))} m`))?[`#まちがい：グラフの終わりを ${T1+ax.xs} 分と読んだ`,`#❌ \\(\\text{速さ}=${D}\\div ${T1+ax.xs}=${N(D/(T1+ax.xs))}\\)`,`#横の1目もりは ${ax.xs} 分なので、終わりは ${T1} 分`]:c4.includes(I(D/(T1-ax.xs),`分速 ${T(D/(T1-ax.xs))} m`))?[`#まちがい：グラフの終わりを ${T1-ax.xs} 分と読んだ`,`#❌ \\(\\text{速さ}=${D}\\div ${T1-ax.xs}=${N(D/(T1-ax.xs))}\\)`,`#横の1目もりは ${ax.xs} 分なので、終わりは ${T1} 分`]:[`#まちがい：グラフから読んだ ${D} m を、そのまま速さにした`,`#❌ 分速 ${T(D)} m`,`#速さ ＝ 道のり ÷ 時間。\\(${D}\\div ${T1}=${N(w0)}\\)`]))];
+ const w4=[fig1,...SPEED({},{from:'家',to:dest,D,T1,v:w0,note:`グラフから、${T1} 分で ${D} m 進んでいる（点 \\((${T1},\\ ${D})\\)）`}),`答え　分速 ${T(w0)} m`,`>この速さは、グラフの傾き（1分間に \\(y\\) が増える量）と同じ`,...((c4.includes(I(D/(T1+ax.xs),`分速 ${T(D/(T1+ax.xs))} m`))?[...WM(c4,`分速 ${T(D/(T1+ax.xs))} m`,[`#まちがい：グラフの終わりを ${T1+ax.xs} 分と読んだ`,`#❌ \\(\\text{速さ}=${D}\\div ${T1+ax.xs}=${N(D/(T1+ax.xs))}\\)`,`#横の1目もりは ${ax.xs} 分なので、終わりは ${T1} 分`])]:c4.includes(I(D/(T1-ax.xs),`分速 ${T(D/(T1-ax.xs))} m`))?[...WM(c4,`分速 ${T(D/(T1-ax.xs))} m`,[`#まちがい：グラフの終わりを ${T1-ax.xs} 分と読んだ`,`#❌ \\(\\text{速さ}=${D}\\div ${T1-ax.xs}=${N(D/(T1-ax.xs))}\\)`,`#横の1目もりは ${ax.xs} 分なので、終わりは ${T1} 分`])]:[...WM(c4,`分速 ${T(D)} m`,[`#まちがい：グラフから読んだ ${D} m を、そのまま速さにした`,`#❌ 分速 ${T(D)} m`,`#速さ ＝ 道のり ÷ 時間。\\(${D}\\div ${T1}=${N(w0)}\\)`])]))];
  const s4={ty:o.ty4||'a4',s:`${who}の歩く速さは、分速何 m か求めなさい。`,c:C6(ok4,c4,o.p4),w:CL(w4),chk:{t:'walk4',T1,D,ans:w0}};
  /* a5 追いつく時刻 */
  const ok5=TM(ap,h,xm);const b2=-L.u*L.dl;const kx=w0-L.u;
@@ -896,7 +898,7 @@ function walk(o){const {who,ap,h,dest,T1,D}=o;const ax=o.ax||AX(T1,[D]);const w0
  const w5=[fig2,'追いつく所 ＝ 2つのグラフの交点。2つの直線の式を連立方程式にして解く',`${who}の式`,`>原点を通る直線。傾き ＝ 速さ ＝ 分速 ${T(w0)}`,M(R`y=${N(w0)}x\quad\text{…①}`),
   `${L.who}の式`,...LATER(C,{u:L.u,s:L.dl,lab:'②'}),
   ...MEET(C,{l:[tm(w0,'x')],r:[tm(L.u,'x'),tm(b2)],rt:`${L.u}x-${L.u*L.dl}`,lt:`${N(w0)}x`}),
-  `${who}が家を出発してから ${T(xm)} 分後。${ap}${h}時の ${T(xm)} 分後なので`,`答え　${ok5}`,`#まちがい：${L.who}が出発してからの時間を、\\(x\\) だと考えた`,`#❌ ${ap}${h}時に ${T(xm-L.dl)} 分をたして ${TM(ap,h,xm-L.dl)}`,`#\\(x\\) は${who}が家を出てからの時間。${ap}${h}時に ${T(xm)} 分をたす`];
+  `${who}が家を出発してから ${T(xm)} 分後。${ap}${h}時の ${T(xm)} 分後なので`,`答え　${ok5}`,...WM(c5,TM(ap,h,xm-L.dl),[`#まちがい：${L.who}が出発してからの時間を、\\(x\\) だと考えた`,`#❌ ${ap}${h}時に ${T(xm-L.dl)} 分をたして ${TM(ap,h,xm-L.dl)}`,`#\\(x\\) は${who}が家を出てからの時間。${ap}${h}時に ${T(xm)} 分をたす`])];
  const s5={ty:o.ty5||'a5',s:`${who}が家を出発してから ${L.dl} 分後に、${L.who}が${L.how}分速 ${L.u} m で家を出発し、同じ道を${dest}へ向かった。${L.who}が ${who}に追いつく時刻を求めなさい。`,c:C6(ok5,c5,o.p5),w:CL(w5),chk:{t:'walk5',T1,D,dl:L.dl,u:L.u,h,ans:xm}};
  return {ctx,fig,s4,s5};}
 /* 速さ ＝ 道のり ÷ 時間（線分図のボックスつき） */
@@ -919,18 +921,18 @@ function dotAB(o){const {AD,AB,v,k}=o;const cf=AD*v/2;const x0=k/cf;const tend=A
   M(R`y=${U(R`\UA{${AD}}\times\UB{${v}x}`,`${AD*v}x`)}\div 2`),M(R`y=${U(`${AD*v}x\\div 2`,`${N(cf)}x`)}`),M(R`y=${N(cf)}x`)];};
  const ok6=M(EQ(cf,0));
  const c6=PICK(ok6,[M(EQ(AD*v,0)),M(EQ(AD/2,0)),M(EQ(AB*v/2,0)),M(EQ(cf,AD)),M(EQ(v/2,0)),M(EQ(AD*AB/2,0))]);
- const s6={ty:o.ty6||'a6',s:'\\(y\\) を \\(x\\) の式で表しなさい。',c:C6(ok6,c6,o.p6),w:CL([...DER({}),`#まちがい：÷2 を忘れた`,`#❌ \\(y=${AD}\\times ${v}x=${AD*v}x\\)`,`#三角形の面積 ＝ 底辺 × 高さ ÷ 2`,`#まちがい：AP を \\(x\\) cm にした`,`#❌ \\(y=${AD}\\times x\\div 2=${N(AD/2)}x\\)`,`#秒速 ${v} cm なので、\\(x\\) 秒で AP は \\(${v}x\\) cm`]),chk:{t:'dot6',AD,AB,v,ans:cf}};
+ const s6={ty:o.ty6||'a6',s:'\\(y\\) を \\(x\\) の式で表しなさい。',c:C6(ok6,c6,o.p6),w:CL([...DER({}),...WM(c6,M(EQ(AD*v,0)),[`#まちがい：÷2 を忘れた`,`#❌ \\(y=${AD}\\times ${v}x=${AD*v}x\\)`,`#三角形の面積 ＝ 底辺 × 高さ ÷ 2`]),...WM(c6,M(EQ(AD/2,0)),[`#まちがい：AP を \\(x\\) cm にした`,`#❌ \\(y=${AD}\\times x\\div 2=${N(AD/2)}x\\)`,`#秒速 ${v} cm なので、\\(x\\) 秒で AP は \\(${v}x\\) cm`])]),chk:{t:'dot6',AD,AB,v,ans:cf}};
  const ok7=`${T(x0)} 秒後`;
  const c7=PICK(ok7,[D2(k/(AD*v),`${T(k/(AD*v))} 秒後`),D2(k/(AD/2),`${T(k/(AD/2))} 秒後`),D2(k/AD,`${T(k/AD)} 秒後`),`${T(x0*v)} 秒後`,D2(k/(AB*v/2),`${T(k/(AB*v/2))} 秒後`),`${T(x0+1)} 秒後`,`${T(x0*2)} 秒後`,`${T(x0+0.5)} 秒後`,`${T(x0*3)} 秒後`,`${T(x0+2)} 秒後`]);
  const tail=C=>{const fo=R`\UA{y}=${N(cf)}x`;const r=SOLVE(C,[{c:XW.Q(k),v:'',t:UA(String(k))}],[tm(cf,'x')],'x',{dec:true,note:`\\(y\\) に ${k} を代入する`,after:[DAI(C,fo,R`\UA{${k}}=${N(cf)}x`,false)]});
-  return [M(fo),...r.w,`>P が辺 AB 上にあるのは、B に着く ${T(tend)} 秒後まで。${T(x0)} 秒後はその間にある`,`答え　${ok7}`,...((c7.includes(D2(k/(AD*v),`${T(k/(AD*v))} 秒後`))?[`#まちがい：(1) で ÷2 を忘れた式を使った`,`#❌ \\(${k}=${AD*v}x\\)　→　\\(x=${N(k/(AD*v))}\\)`,`#面積の式は \\(y=${N(cf)}x\\)。\\(${k}=${N(cf)}x\\) を解く`]:[`#まちがい：AP を \\(x\\) cm とした式を使った`,`#❌ \\(${k}=${N(AD/2)}x\\)　→　\\(x=${N(k/(AD/2))}\\)`,`#秒速 ${v} cm なので AP は \\(${v}x\\) cm。面積の式は \\(y=${N(cf)}x\\)`]))];};
+  return [M(fo),...r.w,`>P が辺 AB 上にあるのは、B に着く ${T(tend)} 秒後まで。${T(x0)} 秒後はその間にある`,`答え　${ok7}`,...((c7.includes(D2(k/(AD*v),`${T(k/(AD*v))} 秒後`))?[...WM(c7,`${T(k/(AD*v))} 秒後`,[`#まちがい：(1) で ÷2 を忘れた式を使った`,`#❌ \\(${k}=${AD*v}x\\)　→　\\(x=${N(k/(AD*v))}\\)`,`#面積の式は \\(y=${N(cf)}x\\)。\\(${k}=${N(cf)}x\\) を解く`])]:[...WM(c7,`${T(k/(AD/2))} 秒後`,[`#まちがい：AP を \\(x\\) cm とした式を使った`,`#❌ \\(${k}=${N(AD/2)}x\\)　→　\\(x=${N(k/(AD/2))}\\)`,`#秒速 ${v} cm なので AP は \\(${v}x\\) cm。面積の式は \\(y=${N(cf)}x\\)`])]))];};
  const s7={ty:o.ty7||'a7',s:`△APD の面積が ${k} cm² になるのは、点 P が A を出発してから何秒後か求めなさい。`,c:C6(ok7,c7,o.p7),w:CL(['(1) で求めた式',...tail({})]),chk:{t:'dot7',AD,AB,v,k,ans:x0}};
  const C2={};const s7full={...s7,w:CL(['初めに、\\(y\\) を \\(x\\) の式で表す',...DER(C2),...tail(C2)])};
  return {ctx,fig,s6,s7,s7full};}
 /* ===== b1 時速を分速（m）に ===== */
 function hm(o){const {h}=o;const m=h*1000/60;const ok=`分速 ${T(m)} m`;
  const c=PICK(ok,[`分速 ${T(h*1000)} m`,`分速 ${T(h*60)} m`,`分速 ${T(h/60)} m`,`分速 ${T(h*100/60)} m`,`分速 ${T(m*10)} m`,`分速 ${T(h*1000/100)} m`]);
- const w=[`時速 ${T(h)} km は「1時間に ${T(h)} km 進む」こと`,'>1 km ＝ 1000 m なので、m に直す',M(R`${N(h)}\text{ km}=${U(`${N(h)}\\times 1000`,T(h*1000))}\text{ m}`),`>1時間 ＝ 60 分。1分間に進む道のりは、60 でわる`,M(R`\text{分速}=${U(`${T(h*1000)}\\div 60`,T(m))}`),M(R`\text{分速}=${N(m)}`),`答え　分速 ${T(m)} m`,`#まちがい：60 でわるのを忘れた`,`#❌ \\(\\text{分速}=${N(h)}\\times 1000=${N(h*1000)}\\)`,`#これは1時間で進む道のり。1分間に進む道のりは、60 でわって出す`];
+ const w=[`時速 ${T(h)} km は「1時間に ${T(h)} km 進む」こと`,'>1 km ＝ 1000 m なので、m に直す',M(R`${N(h)}\text{ km}=${U(`${N(h)}\\times 1000`,T(h*1000))}\text{ m}`),`>1時間 ＝ 60 分。1分間に進む道のりは、60 でわる`,M(R`\text{分速}=${U(`${T(h*1000)}\\div 60`,T(m))}`),M(R`\text{分速}=${N(m)}`),`答え　分速 ${T(m)} m`,...WM(c,`分速 ${T(h*1000)} m`,[`#まちがい：60 でわるのを忘れた`,`#❌ \\(\\text{分速}=${N(h)}\\times 1000=${N(h*1000)}\\)`,`#これは1時間で進む道のり。1分間に進む道のりは、60 でわって出す`])];
  return {ty:o.ty||'b1',g:o.g||'b1',gh:'次の問いに答えなさい。',q:`時速 ${T(h)} km は、分速何 m か求めなさい。`,c:C6(ok,c,o.p),w,chk:{t:'hm',h,ans:m}};}
 
 /* ===== b2 1次方程式 ax＋b＝cx＋d ===== */
@@ -941,14 +943,14 @@ function lin(o){const {a,b,c:cc,d}=o;const x=(d-b)/(a-cc);if(!Number.isInteger(x
  const k=a-cc,r=d-b;
  const w=SOLVE({},[tm(a,'x'),tm(b)].filter(t=>t.c[0]!==0),[tm(cc,'x'),tm(d)].filter(t=>t.c[0]!==0),'x',{}).w;
  const eL=R`${k===1?'':k===-1?'-':N(k)}x=${N(d)}${b<0?'-'+N(-b):'+'+N(b)}`,eX=FR(d+b,a-cc);
- w.push(`#まちがい：${T(b)} を右辺へ移項するとき、符号を変えなかった`,`#❌ \\(${eL}\\)　→　\\(x=${eX}\\)`,`#移項すると符号が変わる`);
+ w.push(...WM(c,M(R`x=${eX}`),[`#まちがい：${T(b)} を右辺へ移項するとき、符号を変えなかった`,`#❌ \\(${eL}\\)　→　\\(x=${eX}\\)`,`#移項すると符号が変わる`]));
  return {ty:o.ty||'b2',g:o.g||'b2',gh:'次の方程式を解きなさい。',q:M(R`${L(a,b)}=${L(cc,d)}`),c:C6(ok,c,o.p),w:CL(w),chk:{t:'lin',a,b,c:cc,d,ans:x}};}
 /* ===== b3 2直線の交点 ===== */
 function cross(o){const {p1,q1,p2,q2}=o;const x=(q2-q1)/(p1-p2),y=p1*x+q1;if(!Number.isInteger(x)||!Number.isInteger(y))throw new Error('cross');
  const P=(X,Y)=>M(R`(${N(X)},\ ${N(Y)})`);const ok=P(x,y);
  const c=PICK(ok,[P(y,x),P(x,-y),P(-x,p1*(-x)+q1),P(x,p2*x-q2),P(x,q1),P(x+1,p1*(x+1)+q1)]);
  const w=XW.T.cross({},p1,q1,p2,q2,'交点は、2つの直線の式の両方に合う点。2つの式を連立方程式にして解く',`答え　${ok}`);
- w.push(`#まちがい：\\(x\\) 座標と \\(y\\) 座標を逆に書いた`,`#❌ ${P(y,x)}`,`#座標は（\\(x\\) 座標, \\(y\\) 座標）の順`);
+ w.push(...WM(c,P(y,x),[`#まちがい：\\(x\\) 座標と \\(y\\) 座標を逆に書いた`,`#❌ ${P(y,x)}`,`#座標は（\\(x\\) 座標, \\(y\\) 座標）の順`]));
  return {ty:o.ty||'b3',g:o.g||'b3',gh:'次の問いに答えなさい。',q:`2直線 \\(${EQ(p1,q1)}\\)、\\(${EQ(p2,q2)}\\) の交点の座標を求めなさい。`,c:C6(ok,c,o.p),w:CL(w),chk:{t:'cross',p1,q1,p2,q2,ans:[x,y]}};}
 /* ===== b4・b5・b6 とちゅうで止まったグラフと、反対から来る人 ===== */
 function stop(o){const {who,ap,h,shop,dest,w1,t1,t2,w2,t3}=o;const d1=w1*t1,D=d1+w2*(t3-t2);const ax=o.ax||AX(t3,[d1,D]);const S=o.sis;const u=S.kmh*1000/60;
@@ -961,7 +963,7 @@ function stop(o){const {who,ap,h,shop,dest,w1,t1,t2,w2,t3}=o;const d1=w1*t1,D=d1
  const c4=PICK(ok4,[`${t1} 分間`,`${t2} 分間`,`${t3-t2} 分間`,`${st+ax.xs} 分間`,`${st*2} 分間`,st-ax.xs>0?`${st-ax.xs} 分間`:null,`${t3} 分間`,`${st+2*ax.xs} 分間`,`${t1+t2} 分間`,`${t3-t1} 分間`,`${st+3*ax.xs} 分間`,`${t3+t2} 分間`]);
  const C4={},f4=R`\text{止まっていた時間}=\UA{\text{出た時刻}}-\UB{\text{着いた時刻}}`,g4=R`\text{止まっていた時間}=\UA{${t2}}-\UB{${t1}}`;
  const w4=[GQ({...ax,xu:'分',yu:'m',polys:[[poly]],hl:[[t1,d1,t2,d1]],dsh:[[t1,0,t1,d1],[t2,0,t2,d1]],labs:[[t1,d1,`${t1} 分`,'end',-4,-10,1],[t2,d1,`${t2} 分`,'start',4,-10,1]]}),
-  `>${shop}にいる間は、家からの道のり \\(y\\) が変わらない。グラフが横にまっすぐな所`,M(f4),BOX(R`\(\text{時間}=\UA{\text{あと}}-\UB{\text{まえ}}\)`,'!出た時刻（あと）− 着いた時刻（まえ）'),`>グラフから、${t1} 分後に着いて ${t2} 分後に出た。代入する`,M(R`\text{止まっていた時間}=${U(R`\UA{${t2}}-\UB{${t1}}`,st)}`),DAI(C4,f4,g4,false),M(R`\text{止まっていた時間}=${st}`),`答え　${ok4}`,`#まちがい：${shop}に着いた時刻を答えにした`,`#❌ ${t1} 分間`,`#止まっていた時間 ＝ 出た時刻 − 着いた時刻。\\(${t2}-${t1}=${st}\\)`,`#まちがい：${shop}を出た時刻を答えにした`,`#❌ ${t2} 分間`,`#${t2} 分は出た時刻。着いた時刻の ${t1} 分をひく`];
+  `>${shop}にいる間は、家からの道のり \\(y\\) が変わらない。グラフが横にまっすぐな所`,M(f4),BOX(R`\(\text{時間}=\UA{\text{あと}}-\UB{\text{まえ}}\)`,'!出た時刻（あと）− 着いた時刻（まえ）'),`>グラフから、${t1} 分後に着いて ${t2} 分後に出た。代入する`,M(R`\text{止まっていた時間}=${U(R`\UA{${t2}}-\UB{${t1}}`,st)}`),DAI(C4,f4,g4,false),M(R`\text{止まっていた時間}=${st}`),`答え　${ok4}`,...WM(c4,`${t1} 分間`,[`#まちがい：${shop}に着いた時刻を答えにした`,`#❌ ${t1} 分間`,`#止まっていた時間 ＝ 出た時刻 − 着いた時刻。\\(${t2}-${t1}=${st}\\)`]),...WM(c4,`${t2} 分間`,[`#まちがい：${shop}を出た時刻を答えにした`,`#❌ ${t2} 分間`,`#${t2} 分は出た時刻。着いた時刻の ${t1} 分をひく`])];
  const s4={ty:o.ty4||'b4',s:`${who}が${shop}にいたのは何分間か求めなさい。`,c:C6(ok4,c4,o.p4),w:CL(w4),chk:{t:'stop4',t1,t2,ans:st}};
  /* b5 止まる前の速さ（時速） */
  const kmh=w1*60/1000,ok5=`時速 ${T(kmh)} km`;
@@ -969,7 +971,7 @@ function stop(o){const {who,ap,h,shop,dest,w1,t1,t2,w2,t3}=o;const d1=w1*t1,D=d1
  const C5={},f5=R`\text{分速}=\UA{\text{道のり}}\div\UB{\text{時間}}`,g5=R`\text{分速}=\UA{${d1}}\div\UB{${t1}}`;
  const w5=[GQ({...ax,xu:'分',yu:'m',polys:[[poly]],rings:[[t1,d1]],dsh:[[t1,0,t1,d1],[0,d1,t1,d1]],labs:[[t1,d1,`(${t1}, ${d1})`,'end',-12,-8,1]]}),SPD,M(f5),`>グラフから、${shop}までは ${t1} 分で ${d1} m 進んでいる。代入する`,M(R`\text{分速}=${U(R`\UA{${d1}}\div\UB{${t1}}`,w1)}`),DAI(C5,f5,g5,false),M(R`\text{分速}=${w1}`),
   '>分速 m を時速 km に直す。1時間 ＝ 60 分なので、1時間に進む道のりは分速の 60 倍',M(R`\text{1時間に進む道のり}=\UA{\text{分速}}\times 60`),'>代入する',M(R`\text{1時間に進む道のり}=${U(R`\UA{${w1}}\times 60`,w1*60)}`),
-  BOX(TBL([['時間','1 分','60 分（1時間）'],['道のり',`${w1} m`,`${w1*60} m`]]),'!1 km ＝ 1000 m'),M(R`\text{1時間に進む道のり}=${w1*60}`),`>${w1*60} m ＝ ${T(kmh)} km（1000 m ＝ 1 km）。1時間に ${T(kmh)} km 進むので、時速 ${T(kmh)} km`,`答え　${ok5}`,`#まちがい：分速 ${w1} m の数を、そのまま時速にした`,`#❌ 時速 ${T(w1)} km`,`#1時間に進む道のりは \\(${w1}\\times 60=${w1*60}\\) m。km に直して ${T(kmh)} km`,`#まちがい：m を km に直さなかった`,`#❌ \\(${w1}\\times 60=${w1*60}\\)　→　時速 ${w1*60} km`,`#1000 m ＝ 1 km。${w1*60} m ＝ ${T(kmh)} km`];
+  BOX(TBL([['時間','1 分','60 分（1時間）'],['道のり',`${w1} m`,`${w1*60} m`]]),'!1 km ＝ 1000 m'),M(R`\text{1時間に進む道のり}=${w1*60}`),`>${w1*60} m ＝ ${T(kmh)} km（1000 m ＝ 1 km）。1時間に ${T(kmh)} km 進むので、時速 ${T(kmh)} km`,`答え　${ok5}`,...WM(c5,`時速 ${T(w1)} km`,[`#まちがい：分速 ${w1} m の数を、そのまま時速にした`,`#❌ 時速 ${T(w1)} km`,`#1時間に進む道のりは \\(${w1}\\times 60=${w1*60}\\) m。km に直して ${T(kmh)} km`]),...WM(c5,`時速 ${T(w1*60)} km`,[`#まちがい：m を km に直さなかった`,`#❌ \\(${w1}\\times 60=${w1*60}\\)　→　時速 ${w1*60} km`,`#1000 m ＝ 1 km。${w1*60} m ＝ ${T(kmh)} km`])];
  const s5={ty:o.ty5||'b5',s:`${who}が家から${shop}まで歩いた速さは、時速何 km か求めなさい。`,c:C6(ok5,c5,o.p5),w:CL(w5),chk:{t:'stop5',d1,t1,ans:kmh}};
  /* b6 すれちがう */
  const b1=d1-w2*t2,b2=D+u*S.s;const A6=(tt,dd)=>`${TM(ap,h,tt)}、家から ${T(dd)} m`;const ok6=A6(xm,ym);
@@ -983,7 +985,7 @@ function stop(o){const {who,ap,h,shop,dest,w1,t1,t2,w2,t3}=o;const d1=w1*t1,D=d1
   ...LINE(C,{a:-u,x:S.s,y:D,lab:'②',pre:`${S.s} 分後に${dest}（${D} m）を出るので、`}),
   ...MEET(C,{l:[tm(w2,'x'),tm(b1)],r:[tm(-u,'x'),tm(b2)],lt:`${N(w2)}x${b1<0?'-'+N(-b1):'+'+N(b1)}`,rt:`-${N(u)}x+${N(b2)}`}),
   ...EVAL(C,'y',[tm(w2,'x'),tm(b1)],{x:[xm,UA]},{origNote:'家からの道のり \\(y\\) を求める。① の式を書く',tag:R`\quad\text{…①}`}).w,
-  `${ap}${h}時の ${T(xm)} 分後で、家から ${T(ym)} m`,`答え　${ok6}`,`#まちがい：${dest}からの道のりを答えた`,`#❌ 家から \\(${N(D)}-${N(ym)}=${N(D-ym)}\\) m`,`#\\(y\\) は家からの道のり。答えは家から ${T(ym)} m`];
+  `${ap}${h}時の ${T(xm)} 分後で、家から ${T(ym)} m`,`答え　${ok6}`,...WM(c6,A6(xm,D-ym),[`#まちがい：${dest}からの道のりを答えた`,`#❌ 家から \\(${N(D)}-${N(ym)}=${N(D-ym)}\\) m`,`#\\(y\\) は家からの道のり。答えは家から ${T(ym)} m`])];
  const s6={ty:o.ty6||'b6',s:`${S.who}は${ap}${h}時${S.s}分に${dest}を出発し、${S.how}時速 ${T(S.kmh)} km で同じ道を家に向かった。${S.who}が ${who}とすれちがう時刻と、そのときの家からの道のりを求めなさい。`,c:C6(ok6,c6,o.p6),w:CL(w6),chk:{t:'stop6',d1,t2,t3,D,s:S.s,kmh:S.kmh,ans:[xm,ym]}};
  return {ctx,fig,s4,s5,s6};}
 /* 2点から傾き（変化の割合）。増加量 ＝ あと − まえ（決まり 2・3・9 の ⑧） */
@@ -1009,12 +1011,12 @@ function tri(o){const {BC,CA,v}=o;const L=BC+CA,tc=BC/v,ta=L/v,hb=BC/2;const a=-
   M(R`\text{PA}=\UA{\text{全部の長さ}}-\UB{\text{進んだ長さ}}`),'>代入する',M(R`\text{PA}=\UA{${L}}-\UB{${v}x}`),AREA,M(R`y=\UA{\text{底辺}}\times\UB{\text{高さ}}\div 2`),`>底辺 PA ＝ \\(${L}-${v}x\\)、高さ BC ＝ ${BC}（BC は CA と垂直）を代入する`,M(R`y=\UA{(${L}-${v}x)}\times\UB{${BC}}\div 2`),
   `>${BC}÷2 を先に計算する`,M(R`y=(${L}-${v}x)\times${U(`${BC}\\div 2`,N(hb))}`),'>かけ算の順番を入れかえる',M(R`y=${AF(`両方に ×${N(hb)}`,N(hb))}(${AT(String(L))}${AT('-'+v+'x')})`),BX.bunpai(),
   '>分配法則でかっこをはずす',M(R`y=${N(b)}${UR('-'+N(-a)+'x')}`),'>\\(x\\) の項を前に書く（項の順番を入れかえる）',M(EQ(a,b)),
-  `答え　${ok}`,`#まちがい：変域を 0 秒からにした`,`#❌ \\(0\\leqq x\\leqq ${N(ta)}\\)`,`#変域は辺 CA の上にいる間だけ。辺 BC の上の時間（${T(tc)} 秒後まで）は入れない`];
+  `答え　${ok}`,...WM(c,A(a,b,0,ta),[`#まちがい：変域を 0 秒からにした`,`#❌ \\(0\\leqq x\\leqq ${N(ta)}\\)`,`#変域は辺 CA の上にいる間だけ。辺 BC の上の時間（${T(tc)} 秒後まで）は入れない`])];
  return {ty:o.ty||'b7',g:o.g||'b7',q,c:C6(ok,c,o.p),w:CL(w),chk:{t:'tri',BC,CA,v,ans:[a,b,tc,ta]}};}
 /* ===== c1 三角形の面積 ===== */
 function area(o){const {bb,hh}=o;const S=bb*hh/2,ok=`${T(S)} cm²`;
  const c=PICK(ok,[`${T(bb*hh)} cm²`,`${T(bb+hh)} cm²`,`${T((bb+hh)*2)} cm²`,`${T(S*2+bb)} cm²`,`${T(S/2)} cm²`,`${T(S+hh)} cm²`]);
- const w=[AREA,`>底辺 ${T(bb)}、高さ ${T(hh)} を入れる`,M(R`\text{面積}=${U(`${N(bb)}\\times ${N(hh)}`,N(bb*hh))}\div 2`),M(R`\text{面積}=${N(bb*hh)}\div 2`),M(R`\text{面積}=${N(S)}`),`答え　${ok}`,`#まちがい：÷2 を忘れた`,`#❌ \\(\\text{面積}=${N(bb)}\\times ${N(hh)}=${N(bb*hh)}\\)`,`#三角形の面積 ＝ 底辺 × 高さ ÷ 2`];
+ const w=[AREA,`>底辺 ${T(bb)}、高さ ${T(hh)} を入れる`,M(R`\text{面積}=${U(`${N(bb)}\\times ${N(hh)}`,N(bb*hh))}\div 2`),M(R`\text{面積}=${N(bb*hh)}\div 2`),M(R`\text{面積}=${N(S)}`),`答え　${ok}`,...WM(c,`${T(bb*hh)} cm²`,[`#まちがい：÷2 を忘れた`,`#❌ \\(\\text{面積}=${N(bb)}\\times ${N(hh)}=${N(bb*hh)}\\)`,`#三角形の面積 ＝ 底辺 × 高さ ÷ 2`])];
  return {ty:o.ty||'c1',g:o.g||'c1',gh:'次の問いに答えなさい。',q:`底辺 ${T(bb)} cm、高さ ${T(hh)} cm の三角形の面積を求めなさい。`,c:C6(ok,c,o.p),w,chk:{t:'area',bb,hh,ans:S}};}
 
 /* ===== c2 分数の1次方程式 (x＋e)/m ＝ (x＋f)/n ===== */
@@ -1031,7 +1033,7 @@ function frac(o){const {e,f,m,n}=o;const l=m*n/gcd(m,n),A=l/m,B=l/n;const x=(B*f
  push(w,...SOLVE(C,[tm(A,'x'),tm(A*e)].filter(t=>t.c[0]!==0),[tm(B,'x'),tm(B*f)].filter(t=>t.c[0]!==0),'x',{note:'分配法則でかっこをはずす'+(B!==1?`（右辺も ${B} を、かっこの中の両方にかける）`:'')}).w);
  { const ws=[A!==1?T(e):null,B!==1?T(f):null].filter(v=>v!==null);
    const eL=R`${A===1?'':N(A)}x${sg(e)}=${B===1?'':N(B)}x${sg(f)}`,eX=FR(f-e,A-B),wt=ws.length===2?ws.join(' と ')+' の両方':ws[0];
-   w.push(`#まちがい：${l} をかけたとき、${wt}にかけ忘れた`,`#❌ \\(${eL}\\)　→　\\(x=${eX}\\)`,`#分子にかっこをつけて、かっこの中の全部の項にかける`); }
+   w.push(...WM(c,M(R`x=${eX}`),[`#まちがい：${l} をかけたとき、${wt}にかけ忘れた`,`#❌ \\(${eL}\\)　→　\\(x=${eX}\\)`,`#分子にかっこをつけて、かっこの中の全部の項にかける`])); }
  return {ty:o.ty||'c2',g:o.g||'c2',gh:'次の方程式を解きなさい。',q:M(R`\dfrac{x${sg(e)}}{${m}}=\dfrac{x${sg(f)}}{${n}}`),c:C6(ok,c,o.p),w:CL(w),chk:{t:'frac',e,f,m,n,ans:x}};}
 /* ===== c3 連立方程式の利用：速さ（表をうめる） ===== */
 function sys(o){const {D,v1,v2,T:TT}=o;const l=v1*v2/gcd(v1,v2),A=l/v1,B=l/v2;
@@ -1053,7 +1055,7 @@ function sys(o){const {D,v1,v2,T:TT}=o;const l=v1*v2/gcd(v1,v2),A=l/v1,B=l/v2;
  if(A-B!==1)push(w,`>両辺を \\(x\\) の係数 ${T(A-B)} でわる`,M(R`x=${N(x)}`));
  push(w,'>\\(y\\) を求める。① の式を書く',M(R`\UA{x}+y=${D}\quad\text{…①}`));
  push(w,...SOLVE(C,[{c:XW.Q(x),v:'',t:UA(N(x))},tm(1,'y')],[tm(D)],'y',{note:`\\(x\\) に ${T(x)} を代入する`,after:[DAI(C,R`\UA{x}+y=${D}`,R`\UA{${N(x)}}+y=${D}`,false)]}).w);
- push(w,`確かめ：${T(x)}÷${v1} ＝ ${T(x/v1)} 分、${T(y)}÷${v2} ＝ ${T(y/v2)} 分。合わせて ${T(x/v1+y/v2)} 分で合う`,`答え　${ok}`,`#まちがい：時間の式を、速さ × 道のりにした`,`#❌ \\(${v1}x+${v2}y=${TT}\\)`,`#時間 ＝ 道のり ÷ 速さ。\\(\\dfrac{x}{${v1}}+\\dfrac{y}{${v2}}=${TT}\\)`,`#まちがい：2つの道のりを逆にした`,`#❌ ${AN(y,x)}`,`#\\(x\\) は${W1}道のり。答えを出したら、時間が ${TT} 分になるかを確かめる`);
+ push(w,`確かめ：${T(x)}÷${v1} ＝ ${T(x/v1)} 分、${T(y)}÷${v2} ＝ ${T(y/v2)} 分。合わせて ${T(x/v1+y/v2)} 分で合う`,`答え　${ok}`,...WM(c,AN(y,x),[`#まちがい：2つの道のりを逆にした`,`#❌ ${AN(y,x)}`,`#\\(x\\) は${W1}道のり。答えを出したら、時間が ${TT} 分になるかを確かめる`]));
  return {ty:o.ty||'c3',g:o.g||'c3',gh:'次の問いに答えなさい。',q:`家から ${D} m はなれた${o.place}まで行くのに、初めは分速 ${v1} m で${o.how1||'歩き'}、とちゅうから分速 ${v2} m で${o.how2||'走った'}ところ、全部で ${TT} 分かかった。${o.w1||'歩いた'}道のりと${o.w2||'走った'}道のりを、それぞれ求めなさい。`,c:C6(ok,c,o.p),w:CL(w),chk:{t:'sys',D,v1,v2,T:TT,ans:[x,y]}};}
 /* ===== c4・c5・c6 往復と、後から出る人 ===== */
 function round(o){const {who,ap,h,place,D,T1,T2}=o;const ax=o.ax||AX(T2,[D]);const g1=D/T1,g2=D/(T2-T1),b=g2*T2;const S=o.sib;const xm=(b+S.u*S.s)/(S.u+g2),ym=S.u*(xm-S.s);
@@ -1062,12 +1064,12 @@ function round(o){const {who,ap,h,place,D,T1,T2}=o;const ax=o.ax||AX(T2,[D]);con
  const fig=GQ({...ax,xu:'分',yu:'m',polys:[[poly]],pts:[[T1,D]]});
  const ok4=`分速 ${T(g1)} m`;
  const c4=PICK(ok4,[`分速 ${T(g2)} m`,D2(D/T2,`分速 ${T(D/T2)} m`),D2(2*D/T2,`分速 ${T(2*D/T2)} m`),`分速 ${T(D)} m`,`分速 ${T(g1*10)} m`,D2(D/(T1+ax.xs),`分速 ${T(D/(T1+ax.xs))} m`),`分速 ${T(g1*2)} m`,`分速 ${T(g1/2)} m`,`分速 ${T1} m`,`分速 ${T(g1+g2)} m`]);
- const w4=[GQ({...ax,xu:'分',yu:'m',polys:[[poly]],rings:[[T1,D]],dsh:[[T1,0,T1,D],[0,D,T1,D]],labs:[[T1,D,`(${T1}, ${D})`,'start',10,-6,1]]}),...SPEED({},{from:'家',to:place,D,T1,v:g1,note:`グラフから、行きは ${T1} 分で ${D} m 進んでいる`}),`答え　分速 ${T(g1)} m`,`#まちがい：帰りの速さを求めた`,`#❌ \\(\\text{速さ}=${D}\\div ${T2-T1}=${N(g2)}\\)`,`#行きはグラフの右上がりの所。\\(${D}\\div ${T1}=${N(g1)}\\)`];
+ const w4=[GQ({...ax,xu:'分',yu:'m',polys:[[poly]],rings:[[T1,D]],dsh:[[T1,0,T1,D],[0,D,T1,D]],labs:[[T1,D,`(${T1}, ${D})`,'start',10,-6,1]]}),...SPEED({},{from:'家',to:place,D,T1,v:g1,note:`グラフから、行きは ${T1} 分で ${D} m 進んでいる`}),`答え　分速 ${T(g1)} m`,...WM(c4,`分速 ${T(g2)} m`,[`#まちがい：帰りの速さを求めた`,`#❌ \\(\\text{速さ}=${D}\\div ${T2-T1}=${N(g2)}\\)`,`#行きはグラフの右上がりの所。\\(${D}\\div ${T1}=${N(g1)}\\)`])];
  const s4={ty:o.ty4||'c4',s:`${who}が${place}へ行くときの速さは、分速何 m か求めなさい。`,c:C6(ok4,c4,o.p4),w:CL(w4),chk:{t:'round4',D,T1,ans:g1}};
  const ok5=M(EQ(-g2,b));
  const c5=PICK(ok5,[M(EQ(g2,-b)),M(EQ(-g2,D)),M(EQ(-g1,g1*T2)),M(EQ(-g2,-b)),D2(D/T2,M(EQ(-D/T2,D))),M(EQ(-g2,g2*T1)),M(EQ(-g2,b+D)),M(EQ(-g1,D))]);
  const der=(C,lab)=>[M(R`y=ax+b`),`>帰りのグラフは、2点 \\((${T1},\\ ${D})\\)、\\((${T2},\\ 0)\\) を通る`,...SLOPE(C,{x1:T1,y1:D,x2:T2,y2:0}),...LINE(C,{a:-g2,x:T2,y:0,lab})];
- const s5={ty:o.ty5||'c5',s:`${who}が${place}から家にもどるときの、\\(y\\) を \\(x\\) の式で表しなさい。`,c:C6(ok5,c5,o.p5),w:CL([GQ({...ax,xu:'分',yu:'m',polys:[[poly]],rings:[[T1,D],[T2,0]],hl:[[T1,D,T2,0]],labs:[[T1,D,`(${T1}, ${D})`,'start',10,-6,1],[T2,0,`(${T2}, 0)`,'end',-8,-8,1]]}),...der({},null),`答え　${ok5}`,`#まちがい：傾きをプラスにした`,`#❌ \\(${EQ(g2,-b)}\\)`,`#家にもどるとき \\(y\\) は減るので、傾きはマイナス`,`#まちがい：${D} を切片にした`,`#❌ \\(${EQ(-g2,D)}\\)`,`#切片は、この線を \\(x=0\\) までのばした所の ${T(b)}`]),chk:{t:'round5',D,T1,T2,ans:[-g2,b]}};
+ const s5={ty:o.ty5||'c5',s:`${who}が${place}から家にもどるときの、\\(y\\) を \\(x\\) の式で表しなさい。`,c:C6(ok5,c5,o.p5),w:CL([GQ({...ax,xu:'分',yu:'m',polys:[[poly]],rings:[[T1,D],[T2,0]],hl:[[T1,D,T2,0]],labs:[[T1,D,`(${T1}, ${D})`,'start',10,-6,1],[T2,0,`(${T2}, 0)`,'end',-8,-8,1]]}),...der({},null),`答え　${ok5}`,...WM(c5,M(EQ(g2,-b)),[`#まちがい：傾きをプラスにした`,`#❌ \\(${EQ(g2,-b)}\\)`,`#家にもどるとき \\(y\\) は減るので、傾きはマイナス`]),...WM(c5,M(EQ(-g2,D)),[`#まちがい：${D} を切片にした`,`#❌ \\(${EQ(-g2,D)}\\)`,`#切片は、この線を \\(x=0\\) までのばした所の ${T(b)}`])]),chk:{t:'round5',D,T1,T2,ans:[-g2,b]}};
  const ok6=TM(ap,h,xm);const kk=S.u+g2,rr=b+S.u*S.s;
  const c6=PICK(ok6,[TM(ap,h,xm-S.s),TM(ap,h,T1),TM(ap,h,T2),I((D+S.u*S.s)/(S.u+g1),TM(ap,h,(D+S.u*S.s)/(S.u+g1))),TM(ap,h,xm+5),TM(ap,h,xm-1),TM(ap,h,S.s+D/S.u)]);
  const xe=S.s+D/S.u;
@@ -1075,7 +1077,7 @@ function round(o){const {who,ap,h,place,D,T1,T2}=o;const ax=o.ax||AX(T2,[D]);con
   ...(full?der(C,'①'):['>(2) で求めた式',M(R`${EQ(-g2,b)}\quad\text{…①}`)]),
   `${S.who}の式`,...LATER(C,{u:S.u,s:S.s,lab:'②'}),
   ...MEET(C,{l:[tm(-g2,'x'),tm(b)],r:[tm(S.u,'x'),tm(-S.u*S.s)],lt:`-${N(g2)}x+${N(b)}`,rt:`${S.u}x-${S.u*S.s}`}),
-  `${ap}${h}時の ${T(xm)} 分後`,`答え　${ok6}`,`#まちがい：${S.who}が出発してからの時間を、\\(x\\) だと考えた`,`#❌ ${ap}${h}時に ${T(xm-S.s)} 分をたして ${TM(ap,h,xm-S.s)}`,`#\\(x\\) は${who}が家を出てからの時間。${ap}${h}時に ${T(xm)} 分をたす`];};
+  `${ap}${h}時の ${T(xm)} 分後`,`答え　${ok6}`,...WM(c6,TM(ap,h,xm-S.s),[`#まちがい：${S.who}が出発してからの時間を、\\(x\\) だと考えた`,`#❌ ${ap}${h}時に ${T(xm-S.s)} 分をたして ${TM(ap,h,xm-S.s)}`,`#\\(x\\) は${who}が家を出てからの時間。${ap}${h}時に ${T(xm)} 分をたす`])];};
  const s6={ty:o.ty6||'c6',s:`${S.who}は${ap}${h}時${S.s}分に家を出発し、分速 ${S.u} m で同じ道を${place}へ向かった。${S.who}が ${who}と出会う時刻を求めなさい。`,c:C6(ok6,c6,o.p6),w:CL(w6(false)),chk:{t:'round6',D,T1,T2,s:S.s,u:S.u,ans:xm}};
  const s6full={...s6,w:CL(w6(true))};
  return {ctx,fig,s4,s5,s6,s6full};}
@@ -1096,7 +1098,7 @@ function dotAll(o){const {AD,AB,v}=o;const t1=AB/v,t2=(AB+AD)/v,t3=(2*AB+AD)/v,M
   `P が B・C にあるとき、△APD は底辺 AD ＝ ${AD}、高さ AB ＝ ${AB} の三角形`,AREA,M(fy),'>代入する',M(R`y=${U(R`\UA{${AD}}\times\UB{${AB}}`,AD*AB)}\div 2`),M(R`y=${U(`${AD*AB}\\div 2`,N(Mx))}`),M(R`y=${N(Mx)}`),tbl,
   `辺 AB 上：高さ AP がのびるので、\\(y\\) は 0 から ${T(Mx)} まで増える`,`辺 BC 上：高さはいつも AB（${AB} cm）なので、\\(y\\) は ${T(Mx)} のまま（横にまっすぐ）`,`辺 CD 上：高さ PD が短くなるので、\\(y\\) は ${T(Mx)} から 0 まで減る`,
   '>表の4つの点を、線分でつなぐ',GQ({xmax,ymax,xs:o.xs,ys:o.ys,xt:o.xt,yt:o.yt,xu:'秒',yu:'cm²',polys:[[okp]],pts:okp,labs:[[t1,Mx,`(${T(t1)}, ${T(Mx)})`,'end',-6,-8,1],[t2,Mx,`(${T(t2)}, ${T(Mx)})`,'start',6,-8,1]]}),
-  `#まちがい：AB と AD を取りちがえた`,`#❌ B に着くのを \\(${AD}\\div ${v}=${N(sw1)}\\) 秒後とした`,`#B に着くのは AB を進んだとき。\\(${AB}\\div ${v}=${N(t1)}\\) 秒後`,`#まちがい：÷2 を忘れた`,`#❌ \\(y=${AD}\\times ${AB}=${AD*AB}\\)`,`#三角形の面積 ＝ 底辺 × 高さ ÷ 2。\\(y=${N(Mx)}\\)`];
+  ...WM(c,g(wr[0]),[`#まちがい：AB と AD を取りちがえた`,`#❌ B に着くのを \\(${AD}\\div ${v}=${N(sw1)}\\) 秒後とした`,`#B に着くのは AB を進んだとき。\\(${AB}\\div ${v}=${N(t1)}\\) 秒後`]),...WM(c,g(wr[1]),[`#まちがい：÷2 を忘れた`,`#❌ \\(y=${AD}\\times ${AB}=${AD*AB}\\)`,`#三角形の面積 ＝ 底辺 × 高さ ÷ 2。\\(y=${N(Mx)}\\)`])];
  return {ty:o.ty||'c7',g:o.g||'c7',q,ins:'正しいグラフを選ぼう',c:C6(ok,c,o.p),w:CL(w),chk:{t:'dotAll',AD,AB,v,ans:okp}};}
 /* ===== 基礎計算 (1)（中2 の計算）と B(2)（連立方程式）：精査 2026-11-02 の決まり 3 で足した ===== */
 const KT=(c,v,first)=>{if(c===0)return '';const s=(v&&Math.abs(c)===1)?(c<0?'-':'')+v:N(c)+v;return (first||c<0)?s:'+'+s;};
@@ -1110,8 +1112,8 @@ function mono(o){const [a,ax,ay]=o.A,[b,bx,by]=o.B,[c,cx,cy]=o.C;const k=a*c/b,e
  const ok=M(KM(k,ex,ey));
  const cs=PICK(ok,[mk(allm,gx,gy),mk(-k,ex,ey),mk(k,ax+cx,ey),(ay&&cy)?mk(k,ex,Math.max(ay,cy)):mk(k,ex,ey+1),mk(a*b*c,ax+bx+cx,ay+by+cy),mk(-allm,gx,gy),mk(k,ex+1,ey),mk(k%2===0?k/2:k*2,ex,ey)]);
  const w=XW.T.mono({},o.A,o.B,o.C,M(R`=${KM(k,ex,ey)}`));
- if(mk(allm,gx,gy))w.push(`#まちがい：\\(${dB}\\times ${dC}\\) をまとめてわった`,`#❌ \\(${KM(a,ax,ay)}\\div(${dB}\\times ${dC})=${KM(allm,gx,gy)}\\)`,`#わる式は \\(${dB}\\) だけ。かけ算とわり算は左から順に計算する`);
- else w.push(`#まちがい：マイナスの数を数えずに、符号をまちがえた`,`#❌ ${mk(-k,ex,ey)}`,`#マイナスの数は ${neg} 個なので、答えは${neg%2?'マイナス':'プラス'}`);
+ if(mk(allm,gx,gy))w.push(...WM(cs,mk(allm,gx,gy),[`#まちがい：\\(${dB}\\times ${dC}\\) をまとめてわった`,`#❌ \\(${KM(a,ax,ay)}\\div(${dB}\\times ${dC})=${KM(allm,gx,gy)}\\)`,`#わる式は \\(${dB}\\) だけ。かけ算とわり算は左から順に計算する`]));
+ else w.push(...WM(cs,mk(-k,ex,ey),[`#まちがい：マイナスの数を数えずに、符号をまちがえた`,`#❌ ${mk(-k,ex,ey)}`,`#マイナスの数は ${neg} 個なので、答えは${neg%2?'マイナス':'プラス'}`]));
  return {ty:o.ty||'b1',g:o.g||'b1',gh:'次の計算をしなさい。',q,c:C6(ok,cs,o.p),w:CL(w),chk:{t:'mono',A:o.A,B:o.B,C:o.C}};}
 /* 分数の形の式の加減 A/p ± B/q（sg＝1・−1。A・B＝[x の係数, y の係数]） */
 function fpoly(o){const [a1,a2]=o.A,[b1,b2]=o.B,p=o.p_,qq=o.q_,sg=o.sg;const L=p*qq/gcd(p,qq),m=L/p,mq=L/qq,n=mq*sg;const X=m*a1+n*b1,Y=m*a2+n*b2;
@@ -1121,8 +1123,8 @@ function fpoly(o){const [a1,a2]=o.A,[b1,b2]=o.B,p=o.p_,qq=o.q_,sg=o.sg;const L=p
  const eSign=fk(X,m*a2-n*b2,L,true),eDen=fk(X,Y,1);const ok=fk(X,Y,L);
  const cs=PICK(ok,[sg<0?eSign:null,eDen,fk(a1+sg*b1,a2+sg*b2,L),fk(X,a2+sg*b2,L),fk(mq*a1+sg*m*b1,mq*a2+sg*m*b2,L),fk(X,Y,p+qq),fk(-X,-Y,L),fk(X+L,Y,L),fk(X,Y+L,L)]);
  const w=XW.T.fpoly({},o.A,p,sg,o.B,qq,M(R`=\dfrac{${KXY(X,Y)}}{${L}}`));
- if(sg<0)w.push(`#まちがい：ひく式の \\(${KT(b2,'y',true)}\\) の符号を変え忘れた`,`#❌ \\(${N(n)}\\times ${b2<0?'('+KT(b2,'y',true)+')':KT(b2,'y',true)}=${KT(-n*b2,'y',true)}\\)　→　${eSign}`,`#\\(${KT(b2,'y',true)}\\) にも \\(${N(n)}\\) をかける。符号が変わる`);
- else w.push(`#まちがい：方程式と同じように、分母の ${L} をはらって消した`,`#❌ ${eDen}`,`#式の計算では、分母をはらって消すことはできない`);
+ if(sg<0)w.push(...WM(cs,eSign,[`#まちがい：ひく式の \\(${KT(b2,'y',true)}\\) の符号を変え忘れた`,`#❌ \\(${N(n)}\\times ${b2<0?'('+KT(b2,'y',true)+')':KT(b2,'y',true)}=${KT(-n*b2,'y',true)}\\)　→　${eSign}`,`#\\(${KT(b2,'y',true)}\\) にも \\(${N(n)}\\) をかける。符号が変わる`]));
+ else w.push(...WM(cs,eDen,[`#まちがい：方程式と同じように、分母の ${L} をはらって消した`,`#❌ ${eDen}`,`#式の計算では、分母をはらって消すことはできない`]));
  return {ty:o.ty||'c1',g:o.g||'c1',gh:'次の計算をしなさい。',q,c:C6(ok,cs,o.p),w:CL(w),chk:{t:'fpoly',A:o.A,p:p,sg,B:o.B,q:qq}};}
 /* 連立方程式（加減法）：係数が同じ文字を ① − ② で消す。e＝[x の係数, y の係数, 右辺] */
 function kagen(o){const [a1,b1,c1]=o.e1,[a2,b2,c2]=o.e2;const det=a1*b2-a2*b1,x0=(c1*b2-c2*b1)/det,y0=(a1*c2-a2*c1)/det;if(!Number.isInteger(x0)||!Number.isInteger(y0))throw new Error('kagen');
@@ -1136,7 +1138,7 @@ function kagen(o){const [a1,b1,c1]=o.e1,[a2,b2,c2]=o.e2;const det=a1*b2-a2*b1,x0
  const ok=PP([x0,1],[y0,1]),emv=PP(eMv[0],eMv[1]);
  const cs=PICK(ok,[emv,PP([y0,1],[x0,1]),PP(eR[0],eR[1]),PP([x0,1],[-y0,1]),PP([-x0,1],[y0,1]),PP([x0+1,1],[y0,1]),PP([-x0,1],[-y0,1])]);
  const eK=KT(ko,ot,true)+'='+N(c2)+(kk>0?'+'+N(kk):N(kk));
- w.push(`#まちがい：\\(${N(kk)}\\) を右辺へ移項するとき、符号を変えなかった`,`#❌ \\(${eK}\\)　→　${emv}`,`#移項すると符号が変わる`);
+ w.push(...WM(cs,emv,[`#まちがい：\\(${N(kk)}\\) を右辺へ移項するとき、符号を変えなかった`,`#❌ \\(${eK}\\)　→　${emv}`,`#移項すると符号が変わる`]));
  return {ty:o.ty||'b2',g:o.g||'b2',gh:'次の連立方程式を解きなさい。',q:M(R`\begin{cases}${KXY(a1,b1)}=${N(c1)}\\${KXY(a2,b2)}=${N(c2)}\end{cases}`),c:C6(ok,cs,o.p),w:CL(w),chk:{t:'kagen',e1:o.e1,e2:o.e2,ans:[x0,y0]}};}
 /* 連問にまとめる */
 const REN=(ctx,fig,steps,g)=>({ren:true,g,q:ctx+'次の問いに答えなさい。'+G(fig),steps});
