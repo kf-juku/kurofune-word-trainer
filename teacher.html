@@ -1469,6 +1469,15 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
   .pp-l4:before{content:"";position:absolute;left:0;right:0;top:33%;border-top:0.3mm dotted #444}
   .pp-l4:after{content:"";position:absolute;left:0;right:0;top:66%;border-top:0.6mm solid #000}
   .pp-l4.blk{display:block;width:100%;vertical-align:baseline}
+  /* 2026-11-07 川上さん「4本線をもっと縦に大きく・余白を広く・最後に余白があまるのを減らす」＝練習プリントの4本線を 9mm に。パートごとに問題の間の広さを5段階（pp-lv0〜4）から選ぶ（_ppPickLv_＝枚数が増えない範囲でいちばん広い段階） */
+  .pp-pg .pp-l4:not(.pp-wl){height:9mm;vertical-align:-3mm;margin:1mm 0}
+  .pp-pg .pp-l4.blk:not(.pp-wl){height:10mm;margin:1.5mm 0}
+  .pp-pg.pp-lv1 .pp-it{padding:3.4mm 0}
+  .pp-pg.pp-lv2 .pp-it{padding:4.6mm 0}.pp-pg.pp-lv2 .pp-l4:not(.pp-wl){height:10mm}.pp-pg.pp-lv2 .pp-l4.blk:not(.pp-wl){height:11mm}
+  .pp-pg.pp-lv3 .pp-it{padding:6mm 0;line-height:1.85}.pp-pg.pp-lv3 .pp-l4:not(.pp-wl){height:10.5mm}.pp-pg.pp-lv3 .pp-l4.blk:not(.pp-wl){height:12mm;margin:2.5mm 0}
+  .pp-pg.pp-lv4 .pp-it{padding:7.5mm 0;line-height:1.95}.pp-pg.pp-lv4 .pp-l4:not(.pp-wl){height:11mm}.pp-pg.pp-lv4 .pp-l4.blk:not(.pp-wl){height:12.5mm;margin:3mm 0}
+  /* 2026-11-07 川上さん「英語と日本語の行をわけて4本線を横に長く」＝（　）に1語を書く問題は 1行目＝英語と4本線（40mm）・2行目＝日本語 */
+  .pp-pg .pp-en{display:block}.pp-pg .pp-jaL{display:block;font-size:.92em;color:#333;margin-top:.6mm}
   .pp-ch{display:grid;grid-template-columns:1fr 1fr;gap:0.5mm 5mm;margin-top:0.5mm}
   .pp-ch span{white-space:normal;min-width:0}
   .pp-ch.one{grid-template-columns:1fr}
@@ -11946,7 +11955,13 @@ function _ppOneWord_(a){a=String(a||'');if(/[。、，．]/.test(a))return false
 function _ppKai_(s){return esc(String(s||'').replace(/\{\{([^|}]*)\|([^}]*)\}\}/g,'$1（$2）').replace(/\[\[|\]\]/g,'')).replace(/\n/g,' ／ ');}
 function _ppL4_(w){return '<span class="pp-l4" style="width:'+w+'mm"></span>';}
 function _ppPlain_(s){return String(s||'').replace(/（　）/g,'').length;}
-function _ppBlank_(s,en){return esc(s).replace(/（　）|（\s*）|\(\s*\)/g,en?_ppL4_(22):'<span class="pp-ans" style="min-width:22mm"></span>');}
+function _ppBlank_(s,en){
+  if(!en)return esc(s).replace(/（　）|（\s*）|\(\s*\)/g,'<span class="pp-ans" style="min-width:22mm"></span>');
+  /* 2026-11-07 英語の文のあとに全角スペースで日本語が続くときは、英語の行と日本語の行に分ける。4本線は 40mm（22mm では breakfast が書けない） */
+  var m=String(s).match(/^([\s\S]*?(?:（　）|（\s*）|\(\s*\))[^　]*?)　+([\s\S]*[\u3040-\u30ff\u4e00-\u9fff][\s\S]*)$/);
+  if(!m)return esc(s).replace(/（　）|（\s*）|\(\s*\)/g,_ppL4_(40));
+  return '<span class="pp-en">'+esc(m[1]).replace(/（　）|（\s*）|\(\s*\)/g,_ppL4_(40))+'</span><span class="pp-jaL">'+esc(m[2])+'</span>';
+}
 function _ppCho_(ch,seed,marks){var s=_ppShuf_(ch,seed);var mx=Math.max.apply(null,s.map(function(c){return String(c).length;}).concat([0]));marks=marks||PP_KANA_;
   return {html:'<div class="pp-ch'+(mx>18?' one':'')+'">'+s.map(function(c,i){return '<span>'+marks[i]+'　'+esc(c)+'</span>';}).join('')+'</div>',order:s};}
 function _ppRuby_(qr){return qr.map(function(x){return x[1]?'<ruby>'+esc(x[0])+'<rt>'+esc(x[1])+'</rt></ruby>':esc(x[0]);}).join('');}
@@ -12071,7 +12086,7 @@ function _ppWrite_(pl){
 }
 /* ---- ページ分け ---- */
 var _ppPages=[],_ppCur=null;
-function _ppNewPage_(host,kind,head){var p=document.createElement('div');p.className='pp-pg'+(kind==='blank'?' pp-blank':'');p.innerHTML='<div class="pp-body"></div><div class="pp-ft"></div>';host.appendChild(p);var b=p.firstChild;if(head)b.insertAdjacentHTML('beforeend',head);_ppCur={el:p,body:b,kind:kind,fresh:true};_ppPages.push(_ppCur);return _ppCur;}
+function _ppNewPage_(host,kind,head){var p=document.createElement('div');p.className='pp-pg'+(kind==='blank'?' pp-blank':'');p.innerHTML='<div class="pp-body"></div><div class="pp-ft"></div>';if(kind==='q'&&_ppLvNow)p.classList.add('pp-lv'+_ppLvNow);host.appendChild(p);var b=p.firstChild;if(head)b.insertAdjacentHTML('beforeend',head);_ppCur={el:p,body:b,kind:kind,fresh:true};_ppPages.push(_ppCur);return _ppCur;}
 function _ppFits_(){return _ppCur.body.scrollHeight<=_ppCur.body.clientHeight+1;}
 function _ppUsed_(){var mx=0;[].forEach.call(_ppCur.body.children,function(c){mx=Math.max(mx,c.offsetTop+c.offsetHeight);});return mx;}
 function _ppMk_(html){var t=document.createElement('div');t.innerHTML=html;return t.firstChild;}
@@ -12111,6 +12126,21 @@ function _ppFigHtml_(u){var d=_ppImgDim[u],st='';
   return '<div class="pp-figb"><img src="'+esc(u)+'" alt="図"'+st+'></div>';}
 function _ppPsgHtml_(ps){return '<div class="pp-psgb">'+_pqPsgHtml_(ps.pl,'up')+'</div>';}
 /* kind＝'q'（問題用紙）か 'a'（解答解説）。別々に刷るので白紙ははさまない（要件定義書 18:39）2026-10-17 */
+/* 2026-11-07 練習プリントの問題の間の広さ（pp-lv0〜4）。仮の場所に段階0から順に置いてみて、段階0と同じ枚数で入るいちばん広い段階を返す。枚数が増えた・詰めた（pp-tight）ところで止める。問題のパートだけ（解答は今までどおり） */
+var _ppLvNow=0;
+function _ppPickLv_(M,b,nodes,figs){
+  var sp=_ppPages,sc=_ppCur,cnt=[];
+  for(var L=0;L<=4;L++){
+    var tmp=document.createElement('div');tmp.style.cssText='position:absolute;left:-99999px;top:0;width:186mm';document.body.appendChild(tmp);
+    _ppPages=[];_ppCur=null;_ppLvNow=L;
+    _ppPlace_(tmp,M,b,nodes.map(function(n){return n.cloneNode(true);}),false,figs);
+    var n=tmp.querySelectorAll('.pp-pg').length,tight=tmp.querySelector('.pp-tight'),over=[].some.call(tmp.querySelectorAll('.pp-body'),function(e){return e.scrollHeight>e.clientHeight+1;});document.body.removeChild(tmp);
+    if(L>0&&(tight||over))break;   /* 詰めた・はみ出した段階は使わない（段階0は今までどおりの置き方） */
+    cnt.push(n);if(n>cnt[0])break;
+  }
+  _ppPages=sp;_ppCur=sc;_ppLvNow=0;var best=0;cnt.forEach(function(n,i){if(n===cnt[0])best=i;});
+  return best;
+}
 function _ppLayout_(host,M,built,kind,xref){
   _ppPages=[];_ppCur=null;host.innerHTML='';
   var isAns=(kind==='a');
@@ -12145,7 +12175,8 @@ function _ppLayout_(host,M,built,kind,xref){
       figs.push(it.fig?_ppFigHtml_(it.fig):(it.psg?_ppPsgHtml_(it.psg):null));
     });
     if(skip){nodes.push(_ppMk_('<div class="pp-skip">紙に出していない問題 '+skip+'問（アプリで解く）</div>'));figs.push(null);}
-    _ppPlace_(host,M,b,nodes,false,figs);
+    /* 2026-11-07 問題の間の広さ：枚数が増えない範囲でいちばん広い段階を選んでから置く */
+    var lv=_ppPickLv_(M,b,nodes,figs);_ppLvNow=lv;_ppPlace_(host,M,b,nodes,false,figs);_ppLvNow=0;
   });
   if(!_ppPages.length)_ppNewPage_(host,isAns?'a':'q',_ppPageHead_(M,isAns,null));
   /* そのパートの何枚目か（問題用紙）＝上の帯の右。下の「問題用紙 3／12」は今までどおり全体の番号 */
