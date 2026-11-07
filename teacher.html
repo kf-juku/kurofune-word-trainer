@@ -6240,7 +6240,7 @@ function partCellK(s){
   var mid=String(s.material_id||'');
   if(!mid||!_partsByMat||!_partsByMat[mid]||!_partsByMat[mid].length){return s.part?esc(s.part):'<span class="dash">–</span>';}
   var h='<select class="inline-sel js-part" data-sid="'+esc(String(s.student_id))+'" data-mid="'+esc(mid)+'" data-prev="'+esc(String(s.part_id||''))+'">';
-  _partsByMat[mid].forEach(function(pp){h+='<option value="'+esc(String(pp.id))+'"'+(String(pp.id)===String(s.part_id)?' selected':'')+'>'+esc(pp.title||('パート'+pp.part_order))+'</option>';});
+  _partsByMat[mid].forEach(function(pp){h+='<option value="'+esc(String(pp.id))+'"'+(String(pp.id)===String(s.part_id)?' selected':'')+'>'+esc(pp.title?_pnoT_(mid,pp.part_order,pp.title):('パート'+pp.part_order))+'</option>';});
   return h+'</select>';
 }
 function dailyCellK(s){
@@ -7189,11 +7189,11 @@ function openMatPreview(mid){
     var parts=dt.parts||[];
     if(!parts.length){$('mpBody').innerHTML='<div style="padding:10px;color:var(--text-muted);font-size:13px;">この教材にはまだ問題がありません。</div>';return;}
     var totalQ=parts.reduce(function(a,b){return a+(b.count||0);},0);
-    var _jb=parts.map(function(pt,pi){return '<button class="mp-jump" title="'+esc(pt.title||'')+'" onclick="mpJump('+pi+')">'+(pi+1)+'</button>';}).join('');
+    var _jb=parts.map(function(pt,pi){var _no=_pnoOf_(mid,pt.part_order);return '<button class="mp-jump" title="'+esc(_pnoT_(mid,pt.part_order,pt.title))+'" onclick="mpJump('+pi+')">'+(_no?esc(_no.replace(/^No\./,'')):(pi+1))+'</button>';}).join('');   /* 2026-11-07 川上さん「ナンバーはアプリ内・カリキュラム表・管理画面で表記を統一」＝ No. のある教材は part_order を出す */
     $('mpToolbar').innerHTML='<span class="mp-count">'+parts.length+'パート・全'+totalQ+'問</span><div class="mp-jumps">'+_jb+'</div>';
     var h='<div class="mp-edit-hint">✏️ テキストをクリックすると直せます。入力後にほかの場所をクリックすると自動で保存します（✓＝保存済み）。選択肢は1行に1つ・正解を含めて4つ書いてください。図・番号方式の設問は編集対象外です。<br>ポイントは書式のまま直します＝穴は [[語]]、3択は --- の行の下に「答え（よみ）&gt;ダミー|ダミー」を ／ でつなぎます。</div>';
     parts.forEach(function(pt,pi){
-      h+='<div class="mp-part" id="mp-part-'+pi+'">'+esc(pt.title||'(無題パート)')+'<span class="c">'+(pt.count||0)+'問</span>'
+      h+='<div class="mp-part" id="mp-part-'+pi+'">'+esc(_pnoT_(mid,pt.part_order,pt.title||'(無題パート)'))+'<span class="c">'+(pt.count||0)+'問</span>'
         +'<button class="mp-pv" type="button" onclick="mpPvOpen_(\''+esc(String(pt.part_id||''))+'\',\''+esc(String(pt.title||'').replace(/'/g,''))+'\')">生徒の画面で見る</button>'
         +'<button class="mp-pv" type="button" onclick="mpPvQr_(\''+esc(String(pt.part_id||''))+'\',\''+esc(String(pt.title||'').replace(/'/g,''))+'\')">QR</button>'
         +'</div>';
@@ -9299,12 +9299,12 @@ function renderAssignList(){
     if(a.total_parts>1){
       startSel='<span class="asg-field"><span class="asg-lbl">いまここ</span><select class="asg-sel" onchange="setStart('+"'"+esc(a.material_id)+"'"+',this.value)">';
       a.parts.forEach(function(pt){
-        var lbl=isPt?(pt.title||('パート'+pt.part_order)):('DAY '+(pt.part_order||1));
+        var lbl=isPt?(pt.title?_pnoT_(a.material_id,pt.part_order,pt.title):('パート'+pt.part_order)):('DAY '+(pt.part_order||1));
         startSel+='<option value="'+esc(pt.part_id)+'"'+(String(pt.part_id)===String(a.current_part_id)?' selected':'')+'>'+esc(lbl)+'</option>';
       });
       startSel+='</select></span>';
     }else{
-      startSel='<span class="asg-field"><span class="asg-lbl">いまここ</span><b>'+(isPt?esc(a.current_part_title||'-'):('DAY '+(a.current_part_order||1)))+'</b></span>';
+      startSel='<span class="asg-field"><span class="asg-lbl">いまここ</span><b>'+(isPt?esc(a.current_part_title?_pnoT_(a.material_id,a.current_part_order,a.current_part_title):'-'):('DAY '+(a.current_part_order||1)))+'</b></span>';
     }
     var dailyCtrl=isTest?('<span class="asg-field"><span class="asg-lbl">1日に出す数</span><span class="asg-step" onclick="bumpDaily('+"'"+esc(a.material_id)+"'"+',-1)">−</span><b id="dp-'+esc(a.material_id)+'">'+(a.daily_parts||1)+'</b><span class="asg-step" onclick="bumpDaily('+"'"+esc(a.material_id)+"'"+',1)">＋</span>パート</span>'):'';
     var _wsPr=isWs?(a.parts||[]).filter(function(pt){return !/まとめテスト/.test(String(pt.title||''));}).length:0;
@@ -10827,7 +10827,7 @@ function _rpSetParts_(rows){
   (rows||[]).forEach(function(p){
     if(!p||p.is_active===false||String(p.is_active).toUpperCase()==='FALSE')return;
     var k=String(p.material_id||''); if(!k||p.id==null)return;
-    (o[k]=o[k]||[]).push({id:String(p.id),title:String(p.title||''),ord:parseFloat(p.part_order)});
+    (o[k]=o[k]||[]).push({id:String(p.id),title:_pnoT_(k,p.part_order,p.title||''),ord:parseFloat(p.part_order)});   /* 2026-11-07 No. をそろえる */
   });
   Object.keys(o).forEach(function(k){ o[k].sort(function(a,b){ return (isNaN(a.ord)?1e9:a.ord)-(isNaN(b.ord)?1e9:b.ord); }); });
   RP_PARTS=o;
