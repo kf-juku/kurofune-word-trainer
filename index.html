@@ -1450,6 +1450,7 @@
   #done-teach .tc-src{font-size:12px;color:var(--sub);margin-bottom:2px}#done-teach .tc-ask{font-size:13.5px;color:var(--ink);margin:2px 0}
   #done-teach .tc-rp{font-size:13.5px;border-left:3px solid var(--line);padding-left:8px;margin:4px 0}#done-teach .tc-rp small{display:block;color:var(--sub);font-size:12px}
   #done-teach .tc-wl .tc-e .tc-au.tc-aus{margin:0 0 0 auto;padding:2px 8px;font-size:12px}#done-teach .tc-wl .tc-e{gap:6px}
+  #done-teach .tc-chl .tc-au.tc-chau{margin:2px 6px 2px 0;padding:1px 7px;font-size:12px;vertical-align:middle}   /* 2026-11-08 第1部型の返事ごとの▶ */
   #done-teach .tc-chl .khs{display:inline-flex;vertical-align:middle;justify-content:flex-start}
   #done-teach .tc-allok{text-align:center;padding:14px;font-weight:700;color:var(--sub)}
   .dfx-cp{position:fixed;left:0;top:0;width:9px;height:13px;z-index:62;pointer-events:none;border-radius:2px}
@@ -2992,7 +2993,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-07b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-08"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4537,7 +4538,7 @@ function _tcItem_(s,w,no,ok,pick,shown){
   else if(t==='dialog_fill'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:_tcHole_(esc(l.en||'')),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);}
   else if(t==='reorder'){var tk=((q.tokens&&q.tokens.length)?q.tokens:(p.tokens||[])).concat(q.extra||[]);it.ask=String((q.do&&q.do[0])||'');it.rp=(q.qx||[]).map(function(r){return {lab:String(r.lab||''),q:String(r.en||''),en:'',ja:String(r.ja||'')};});for(var i=tk.length-1;i>0;i--){var j=(Math.abs((String(w.id)+i).split('').reduce(function(a,c){return (a*31+c.charCodeAt(0))|0;},7))%(i+1));var x=tk[i];tk[i]=tk[j];tk[j]=x;}it.ja=String(w.japanese||'');it.toks=tk;var _fp=String(q.pre||'').trim(),_fo=String(q.post||'').trim(),_tq=(q.tokens&&q.tokens.length)?q.tokens:((p.tokens&&p.tokens.length)?p.tokens:[]);if(!_fp&&!_fo&&q.tokens&&q.tokens.length&&p&&p.en){try{var _ft=_sentTok_(p.en),_fq=_sentTok_(q.tokens.join(' ')),_fn=_fq.length;if(_ft.length>_fn&&_ft.slice(0,_fn).join(' ').toLowerCase()===_fq.join(' ').toLowerCase())_fo=_sentJoin_(_ft.slice(_fn));}catch(e){}}it.pre=_fp;it.post=_fo;it.nsl=_tq.length;}   /* 2026-11-07 解く画面（renderRO_）と同じ前後の固定の語・枠の数 */
   else if(t==='listen'){it.ch=_tcMix_(q.choices_ja,w.id);it.kh=_khMapFor_(w,q,p);it.au=(p.audios||[])[0]||p.audio||'';it.ans=String(w.japanese||'');it.script=String(w.english||'');}
-  else if(t==='listen_resp'||t==='listen_print'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:String(l.en||''),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);it.aus=(p.lines||[]).map(function(l){return l.audio||'';}).concat((p.q&&p.q.audio)?[p.q.audio]:[]).filter(Boolean);}
+  else if(t==='listen_resp'||t==='listen_print'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:String(l.en||''),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);it.aus=(p.lines||[]).map(function(l){return l.audio||'';}).concat((p.q&&p.q.audio)?[p.q.audio]:[]).filter(Boolean);if(t==='listen_resp'){it.chA={};(p.choices||[]).forEach(function(c){if(c&&typeof c==='object')it.chA[String(c.en||'')]=c;});}}   /* 2026-11-08 第1部型は返事ごとの音を出す（生徒の答え合わせの▶と同じ音） */
   else if(t==='image_fill'){var _a0=(s.assets||{})[q.asset]||{};it.fig=String(p.url||p.src||_a0.url||'');it.ja=String(w.japanese||'');it.ch=_tcMix_(q.choices,w.id);it.rd=String(w.reading_hint||'');}
   else if(t===''){
     /* 英単語か用語か：教科（s.isEnglish）で決める（EU・DNA など英字の用語を英単語にしない）*/
@@ -4547,7 +4548,7 @@ function _tcItem_(s,w,no,ok,pick,shown){
     else{it.t='term';it.ja=String(w.japanese||'');it.ch=(shown&&shown.ch)?shown.ch:[];it.rd=String(w.reading_hint||'');}   /* 選択肢は出したときの並び（無ければ出さない＝正解だけの札で答えが見えないように）*/
   }else{it.ja='';}   /* 形の決まっていない問題は訳を出さない（答えが見えないように）*/
   if(shown&&shown.ch&&t!==''&&shown.ch.length>1)it.ch=shown.ch.map(String);   /* 出したときの並びがあればそれを使う */
-  if(s.isEnglish!==false&&(t==='sentence_fill'||t==='dialog_fill'||t==='reorder')){try{it.ap=_exPlayFor_(s,w);}catch(e){}}   /* 2026-10-31 答えが入った音＝シールをはがしたあと（答えの枠の中）に出す */
+  if(s.isEnglish!==false&&(t==='sentence_fill'||t==='dialog_fill'||t==='reorder'||t==='listen_resp')){try{it.ap=_exPlayFor_(s,w);}catch(e){}}   /* 2026-11-08 第1部型も答えの枠に正解の返事の音（会話→正解の返事＝生徒の「もう一回聞く」と同じ） */   /* 2026-10-31 答えが入った音＝シールをはがしたあと（答えの枠の中）に出す */
   if(!ok&&pick!==undefined)it.you=(t==='reorder')?[it.pre||'',String(pick).split(' / ').join(' '),it.post||''].join(' ').trim().replace(/\s+([.,?!])/g,'$1'):String(pick);   /* 2026-11-07 並べかえの答えは前後の語を付けた文の全部 */
   return it;
 }
@@ -4579,10 +4580,18 @@ var _TC_AUL='<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf
 var _tcWAM=null,_tcWAP=null;
 function _tcWAload_(){if(_tcWAP)return;try{_tcWAP=fetch('img/audio/word_audio.json?v='+encodeURIComponent(typeof APP_VERSION!=='undefined'?APP_VERSION:'')).then(function(r){return r.ok?r.json():{};}).then(function(m){_tcWAM=m||{};}).catch(function(){_tcWAP=null;});}catch(e){_tcWAP=null;}}
 function _tcGr_(s){var m=String((s&&s.listId)||'').match(/eiken(\d)/);if(!m){var w=((s&&s.words)||[])[0]||{};m=String(w.part_id||w.id||'').match(/eiken(\d)/);}return m?m[1]:'';}
+/* 2026-11-08 生徒の画面でも word_audio.json（採点画面と同じ表。読み込みは _tcWAload_ の1回だけ＝共有）を引く。
+   表に無い語・まだ読み込めていないときは ''（呼ぶ側が今までどおり端末の読み上げにする） */
+function _waUrl_(s,en){var M=_tcWAM||{},k=String(en||'').toLowerCase().replace(/\s+/g,' ').trim(),e=M[k];
+  if(!e){k=k.replace(/^[\s"'“‘(（]+|[\s"'”’)）.,!?;:]+$/g,'');e=k?M[k]:null;}
+  if(!e)return '';var g=_tcGr_(s);return String(e[g]||e['5']||e['4']||e['3']||e.p||'');}
 function _tcSay_(s,en){var e=(_tcWAM||{})[String(en||'').toLowerCase().trim()]||{},g=_tcGr_(s);speak({english:String(en||''),audio:e[g]||e['5']||e['4']||e['3']||e.p||''});}
 var _tcAuEl=null;function _tcPlay_(list){try{if(_tcAuEl)_tcAuEl.pause();}catch(e){}var i=0;var nx=function(){if(i>=list.length)return;var a=new Audio(list[i++]);_tcAuEl=a;a.onended=nx;var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});};nx();}
 function _tcChs_(it){return '<div class="tc-chs">'+(it.ch||[]).map(function(c){return '<span'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+esc(c)+'</span>';}).join('')+'</div>';}
 function _tcChl_(it){return '<ol class="tc-chl">'+(it.ch||[]).map(function(c){return '<li'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+((it.kh&&_khHtml_(it.kh,c))||esc(c))+'</li>';}).join('')+'</ol>';}
+/* 2026-11-08 第1部型の返事の並び（出したときの順）に、返事ごとの▶。mp3 が無い返事は _sentPlay_ が端末の読み上げにする（生徒の画面と同じ） */
+function _tcChlA_(it){return '<ol class="tc-chl">'+(it.ch||[]).map(function(c){var o=(it.chA||{})[String(c)]||{en:String(c)};
+  return '<li'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+_tcAB_(function(){_sentPlay_(o);},'','tc-chau')+esc(c)+'</li>';}).join('')+'</ol>';}
 function _tcBody_(it){
   switch(it.t){
     case 'sentence_fill':return '<div class="tc-en">'+it.en+'</div><div class="tc-ja">'+_jaRubyIf_(it.ja)+'</div>'+_tcChs_(it);
@@ -4594,7 +4603,8 @@ function _tcBody_(it){
     case 'dialog_fill':return it.lines.map(function(l){return '<div class="tc-dl">'+(l.sp?'<b>'+esc(l.sp)+'</b>':'')+'<span class="tc-en" style="font-size:15px">'+l.en+'</span></div>';}).join('')+_tcChs_(it);
     case 'reorder':return (it.ask?'<div class="tc-ask">'+_jaRubyIf_(it.ask)+'</div>':'')+(it.rp||[]).map(function(r){return '<div class="tc-rp"><small>'+_jaRubyIf_(r.lab)+'</small>'+esc(r.q)+(r.ja?'<small>'+_jaRubyIf_(r.ja)+'</small>':'')+'</div>';}).join('')+'<div class="tc-ja" style="color:var(--ink)">'+_jaRubyIf_(it.ja)+'</div>'+((it.pre||it.post)?'<div class="tc-en tc-ro">'+esc(it.pre||'')+' '+new Array((it.nsl||0)+1).join('（　）')+' '+esc(it.post||'')+'</div>':'')+'<div class="tc-chs">'+(it.toks||[]).map(function(c){return '<span>'+esc(c)+'</span>';}).join('')+'</div>';
     case 'listen':return _tcAu_(it,'<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChl_(it);
-    case 'listen_resp':case 'listen_print':return _tcAu_(it,'<ruby>会話<rt class="uf">かいわ</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChl_(it);
+    case 'listen_resp':if(it.chA)return _tcAu_(it,'<ruby>会話<rt class="uf">かいわ</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChlA_(it);   /* 2026-11-08 返事1・2・3に▶ */
+    case 'listen_print':return _tcAu_(it,'<ruby>会話<rt class="uf">かいわ</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChl_(it);
     case 'word':return '<div class="tc-en" style="font-size:20px">'+esc(it.en)+'</div>'+_tcAu_(it,'<ruby>音<rt class="uf">おと</rt></ruby>を<ruby>聞<rt class="uf">き</rt></ruby>く')+_tcChs_(it);
     case 'term':return '<div>'+_jaRubyIf_(it.ja)+'</div>'+_tcChs_(it);
     case 'image_fill':return '<div class="tc-fig"><img src="'+esc(it.fig)+'" alt="図" loading="lazy"></div><div>'+_jaRubyIf_(it.ja)+'</div>'+_tcChs_(it);
@@ -4977,10 +4987,16 @@ function _d1Sync_(s){
     var ks=s.words.map(function(w,j){var t=_d1Step_(w,_dk);return t==='rv'?'rv':fs[j]+'|'+t;});
     if(Object.keys(uniq).length>1||(!quiz&&ks.some(function(k){return k!==ks[0];}))){
       var mat='';try{var _e=_partIdx[String(s.listId||'')];if(_e)mat=_e.mat||'';}catch(e){}
-      var run='',nm=_d1FormName_(f,s.words[cur],mat);
+      var run='',nm=_d1FormName_(f,s.words[cur],mat),_fic=(_D1F_[f]||['ti-pencil'])[0];
+      /* 2026-11-08 ①大問1型の1文だけの会話穴うめ（素材の lines が1行・話し手なし）は「会話」でなく「穴埋め」（2人のやりとりは会話のまま）
+         ②選択肢だけ読む段（listen_print の mode opt_ja・音なし）は「リスニング」でなく「選択肢を読む」（qdata.step と同じ） */
+      try{var _cq=_tcQd_(s.words[cur]);
+        if(f==='刷'&&String(_cq.mode||'')==='opt_ja'){nm=rb('選択肢','せんたくし')+'を'+rb('読','よ')+'む';_fic='ti-book';}
+        else if(f==='会'&&(String(_cq.step||'')==='大問1型'||String(_cq.fmt||'')==='sentence_fill')){var _cl=_tcPl_(s,_cq.asset).lines||[];if(_cl.length===1&&!String((_cl[0]||{}).sp||'')){nm=rb('穴埋','あなう')+'め';_fic=(_D1F_['穴']||['ti-pencil'])[0];}}
+      }catch(eNm){}
       if(!quiz){var kk=ks[cur],a=cur,b=cur;while(a>0&&ks[a-1]===kk)a--;while(b<tot-1&&ks[b+1]===kk)b++;run=' '+(cur-a+1)+' / '+(b-a+1);
         var _rs=_d1Step_(s.words[cur],_dk);if(_rs==='rv')nm=rb('前','まえ')+'の'+rb('復習','ふくしゅう');else if(f==='読'&&_rs==='w')nm=rb('語句','ごく')+'チェック';else if(f==='読'&&_rs==='b')nm=rb('本文','ほんぶん')+'の'+rb('問題','もんだい');}
-      chip='<span class="d1-chip"><i class="ti '+(_D1F_[f]||['ti-pencil'])[0]+'"></i><span>'+nm+run+'</span></span>';
+      chip='<span class="d1-chip"><i class="ti '+_fic+'"></i><span>'+nm+run+'</span></span>';
     }
   }
   el.innerHTML=_d1Html_(nodes,(typeof combo==='number')?combo:0)+chip;
@@ -7215,6 +7231,9 @@ function _tkSay_(en,sp){
   var s=_actSes()||session, pl=null;
   try{ pl=_ptAuLookup_(s,en); }catch(e){}
   if(pl){ try{ _sentPlay_(pl,_spSex_(sp||'')); return; }catch(e){} }
+  /* 2026-11-08 文全体と同じときしか mp3 を使わず、語・かたまりは端末の読み上げだった。word_audio.json にあればその mp3（読み込めないときは今どおり） */
+  var _wu='';try{_tcWAload_();_wu=_waUrl_(s,en);}catch(e){}
+  if(_wu){ try{ _sentPlay_({en:String(en||''),audio:_wu}); return; }catch(e){} }
   _sentSay_(en);
 }
 function _tkOpen_(el,en,ja,sp){
@@ -7916,7 +7935,7 @@ function renderQz_(s){_exCurS_=s;try{clearTimeout(_sentAfterT_);_sentAfterT_=nul
   if(!_ptHidden_&&_ptKind_(s)==='sent'){try{if(_ptShow_(s))return;}catch(e){}}
   if(!s||!s.words||!s.words[s.idx])return; _quizSes=s;
   try{_nowBarSync_(s);}catch(e){}
-  var w=s.words[s.idx],tot=s.words.length;
+  var w=s.words[s.idx],tot=s.words.length;try{if(_isEigo_())_tcWAload_();}catch(eWa){}   /* 2026-11-08 語の mp3 の表を先に読む（1回だけ。表・解説の語の音に使う） */
   $('prog').style.width=Math.round((s.idx/tot)*100)+'%';
   $('step-listen').style.display='none';$('step-e2j').style.display='none';$('step-j2e').style.display='none';$('step-tf').style.display='none';var _sc=$('step-sent');if(_sc)_sc.style.display='none';
   var _fb=$('furi-bar');if(_fb)_fb.style.display='none';
@@ -8688,11 +8707,13 @@ function _wrAdd_(s,w,q,pl){
   var C=pl.choices||[],order=shuffle(C.map(function(_,i){return i;})),picked=null,tries=0;   /* 正解の位置は毎回まぜる（読解と同じ・点検 B4）2026-10-26 */
   ask.innerHTML='<div class="wr-do" id="wr-do">'+_wrRb_((q.do&&q.do[0])||'返信の最後に足す1文を選ぼう')+'</div>';
   function rp(fill){var h='<div class="rp">';(pl.head||['Hi, James!','Thank you for your e-mail.']).forEach(function(t){h+='<div class="ln">'+_wrTap_(t,_WR_GL_)+'</div>';});
-    (pl.reply||[]).forEach(function(r){h+=(r.q?'<div class="qq">'+_wrRb_((r.lab||'')+' ')+_wrTap_(r.q,gl)+'</div>':'')+'<div class="ln">'+_wrTap_(r.en,gl)+(r.ja?'<small style="display:block;font-size:12px;color:var(--sub)">'+_wrRb_(r.ja)+'</small>':'')+'</div>';});
+    (pl.reply||[]).forEach(function(r,ri){h+=(r.q?'<div class="qq">'+_wrRb_((r.lab||'')+' ')+_wrTap_(r.q,gl)+'</div>':'')+'<div class="ln">'+_wrTap_(r.en,gl)+((r.audio||(r.audios&&r.audios.length))?'<button type="button" class="rdx-spk wr-rpspk" data-ri="'+ri+'" aria-label="この英文を聞く"><i class="ti ti-volume"></i></button>':'')+(r.ja?'<small style="display:block;font-size:12px;color:var(--sub)">'+_wrRb_(r.ja)+'</small>':'')+'</div>';});
     h+='<div class="blank'+(fill?' f':'')+'">'+(fill?_wrTap_(fill,gl):_wrRb_(pl.blank||'ここに足す1文'))+'</div>';
     (pl.tail||['Best wishes,']).forEach(function(t){h+='<div class="ln">'+_wrTap_(t,_WR_GL_)+'</div>';});return h+'</div>';}
   function draw(msg){
     body.innerHTML=rp(picked!=null?C[picked].en:'')+'<div class="c4b">'+order.map(function(k){var c=C[k];return '<button type="button" data-k="'+k+'"'+(picked!=null?' disabled':'')+' class="'+(picked===k?(k===0?'ok':'ng'):'')+'">'+esc(c.en)+'<small style="display:block;font-weight:500;color:var(--sub);font-size:12.5px">'+_wrRb_(c.ja||'')+'</small></button>';}).join('')+'</div>'+(msg||'');
+    /* 2026-11-08 返信の英文（下線①②の答え）の▶＝素材の reply[].audios の mp3。前は押すと端末の読み上げだけだった */
+    [].forEach.call(body.querySelectorAll('.wr-rpspk'),function(b){b.onclick=function(e){e.stopPropagation();var r=(pl.reply||[])[+b.getAttribute('data-ri')]||{};_sentPlay_({en:r.en,audios:r.audios||null,audio:r.audio||''});};});
     [].forEach.call(body.querySelectorAll('.c4b button'),function(b){b.onclick=function(){var k=+b.getAttribute('data-k'),ok=(k===0);picked=k;try{ok?sndCorrect():sndWrong();}catch(_e){}
       if(tries===0)_quizAns(s,w,ok,null,'e2j');   /* 記録は1回目（並べ替えのやり直しと同じ） */
       if(!ok&&tries===0&&!s.quizMode){tries++;draw('<div class="wr-sum ng">'+_wrMix_(q.retry||'ちがいます。話の続きになる文か、時が合っているか見よう。',gl)+'</div><button type="button" class="btn" id="wr-re" style="margin-top:10px">'+_wrRb_('もう一度選ぶ')+'</button>');$('wr-re').onclick=function(){picked=null;draw();};return;}
@@ -9143,6 +9164,10 @@ function renderRD_(s,w,q,pl){
   box.insertAdjacentHTML('afterbegin','<div class="rd-retry" id="rd-retry" style="display:none"></div>');
   try{_rdFit_();}catch(_eF){}   /* 選択肢ができてから測る（2026-10-28） */   /* 2026-10-14 §20d 12-23：「もう一度」の案内は選択肢の上（下だとスマホの1画面目に入らない） */
   var answered=false,first=null,retried=false,t0=Date.now(),canRetry=!s.quizMode&&s.mode!=='note';
+  /* 2026-11-08 ①会話編の導入（パート id が -ov-in・読解編の導入は除く）は本文の無い「形の説明」の問題＝選び直し（「本文を読み直して」）と自己評価を出さない
+     ②3級ライティング編の語数の問題（qdata.me）は、まちがえる理由が数え方＝「何語」の問題は数え直しの文にし、自己評価（英文を読んで、どうだった？）は出さない */
+  var _rdOv=/-ov-in-\d+$/.test(String(w.id||''))&&!/-dokkai-/.test(String(w.id||'')),_rdMe=!!(q.me&&q.me.length),_rdCnt=_rdMe&&/何語/.test(String(q.q||w.japanese||''));
+  if(_rdOv)canRetry=false;
   var alive=function(){return s.words[s.idx]===w;};
   function finish(ok,b){
     if(answered||!alive())return;
@@ -9155,7 +9180,7 @@ function renderRD_(s,w,q,pl){
         _lpAns_(false); /* 1回目のまちがい（リアルタイムモード 2026-10-19） */
         retried=true; combo=0; comboBreak_(); sndWrong();
         b.classList.add('tried'); b.disabled=true;
-        if(tip){ tip.innerHTML='<b>'+_jaRubyIf_('もう一度')+'</b>'+_jaRubyIf_('質問をもう一度読み、本文を最初から読み直して、選び直そう。'); tip.style.display=''; try{tip.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_eT){} }
+        if(tip){ tip.innerHTML='<b>'+_jaRubyIf_('もう一度')+'</b>'+_jaRubyIf_(_rdCnt?'オレンジの文の単語を、1語ずつ数え直そう。':'質問をもう一度読み、本文を最初から読み直して、選び直そう。'); tip.style.display=''; try{tip.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_eT){} }
         return;
       }
       if(!retried)_lpAns_(ok);  /* 選び直した問題は1回目のまちがいで数えた */ /* リアルタイムモードへ5問ごとに途中の様子 2026-10-19 */
@@ -9186,7 +9211,7 @@ function renderRD_(s,w,q,pl){
     if(_rdxEx_){ var _ab=$('rdx-ansspk'); if(_ab){ var _ae=_rdxEx_; _ab.onclick=function(e){ e.stopPropagation(); _sentPlay_({en:_ae.en,audio:_ae.audio}); }; } }
     /* 【2026-10-07・4-60】選び直した問題は、答え合わせ（答え・ありか・全文訳）のあとに「英文を読んで、どうだった？」を選ぶまで次へ進めない。
        保存は聞き取りと同じ s._lxNotes → session_complete の listen_notes（列は qdata.fmt＝r4a〜r4c・先生画面の弱点の表で読解の行に入る） */
-    if(retried){ try{
+    if(retried&&!_rdMe){ try{   /* 2026-11-08 語数の問題は自己評価を出さない（上の②） */
       /* 【2026-10-11 案A】2つの答えを「次へ」の場所に置く。押すと記録して、そのまま次の問題へ（読解は聞く手順が無いので、すぐ押せる） */
       _lxPickMount_(s,w,!!ok,false);
       try{_rdxFloat_(true);}catch(_eF){}
@@ -9265,6 +9290,9 @@ function _renderSENT0_(ss){
        生徒は選択肢の英文を見て答えるので、ピリオドの無い英文を見慣れさせない（ピリオドの書き忘れを誘発しない）。
        文の側は（　）だけにして、記号を穴の外に出さない（前は「.」が穴の四角に重なって見えなかった）。 */
     var _sfW=_sfWhole_(tk,bi,bn), _sfP=_sfW?tk[tk.length-1]:'';
+    /* 2026-11-08 見出しを穴の形に合わせる：文ぜんぶが穴（架け橋「見抜く」）＝文を選ぶ／穴が2語以上＝語句を選ぶ。1語の穴は今までどおり */
+    if(_sfW)ask.innerHTML='<ruby>日本語<rt class="uf">にほんご</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>う<ruby>文<rt class="uf">ぶん</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
+    else if(bn>1)ask.innerHTML='（　）に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語句<rt class="uf">ごく</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
     var _sfAns=_sfW?_sfAddP_(w.english,_sfP):w.english;
     var _sfCh=(q.choices||[]).map(function(c){return _sfW?_sfAddP_(c,_sfP):c;});
     if(_sfW){ _hasRl=false; tk=tk.slice(0,tk.length-1); }   /* 語ごとの表示（役割の見出し）も出さない＝1つの四角だけ */
@@ -9462,7 +9490,7 @@ function renderRO_(s,w,q,pl){
   var toks=(q&&q.tokens&&q.tokens.length)?q.tokens.slice():((pl.tokens&&pl.tokens.length)?pl.tokens.slice():_sentTok_(pl.en));
   var extra=(q&&q.extra&&q.extra.length)?q.extra.slice():[];
   ask.innerHTML='<ruby>文<rt class="uf">ぶん</rt></ruby>になるように<ruby>並<rt class="uf">なら</rt></ruby>べよう'
-    +(extra.length?'<span class="ro-ex">'+extra.length+'<ruby>語<rt class="uf">ご</rt></ruby>あまります</span>':'');   /* あまる札の数をそのまま出す（札の組み立ては2枚あまる）2026-09-26 */
+    +(extra.length?'<span class="ro-ex"><ruby>使<rt class="uf">つか</rt></ruby>わない<ruby>札<rt class="uf">ふだ</rt></ruby>が'+extra.length+'<ruby>枚<rt class="uf">まい</rt></ruby>あります</span>':'');   /* 2026-11-08 あまる札が2語のかたまり（is washing など）でも「1語」と言っていた＝枚数で言う（ライティング編の「カードが2枚」とそろえる） */   /* あまる札の数をそのまま出す（札の組み立ては2枚あまる）2026-09-26 */
   var N=toks.length,_t0=Date.now(),locked=false,drag=null;
   var bank=_shufNot_(toks.concat(extra));
   /* 【2026-09-28 川上さん確定・モック 20260928_モック_英検_並べ替え_本番の形_v2】英検の並べ替えの本番の形。
@@ -10053,6 +10081,7 @@ function renderDF_(s,w,pl,_tl){
   }
   ask.innerHTML=_dfIsWord_(pl)
     ?'（　）に<ruby>入<rt class="uf">はい</rt></ruby>る<ruby>語<rt class="uf">ご</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう'
+    :(String(_tcQd_(w).fmt||'')==='sentence_fill')?'（　）に<ruby>入<rt class="uf">はい</rt></ruby>るものを<ruby>選<rt class="uf">えら</rt></ruby>ぼう'   /* 2026-11-08 語句の穴うめ（大問1型の形）で選択肢に2語（have been など）があると「会話に合う英文」になっていた */
     :'<ruby>会話<rt class="uf">かいわ</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>う<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
   body.innerHTML='<div class="df-talk">'+lines.map(function(l,i){return _dfLineHtml_(l,i,null);}).join('')+'</div>';
   buildChoices('sent-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
@@ -11537,6 +11566,8 @@ function _exPlayFor_(s,w){
   if(['listen','sentence_fill','reorder','dialog_fill','listen_resp','listen_pic','listen_print','phonics'].indexOf(qt)>=0){
     var it=null;try{it=_qrvItem_(s,w,'');}catch(e){}return (it&&it.play)||null; }
   /* 単語・表・図（英語）＝枠の外の「音を聞く」と同じ音 */
+  /* 2026-11-08 表は words に audio 列が無く、必ず端末の読み上げになっていた。採点画面と同じ word_audio.json に語があればその mp3（無い語・句は今どおり読み上げ） */
+  if(qt==='table_fill'&&w.english){try{_tcWAload_();}catch(eW){}return function(){var u=String(w.audio||'')||_waUrl_(s,w.english);speak(u?{english:w.english,tts_text:w.tts_text,audio:u}:w);};}
   if(w.english)return function(){speak(w);};
   return null;
 }
