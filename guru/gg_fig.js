@@ -300,7 +300,7 @@ const M2N13_ZU=(()=>{
  const nv=v=>n_(v);  /* 値の字（小数は .5 など） */
 
  /* HIST({lo:最初の階級の下の端, w:階級の幅, f:[度数…], u:'分', ttl:'A中学校（50人）', ymax, yt:目もりの間, hl:[色をつける階級の番号], cnt:true（棒の上に度数）, bw:棒の幅})
-    問題の図には hl・cnt を付けない（答えになるため）。rect class="bar"。data-ax＝「左はしの x, 1 あたりの横の長さ, 0 人の y, 1 人あたりのたての長さ」 */
+    問題の図には hl・cnt を付けない（答えになるため）。rect class="hbar"。data-ax＝「左はしの x, 1 あたりの横の長さ, 0 人の y, 1 人あたりのたての長さ」 */
  const HIST=(o)=>{
   const f=o.f,n=f.length,bw=o.bw||26,mx=Math.max(...f);
   const ymax=o.ymax||(mx<=6?mx+1:(mx%2?mx+1:mx+2));const yt=o.yt||1;const ph=o.ph||(ymax<=8?18:(ymax<=12?14:(ymax<=16?11:9)));
@@ -310,7 +310,7 @@ const M2N13_ZU=(()=>{
   if(o.ttl)s+=TX(4,14,o.ttl,{a:'start',fs:13});
   for(let k=yt;k<=ymax;k+=yt)s+=LN(L,base-k*ph,L+n*bw+6,base-k*ph,{c:GRID,sw:1});
   f.forEach((v,i)=>{if(!v)return;const on=(o.hl||[]).indexOf(i)>=0;
-   s+=`<rect class="bar${on?' hl':''}" x="${n_(L+i*bw)}" y="${n_(base-v*ph)}" width="${bw}" height="${n_(v*ph)}" fill="${on?ON:BAR}" stroke="${on?RED:'#111'}" stroke-width="${on?2:1.2}"/>`;});
+   s+=`<rect class="hbar${on?' hl':''}" x="${n_(L+i*bw)}" y="${n_(base-v*ph)}" width="${bw}" height="${n_(v*ph)}" fill="${on?ON:BAR}" stroke="${on?RED:'#111'}" stroke-width="${on?2:1.2}"/>`;});
   if(o.cnt)f.forEach((v,i)=>{if(v)s+=TX(L+i*bw+bw/2,base-v*ph-4,String(v),{fs:12,c:(o.hl||[]).indexOf(i)>=0?RED:'#111',cls:'cnt',halo:true});});
   s+=LN(L,base,L+n*bw+6,base,{sw:1.6})+LN(L,base,L,T-6,{sw:1.6});
   const lt=ymax<=10?1:2;for(let k=0;k<=ymax;k+=lt)s+=TX(L-5,base-k*ph+4,String(k),{a:'end',fs:11,c:'#374151'});
