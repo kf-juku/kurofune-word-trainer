@@ -9087,6 +9087,8 @@ function renderRD_(s,w,q,pl){
   box.classList.remove('g2'); ask.innerHTML='';
   var rc=(String(q.kind||'')!=='rq');
   var chs=(q.choices||[]).map(function(c){return (c&&typeof c==='object')?{en:String(c.en||''),ja:String(c.ja||'')}:{en:String(c==null?'':c),ja:''};});
+  /* 2026-11-07 修正メモ「もう一度聞くを押してから実際に流れるまでラグがある」：正解の英文の mp3 は先に読み込んでいなかった＝答え合わせの［もう一回聞く］・正解の横の音のボタンを押してから読み込みが始まっていた。問題を出した時点で読み込んでおく */
+  try{var _rdPre=String(((q.choices||[])[0]&&q.choices[0].audio)||(pl&&pl.ans&&chs[0]&&(pl.ans[chs[0].en]||pl.ans[String(chs[0].en).replace(/\s+/g,' ').trim()]))||'');if(_rdPre)_auPreload_([_rdPre]);}catch(_eRP){}
   if(chs.length<2||!(pl&&pl.lines&&pl.lines.length)){   /* 素材が取れない＝出題できない。落とさずに次へ進めるよう、答えだけ見せる */
     body.innerHTML='<div class="sq-ja">'+_jaRubyIf_(String(w.english||''))+'</div>';box.innerHTML='';
     _quizAns(s,w,false,0,'e2j');afterAnswer(false,w.english||'','','',s.onNext);return;
