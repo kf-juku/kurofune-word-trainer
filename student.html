@@ -2995,7 +2995,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-11b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-11c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -10006,7 +10006,7 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
       +((hasC&&qq.c&&_lxSameJa_(qq.c,qq.ja))?'':'<small>'+_jaRubyIf_(String(qq.ja||''))+'</small>')+'</div></div>';
   if(isResp&&!hasC)xh+='<div class="lx-xh"><ruby>選択肢<rt class="uf">せんたくし</rt></ruby></div>';
   order.forEach(function(ci,j){var c=chs[ci]||{};
-    xh+='<div class="lx-xl'+(ci===0?' ok':'')+'" id="lx-x-c'+j+'">'+(qq?'':'<button type="button" class="lx-play sm" data-x="'+j+'" aria-label="'+(j+1)+'番を聞く">'+_LX_IC_.play+'</button>')+'<div class="lx-xb">'
+    xh+='<div class="lx-xl'+(ci===0?' ok':'')+'" id="lx-x-c'+j+'">'+'<button type="button" class="lx-play sm" data-x="'+j+'" aria-label="'+(j+1)+'番を聞く">'+_LX_IC_.play+'</button>'+'<div class="lx-xb">'
       +'<span class="lx-no">'+(j+1)+(ci===0?' <span class="lx-okm">○</span>':'')+'</span>'
       +((hasC&&c.c)?_lxChunks_(c.c):'<b>'+esc(String(c.en||''))+'</b>')
       +((hasC&&c.c&&!(ci===0&&pl.choice_kja)&&_lxSameJa_(c.c,c.ja))?'':'<small>'+((hasC&&ci===0)?_lxJaMark_(c.ja,pl.choice_kja):_jaRubyIf_(String(c.ja||'')))+'</small>')+'</div></div>';
@@ -10026,8 +10026,11 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
     if(qq)st.push({it:qq,gap:0,on:H.lit('lx-x-q')});   /* 第2部型は選択肢を読まない */
     else order.forEach(function(ci,j){st.push({it:chs[ci],gap:400,on:H.lit('lx-x-c'+j)});});
     return st;};
-  [].forEach.call(xa.querySelectorAll('.lx-play'),function(b){b.onclick=function(){var j=+b.getAttribute('data-x');
-    _lxRunSeq_([{it:chs[order[j]],on:H.lit('lx-x-c'+j)}]).then(function(){H.clear();});};});
+  /* 2026-11-11 修正メモ（川上さん「選択肢のすぐ横に音声のボタンを置けば」）：第2部型・第3部型（選択肢が紙に書いてある形）も、解説では選択肢の横に ▶ を出す。
+     解く前の画面には出さない（本番と同じ）。選択肢の mp3 が無いときは、英語を押して出る窓の🔊と同じ音（_tkSay_＝文の mp3・word_audio.json・端末の読み上げ） */
+  [].forEach.call(xa.querySelectorAll('.lx-play'),function(b){b.onclick=function(){var j=+b.getAttribute('data-x'),it=chs[order[j]]||{};
+    if(qq&&!it.audio){_lxStop_();H.clear();H.lit('lx-x-c'+j)();try{_tkSay_(it.en,'');}catch(eS){}setTimeout(function(){H.clear();},1600);return;}
+    _lxRunSeq_([{it:it,on:H.lit('lx-x-c'+j)}]).then(function(){H.clear();});};});
   if(retried){
     if(nx)nx.style.display='none';   /* 選び直した問題＝英文を見ながら1回聞いて、どうだったかを選ぶまで次へ進めない（4-43 ②③） */
     if(H.tip){H.tip.innerHTML='<b><ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>見<rt class="uf">み</rt></ruby>ながら、もう<ruby>一回<rt class="uf">いっかい</rt></ruby><ruby>聞<rt class="uf">き</rt></ruby>こう</b>';H.tip.classList.add('show');}
