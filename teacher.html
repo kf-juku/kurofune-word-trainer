@@ -769,6 +769,7 @@
      見張り＝ジョブス用\テスト\20261018_モーダルの×の下は空ける_実機テスト.mjs */
   :where(.modal > .m-closebar + :not(#sdBody):not(#quizCellBody), #quizCellBody > :first-child, #sdBody .sd-head){padding-right:30px;}
   .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;}
+  .modal>.modal-actions{position:sticky;bottom:-20px;z-index:3;background:#fff;padding:10px 0 20px;margin-bottom:-20px;box-shadow:0 -6px 8px -6px rgba(0,0,0,0.15);}   /* 2026-11-10 ×・リセット・決定はスクロールしなくても見える（UI標準 UI_03 §17-0 決まり6） */
   .asg-btn{font-size:11px;color:var(--crimson);border:1px solid var(--crimson-mid);background:#fff;border-radius:7px;padding:3px 7px;font-weight:700;cursor:pointer;white-space:nowrap;}
   .asg-btn:hover{background:var(--crimson-light);}
   .asg-card{border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:8px;}
@@ -2664,9 +2665,6 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
     <div class="mp-toolbar" id="mpToolbar"></div>
     <div class="mp-body" id="mpBody"></div>
     <div class="mp-side" id="mpSide"></div>   <!-- 2026-11-04 説明は横の列（問題の画面を狭くしない） -->
-    <div class="modal-actions">
-      <button class="btn-ghost" style="margin-left:auto;" onclick="closeModal('matPreviewModal')">閉じる</button>
-    </div>
   </div>
 </div>
 <!-- 生徒の画面プレビュー（2026-09-09） -->
@@ -2691,7 +2689,6 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
 <!-- 確認テスト 詳細モーダル（閲覧）2026-07-10 -->
 <div class="modal-back" id="quizCellModal">
   <div class="modal"><div id="quizCellBody"></div>
-    <div class="modal-actions"><button class="btn-ghost" style="margin-left:auto;" onclick="closeModal('quizCellModal')">閉じる</button></div>
   </div>
 </div>
 <!-- 確認テスト 配信モーダル（教材ごとタブのボタンから）2026-07-10 -->
@@ -2768,9 +2765,6 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
       </div>
       <button class="btn-primary" id="asgAddBtn" style="width:auto;padding:8px 16px;margin-top:10px;" disabled onclick="addPicked()">教材を選んでください</button>
     </div>
-    <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModal('assignModal')">閉じる</button>
-    </div>
   </div>
 </div>
 
@@ -2807,7 +2801,6 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
     <div class="modal-actions" style="align-items:center;">
       <button class="btn-ghost" onclick="ppReset_()">選んだものをリセット</button>
       <span style="flex:1;"></span>
-      <button class="btn-ghost" onclick="closeModal('ppModal')">閉じる</button>
     </div>
   </div>
 </div>
@@ -2836,9 +2829,6 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
     <h3 style="margin-bottom:6px;" id="rpPvTtl">1人ぶんの見本</h3>
     <div class="mhint" id="rpPvInfo"></div>
     <div id="rpPvBody" style="max-height:70vh;overflow:auto;background:#f3f4f6;padding:12px;border-radius:10px;"></div>
-    <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModal('rpPvModal')">閉じる</button>
-    </div>
   </div>
 </div>
 
@@ -2909,7 +2899,6 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
     </div>
     <div class="mhint" id="fsGoProg" style="display:none;color:var(--crimson);font-weight:700;"></div>
     <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModal('fsGoModal')">閉じる</button>
       <span style="flex:1;"></span>
       <button class="btn-ghost" id="fsPdfBtn" onclick="fsPdf_()">⬇ PDF</button>
       <button class="btn-primary" style="width:auto;" onclick="fsGo_('print')">🖨 印刷する</button>
@@ -2947,9 +2936,6 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
     <div id="syncNoIdWrap" style="display:none;">
       <div style="font-weight:700;font-size:13px;color:#c2410c;margin-bottom:4px;">フォレスタID未設定（在籍・塾生）— アカウント未作成</div>
       <div id="syncNoIdList" style="font-size:13px;line-height:1.7;max-height:220px;overflow:auto;"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-primary" style="width:auto;" onclick="closeModal('syncResultModal')">閉じる</button>
     </div>
   </div>
 </div>
@@ -6093,8 +6079,7 @@ function openStudentDetail(sid,focusKey){
         +(pm.length?'<details class="sd2-fold"><summary>過去にやった教材（'+pm.length+'）</summary>'+pm.map(function(x){return '<div class="pastrow">'+esc(mtLabel(x))+' <span class="t-sub">最終 '+esc(x.last||'')+'</span></div>';}).join('')+'</details>':'')
         +'<details class="sd2-fold"><summary>途中リセット（最後まで解かずにやめた回）</summary><div class="t-sub" style="font-size:11.5px;margin:2px 0 6px;">間違えたあとにやめて、10分以内に同じ回をやり直した回の点は、正答率に入っています（答えていない問題は誤答）。時間を置いてからのやり直しは、学習として入れていません。</div><div id="sdAbandon">'+SD_LOADING_+'</div></details></div>'
     +'</div>'
-    +'<div style="display:flex;margin-top:14px;"><span style="flex:1;"></span><button id="sdClose2" class="btn-ghost">閉じる</button></div>';
-  $('sdClose2').onclick=function(){closeModal('studentModal');};
+    +'';
   $('studentModal').classList.add('show');
   if(fk){var _on=$('sdBody').querySelector('tr.sd2-on');if(_on)setTimeout(function(){_on.scrollIntoView({block:'center'});},50);}
   sdLoadQuiz_(sid,function(pack,err){
@@ -7063,7 +7048,7 @@ function ggPrintOpen_(){
     +'<div class="ggpr-note">紙ごと・回ごとに新しい紙の表から始まります（奇数ページなら白紙を1枚はさむ）。部数はプリンターで決めます。PDF は印刷の画面で送り先を「PDFに保存」にします。</div>'
     +'<div class="ggpr-go"><button type="button" class="btn-primary" style="width:auto;" id="ggPrP" onclick="ggPrMake_(\'print\')">🖨 印刷</button><button type="button" class="btn-primary btn-outlineK" style="width:auto;" id="ggPrD" onclick="ggPrMake_(\'pdf\')">⬇ PDF</button></div>'
     +'<div id="ggPrStat" class="ggpr-stat"></div></div></div>'
-    +'<div class="modal-actions"><button class="btn-ghost" style="margin-left:auto;" onclick="closeModal(\'ggPrModal\')">閉じる</button></div></div></div>');m=$('ggPrModal');}
+    +'</div></div>');m=$('ggPrModal');}
   $('ggPrJobs').innerHTML='<div style="color:var(--text-muted);padding:10px">読み込み中…</div>';$('ggPrKinds').innerHTML='';m.classList.add('show');
   _ggprLibs_().then(function(){_ggprDraw_();})['catch'](function(e){$('ggPrErr').textContent='紙の部品を読めませんでした：'+String(e&&e.message||e);});
 }
@@ -12241,7 +12226,7 @@ function _ppLayout_(host,M,built,kind,xref){
       if(it.psg&&it.psg.id!==lastPsg){var _pn=_ppMk_(_ppPsgHtml_(it.psg));gN++;_pn.setAttribute('data-g',gN);var _pv=nodes[nodes.length-1];if(_pv&&_pv.className==='pp-sec')_pv.setAttribute('data-g',gN);nodes.push(_pn);figs.push(null);lastPsg=it.psg.id;}
       if(!it.psg)lastPsg='';
       var qh=String(it.q).replace(/<span class="pp-qrcap">[^<]*<\/span>/g,'');
-      nodes.push(_ppMk_('<div class="pp-it '+it.cls+'" data-xi="'+esc(b.id)+'#'+i+'"'+(it.psg?' data-g="'+gN+'"':'')+'><div class="no">'+(i+1)+'</div><div class="q">'+(it._tg?'<span class="pp-sectag">'+esc(it.sec)+'</span>':'')+qh+'</div></div>'));
+      nodes.push(_ppMk_('<div class="pp-it '+it.cls+'" data-xi="'+esc(b.id)+'#'+i+'"'+(it.psg?' data-g="'+gN+'"':'')+'><div class="no">'+(i+1)+'</div><div class="q">'+(it._tg?'<span class="pp-sectag">'+esc(it.sec)+'</span>':'')+(it._tg?qh.replace('<span class="pp-rdtag">'+esc(it.sec)+'</span>',''):qh)+'</div></div>'));
       figs.push(it.fig?_ppFigHtml_(it.fig):(it.psg?_ppPsgHtml_(it.psg):null));
     });
     if(skip){nodes.push(_ppMk_('<div class="pp-skip">紙に出していない問題 '+skip+'問（アプリで解く）</div>'));figs.push(null);}
