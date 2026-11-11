@@ -2995,7 +2995,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-11f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-11h"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -7235,6 +7235,7 @@ function _tkClose_(){
   if(_TK_ON_){ _TK_ON_.classList.remove('on'); _TK_ON_=null; }
 }
 function _tkSay_(en,sp){
+  en=String(en==null?'':en).replace(/^[\s○◯●✓✔―—–]+/,'');   /* 2026-11-11 行頭の ○ などの印は音から外す */
   var s=_actSes()||session, pl=null;
   try{ pl=_ptAuLookup_(s,en); }catch(e){}
   if(pl){ try{ _sentPlay_(pl,_spSex_(sp||'')); return; }catch(e){} }
@@ -7708,7 +7709,7 @@ var _ptAuMap_=null,_ptAuFor_=null;
    付けたまま渡すと英語の声が「ガール、ユーアーウェルカム…」と札まで読む（2026-09-19 実機で確認）。
    画面の表示は札を残したまま＝誰のせりふか分からなくなるので、音だけ外す */
 var _PT_SP_=/^\s*(?:Boy|Girl|Man|Woman|Teacher|Mother|Father|Student|A|B)\s*[:\uff1a]\s*/;
-function _ptSayEn_(t){ return String(t==null?'':t).replace(_PT_SP_,'').trim(); }
+function _ptSayEn_(t){ return String(t==null?'':t).replace(/^[\s○◯●✓✔―—–]+/,'').replace(_PT_SP_,'').trim(); }   /* 2026-11-11 川上さん「No.55 はじめる前にの ○ They play baseball. の音が how…baseball」＝行頭の ○ まで音を探す文に入り、素材と合わず端末の読み上げが記号を読んでいた。○ などの印は音から外す */
 /* 行頭の札（Boy: など）を data-sp に残す。表示はいままでどおり札つき、音だけ札を外して性別で選ぶ */
 function _ptSpAttr_(line){
   var m=String(line||'').match(_PT_SP_);
@@ -11650,6 +11651,7 @@ function _exAgain_(){
     xa.style.display='';
     var b=xa.querySelector('.ex-again'); if(b)b.onclick=function(){try{play();}catch(e){}};
     var qt=String(w.qtype||''); if(!qt||qt==='table_fill'||qt==='image_fill'){try{hideListen_();}catch(e){}}   /* 単語・表・図は枠の外の「音を聞く」を隠す＝同じボタンを2つ出さない */
+    if(qt==='table_fill'){ clearTimeout(_sentAfterT_); _sentAfterT_=setTimeout(function(){try{play();}catch(e){}},600); }   /* 2026-11-11 川上さん「かけはし No.54 問題1〜4 正解の音声が出ない。もう一回聞くを押せば聞ける」＝表の問題も、文の問題と同じく答えたら1回鳴らす（正解音とぶつからないよう 600ms） */
   }catch(e){} },0);
 }
 function qrvDraw_(){
