@@ -2995,7 +2995,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-11e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-11f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -7173,7 +7173,8 @@ function _tkMark_(t){ _TKS_=[]; return String(t==null?'':t).replace(/\{\{([^|}]+
 /* 導入パートの形式カードの例＝「Where is my bag?（私のかばんはどこ？）」の形 */
 function _tkMarkEx_(t){ _TKS_=[]; return String(t==null?'':t).replace(/([A-Za-z][A-Za-z0-9 ,'’.?!]*?[A-Za-z0-9?.!])（([^（）]+)）/g,function(_,en,ja){return _tkPut_(en,ja);}); }
 function _tkPlain_(t){ return String(t==null?'':t).replace(_TK_RE_,function(_,c){var x=_TKS_[c.charCodeAt(0)-0xE100];return x?x[0]:'';}); }
-function _tkHtml_(en,ja,noIc){ return '<span class="tk" role="button" tabindex="0" data-en="'+esc(en)+'" data-ja="'+esc(ja||'')+'">'+esc(en)+(noIc?'':'<i class="ti ti-volume tk-ic" aria-hidden="true"></i>')+'</span>'; }
+function _tkHtml_(en,ja,noIc,x3){ var _x=String(x3==null?'':x3),_xa=/^ph:/.test(_x)?' data-ph="'+esc(_x.slice(3))+'"':(/^au:/.test(_x)?' data-au="'+esc(_x.slice(3))+'"':'');   /* 2026-11-11 {{英語|読み|ph:カナ}}＝フォニックスの音のかたまり・{{英語|読み|au:mp3}}＝その mp3 */
+  return '<span class="tk" role="button" tabindex="0" data-en="'+esc(en)+'" data-ja="'+esc(ja||'')+'"'+_xa+'>'+esc(en)+(noIc?'':'<i class="ti ti-volume tk-ic" aria-hidden="true"></i>')+'</span>'; }
 function _tkRender_(h){ return String(h).replace(_TK_RE_,function(_,c){var x=_TKS_[c.charCodeAt(0)-0xE100];return x?_tkHtml_(x[0],x[1]):'';}); }
 /* 意味の辞書（この回ぶん）。文の素材の tokens/gloss → 語の問題の english/japanese → カードの {{ }} の順 */
 function _tkKey_(t){ return String(t==null?'':t).toLowerCase().replace(/’/g,"'").replace(/[^a-z0-9' ]/g,' ').replace(/\s+/g,' ').trim(); }
@@ -7214,10 +7215,11 @@ function _tkAnsHtml_(t){
 function _tkKaiHtml_(t){
   t=String(t==null?'':t); var out='', last=0, m;
   if(_rdxEx_)return t.replace(/\{\{([^|}]+)\|[^}]*\}\}/g,'$1').split('\n').map(function(x){return _jaRubyIf_(x);}).join('<br>');   /* 読解の解説（mp3 あり）＝英語の抜粋は押せない形 3-12④ */
-  var re=/\{\{([^|}]+)\|([^}]*)\}\}|[A-Za-z][A-Za-z'’]*(?: [A-Za-z][A-Za-z'’]*)*/g;
+  var re=/\{\{=([^}]*)\}\}|\{\{([^|}=][^|}]*)\|([^|}]*)(?:\|([^}]*))?\}\}|[A-Za-z][A-Za-z'’]*(?: [A-Za-z][A-Za-z'’]*)*/g;
   while((m=re.exec(t))){
     out+=esc(t.slice(last,m.index));
-    if(m[1]!==undefined)out+=_tkHtml_(m[1],m[2]); else out+=_tkHtml_(m[0],_tkLook_(m[0]));
+    if(m[1]!==undefined)out+=esc(m[1]);   /* {{=字}}＝押せない字（2026-11-11） */
+    else if(m[2]!==undefined)out+=_tkHtml_(m[2],m[3],false,m[4]); else out+=_tkHtml_(m[0],_tkLook_(m[0]));
     last=m.index+m[0].length;
   }
   return out+esc(t.slice(last));
@@ -7252,7 +7254,7 @@ function _tkOpen_(el,en,ja,sp){
     +'<button type="button" class="tk-sp" aria-label="もう一回聞く"><i class="ti ti-volume"></i></button>';
   p.style.left=(left+window.scrollX)+'px'; p.style.width=width+'px'; p.style.top=(r.bottom+window.scrollY+9)+'px';
   p.style.setProperty('--ax',Math.max(12,Math.min(width-28,r.left+r.width/2-left-6))+'px');
-  p.querySelector('.tk-sp').onclick=function(){ _tkSay_(en,sp); };
+  p.querySelector('.tk-sp').onclick=function(){ _tkSayEl_(el,en,sp); };
   var px=document.createElement('button'); px.type='button'; px.className='tk-x'; px.setAttribute('aria-label','閉じる'); px.textContent='×';
   px.onclick=function(e){ e.stopPropagation(); _tkClose_(); }; p.appendChild(px);
   document.body.appendChild(p); _TK_POP_=p;
@@ -7260,6 +7262,13 @@ function _tkOpen_(el,en,ja,sp){
   try{ var ph=p.getBoundingClientRect().height, vh=window.innerHeight||document.documentElement.clientHeight;
     if(r.bottom+9+ph>vh-8 && r.top-ph-9>8){ p.style.top=(r.top+window.scrollY-ph-9)+'px'; p.classList.add('up'); } }catch(eUp){}
   if(el.classList.contains('tk')||el.classList.contains('tkw')){ el.classList.add('on'); _TK_ON_=el; }
+  _tkSayEl_(el,en,sp);
+}
+/* 2026-11-11 フォニックスの解説の札（data-ph＝問題の四角と同じ音・空＝読まない字は鳴らさない）・data-au＝その mp3。ほかは今までどおり _tkSay_ */
+function _tkSayEl_(el,en,sp){
+  var ph=el&&el.getAttribute?el.getAttribute('data-ph'):null, au=el&&el.getAttribute?el.getAttribute('data-au'):null;
+  if(ph!==null){ try{_sentStop_();}catch(e){} if(ph)_sayJa_(ph); return; }
+  if(au){ try{ _sentPlay_({en:String(en||''),audio:au}); return; }catch(e){} }
   _tkSay_(en,sp);
 }
 document.addEventListener('click',function(e){
@@ -7553,7 +7562,8 @@ function _wlFor_(s,w,answered){
   try{ var d=_ptParse_(s&&s.point); if(d)return {list:_wlOfCard_(d),title:'このページの単語'}; }catch(e){}
   return {list:[],title:''};
 }
-function _wlSay_(t){ try{ if(!window.speechSynthesis||!t)return;
+function _wlSay_(t){ if(t){ try{ _tkSay_(t); return; }catch(e0){} }   /* 2026-11-11 川上さん「単語をみるの the が『ジ』・正解の文は『ザ』」＝端末の読み上げではなく、ほかの札と同じ mp3（word_audio.json）を先に使う */
+  try{ if(!window.speechSynthesis||!t)return;
   var u=new SpeechSynthesisUtterance(String(t)); u.lang='en-US'; u.rate=.85;
   speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
 var _wlOpened_=0;
@@ -9410,11 +9420,32 @@ function _phBody_(pl,mode){
   return _phSplitHtml_(pl,{hideLetter:1,hideYomi:1})+'<div class="ph-act">'+seq+who+'</div>'
     +'<div class="ph-tip"><ruby>四角<rt class="uf">しかく</rt></ruby>を1つずつ<ruby>押<rt class="uf">お</rt></ruby>すと、その<ruby>音<rt class="uf">おと</rt></ruby>だけ<ruby>鳴<rt class="uf">な</rt></ruby>る</div>';
 }
+/* 2026-11-11 川上さん「a_e で a は『エイ』とあるのに a を押すと『ア』」「milk の i の説明が『わたしは』」：
+   解説の英字を、ふつうの英語（冠詞の a・わたしの I）として引いていた。フォニックスの解説は札の中身を決めて渡す。
+   ・語まるごと＝その語の mp3（pl.audio）・読み＝pl.read
+   ・音のかたまり（b・a・ll…）と「a は「エイ」」「a_e」「短母音 i」の英字＝問題の四角と同じ音（_phSnd_ と同じくカタカナを日本語の声で・split_audio があればそれ）。意味の代わりに読みを出す。読まない字（読みが空）は鳴らさない
+   ・それ以外の英語（base・ball など）は今までどおり語として引く */
+function _phKaiTok_(pl,t,nx){
+  var sp=_phSplit_(pl),w=String(pl.word||''),k=String(t),m=String(nx||'').match(/^\s*は\s*「([ァ-ヶー・]+)」/);
+  if(k===w)return '{{'+k+'|'+String(pl.read||'')+'|au:'+String(pl.audio||'')+'}}';
+  if(m)return '{{'+k+'|'+m[1]+'|ph:'+m[1]+'}}';
+  var lk=k.replace(/_.*$/,'');
+  for(var i=0;i<sp.length;i++){ if(String(sp[i][0])===k){ var y=String(sp[i][1]||''); return '{{'+k+'|'+(y||'読まない')+'|ph:'+y+'}}'; } }
+  if(/_/.test(k)){ for(var j=0;j<sp.length;j++){ if(String(sp[j][0])===lk&&sp[j][2]){ var y2=String(sp[j][1]||''); return '{{'+k+'|'+y2+'|ph:'+y2+'}}'; } } }
+  return null;
+}
+function _phKaiTx_(pl,t){
+  t=String(t==null?'':t); var re=/[A-Za-z][A-Za-z_]*/g,out='',last=0,m;
+  while((m=re.exec(t))){ var r=_phKaiTok_(pl,m[0],t.slice(m.index+m[0].length));
+    if(!r&&(m[0].length<=2||/^(tch|igh|dge|ng|ch|gh|sh|th|ph|ck|wh|kn|wr)$/i.test(m[0])||/_/.test(m[0])))r='{{='+m[0]+'}}';   /* 決まりの名前（[ea, ee]）・字の説明（n と g）＝押せない字のまま */
+    out+=t.slice(last,m.index)+(r||m[0]); last=m.index+m[0].length; }
+  return out+t.slice(last);
+}
 function _phKai_(pl,mode){
   var sp=_phSplit_(pl);
-  return String(pl.word||'')+'（'+String(pl.read||'')+'）　'+sp.map(function(x){return x[0];}).join(' + ')
-    +' → '+String(pl.read||'')+'　'+String(pl.hint||'')
-    +(pl.topic_ja?('　'+pl.topic_ja):'');
+  return _phKaiTok_(pl,String(pl.word||''),'')+'（'+String(pl.read||'')+'）　'+sp.map(function(x,i){var y=String(x[1]||'');return '{{'+x[0]+'|'+(y||'読まない')+'|ph:'+y+'}}';}).join(' + ')
+    +' → '+String(pl.read||'')+'　'+_phKaiTx_(pl,pl.hint||'')
+    +(pl.topic_ja?('　'+_phKaiTx_(pl,pl.topic_ja)):'');
 }
 /* 音の足し算 → 正式な発音。答え合わせで自動で流し、あとから何度でも押せる */
 function _phReplay_(pl){
@@ -11040,10 +11071,10 @@ function showExplain(correct,kaisetsu,reading,ok){
 /* 解説なぞり（下線が伸びる）2026-07-26：不正解時、解説を1文字ずつ span 化し、読み進む所に金の下線を左から流す。時間で自動進行（クリック不要）。次へボタンには触れない＝目線を解説に留める */
 var _kaiTId=null;var _kaiWaitMs=0; // _kaiWaitMs＝不正解の「つぎへ」解禁までの時間＝解説なぞりの所要時間に合わせる 2026-07-26
 function kaiTraceStop_(){if(_kaiTId){clearInterval(_kaiTId);_kaiTId=null;}}
-function _kaiVisLen_(t){ return String(t==null?'':t).replace(/\{\{([^|}]+)\|[^}]*\}\}/g,'$1').length; }
+function _kaiVisLen_(t){ return String(t==null?'':t).replace(/\{\{=([^}]*)\}\}/g,'$1').replace(/\{\{([^|}]+)\|[^}]*\}\}/g,'$1').length; }
 function kaiTraceStart_(el,text,ms){
   kaiTraceStop_();el.classList.add('trace');
-  var chars=String(text).replace(/\{\{([^|}]+)\|[^}]*\}\}/g,'$1').split('');   /* なぞりの間も {{英語|日本語}} の記号を見せない（12-7①）2026-10-26 */
+  var chars=String(text).replace(/\{\{=([^}]*)\}\}/g,'$1').replace(/\{\{([^|}]+)\|[^}]*\}\}/g,'$1').split('');   /* なぞりの間も {{英語|日本語}} の記号を見せない（12-7①）2026-10-26 */
   el.innerHTML=chars.map(function(ch){if(ch==='\n')return '<span class="kc"></span><br>';/* 改行はなぞりの間も改行のまま 2026-09-28 */return '<span class="kc">'+((ch===' '||ch==='\t')?'&nbsp;':esc(ch))+'</span>';}).join('');
   var cs=el.querySelectorAll('.kc');if(!cs.length)return;
   var per=Math.max(26,ms/cs.length),i=0;
@@ -11515,7 +11546,7 @@ function _qrvAns_(mine,ok,mineja,okja,isJa){
   if(mine!==undefined)h+='<div class="qrv-a ng"><span class="qrv-l">あなた</span><b>'+(mine===''?rb('時間切','じかんぎ')+'れ':f(mine))+'</b>'+(mineja?'<small>'+_jaRubyIf_(mineja)+'</small>':'')+'</div>';
   return h+'<div class="qrv-a ok"><span class="qrv-l">'+rb('正解','せいかい')+'</span><b>'+f(ok)+'</b>'+(okja?'<small>'+_jaRubyIf_(okja)+'</small>':'')+'</div></div>';
 }
-function _qrvKai_(t){ return t?'<div class="qrv-kai">'+esc(String(t))+'</div>':''; }
+function _qrvKai_(t){ return t?'<div class="qrv-kai">'+esc(String(t).replace(/\{\{=([^}]*)\}\}/g,'$1').replace(/\{\{([^|}]+)\|[^}]*\}\}/g,'$1'))+'</div>':''; }   /* 2026-11-11 {{英語|…}} の記号を見せない */
 function _qrvAgain_(){ return '<button type="button" class="ex-spk qrv-again" id="qrv-play">'+_LX_IC_.vol+'<span>もう'+rb('一回','いっかい')+rb('聞','き')+'く</span></button>'; }
 function _qrvChJa_(chs,en){ for(var i=0;i<(chs||[]).length;i++)if(String(chs[i].en||'').trim()===String(en||'').trim())return String(chs[i].ja||''); return ''; }
 /* 1問ぶんの中身と、もう一回聞くときに鳴らすもの */
