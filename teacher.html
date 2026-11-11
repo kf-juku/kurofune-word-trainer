@@ -1587,10 +1587,15 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
   .pp-am{display:inline-block;min-width:4.2mm;padding:0 0.6mm;border:1px solid #333;border-radius:0.8mm;text-align:center;line-height:1.2;font-style:normal;margin-right:1mm;font-weight:700}
   .pp-alist .pp-asec{font-size:8pt;font-weight:700;color:#444;border-bottom:1px solid #777;margin-top:0.8mm}
   .pp-alist .pp-asec:first-child{margin-top:0}
+/* 2026-11-11 川上さん「問題と解答解説の見出しの見た目が違うから分かりづらい」「見出しの見た目を問題の方にあわせて」：解答解説の区切りは行のまま（PP_SEC_MODE_ mix）、見た目だけ問題用紙と同じ＝黒い札（pp-sectag）・本文の問題は灰色の帯（pp-sec） */
+.pp-asec{color:inherit;border-bottom:0;margin-top:1.2mm;line-height:1.35}
+.pp-asecbar{display:block;padding:0.3mm 2.5mm;border-left:2mm solid #1a1a1a;background:#f2f2f2;font-size:10.5pt;font-weight:800;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   /* 2026-11-09 読解編の区切りの見出し（アプリの札と同じ名前）＝問題用紙・正答の一覧・解答解説 */
   .pp-sec{width:100%;margin:2.5mm 0 0.5mm;padding:0.8mm 2.5mm;border-left:2mm solid #1a1a1a;background:#f2f2f2;font-size:10.5pt;font-weight:800;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .pp-sec small{display:block;font-size:9pt;font-weight:400;margin-top:0.2mm}
   .pp-sec.a{margin:1.5mm 0 0.3mm;padding:0.3mm 2mm;border-left-width:1.5mm;font-size:8.5pt}
+.pp-sec.a.tg{background:none;border-left:0;padding:0;margin:1.8mm 0 0.6mm;line-height:1.35}   /* 2026-11-11 問題用紙と同じ黒い札 */
+.pp-sec.a.bar{padding:0.8mm 2.5mm;border-left-width:2mm;font-size:10.5pt}   /* 2026-11-11 問題用紙の「本文の問題」と同じ帯 */
   .pp-ar .qq{display:block;font-weight:700;color:#222}
   .pp-sectag{display:inline-block;background:#1a1a1a;color:#fff;border-radius:1mm;font-size:8pt;font-weight:700;padding:0 1.5mm;margin-right:2mm;vertical-align:1px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .pp-asectag{display:inline-block;font-style:normal;background:#1a1a1a;color:#fff;border-radius:0.8mm;font-size:7pt;padding:0 1mm;margin-right:1mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -12191,7 +12196,7 @@ function _ppAList_(items,lw){var h='',row=[],ws=[],flush=function(){if(!row.leng
   else{var per=1;if(PP_AL_PACK_){[3,2].some(function(p){for(var k=0;k<row.length;k+=p){if(ws.slice(k,k+p).reduce(function(a,b){return a+b;},0)>176)return false;}per=p;return true;});}
     for(var k=0;k<row.length;k+=per){h+='<div class="pp-arow'+(per===1?' wide':'')+(k+per<row.length?' in':'')+'">'+row.slice(k,k+per).join('')+'</div>';}}
   row=[];ws=[];};
-  items.forEach(function(it,i){var _f=it.sec&&(!items[i-1]||items[i-1].sec!==it.sec);if(_f&&(PP_SEC_MODE_==='all'||PP_SEC_MODE_==='dk'||PP_SEC_MODE_==='mix')){flush();h+='<p class="pp-asec">'+esc(it.sec)+'</p>';}
+  items.forEach(function(it,i){var _f=it.sec&&(!items[i-1]||items[i-1].sec!==it.sec);if(_f&&(PP_SEC_MODE_==='all'||PP_SEC_MODE_==='dk'||PP_SEC_MODE_==='mix')){flush();h+='<p class="pp-asec">'+(it.sec==='本文の問題'?'<span class="pp-asecbar">'+esc(it.sec)+'</span>':'<span class="pp-sectag">'+esc(it.sec)+'</span>')+'</p>';}
     var a=String(it.a).replace(/^([ア-ク1-9])　/,'<i class="pp-am">$1</i>');row.push('<div>'+(_f&&PP_SEC_MODE_==='tag'?'<i class="pp-asectag">'+esc(it.sec)+'</i>':'')+'<b>'+(i+1)+'</b><span>'+a+'</span></div>');ws.push(_ppAW_(it.a)+(_f&&PP_SEC_MODE_==='tag'?12:0));if(row.length===5)flush();});
   flush();return '<div class="pp-alist'+(lw?' w':'')+'">'+h+'</div>';}
 function _ppLayout_(host,M,built,kind,xref){
@@ -12209,7 +12214,7 @@ function _ppLayout_(host,M,built,kind,xref){
       if(!wr){var lw=items.some(function(it){return String(it.a).replace(/<[^>]*>/g,'').length>16;});
         anodes.push(_ppMk_(_ppAList_(items,lw)));afigs.push(null);
         anodes.push(_ppMk_('<div class="pp-xh">正答と解説</div>'));afigs.push(null);}
-      items.forEach(function(it,i){var _f=it.sec&&(!items[i-1]||items[i-1].sec!==it.sec);if(_f&&(PP_SEC_MODE_==='all'||PP_SEC_MODE_==='dk'||PP_SEC_MODE_==='mix')){anodes.push(_ppMk_('<div class="pp-sec a">'+esc(it.sec)+'</div>'));afigs.push(null);}anodes.push(_ppMk_('<div class="pp-ar'+(it.wr?' wr':'')+'" data-xi="'+esc(b.id)+'#'+i+'"><div class="no">'+(i+1)+'</div><div class="a">'+(it.sec&&(!items[i-1]||items[i-1].sec!==it.sec)&&PP_SEC_MODE_==='tag'?'<i class="pp-asectag">'+esc(it.sec)+'</i>':'')+it.a+'</div><div class="x">'+it.x+'</div></div>'));afigs.push(null);});
+      items.forEach(function(it,i){var _f=it.sec&&(!items[i-1]||items[i-1].sec!==it.sec);if(_f&&(PP_SEC_MODE_==='all'||PP_SEC_MODE_==='dk'||PP_SEC_MODE_==='mix')){anodes.push(_ppMk_(it.sec==='本文の問題'?'<div class="pp-sec a bar">'+esc(it.sec)+'</div>':'<div class="pp-sec a tg"><span class="pp-sectag">'+esc(it.sec)+'</span></div>'));afigs.push(null);}anodes.push(_ppMk_('<div class="pp-ar'+(it.wr?' wr':'')+'" data-xi="'+esc(b.id)+'#'+i+'"><div class="no">'+(i+1)+'</div><div class="a">'+(it.sec&&(!items[i-1]||items[i-1].sec!==it.sec)&&PP_SEC_MODE_==='tag'?'<i class="pp-asectag">'+esc(it.sec)+'</i>':'')+it.a+'</div><div class="x">'+it.x+'</div></div>'));afigs.push(null);});
       _ppPlace_(host,M,b,anodes,true,afigs,wr?2:4);
       return;
     }
