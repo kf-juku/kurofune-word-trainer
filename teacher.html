@@ -4486,10 +4486,12 @@ var _NO_MATS_={'mat-eiken5-unit-01':1,'mat-eiken5-scene':1,'mat-eiken5-kakehashi
    データの part_order は A-1 の直後に A-2 の整数の通し番号のまま。画面で数え直す＝_pnoReg_ で教材ごとに part_order→No. の表を作り、_pnoOf_ がそれを引く。
    表が無い（パートの一覧がまだ届いていない・A-2 の無い教材）ときは今までどおり part_order。kwtGAS.gs の pnoOfPart_ も同じ数え方（片方だけ直さない） */
 var _PNO_MAP_={};
+/* 【2026-11-13】No. は級ごとの通し番号（2026-10-10 の決まり）。数え直しは教材ごとに 0 からだったので、編の始まりの番号の手前を足す（カリキュラム表と同じ番号になる） */
+var _PNO_BASE_={'mat-eiken5-scene':54,'mat-eiken4-kaiwa':51,'mat-eiken4-dokkai':74,'mat-eiken3-writing':36,'mat-eiken3-kaiwa':56,'mat-eiken3-dokkai':81};
 function _pnoReg_(mid,parts){mid=String(mid||'');if(!_NO_MATS_[mid]||!parts||!parts.length)return;
   var ps=parts.map(function(p){return {id:String(p.part_id||p.id||''),o:Number(p.part_order)||0};}).filter(function(x){return x.o>0&&x.id;}).sort(function(a,b){return a.o-b.o;});
   if(!ps.some(function(x){return /-a2$/.test(x.id);})){delete _PNO_MAP_[mid];return;}
-  var m={},byId={},n=0;ps.forEach(function(x){var b=/-a2$/.test(x.id)?x.id.slice(0,-3):'';m[x.o]=(b&&byId[b]!=null)?byId[b]:(++n);byId[x.id]=m[x.o];});_PNO_MAP_[mid]=m;}
+  var m={},byId={},n=_PNO_BASE_[mid]||0;ps.forEach(function(x){var b=/-a2$/.test(x.id)?x.id.slice(0,-3):'';m[x.o]=(b&&byId[b]!=null)?byId[b]:(++n);byId[x.id]=m[x.o];});_PNO_MAP_[mid]=m;}
 function _pnoOf_(mid,ord){ if(!_NO_MATS_[String(mid||'')])return ''; var n=parseInt(ord,10),mp=_PNO_MAP_[String(mid||'')]; if(mp&&mp[Number(ord)]!=null)n=mp[Number(ord)]; return (n>0)?('No.'+n):''; }
 /* GAS の返事に入っているパートの一覧で No. の表を作る（material_preview・materials_list・assignment_list）。call の返りで1回だけ通す */
 function _pnoScan_(d){if(!d||!d.ok||!d.data)return;var D=d.data;
