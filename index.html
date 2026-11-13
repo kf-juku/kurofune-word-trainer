@@ -2609,6 +2609,10 @@ html[data-theme=dark] .mz-hard{background:#3a2c08;color:#ffd77a;border-color:#c9
 /* 説明の札は薄い灰だと押せない（グレーアウト）に見える（18:20）＝墨の字と墨の枠（新しい色は足さない＝生徒UI_01 §12-1） */
 .ebtag.ex{background:transparent;color:var(--ink,#334155);box-shadow:inset 0 0 0 1.5px var(--ink,#334155)}
 #eiken-list .pno,.ekp .pno,.ekp-s .pno{color:var(--sub,#64748b)}.ekp .ebtag.a1{background:var(--ink,#334155);color:var(--bg,#fff);box-shadow:none}.ekp .ebtag.a2{background:transparent;color:var(--ink,#334155);box-shadow:inset 0 0 0 1.5px var(--sub,#64748b)}
+/* 英検のまとめテストの行＝パートの行と同じ開閉。目立たせるのは金（ここぞ）の左線と薄い地・墨の札だけ（新しい色は足さない）2026-11-13 */
+.ekmt{border-left:3px solid var(--gold);background:var(--n-goldsoft);border-radius:0 10px 10px 0;margin:8px 0}
+.ekmt-pill{display:inline-flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;margin-right:8px;background:var(--ink,#334155);border-radius:50%}.ekmt-pill i{color:var(--gold);font-size:14px}
+.ekmt .ekp-s{background:transparent}.ekmt-note{padding:2px 12px 4px 30px;font-size:10.5px;font-weight:700;color:var(--sub,#64748b)}
 </style>
 <script>/* 2026-10-30 川上さん：①テーマは画面を描く前に決める（後ろのスクリプトで決めると、読み込みの遅い端末で白い画面が先に出る）
    ②解答用紙の QR から来たら、最初の描画から「読み込み中」を大きく出す（ログイン画面だけが出て、止まって見えた） */
@@ -3017,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-13g"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-13h"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5631,7 +5635,7 @@ function renderUnitZone_(materials,opt){
         /* 章の行を出していない本（data-solo）は矢印が無い＝開きっぱなし。開閉の記憶も持たない 2026-09-11 */
         if(arw)arw.onclick=function(ev){ev.stopPropagation();w.classList.toggle('open');_unitChapOpenToggle_(uck,w.classList.contains('open'));};
         w.querySelectorAll('.ekp-h').forEach(function(h){h.onclick=function(ev){ev.stopPropagation();var g=h.parentNode;g.classList.toggle('open');var o=_ekOpenGet_();var k=g.getAttribute('data-ekp');var i=o.indexOf(k);if(g.classList.contains('open')){if(i<0)o.push(k);}else if(i>=0)o.splice(i,1);try{sessionStorage.setItem('kwt_ekp_open',JSON.stringify(o));}catch(e){}};
-          var go=h.querySelector('.ekp-go');if(go)go.onclick=function(ev){ev.stopPropagation();startPractice(go.getAttribute('data-go'));};});
+          var go=h.querySelector('.ekp-go');if(go)go.onclick=function(ev){ev.stopPropagation();var em=go.getAttribute('data-emt');if(em)openEikenMt_(em);else startPractice(go.getAttribute('data-go'));};});
         w.querySelectorAll('.nqp:not(.ekp-h)').forEach(function(prow){var upid=prow.getAttribute('data-upid'),emt=prow.getAttribute('data-emt');prow.onclick=function(ev){ev.stopPropagation();if(emt){openEikenMt_(emt);return;}if(upid)startPractice(upid);};});
       });
       host.appendChild(book);
@@ -5853,11 +5857,17 @@ function _ekPartRow_(l,l2,mid,_h,subj){var k=String(l.part_id),op=_ekOpenGet_().
     +(l.passed?'':'<span class="ncf-go ekp-go" data-go="'+esc(k)+'" title="A-1 を始める"><i class="ti ti-arrow-right"></i></span>')
     +'<i class="ti ti-chevron-down ekp-arw"></i></div><div class="ekp-b">'+sub(l,'A-1')+sub(l2,'A-2')+'</div></div>';}
 function _ekMtRows_(afterPid,subj){var h='';_EKMT_.forEach(function(t){if(t.after!==String(afterPid))return;
-  var sts=t.vers.map(function(R){return _ekMtSt_(t.id+'-'+R);}),ok=sts.filter(function(x){return x.k==='pass';}).length;
-  h+='<div class="nqg"><span class="nqg-nm">'+_jaRubySubj_(t.title,subj)+'</span><span class="nqg-cnt">'+(ok?'合格':'1回 20問・30分・80点で合格')+'</span></div>';
-  t.vers.forEach(function(R,i){var st=sts[i];
+  var sts=t.vers.map(function(R){return _ekMtSt_(t.id+'-'+R);}),k=String(t.id),op=_ekOpenGet_().indexOf(k)>=0,nx=-1;
+  sts.forEach(function(x,i){if(nx<0&&x.k!=='pass')nx=i;});
+  var lab=function(R){return String(R).replace(/^([A-Z])(\d)$/,'$1-$2');};
+  var dots=t.vers.map(function(R,i){return '<span class="ekp-d'+(sts[i].k==='pass'?' on':'')+'">'+lab(R)+'</span>';}).join('');
+  var subs=t.vers.map(function(R,i){var st=sts[i];
     var tag=st.k==='mada'?'<span class="utag"><i class="ti ti-player-play"></i>まだ</span>':st.k==='pass'?'<span class="utag done"><i class="ti ti-circle-check"></i>できた '+Math.round(st.S.got)+'点</span>':'<span class="utag"><i class="ti ti-pencil"></i>'+Math.round(st.S.got)+'点</span>';
-    h+='<div class="nqp" data-emt="'+esc(t.id+'-'+R)+'"><div class="nqp-nm"><span class="nqp-t">まとめテスト '+esc(R)+'</span></div>'+tag+(st.k==='pass'?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';});});
+    return '<div class="nqp ekp-s" data-emt="'+esc(t.id+'-'+R)+'"><div class="nqp-nm"><span class="ebtag '+(i===0?'a1':'a2')+'">'+lab(R)+'</span><span class="nqp-t">'+(i===0?'教室':'家で（2回目）')+'</span></div>'+tag+(st.k==='pass'?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';}).join('');
+  h+='<div class="ekp ekmt'+(op?' open':'')+'" data-ekp="'+esc(k)+'"><div class="nqp ekp-h"><div class="nqp-nm hz"><span class="ekmt-pill"><i class="ti ti-trophy"></i></span><span class="nqp-t">'+_jaRubySubj_(t.title,subj)+'</span></div>'
+    +'<span class="ekp-ds">'+dots+'</span>'
+    +(nx<0?'':'<span class="ncf-go ekp-go" data-emt="'+esc(t.id+'-'+t.vers[nx])+'" title="'+lab(t.vers[nx])+' を始める"><i class="ti ti-arrow-right"></i></span>')
+    +'<i class="ti ti-chevron-down ekp-arw"></i></div><div class="ekp-b"><div class="ekmt-note">1回 20問・30分・80点で合格</div>'+subs+'</div></div>';});
   return h;}
 function openEikenMt_(rid){
   var m=String(rid).match(/^(.+)-(A1|A2|B1|B2)$/);if(!m)return;var t=null;_EKMT_.forEach(function(x){if(x.id===m[1])t=x;});if(!t)return;var R=m[2];
