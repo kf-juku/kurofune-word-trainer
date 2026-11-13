@@ -12821,27 +12821,39 @@ function _ppMakeMulti_(how,opt){   /* opt＝テストを単体で印刷（2026-1
 var _EKMT_=[{"id":"mt-eiken3-bunpo-1","mid":"mat-eiken3-bunpo","title":"まとめテスト①（第1〜5回）","vers":["A1","A2"]},{"id":"mt-eiken3-bunpo-2","mid":"mat-eiken3-bunpo","title":"まとめテスト②（第6〜8回）","vers":["A1","A2"]},{"id":"mt-eiken3-dokkai-1","mid":"mat-eiken3-dokkai","title":"まとめテスト①（第19〜23回）","vers":["A1","A2"]},{"id":"mt-eiken3-kaiwa-1","mid":"mat-eiken3-kaiwa","title":"まとめテスト①（第14〜18回）","vers":["A1","A2"]},{"id":"mt-eiken3-writing-1","mid":"mat-eiken3-writing","title":"まとめテスト（第9〜13回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-1","mid":"mat-eiken4-bunpo","title":"まとめテスト①（第1〜5回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-2","mid":"mat-eiken4-bunpo","title":"まとめテスト②（第6〜8回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-3","mid":"mat-eiken4-bunpo","title":"まとめテスト③（第9〜11回）","vers":["A1","A2"]},{"id":"mt-eiken4-dokkai-1","mid":"mat-eiken4-dokkai","title":"まとめテスト①（第17〜21回）","vers":["A1","A2"]},{"id":"mt-eiken4-kaiwa-1","mid":"mat-eiken4-kaiwa","title":"まとめテスト①（第12〜16回）","vers":["A1","A2"]},{"id":"mt-eiken5-bunpo-1","mid":"mat-eiken5-unit-01","title":"まとめテスト①（第1〜4回）","vers":["A1","A2"]},{"id":"mt-eiken5-bunpo-2","mid":"mat-eiken5-unit-01","title":"まとめテスト②（第5〜9回）","vers":["A1","A2"]},{"id":"mt-eiken5-kaiwa-1","mid":"mat-eiken5-scene","title":"まとめテスト①（第10〜14回）","vers":["A1","A2"]},{"id":"mt-kakehashi-1","mid":"mat-eiken5-kakehashi","title":"まとめテスト①（第0〜4回）","vers":["A1","A2"]},{"id":"mt-kakehashi-2","mid":"mat-eiken5-kakehashi","title":"まとめテスト②（第5〜8回）","vers":["A1","A2"]},{"id":"mt-kakehashi-3","mid":"mat-eiken5-kakehashi","title":"まとめテスト③（第9〜12回）","vers":["A1","A2"]}];
 /* 英検のまとめテストの解答用紙の番号（2026-11-13）＝「GQ5-12345」：kwtGAS.gs の eikenMtCodeOf_ と同じ式（架け橋0・5級5・4級4・3級3）。解答用紙の QR＝このテストを開く／問題用紙の QR＝リスニングの音だけ（&listen=1） */
 function _ekMtCode_(rid){var s=String(rid||''),m=/^mt-(kakehashi|eiken([345]))-/.exec(s);if(!m)return '';var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}var t=String(Math.floor(h/9)%100000);while(t.length<5)t='0'+t;return 'GQ'+(m[1]==='kakehashi'?'0':m[2])+'-'+t;}
-function _ekMtQr_(meas,cd,listen){[].slice.call(meas.querySelectorAll('.sh-qr')).forEach(function(q){q.classList.add('has');q.innerHTML=fsQrHtml_(cd.replace('-',''),!!listen)+'<div class="ggqr-cd">'+esc(cd)+' '+_ptDayLab_()+' 刷</div>';});}
+function _ekMtQr_(meas,cd,listen,key){[].slice.call(meas.querySelectorAll('.sh-qr')).forEach(function(q){q.classList.add('has');q.innerHTML=fsQrHtml_(cd.replace('-','')+(key?'&qa='+key:''),!!listen)+'<div class="ggqr-cd">'+esc(cd)+' '+_ptDayLab_()+' 刷</div>';});}
 function _ppEkMtDraw_(){var w=$('ppEkMtW');if(!w)return;var sel=(_ppSel&&_ppSel.length)?_ppSel:[$('ppMat').value];
   var ts=_EKMT_.filter(function(t){return sel.indexOf(t.mid)>=0;});if(_ppTest||!ts.length){w.style.display='none';w.innerHTML='';return;}
   w.style.display='';w.innerHTML='<div class="pp-pth">まとめテスト<span style="font-weight:400;color:var(--text-muted);margin-left:6px">問題用紙と解答用紙（名前なし）を刷る</span></div>'
    +ts.map(function(t){return '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:2px 0"><span style="min-width:15em">'+esc(t.title)+'</span>'+t.vers.map(function(R){return '<label><input type="checkbox" class="pp-ekmt" value="'+esc(t.id+'-'+R)+'"><span>'+esc(R)+'</span></label>';}).join(' ')+'</div>';}).join('')
-   +'<div style="margin-top:6px;display:flex;gap:8px"><button type="button" class="btn-primary" style="width:auto" onclick="ekMtPrint_(\'print\')">🖨 まとめテストを印刷</button><button type="button" class="btn-primary btn-outlineK" style="width:auto" onclick="ekMtPrint_(\'pdf\')">⬇ PDF</button><span id="ppEkMtSt" style="color:var(--text-muted);font-size:12px;align-self:center"></span></div>';}
-function ekMtPrint_(how){var ids=[].slice.call(document.querySelectorAll('.pp-ekmt')).filter(function(c){return c.checked;}).map(function(c){return c.value;});
-  var st=$('ppEkMtSt');if(!ids.length){st.textContent='刷るテストを選んでください';return;}st.textContent='組んでいます…';
-  var out=[];
-  _ggprLibs_().then(function(){return Promise.all(ids.map(function(rid){return fetch('guru/eiken_mt/'+rid+'.json?v='+GG_LIB_V,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error(rid);return r.json();});}));}).then(function(Ds){
+   +'<div style="margin-top:6px;display:flex;gap:8px"><button type="button" class="btn-primary" style="width:auto" onclick="ekMtPrint_(\'print\')">🖨 まとめテストを印刷</button><button type="button" class="btn-primary btn-outlineK" style="width:auto" onclick="ekMtPrint_(\'pdf\')">⬇ PDF</button><span id="ppEkMtSt" style="color:var(--text-muted);font-size:12px;align-self:center"></span></div>'
+   +_ekMtStuHtml_(ts);}
+/* 名前入りの解答用紙（2026-11-13）：このテストの教材を持っている生徒を選び、生徒×テストの枚数だけ解答用紙を刷る。鍵は ws_sheets_issue（1人×1テスト・30日） */
+function _ekMtStus_(ts){var hm=_holdersMap(),by={};ts.forEach(function(t){(hm[String(t.mid)]||[]).forEach(function(s){by[String(s.student_id)]=s;});});return Object.keys(by).map(function(k){return by[k];});}
+function _ekMtStuHtml_(ts){var S=_ekMtStus_(ts);if(!S.length)return '';return '<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">名前入りの解答用紙（生徒ごとの QR）</summary><div style="margin:6px 0"><button type="button" class="btn-ghost pp-ptb" onclick="ekMtStuAll_(true)">全員</button><button type="button" class="btn-ghost pp-ptb" onclick="ekMtStuAll_(false)">外す</button></div><div id="ppEkMtStus" style="display:flex;flex-wrap:wrap;gap:4px 14px">'+S.map(function(s){return '<label><input type="checkbox" class="pp-ekms" value="'+esc(String(s.student_id))+'" data-nm="'+esc(s.name||s.nickname||'')+'"><span>'+esc(s.name||s.nickname||'(無名)')+'</span></label>';}).join('')+'</div><div style="margin-top:6px;display:flex;gap:8px"><button type="button" class="btn-primary" style="width:auto" onclick="ekMtPrint_(\'print\',true)">🖨 名前入りを印刷</button><button type="button" class="btn-primary btn-outlineK" style="width:auto" onclick="ekMtPrint_(\'pdf\',true)">⬇ PDF</button></div></details>';}
+function ekMtStuAll_(v){[].slice.call(document.querySelectorAll('.pp-ekms')).forEach(function(c){c.checked=!!v;});}
+function ekMtPrint_(how,named){var ids=[].slice.call(document.querySelectorAll('.pp-ekmt')).filter(function(c){return c.checked;}).map(function(c){return c.value;});
+  var st=$('ppEkMtSt');if(!ids.length){st.textContent='刷るテストを選んでください';return;}
+  var STU=named?[].slice.call(document.querySelectorAll('.pp-ekms')).filter(function(c){return c.checked;}).map(function(c){return {id:c.value,nm:c.getAttribute('data-nm')||''};}):[];
+  if(named&&!STU.length){st.textContent='名前入りにする生徒を選んでください';return;}
+  st.textContent='組んでいます…';
+  var out=[],keys={};
+  var issue=named?function(){var its=[];ids.forEach(function(rid){STU.forEach(function(x){its.push({student_id:x.id,part_id:rid});});});st.textContent='名前入りの QR を作っています…';
+    return call({action:'ws_sheets_issue',items:its}).then(function(d){if(!d||!d.ok||!d.data)throw new Error('名前入りの QR を作れませんでした：'+((d&&d.error)||'通信に失敗しました')+'（GAS の再デプロイがまだかもしれません）');(d.data.items||[]).forEach(function(x){keys[x.part_id+'|'+x.student_id]=x.key;});});}:function(){return Promise.resolve();};
+  _ggprLibs_().then(issue).then(function(){return Promise.all(ids.map(function(rid){return fetch('guru/eiken_mt/'+rid+'.json?v='+GG_LIB_V,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error(rid);return r.json();});}));}).then(function(Ds){
     var chain=Promise.resolve();
     Ds.forEach(function(D,i){var rid=ids[i],m=rid.match(/^(.+)-(A1|A2|B1|B2)$/),t=_EKMT_.filter(function(x){return x.id===m[1];})[0];
       var mat=(_ppMats||[]).filter(function(x){return String(x.id)===t.mid;})[0]||{};
       var T=JSON.parse(JSON.stringify(D.T));T.items=D.items;var c={id:t.id,unit:t.title,rng:'',grade:'',subj:'en',ek:{book:String(mat.title||'')},rounds:{},rowIds:{}};c.rounds[m[2]]=T;var GG={cts:[c],parts:[],units:[]};
-      ['q','a'].forEach(function(k){chain=chain.then(function(){
+      (named?['a']:['q','a']).forEach(function(k){chain=chain.then(function(){
         var meas=document.createElement('div');meas.className='ggp ggp-doc';meas.style.cssText='position:absolute;left:-99999px;top:0;';document.body.appendChild(meas);
         meas.innerHTML=ggPaper.ctEn(GG,t.id,m[2],k);_ekMtQr_(meas,_ekMtCode_(rid),k==='q');
         return (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
           ggPaper.layoutEn(meas);document.body.removeChild(meas);meas.style.cssText='';
-          if(out.length%2===1)out.push(_ppBlankPg_());
-          [].slice.call(meas.querySelectorAll('.sheet')).forEach(function(sh){var w=document.createElement('div');w.className='ggp ggp-doc';w.appendChild(sh);out.push(w);});});});});});
+          if(!named&&out.length%2===1)out.push(_ppBlankPg_());
+          var base=[].slice.call(meas.querySelectorAll('.sheet')).map(function(sh){var w=document.createElement('div');w.className='ggp ggp-doc';w.appendChild(sh);return w;});
+          if(!named){base.forEach(function(w){out.push(w);});return;}
+          STU.forEach(function(x){var ky=keys[rid+'|'+x.id];if(!ky)return;if(out.length%2===1)out.push(_ppBlankPg_());base.forEach(function(w){var c=w.cloneNode(true);_ekMtQr_(c,_ekMtCode_(rid),false,ky);_ggprName_([c],x.nm);out.push(c);});});});});});});
     return chain;}).then(function(){
     var host=$('printArea');host.innerHTML='';out.forEach(function(p){host.appendChild(p);});
     var msg=ids.length+'回分／'+out.length+'ページ';window.__ekmtDone={tot:out.length,ids:ids};st.textContent=msg;
