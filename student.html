@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-13h"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-13j"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3481,6 +3481,7 @@ function shOpen_(){
   (_qaPre_(v)||call({action:'sheet_open',code:v})).then(function(d){
     btn.disabled=false; btn.innerHTML='<span>'+rb('開','ひら')+'く</span> <i class="ti ti-arrow-right"></i>';
     if(_netNG_(d)){ shMsg_(d&&d.error?esc(d.error):_NET_NG_MSG_); return; }
+    if(d.data&&d.data.ws&&d.data.eiken_mt&&_shLisOnly){ shEkMtLis_(d.data); return; }   /* 英検のまとめテストの問題用紙の QR＝音だけ 2026-11-13 */
     if(d.data&&d.data.ws){ shWsChoose_(d.data); return; }   /* 段⑤：ワークシートのテストの解答用紙（全員同じ紙） */
     /* 段7b：音を聞くだけのときは、答え合わせが終わった紙・古い紙でも音は聞ける（○×は入れない） */
     if(String(d.data.status||'')==='done'&&!_shLisOnly){ shMsg_('この'+rb('紙','かみ')+'は'+rb('答','こた')+'え'+rb('合','あ')+'わせが'+rb('終','お')+'わっています。'); return; }
@@ -3513,6 +3514,36 @@ function shAccAsk_(code,top,ok){
   $('shw-yes').onclick=function(){ok();};
   $('shw-no').onclick=function(){try{doLogout_();}catch(e){}shPendSet_(code);};   /* 覚えるのはログアウトのあと＝doLogout_ が紙の番号を消すので、先に覚えると消えて、ログインし直してもホームへ行っていた 2026-10-20 */
 }
+/* 英検のまとめテストの問題用紙の QR（&listen=1）＝音だけの画面（2026-11-13 川上さん）。
+   ・問題ごとのボタン。1回押すと同じ音が2回流れる（間3秒）→ そのボタンは使えなくなる＝アプリで受けるときと同じ決まり
+   ・使った記録はこの端末に3時間だけ残す（再読み込みで聞き直せないように）。記録・採点はしない */
+function shEkMtLis_(w){
+  var host=$('sheet-step2'),s1=$('sheet-step1');if(s1)s1.style.display='none';if(!host)return;
+  var st=$('sub-title');if(st)st.innerHTML=rb('聞','き')+'き'+rb('取','と')+'りの'+rb('音','おと');
+  var rid=String(w.part_id||'');
+  host.style.display='block';host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
+  fetch('guru/eiken_mt/'+rid+'.json?v='+GG_LIB_V,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('json '+r.status);return r.json();}).then(function(D){
+    var L=[];(D.items||[]).forEach(function(it,i){var m=/data-ak="([^"]+)"[^>]*data-au="([^"]+)"/.exec(String(it.q||''));if(m)L.push({no:it.no||(i+1),ak:m[1],au:m[2].split('|')});});
+    var key='ekmtlis_'+rid,use={};try{use=JSON.parse(localStorage.getItem(key)||'{}')||{};}catch(e0){}
+    var now=Date.now();Object.keys(use).forEach(function(k){if(now-use[k]>3*3600*1000)delete use[k];});
+    var h='<div class="sh-head"><span class="sh-code">'+esc(w.code||'')+'</span><span class="sh-tot">'+rb('聞','き')+'き'+rb('取','と')+'り'+L.length+rb('問','もん')+'</span></div>'
+      +'<div class="sh-lis-lead">🔊 <b>'+rb('音','おと')+'を'+rb('聞','き')+'く'+rb('画面','がめん')+'です。</b><br>'+rb('問題用紙','もんだいようし')+'の'+rb('番号','ばんごう')+'と'+rb('同','おな')+'じボタンを'+rb('押','お')+'すと、その'+rb('問','もん')+'の'+rb('音','おと')+'が<b>2'+rb('回','かい')+'</b>'+rb('流','なが')+'れます。'+rb('聞','き')+'けるのは'+rb('1番','いちばん')+'につき1'+rb('回','かい')+'ぶん（2'+rb('回','かい')+'）だけです。</div>'
+      +'<div class="sh-grid lisonly" id="ekl-g">';
+    L.forEach(function(x){var dn=!!use[x.ak];h+='<div class="sh-q lis"><span class="sh-n">'+x.no+'</span><button class="sh-play" type="button" data-ak="'+esc(x.ak)+'"'+(dn?' disabled':'')+'><i class="ti ti-volume"></i><span>'+x.no+rb('番','ばん')+'の'+rb('音','おと')+(dn?rb('は終','はお')+'わりました':'を'+rb('聞','き')+'く')+'</span></button></div>';});
+    host.innerHTML=h+'</div>';window.scrollTo(0,0);
+    var cur=null;
+    $('ekl-g').addEventListener('click',function(e){
+      var b=e.target&&e.target.closest?e.target.closest('.sh-play'):null;if(!b||b.disabled||cur)return;
+      var x=null;L.forEach(function(y){if(y.ak===b.getAttribute('data-ak'))x=y;});if(!x)return;
+      cur=x.ak;use[x.ak]=Date.now();try{localStorage.setItem(key,JSON.stringify(use));}catch(e1){}
+      b.disabled=true;b.querySelector('span').textContent=x.no+'番の音を再生中…';
+      var seq=[];for(var r2=0;r2<2;r2++)x.au.forEach(function(u,j){seq.push({u:u,gap:j===x.au.length-1&&r2===0?3000:300});});
+      var au=new Audio(),i=0;
+      var next=function(){if(i>=seq.length){b.querySelector('span').textContent=x.no+'番の音は終わりました';cur=null;return;}var q=seq[i++];au.src=q.u;au.onended=function(){setTimeout(next,q.gap);};au.onerror=function(){setTimeout(next,0);};var pr=au.play();if(pr&&pr.catch)pr.catch(function(){setTimeout(next,0);});};
+      next();
+    });
+  }).catch(function(){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';});
+}
 function shWsChoose_(w,ok){
   var s1=$('sheet-step1'); if(s1)s1.style.display='none';
   var host=$('sheet-step2'); if(!host)return;
@@ -3522,7 +3553,7 @@ function shWsChoose_(w,ok){
   if(!ok){ shAccAsk_(w.code,top,function(){shWsChoose_(w,true);}); return; }
   /* 2026-10-20 川上さん 02:53〜03:10：選ぶ画面はテストの入口（ws_app の __drawEntry）に移した。どこから開いても同じ画面＝前の結果と［続きから］・受け方3つ（クロトレで解く・自動採点・○×入力）。
      この画面には見出しと［開く］だけを残す（入口を閉じたときに戻る所） */
-  var go=function(){openWs_(w.material_id,[w.part_id],w.part_title,{entryHead:{code:String(w.code||''),who:nm?(nm+(familyName?'（'+familyName+'）':'')):''}});};
+  var go=function(){var eh={code:String(w.code||''),who:nm?(nm+(familyName?'（'+familyName+'）':'')):''};if(w.eiken_mt){openEikenMt_(w.part_id,{entryHead:eh});return;}openWs_(w.material_id,[w.part_id],w.part_title,{entryHead:eh});};   /* 英検のまとめテスト 2026-11-13 */
   host.innerHTML=top+'<div class="shw-who"><i class="ti ti-user"></i> <b>'+(nm?esc(nm)+seiSuffix_():'')+'</b>'+(nm?'さんとして':'')+rb('記録','きろく')+'します。</div>'
     +'<button type="button" class="btn" id="shw-open">'+rb('答','こた')+'え'+rb('合','あ')+'わせの'+rb('画面','がめん')+'を'+rb('開','ひら')+'く</button>';
   host.style.display='block';
@@ -5828,7 +5859,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261113a',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261113b',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -5869,7 +5900,7 @@ function _ekMtRows_(afterPid,subj){var h='';_EKMT_.forEach(function(t){if(t.afte
     +(nx<0?'':'<span class="ncf-go ekp-go" data-emt="'+esc(t.id+'-'+t.vers[nx])+'" title="'+lab(t.vers[nx])+' を始める"><i class="ti ti-arrow-right"></i></span>')
     +'<i class="ti ti-chevron-down ekp-arw"></i></div><div class="ekp-b"><div class="ekmt-note">1回 20問・30分・80点で合格</div>'+subs+'</div></div>';});
   return h;}
-function openEikenMt_(rid){
+function openEikenMt_(rid,xo){
   var m=String(rid).match(/^(.+)-(A1|A2|B1|B2)$/);if(!m)return;var t=null;_EKMT_.forEach(function(x){if(x.id===m[1])t=x;});if(!t)return;var R=m[2];
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
   $('ws-ttl').textContent=t.title+' '+R;
@@ -5884,12 +5915,12 @@ function openEikenMt_(rid){
     var T=JSON.parse(JSON.stringify(D.T));T.items=D.items;T.part_id=rid;T.tag=t.title+' '+R;T.range=t.title;T.vers=t.vers.slice();T.lb='英検';
     host.innerHTML='';var root=document.createElement('div');root.className='gg-root';root.style.position='relative';host.appendChild(root);
     var onSt=function(S,first,res){_ekMtB.onRecord({rowId:rid,state:S,submit:!!first,res:res||null});_ekMtRec[rid]=Object.assign(_ekMtRec[rid]||{},{state:S,passed:!!(S&&S.pass)});};
-    var o={katexCss:'ws/katex/katex.min.css',dark:_wsDark_(),book:t.title,shuffle:false,innerBack:false,tkey:'ekmt_'+rid,startPid:rid,en:true,audioBase:'',live:true,
+    var o={katexCss:'ws/katex/katex.min.css',dark:_wsDark_(),book:t.title,shuffle:false,innerBack:false,tkey:'ekmt_'+rid,startPid:rid,en:true,ekmt:true,paper:(xo&&xo.paper)||'',entryHead:(xo&&xo.entryHead)||null,audioBase:'',live:true,
       tstate:(_ekMtRec[rid]&&_ekMtRec[rid].state)||null,
       rangePass:function(){var p=null;t.vers.forEach(function(x){if(!p&&_ekMtSt_(t.id+'-'+x).k==='pass')p=x.replace(/^([AB])([12])$/,'$1-$2');});return p;},
       onTestSubmit:function(pid,S,res){onSt(S,true,res);},onTestState:function(pid,S){onSt(S,false);}};
     _ggApi=ggMount(root,{UNIT_TITLE:t.title,PATS:[],TEST:T,POOL:D.pool||{},BACKN:D.backn||{}},o);
-    try{var _cs=document.createElement('style');_cs.textContent='.app>.side{display:none!important}.app{grid-template-columns:minmax(0,860px)!important;justify-content:center}.wsbk{display:none!important}';root.shadowRoot.appendChild(_cs);}catch(eCs){}   /* パートの一覧（左の列）は出さない＝問題を真ん中に */
+    try{var _cs=document.createElement('style');_cs.textContent='.app>.side{display:none!important}.app{grid-template-columns:minmax(0,860px)!important;justify-content:center}.wsbk{display:none!important}.phone{margin-left:auto!important;margin-right:auto!important}';root.shadowRoot.appendChild(_cs);}catch(eCs){}   /* パートの一覧（左の列）は出さない＝問題を真ん中に */
   }).catch(function(e){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';try{console.log(e);}catch(e2){}});
 }
 function openGgPv_(mid,startPid){

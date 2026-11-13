@@ -1235,7 +1235,7 @@ function __plab(x){const b=TEST.blocks[x.b];return b.ren?`${DN(b.num)}${SN(x.k)}
    押すと青いマスに入って次のマスへ進む。直すときはマスを押す。ボタンは画面の下に固定し、表と重ならないように下に空きを取り、入れるマスはボタンより上に見える位置まで動かす */
 let __PCUR=0;
 function __psub(x){const b=TEST.blocks[x.b];return b.ren?SN(x.k):b.grp?SNB(b,x.k):'';}
-function __pval(j){const v=__PA[j];return v===undefined?'':(__PAPER==='ox'?(v==='o'?'○':'×'):KANA[v]);}
+function __pval(j){const v=__PA[j];return v===undefined?'':(__PAPER==='ox'?(v==='o'?'○':'×'):(typeof v==='string'?'✓':KANA[v]));}
 function __pnext(j){let n=j+1;while(n<TFL.length&&__PA[n]!==undefined)n++;if(n>=TFL.length){n=__PA.findIndex(v=>v===undefined);}return n;}
 /* 入れるマスが下のボタンに隠れないように、外側のスクロールを動かす（Shadow DOM の外の箱も見る） */
 function __pscroller(el,any){let n=el;while(n){n=n.parentElement||(n.getRootNode&&n.getRootNode().host)||null;if(!n||n===__realDoc.body||n===__realDoc.documentElement)break;const s=getComputedStyle(n);if(/(auto|scroll)/.test(s.overflowY)&&(any||n.scrollHeight>n.clientHeight))return n;}return null;}
@@ -1246,15 +1246,19 @@ function __drawPaper(ph){const T=TEST,ox=__PAPER==='ox',B=T.blocks;__tPerm(null)
  const keys=ox?[['o','○'],['x','×']]:[...Array(nk).keys()].map(k=>[k,KANA[k]]);
  const rows=B.map((b,bi)=>{const js=tJs(bi);return `<div class="pcr"><div class="pcn">${DN(b.num)}</div><div class="pcc">${js.map(j=>`<span class="pcx" data-j="${j}">${__psub(TFL[j])}<b></b></span>`).join('')}</div></div>`;}).join('');
  ph.innerHTML=`<div class="phone ppaper"><div class="prog"><span class="tag X">${T.tag||T.name}</span>　紙の答え（${ox?'○×入力':'自動採点'}）</div>
-  <div class="pplead">${ox?'丸付けした解答用紙を見て、○×を入力しよう。':'解答用紙に書いた記号を入力しよう。'}</div>${__pdN?`<div class="pdres"><span>前に入れたところから（${__pdN}／${TFL.length}）</span><button type="button" class="pdclr">最初から入れ直す</button></div>`:''}
+  <div class="pplead">${ox?'丸付けした解答用紙を見て、○×を入力しよう。':(TFL.some(x=>x.st.ord)?'解答用紙に書いた記号と、並べかえの英文を入力しよう。':'解答用紙に書いた記号を入力しよう。')}</div>${__pdN?`<div class="pdres"><span>前に入れたところから（${__pdN}／${TFL.length}）</span><button type="button" class="pdclr">最初から入れ直す</button></div>`:''}
   <div class="pck">${rows}</div><div class="tvh"></div><div class="tconf"></div>
-  <div class="ppad"><div class="pph"></div><div class="ppk${ox?' ox':''}" style="grid-template-columns:repeat(${keys.length},1fr)">${keys.map(([v,l])=>`<button type="button" data-v="${v}">${l}</button>`).join('')}</div>
+  <div class="ppad"><div class="pph"></div><div class="ppo" style="display:none"></div><div class="ppk${ox?' ox':''}" style="grid-template-columns:repeat(${keys.length},1fr)">${keys.map(([v,l])=>`<button type="button" data-v="${v}">${l}</button>`).join('')}</div>
   <button class="next ppgo">${ox?'記録する':'採点する'}</button></div></div>`;
  K(ph);
- const upd=(scroll)=>{const u=__PA.filter(v=>v===undefined).length;
+ const upd=(scroll,keepO)=>{const u=__PA.filter(v=>v===undefined).length;
   ph.querySelectorAll('.pcx').forEach(c=>{const j=+c.dataset.j;c.classList.toggle('un',__PA[j]===undefined);c.classList.toggle('cur',j===__PCUR);c.querySelector('b').textContent=__pval(j)||'　';});
   const x=TFL[__PCUR];const h=ph.querySelector('.pph');
   h.innerHTML=x?`いま入れる所：<b>${DN(TEST.blocks[x.b].num)} ${__psub(x)}</b>`:'全部のマスに入った。解答用紙と見比べてから採点しよう';K(h);
+  if(!keepO){const po=ph.querySelector('.ppo'),pk=ph.querySelector('.ppk');if(po&&pk){if(!ox&&x&&x.st.ord){po.style.display='';pk.style.display='none';
+   po.innerHTML=__eUI(x.st,'p'+__PCUR,typeof __PA[__PCUR]==='string'?__PA[__PCUR]:undefined,'');
+   __eBind(po,k=>TFL[+k.slice(1)].st,(k,v)=>{const j=+k.slice(1);__PA[j]=v;__pdSave();if(v!==undefined&&j===__PCUR){__PCUR=__pnext(__PCUR);setTimeout(()=>upd(true),0);}else upd(true,true);});}
+   else{po.style.display='none';po.innerHTML='';pk.style.display='';}}}
   ph.querySelector('.tvh').innerHTML=u?`<span class="tvu">まだ ${u}問</span>`:'<span class="tvok">全部入れた</span>';
   if(scroll){const c=ph.querySelector('.pcx.cur');if(c)__pshow(c,ph.querySelector('.ppad'));}};
  ph.querySelectorAll('.pcx').forEach(c=>c.onclick=()=>{__PCUR=+c.dataset.j;upd(true);});
@@ -1320,7 +1324,7 @@ function __drawEntry(ph){const T=TEST,S=(TSTATE&&TSTATE.got!=null)?TSTATE:null,H
  const card=(k,t,d,a,w)=>`<button type="button" class="ent-c${w?' wide':''}" data-e="${k}">${__eic(k)}<b>${t}</b><small>${d}</small><span class="ent-act">${a}</span></button>`;
  ph.innerHTML=`<div class="phone tent${GURU?' gent':''}"><div class="prog"><span class="tag X">${T.tag||T.name}</span>${GURU?'　'+__gPN():''}</div>${GURU?__gEntHead():''}${top}<div class="ent-ask">${ask}</div>${sub}<div class="ent-go">`
   +card('app','クロトレで解く','このタブレット・スマホで問題を解く',GURU?'解きはじめる':'テストを始める',true)
-  +(__EN?'':card('sym','自動採点','解答用紙に書いた記号を入れる','採点する')
+  +((__EN&&!opt.ekmt)?'':card('sym','自動採点','解答用紙に書いた記号を入れる','採点する')
   +card('ox','○×入力','丸付けが終わった紙の○×を入れる','結果を入力する'))+`</div></div>`;
  {const gp=ph.querySelector('.gpt');if(gp)gp.onclick=()=>{try{GURU.onPoint();}catch(e){}};}
  ph.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const e=b.dataset.e;__entPass=true;
