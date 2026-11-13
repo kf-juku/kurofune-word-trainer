@@ -3009,7 +3009,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-13d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-13e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5846,7 +5846,7 @@ function openEikenMt_(rid){
   Promise.all([_ggLoadLibs_(),J,Rq]).then(function(r){
     var D=r[1],d=r[2];if(d&&d.ok&&d.data&&d.data.records)_ekMtRec=d.data.records;
     if(!_ekMtB)_ekMtB=ggRecBridge(call,_ekMtRec);else _ekMtB.records=_ekMtRec;
-    var T=JSON.parse(JSON.stringify(D.T));T.items=D.items;T.part_id=rid;T.tag=t.title+' '+R;T.range=t.title;T.vers=t.vers.slice();T.lb='ぐるぐる';
+    var T=JSON.parse(JSON.stringify(D.T));T.items=D.items;T.part_id=rid;T.tag=t.title+' '+R;T.range=t.title;T.vers=t.vers.slice();T.lb='英検';
     host.innerHTML='';var root=document.createElement('div');root.className='gg-root';root.style.position='relative';host.appendChild(root);
     var onSt=function(S,first,res){_ekMtB.onRecord({rowId:rid,state:S,submit:!!first,res:res||null});_ekMtRec[rid]=Object.assign(_ekMtRec[rid]||{},{state:S,passed:!!(S&&S.pass)});};
     var o={katexCss:'ws/katex/katex.min.css',dark:_wsDark_(),book:t.title,shuffle:false,innerBack:false,tkey:'ekmt_'+rid,startPid:rid,en:true,audioBase:'',live:true,
