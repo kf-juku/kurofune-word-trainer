@@ -3017,7 +3017,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-13f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-13g"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5632,7 +5632,7 @@ function renderUnitZone_(materials,opt){
         if(arw)arw.onclick=function(ev){ev.stopPropagation();w.classList.toggle('open');_unitChapOpenToggle_(uck,w.classList.contains('open'));};
         w.querySelectorAll('.ekp-h').forEach(function(h){h.onclick=function(ev){ev.stopPropagation();var g=h.parentNode;g.classList.toggle('open');var o=_ekOpenGet_();var k=g.getAttribute('data-ekp');var i=o.indexOf(k);if(g.classList.contains('open')){if(i<0)o.push(k);}else if(i>=0)o.splice(i,1);try{sessionStorage.setItem('kwt_ekp_open',JSON.stringify(o));}catch(e){}};
           var go=h.querySelector('.ekp-go');if(go)go.onclick=function(ev){ev.stopPropagation();startPractice(go.getAttribute('data-go'));};});
-        w.querySelectorAll('.nqp').forEach(function(prow){var upid=prow.getAttribute('data-upid'),emt=prow.getAttribute('data-emt');prow.onclick=function(ev){ev.stopPropagation();if(emt){openEikenMt_(emt);return;}if(upid)startPractice(upid);};});
+        w.querySelectorAll('.nqp:not(.ekp-h)').forEach(function(prow){var upid=prow.getAttribute('data-upid'),emt=prow.getAttribute('data-emt');prow.onclick=function(ev){ev.stopPropagation();if(emt){openEikenMt_(emt);return;}if(upid)startPractice(upid);};});
       });
       host.appendChild(book);
     });
