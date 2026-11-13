@@ -11,7 +11,7 @@
 const PP=G.ggPaper;const RD=PP.RD,HD=PP.HD;
 const KANA='アイウエオカ';
 const SJN={ma:'数学',en:'英語'};
-const kindOf=it=>it.ren?'read':String(it.g||'').split('|')[0];
+const kindOf=it=>it.pk||(it.ren?'read':String(it.g||'').split('|')[0]);   /* 2026-11-13 英検のまとめテスト：it.pk＝紙の形（goku2・listen・order・read） */
 const vis=s=>String(s==null?'':s).replace(/<[^>]+>/g,'');
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function strip(html,sels){const t=document.createElement('template');t.innerHTML=String(html||'');sels.forEach(s=>t.content.querySelectorAll(s).forEach(e=>e.remove()));return t.innerHTML;}
@@ -24,8 +24,9 @@ const isDoc=it=>/class="edoc"/.test(String(it.q||''));
 function blocks(rd){const BK=[];let gk=null;rd.forEach((it,i)=>{if(it.ren){BK.push({items:[i]});gk=null;return;}if(!gk||gk.key!==(it.g||'')){gk={key:it.g||'',items:[]};BK.push(gk);}gk.items.push(i);});
  const POS={};BK.forEach((b,bi)=>b.items.forEach((i,k)=>POS[i]={num:bi+1,k,n:b.items.length}));return {BK,POS};}
 /* 区切りの名前（決まり 3・4 の呼び方） */
-function secName(it,ny){const k=kindOf(it);return k==='blank'?'文法の穴埋め':(k==='goku'||k==='goku2')?'語句':k==='listen'?'リスニング':k==='order'?'並び替え':k==='order2'?'並べかえ':k==='read'?(ny||isDoc(it)?'資料つき読解':'短文読解'):'';}
+function secName(it,ny){if(it.sec)return it.sec;const k=kindOf(it);return k==='blank'?'文法の穴埋め':(k==='goku'||k==='goku2')?'語句':k==='listen'?'リスニング':k==='order'?'並び替え':k==='order2'?'並べかえ':k==='read'?(ny||isDoc(it)?'資料つき読解':'短文読解'):'';}
 const SEC_OF=k=>k==='goku2'?'goku':k==='order2'?'order':k;
+const SECK=it=>kindOf(it)==='order'?'order':(it.sec||SEC_OF(kindOf(it)));   /* 2026-11-13 英検のまとめテスト：区切りは it.sec（語句・穴うめ・第1部型…）ごと */
 /* 紙の指示文。mode 'w'＝書いて答える（通常回・入試パターン）、'c'＝選んで解答用紙に書く（章まとめテストの問題用紙） */
 function ghPaper(it,mode){const k=kindOf(it),gh=String(it.gh||'');
  if(mode==='w'){
@@ -35,6 +36,7 @@ function ghPaper(it,mode){const k=kindOf(it),gh=String(it.gh||'');
   if(k==='order')return '日本語に合うように並べかえて、英文を全部書きなさい。使わない語が1つあります。';
   if(k==='order2')return '対話が成り立つように並べかえて、（　　　）に入る英語を全部書きなさい。使わない語が1つあります。';
   return gh;}
+ if(k==='order'&&it.pk)return '日本語に合うように並べかえて、英文を全部書きなさい。'+(it.ord&&+it.ord.ex?'使わない語があります。':'');
  if(k==='order')return '日本語に合うように並べかえて、英文を全部書きなさい。使わない語が1つあります。';
  if(k==='order2')return '対話が成り立つように並べかえて、（　　　）に入る英語を全部書きなさい。使わない語が1つあります。';
  return gh;}
@@ -104,11 +106,16 @@ function layRound(sf){const sb=sf.nextElementSibling;const B1=sf.querySelector('
 function ctOf(GG,id,R){const c=(GG.cts||[]).find(x=>x.id===id);if(!c||!c.rounds[R]||!c.rounds[R].items)return null;return {c,T:c.rounds[R],rd:c.rounds[R].items};}
 const ctNQ=rd=>rd.reduce((s,it)=>s+(it.ren?it.steps.length:1),0);
 const ptOf=it=>it.ren?(it.steps[0]&&it.steps[0].pt):it.pt;
-function headCt(c,T,R,GN,kind){const h=`<div class="sh-h"><div class="sh-l"><div class="sh-k">${c.grade}${SJN[c.subj]||'英語'}<b>ぐるぐる</b></div><div class="sh-tt">${c.unit} <span class="mr">${c.rng||''}</span></div><div class="sh-ps">章まとめテスト　${kind==='a'?'解答用紙':'問題用紙'}</div></div><div class="sh-r"><div class="sh-rd">${RD(R)}</div><div class="sh-rt">${GN}問・${T.min||30}分・100点</div></div><div class="sh-qr${kind==='a'?' big':''}">QR<br>${kind==='a'?'このテストを開く':'音声を聞く'}</div></div>`;
+function headCt(c,T,R,GN,kind){if(c.ek)return headEk(c,T,R,GN,kind);const h=`<div class="sh-h"><div class="sh-l"><div class="sh-k">${c.grade}${SJN[c.subj]||'英語'}<b>ぐるぐる</b></div><div class="sh-tt">${c.unit} <span class="mr">${c.rng||''}</span></div><div class="sh-ps">章まとめテスト　${kind==='a'?'解答用紙':'問題用紙'}</div></div><div class="sh-r"><div class="sh-rd">${RD(R)}</div><div class="sh-rt">${GN}問・${T.min||30}分・100点</div></div><div class="sh-qr${kind==='a'?' big':''}">QR<br>${kind==='a'?'このテストを開く':'音声を聞く'}</div></div>`;
  const pt=`<div class="sh-pt">配点：${T.wpt||''}（100点満点）／制限時間：${T.min||30}分</div>`;
  if(kind==='a')return h+`<div class="sh-f"><span class="b" style="width:24mm">　月　　日</span><span class="b nm">名前</span><span class="b sc"><span>点数</span><span>／100</span></span></div>${pt}<div class="sh-ins">選ぶ問題は記号（ア〜エ）を、並び替えは英文を全部、4本線に書きなさい。</div>`;
  return h+pt+`<div class="sh-ins">答えはすべて解答用紙に書きなさい。選ぶ問題は記号（ア〜エ）を、並び替えは英文を全部書きなさい。リスニングの音声は右上の QR から聞きます。</div>`;}
 
+/* 2026-11-13 英検のまとめテストの見出し（c.ek＝{book}）。形は章まとめテストと同じ・名前は「まとめテスト」 */
+function headEk(c,T,R,GN,kind){const h=`<div class="sh-h"><div class="sh-l"><div class="sh-k">${esc(c.ek.book||'')}</div><div class="sh-tt">${esc(c.unit)}</div><div class="sh-ps">${kind==='a'?'解答用紙':'問題用紙'}</div></div><div class="sh-r"><div class="sh-rd">${R}</div><div class="sh-rt">${GN}問・${T.min||30}分・100点</div></div></div>`;   /* 紙で受けるときの音（QR）と答え合わせは、ぐるぐると共通の QR の仕組みを作るときに決める（11-13 質問B「ア」） */
+ const pt=`<div class="sh-pt">配点：各5点（100点満点・80点で合格）／制限時間：${T.min||30}分</div>`;
+ if(kind==='a')return h+`<div class="sh-f"><span class="b" style="width:24mm">　月　　日</span><span class="b nm">名前</span><span class="b sc"><span>点数</span><span>／100</span></span></div>${pt}<div class="sh-ins">選ぶ問題は記号（ア〜エ）を、並べかえは英文を全部、書きなさい。</div>`;
+ return h+pt+`<div class="sh-ins">答えはすべて解答用紙に書きなさい。</div>`;}
 function itemC(it,ps,sec){const k=kindOf(it);
  const head=sec?`<div class="sh-sec">${sec}</div>`:'';
  const gh=ps.k===0?`<div class="egh2">${ghPaper(it,'c')}</div>`:'';
@@ -118,16 +125,16 @@ function itemC(it,ps,sec){const k=kindOf(it);
  let bd;
  if(k==='order'||k==='order2')bd=QX(sub,qPaper(it)+toks(it));
  else if(k==='goku')bd=QX(sub,`<div class="egr">${qPaper(it)}${chHtml(it.c||[])}</div>`);/* 語句は見出し語と選択肢を1行に */
- else bd=QX(sub,qPaper(it)+chHtml(it.c||[]));
+ else bd=QX(sub,qPaper(it)+(it.hd?`<div class="ech c4">${(it.c||[]).map((x,i)=>`<span><b>${KANA[i]}</b></span>`).join('')}</div>`:chHtml(it.c||[])));   /* it.hd＝選択肢は放送で読まれる（英検の第1部型・第3部型） */
  return `<div class="su" data-k="${SEC_OF(k)}">${head}<div class="sq k-${k}">${lead}<div class="bd">${gh}${bd}</div></div></div>`;}
 
 function ctEn(GG,id,R,kind){const o=ctOf(GG,id,R);if(!o)return '';const {c,T,rd}=o;const GN=ctNQ(rd);const {BK,POS}=blocks(rd);
- const CALLC=`章まとめテスト ${c.unit} ${c.rng||''} ${RD(R)}`;
- if(kind!=='a'){let prev='';const U=rd.map((it,i)=>{const k=SEC_OF(kindOf(it));let sec='';if(k!==prev){const pt=ptOf(it);sec=`${secName(it)}<small>（各${pt}点）</small>`;}prev=k;return itemC(it,POS[i],sec);});
+ const CALLC=c.ek?`${c.ek.book||''} ${c.unit} ${R}`:`章まとめテスト ${c.unit} ${c.rng||''} ${RD(R)}`;
+ if(kind!=='a'){let prev='';const U=rd.map((it,i)=>{const k=SECK(it);let sec='';if(k!==prev){const pt=ptOf(it);sec=`${secName(it)}<small>（各${pt}点）</small>`;}prev=k;return itemC(it,POS[i],sec);});
   return `<div class="sheet ctq en" data-r="${R}" data-id="${id}" data-call="${esc(CALLC)}">${headCt(c,T,R,GN,'q')}<div class="sbody">${U.join('')}</div><div class="sh-ft">問題用紙</div></div>`;}
  /* 解答用紙：区切り（語句・文法・リスニング・並び替え・読解）ごとに、選ぶ問題は記号の枠を並べ、並び替えは4本線 */
  const S=[];let cur=null;
- BK.forEach(b=>{const it0=rd[b.items[0]];const k=SEC_OF(kindOf(it0));if(!cur||cur.k!==k){cur={k,name:secName(it0),pt:ptOf(it0),cells:[],n:0};S.push(cur);}
+ BK.forEach(b=>{const it0=rd[b.items[0]];const k=SECK(it0);if(!cur||cur.k!==k){cur={k,name:secName(it0),pt:ptOf(it0),cells:[],n:0};S.push(cur);}
   b.items.forEach(i=>{const it=rd[i],ps=POS[i];if(it.ren){it.steps.forEach((s,si)=>{cur.cells.push({lab:`${ps.num}(${si+1})`});cur.n++;});return;}
    cur.cells.push({lab:ps.n>1?`${ps.num}(${ps.k+1})`:`${ps.num}`,it});cur.n++;});});
  const body=S.map(s=>{const hd=`<div class="sh-sec">${s.name}<small>（各${s.pt}点・${s.n}問）</small></div>`;

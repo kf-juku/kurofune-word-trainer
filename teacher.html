@@ -2817,7 +2817,7 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
       <div id="ppMatW"><div class="pp-mth"><span class="pp-mlab">教材</span><span id="ppMatNow" class="pp-mnow"></span></div><input type="hidden" id="ppMat" value=""><input class="pk-search2" id="ppMatSearch" placeholder="教材名で探す" oninput="_ppMatDraw_()" autocomplete="off"><div class="pk-list pp-mlist" id="ppMatList"></div></div>
       </div><div class="pp-cr">
       <label id="ppDirW" style="display:none;">英単語　<select id="ppDir" style="font:inherit;padding:6px;"><option value="e2j">英語を見て和訳を書く</option><option value="j2e">和訳を見て英語を書く</option></select></label>
-      <div id="ppPartsW"><div class="pp-pth">範囲<span id="ppPartsN"></span><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(true)">全部選ぶ</button><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(false)">全部外す</button></div><div id="ppParts" class="pp-pts"></div></div>
+      <div id="ppEkMtW" style="display:none;margin:0 0 10px"></div><div id="ppPartsW"><div class="pp-pth">範囲<span id="ppPartsN"></span><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(true)">全部選ぶ</button><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(false)">全部外す</button></div><div id="ppParts" class="pp-pts"></div></div>
       <div style="display:flex;align-items:center;gap:8px;"><div id="ppStat" style="color:var(--text-muted);min-height:1.4em;"></div><button type="button" id="ppStopB" class="btn-ghost pp-ptb" style="display:none;" onclick="ppStop_()">止める</button></div>
       <div class="pp-outs">
         <div class="pp-out"><span class="nm">問題用紙</span><button class="btn-primary" style="width:auto;" onclick="ppMake_('print_q')">🖨 印刷</button><button class="btn-primary btn-outlineK" style="width:auto;" onclick="ppMake_('pdf_q')">⬇ PDF</button></div>
@@ -7008,7 +7008,7 @@ function _wsLoadLibs_(){
    ノートの書き方の絵は guru/img/gg/*.svg（画面に出たときに読む）。部品を直したら GG_LIB_V を上げる
    2026-11-02 段3 速くした：開いたときは［中身］の最初の material_preview の返事（ぐるぐるは words を読まない＝parts の行と表紙の説明だけ）で一覧を出す（ggBuildData の lazy）。
    回・［確かめる］・章まとめを開いたときに、そのパートの行だけ gg_preview_part で読む（gg_shell.js の opt.loadParts → ggFillWords）。読んだパートはこの窓を閉じるまで覚えておく */
-var GG_LIB_V='20261109a',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの rect の class を bar→hbar＝gg_fig.js）。2026-11-04 ぐるぐる：20261104c（よくあるまちがいの枠と選んだ答えでの出し分け・矢印の2組目・紙の補足ボックスと矢印＝gg_app.js・gg_load.js・gg_shell.js）。20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
+var GG_LIB_V='20261113a',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの rect の class を bar→hbar＝gg_fig.js）。2026-11-04 ぐるぐる：20261104c（よくあるまちがいの枠と選んだ答えでの出し分け・矢印の2組目・紙の補足ボックスと矢印＝gg_app.js・gg_load.js・gg_shell.js）。20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -12816,7 +12816,36 @@ function _ppMakeMulti_(how,opt){   /* opt＝テストを単体で印刷（2026-1
     go();
   })['catch'](function(e){if(!_ppStop)$('ppErr').textContent='紙を組めませんでした：'+String(e&&e.message||e);fin('');});
 }
-function ppMatChg_(){
+/* ===== 英検のまとめテストの紙（2026-11-13・川上さん 17:30 質問B「ア」＝問題用紙と解答用紙を刷る。紙の答え合わせ（QR）はぐるぐると共通で次に作る）=====
+   問題＝guru/eiken_mt/<id>.json（生徒アプリと同じ）。紙の形＝guru/gg_paper_en.js の ggPaper.ctEn（ぐるぐるの章まとめテストの紙）。練習プリントの窓で英検の教材を選ぶと、範囲の上に出る */
+var _EKMT_=[{"id":"mt-eiken3-bunpo-1","mid":"mat-eiken3-bunpo","title":"まとめテスト①（第1〜5回）","vers":["A1","A2"]},{"id":"mt-eiken3-bunpo-2","mid":"mat-eiken3-bunpo","title":"まとめテスト②（第6〜8回）","vers":["A1","A2"]},{"id":"mt-eiken3-dokkai-1","mid":"mat-eiken3-dokkai","title":"まとめテスト①（第19〜23回）","vers":["A1","A2"]},{"id":"mt-eiken3-kaiwa-1","mid":"mat-eiken3-kaiwa","title":"まとめテスト①（第14〜18回）","vers":["A1","A2"]},{"id":"mt-eiken3-writing-1","mid":"mat-eiken3-writing","title":"まとめテスト（第9〜13回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-1","mid":"mat-eiken4-bunpo","title":"まとめテスト①（第1〜5回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-2","mid":"mat-eiken4-bunpo","title":"まとめテスト②（第6〜8回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-3","mid":"mat-eiken4-bunpo","title":"まとめテスト③（第9〜11回）","vers":["A1","A2"]},{"id":"mt-eiken4-dokkai-1","mid":"mat-eiken4-dokkai","title":"まとめテスト①（第17〜21回）","vers":["A1","A2"]},{"id":"mt-eiken4-kaiwa-1","mid":"mat-eiken4-kaiwa","title":"まとめテスト①（第12〜16回）","vers":["A1","A2"]},{"id":"mt-eiken5-bunpo-1","mid":"mat-eiken5-unit-01","title":"まとめテスト①（第1〜4回）","vers":["A1","A2"]},{"id":"mt-eiken5-bunpo-2","mid":"mat-eiken5-unit-01","title":"まとめテスト②（第5〜9回）","vers":["A1","A2"]},{"id":"mt-eiken5-kaiwa-1","mid":"mat-eiken5-scene","title":"まとめテスト①（第10〜14回）","vers":["A1","A2"]},{"id":"mt-kakehashi-1","mid":"mat-eiken5-kakehashi","title":"まとめテスト①（第0〜4回）","vers":["A1","A2"]},{"id":"mt-kakehashi-2","mid":"mat-eiken5-kakehashi","title":"まとめテスト②（第5〜8回）","vers":["A1","A2"]},{"id":"mt-kakehashi-3","mid":"mat-eiken5-kakehashi","title":"まとめテスト③（第9〜12回）","vers":["A1","A2"]}];
+function _ppEkMtDraw_(){var w=$('ppEkMtW');if(!w)return;var sel=(_ppSel&&_ppSel.length)?_ppSel:[$('ppMat').value];
+  var ts=_EKMT_.filter(function(t){return sel.indexOf(t.mid)>=0;});if(_ppTest||!ts.length){w.style.display='none';w.innerHTML='';return;}
+  w.style.display='';w.innerHTML='<div class="pp-pth">まとめテスト<span style="font-weight:400;color:var(--text-muted);margin-left:6px">問題用紙と解答用紙（名前なし）を刷る</span></div>'
+   +ts.map(function(t){return '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:2px 0"><span style="min-width:15em">'+esc(t.title)+'</span>'+t.vers.map(function(R){return '<label><input type="checkbox" class="pp-ekmt" value="'+esc(t.id+'-'+R)+'"><span>'+esc(R)+'</span></label>';}).join(' ')+'</div>';}).join('')
+   +'<div style="margin-top:6px;display:flex;gap:8px"><button type="button" class="btn-primary" style="width:auto" onclick="ekMtPrint_(\'print\')">🖨 まとめテストを印刷</button><button type="button" class="btn-primary btn-outlineK" style="width:auto" onclick="ekMtPrint_(\'pdf\')">⬇ PDF</button><span id="ppEkMtSt" style="color:var(--text-muted);font-size:12px;align-self:center"></span></div>';}
+function ekMtPrint_(how){var ids=[].slice.call(document.querySelectorAll('.pp-ekmt')).filter(function(c){return c.checked;}).map(function(c){return c.value;});
+  var st=$('ppEkMtSt');if(!ids.length){st.textContent='刷るテストを選んでください';return;}st.textContent='組んでいます…';
+  var out=[];
+  _ggprLibs_().then(function(){return Promise.all(ids.map(function(rid){return fetch('guru/eiken_mt/'+rid+'.json?v='+GG_LIB_V,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error(rid);return r.json();});}));}).then(function(Ds){
+    var chain=Promise.resolve();
+    Ds.forEach(function(D,i){var rid=ids[i],m=rid.match(/^(.+)-(A1|A2|B1|B2)$/),t=_EKMT_.filter(function(x){return x.id===m[1];})[0];
+      var mat=(_ppMats||[]).filter(function(x){return String(x.id)===t.mid;})[0]||{};
+      var T=JSON.parse(JSON.stringify(D.T));T.items=D.items;var c={id:t.id,unit:t.title,rng:'',grade:'',subj:'en',ek:{book:String(mat.title||'')},rounds:{},rowIds:{}};c.rounds[m[2]]=T;var GG={cts:[c],parts:[],units:[]};
+      ['q','a'].forEach(function(k){chain=chain.then(function(){
+        var meas=document.createElement('div');meas.className='ggp ggp-doc';meas.style.cssText='position:absolute;left:-99999px;top:0;';document.body.appendChild(meas);
+        meas.innerHTML=ggPaper.ctEn(GG,t.id,m[2],k);
+        return (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
+          ggPaper.layoutEn(meas);document.body.removeChild(meas);meas.style.cssText='';
+          if(out.length%2===1)out.push(_ppBlankPg_());
+          [].slice.call(meas.querySelectorAll('.sheet')).forEach(function(sh){var w=document.createElement('div');w.className='ggp ggp-doc';w.appendChild(sh);out.push(w);});});});});});
+    return chain;}).then(function(){
+    var host=$('printArea');host.innerHTML='';out.forEach(function(p){host.appendChild(p);});
+    var msg=ids.length+'回分／'+out.length+'ページ';window.__ekmtDone={tot:out.length,ids:ids};st.textContent=msg;
+    if(how==='none')return;if(how==='pdf')st.textContent=msg+'　印刷の画面で送り先を「PDFに保存」にしてください';
+    printWhenImagesReady_(host,_rpToday().replace(/-/g,'')+'_まとめテスト');
+  })['catch'](function(e){st.textContent='紙を組めませんでした：'+String(e&&e.message||e);});}
+function ppMatChg_(){setTimeout(function(){try{_ppEkMtDraw_();}catch(e){}},0);   /* 2026-11-13 英検のまとめテスト */
   var mid=$('ppMat').value, m=_ppMats.filter(function(x){return String(x.id)===mid;})[0];
   $('ppDirW').style.display=(m&&m.subject==='english')?'':'none';
   try{ localStorage.setItem(_ppTest?'kwt_pt_mat':'kwt_pp_mat',mid); }catch(e){}
