@@ -216,7 +216,7 @@
   .imp{color:#c2410c;font-size:.85em;margin-right:3px;vertical-align:1px;}
   html[data-theme=dark] .nqg-no{background:#e5e7eb;color:#111827;}html[data-theme=dark] .imp{color:#fb923c;}
   /* 【2026-10-10】No（カリキュラム表と共通の番号）。_pnoHtml_ */
-  .pno{display:inline-block;margin-right:6px;font-size:.86em;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .pno{display:inline-block;margin-right:6px;font-size:.86em;font-weight:800;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .nqp-nm small{font-weight:500;font-size:10.5px;color:var(--sub);}
   /* 【確定・2026-08-20 川上さん】単元別と確認テストは"本のとじ方は同じ・見分けは色と名前"。
      単元別＝金（教科アイコン・金のバー）／確認テスト＝紫（チェックリストのアイコン・紫のバー・左の紫帯）。
@@ -2601,6 +2601,14 @@ html[data-theme=dark] .mz-hard{background:#3a2c08;color:#ffd77a;border-color:#c9
 @keyframes mzGl{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(240,180,41,0)}35%{transform:scale(1.14);box-shadow:0 0 14px 4px rgba(240,180,41,.75)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(240,180,41,0)}}
 @keyframes mzSw{to{left:130%}}
 .khs{display:inline-flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center}.khc{display:inline-block;border:1.5px solid currentColor;border-radius:7px;padding:1px 7px;line-height:1.5}
+/* 英検タブのパートの行 2026-11-13 */
+.ekp .ekp-b{display:none}.ekp.open .ekp-b{display:block}.ekp .ekp-s{padding-left:30px;background:var(--bg2,#f8fafc)}
+.ekp-ds{display:inline-flex;gap:4px;margin-left:auto;flex:none}.ekp-d{font-size:10.5px;font-weight:700;border:1.5px solid var(--line,#cbd5e1);color:var(--sub,#64748b);border-radius:999px;padding:1px 6px;line-height:1.4}.ekp-d.on{background:var(--ok,#15803d);border-color:var(--ok,#15803d);color:#fff}
+.ekp-arw{padding:6px;margin:-6px -2px -6px 2px;color:var(--sub,#64748b);transition:transform .15s}.ekp.open .ekp-arw{transform:rotate(180deg)}
+/* 青は押して始めるボタンだけ（2026-11-13 川上さん 18:19）＝No. と A-1・A-2 の札は灰と墨 */
+/* 説明の札は薄い灰だと押せない（グレーアウト）に見える（18:20）＝墨の字と墨の枠（新しい色は足さない＝生徒UI_01 §12-1） */
+.ebtag.ex{background:transparent;color:var(--ink,#334155);box-shadow:inset 0 0 0 1.5px var(--ink,#334155)}
+#eiken-list .pno,.ekp .pno,.ekp-s .pno{color:var(--sub,#64748b)}.ekp .ebtag.a1{background:var(--ink,#334155);color:var(--bg,#fff);box-shadow:none}.ekp .ebtag.a2{background:transparent;color:var(--ink,#334155);box-shadow:inset 0 0 0 1.5px var(--sub,#64748b)}
 </style>
 <script>/* 2026-10-30 川上さん：①テーマは画面を描く前に決める（後ろのスクリプトで決めると、読み込みの遅い端末で白い画面が先に出る）
    ②解答用紙の QR から来たら、最初の描画から「読み込み中」を大きく出す（ログイン画面だけが出て、止まって見えた） */
@@ -3009,7 +3017,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-13e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-13f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5558,7 +5566,7 @@ function renderUnitZone_(materials,opt){
         var ps=(c.parts||[]);var t2=ps.length,p2=ps.filter(function(l){return l.passed;}).length;
         var cur=null;ps.forEach(function(l){if(l.is_current&&!cur)cur=l;});
         // 単元別(test)はサーバーが is_current を常にfalseで返す。→は「最初の未合格パート」を始める（2026-07-26 修正：常に先頭パートを始めて前進しないバグ）
-        var firstUnpassed=null;ps.forEach(function(l){if(!l.passed&&!firstUnpassed)firstUnpassed=l;});
+        var firstUnpassed=null;ps.forEach(function(l){if(!l.passed&&!firstUnpassed&&!(EK&&/-a2$/.test(String(l.part_id||''))))firstUnpassed=l;});   /* 2026-11-13 英検：→ は A-1 だけ */
         var target=cur?cur.part_id:(firstUnpassed?firstUnpassed.part_id:(ps[0]?ps[0].part_id:''));
         var allPass=(t2>0&&p2===t2);
         var isDone=(String(c.sm_status)==='completed')||allPass; // 完走＝全パート合格 or 割当が完了状態 2026-08-08
@@ -5592,6 +5600,9 @@ function renderUnitZone_(materials,opt){
               detail+='<div class="nqg">'+(_h.group_no?'<span class="nqg-no">'+esc(String(_h.group_no))+'</span>':'')+'<span class="nqg-nm">'+_jaRubySubj_(String(_h.group_name||''),subj)+'</span><span class="nqg-cnt">できた '+_gp+'/'+_gs.length+'</span></div>';
             }
             _gPrev=_g;
+            if(EK&&/-a2$/.test(String(l.part_id||''))&&ps.some(function(x){return String(x.part_id)===String(l.part_id).replace(/-a2$/,'');}))return;   /* 2026-11-13 英検：A-2 は A-1 の行の中に出す */
+            var _a2=EK?ps.filter(function(x){return String(x.part_id)===String(l.part_id)+'-a2';})[0]:null;
+            if(_a2){detail+=_ekPartRow_(l,_a2,c.material_id,_h,subj);if(EK)detail+=_ekMtRows_(_a2.part_id,subj);return;}
             var st=l.passed
               ? '<span class="utag done"><i class="ti ti-circle-check"></i>できた</span>'
               : '<span class="utag"><i class="ti ti-player-play"></i>まだ</span>';
@@ -5619,6 +5630,8 @@ function renderUnitZone_(materials,opt){
         var arw=w.querySelector('.ncf-arw[data-utog="1"]');
         /* 章の行を出していない本（data-solo）は矢印が無い＝開きっぱなし。開閉の記憶も持たない 2026-09-11 */
         if(arw)arw.onclick=function(ev){ev.stopPropagation();w.classList.toggle('open');_unitChapOpenToggle_(uck,w.classList.contains('open'));};
+        w.querySelectorAll('.ekp-h').forEach(function(h){h.onclick=function(ev){ev.stopPropagation();var g=h.parentNode;g.classList.toggle('open');var o=_ekOpenGet_();var k=g.getAttribute('data-ekp');var i=o.indexOf(k);if(g.classList.contains('open')){if(i<0)o.push(k);}else if(i>=0)o.splice(i,1);try{sessionStorage.setItem('kwt_ekp_open',JSON.stringify(o));}catch(e){}};
+          var go=h.querySelector('.ekp-go');if(go)go.onclick=function(ev){ev.stopPropagation();startPractice(go.getAttribute('data-go'));};});
         w.querySelectorAll('.nqp').forEach(function(prow){var upid=prow.getAttribute('data-upid'),emt=prow.getAttribute('data-emt');prow.onclick=function(ev){ev.stopPropagation();if(emt){openEikenMt_(emt);return;}if(upid)startPractice(upid);};});
       });
       host.appendChild(book);
@@ -5827,6 +5840,18 @@ var _EKMT_=[{"id":"mt-eiken3-bunpo-1","mid":"mat-eiken3-bunpo","title":"まと�
 var _ekMtRec={},_ekMtRecAsk=false,_ekMtMats=null,_ekMtOpt=null,_ekMtB=null,_ekMtOn=false;
 function _ekMtLoadRec_(){_ekMtRecAsk=true;call({action:'gg_records'}).then(function(d){if(d&&d.ok&&d.data&&d.data.records){_ekMtRec=d.data.records;if(_ekMtB)_ekMtB.records=_ekMtRec;if(_ekMtMats)try{renderUnitZone_(_ekMtMats,_ekMtOpt);}catch(e){}}else _ekMtRecAsk=false;}).catch(function(){_ekMtRecAsk=false;});}
 function _ekMtSt_(rid){var r=_ekMtRec[rid],S=r&&r.state;if(!S||S.got==null)return {k:'mada'};if(S.pass||r.passed)return {k:'pass',S:S};return {k:'fx',S:S};}
+/* 英検タブのパートの行（2026-11-13 川上さん 18:17「ア」＝ぐるぐるのモックと同じ形）：1パート1行（No.・パート名・A-1 と A-2 の点・→）。▼で開くと A-1・A-2 の行。
+   → は A-1 がまだのときだけ（A-1 を始める）。A-1 が済んだら → は出さない＝A-2 は開いて選んだときだけ始まる（教室で A-1 → A-2 と何も考えずに進まないように） */
+function _ekOpenGet_(){try{var o=JSON.parse(sessionStorage.getItem('kwt_ekp_open')||'[]');return Array.isArray(o)?o:[];}catch(e){return [];}}
+function _ekPartRow_(l,l2,mid,_h,subj){var k=String(l.part_id),op=_ekOpenGet_().indexOf(k)>=0;
+  var nm=_h?_hPart_(_h,String(l.title||'パート')):String(l.title||'パート');nm=_ebStrip_(nm);
+  var dot=function(x,t){return '<span class="ekp-d'+(x.passed?' on':'')+'">'+t+'</span>';};
+  var tg=function(x){return x.passed?'<span class="utag done"><i class="ti ti-circle-check"></i>できた</span>':'<span class="utag"><i class="ti ti-player-play"></i>まだ</span>';};
+  var sub=function(x,t){return '<div class="nqp ekp-s" data-upid="'+esc(String(x.part_id))+'"><div class="nqp-nm"><span class="ebtag '+(t==='A-1'?'a1':'a2')+'">'+t+'</span><span class="nqp-t">'+(t==='A-1'?'教室':'家で（2回目）')+'</span></div>'+tg(x)+(x.passed?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';};
+  return '<div class="ekp'+(op?' open':'')+'" data-ekp="'+esc(k)+'"><div class="nqp ekp-h"><div class="nqp-nm hz">'+(_h?_impSlot_(_h):'')+_pnoHtml_(mid,l.part_order)+'<span class="nqp-t">'+_jaRubySubj_(nm,subj)+'</span></div>'
+    +'<span class="ekp-ds">'+dot(l,'A-1')+dot(l2,'A-2')+'</span>'
+    +(l.passed?'':'<span class="ncf-go ekp-go" data-go="'+esc(k)+'" title="A-1 を始める"><i class="ti ti-arrow-right"></i></span>')
+    +'<i class="ti ti-chevron-down ekp-arw"></i></div><div class="ekp-b">'+sub(l,'A-1')+sub(l2,'A-2')+'</div></div>';}
 function _ekMtRows_(afterPid,subj){var h='';_EKMT_.forEach(function(t){if(t.after!==String(afterPid))return;
   var sts=t.vers.map(function(R){return _ekMtSt_(t.id+'-'+R);}),ok=sts.filter(function(x){return x.k==='pass';}).length;
   h+='<div class="nqg"><span class="nqg-nm">'+_jaRubySubj_(t.title,subj)+'</span><span class="nqg-cnt">'+(ok?'合格':'1回 20問・30分・80点で合格')+'</span></div>';
@@ -10611,7 +10636,7 @@ function _nextPartInMat_(partId){
     var cur=String(partId||'');if(!cur)return null;
     var e=_partIdx[cur];if(!e||!e.mid)return null;
     var a=_matParts_[String(e.mid)];if(!a||a.length<2)return null;
-    for(var i=0;i<a.length-1;i++){ if(a[i].id===cur) return (a[i+1].id===cur?null:a[i+1]); }
+    for(var i=0;i<a.length-1;i++){ if(a[i].id===cur){ var j=i+1; if(!/-a2$/.test(cur)){while(j<a.length&&a[j].id===cur+'-a2')j++;} return (j>=a.length||a[j].id===cur)?null:a[j]; } }   /* 2026-11-13 英検：A-1 のあとは A-2 を飛ばして次のパートへ（A-2 は一覧で選んで始める） */
     return null;
   }catch(e2){return null;}
 }
