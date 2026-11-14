@@ -7112,7 +7112,7 @@ function _ggprCssOnce_(){
     /* 印刷：紙の余白を @page で取り、.sheet は中身の大きさ（186×277mm）だけにする。紙の幅 210mm の箱のまま刷ると、ほかの紙（186mm）より広いので Chrome が全部のページを縮めて刷る（2026-11-03 試験で発覚） */
     /* ページからはみ出す物（KaTeX の \\underbrace の線は 40万 px の幅の図）があると、Chrome が全部のページを縮めて刷る＝ぐるぐる印刷のページははみ出しを切る */
     +'@page ggp{size:A4 portrait;margin:11mm 10mm 9mm 14mm;@bottom-center{content:none}}'
-    +'@media print{#printArea .ggp-doc{width:auto}#printArea .ggp-doc .sheet{page:ggp;width:186mm;height:276.5mm;padding:0;margin:0!important;box-shadow:none!important;break-after:page;page-break-after:always;overflow:visible}#printArea .ggp-doc .sh-ft{bottom:-3mm}#printArea .ggpr-pg{overflow:hidden!important}#printArea .ggp-doc:last-child .sheet:last-child{break-after:auto;page-break-after:auto}}';
+    +'@media print{#printArea .ggp-doc{width:auto}#printArea .ggp-doc .sheet{page:ggp;width:186mm;height:276.5mm;padding:0;margin:0!important;box-shadow:none!important;break-after:page;page-break-after:always;overflow:visible}#printArea .ggp-doc .sh-ft{bottom:-3mm}#printArea .ggp-doc.ekmt-p .sh-ft{bottom:0;transform:translateY(3mm)}#printArea .ggpr-pg{overflow:hidden!important}#printArea .ggp-doc:last-child .sheet:last-child{break-after:auto;page-break-after:auto}}';
   document.head.appendChild(st);
 }
 function _ggprLibs_(){
