@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-15c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-15d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5907,6 +5907,14 @@ function _ekMtLoadLibs_(){
   return _ekMtLibP;
 }
 /* 記録をサーバーに送る（2026-11-15 ぐるぐるの ggRecBridge を英検の側に写した）。提出＝ekmt_submit、それ以外（解説を見た・ノート・類題・完了）＝ekmt_state。同じ行は順番に送る */
+/* 2026-11-15 川上さん 04:22「ア」：ぐるぐる（gg_submit）と英検のまとめテスト（ekmt_submit）の提出も、毎日学習・単元別と同じく送る前に端末にためる（_sqAdd_）。
+   送れたら消す・送れずに残ったものは次に開いたとき _sqFlush_ が resend:true で送り直す。二重に入らない印＝send_id（GAS の ggSubmit・ekMtSubmit が見て duplicate を返す）。
+   途中の記録（gg_state・ekmt_state＝直しの進み・類題）はためない：古い控えがあとから届くと新しい進みを上書きするため。提出が残れば点数と答えは失われない */
+function _recCall_(body){
+  if(!body||!/^(gg_submit|ekmt_submit)$/.test(String(body.action||'')))return call(body);
+  var q=null;try{q=_sqAdd_(body);}catch(e){}
+  return call(body).then(function(d){if(q&&_sqGiveUp_(d))_sqDel_(q);return d;},function(e){throw e;});
+}
 function _ekMtBridge_(call,records){
   var R=records||{},Q={},n=0;
   var B={records:R,last:null,
@@ -5961,7 +5969,7 @@ function openEikenMt_(rid,xo){
   var Rq=_ekMtRecAsk&&Object.keys(_ekMtRec).length?Promise.resolve(null):call({action:'ekmt_records'});
   Promise.all([_ekMtLoadLibs_(),J,Rq]).then(function(r){
     var D=r[1],d=r[2];if(d&&d.ok&&d.data&&d.data.records)_ekMtRec=d.data.records;
-    if(!_ekMtB)_ekMtB=_ekMtBridge_(call,_ekMtRec);else _ekMtB.records=_ekMtRec;
+    if(!_ekMtB)_ekMtB=_ekMtBridge_(_recCall_,_ekMtRec);else _ekMtB.records=_ekMtRec;   /* 2026-11-15 提出は端末にためてから送る（_recCall_） */
     var T=JSON.parse(JSON.stringify(D.T));T.items=D.items;T.part_id=rid;T.tag=t.title+' '+R;T.range=t.title;T.vers=t.vers.slice();T.lb='英検';
     host.innerHTML='';var root=document.createElement('div');root.className='gg-root';root.style.position='relative';host.appendChild(root);
     var onSt=function(S,first,res){_ekMtB.onRecord({rowId:rid,state:S,submit:!!first,res:res||null});_ekMtRec[rid]=Object.assign(_ekMtRec[rid]||{},{state:S,passed:!!(S&&S.pass)});};
@@ -6018,7 +6026,7 @@ function openGg_(mid,title,xo){   /* xo.startPid＝開く行（紙の QR から�
     _ggRec=(dr&&dr.ok&&dr.data&&dr.data.records)||{};
     /* 記録を受け付けていない（kwt_gg_record が '1' でない）ときの gg_records は英検のまとめテストの記録を返す（移行の間）。mt- の行は捨てる */
     Object.keys(_ggRec).forEach(function(k){if(!/^gg_/.test(k))delete _ggRec[k];});
-    _ggB=window.ggRecBridge(call,_ggRec);
+    _ggB=window.ggRecBridge(_recCall_,_ggRec);   /* 2026-11-15 提出は端末にためてから送る（_recCall_） */
     var GG=ggBuildData({materials:mats,parts:parts,words:[]},{lazy:true});
     host.innerHTML='';var root=document.createElement('div');root.className='gg-root';root.style.position='relative';host.appendChild(root);
     var me=String(mid||''),g0='';mats.forEach(function(m){if(String(m.id)===me)g0=String(m.grade||'');});
