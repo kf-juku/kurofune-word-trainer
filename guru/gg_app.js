@@ -1231,7 +1231,8 @@ function __tPerm(p){TFL.forEach(x=>{if(!x.st0)x.st0=x.st;});
 function __tSideUpd(){try{const w=document.querySelector('.wst2 .wsm');if(!w)return;const o=w.querySelector('.tst'),h=tSideTxt();if(o){if(h)o.outerHTML=h;else o.remove();}else if(h)w.insertAdjacentHTML('beforeend',h);}catch(e){}}
 function __tSend(){const pid=TEST.part_id,S=Object.assign({},TSTATE,{done:tDone(TSTATE)});
  if(__tNew){__tNew=false;const ok=TFL.filter((x,j)=>TSTATE.ans[j]===x.st.a).length;const miss=[];TFL.forEach((x,j)=>{if(TSTATE.ans[j]!==x.st.a&&x.it.wid&&miss.indexOf(x.it.wid)<0)miss.push(x.it.wid);});
-  try{opt.onTestSubmit(pid,S,{score:TSTATE.got,correct:ok,total:TFL.length,miss_word_ids:miss,over_ms:TSTATE.over||0,paper:TSTATE.paper||''});}catch(e){console.log(e);}return;}
+  const missNo=[];TFL.forEach((x,j)=>{if(TSTATE.ans[j]!==x.st.a)missNo.push(x.it.no||(j+1));});   /* 2026-11-14 英検のまとめテスト：まちがえた番号とかかった時間（TEL）も送る */
+  try{opt.onTestSubmit(pid,S,{score:TSTATE.got,correct:ok,total:TFL.length,miss_word_ids:miss,over_ms:TSTATE.over||0,paper:TSTATE.paper||'',el_ms:TEL,miss_no:missNo});}catch(e){console.log(e);}return;}
  if(opt.onTestState){try{opt.onTestState(pid,S);}catch(e){console.log(e);}}}
 /* 単元まとめテストの「このあと」（合格＝80点以上を取って直しを終える・川上さん 2026-10-18 02:11 A）。文は章まとめテスト（E-38）と同じ形 */
 function __tPassU(got){const d=TSTATE?tDone(TSTATE):false;const nm=TEST.name;

@@ -324,7 +324,7 @@ window.ggRecBridge=function(call,records){
  const B={records:R,last:null,
   tstateOf:id=>R[id]?R[id].state:undefined,
   onRecord:ev=>{if(!ev||!ev.rowId)return;R[ev.rowId]=Object.assign(R[ev.rowId]||{},{state:ev.state});
-   const body=ev.submit?{action:'gg_submit',part_id:ev.rowId,state:JSON.stringify(ev.state),score:ev.res&&ev.res.score,correct:ev.res&&ev.res.correct,total:ev.res&&ev.res.total,miss_word_ids:(ev.res&&ev.res.miss_word_ids)||[],send_id:'gg'+Date.now().toString(36)+(n++)}
+   const body=ev.submit?{action:'gg_submit',part_id:ev.rowId,state:JSON.stringify(ev.state),score:ev.res&&ev.res.score,correct:ev.res&&ev.res.correct,total:ev.res&&ev.res.total,miss_word_ids:(ev.res&&ev.res.miss_word_ids)||[],el_ms:ev.res&&ev.res.el_ms,miss_no:(ev.res&&ev.res.miss_no)||[],send_id:'gg'+Date.now().toString(36)+(n++)}
     :{action:'gg_state',part_id:ev.rowId,state:JSON.stringify(ev.state)};
    const go=()=>Promise.resolve(call(body)).then(d=>{B.last=d;if(d&&d.ok&&d.data&&d.data.state)R[ev.rowId].state=d.data.state;return d;});
    Q[ev.rowId]=(Q[ev.rowId]||Promise.resolve()).then(go,go);return Q[ev.rowId];},
