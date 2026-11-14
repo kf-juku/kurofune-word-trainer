@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-14e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-14f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4674,7 +4674,7 @@ function _waUrl_(s,en){var M=_tcWAM||{},k=String(en||'').toLowerCase().replace(/
   if(!e){k=k.replace(/^[\s"'“‘(（]+|[\s"'”’)）.,!?;:]+$/g,'');e=k?M[k]:null;}
   if(!e)return '';var g=_tcGr_(s);return String(e[g]||e['5']||e['4']||e['3']||e.p||'');}
 function _tcSay_(s,en){var e=(_tcWAM||{})[String(en||'').toLowerCase().trim()]||{},g=_tcGr_(s);speak({english:String(en||''),audio:e[g]||e['5']||e['4']||e['3']||e.p||''});}
-var _tcAuEl=null;function _tcPlay_(list){try{if(_tcAuEl)_tcAuEl.pause();}catch(e){}var i=0;var nx=function(){if(i>=list.length)return;var a=new Audio(list[i++]);_tcAuEl=a;a.onended=nx;var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});};nx();}
+var _tcAuEl=null;function _tcPlay_(list){try{if(_tcAuEl)_tcAuEl.pause();}catch(e){}var i=0;var a=new Audio();_tcAuEl=a;var nx=function(){if(i>=list.length||_tcAuEl!==a)return;a.src=list[i++];a.onended=nx;var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});};nx();}   /* 2026-11-14 iPad：押したときに作った1つの部品で続きの音も流す（続きごとに new Audio すると iPad は2本目から止める） */
 function _tcChs_(it){return '<div class="tc-chs">'+(it.ch||[]).map(function(c){return '<span'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+esc(c)+'</span>';}).join('')+'</div>';}
 function _tcChl_(it){return '<ol class="tc-chl">'+(it.ch||[]).map(function(c){return '<li'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+((it.kh&&_khHtml_(it.kh,c))||esc(c))+'</li>';}).join('')+'</ol>';}
 /* 2026-11-08 第1部型の返事の並び（出したときの順）に、返事ごとの▶。mp3 が無い返事は _sentPlay_ が端末の読み上げにする（生徒の画面と同じ） */
