@@ -1490,7 +1490,7 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
   table.wp-tb{border-collapse:collapse;margin:1.5mm 0;width:auto}.wp-tb th{background:none!important;color:#1a1a1a!important}.wp-wd{font-family:Arial,sans-serif;font-size:12pt}.wp-tb td,.wp-tb th{border:1px solid #555;padding:0.6mm 2.5mm;font-size:10pt}.wp-tb td.hole{min-width:32mm;padding:0 2mm}.wp-tb td.hole .pp-l4.blk{height:8mm;margin:0.5mm 0}
   .wp-ch span{display:block;margin-left:8mm;font-family:Arial,'Noto Sans JP',sans-serif}.wp-ab{text-align:right;margin-right:4mm}
   .wp-ps{border:1px solid #555;padding:3mm 4mm;margin-bottom:4mm;font-family:Arial,'Noto Sans JP',sans-serif;font-size:12pt;line-height:2.3}.wp-ps p{margin:0}.wp-ps p.u{text-decoration:underline}
-  .wp-psg{font-size:12pt;line-height:2.3;padding:3mm 4mm;margin-bottom:4mm;font-family:Arial,'Noto Sans JP',sans-serif}.wp-psg .pq-psgt{font-size:12pt}.wp-psg .pq-psgh{font-size:11pt}
+  .wp-psg{font-size:12pt;line-height:2.3;padding:3mm 4mm;margin-bottom:4mm;font-family:Arial,'Noto Sans JP',sans-serif}.wp-psg .pq-psgt{font-size:12pt}.wp-psg .pq-psgh{font-size:11pt}.wp-psg.wp-tight{font-size:10.5pt;line-height:1.45}.wp-psg.wp-tight .pq-psgt{font-size:10.5pt}.wp-psg.wp-tight .pq-psgh{font-size:10pt}.wp-psg.wp-tight.wp-tight2{font-size:10pt;line-height:1.35}.wp-psg.wp-tight.wp-tight2 .pq-psgt{font-size:10pt}
   .wp-ps .pt,.wp-wr .pt{font-weight:700;font-family:'Noto Sans JP',sans-serif;font-size:10pt;line-height:1.6}
   .wp-wr{border:1px dashed #555;padding:3mm 4mm;margin-bottom:4mm;font-size:10.5pt}.wp-wr .fx{font-family:Arial,sans-serif;font-size:12pt;margin:1.5mm 0}.wp-wr .lab{font-size:9pt;color:#444;margin:1.5mm 0 0}
   .wp-wr .cnt{text-align:right;font-size:10pt}.wp-wr .chk b{display:block;font-size:11pt}.wp-wr .chk span{display:block;font-size:10pt}
@@ -12341,8 +12341,12 @@ function _wpLayout_(host,M,parts,ids){
     nodes.forEach(function(nd,i){var el=_ppMk_(nd.h);
       /* 本文・下書きは次の1問と同じ面に置く */
       if(nd.g&&!_ppCur.fresh&&nodes[i+1]){var e2=_ppMk_(nodes[i+1].h);_ppCur.body.appendChild(el);_ppCur.body.appendChild(e2);var ok=_ppFits_();_ppCur.body.removeChild(el);_ppCur.body.removeChild(e2);if(!ok)page(false);}
-      _ppCur.body.appendChild(el);_ppCur.fresh=false;
-      if(!_ppFits_()){_ppCur.body.removeChild(el);page(false);_ppCur.body.appendChild(el);_ppCur.fresh=false;}
+      var wasFresh=_ppCur.fresh;_ppCur.body.appendChild(el);_ppCur.fresh=false;
+      if(!_ppFits_()){
+        if(!wasFresh){_ppCur.body.removeChild(el);page(false);_ppCur.body.appendChild(el);_ppCur.fresh=false;}
+        /* 2026-11-15 川上さん「Aア」：広い行間の本文が1ページに入らないときだけ、練習プリントに近い行間に詰める（入らなければもう一段）。質問と答えの欄は次のページへ。空の紙を作らない */
+        if(!_ppFits_()&&el.classList&&el.classList.contains('wp-psg')){el.classList.add('wp-tight');if(!_ppFits_())el.classList.add('wp-tight2');}
+      }
     });
   });
   return made;
