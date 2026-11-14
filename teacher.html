@@ -1759,7 +1759,7 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
         <button class="filter-chip active" data-kd="all" onclick="setKindFilter('all',this)">すべて</button>
         <button class="filter-chip" data-kd="main" onclick="setKindFilter('main',this)">毎日学習</button>
         <button class="filter-chip" data-kd="test" onclick="setKindFilter('test',this)">単元別</button>
-        <button class="filter-chip" data-kd="worksheet" onclick="setKindFilter('worksheet',this)">ワークシート</button>
+        <!-- 2026-11-15 ワークシートは先生画面に出さない（_wsHide_）。絞り込みのボタンも外した --><button class="filter-chip" data-kd="worksheet" onclick="setKindFilter('worksheet',this)" style="display:none">ワークシート</button>
       </div>
       <div class="filter-grp"><!-- 周回 2026-10-05 川上さん：2周目以降に入っている子だけ・その教材をハイライト -->
         <span class="filter-label">周回・重複</span>
@@ -3077,7 +3077,7 @@ function call(b,_try){
   return fetch(GAS_URL,{method:'POST',body:JSON.stringify(b)}).then(function(r){
     return r.text().then(function(t){
       var d=null;try{d=JSON.parse(t);}catch(e){d=null;}
-      if(d&&typeof d==='object'&&!_callIsGetEcho_(d)){try{_pnoScan_(d);}catch(ePn){}return d;}       /* ふつうの返事（ok:false・conflict も含む）／No. の表 2026-11-12 */
+      if(d&&typeof d==='object'&&!_callIsGetEcho_(d)){try{_pnoScan_(d);}catch(ePn){}try{_wsHide_(b,d);}catch(eWh){}return d;}       /* ふつうの返事（ok:false・conflict も含む）／No. の表 2026-11-12 */
       if(!canRetry)return {ok:false,error:CALL_UNSURE_MSG_,busy:true};
       if(_try<3)return again();
       return {ok:false,error:CALL_BUSY_MSG_,busy:true};
@@ -4494,6 +4494,13 @@ function _pnoReg_(mid,parts){mid=String(mid||'');if(!_NO_MATS_[mid]||!parts||!pa
   var m={},byId={},n=_PNO_BASE_[mid]||0;ps.forEach(function(x){var b=/-a2$/.test(x.id)?x.id.slice(0,-3):'';m[x.o]=(b&&byId[b]!=null)?byId[b]:(++n);byId[x.id]=m[x.o];});_PNO_MAP_[mid]=m;}
 function _pnoOf_(mid,ord){ if(!_NO_MATS_[String(mid||'')])return ''; var n=parseInt(ord,10),mp=_PNO_MAP_[String(mid||'')]; if(mp&&mp[Number(ord)]!=null)n=mp[Number(ord)]; return (n>0)?('No.'+n):''; }
 /* GAS の返事に入っているパートの一覧で No. の表を作る（material_preview・materials_list・assignment_list）。call の返りで1回だけ通す */
+/* 2026-11-15 川上さん 03:12「ワークシートというデータ自体は残しておいていい。裏のデータにしたくて、生徒画面にも先生画面にも見えなくてもいい」：
+   教材一覧（materials_list）と割り当て一覧（assignment_list）の返事から、ワークシート（content_type='worksheet'）の教材を外す。シートの行は消さない。
+   ワークシートの中身をたどる道＝ジョブス用\仕様書\ワークシート_しまった記録.md */
+function _wsHide_(b,d){if(!d||!d.ok||!d.data||!b)return;var a=String(b.action||''),D=d.data,ws={};
+  if(a==='materials_list'&&Array.isArray(D.materials)){D.materials=D.materials.filter(function(m){if(String(m.content_type||'')==='worksheet'){ws[String(m.id||m.material_id)]=1;return false;}return true;});
+    if(Array.isArray(D.parts))D.parts=D.parts.filter(function(p){return !ws[String(p.material_id)];});}
+  if(a==='assignment_list'&&Array.isArray(D.assignments))D.assignments=D.assignments.filter(function(x){return String(x.content_type||x.type||'')!=='worksheet';});}
 function _pnoScan_(d){if(!d||!d.ok||!d.data)return;var D=d.data;
   if(Array.isArray(D.parts)){if(D.material_id)_pnoReg_(D.material_id,D.parts);else{var g={};D.parts.forEach(function(p){var k=String(p.material_id||'');if(k)(g[k]=g[k]||[]).push(p);});Object.keys(g).forEach(function(k){_pnoReg_(k,g[k]);});}}
   if(Array.isArray(D.assignments))D.assignments.forEach(function(a){if(a&&a.parts)_pnoReg_(a.material_id,a.parts);});}
@@ -7034,7 +7041,7 @@ function _wsLoadLibs_(){
    ノートの書き方の絵は guru/img/gg/*.svg（画面に出たときに読む）。部品を直したら GG_LIB_V を上げる
    2026-11-02 段3 速くした：開いたときは［中身］の最初の material_preview の返事（ぐるぐるは words を読まない＝parts の行と表紙の説明だけ）で一覧を出す（ggBuildData の lazy）。
    回・［確かめる］・章まとめを開いたときに、そのパートの行だけ gg_preview_part で読む（gg_shell.js の opt.loadParts → ggFillWords）。読んだパートはこの窓を閉じるまで覚えておく */
-var GG_LIB_V='20261114g',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの rect の class を bar→hbar＝gg_fig.js）。2026-11-04 ぐるぐる：20261104c（よくあるまちがいの枠と選んだ答えでの出し分け・矢印の2組目・紙の補足ボックスと矢印＝gg_app.js・gg_load.js・gg_shell.js）。20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
+var GG_LIB_V='20261115a',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの rect の class を bar→hbar＝gg_fig.js）。2026-11-04 ぐるぐる：20261104c（よくあるまちがいの枠と選んだ答えでの出し分け・矢印の2組目・紙の補足ボックスと矢印＝gg_app.js・gg_load.js・gg_shell.js）。20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};

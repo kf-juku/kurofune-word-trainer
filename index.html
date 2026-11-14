@@ -2707,9 +2707,9 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
           <div class="shead"><div class="sic"><i class="ti ti-certificate"></i></div><div class="sb"><div class="st"><ruby>英検<rt class="uf">えいけん</rt></ruby></div></div></div>
           <div id="eiken-list"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
         </div>
-        <!-- ワークシート（単元ワークシート 2026-10-17）。説明の1行「分かるまで、1問ずつ。」はモックの仮の文 -->
+        <!-- ぐるぐる（数学）2026-11-15 川上さん：ワークシートのタブを差しかえた（中の id は tp-ws・ws-list のまま。ワークシートのデータはシートに残してあり、生徒の画面には出さない） -->
         <div class="tabpanel" id="tp-ws">
-          <div class="shead"><div class="sic"><i class="ti ti-pencil"></i></div><div class="sb"><div class="st">ワークシート</div><div class="ss"><ruby>分<rt class="uf">わ</rt></ruby>かるまで、1<ruby>問<rt class="uf">もん</rt></ruby>ずつ。</div></div></div>
+          <div class="shead"><div class="sic"><i class="ti ti-refresh"></i></div><div class="sb"><div class="st">ぐるぐる</div><div class="ss">7<ruby>問<rt class="uf">もん</rt></ruby>を、<ruby>解<rt class="uf">と</rt></ruby>けるまでくり<ruby>返<rt class="uf">かえ</rt></ruby>す。</div></div></div>
           <div id="ws-list"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
         </div>
       </div>
@@ -2779,7 +2779,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
       <button class="ntab on" id="ntab5-daily" type="button"><span class="ic"><i class="ti ti-anchor"></i><span class="bdg" id="bdg-daily"></span></span><ruby>毎日<rt class="uf">まいにち</rt></ruby></button>
       <button class="ntab" id="ntab5-unit" type="button"><span class="ic"><i class="ti ti-flag"></i><span class="bdg" id="bdg-unit"></span></span><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></button>
       <button class="ntab" id="ntab5-eiken" type="button"><span class="ic"><i class="ti ti-certificate"></i><span class="bdg" id="bdg-eiken"></span></span><ruby>英検<rt class="uf">えいけん</rt></ruby></button>
-      <button class="ntab" id="ntab5-ws" type="button"><span class="ic"><i class="ti ti-pencil"></i><span class="bdg" id="bdg-ws"></span></span><span class="ntab-nl">ワーク<br>シート</span></button>
+      <button class="ntab" id="ntab5-ws" type="button"><span class="ic"><i class="ti ti-refresh"></i><span class="bdg" id="bdg-ws"></span></span><span class="ntab-nl">ぐるぐる</span></button>
       <button class="ntab" id="ntab5-review" type="button"><span class="ic"><i class="ti ti-notebook"></i><span class="bdg" id="bdg-review"></span></span><span class="ntab-nl"><span style="white-space:nowrap"><ruby>間違<rt class="uf">まちが</rt></ruby>い</span><br>ノート</span></button>
       <button class="ntab" id="ntab5-record" type="button"><span class="ic"><i class="ti ti-chart-line"></i><span class="bdg" id="bdg-team"></span></span><ruby>記録<rt class="uf">きろく</rt></ruby></button>
       <button class="ntab" id="btn-logout" type="button"><span class="ic"><i class="ti ti-logout"></i></span>ログアウト</button>
@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-15a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-15b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3579,7 +3579,7 @@ function shWsChoose_(w,ok){
   if(!ok){ shAccAsk_(w.code,top,function(){shWsChoose_(w,true);}); return; }
   /* 2026-10-20 川上さん 02:53〜03:10：選ぶ画面はテストの入口（ws_app の __drawEntry）に移した。どこから開いても同じ画面＝前の結果と［続きから］・受け方3つ（クロトレで解く・自動採点・○×入力）。
      この画面には見出しと［開く］だけを残す（入口を閉じたときに戻る所） */
-  var go=function(){var eh={code:String(w.code||''),who:nm?(nm+(familyName?'（'+familyName+'）':'')):''};if(w.eiken_mt){openEikenMt_(w.part_id,{entryHead:eh});return;}openWs_(w.material_id,[w.part_id],w.part_title,{entryHead:eh});};   /* 英検のまとめテスト 2026-11-13 */
+  var go=function(){var eh={code:String(w.code||''),who:nm?(nm+(familyName?'（'+familyName+'）':'')):''};if(w.eiken_mt){openEikenMt_(w.part_id,{entryHead:eh});return;}if(w.gg_ct){openGg_(w.material_id,String(w.part_title||''),{startPid:w.part_id,entryHead:eh});return;}openWs_(w.material_id,[w.part_id],w.part_title,{entryHead:eh});};   /* 英検のまとめテスト 2026-11-13 */
   host.innerHTML=top+'<div class="shw-who"><i class="ti ti-user"></i> <b>'+(nm?esc(nm)+seiSuffix_():'')+'</b>'+(nm?'さんとして':'')+rb('記録','きろく')+'します。</div>'
     +'<button type="button" class="btn" id="shw-open">'+rb('答','こた')+'え'+rb('合','あ')+'わせの'+rb('画面','がめん')+'を'+rb('開','ひら')+'く</button>';
   host.style.display='block';
@@ -5318,7 +5318,7 @@ function _gdIntro_(){
     {ic:'ti-anchor',c:'var(--gold)',t:'<ruby>毎日<rt class="uf">まいにち</rt></ruby>',s:'<ruby>今日<rt class="uf">きょう</rt></ruby>やる<ruby>分<rt class="uf">ぶん</rt></ruby>。<ruby>全部<rt class="uf">ぜんぶ</rt></ruby><ruby>終<rt class="uf">お</rt></ruby>えるとデイリークリア'},
     {ic:'ti-flag',c:'var(--gold)',t:'<ruby>単元別<rt class="uf">たんげんべつ</rt></ruby>',s:'テスト<ruby>範囲<rt class="uf">はんい</rt></ruby>を<ruby>練習<rt class="uf">れんしゅう</rt></ruby>して、<ruby>確認<rt class="uf">かくにん</rt></ruby>テストで<ruby>仕上<rt class="uf">しあ</rt></ruby>げる'},
     {ic:'ti-certificate',c:'var(--accent)',t:'<ruby>英検<rt class="uf">えいけん</rt></ruby>',s:'<ruby>架<rt class="uf">か</rt></ruby>け<ruby>橋<rt class="uf">はし</rt></ruby>と<ruby>英検<rt class="uf">えいけん</rt></ruby>の<ruby>単元<rt class="uf">たんげん</rt></ruby>。A-1 → A-2 の<ruby>順<rt class="uf">じゅん</rt></ruby>に<ruby>進<rt class="uf">すす</rt></ruby>める'},   /* 2026-11-12 */
-    {ic:'ti-pencil',c:'var(--sub)',t:'ワークシート',s:'<ruby>分<rt class="uf">わ</rt></ruby>かるまで、1<ruby>問<rt class="uf">もん</rt></ruby>ずつ'},
+    {ic:'ti-refresh',c:'var(--sub)',t:'ぐるぐる',s:'<ruby>数学<rt class="uf">すうがく</rt></ruby>の7<ruby>問<rt class="uf">もん</rt></ruby>を、<ruby>解<rt class="uf">と</rt></ruby>けるまでくり<ruby>返<rt class="uf">かえ</rt></ruby>す'},
     {ic:'ti-notebook',c:'var(--accent)',t:'<ruby>間違<rt class="uf">まちが</rt></ruby>いノート',s:'<ruby>間違<rt class="uf">まちが</rt></ruby>えた<ruby>語<rt class="uf">ご</rt></ruby>だけが<ruby>集<rt class="uf">あつ</rt></ruby>まる。ここを<ruby>減<rt class="uf">へ</rt></ruby>らすと<ruby>力<rt class="uf">ちから</rt></ruby>になる'},
     {ic:'ti-chart-line',c:'var(--sub)',t:'<ruby>記録<rt class="uf">きろく</rt></ruby>',s:'<ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップ・バッジ・<ruby>仲間<rt class="uf">なかま</rt></ruby>の<ruby>様子<rt class="uf">ようす</rt></ruby>が<ruby>見<rt class="uf">み</rt></ruby>られる'}
   ];
@@ -5761,6 +5761,7 @@ function _wsRange_(t){return String(t||'').replace(/\s*[A-ZＡ-Ｚ]\s*$/,'');}
 function _wsVer_(t){var m=String(t||'').match(/([A-ZＡ-Ｚ])\s*$/);return m?m[1]:'';}
 function renderWsZone_(materials){
   var host=$('ws-list');if(!host)return;
+  _wsMats=[];_wsDone={};renderGgZone_(materials);return;   /* 2026-11-15 川上さん：ワークシートのタブをぐるぐるに差しかえた。下はワークシートの一覧の元の描き方（使っていない・たどれるように残す） */
   var ms=(materials||[]).filter(function(c){return c.content_type==='worksheet';}).sort(function(a,b){return (a.display_order||0)-(b.display_order||0);});
   _wsMats=ms;_wsDone={};
   ms.forEach(function(c){(c.parts||[]).forEach(function(l){if(l.passed)_wsDone[String(l.part_id)]=1;});});
@@ -5857,7 +5858,7 @@ function renderWsZone_(materials){
       w.querySelectorAll('.nqp').forEach(function(pr2){pr2.onclick=function(ev){ev.stopPropagation();go(pr2);};});});
     host.appendChild(book);
   });
-  if(_homeTab==='ws'){try{setTimeout(wsPrefetchVisible_,0);}catch(eWp){}} /* ワークシートのタブを見ているときに一覧が届いた 2026-10-20 */
+  /* 2026-11-15 ぐるぐるのタブにしたので、ワークシートの先読みはしない（前＝ワークシートのタブを見ているときに一覧が届いた 2026-10-20） */
 }
 /* 空のタブを薄い灰色にする（2026-10-16 22:59 川上さん）。押せるまま。毎日・単元別・ワークシート＝割り当てられた教材が無い／間違いノート＝間違えた問題が無い */
 function _navEmptySet_(tab,on){var e=$('ntab5-'+tab);if(e)e.classList.toggle('ntab-empty',!!on);}
@@ -5866,7 +5867,7 @@ function _navEmptyFromMats_(ms){
   _navEmptySet_('daily',!ms.some(function(c){return !_isUnitCt_(c.content_type)&&c.content_type!=='worksheet'&&c.content_type!=='guruguru';}));   /* 2026-11-03 ぐるぐるは毎日学習ではない */
   _navEmptySet_('unit',!ms.some(function(c){return c.content_type==='test';}));
   _navEmptySet_('eiken',!ms.some(function(c){return _isEikenCt_(c.content_type);}));   /* 2026-11-12 */
-  _navEmptySet_('ws',!ms.some(function(c){return c.content_type==='worksheet';}));
+  _navEmptySet_('ws',!ms.some(_ggMathMat_));   /* 2026-11-15 ワークシート → ぐるぐる（数学） */
 }
 function _wsLoadLibs_(){
   if(_wsLibP)return _wsLibP;
@@ -5885,7 +5886,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261114g',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261115a',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -5970,6 +5971,58 @@ function openEikenMt_(rid,xo){
       onTestSubmit:function(pid,S,res){onSt(S,true,res);},onTestState:function(pid,S){onSt(S,false);}};
     _ekMtApi=ekMtMount(root,{UNIT_TITLE:t.title,PATS:[],TEST:T,POOL:D.pool||{},BACKN:D.backn||{}},o);
     try{var _cs=document.createElement('style');_cs.textContent='.app>.side{display:none!important}.app{grid-template-columns:min(860px,100%)!important;justify-content:center}.wsbk{display:none!important}.phone{margin-left:auto!important;margin-right:auto!important;width:100%;box-sizing:border-box}.pcc{flex:1 1 0;min-width:0;flex-wrap:nowrap;gap:4px;padding:4px}.pcx{flex:1 1 0;min-width:0;max-width:96px;flex-direction:column;justify-content:center;gap:0;padding:4px 2px;font-size:12px;line-height:1.25}.pcn{min-width:38px;padding:6px 6px}';root.shadowRoot.appendChild(_cs);}catch(eCs){}   /* パートの一覧（左の列）は出さない＝問題を真ん中に */
+  }).catch(function(e){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';try{console.log(e);}catch(e2){}});
+}
+/* ===== ぐるぐるのタブ（2026-11-15 川上さん 03:12「ワークシートと差し替え」・03:15「Aイ Bア」）=====
+   一覧＝割り当て（student_materials の type='guruguru'）のある数学のぐるぐるの教材。英語のぐるぐるは出さない（Bア）。割り当ては先生が出す（Aイ＝自動では出さない）
+   開く＝全画面（#ws-ov）に ggShellMount（gg_shell.js）。左の一覧で単元・パート・回・入試パターン・章まとめテストを選ぶ。問題は開いたときに gg_unit_part で読む
+   記録＝ggRecBridge（gg_shell.js）→ GAS の gg_submit・gg_state・gg_records（スクリプト プロパティ kwt_gg_record が '1' のときだけ受け付ける）。端末の記録の名前の頭＝kwtgg_<生徒id>_ */
+var _ggOn=false,_ggB=null,_ggRec=null;
+function _ggMathMat_(c){return c&&c.content_type==='guruguru'&&_subjGuess_(c)!=='english'&&!/英語|英作文/.test(String(c.material_title||c.title||''));}
+function renderGgZone_(materials){
+  var host=$('ws-list');if(!host)return;
+  var ms=(materials||[]).filter(_ggMathMat_).sort(function(a,b){return (a.display_order||0)-(b.display_order||0);});
+  if(!ms.length){host.innerHTML='<div class="empty-note"><i class="ti ti-refresh"></i><div>'+_nvRuby_('今(いま)はぐるぐるがありません。',true)+'<br>'+_nvRuby_('先生(せんせい)がぐるぐるを出(だ)すと、ここに並(なら)びます。',true)+'</div></div>';return;}
+  host.innerHTML='';
+  ms.forEach(function(c){
+    var ps=(c.parts||[]),n=ps.length,d=ps.filter(function(l){return l.passed;}).length,pct=n?Math.round(d/n*100):0;
+    var book=document.createElement('div');book.className='nbook unitbook wsbook';
+    book.innerHTML='<div class="nbook-head" role="button" tabindex="0"><div class="nbk-ic"><i class="ti '+subjIcon_('math')+'"></i></div>'
+      +'<div class="nbk-body"><div class="nbk-nm">'+esc(String(c.material_title||c.title||'ぐるぐる'))+'</div>'
+      +'<div class="nbk-meta"><span class="nbk-subj">'+esc(subjLabel('math'))+'</span> <span class="ws-tag"><i class="ti ti-refresh"></i>ぐるぐる</span></div>'
+      +'</div><span class="ncf-go"><i class="ti ti-arrow-right"></i></span></div>';
+    book.querySelector('.nbook-head').onclick=function(){openGg_(String(c.material_id),String(c.material_title||c.title||''));};
+    host.appendChild(book);
+  });
+}
+function openGg_(mid,title,xo){   /* xo.startPid＝開く行（紙の QR から来た章まとめテスト gg_ct…_A1 など）2026-11-15 */
+  var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
+  $('ws-ttl').textContent=title||'ぐるぐる';
+  host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
+  ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;_wsDirect=true;_ggOn=true;try{comboBreak_();}catch(e){}
+  if(_ggApi){try{_ggApi.destroy();}catch(e0){}_ggApi=null;}
+  Promise.all([_ggLoadLibs_(),call({action:'gg_unit'}),call({action:'gg_records'})]).then(function(r){
+    if(!_ggOn)return;
+    var d=r[1],dr=r[2];
+    if(!d||!d.ok||!d.data){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+(d&&d.error?esc(d.error):_NET_NG_MSG_)+'</div></div>';return;}
+    var mats=(d.data.materials||[]).filter(function(m){return String(m.subject||'')!=='english'&&!/英語|英作文/.test(String(m.title||''));}),want={};
+    mats.forEach(function(m){want[String(m.id)]=1;});
+    var parts=(d.data.parts||[]).filter(function(p){return want[String(p.material_id)];});
+    _ggRec=(dr&&dr.ok&&dr.data&&dr.data.records)||{};
+    /* 記録を受け付けていない（kwt_gg_record が '1' でない）ときの gg_records は英検のまとめテストの記録を返す（移行の間）。mt- の行は捨てる */
+    Object.keys(_ggRec).forEach(function(k){if(!/^gg_/.test(k))delete _ggRec[k];});
+    _ggB=window.ggRecBridge(call,_ggRec);
+    var GG=ggBuildData({materials:mats,parts:parts,words:[]},{lazy:true});
+    host.innerHTML='';var root=document.createElement('div');root.className='gg-root';root.style.position='relative';host.appendChild(root);
+    var me=String(mid||''),g0='';mats.forEach(function(m){if(String(m.id)===me)g0=String(m.grade||'');});
+    if(!g0)g0=(GG.units[0]&&GG.units[0].grade)||'';
+    var sid='';try{sid=localStorage.getItem('kwt_sid')||'';}catch(e){}
+    _ggApi=ggShellMount(root,GG,{katexCss:'ws/katex/katex.min.css',dark:_wsDark_(),grade:g0,imgBase:'guru/',libV:GG_LIB_V,subject:'ma',keyPrefix:'kwtgg_'+(sid||'anon')+'_',
+      tstateOf:_ggB.tstateOf,onRecord:function(ev){_wsSent++;return _ggB.onRecord(ev);},
+      resFx:function(lv){_wsResFx_(lv);},ctFx:function(lv){_wsResFx_(lv);},onClose:function(){closeWs_();},
+      loadParts:function(ids,o){return call({action:'gg_unit_part',part_ids:ids,backs:(o&&o.backs===false)?'':'1'}).then(function(x){if(!x||!x.ok)throw new Error((x&&x.error)||'問題を読めませんでした');return (x.data&&x.data.words)||[];});}});
+    var sp=xo&&xo.startPid,m=sp&&GG.pid&&GG.pid[String(sp)];
+    if(m){if(m.k==='CT')_ggApi.openCt(m.pid,m.r);else if(m.k==='RD')_ggApi.open(m.pid,m.r);else _ggApi.open(m.pid);}
   }).catch(function(e){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';try{console.log(e);}catch(e2){}});
 }
 function openGgPv_(mid,startPid){
@@ -6100,6 +6153,8 @@ function _wsSend_(pid,r){
 }
 function closeWs_(){
   var ov=$('ws-ov'),host=$('ws-host');if(!ov)return;
+  if(_ggOn){_ggOn=false;if(_ggApi){try{_ggApi.destroy&&_ggApi.destroy();}catch(e){}_ggApi=null;}ov.classList.remove('on');document.body.classList.remove('ws-lock');setTimeout(_fcRelease_,0);if(host)host.innerHTML='';
+    var fl=_ggB?_ggB.flush():Promise.resolve();fl.then(function(){if(_wsSent){_wsSent=0;try{loadHomeData_(false);}catch(e){}}});return;}   /* 2026-11-15 ぐるぐるのタブ */
   if(_ekMtOn){_ekMtOn=false;if(_ekMtApi){try{_ekMtApi.destroy&&_ekMtApi.destroy();}catch(e){}_ekMtApi=null;}ov.classList.remove('on');document.body.classList.remove('ws-lock');setTimeout(_fcRelease_,0);if(host)host.innerHTML='';
     var fl=_ekMtB?_ekMtB.flush():Promise.resolve();fl.then(function(){_ekMtRecAsk=false;_ekMtLoadRec_();});try{if(_ekMtMats)renderUnitZone_(_ekMtMats,_ekMtOpt);}catch(e){}return;}   /* 2026-11-13 英検のまとめテスト */
   ov.classList.remove('on');document.body.classList.remove('ws-lock');setTimeout(_fcRelease_,0);if(host)host.innerHTML='';_wsApi=null;try{comboBreak_();}catch(e){} /* 画面から外すと ws_app.js の繰り返しの処理も止まる */
@@ -6155,7 +6210,7 @@ function openHome(){
   _bind('ntab5-review',function(){showHomeTab('review');});
   _bind('ntab5-unit',function(){showHomeTab('unit');});
   _bind('ntab5-eiken',function(){showHomeTab('eiken');try{setTimeout(function(){unitPrefetchVisible_('eiken-list');},0);}catch(ePf){}});   /* 英検 2026-11-12 */
-  _bind('ntab5-ws',function(){showHomeTab('ws');try{setTimeout(wsPrefetchVisible_,0);}catch(eWp){}}); // ワークシート 2026-10-17・先読み 2026-10-20
+  _bind('ntab5-ws',function(){showHomeTab('ws');}); // 2026-11-15 ぐるぐるのタブ（前＝ワークシート 2026-10-17・先読み 2026-10-20）
   _bind('ntab5-record',function(){setTab5_('record');showSub('records');}); // showSub('records')側で新バッジ・新アイコンを既読化
   try{recomputeNewIcon_();}catch(e){} // 新しいアイコンの未読判定（記録タブ赤●）2026-07-26
   try{bootPrefetch_();}catch(eBp){} // ホームの返事を待たずに先読みを始める 2026-09-02
@@ -12876,7 +12931,7 @@ function currentScreenName(){
     var v='';try{v=sessionStorage.getItem('kwt_view')||'';}catch(e){}
     if(v&&SUB_TITLES[v])return SUB_TITLES[v]; // サブ画面（間違いノート・おさらい・学習マップ・バッジ・なかま・クロフネ全体・確認テスト）
     var t='';try{t=sessionStorage.getItem('kwt_htab')||'';}catch(e){}
-    var TAB={daily:'毎日学習',review:'間違いノート',unit:'単元別',ws:'ワークシート',record:'記録'}; // review タブ＝間違いノート（2026-07-25）
+    var TAB={daily:'毎日学習',review:'間違いノート',unit:'単元別',ws:'ぐるぐる',record:'記録'}; // review タブ＝間違いノート（2026-07-25）
     if(t&&TAB[t])return TAB[t];
     return 'ホーム';
   }

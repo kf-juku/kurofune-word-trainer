@@ -1,6 +1,6 @@
 /* gg_fig.js：ぐるぐる（数学）の図を描く関数。tools\gg_export.js が問題データ（helpers.js・{パート}_meta.js）から作る。手で直さない（直すときは問題データを直して gg_export.js を回し直す）
    本番の ws\math_fig.js のあとに読む。MathFig.ns に名前空間を足すだけ（math_fig.js は変えない）。
-   gg＝helpers.js の図の道具（TB・TBA・GS・G6）／gg_<パートid>＝そのパートの meta.js の図の道具
+   gg＝helpers.js の図の道具（OBI・OIKOSHI・TB・TBA・ZA・GS・G6・NETF・NET_CYL・NET_CONE・NET_PRISM）／gg_<パートid>＝そのパートの meta.js の図の道具
    シートの問題（words の qdata）には図の印 ⟦F:名前空間.関数:[引数]⟧ だけが入っている。MathFig.data(qdata) で SVG にもどる */
 (function(){
 var NS=window.MathFig&&window.MathFig.ns;if(!NS){if(window.console)console.log('gg_fig.js：math_fig.js を先に読んでください');return;}
@@ -16,17 +16,257 @@ function GS(o){const R=o.R||5,U=20,L=R+.5,W=(2*R+1)*U,c=W/2,X=x=>c+x*U,Y=y=>c-y*
  s+=`<text x="${X(L)-9*K}" y="${c-6}" font-size="${13*K}" font-style="italic">x</text><text x="${c+6}" y="${Y(L)+13*K}" font-size="${13*K}" font-style="italic">y</text><text x="${c-4}" y="${c+14*K}" font-size="${12*K}" text-anchor="end">O</text>`;
  if(o.nums!==false)[-4,-2,2,4].forEach(v=>{s+=`<text x="${X(v)}" y="${c+14*K}" font-size="${11*K}" text-anchor="middle" fill="#555" ${H}>${mi(v)}</text><text x="${c-5}" y="${Y(v)+4*K}" font-size="${11*K}" text-anchor="end" fill="#555" ${H}>${mi(v)}</text>`;});
  const CL=(a,b)=>{let p=[];[-L,L].forEach(x=>{const y=a*x+b;if(y>=-L-1e-9&&y<=L+1e-9)p.push([x,y]);});if(a!==0)[-L,L].forEach(y=>{const x=(y-b)/a;if(x>-L&&x<L)p.push([x,y]);});p.sort((u,v)=>u[0]-v[0]);return [p[0],p[p.length-1]];};
+ /* 2026-11-09 解説の図で、使う図形を塗る（poly＝[[x,y],…]）。川上さん 13:14「三角形CDEをちゃんと書いてあげて」 */
+ (o.poly?[o.poly]:[]).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fde68a" fill-opacity=".75" stroke="none"/>`;});
  (o.lines||[]).forEach(l=>{const [p,q]=CL(l[0],l[1]);s+=`<line x1="${X(p[0])}" y1="${Y(p[1])}" x2="${X(q[0])}" y2="${Y(q[1])}" stroke="#111" stroke-width="${sm?3:2.4}"/>`;});
  (o.dsh||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="#c2410c" stroke-width="1.4" stroke-dasharray="4 3"/>`;});
  (o.segs||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="#111" stroke-width="2.6"/>`;});
  if(o.st){const [x0,y0,dx,dy]=o.st;s+=`<line x1="${X(x0)}" y1="${Y(y0)}" x2="${X(x0+dx)}" y2="${Y(y0)}" stroke="#c2410c" stroke-width="2.6"/><line x1="${X(x0+dx)}" y1="${Y(y0)}" x2="${X(x0+dx)}" y2="${Y(y0+dy)}" stroke="#c2410c" stroke-width="2.6"/><text x="${(X(x0)+X(x0+dx))/2}" y="${Y(y0)+(dy>0?17:-8)}" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle" ${H}>右へ${dx}</text><text x="${X(x0+dx)+6}" y="${(Y(y0)+Y(y0+dy))/2+5}" font-size="13" font-weight="700" fill="#c2410c" ${H}>${dy>0?'上へ'+dy:'下へ'+(-dy)}</text>`;}
+ /* 2026-11-09 色つきの線分と札（segc＝[[x1,y1,x2,y2,色,札,札の向き r|l|t|b]]）。底辺・高さを見せる */
+ (o.segc||[]).forEach(q=>{const c2=q[4]||'#c2410c',mx=(X(q[0])+X(q[2]))/2,my=(Y(q[1])+Y(q[3]))/2,F={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,18,'middle']}[q[6]||'r'];s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="${c2}" stroke-width="4" stroke-linecap="round"/>`;if(q[5])s+=`<text x="${mx+F[0]}" y="${my+F[1]}" text-anchor="${F[2]}" font-size="14" font-weight="700" fill="${c2}" ${H}>${q[5]}</text>`;});
  const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
  (o.pts||[]).forEach(q=>{const f=OF[q[3]||'tr'];s+=q[4]?`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#fff" stroke="#111" stroke-width="2"/>`:`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])+f[0]}" y="${Y(q[1])+f[1]}" text-anchor="${f[2]}" font-size="13" font-weight="700" ${H}>${q[2]}</text>`;});
  return s+'</svg>';}
 const G6=(a,b)=>GS({sm:true,w:140,lines:[[a,b]]});
 const TBA=(xs,ys,yn,xn)=>{const n=xs.length;const gap=(arr,cls)=>arr?`<tr class="${cls}"><th></th><td class="g"></td>${arr.map(t=>`<td colspan="2" class="g">${t?`<span>${t}</span>`:''}</td>`).join('')}<td class="g"></td></tr>`:'';
  return `<table class="tb tba">${gap(xn,'xn')}<tr><th>\\(x\\)</th>${xs.map(v=>`<td colspan="2">${v}</td>`).join('')}</tr><tr><th>\\(y\\)</th>${ys.map(v=>`<td colspan="2">${v}</td>`).join('')}</tr>${gap(yn,'yn')}</table>`;};
-return {"TB":TB,"TBA":TBA,"GS":GS,"G6":G6};
+const S=(o)=>{if(o.ren){o.steps.forEach(st=>st.a=st.c.r);}else o.a=o.c.r;return o;};
+const ZT_=s=>String(s).replace(/\{([a-z])\}/g,'<tspan font-family="Times New Roman,serif" font-style="italic" font-weight="400" font-size="1.15em">$1</tspan>').replace(/-/g,'−');
+function OBI(o){const W=320,x0=14,x1=W-14,y0=40,h=30,P=o.parts,n=P.length,r=o.r||P.slice(1).map((_,i)=>(i+1)/n),
+ F=['#ffedd5','#dbeafe','#dcfce7'],S=['#c2410c','#005AFF','#15803d'],xs=[x0].concat(r.map(t=>x0+(x1-x0)*t),[x1]);
+ let s=`<svg viewBox="0 0 ${W} 112" width="${o.w||W}" height="${Math.round((o.w||W)*112/W)}" font-family="sans-serif" font-size="15">`;
+ s+=`<path d="M${x0},${y0-6} v-6 H${x1} v6" fill="none" stroke="#111" stroke-width="1.4"/><text x="${W/2}" y="${y0-17}" text-anchor="middle" font-weight="700" fill="#111" stroke="#fff" stroke-width="5" paint-order="stroke">${ZT_(o.tot)}</text>`;
+ P.forEach((p,i)=>{const a=xs[i],b=xs[i+1],m=(a+b)/2;s+=`<rect x="${a}" y="${y0}" width="${b-a}" height="${h}" fill="${F[i%3]}" stroke="${S[i%3]}" stroke-width="2"/><text x="${m}" y="${y0+20}" text-anchor="middle" font-weight="700" fill="#111">${ZT_(p[0])}</text><text x="${m}" y="${y0+h+22}" text-anchor="middle" font-size="17" font-weight="700" fill="${S[i%3]}">${ZT_(p[1])}</text>`;});
+ return s+'</svg>';}
+const ZIE_=(x,y)=>`<g fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><path d="M${x-13},${y} v-15 l13,-11 l13,11 v15 z"/><rect x="${x-3.5}" y="${y-9}" width="7" height="9"/></g>`;
+const ZTATE_=(x,y)=>`<g fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><path d="M${x-17},${y-24} l17,-9 l17,9 z"/><rect x="${x-15}" y="${y-24}" width="30" height="24"/><path d="M${x-9},${y-21} v18 M${x},${y-21} v18 M${x+9},${y-21} v18" fill="none"/><path d="M${x-18},${y} h36" fill="none" stroke-width="2"/></g>`;
+const ZKI_=(x,y)=>`<g fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><path d="M${x},${y} v-12"/><circle cx="${x}" cy="${y-21}" r="10"/><path d="M${x-18},${y} h36" fill="none" stroke-width="2"/></g>`;
+const ZHITO_=(x,y,c,run)=>`<g transform="translate(${x},${y}) scale(1.45)" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="${run?1.5:0}" cy="-19" r="3.4" fill="${c}"/><path d="M${run?1:0},-15 L0,-7"/>${run?'<path d="M0,-7 L-5,-1 M0,-7 L3,-3 L6,0 M-4,-12 L0.5,-13.5 L4,-10 M0.5,-13.5 L-2,-9"/>':'<path d="M0,-7 L-3,0 M0,-7 L3,0 M-4,-9 L0,-13.5 L4,-9"/>'}</g>`;
+function OIKOSHI(o){const W=380,H=196,xl=62,xd=350,xm=xl+(xd-xl)*(o.m||0.7),xp=xl+(xm-xl)*(o.p||0.4),yA=48,yR=112,yB=162,CA='#c2410c',CB='#005AFF';
+ const AR=(y,c)=>`<path d="M${xm-11},${y-5} L${xm},${y} L${xm-11},${y+5} L${xm-8},${y} z" fill="${c}"/>`;
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="${o.w||340}" height="${Math.round((o.w||340)*H/W)}" font-family="sans-serif" font-size="15">`;
+ s+=[[yA-8,yR],[yR+24,yB+8]].map(q=>`<line x1="${xm}" y1="${q[0]}" x2="${xm}" y2="${q[1]}" stroke="#9ca3af" stroke-width="1.2" stroke-dasharray="3 3"/>`).join('');
+ /* 上：先に出た人 */
+ s+=ZHITO_(24,yA+10,CA,false)+`<text x="24" y="${yA+28}" text-anchor="middle" font-size="14" font-weight="700" fill="${CA}">${o.A[0]}</text>`;
+ s+=`<text x="${(xl+xm)/2}" y="${yA-12}" text-anchor="middle" font-weight="700" fill="${CA}">${ZT_(o.A[1])}</text><line x1="${xl}" y1="${yA}" x2="${xm-8}" y2="${yA}" stroke="${CA}" stroke-width="2"/>${AR(yA,CA)}`;
+ if(o.sa)s+=`<line x1="${xl}" y1="${yA}" x2="${xp}" y2="${yA}" stroke="${CA}" stroke-width="6" stroke-opacity=".45"/><line x1="${xp}" y1="${yA-7}" x2="${xp}" y2="${yA+7}" stroke="${CA}" stroke-width="2"/><text x="${(xl+xp)/2}" y="${yA+21}" text-anchor="middle" font-size="14" font-weight="700" fill="${CA}">${ZT_(o.sa)}</text>`;
+ /* 道と家・目的地 */
+ s+=`<line x1="${xl}" y1="${yR}" x2="${xm}" y2="${yR}" stroke="#111" stroke-width="2"/><line x1="${xm}" y1="${yR}" x2="${xd}" y2="${yR}" stroke="#111" stroke-width="2" stroke-dasharray="5 4"/>`;
+ s+=ZIE_(xl,yR)+(o.di==='ki'?ZKI_(xd,yR):ZTATE_(xd,yR))+`<circle cx="${xm}" cy="${yR}" r="4" fill="#111"/>`;
+ s+=`<text x="${xl}" y="${yR+20}" text-anchor="middle" font-weight="700">${o.home||'家'}</text><text x="${xm}" y="${yR+20}" text-anchor="middle" font-weight="700">${o.meet||'追いついた所'}</text><text x="${xd}" y="${yR+20}" text-anchor="middle" font-weight="700">${o.dest||''}</text>`;
+ /* 下：あとから出た人 */
+ s+=ZHITO_(24,yB+11,CB,true)+`<text x="24" y="${yB+28}" text-anchor="middle" font-size="14" font-weight="700" fill="${CB}">${o.B[0]}</text>`;
+ s+=`<line x1="${xl}" y1="${yB}" x2="${xm-8}" y2="${yB}" stroke="${CB}" stroke-width="2"/>${AR(yB,CB)}<text x="${(xl+xm)/2}" y="${yB+22}" text-anchor="middle" font-weight="700" fill="${CB}">${ZT_(o.B[1])}</text>`;
+ return s+'</svg>';}
+function ZA(o){const R=o.R||5,U=20,W=(2*R+1)*U+24,c=W/2,X=x=>c+x*U,Y=y=>c-y*U,lo=c-(R+.5)*U,hi=c+(R+.5)*U,mi=v=>String(v).replace(/^-/,'−');
+ const H='stroke="#fff" stroke-width="4" paint-order="stroke"';
+ let s=`<svg class="gr" viewBox="0 0 ${W} ${W}" width="${o.w||210}" height="${o.w||210}" font-family="sans-serif">`;
+ for(let i=-R;i<=R;i++)s+=`<line x1="${X(i)}" y1="${lo}" x2="${X(i)}" y2="${hi}" stroke="#d1d5db" stroke-width="1"/><line x1="${lo}" y1="${Y(i)}" x2="${hi}" y2="${Y(i)}" stroke="#d1d5db" stroke-width="1"/>`;
+ s+=`<line x1="${lo}" y1="${c}" x2="${hi}" y2="${c}" stroke="#111" stroke-width="1.4"/><line x1="${c}" y1="${hi}" x2="${c}" y2="${lo}" stroke="#111" stroke-width="1.4"/>`;
+ for(let i=-R;i<=R;i++){if(!i||i===-1)continue;s+=`<text x="${X(i)}" y="${c+14}" font-size="11" text-anchor="middle" fill="#555" ${H}>${mi(i)}</text><text x="${c-5}" y="${Y(i)+4}" font-size="11" text-anchor="end" fill="#555" ${H}>${mi(i)}</text>`;}
+ s+=`<text x="${hi+1}" y="${c-6}" font-size="13" font-style="italic" ${H}>x</text><text x="${c+6}" y="${lo+3}" font-size="13" font-style="italic" ${H}>y</text><text x="${c-4}" y="${c+14}" font-size="12" text-anchor="end" ${H}>O</text>`;
+ const OF={r:[9,4.5,'start'],l:[-9,4.5,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[7,-7,'start'],tl:[-7,-7,'end'],br:[7,17,'start'],bl:[-7,17,'end']};
+ let lab='';
+ (o.pts||[]).forEach(q=>{const [x,y]=q,cl=q[4]||'#c2410c';
+  if(x)s+=`<line x1="${c}" y1="${c}" x2="${X(x)}" y2="${c}" stroke="${cl}" stroke-width="3"/>`;
+  if(y)s+=`<line x1="${X(x)}" y1="${c}" x2="${X(x)}" y2="${Y(y)}" stroke="${cl}" stroke-width="3"/>`;
+  if(x)lab+=`<text x="${(c+X(x))/2}" y="${c-8}" font-size="13" font-weight="700" fill="${cl}" text-anchor="middle" ${H}>${x>0?'右へ'+x:'左へ'+(-x)}</text>`;
+  if(y)lab+=`<text x="${X(x)+(x<0?-6:6)}" y="${(c+Y(y))/2+5}" font-size="13" font-weight="700" fill="${cl}" text-anchor="${x<0?'end':'start'}" ${H}>${y>0?'上へ'+y:'下へ'+(-y)}</text>`;
+  const f=OF[q[3]||'tr'];lab+=`<circle cx="${X(x)}" cy="${Y(y)}" r="4.5" fill="#111"/>`;if(q[2])lab+=`<text x="${X(x)+f[0]}" y="${Y(y)+f[1]}" font-size="13" font-weight="700" text-anchor="${f[2]}" fill="#111" ${H}>${q[2]}</text>`;});
+ return s+lab+'</svg>';}
+const NETC={A:'#FF4B00',B:'#005AFF',C:'#03AF7A',K:'#111'};
+function NETF(sh,o){o=o||{};const FS=14,PX=10;
+ const tw=s=>[...String(s)].reduce((a,ch)=>a+(ch.charCodeAt(0)>255?1:0.6),0)*FS;
+ const xs=[],ys=[],E=(x,y)=>{xs.push(x);ys.push(y);};
+ const pol=(c,r,a)=>[c[0]+r*Math.cos(a*Math.PI/180),c[1]+r*Math.sin(a*Math.PI/180)];
+ sh.forEach(q=>{if(q.t==='poly')q.p.forEach(p=>E(p[0],p[1]));else if(q.t==='circ'){E(q.c[0]-q.r,q.c[1]-q.r);E(q.c[0]+q.r,q.c[1]+q.r);}
+  else if(q.t==='sec'||q.t==='arc'){if(q.t==='sec')E(q.c[0],q.c[1]);for(let a=q.a0;a<q.a1;a+=3)E(...pol(q.c,q.r,a));E(...pol(q.c,q.r,q.a1));}
+  else if(q.t==='seg'){E(q.p[0],q.p[1]);E(q.p[2],q.p[3]);}});
+ const wc=Math.max(...xs)-Math.min(...xs)||1,hc=Math.max(...ys)-Math.min(...ys)||1,s=Math.min((o.W||240)/wc,(o.H||240)/hc,o.S||40);
+ const X=x=>+(x*s).toFixed(1),Y=y=>+(-y*s).toFixed(1);const bx=[],by=[];const B=(x,y)=>{bx.push(x);by.push(y);};
+ xs.forEach((x,i)=>B(X(x),Y(ys[i])));
+ const H=`stroke="#fff" stroke-width="4" paint-order="stroke"`;let f='',k='',c='',t='';
+ const OF={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,19,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,17,'start'],bl:[-6,17,'end'],m:[0,5,'middle']};
+ const T=(x,y,s0,col,an)=>{const L=Array.isArray(s0)?s0:[s0];L.forEach((ln,i)=>{const yy=y+i*FS*1.25,w=tw(ln),x0=an==='start'?x:an==='end'?x-w:x-w/2;B(x0,yy-FS);B(x0+w,yy+4);
+   t+=`<text x="${x.toFixed(1)}" y="${yy.toFixed(1)}" text-anchor="${an}" font-size="${FS}" font-weight="bold" fill="${col||NETC.K}" ${H}>${ln}</text>`;});};
+ const LN=(x1,y1,x2,y2,col,w,da)=>`<line x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}" stroke="${col||NETC.K}" stroke-width="${w||2}" stroke-linecap="round"${da?` stroke-dasharray="${da}"`:''}/>`;
+ const ARC=(q,col,w)=>{const p0=pol(q.c,q.r,q.a0),p1=pol(q.c,q.r,q.a1),lg=(q.a1-q.a0)>180?1:0;return `M${X(p0[0])} ${Y(p0[1])} A${(q.r*s).toFixed(1)} ${(q.r*s).toFixed(1)} 0 ${lg} 0 ${X(p1[0])} ${Y(p1[1])}`;};
+ sh.forEach(q=>{
+  if(q.t==='poly'){if(q.fill)f+=`<polygon points="${q.p.map(p=>X(p[0])+','+Y(p[1])).join(' ')}" fill="#fde68a" fill-opacity=".75" stroke="none"/>`;
+   k+=`<polygon points="${q.p.map(p=>X(p[0])+','+Y(p[1])).join(' ')}" fill="none" stroke="${NETC.K}" stroke-width="2" stroke-linejoin="round"/>`;}
+  else if(q.t==='circ'){k+=`<circle cx="${X(q.c[0])}" cy="${Y(q.c[1])}" r="${(q.r*s).toFixed(1)}" fill="none" stroke="${q.col||NETC.K}" stroke-width="${q.col?3.2:2}"/>`;if(q.dot)k+=`<circle cx="${X(q.c[0])}" cy="${Y(q.c[1])}" r="2.8" fill="${NETC.K}"/>`;}
+  else if(q.t==='sec'){const p0=pol(q.c,q.r,q.a0),p1=pol(q.c,q.r,q.a1);k+=`<path d="M${X(q.c[0])} ${Y(q.c[1])} L${X(p0[0])} ${Y(p0[1])} ${ARC(q).replace(/^M\S+ \S+ /,'')} Z" fill="none" stroke="${NETC.K}" stroke-width="2" stroke-linejoin="round"/>`;}
+  else if(q.t==='seg'){c+=LN(...q.p,q.col,q.col?4:2,q.da);if(q.lab){const mx=(X(q.p[0])+X(q.p[2]))/2,my=(Y(q.p[1])+Y(q.p[3]))/2;
+    if(Array.isArray(q.side)){/* 角度（度・左回り）の向きに札を離す */const a=q.side[0]*Math.PI/180,d=q.side[1]||12,ux=Math.cos(a),uy=-Math.sin(a);T(mx+ux*d,my+uy*d+5,q.lab,q.col,ux>0.3?'start':ux<-0.3?'end':'middle');}
+    else{const F=OF[q.side||'r'];T(mx+F[0],my+F[1],q.lab,q.col,F[2]);}}}
+  else if(q.t==='arc'){c+=`<path d="${ARC(q)}" fill="none" stroke="${q.col||NETC.K}" stroke-width="${q.col?4:2}" stroke-linecap="round"/>`;
+   if(q.lab){const a=q.at==null?(q.a0+q.a1)/2:q.at,p=pol(q.c,q.r,a),ux=Math.cos(a*Math.PI/180),uy=-Math.sin(a*Math.PI/180),d=12;T(X(p[0])+ux*d,Y(p[1])+uy*d+5,q.lab,q.col,ux>0.3?'start':ux<-0.3?'end':'middle');}}
+  else if(q.t==='lab'){const F=OF[q.side||'m'];T(X(q.p[0])+F[0],Y(q.p[1])+F[1],q.s,q.col,F[2]);}});
+ const x0=Math.min(...bx)-PX,y0=Math.min(...by)-PX,W=Math.max(...bx)+PX-x0,Hh=Math.max(...by)+PX-y0;
+ return `<svg class="gr" viewBox="${x0.toFixed(1)} ${y0.toFixed(1)} ${W.toFixed(1)} ${Hh.toFixed(1)}" width="${W.toFixed(1)}" height="${Hh.toFixed(1)}" role="img" aria-label="${o.aria||'展開図'}" data-m="w" data-k="net">${f}${k}${c}${t}</svg>`;}
+function NET_CYL(o){const r=o.r,h=o.h,C=2*Math.PI*r,ca=o.ca||NETC.A,cb=o.cb||NETC.B,cx=r*1.1;
+ const sh=[{t:'poly',p:[[0,0],[C,0],[C,h],[0,h]]},{t:'circ',c:[cx,h+r],r,col:o.lw?cb:null,dot:true},{t:'circ',c:[cx,-r],r,col:o.lw?cb:null}];
+ if(o.lr){sh.push({t:'seg',p:[cx,h+r,cx-r,h+r]});sh.push({t:'lab',p:[cx-r,h+r],s:o.lr,side:'l'});}/* 半径は円の左へ。札は円の外 */
+ if(o.lh)sh.push({t:'seg',p:[C,0,C,h],col:ca,lab:o.lh,side:'r'});
+ if(o.lw){sh.push({t:'seg',p:[0,h,C,h],col:cb});sh.push({t:'lab',p:[C,h],s:o.lw,col:cb,side:'tl'});}
+ return NETF(sh,Object.assign({aria:'円柱の展開図'},o));}
+function NET_CONE(o){const r=o.r,l=o.l,th=360*r/l,a0=270-th/2,a1=270+th/2,ca=o.ca||NETC.A,cb=o.cb||NETC.B,cc=o.cc||NETC.C;
+ const pl=[l*Math.cos(a0*Math.PI/180),l*Math.sin(a0*Math.PI/180)];const out=th<=180;
+ const sh=[{t:'sec',c:[0,0],r:l,a0,a1},{t:'circ',c:[0,-l-r],r,col:o.la?cc:null,dot:true}];
+ if(o.ll){if(out)sh.push({t:'seg',p:[0,0,pl[0],pl[1]],col:ca,lab:o.ll,side:[a0-90,12]});/* 中心角が 180° 以下＝札は線の外側 */
+  else{sh.push({t:'seg',p:[0,0,pl[0],pl[1]],col:ca});sh.push({t:'lab',p:[pl[0]*1.04,pl[1]*1.04],s:o.ll,col:ca,side:Math.cos(a0*Math.PI/180)<0?(pl[1]>0?'tl':'l'):(pl[1]>0?'tr':'r')});}}/* 180° より大きい＝線の外の端の先 */
+ if(o.la)sh.push({t:'arc',c:[0,0],r:l,a0,a1,col:cc,lab:o.la,at:270+Math.min(th*0.3,50)});
+ if(o.lr){sh.push({t:'seg',p:[0,-l-r,r,-l-r],col:cb});sh.push({t:'lab',p:[r,-l-r],s:o.lr,col:cb,side:'r'});}/* 札は円の外 */
+ return NETF(sh,Object.assign({aria:'円錐の展開図'},o));}
+function NET_PRISM(o){const P=o.base,n=P.length,h=o.h,ca=o.ca||NETC.A,cb=o.cb||NETC.B,kk=o.k||0;
+ const len=i=>Math.hypot(P[(i+1)%n][0]-P[i][0],P[(i+1)%n][1]-P[i][1]);const xs=[0];for(let i=0;i<n;i++)xs.push(xs[i]+len(i));const Wd=xs[n];
+ const mapE=(A,B2,Q,R)=>{/* 辺 A→B2 を Q→R に重ねる動かし方 */const a=Math.atan2(B2[1]-A[1],B2[0]-A[0]),b=Math.atan2(R[1]-Q[1],R[0]-Q[0]),d=b-a,cs=Math.cos(d),sn=Math.sin(d);
+   return p=>{const x=p[0]-A[0],y=p[1]-A[1];return [Q[0]+x*cs-y*sn,Q[1]+x*sn+y*cs];};};
+ const up=mapE(P[kk],P[(kk+1)%n],[xs[kk],h],[xs[kk+1],h]),T0=P.map(up);/* 下の底面は、上の底面を帯のまん中の横の線で折り返したもの */
+ const sh=[{t:'poly',p:[[0,0],[Wd,0],[Wd,h],[0,h]]},{t:'poly',p:T0},{t:'poly',p:T0.map(p=>[p[0],h-p[1]])}];
+ for(let i=1;i<n;i++)sh.push({t:'seg',p:[xs[i],0,xs[i],h]});
+ if(o.el)o.el.forEach((s0,i)=>{if(s0)sh.push({t:'lab',p:[(xs[i]+xs[i+1])/2,0],s:s0,side:'b'});});
+ if(o.lh)sh.push({t:'seg',p:[Wd,0,Wd,h],col:ca,lab:o.lh,side:'r'});
+ if(o.lw){sh.push({t:'seg',p:[0,h,Wd,h],col:cb});sh.push({t:'lab',p:[Wd,h],s:o.lw,col:cb,side:'tl'});}
+ return NETF(sh,Object.assign({aria:'角柱の展開図'},o));}
+return {"OBI":OBI,"OIKOSHI":OIKOSHI,"TB":TB,"TBA":TBA,"ZA":ZA,"GS":GS,"G6":G6,"NETF":NETF,"NET_CYL":NET_CYL,"NET_CONE":NET_CONE,"NET_PRISM":NET_PRISM};
+})();
+NS["gg_m1n04"]=(function(){
+const NETC={A:'#FF4B00',B:'#005AFF',C:'#03AF7A',K:'#111'};
+function NETF(sh,o){o=o||{};const FS=14,PX=10;
+ const tw=s=>[...String(s)].reduce((a,ch)=>a+(ch.charCodeAt(0)>255?1:0.6),0)*FS;
+ const xs=[],ys=[],E=(x,y)=>{xs.push(x);ys.push(y);};
+ const pol=(c,r,a)=>[c[0]+r*Math.cos(a*Math.PI/180),c[1]+r*Math.sin(a*Math.PI/180)];
+ sh.forEach(q=>{if(q.t==='poly')q.p.forEach(p=>E(p[0],p[1]));else if(q.t==='circ'){E(q.c[0]-q.r,q.c[1]-q.r);E(q.c[0]+q.r,q.c[1]+q.r);}
+  else if(q.t==='sec'||q.t==='arc'){if(q.t==='sec')E(q.c[0],q.c[1]);for(let a=q.a0;a<q.a1;a+=3)E(...pol(q.c,q.r,a));E(...pol(q.c,q.r,q.a1));}
+  else if(q.t==='seg'){E(q.p[0],q.p[1]);E(q.p[2],q.p[3]);}});
+ const wc=Math.max(...xs)-Math.min(...xs)||1,hc=Math.max(...ys)-Math.min(...ys)||1,s=Math.min((o.W||240)/wc,(o.H||240)/hc,o.S||40);
+ const X=x=>+(x*s).toFixed(1),Y=y=>+(-y*s).toFixed(1);const bx=[],by=[];const B=(x,y)=>{bx.push(x);by.push(y);};
+ xs.forEach((x,i)=>B(X(x),Y(ys[i])));
+ const H=`stroke="#fff" stroke-width="4" paint-order="stroke"`;let f='',k='',c='',t='';
+ const OF={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,19,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,17,'start'],bl:[-6,17,'end'],m:[0,5,'middle']};
+ const T=(x,y,s0,col,an)=>{const L=Array.isArray(s0)?s0:[s0];L.forEach((ln,i)=>{const yy=y+i*FS*1.25,w=tw(ln),x0=an==='start'?x:an==='end'?x-w:x-w/2;B(x0,yy-FS);B(x0+w,yy+4);
+   t+=`<text x="${x.toFixed(1)}" y="${yy.toFixed(1)}" text-anchor="${an}" font-size="${FS}" font-weight="bold" fill="${col||NETC.K}" ${H}>${ln}</text>`;});};
+ const LN=(x1,y1,x2,y2,col,w,da)=>`<line x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}" stroke="${col||NETC.K}" stroke-width="${w||2}" stroke-linecap="round"${da?` stroke-dasharray="${da}"`:''}/>`;
+ const ARC=(q,col,w)=>{const p0=pol(q.c,q.r,q.a0),p1=pol(q.c,q.r,q.a1),lg=(q.a1-q.a0)>180?1:0;return `M${X(p0[0])} ${Y(p0[1])} A${(q.r*s).toFixed(1)} ${(q.r*s).toFixed(1)} 0 ${lg} 0 ${X(p1[0])} ${Y(p1[1])}`;};
+ sh.forEach(q=>{
+  if(q.t==='poly'){if(q.fill)f+=`<polygon points="${q.p.map(p=>X(p[0])+','+Y(p[1])).join(' ')}" fill="#fde68a" fill-opacity=".75" stroke="none"/>`;
+   k+=`<polygon points="${q.p.map(p=>X(p[0])+','+Y(p[1])).join(' ')}" fill="none" stroke="${NETC.K}" stroke-width="2" stroke-linejoin="round"/>`;}
+  else if(q.t==='circ'){k+=`<circle cx="${X(q.c[0])}" cy="${Y(q.c[1])}" r="${(q.r*s).toFixed(1)}" fill="none" stroke="${q.col||NETC.K}" stroke-width="${q.col?3.2:2}"/>`;if(q.dot)k+=`<circle cx="${X(q.c[0])}" cy="${Y(q.c[1])}" r="2.8" fill="${NETC.K}"/>`;}
+  else if(q.t==='sec'){const p0=pol(q.c,q.r,q.a0),p1=pol(q.c,q.r,q.a1);k+=`<path d="M${X(q.c[0])} ${Y(q.c[1])} L${X(p0[0])} ${Y(p0[1])} ${ARC(q).replace(/^M\S+ \S+ /,'')} Z" fill="none" stroke="${NETC.K}" stroke-width="2" stroke-linejoin="round"/>`;}
+  else if(q.t==='seg'){c+=LN(...q.p,q.col,q.col?4:2,q.da);if(q.lab){const mx=(X(q.p[0])+X(q.p[2]))/2,my=(Y(q.p[1])+Y(q.p[3]))/2;
+    if(Array.isArray(q.side)){/* 角度（度・左回り）の向きに札を離す */const a=q.side[0]*Math.PI/180,d=q.side[1]||12,ux=Math.cos(a),uy=-Math.sin(a);T(mx+ux*d,my+uy*d+5,q.lab,q.col,ux>0.3?'start':ux<-0.3?'end':'middle');}
+    else{const F=OF[q.side||'r'];T(mx+F[0],my+F[1],q.lab,q.col,F[2]);}}}
+  else if(q.t==='arc'){c+=`<path d="${ARC(q)}" fill="none" stroke="${q.col||NETC.K}" stroke-width="${q.col?4:2}" stroke-linecap="round"/>`;
+   if(q.lab){const a=q.at==null?(q.a0+q.a1)/2:q.at,p=pol(q.c,q.r,a),ux=Math.cos(a*Math.PI/180),uy=-Math.sin(a*Math.PI/180),d=12;T(X(p[0])+ux*d,Y(p[1])+uy*d+5,q.lab,q.col,ux>0.3?'start':ux<-0.3?'end':'middle');}}
+  else if(q.t==='lab'){const F=OF[q.side||'m'];T(X(q.p[0])+F[0],Y(q.p[1])+F[1],q.s,q.col,F[2]);}});
+ const x0=Math.min(...bx)-PX,y0=Math.min(...by)-PX,W=Math.max(...bx)+PX-x0,Hh=Math.max(...by)+PX-y0;
+ return `<svg class="gr" viewBox="${x0.toFixed(1)} ${y0.toFixed(1)} ${W.toFixed(1)} ${Hh.toFixed(1)}" width="${W.toFixed(1)}" height="${Hh.toFixed(1)}" role="img" aria-label="${o.aria||'展開図'}" data-m="w" data-k="net">${f}${k}${c}${t}</svg>`;}
+function M1N04_NETA(o){const r=o.r,l=o.l,th=360*r/l,a0=270-th/2,a1=270+th/2,K='#111';
+ const ca=o.ca===undefined?NETC.A:o.ca,cb=o.cb===undefined?NETC.B:o.cb,cc=o.cc===undefined?NETC.C:o.cc,cx=o.cx===undefined?null:o.cx;
+ const pl=[l*Math.cos(a0*Math.PI/180),l*Math.sin(a0*Math.PI/180)],out=th<=180;
+ const sh=[{t:'sec',c:[0,0],r:l,a0,a1},{t:'circ',c:[0,-l-r],r,col:o.la&&cc?cc:null,dot:true}];
+ if(o.ll){if(out)sh.push({t:'seg',p:[0,0,pl[0],pl[1]],col:ca,lab:o.ll,side:[a0-90,18]});
+  else{sh.push({t:'seg',p:[0,0,pl[0],pl[1]],col:ca});sh.push({t:'lab',p:[pl[0]*1.04,pl[1]*1.04],s:o.ll,col:ca,side:Math.cos(a0*Math.PI/180)<0?(pl[1]>0?'tl':'l'):(pl[1]>0?'tr':'r')});}}
+ if(o.la)sh.push({t:'arc',c:[0,0],r:l,a0,a1,col:cc,lab:o.la,at:270+Math.min(th*0.3,50)});
+ if(o.lr){sh.push({t:'seg',p:[0,-l-r,r,-l-r],col:cb});sh.push({t:'lab',p:[r,-l-r],s:o.lr,col:cb,side:'r'});}
+ if(o.lc){const rr=l*(th<60?0.32:0.2);sh.push({t:'arc',c:[0,0],r:rr,a0,a1,col:cx});sh.push({t:'lab',p:[0,-rr],s:o.lc,col:cx||K,side:'b'});}
+ return NETF(sh,Object.assign({aria:'円錐の展開図'},o));}
+function M1N04_SEC(o){const r=o.r,a=o.a,a0=270-a/2,a1=270+a/2,K='#111',ca=o.ca===undefined?NETC.A:o.ca,cx=o.cx===undefined?NETC.B:o.cx;
+ const pl=[r*Math.cos(a0*Math.PI/180),r*Math.sin(a0*Math.PI/180)];
+ const sh=[{t:'sec',c:[0,0],r,a0,a1}];
+ if(o.lr)sh.push({t:'seg',p:[0,0,pl[0],pl[1]],col:ca,lab:o.lr,side:[a0-90,18]});
+ if(o.lc){const rr=r*(a<60?0.32:0.22);sh.push({t:'arc',c:[0,0],r:rr,a0,a1,col:cx});sh.push({t:'lab',p:[0,-rr],s:o.lc,col:cx||K,side:'b'});}
+ return NETF(sh,Object.assign({aria:'おうぎ形の図'},o));}
+return {"M1N04_NETA":M1N04_NETA,"M1N04_SEC":M1N04_SEC};
+})();
+NS["gg_m1n05"]=(function(){
+const M1N05_ZU=(()=>{
+ const RED='#c2410c',ON='#FFD9C4',BAR='#e5e7eb',GRID='#d1d5db',GR='#6b7280',SH='stroke="#fff" stroke-width="4" paint-order="stroke"';
+ const n_=v=>{let s=(Math.round(v*100)/100).toFixed(2);s=s.replace(/\.?0+$/,'');return s==='-0'?'0':s;};
+ const TX=(x,y,t,o)=>{o=o||{};return `<text x="${n_(x)}" y="${n_(y)}" text-anchor="${o.a||'middle'}" font-size="${o.fs||12}" font-weight="bold"${o.cls?` class="${o.cls}"`:''} fill="${o.c||'#111'}"${o.halo?' '+SH:''}>${t}</text>`;};
+ const LN=(x1,y1,x2,y2,o)=>{o=o||{};return `<line${o.cls?` class="${o.cls}"`:''} x1="${n_(x1)}" y1="${n_(y1)}" x2="${n_(x2)}" y2="${n_(y2)}" stroke="${o.c||'#111'}" stroke-width="${o.sw||1.4}"${o.da?` stroke-dasharray="${o.da}"`:''}/>`;};
+ const nv=v=>n_(v);
+
+ /* HIST({lo:最初の階級の下の端, w:階級の幅, f:[度数…], u:'分', ttl:'1組（30 人）', ymax, hl:[色をつける階級の番号], cnt:true（棒の上に度数）})
+    問題の図には hl・cnt を付けない（答えになるため）。rect class="hbar"（"bar" は gg_app の .wsp .bar{display:none} に当たって消えるので使わない・2026-11-08）。data-ax＝「左はしの x, 1 あたりの横の長さ, 0 人の y, 1 人あたりのたての長さ」 */
+ const HIST=(o)=>{
+  const f=o.f,n=f.length,bw=o.bw||30,mx=Math.max(...f);
+  const ymax=o.ymax||(mx<=6?mx+1:(mx%2?mx+1:mx+2));const ph=o.ph||(ymax<=8?18:(ymax<=12?14:(ymax<=16?11:9)));
+  const L=34,T=(o.ttl?46:22)+(o.cnt?4:0),PH=ymax*ph,base=T+PH,W=L+n*bw+44,H=base+30;
+  const pxu=bw/o.w;
+  let s=`<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="ヒストグラム" data-k="h" data-h="${o.lo},${o.w},${f.join(',')}" data-ax="${L},${n_(pxu)},${base},${ph}">`;
+  if(o.ttl)s+=TX(4,14,o.ttl,{a:'start',fs:13});
+  for(let k=1;k<=ymax;k++)s+=LN(L,base-k*ph,L+n*bw+6,base-k*ph,{c:GRID,sw:1});
+  f.forEach((v,i)=>{if(!v)return;const on=(o.hl||[]).indexOf(i)>=0;
+   s+=`<rect class="hbar${on?' hl':''}" x="${n_(L+i*bw)}" y="${n_(base-v*ph)}" width="${bw}" height="${n_(v*ph)}" fill="${on?ON:BAR}" stroke="${on?RED:'#111'}" stroke-width="${on?2:1.2}"/>`;});
+  if(o.cnt)f.forEach((v,i)=>{if(v)s+=TX(L+i*bw+bw/2,base-v*ph-4,String(v),{fs:12,c:(o.hl||[]).indexOf(i)>=0?RED:'#111',cls:'cnt',halo:true});});
+  s+=LN(L,base,L+n*bw+6,base,{sw:1.6})+LN(L,base,L,T-6,{sw:1.6});
+  const lt=ymax<=10?1:2;for(let k=0;k<=ymax;k+=lt)s+=TX(L-5,base-k*ph+4,String(k),{a:'end',fs:11,c:'#374151'});
+  s+=TX(L,T-10,'(人)',{fs:11,c:'#374151'});
+  for(let i=0;i<=n;i++){s+=LN(L+i*bw,base,L+i*bw,base+4,{sw:1.2});s+=TX(L+i*bw,base+16,nv(o.lo+i*o.w),{fs:11,c:'#374151'});}
+  s+=TX(L+n*bw+12,base+16,`(${o.u})`,{a:'start',fs:11,c:'#374151'});
+  return s+'</svg>';};
+
+ /* SEQ({d:[小さい順の値…], u:'冊', md:true（中央値に印）, hv:[色をつける値…]（最頻値など）})
+    小さい順に並べた列。上に何番目か、下に「中央値」と値（md のとき）。data-d＝並べた値 */
+ const SEQ=(o)=>{
+  const d=o.d,n=d.length,cw=o.cw||(n<=10?32:(n<=12?29:26)),ch=26,L=8,top=16,W=L*2+n*cw,X=i=>L+i*cw;
+  const md=n%2?[(n-1)/2]:[n/2-1,n/2],hv=o.hv||[];
+  const H=top+ch+(o.md?44:10);
+  let s=`<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="小さい順に並べた資料" data-k="d" data-n="${n}" data-d="${d.join(',')}">`;
+  for(let i=0;i<n;i++){
+   const on=(o.md&&md.indexOf(i)>=0)||hv.indexOf(d[i])>=0;
+   s+=`<rect x="${n_(X(i))}" y="${top}" width="${cw}" height="${ch}" fill="${on?ON:'#fff'}" stroke="${on?RED:'#9ca3af'}" stroke-width="${on?2:1}"/>`;
+   s+=TX(X(i)+cw/2,top+18,nv(d[i]),{fs:13});
+   s+=TX(X(i)+cw/2,top-4,String(i+1),{fs:9,c:GR});}
+  if(o.md){
+   const xc=md.length===1?X(md[0])+cw/2:X(md[1]);
+   if(md.length===2)s+=LN(xc,top-3,xc,top+ch+4,{c:RED,sw:2.4});
+   const v=md.length===1?d[md[0]]:(d[md[0]]+d[md[1]])/2;
+   s+=TX(xc,top+ch+17,'中央値',{fs:11,c:RED,cls:'qn',halo:true});
+   s+=TX(xc,top+ch+33,nv(v)+(o.u?' '+o.u:''),{fs:13,c:RED,cls:'qv',halo:true});}
+  return s+'</svg>';};
+ return {HIST,SEQ,n_};
+})();
+return {"M1N05_ZU_SEQ":(...a)=>M1N05_ZU.SEQ(...a),"M1N05_ZU_HIST":(...a)=>M1N05_ZU.HIST(...a)};
+})();
+NS["gg_m1n25"]=(function(){
+const NETC={A:'#FF4B00',B:'#005AFF',C:'#03AF7A',K:'#111'};
+function NETF(sh,o){o=o||{};const FS=14,PX=10;
+ const tw=s=>[...String(s)].reduce((a,ch)=>a+(ch.charCodeAt(0)>255?1:0.6),0)*FS;
+ const xs=[],ys=[],E=(x,y)=>{xs.push(x);ys.push(y);};
+ const pol=(c,r,a)=>[c[0]+r*Math.cos(a*Math.PI/180),c[1]+r*Math.sin(a*Math.PI/180)];
+ sh.forEach(q=>{if(q.t==='poly')q.p.forEach(p=>E(p[0],p[1]));else if(q.t==='circ'){E(q.c[0]-q.r,q.c[1]-q.r);E(q.c[0]+q.r,q.c[1]+q.r);}
+  else if(q.t==='sec'||q.t==='arc'){if(q.t==='sec')E(q.c[0],q.c[1]);for(let a=q.a0;a<q.a1;a+=3)E(...pol(q.c,q.r,a));E(...pol(q.c,q.r,q.a1));}
+  else if(q.t==='seg'){E(q.p[0],q.p[1]);E(q.p[2],q.p[3]);}});
+ const wc=Math.max(...xs)-Math.min(...xs)||1,hc=Math.max(...ys)-Math.min(...ys)||1,s=Math.min((o.W||240)/wc,(o.H||240)/hc,o.S||40);
+ const X=x=>+(x*s).toFixed(1),Y=y=>+(-y*s).toFixed(1);const bx=[],by=[];const B=(x,y)=>{bx.push(x);by.push(y);};
+ xs.forEach((x,i)=>B(X(x),Y(ys[i])));
+ const H=`stroke="#fff" stroke-width="4" paint-order="stroke"`;let f='',k='',c='',t='';
+ const OF={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,19,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,17,'start'],bl:[-6,17,'end'],m:[0,5,'middle']};
+ const T=(x,y,s0,col,an)=>{const L=Array.isArray(s0)?s0:[s0];L.forEach((ln,i)=>{const yy=y+i*FS*1.25,w=tw(ln),x0=an==='start'?x:an==='end'?x-w:x-w/2;B(x0,yy-FS);B(x0+w,yy+4);
+   t+=`<text x="${x.toFixed(1)}" y="${yy.toFixed(1)}" text-anchor="${an}" font-size="${FS}" font-weight="bold" fill="${col||NETC.K}" ${H}>${ln}</text>`;});};
+ const LN=(x1,y1,x2,y2,col,w,da)=>`<line x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}" stroke="${col||NETC.K}" stroke-width="${w||2}" stroke-linecap="round"${da?` stroke-dasharray="${da}"`:''}/>`;
+ const ARC=(q,col,w)=>{const p0=pol(q.c,q.r,q.a0),p1=pol(q.c,q.r,q.a1),lg=(q.a1-q.a0)>180?1:0;return `M${X(p0[0])} ${Y(p0[1])} A${(q.r*s).toFixed(1)} ${(q.r*s).toFixed(1)} 0 ${lg} 0 ${X(p1[0])} ${Y(p1[1])}`;};
+ sh.forEach(q=>{
+  if(q.t==='poly'){if(q.fill)f+=`<polygon points="${q.p.map(p=>X(p[0])+','+Y(p[1])).join(' ')}" fill="#fde68a" fill-opacity=".75" stroke="none"/>`;
+   k+=`<polygon points="${q.p.map(p=>X(p[0])+','+Y(p[1])).join(' ')}" fill="none" stroke="${NETC.K}" stroke-width="2" stroke-linejoin="round"/>`;}
+  else if(q.t==='circ'){k+=`<circle cx="${X(q.c[0])}" cy="${Y(q.c[1])}" r="${(q.r*s).toFixed(1)}" fill="none" stroke="${q.col||NETC.K}" stroke-width="${q.col?3.2:2}"/>`;if(q.dot)k+=`<circle cx="${X(q.c[0])}" cy="${Y(q.c[1])}" r="2.8" fill="${NETC.K}"/>`;}
+  else if(q.t==='sec'){const p0=pol(q.c,q.r,q.a0),p1=pol(q.c,q.r,q.a1);k+=`<path d="M${X(q.c[0])} ${Y(q.c[1])} L${X(p0[0])} ${Y(p0[1])} ${ARC(q).replace(/^M\S+ \S+ /,'')} Z" fill="none" stroke="${NETC.K}" stroke-width="2" stroke-linejoin="round"/>`;}
+  else if(q.t==='seg'){c+=LN(...q.p,q.col,q.col?4:2,q.da);if(q.lab){const mx=(X(q.p[0])+X(q.p[2]))/2,my=(Y(q.p[1])+Y(q.p[3]))/2;
+    if(Array.isArray(q.side)){/* 角度（度・左回り）の向きに札を離す */const a=q.side[0]*Math.PI/180,d=q.side[1]||12,ux=Math.cos(a),uy=-Math.sin(a);T(mx+ux*d,my+uy*d+5,q.lab,q.col,ux>0.3?'start':ux<-0.3?'end':'middle');}
+    else{const F=OF[q.side||'r'];T(mx+F[0],my+F[1],q.lab,q.col,F[2]);}}}
+  else if(q.t==='arc'){c+=`<path d="${ARC(q)}" fill="none" stroke="${q.col||NETC.K}" stroke-width="${q.col?4:2}" stroke-linecap="round"/>`;
+   if(q.lab){const a=q.at==null?(q.a0+q.a1)/2:q.at,p=pol(q.c,q.r,a),ux=Math.cos(a*Math.PI/180),uy=-Math.sin(a*Math.PI/180),d=12;T(X(p[0])+ux*d,Y(p[1])+uy*d+5,q.lab,q.col,ux>0.3?'start':ux<-0.3?'end':'middle');}}
+  else if(q.t==='lab'){const F=OF[q.side||'m'];T(X(q.p[0])+F[0],Y(q.p[1])+F[1],q.s,q.col,F[2]);}});
+ const x0=Math.min(...bx)-PX,y0=Math.min(...by)-PX,W=Math.max(...bx)+PX-x0,Hh=Math.max(...by)+PX-y0;
+ return `<svg class="gr" viewBox="${x0.toFixed(1)} ${y0.toFixed(1)} ${W.toFixed(1)} ${Hh.toFixed(1)}" width="${W.toFixed(1)}" height="${Hh.toFixed(1)}" role="img" aria-label="${o.aria||'展開図'}" data-m="w" data-k="net">${f}${k}${c}${t}</svg>`;}
+function M1N25_BASE(o){const b=o.b,h=o.h,x=o.x==null?b/2:o.x,P=o.P||['B','C','D'];
+ const sh=[{t:'poly',p:[[0,0],[b,0],[x,-h]],fill:true},{t:'seg',p:[0,0,b,0],lab:P[0]+P[2]+' '+b+' cm',side:'t'},{t:'seg',p:[x,0,x,-h],da:'5 4',lab:h+' cm',side:'r'},
+  {t:'lab',p:[0,0],s:P[0],side:'l'},{t:'lab',p:[x,-h],s:P[1],side:'b'},{t:'lab',p:[b,0],s:P[2],side:'r'}];
+ return NETF(sh,Object.assign({aria:'底面の三角形の図',W:200,H:120},o));}
+return {"M1N25_BASE":M1N25_BASE};
 })();
 NS["gg_m1u1p1"]=(function(){
 const M1U1P1_ZU=(()=>{
@@ -65,6 +305,94 @@ function HISSAN(n,d){const ds=String(n).split('').map(Number),k=ds.length,cw=12,
  return `<svg viewBox="0 0 ${X(k-1)+30} ${16+row*20-8}" width="${X(k-1)+30}" height="${16+row*20-8}" aria-label="わり算の筆算">${s}</svg>`;}
 return {YAKU,BAI,WAKE,MEMORI,HISSAN};})();
 return {"M1U1P1_ZU_HISSAN":(...a)=>M1U1P1_ZU.HISSAN(...a),"M1U1P1_ZU_YAKU":(...a)=>M1U1P1_ZU.YAKU(...a),"M1U1P1_ZU_BAI":(...a)=>M1U1P1_ZU.BAI(...a),"M1U1P1_ZU_WAKE":(...a)=>M1U1P1_ZU.WAKE(...a),"M1U1P1_ZU_MEMORI":(...a)=>M1U1P1_ZU.MEMORI(...a)};
+})();
+NS["gg_m1u4p6"]=(function(){
+const ZT_=s=>String(s).replace(/\{([a-z])\}/g,'<tspan font-family="Times New Roman,serif" font-style="italic" font-weight="400" font-size="1.15em">$1</tspan>').replace(/-/g,'−');
+const ZIE_=(x,y)=>`<g fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><path d="M${x-13},${y} v-15 l13,-11 l13,11 v15 z"/><rect x="${x-3.5}" y="${y-9}" width="7" height="9"/></g>`;
+const ZTATE_=(x,y)=>`<g fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><path d="M${x-17},${y-24} l17,-9 l17,9 z"/><rect x="${x-15}" y="${y-24}" width="30" height="24"/><path d="M${x-9},${y-21} v18 M${x},${y-21} v18 M${x+9},${y-21} v18" fill="none"/><path d="M${x-18},${y} h36" fill="none" stroke-width="2"/></g>`;
+const ZKI_=(x,y)=>`<g fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><path d="M${x},${y} v-12"/><circle cx="${x}" cy="${y-21}" r="10"/><path d="M${x-18},${y} h36" fill="none" stroke-width="2"/></g>`;
+const ZHITO_=(x,y,c,run)=>`<g transform="translate(${x},${y}) scale(1.45)" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="${run?1.5:0}" cy="-19" r="3.4" fill="${c}"/><path d="M${run?1:0},-15 L0,-7"/>${run?'<path d="M0,-7 L-5,-1 M0,-7 L3,-3 L6,0 M-4,-12 L0.5,-13.5 L4,-10 M0.5,-13.5 L-2,-9"/>':'<path d="M0,-7 L-3,0 M0,-7 L3,0 M-4,-9 L0,-13.5 L4,-9"/>'}</g>`;
+function M1U4P6_IKI(o){const W=380,H=196,xl=62,xd=330,yA=48,yR=106,yB=160,CA='#c2410c',CB='#005AFF';
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="${o.w||340}" height="${Math.round((o.w||340)*H/W)}" font-family="sans-serif" font-size="15">`;
+ s+=ZHITO_(24,yA+10,CA,false)+`<text x="${(xl+xd)/2}" y="${yA-12}" text-anchor="middle" font-weight="700" fill="${CA}">${ZT_(o.go)}</text><line x1="${xl}" y1="${yA}" x2="${xd-8}" y2="${yA}" stroke="${CA}" stroke-width="2"/><path d="M${xd-11},${yA-5} L${xd},${yA} L${xd-11},${yA+5} L${xd-8},${yA} z" fill="${CA}"/>`;
+ s+=`<line x1="${xl}" y1="${yR}" x2="${xd}" y2="${yR}" stroke="#111" stroke-width="2"/>`+ZIE_(xl,yR)+(o.di==='ki'?ZKI_(xd,yR):ZTATE_(xd,yR));
+ s+=`<text x="${xl}" y="${yR+20}" text-anchor="middle" font-weight="700">${o.home||'家'}</text><text x="${xd}" y="${yR+20}" text-anchor="middle" font-weight="700">${o.dest||''}</text>`;
+ if(o.dist)s+=`<text x="${(xl+xd)/2}" y="${yR+20}" text-anchor="middle" font-weight="700" font-size="17">${ZT_(o.dist)}</text>`;
+ s+=ZHITO_(W-22,yB+11,CB,false)+`<line x1="${xl+8}" y1="${yB}" x2="${xd}" y2="${yB}" stroke="${CB}" stroke-width="2"/><path d="M${xl+11},${yB-5} L${xl},${yB} L${xl+11},${yB+5} L${xl+8},${yB} z" fill="${CB}"/><text x="${(xl+xd)/2}" y="${yB+22}" text-anchor="middle" font-weight="700" fill="${CB}">${ZT_(o.back)}</text>`;
+ return s+'</svg>';}
+function M1U4P6_IKE(o){const W=380,H=262,cx=190,cy=112,rx=118,ry=66,CA='#c2410c',CB='#005AFF',f=o.f||0.4,N=60,r1=v=>Math.round(v*10)/10;
+ const P=(t,k)=>[r1(cx+(rx+(k||0))*Math.cos(t)),r1(cy+(ry+(k||0))*Math.sin(t))];
+ const arc=(t0,t1,c)=>{let d='';for(let i=0;i<=N;i++){const p=P(t0+(t1-t0)*i/N);d+=(i?' L':'M')+p[0]+','+p[1];}return `<path d="${d}" fill="none" stroke="${c}" stroke-width="5" stroke-linecap="round"/>`;};
+ const t0=Math.PI/2,tA=t0+2*Math.PI*f;/* A は下の「出発」から左回りに見える向き（左へ）、B は右へ */
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="${o.w||340}" height="${Math.round((o.w||340)*H/W)}" font-family="sans-serif" font-size="15">`;
+ s+=`<text x="${cx}" y="22" text-anchor="middle" font-weight="700" fill="#111">${ZT_(o.tot)}</text>`;
+ s+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx-16}" ry="${ry-16}" fill="#e0f2fe" stroke="none"/><text x="${cx}" y="${cy+5}" text-anchor="middle" fill="#0369a1" font-size="14">池</text>`;
+ s+=arc(t0,tA,CA)+arc(tA,t0+2*Math.PI,CB);
+ const m=P(tA),st=P(t0),ml=P(tA,-26);
+ s+=`<circle cx="${m[0]}" cy="${m[1]}" r="5" fill="#111"/><text x="${ml[0]}" y="${r1(ml[1]+5)}" text-anchor="middle" font-weight="700" fill="#111" stroke="#fff" stroke-width="4" paint-order="stroke">出会った所</text>`;
+ s+=`<circle cx="${st[0]}" cy="${st[1]}" r="5" fill="#111"/><text x="${st[0]}" y="${st[1]+22}" text-anchor="middle" font-weight="700">出発</text>`;
+ s+=`<path d="M${st[0]-22},${st[1]-7} l-11,7 l11,7 z" fill="${CA}"/><path d="M${st[0]+22},${st[1]-7} l11,7 l-11,7 z" fill="${CB}"/>`;
+ s+=ZHITO_(cx-70,H-30,CA,false)+`<text x="${cx-56}" y="${H-38}" font-weight="700" fill="${CA}">${ZT_(o.A[0])}</text><text x="${cx-56}" y="${H-18}" font-weight="700" fill="${CA}">${ZT_(o.A[1])}</text>`;
+ s+=ZHITO_(cx+70,H-30,CB,false)+`<text x="${cx+56}" y="${H-38}" text-anchor="end" font-weight="700" fill="${CB}">${ZT_(o.B[0])}</text><text x="${cx+56}" y="${H-18}" text-anchor="end" font-weight="700" fill="${CB}">${ZT_(o.B[1])}</text>`;
+ return s+'</svg>';}
+return {"M1U4P6_IKI":M1U4P6_IKI,"M1U4P6_IKE":M1U4P6_IKE};
+})();
+NS["gg_m1u5p2"]=(function(){
+const ZT_=s=>String(s).replace(/\{([a-z])\}/g,'<tspan font-family="Times New Roman,serif" font-style="italic" font-weight="400" font-size="1.15em">$1</tspan>').replace(/-/g,'−');
+const ZIE_=(x,y)=>`<g fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><path d="M${x-13},${y} v-15 l13,-11 l13,11 v15 z"/><rect x="${x-3.5}" y="${y-9}" width="7" height="9"/></g>`;
+const ZTATE_=(x,y)=>`<g fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><path d="M${x-17},${y-24} l17,-9 l17,9 z"/><rect x="${x-15}" y="${y-24}" width="30" height="24"/><path d="M${x-9},${y-21} v18 M${x},${y-21} v18 M${x+9},${y-21} v18" fill="none"/><path d="M${x-18},${y} h36" fill="none" stroke-width="2"/></g>`;
+const ZKI_=(x,y)=>`<g fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><path d="M${x},${y} v-12"/><circle cx="${x}" cy="${y-21}" r="10"/><path d="M${x-18},${y} h36" fill="none" stroke-width="2"/></g>`;
+const ZHITO_=(x,y,c,run)=>`<g transform="translate(${x},${y}) scale(1.45)" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="${run?1.5:0}" cy="-19" r="3.4" fill="${c}"/><path d="M${run?1:0},-15 L0,-7"/>${run?'<path d="M0,-7 L-5,-1 M0,-7 L3,-3 L6,0 M-4,-12 L0.5,-13.5 L4,-10 M0.5,-13.5 L-2,-9"/>':'<path d="M0,-7 L-3,0 M0,-7 L3,0 M-4,-9 L0,-13.5 L4,-9"/>'}</g>`;
+function OIKOSHI(o){const W=380,H=196,xl=62,xd=350,xm=xl+(xd-xl)*(o.m||0.7),xp=xl+(xm-xl)*(o.p||0.4),yA=48,yR=112,yB=162,CA='#c2410c',CB='#005AFF';
+ const AR=(y,c)=>`<path d="M${xm-11},${y-5} L${xm},${y} L${xm-11},${y+5} L${xm-8},${y} z" fill="${c}"/>`;
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="${o.w||340}" height="${Math.round((o.w||340)*H/W)}" font-family="sans-serif" font-size="15">`;
+ s+=[[yA-8,yR],[yR+24,yB+8]].map(q=>`<line x1="${xm}" y1="${q[0]}" x2="${xm}" y2="${q[1]}" stroke="#9ca3af" stroke-width="1.2" stroke-dasharray="3 3"/>`).join('');
+ /* 上：先に出た人 */
+ s+=ZHITO_(24,yA+10,CA,false)+`<text x="24" y="${yA+28}" text-anchor="middle" font-size="14" font-weight="700" fill="${CA}">${o.A[0]}</text>`;
+ s+=`<text x="${(xl+xm)/2}" y="${yA-12}" text-anchor="middle" font-weight="700" fill="${CA}">${ZT_(o.A[1])}</text><line x1="${xl}" y1="${yA}" x2="${xm-8}" y2="${yA}" stroke="${CA}" stroke-width="2"/>${AR(yA,CA)}`;
+ if(o.sa)s+=`<line x1="${xl}" y1="${yA}" x2="${xp}" y2="${yA}" stroke="${CA}" stroke-width="6" stroke-opacity=".45"/><line x1="${xp}" y1="${yA-7}" x2="${xp}" y2="${yA+7}" stroke="${CA}" stroke-width="2"/><text x="${(xl+xp)/2}" y="${yA+21}" text-anchor="middle" font-size="14" font-weight="700" fill="${CA}">${ZT_(o.sa)}</text>`;
+ /* 道と家・目的地 */
+ s+=`<line x1="${xl}" y1="${yR}" x2="${xm}" y2="${yR}" stroke="#111" stroke-width="2"/><line x1="${xm}" y1="${yR}" x2="${xd}" y2="${yR}" stroke="#111" stroke-width="2" stroke-dasharray="5 4"/>`;
+ s+=ZIE_(xl,yR)+(o.di==='ki'?ZKI_(xd,yR):ZTATE_(xd,yR))+`<circle cx="${xm}" cy="${yR}" r="4" fill="#111"/>`;
+ s+=`<text x="${xl}" y="${yR+20}" text-anchor="middle" font-weight="700">${o.home||'家'}</text><text x="${xm}" y="${yR+20}" text-anchor="middle" font-weight="700">${o.meet||'追いついた所'}</text><text x="${xd}" y="${yR+20}" text-anchor="middle" font-weight="700">${o.dest||''}</text>`;
+ /* 下：あとから出た人 */
+ s+=ZHITO_(24,yB+11,CB,true)+`<text x="24" y="${yB+28}" text-anchor="middle" font-size="14" font-weight="700" fill="${CB}">${o.B[0]}</text>`;
+ s+=`<line x1="${xl}" y1="${yB}" x2="${xm-8}" y2="${yB}" stroke="${CB}" stroke-width="2"/>${AR(yB,CB)}<text x="${(xl+xm)/2}" y="${yB+22}" text-anchor="middle" font-weight="700" fill="${CB}">${ZT_(o.B[1])}</text>`;
+ return s+'</svg>';}
+function M1U5P2_OIK(o){return OIKOSHI(o).replace(ZTATE_(350,112),'');}
+function M1U5P2_TRI(o){const P=o.P,U=26,CA='#FF4B00',CB='#005AFF',H='stroke="#fff" stroke-width="4" paint-order="stroke"';
+ const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+ const gx0=Math.min(x0,0)-1,gx1=Math.max(x1,0)+1,gy0=Math.min(y0,0)-1,gy1=Math.max(y1,0)+1,M=34;
+ const W=(gx1-gx0)*U+2*M,Hh=(gy1-gy0)*U+2*M,X=x=>M+(x-gx0)*U,Y=y=>M+(gy1-y)*U,w=o.w||Math.round(W*0.85);
+ let s=`<svg class="gr" viewBox="0 0 ${W} ${Hh}" width="${w}" height="${Math.round(w*Hh/W)}" font-family="sans-serif">`;
+ for(let i=gx0;i<=gx1;i++)s+=`<line x1="${X(i)}" y1="${Y(gy1)}" x2="${X(i)}" y2="${Y(gy0)}" stroke="#e5e7eb" stroke-width="1"/>`;
+ for(let j=gy0;j<=gy1;j++)s+=`<line x1="${X(gx0)}" y1="${Y(j)}" x2="${X(gx1)}" y2="${Y(j)}" stroke="#e5e7eb" stroke-width="1"/>`;
+ s+=`<line x1="${X(gx0)}" y1="${Y(0)}" x2="${X(gx1)}" y2="${Y(0)}" stroke="#9ca3af" stroke-width="1.2"/><line x1="${X(0)}" y1="${Y(gy0)}" x2="${X(0)}" y2="${Y(gy1)}" stroke="#9ca3af" stroke-width="1.2"/>`;
+ s+=`<text x="${X(gx1)+4}" y="${Y(0)+4}" font-size="13" font-style="italic" fill="#6b7280">x</text><text x="${X(0)}" y="${Y(gy1)-5}" text-anchor="middle" font-size="13" font-style="italic" fill="#6b7280">y</text>`;
+ if(!P.some(q=>q[0]===0&&q[1]===0))s+=`<text x="${X(0)-4}" y="${Y(0)+14}" text-anchor="end" font-size="12" fill="#6b7280">O</text>`;
+ s+=`<rect x="${X(x0)}" y="${Y(y1)}" width="${(x1-x0)*U}" height="${(y1-y0)*U}" fill="none" stroke="#111" stroke-width="1.4" stroke-dasharray="6 4"/>`;
+ const ins=(K)=>{/* K が三角形の内側にあるか（辺の上は外とみなす） */const sg=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);const d=[sg(P[0],P[1],K),sg(P[1],P[2],K),sg(P[2],P[0],K)];return d.every(v=>v>0)||d.every(v=>v<0);};
+ let lab='',legs='';
+ ['①','②','③'].forEach((nm,i)=>{const a=P[i],b=P[(i+1)%3];if(a[0]===b[0]||a[1]===b[1])return;
+  let K=[a[0],b[1]];if(ins(K)||!(K[0]===x0||K[0]===x1)||!(K[1]===y0||K[1]===y1))K=[b[0],a[1]];
+  s+=`<polygon points="${[a,b,K].map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#e5e7eb" stroke="none"/>`;
+  const hz=K[1]===a[1]?[a,K]:[b,K],vt=K[0]===a[0]?[a,K]:[b,K];
+  const hy=Y(K[1]),hx0=X(hz[0][0]),hx1=X(K[0]),hl=Math.abs(hz[0][0]-K[0]),vx=X(K[0]),vy0=Y(vt[0][1]),vy1=Y(K[1]),vl=Math.abs(vt[0][1]-K[1]);
+  legs+=`<line x1="${hx0}" y1="${hy}" x2="${hx1}" y2="${hy}" stroke="${CA}" stroke-width="4" stroke-linecap="round"/><line x1="${vx}" y1="${vy0}" x2="${vx}" y2="${vy1}" stroke="${CB}" stroke-width="4" stroke-linecap="round"/>`;
+  const up=K[1]===y1,rt=K[0]===x1;
+  let lx=(hx0+hx1)/2;if(Math.abs(lx-X(0))<9)lx+=(lx<X(0)?-10:10);
+  lab+=`<text x="${lx}" y="${up?hy-8:hy+18}" text-anchor="middle" font-size="14" font-weight="700" fill="${CA}" ${H}>${hl}</text>`;
+  let ly=(vy0+vy1)/2+5;if(Math.abs(ly-5-Y(0))<10)ly+=(ly-5<Y(0)?-11:11);
+  lab+=`<text x="${rt?vx+8:vx-8}" y="${ly}" text-anchor="${rt?'start':'end'}" font-size="14" font-weight="700" fill="${CB}" ${H}>${vl}</text>`;
+  const cx=(X(a[0])+X(b[0])+X(K[0]))/3,cy=(Y(a[1])+Y(b[1])+Y(K[1]))/3;lab+=`<text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="15" font-weight="700" fill="#111" ${H}>${nm}</text>`;});
+ s+=legs+`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="none" stroke="#111" stroke-width="2.4" stroke-linejoin="round"/>`;
+ const gx=(P[0][0]+P[1][0]+P[2][0])/3,gy=(P[0][1]+P[1][1]+P[2][1])/3;
+ P.forEach(q=>{const px=X(q[0]),py=Y(q[1]),cor=(q[0]===x0||q[0]===x1)&&(q[1]===y0||q[1]===y1);let dx,dy;
+  if(cor){dx=q[0]===x0?-1:1;dy=q[1]===y1?-1:1;}else{const vx=gx-q[0],vy=gy-q[1],L=Math.hypot(vx,vy);dx=vx/L;dy=-vy/L;}
+  const tx=px+dx*(cor?9:19),ty=py+dy*(cor?11:19)+5;
+  lab+=`<circle cx="${px}" cy="${py}" r="4" fill="#111"/><text x="${tx}" y="${ty}" text-anchor="${cor?(dx<0?'end':'start'):'middle'}" font-size="14" font-weight="700" fill="#111" ${H}>${q[2]}</text>`;});
+ return s+lab+'</svg>';}
+return {"M1U5P2_OIK":M1U5P2_OIK,"M1U5P2_TRI":M1U5P2_TRI};
 })();
 NS["gg_m1u5p3"]=(function(){
 const mi=v=>String(v).replace(/^-/,'−');
@@ -139,15 +467,19 @@ function M1U5P4_QG(o){const W=300,Hh=250,L=46,R=262,T=22,B=212,H=M1U5P4_H,X=v=>L
  (o.pts||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[0])}" y2="${B}" stroke="#c2410c" stroke-width="1.4" stroke-dasharray="4 3"/><line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${L}" y2="${Y(q[1])}" stroke="#c2410c" stroke-width="1.4" stroke-dasharray="4 3"/><circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])-8}" y="${Y(q[1])-8}" text-anchor="end" font-weight="700" ${H}>${q[2]}</text>`;});
  if(o.ends){[[x0,o.ends[0]],[x1,o.ends[1]]].forEach(([v,c])=>{s+=`<circle cx="${X(v)}" cy="${Y(o.k*v)}" r="5" fill="${c?'#111':'#fff'}" stroke="#111" stroke-width="2"/>`;});}
  return s+'</svg>';}
-function M1U5P4_OIT(o){const W=340,Hh=118,H=M1U5P4_H,xm=o.goal?236:300;
- let s=`<svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" font-size="13" font-family="sans-serif" role="img" aria-label="追いつく道のりの線分図">`;
- s+=`<line x1="20" y1="52" x2="${xm}" y2="52" stroke="#111"/><circle cx="20" cy="52" r="3" fill="#111"/><circle cx="${xm}" cy="52" r="3" fill="#111"/>`;
- if(o.goal)s+=`<line x1="${xm}" y1="52" x2="320" y2="52" stroke="#111" stroke-dasharray="4 3"/><circle cx="320" cy="52" r="3" fill="#111"/><text x="320" y="112" text-anchor="middle">${o.goal}</text>`;
- s+=`<line x1="20" y1="30" x2="${xm-6}" y2="30" stroke="#111"/><path d="M${xm},30 L${xm-8},26 L${xm-8},34 z" fill="#111"/><text x="${(20+xm)/2}" y="22" text-anchor="middle" ${H}>${o.a}：分速 ${o.va} m で（${M1U5P4_IT('x')}＋${o.d}）分</text>`;
- s+=`<line x1="20" y1="74" x2="${xm-6}" y2="74" stroke="#111"/><path d="M${xm},74 L${xm-8},70 L${xm-8},78 z" fill="#111"/><text x="${(20+xm)/2}" y="92" text-anchor="middle" ${H}>${o.b}：分速 ${o.vb} m で ${M1U5P4_IT('x')} 分</text>`;
- s+=`<text x="20" y="112" text-anchor="middle">家</text><text x="${xm}" y="112" text-anchor="middle">追いついた所</text>`;
- return s+'</svg>';}
-return {"M1U5P4_CANDLE":M1U5P4_CANDLE,"M1U5P4_QG":M1U5P4_QG,"M1U5P4_TRI":M1U5P4_TRI,"M1U5P4_OIT":M1U5P4_OIT,"M1U5P4_RECT":M1U5P4_RECT,"M1U5P4_NL":M1U5P4_NL};
+function M1U5P4_QG2(o){const W=310,Hh=250,L=46,R=262,T=22,B=212,H=M1U5P4_H,X=v=>L+v*(R-L)/o.xm,Y=v=>B-v*(B-T)/o.ym;
+ let s=`<svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" font-size="12" font-family="sans-serif" role="img" aria-label="グラフ">`;
+ for(let v=o.xs;v<=o.xm;v+=o.xs)s+=`<line x1="${X(v)}" y1="${T}" x2="${X(v)}" y2="${B}" stroke="#d1d5db"/><text x="${X(v)}" y="${B+15}" text-anchor="middle" fill="#555">${v}</text>`;
+ for(let v=o.ys;v<=o.ym;v+=o.ys)s+=`<line x1="${L}" y1="${Y(v)}" x2="${R}" y2="${Y(v)}" stroke="#d1d5db"/><text x="${L-5}" y="${Y(v)+4}" text-anchor="end" fill="#555">${v}</text>`;
+ s+=`<line x1="${L}" y1="${B}" x2="${R+18}" y2="${B}" stroke="#111" stroke-width="1.4"/><path d="M${R+22},${B} L${R+14},${B-4} L${R+14},${B+4} z" fill="#111"/><line x1="${L}" y1="${B}" x2="${L}" y2="${T-12}" stroke="#111" stroke-width="1.4"/><path d="M${L},${T-16} L${L-4},${T-8} L${L+4},${T-8} z" fill="#111"/>`;
+ s+=`<text x="${L-5}" y="${B+15}" text-anchor="end" font-size="13">O</text><text x="${R+6}" y="${B-8}" text-anchor="middle" font-size="13">${o.xl}</text><text x="${L+8}" y="${T-6}" font-size="13">${o.yl}</text>`;
+ let lab='';(o.lines||[]).forEach(([k,nm])=>{const x1=Math.min(o.xm,o.ym/k);s+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(x1)}" y2="${Y(k*x1)}" stroke="#111" stroke-width="2.4"/>`;
+  if(nm){const top=k*o.xm>o.ym+1e-9;lab+=top?`<text x="${X(x1)}" y="${Y(k*x1)-5}" text-anchor="middle" font-size="13" font-weight="700" ${H}>${nm}</text>`:`<text x="${X(x1)+5}" y="${Y(k*x1)+5}" font-size="13" font-weight="700" ${H}>${nm}</text>`;}});
+ (o.seg||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[0])}" y2="${Y(q[2])}" stroke="#FF4B00" stroke-width="4" stroke-linecap="round"/>`;if(q[3])lab+=`<text x="${X(q[0])+7}" y="${(Y(q[1])+Y(q[2]))/2+5}" font-size="14" font-weight="700" fill="#FF4B00" ${H}>${q[3]}</text>`;});
+ (o.pts||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[0])}" y2="${B}" stroke="#c2410c" stroke-width="1.4" stroke-dasharray="4 3"/><line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${L}" y2="${Y(q[1])}" stroke="#c2410c" stroke-width="1.4" stroke-dasharray="4 3"/><circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#111"/>`;if(q[2])lab+=q[3]==='rb'?`<text x="${X(q[0])+8}" y="${Y(q[1])+17}" text-anchor="start" font-weight="700" ${H}>${q[2]}</text>`:`<text x="${X(q[0])-7}" y="${Y(q[1])-7}" text-anchor="end" font-weight="700" ${H}>${q[2]}</text>`;});
+ (o.dots||[]).forEach(q=>{s+=`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#111"/>`;});
+ return s+lab+'</svg>';}
+return {"M1U5P4_QG2":M1U5P4_QG2,"M1U5P4_CANDLE":M1U5P4_CANDLE,"M1U5P4_QG":M1U5P4_QG,"M1U5P4_TRI":M1U5P4_TRI,"M1U5P4_RECT":M1U5P4_RECT,"M1U5P4_NL":M1U5P4_NL};
 })();
 NS["gg_m1u6p1"]=(function(){
 const M1U6P1_ZU=(()=>{
@@ -161,13 +493,14 @@ const sq=(x,y,ux,uy,s)=>{s=s||9;const vx=-uy,vy=ux;return `<polyline points="${n
 const tick=(x1,y1,x2,y2,n)=>{const mx=(x1+x2)/2,my=(y1+y2)/2,L=Math.hypot(x2-x1,y2-y1),ux=(x2-x1)/L,uy=(y2-y1)/L,vx=-uy,vy=ux;let s='';for(let i=0;i<n;i++){const o=(i-(n-1)/2)*4;s+=ln(mx+ux*o-vx*5,my+uy*o-vy*5,mx+ux*o+vx*5,my+uy*o+vy*5,`stroke="${RD}" stroke-width="1.6"`);}return s;};
 const arc=(cx,cy,r,a1,a2,st)=>{const p=a=>[cx+r*Math.cos(a*Math.PI/180),cy-r*Math.sin(a*Math.PI/180)];const [x1,y1]=p(a1),[x2,y2]=p(a2);return `<path d="M${nr(x1)},${nr(y1)} A${r},${r} 0 ${a2-a1>180?1:0} 0 ${nr(x2)},${nr(y2)}" fill="none" ${st||'stroke="#111" stroke-width="1.3"'}/>`;};
 /* 一直線の角：secs＝右から順の [角度, 字]。90 は直角の印 */
-function ANG(secs){const cx=130,cy=96,R=78;let s=ln(14,cy,246,cy),a=0;
+/* o.q＝問題の図（下の「180°（一直線）」を出さない・x を黒）。字が 'x' のときは斜体。'?' と解説の 'x' は朱（2026-11-09 系統K8） */
+function ANG(secs,o){o=o||{};const cx=130,cy=96,R=78;let s=ln(14,cy,246,cy),a=0;const hl=t=>t==='?'||(t==='x'&&!o.q);
  secs.forEach(([d,t],i)=>{const b=a+d;if(i<secs.length-1){const e=b*Math.PI/180;s+=ln(cx,cy,cx+R*Math.cos(e),cy-R*Math.sin(e));}
   const m=(a+b)/2*Math.PI/180,r=d===90?0:24+i*4;
   if(d===90)s+=`<polyline points="${nr(cx+12*Math.cos(a*Math.PI/180))},${nr(cy-12*Math.sin(a*Math.PI/180))} ${nr(cx+17*Math.cos(m))},${nr(cy-17*Math.sin(m))} ${nr(cx+12*Math.cos(b*Math.PI/180))},${nr(cy-12*Math.sin(b*Math.PI/180))}" fill="none" stroke="#111" stroke-width="1.2"/>`;
-  else s+=arc(cx,cy,r,a,b,t==='?'?`stroke="${RD}" stroke-width="2"`:undefined);
-  const lr=d===90?32:r+(d<40?30:16);s+=tx(cx+lr*Math.cos(m),cy-lr*Math.sin(m)+5,t,'middle',t==='?'?`fill="${RD}"`:'');a=b;});
- s+=dot(cx,cy)+tx(cx,cy+18,'180°（一直線）');return SVG(260,120,s,'一直線の角の図');}
+  else s+=arc(cx,cy,r,a,b,hl(t)?`stroke="${RD}" stroke-width="2"`:undefined);
+  const lr=d===90?32:r+(d<40?30:16);s+=tx(cx+lr*Math.cos(m),cy-lr*Math.sin(m)+5,t,'middle',(hl(t)?`fill="${RD}"`:'')+(t==='x'?' font-style="italic" font-family="serif"':''));a=b;});
+ s+=dot(cx,cy);if(!o.q)s+=tx(cx,cy+18,'180°（一直線）');return SVG(260,o.q?108:120,s,'一直線の角の図');}
 /* 直線・線分・半直線 */
 function LINES3(){let s='';const row=(y,k,lab)=>{const ax=70,bx=150;let t='';const x1=k==='seg'||k==='ray'?ax:30,x2=k==='seg'?bx:200;t+=ln(x1,y,x2,y,'stroke="#111" stroke-width="2"');
   if(k!=='seg')t+=`<polygon points="${x2},${y-4} ${x2+8},${y} ${x2},${y+4}" fill="#111"/>`;if(k==='line')t+=`<polygon points="${x1},${y-4} ${x1-8},${y} ${x1},${y+4}" fill="#111"/>`;
@@ -205,7 +538,309 @@ function SEG(pts,dims,tk){const L=24,W=220,X=p=>L+p*W,mx=Math.max(0,...(dims||[]
 /* 表（x と y の値） */
 function TBL(rows){return `<table class="tb inc">${rows.map(r=>`<tr>${r.map((c,j)=>j===0?`<th style="min-width:24px;padding:1px 6px">${c}</th>`:`<td style="min-width:24px;padding:1px 6px">${c}</td>`).join('')}</tr>`).join('')}</table>`;}
 return {ANG,LINES3,PARPERP,DIST,BISECT,PERP,HEIGHT,TRI60,SEG,TBL};})();
-return {"M1U6P1_ZU_ANG":(...a)=>M1U6P1_ZU.ANG(...a),"M1U6P1_ZU_TBL":(...a)=>M1U6P1_ZU.TBL(...a),"M1U6P1_ZU_LINES3":(...a)=>M1U6P1_ZU.LINES3(...a),"M1U6P1_ZU_PARPERP":(...a)=>M1U6P1_ZU.PARPERP(...a),"M1U6P1_ZU_DIST":(...a)=>M1U6P1_ZU.DIST(...a),"M1U6P1_ZU_BISECT":(...a)=>M1U6P1_ZU.BISECT(...a),"M1U6P1_ZU_PERP":(...a)=>M1U6P1_ZU.PERP(...a),"M1U6P1_ZU_HEIGHT":(...a)=>M1U6P1_ZU.HEIGHT(...a),"M1U6P1_ZU_SEG":(...a)=>M1U6P1_ZU.SEG(...a),"M1U6P1_ZU_TRI60":(...a)=>M1U6P1_ZU.TRI60(...a)};
+const M1U6P1_SK=(()=>{
+const RED='#c2410c',SH='stroke="#fff" stroke-width="4" paint-order="stroke"',WD={g:2.1,r:2.1,c:1.1};
+const n1=v=>String(Math.round(v*10)/10);
+const add=(p,q,k)=>[p[0]+q[0]*(k===undefined?1:k),p[1]+q[1]*(k===undefined?1:k)],sub=(p,q)=>[p[0]-q[0],p[1]-q[1]],dist=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1]);
+const unit=v=>{const L=Math.hypot(v[0],v[1]);return [v[0]/L,v[1]/L];},mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2],deg=v=>Math.atan2(v[1],v[0])*180/Math.PI;
+function cc(c1,r1,c2,r2){const d=dist(c1,c2);if(d>r1+r2-1e-9||d<Math.abs(r1-r2)+1e-9)return [];const a=(r1*r1-r2*r2+d*d)/(2*d),h=Math.sqrt(Math.max(r1*r1-a*a,0)),ux=(c2[0]-c1[0])/d,uy=(c2[1]-c1[1])/d,m=[c1[0]+ux*a,c1[1]+uy*a];return [[m[0]-uy*h,m[1]+ux*h],[m[0]+uy*h,m[1]-ux*h]];}
+function lc(p,q,c,r){const d=unit(sub(q,p)),f=sub(p,c),b=2*(f[0]*d[0]+f[1]*d[1]),k=f[0]*f[0]+f[1]*f[1]-r*r,D=b*b-4*k;if(D<0)return [];const s=Math.sqrt(D);return [add(p,d,(-b-s)/2),add(p,d,(-b+s)/2)];}
+function foot(p,a,b){const d=unit(sub(b,a)),t=(p[0]-a[0])*d[0]+(p[1]-a[1])*d[1];return add(a,d,t);}
+function side(p,a,b){return (b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]);}
+const nd=d=>((d%360)+540)%360-180;/* -180〜180 */
+function Fig(){this.pt={};this.ref={};this.order=[];this.it=[];this.fitp=[];}
+const FP=Fig.prototype;
+FP.P=function(nm,xy,o){o=o||{};this.pt[nm]={xy,dot:o.dot!==false,lab:o.lab===undefined?nm:o.lab,ld:o.ld,red:!!o.red};this.order.push(nm);return xy;};
+FP.R=function(nm,xy){if(this.sfx&&nm[0]==='_')this.ref[nm+this.sfx]=xy;this.ref[nm]=xy;return xy;};
+FP.xy=function(a){if(typeof a!=='string')return a;if(this.pt[a])return this.pt[a].xy;if(this.ref[a])return this.ref[a];throw new Error('点が無い '+a);};
+FP.fit=function(...ps){ps.forEach(p=>this.fitp.push(this.xy(p)));};
+FP.seg=function(a,b,o){this.it.push({k:'seg',a:this.xy(a),b:this.xy(b),o:o||{}});this.fit(a,b);};
+FP.line=function(a,b,o){this.it.push({k:'line',a:this.xy(a),b:this.xy(b),o:o||{}});};
+FP.ray=function(a,b,o){this.it.push({k:'ray',a:this.xy(a),b:this.xy(b),o:o||{}});this.fit(a);};
+FP.arc=function(c,r,t0,t1,o){c=this.xy(c);this.it.push({k:'arc',c,r,t0,t1,o:o||{}});const n=Math.max(4,Math.floor(Math.abs(t1-t0)/6));for(let i=0;i<=n;i++){const t=(t0+(t1-t0)*i/n)*Math.PI/180;this.fitp.push([c[0]+r*Math.cos(t),c[1]+r*Math.sin(t)]);}};
+/* 中心 c の弧を、点 at の所に短くかく（コンパスの印）。span は図の大きさに合わせた長さ */
+FP.arcat=function(c,at,span,r){c=this.xy(c);at=this.xy(at);r=r||dist(c,at);const t=deg(sub(at,c)),sp=(span||20)*2.6/Math.max(r,1.2);this.arc(c,r,t-sp,t+sp);};
+/* 2点 p・q を両方通る弧（中心 c・半径は c から p まで）。ext 度ずつ外へのばす。短い向きでつなぐ */
+FP.arc2=function(c,p,q,ext){c=this.xy(c);const r=dist(c,p),tp=deg(sub(p,c)),d=nd(deg(sub(q,c))-tp);const a=d>=0?tp:tp+d,b=d>=0?tp+d:tp;this.arc(c,r,a-ext,b+ext);};
+FP.ra=function(v,a,b){this.it.push({k:'ra',v:this.xy(v),a:this.xy(a),b:this.xy(b)});};
+FP.tick=function(a,b,n,red){this.it.push({k:'tick',a:this.xy(a),b:this.xy(b),n:n||1,red:!!red});};
+FP.dim=function(a,b,t,col){this.it.push({k:'dim',a:this.xy(a),b:this.xy(b),t,col});};
+FP.lab=function(at,t,red){this.it.push({k:'lab',at:this.xy(at),t,red:red!==false});};
+FP.svg=function(size,cls,pad,H,fs){size=size||120;cls=cls||'gch';pad=pad===undefined?10:pad;const Ht=H||size;
+ const ps=Object.values(this.pt).map(v=>v.xy).concat(this.fitp);const xs=ps.map(p=>p[0]),ys=ps.map(p=>p[1]);
+ const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+ const sc=Math.min((size-2*pad)/Math.max(x1-x0,1e-9),(Ht-2*pad)/Math.max(y1-y0,1e-9)),ox=(size-(x1-x0)*sc)/2,oy=(Ht-(y1-y0)*sc)/2;
+ const X=p=>[ox+(p[0]-x0)*sc,oy+(y1-p[1])*sc];fs=fs||(size<=140?13:14);
+ const o=[`<svg class="${cls}" viewBox="0 0 ${size} ${n1(Ht)}" width="${size}" height="${n1(Ht)}">`],smp=[],m=2;
+ const clip=(p,d,both)=>{const ts=[];[[0,[m,size-m]],[1,[m,Ht-m]]].forEach(([i,lim])=>{if(Math.abs(d[i])>1e-9)lim.forEach(L=>ts.push((L-p[i])/d[i]));});
+  const pts=[];ts.forEach(t=>{const q=[p[0]+d[0]*t,p[1]+d[1]*t];if(q[0]>=m-.01&&q[0]<=size-m+.01&&q[1]>=m-.01&&q[1]<=Ht-m+.01)pts.push([t,q]);});pts.sort((a,b)=>a[0]-b[0]);
+  if(both)return [pts[0][1],pts[pts.length-1][1]];return [p,pts.filter(z=>z[0]>0).pop()[1]];};
+ const ln=(a,b,op)=>{const w=typeof op.w==='number'?op.w:WD[op.w||'g'];o.push(`<line x1="${n1(a[0])}" y1="${n1(a[1])}" x2="${n1(b[0])}" y2="${n1(b[1])}" stroke="${op.col||'#111'}" stroke-width="${w}" stroke-linecap="round"${op.dash?' stroke-dasharray="5 4"':''}/>`);
+  const L=Math.hypot(b[0]-a[0],b[1]-a[1]),k=Math.max(2,Math.floor(L/4));for(let i=0;i<=k;i++)smp.push([a[0]+(b[0]-a[0])*i/k,a[1]+(b[1]-a[1])*i/k]);};
+ const later=[];
+ this.it.forEach(t=>{
+  if(t.k==='seg'||t.k==='line'||t.k==='ray'){const a=X(t.a),b=X(t.b);if(t.k==='seg')ln(a,b,t.o);else{const [p,q]=clip(a,[b[0]-a[0],b[1]-a[1]],t.k==='line');ln(p,q,t.o);}}
+  else if(t.k==='arc'){const [cx,cy]=X(t.c),R=t.r*sc,n=Math.max(6,Math.floor(Math.abs(t.t1-t.t0)/4)),pts=[];
+   for(let i=0;i<=n;i++){const a=(t.t0+(t.t1-t.t0)*i/n)*Math.PI/180;pts.push([cx+R*Math.cos(a),cy-R*Math.sin(a)]);}smp.push(...pts);
+   const lg=Math.abs(t.t1-t.t0)>180?1:0,sw=t.t1>t.t0?0:1,w=typeof t.o.w==='number'?t.o.w:WD[t.o.w||'c'];
+   o.push(`<path d="M${n1(pts[0][0])} ${n1(pts[0][1])} A${n1(R)} ${n1(R)} 0 ${lg} ${sw} ${n1(pts[n][0])} ${n1(pts[n][1])}" fill="none" stroke="${t.o.col||'#111'}" stroke-width="${w}"/>`);}
+  else if(t.k==='ra'){const V=X(t.v),u1=unit(sub(X(t.a),V)),u2=unit(sub(X(t.b),V)),k=7,p1=add(V,u1,k),p3=add(V,u2,k),p2=add(p1,u2,k);
+   o.push(`<polyline points="${n1(p1[0])},${n1(p1[1])} ${n1(p2[0])},${n1(p2[1])} ${n1(p3[0])},${n1(p3[1])}" fill="none" stroke="#111" stroke-width="1.4"/>`);smp.push(p1,p2,p3);}
+  else if(t.k==='tick'){const A=X(t.a),B=X(t.b),M=mid(A,B),u=unit(sub(B,A)),nx=-u[1],ny=u[0],col=t.red?RED:'#111';
+   for(let i=0;i<t.n;i++){const off=(i-(t.n-1)/2)*4,cx=M[0]+u[0]*off,cy=M[1]+u[1]*off;o.push(`<line x1="${n1(cx+nx*5)}" y1="${n1(cy+ny*5)}" x2="${n1(cx-nx*5)}" y2="${n1(cy-ny*5)}" stroke="${col}" stroke-width="1.8"/>`);}}
+  else later.push(t);});
+ const dots=[];this.order.forEach(k=>{const v=this.pt[k];if(!v.dot)return;const P=X(v.xy);o.push(`<circle cx="${n1(P[0])}" cy="${n1(P[1])}" r="2.8" fill="#111"/>`);dots.push(P);});
+ const labs=[];
+ /* 辺の長さの字：辺のまん中から、図の外側へ */
+ const cen=(()=>{const q=Object.values(this.pt).filter(v=>v.dot).map(v=>X(v.xy));return q.length?[q.reduce((s,p)=>s+p[0],0)/q.length,q.reduce((s,p)=>s+p[1],0)/q.length]:[size/2,Ht/2];})();
+ later.filter(t=>t.k==='dim').forEach(t=>{const A=X(t.a),B=X(t.b),M=mid(A,B),u=unit(sub(B,A));let nv=[-u[1],u[0]];if((M[0]-cen[0])*nv[0]+(M[1]-cen[1])*nv[1]<0)nv=[-nv[0],-nv[1]];
+  const w=String(t.t).length*fs*.32+6,P=[M[0]+nv[0]*(Math.abs(nv[0])*w+fs*.7),M[1]+nv[1]*(fs*.85)];o.push(`<text x="${n1(P[0])}" y="${n1(P[1]+fs*.36)}" text-anchor="middle" font-size="${fs-1}" font-weight="700"${t.col?` fill="${t.col}"`:''} ${SH}>${t.t}</text>`);labs.push(P);});
+ const place=(P,cands,r,len)=>{let best=-1e9,bp=null;cands.forEach(a=>{const ar=a*Math.PI/180,c=[P[0]+Math.cos(ar)*r,P[1]-Math.sin(ar)*r];
+   let dmin=99;smp.forEach(q=>{dmin=Math.min(dmin,Math.hypot(c[0]-q[0],c[1]-q[1]));});dots.forEach(q=>{if(q!==P)dmin=Math.min(dmin,Math.hypot(c[0]-q[0],c[1]-q[1])*.8);});labs.forEach(q=>{dmin=Math.min(dmin,Math.hypot(c[0]-q[0],c[1]-q[1])*.6);});
+   const hw=fs*.45*(len||1),edge=Math.min(c[0]-hw,size-c[0]-hw,c[1]-fs*.55,Ht-c[1]-fs*.45);let s=dmin+(edge>=0?0:edge*3);if([60,120,240,300,45,135,225,315].includes(a))s+=.2;if(s>best){best=s;bp=c;}});return bp;};
+ const ALL=[];for(let a=0;a<360;a+=15)ALL.push(a);
+ later.filter(t=>t.k==='txt').forEach(t=>{const P=X(t.at);labs.push(P);o.push(`<text x="${n1(P[0])}" y="${n1(P[1]+fs*.36)}" text-anchor="middle" font-size="${fs}" font-weight="700"${t.col?` fill="${t.col}"`:''} ${SH}>${t.t}</text>`);});
+ later.filter(t=>t.k==='lab').forEach(t=>{const P=X(t.at),bp=place(P,ALL,fs*.95,String(t.t).length);labs.push(bp);o.push(`<text x="${n1(bp[0])}" y="${n1(bp[1]+fs*.36)}" text-anchor="middle" font-size="${fs}" font-weight="700"${t.red?` fill="${RED}"`:''} ${SH}>${t.t}</text>`);});
+ this.order.forEach(k=>{const v=this.pt[k];if(!v.lab)return;const P=X(v.xy),bp=place(P,v.ld!==undefined?[v.ld]:ALL,fs*.78,1);labs.push(bp);
+  const it=(v.lab==='ℓ'||v.lab==='m')?' font-style="italic"':'';o.push(`<text x="${n1(bp[0])}" y="${n1(bp[1]+fs*.36)}" text-anchor="middle" font-size="${fs}" font-weight="700"${it}${v.red?` fill="${RED}"`:''} ${SH}>${v.lab}</text>`);});
+ return o.join('')+'</svg>';};
+/* ---- 作図の手順 ---- */
+function bis(F,s,num){const a=F.xy(s.a),b=F.xy(s.b),ca=s.ca?F.xy(s.ca):a,cb=s.cb?F.xy(s.cb):b,r=s.r||dist(a,b)*.72,rb=s.rb||r,ext=s.ext===undefined?14:s.ext;
+ F.R('_M',mid(a,b));const I=cc(ca,r,cb,rb);
+ if(I.length){const [X,Y]=I;F.R('_X',X);F.R('_Y',Y);F.arc2(ca,X,Y,ext);F.arc2(cb,X,Y,ext);
+  if(s.draw===undefined||s.draw==='XY')F.line(X,Y,{w:'c'});else if(s.draw==='XA')F.line(X,a,{w:'c'});
+  if(num){const t=deg(sub(X,ca));F.lab(add(ca,[Math.cos((t+ext*.6)*Math.PI/180),Math.sin((t+ext*.6)*Math.PI/180)],r),'❶');F.lab(add(Y,unit(sub(Y,X)),dist(X,Y)*.18),'❷');}
+  return;}
+ /* 弧が交わらない（半径が短い）：相手の中心の向きに ±50° の弧 */
+ [[ca,cb,r],[cb,ca,rb]].forEach(([c,c2,rr])=>{const t=deg(sub(c2,c));F.arc(c,rr,t-50,t+50);});}
+function pon(F,s,num){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),r1=s.r1||dist(l1,l2)*.2;const [U,V]=lc(l1,l2,p,r1);F.R('_U',U);F.R('_V',V);
+ F.arcat(p,U,14);F.arcat(p,V,14);bis(F,{a:U,b:V,r:s.r2||r1*1.5,draw:s.draw},false);if(num){F.lab(U,'❶');F.lab(F.xy('_X'),'❷');}}
+function pext(F,s,num){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),c=s.c1?F.xy(s.c1):p,H=foot(p,l1,l2);F.R('_H',H);
+ const r1=s.r1||dist(p,H)*1.45,I=lc(l1,l2,c,r1);if(I.length<2)return;let [U,V]=I;
+ /* ❶ の弧：中心から見て直線の側を通り、U・V の外へ少しのばす */
+ const tu=deg(sub(U,c)),dd=nd(deg(sub(V,c))-tu);let a0=tu,a1=tu+dd;if(Math.abs(side(c,l1,l2))<1e-6*dist(l1,l2)){/* 中心が直線上：P と反対側の半円 */let nv=unit([-(l2[1]-l1[1]),l2[0]-l1[0]]);if(side(add(c,nv),l1,l2)*side(p,l1,l2)>0)nv=[-nv[0],-nv[1]];const md=deg(nv);a0=md-90;a1=md+90;}
+ if(a1<a0){const z=a0;a0=a1;a1=z;}F.arc(c,s.r1d||r1,a0-12,a1+12);
+ if(s.dv)V=add(V,sub(V,U),s.dv);F.R('_U',U);F.R('_V',V);
+ const cs=(s.c2||['_U','_V']).map(z=>F.xy(z)),r2=s.r2||dist(U,V)*.75,r2b=s.r2b||r2,sp=side(p,l1,l2);
+ const Xs=cc(cs[0],r2,cs[1],r2b).filter(q=>side(q,l1,l2)*sp<0);
+ if(Xs.length){const X=Xs[0];F.R('_X',X);F.arcat(cs[0],X,s.span||22,r2);F.arcat(cs[1],X,s.span||22,r2b);if(s.draw==='PX'){F.line(p,X,{w:'c'});/* H は、ひいた直線 PX と ℓ の交点（まちがいの図でも H が線の上に来る） */const d1=sub(X,p),d2=sub(l2,l1),den=d1[0]*d2[1]-d1[1]*d2[0];if(Math.abs(den)>1e-12){const t=((l1[0]-p[0])*d2[1]-(l1[1]-p[1])*d2[0])/den;F.R('_H',add(p,d1,t));}}}
+ else{/* 交わらない：それぞれ、相手の中心とのまん中の向こう側に向けて短い弧 */const M=mid(cs[0],cs[1]),nv=unit([-(l2[1]-l1[1]),l2[0]-l1[0]]),k=side(add(M,nv),l1,l2)*sp<0?1:-1,T=add(M,nv,k*dist(cs[0],cs[1])*.6);
+  [[cs[0],r2],[cs[1],r2b]].forEach(([cc_,rr])=>{const t=deg(sub(T,cc_)),spn=(s.span||22)*2.6/Math.max(rr,1.2);F.arc(cc_,rr,t-spn,t+spn);});F.R('_X',T);}
+ if(s.draw===undefined||s.draw==='perp')F.line(p,H,{w:'c'});
+ if(num){F.lab(add(c,[Math.cos((a0-6)*Math.PI/180),Math.sin((a0-6)*Math.PI/180)],r1),'❶');F.lab(F.xy('_X'),'❷');F.lab(add(p,unit(sub(p,H)),dist(p,H)*.35),'❸');}}
+function abis(F,s,num){const o=F.xy(s.o),a=F.xy(s.a),b=F.xy(s.b),r1=s.r1||Math.min(dist(o,a),dist(o,b))*.55,U=add(o,unit(sub(a,o)),r1),V=add(o,unit(sub(b,o)),r1);F.R('_U',U);F.R('_V',V);
+ F.arc2(o,U,V,10);const r2=s.r2||dist(U,V)*.8,r2b=s.r2b||r2,Xs=cc(U,r2,V,r2b).filter(q=>dist(q,o)>r1);if(!Xs.length)return;const X=Xs[0];F.R('_X',X);F.arcat(U,X,22,r2);F.arcat(V,X,22,r2b);
+ if(s.draw===undefined||s.draw==='OX')F.ray(o,X,{w:'c'});if(num){F.lab(U,'❶');F.lab(X,'❷');}}
+function a60(F,s,num){const o=F.xy(s.o),b=F.xy(s.b),d=unit(sub(b,o)),r=s.r||dist(o,b)*.5,sg=s.sgn||1,U=add(o,d,r),t0=deg(d);F.R('_U',U);
+ if(sg>0)F.arc(o,r,t0-10,t0+80);else F.arc(o,r,t0-80,t0+10);const r2=s.r2||r,Xs=cc(o,r,U,r2).filter(q=>side(q,o,b)*sg>0);if(!Xs.length)return;const X=Xs[0];F.R('_X',X);F.arcat(U,X,22,r2);
+ if(s.draw===undefined||s.draw==='OX')F.ray(o,X,{w:'c'});if(num){F.lab(add(o,[Math.cos((t0+70*sg)*Math.PI/180),Math.sin((t0+70*sg)*Math.PI/180)],r),'❶');F.lab(X,'❷');}}
+/* 解説の図に書きこみを足す（2026-11-09 系統K1）。svg＝問題の図そのまま（zukei の図）。図の中の点（circle）と字（text）を読んで、字の名前で場所を決める
+   notes＝[{k:'end', p:'A', t:'端'}（点のそばに朱の字）, {k:'go', a:'A', b:'B', t:'のびる'}（A→B の線の B の先に朱の矢印と字）,
+           {k:'ang', v:'A', t:'∠BAD'}（頂点 v の角の印を朱にして、そばに字）, {k:'t', x, y, t, an}（場所を決めて字）] */
+function NOTE(svg,notes){const num=v=>parseFloat(v),P={},L=[],T=[];let m;
+ const C=[];const rc=/<circle cx="([\d.\-]+)" cy="([\d.\-]+)"/g;while((m=rc.exec(svg)))C.push([num(m[1]),num(m[2])]);
+ const rt=/<text x="([\d.\-]+)" y="([\d.\-]+)"[^>]*>([^<]*)<\/text>/g;while((m=rt.exec(svg))){const q=[num(m[1]),num(m[2])-4.5];T.push(q);if(/^[A-Z]$/.test(m[3])&&C.length){let b=C[0];C.forEach(c=>{if(dist(c,q)<dist(b,q))b=c;});P[m[3]]=b;}}
+ const rl=/<line x1="([\d.\-]+)" y1="([\d.\-]+)" x2="([\d.\-]+)" y2="([\d.\-]+)"/g;while((m=rl.exec(svg)))L.push([[num(m[1]),num(m[2])],[num(m[3]),num(m[4])]]);
+ const vb=(svg.match(/viewBox="([\d.\-]+) ([\d.\-]+) ([\d.\-]+) ([\d.\-]+)"/)||[0,0,0,200,200]).slice(1).map(num);
+ const smp=[];L.forEach(([a,b])=>{for(let i=0;i<=40;i++)smp.push([a[0]+(b[0]-a[0])*i/40,a[1]+(b[1]-a[1])*i/40]);});
+ const onL=(p,[a,b])=>{const d=sub(b,a),t=((p[0]-a[0])*d[0]+(p[1]-a[1])*d[1])/(d[0]*d[0]+d[1]*d[1]),q=add(a,d,t);return t>-.02&&t<1.02&&dist(p,q)<2.5;};
+ const box=[];let o='';const fs=13;
+ const put=(c0,t,cands,r)=>{let best=-1e9,bp=null;const w=t.length*fs*.95;cands.forEach(a=>{for(const rr of r){const ar=a*Math.PI/180,c=[c0[0]+Math.cos(ar)*rr,c0[1]-Math.sin(ar)*rr];
+   let dmin=99;const xs=[-w/2,-w/4,0,w/4,w/2];smp.forEach(q=>xs.forEach(dx=>{dmin=Math.min(dmin,Math.hypot(c[0]+dx-q[0],(c[1]-q[1])*1.3));}));T.concat(box).forEach(q=>xs.forEach(dx=>{dmin=Math.min(dmin,Math.hypot(c[0]+dx-q[0],c[1]-q[1])*.9);}));
+   const edge=Math.min(c[0]-w/2-vb[0]-1,vb[0]+vb[2]-c[0]-w/2-1,c[1]-fs*.6-vb[1],vb[1]+vb[3]-c[1]-fs*.5);const s=dmin+(edge>=0?0:edge*4)-rr*.02;if(s>best){best=s;bp=c;}}});
+  box.push(bp);o+=`<text x="${n1(bp[0])}" y="${n1(bp[1]+fs*.36)}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="${RED}" ${SH}>${t}</text>`;};
+ const ALL=[];for(let a=0;a<360;a+=15)ALL.push(a);
+ (notes||[]).forEach(n=>{
+  if(n.k==='end')put(P[n.p],n.t,n.an||[195,210,225,240,255,270,180,165],[18,22,26]);
+  else if(n.k==='go'){const a=P[n.a],b=P[n.b],ln=L.find(l=>onL(a,l)&&onL(b,l));if(!ln)return;const u=unit(sub(b,a));const E=[ln[0],ln[1]].sort((p,q)=>((q[0]-a[0])*u[0]+(q[1]-a[1])*u[1])-((p[0]-a[0])*u[0]+(p[1]-a[1])*u[1]))[0];
+   const Lb=(E[0]-b[0])*u[0]+(E[1]-b[1])*u[1];if(Lb<12)return;const s0=add(b,u,Math.max(8,Lb*.3)),e0=add(E,u,-2),h=add(e0,u,-9),nv=[-u[1],u[0]];
+   o+=`<line x1="${n1(s0[0])}" y1="${n1(s0[1])}" x2="${n1(h[0])}" y2="${n1(h[1])}" stroke="${RED}" stroke-width="3" stroke-linecap="round"/><polygon points="${n1(e0[0])},${n1(e0[1])} ${n1(h[0]+nv[0]*5)},${n1(h[1]+nv[1]*5)} ${n1(h[0]-nv[0]*5)},${n1(h[1]-nv[1]*5)}" fill="${RED}"/>`;
+   const M=mid(s0,e0),an=deg([nv[0],-nv[1]]);put(M,n.t,[an,an+180,an+20,an-20,an+160,an+200],[14,18,22]);}
+  else if(n.k==='ang'){const v=P[n.v],rp=/<path d="M([\d.\-]+) ([\d.\-]+) A([\d.\-]+) [\d.\-]+ 0 0 [01] ([\d.\-]+) ([\d.\-]+)"([^>]*)\/>/g;let best=null,mm;
+   while((mm=rp.exec(svg))){const s0=[num(mm[1]),num(mm[2])],e0=[num(mm[4]),num(mm[5])],R=num(mm[3]);if(Math.abs(dist(s0,v)-R)<2&&Math.abs(dist(e0,v)-R)<2)best={s0,e0,R,src:mm[0]};}
+   if(!best)return;svg=svg.replace(best.src,best.src.replace('stroke="#111"',`stroke="${RED}"`).replace(/stroke-width="[\d.]+"/,'stroke-width="2.4"'));
+   const md=unit(sub(mid(best.s0,best.e0),v)),an=deg([md[0],-md[1]]);put(v,n.t,[an,an-8,an+8,an-16,an+16],[best.R+22,best.R+28,best.R+34,best.R+42]);}
+  else if(n.k==='t'){o+=`<text x="${n.x}" y="${n.y}" text-anchor="${n.an||'middle'}" font-size="${fs}" font-weight="700" fill="${RED}" ${SH}>${n.t}</text>`;}});
+ return svg.replace(/<\/svg>$/,o+'</svg>');}
+/* 直線上にない点 P を通る垂線の「手順がちがう」作図（2026-11-09 15:10 川上さん「もっと手順を間違えているやり方に」）。
+   どの形も、最後の直線は P を通り ℓ に垂直（線の向きでは見分けられない。作図の跡＝弧で見分ける）。mode：
+   'noarc'＝❶ の弧をかかずに、×印だけ／'c2P'＝❷ の弧の1つを P を中心にかいた／'tan'＝❶ の弧が ℓ に1点でふれるだけ／
+   'bis'＝P と関係ない ℓ 上の2点で垂直二等分線の作図（大きな弧）／'one'＝❷ の弧が1つだけで×印が無い */
+function pextw(F,s){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),H=foot(p,l1,l2);F.R('_H',H);const h=dist(p,H),d=unit(sub(l2,l1)),n=unit(sub(H,p));
+ const w=s.w||1.45,U=add(H,d,-w*h*.73),V=add(H,d,w*h*.73),X=add(H,n,(s.xd||1.1)*h),sp=s.span||22;
+ const arc1=(r)=>{const tu=deg(sub(U,p)),dd=nd(deg(sub(V,p))-tu);let a0=tu,a1=tu+dd;if(a1<a0){const z=a0;a0=a1;a1=z;}F.arc(p,r,a0-12,a1+12);};
+ if(s.mode==='noarc'){F.arcat(U,X,sp);F.arcat(V,X,sp);}
+ else if(s.mode==='c2P'){arc1(dist(p,U));F.arcat(p,X,sp);F.arcat(U,X,sp);}
+ else if(s.mode==='tan'){const t=deg(n);const ts=s.tspan||50;F.arc(p,h,t-ts,t+ts);F.arcat(U,X,sp);F.arcat(V,X,sp);}
+ else if(s.mode==='bis'){const a=add(H,d,-h*1.05),b=add(H,d,h*1.05),r=dist(a,X);const I=cc(a,r,b,r);if(I.length){F.arc2(a,I[0],I[1],14);F.arc2(b,I[0],I[1],14);}}
+ else if(s.mode==='one'){arc1(dist(p,U));F.arcat(U,X,sp*1.3);}
+ F.line(p,X,{w:'c'});}
+/* 直線上の点 P を通る垂線の作図（正しい形と、手順がちがう形）。どれも最後の直線は P を通り ℓ に垂直（2026-11-09 系統K2）
+   mode：'ok'／'noarc'＝❶ の印が無く×印だけ／'c2P'＝×印の弧の1つを P を中心にかいた／'one'＝❷ の弧が1つだけ／'same'＝❷ の半径を ❶ と同じにして弧が P でふれるだけ／'half'＝❶ の印が片側だけで、×印の弧の1つを P を中心にかいた */
+function ponw(F,s){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),d=unit(sub(l2,l1));let n=[-d[1],d[0]];if(s.sgn<0)n=[-n[0],-n[1]];
+ const r1=s.r1||dist(l1,l2)*.2,U=add(p,d,-r1),V=add(p,d,r1),r2=r1*(s.k2||1.6),X=add(p,n,Math.sqrt(r2*r2-r1*r1)),sp=s.span||22,m=s.mode||'ok';F.R('_U',U);F.R('_V',V);F.R('_X',X);
+ if(m!=='noarc'){F.arcat(p,U,14);if(m!=='half')F.arcat(p,V,14);}
+ if(m==='ok'||m==='noarc'){F.arcat(U,X,sp,r2);F.arcat(V,X,sp,r2);}
+ else if(m==='c2P'||m==='half'){F.arcat(p,X,sp);F.arcat(U,X,sp,r2);}
+ else if(m==='one'){F.arcat(U,X,sp*1.4,r2);}
+ else if(m==='same'){const ss=s.sgn<0?-1:1,tU=deg(sub(p,U)),tV=deg(sub(p,V));if(ss>0){F.arc(U,r1,tU-8,tU+60);F.arc(V,r1,tV-60,tV+8);}else{F.arc(U,r1,tU-60,tU+8);F.arc(V,r1,tV-8,tV+60);}}
+ F.line(p,X,{w:'c'});}
+/* 60° の作図（正しい形と、手順がちがう形）。どれも半直線 OX は OB と 60° をつくる
+   mode：'ok'／'noarc'＝❶ の弧が無く×印だけ／'one'＝❷ の弧が無い／'only2'＝❶ の弧が無く ❷ の弧だけ／'nomeet'＝❶ の弧が OB と交わっていない／'cB'＝❷ の弧の中心が U ではなく B */
+function a60w(F,s){const o=F.xy(s.o),b=F.xy(s.b),d=unit(sub(b,o)),r=s.r||dist(o,b)*.5,U=add(o,d,r),t0=deg(d),m=s.mode||'ok',sp=s.span||22;F.R('_U',U);
+ const X=add(o,[Math.cos((t0+60)*Math.PI/180),Math.sin((t0+60)*Math.PI/180)],r);F.R('_X',X);const pa=t=>add(o,[Math.cos(t*Math.PI/180),Math.sin(t*Math.PI/180)],r);F.R('_N1',pa(t0+28));{const tx=deg(sub(X,U))+22;F.R('_N2',add(U,[Math.cos(tx*Math.PI/180),Math.sin(tx*Math.PI/180)],r));}
+ if(m==='ok'||m==='one'||m==='cB')F.arc(o,r,t0-10,t0+80);
+ if(m==='nomeet')F.arc(o,r,t0+28,t0+85);
+ if(m==='ok'||m==='nomeet')F.arcat(U,X,sp,r);
+ if(m==='noarc'){F.arcat(o,X,sp,r);F.arcat(U,X,sp,r);}
+ if(m==='only2')F.arcat(U,X,sp*1.6,r);
+ if(m==='cB')F.arcat(b,X,sp,dist(b,X));
+ F.ray(o,X,{w:'c'});if(s.lab)F.P(s.lab,add(o,unit(sub(X,o)),r*1.75),{dot:false});}
+/* 2本の直線の交点に点をおく：{k:'meet', a:[点,点], b:[点,点], nm:'P', lab} */
+function meet(F,s){const p1=F.xy(s.a[0]),p2=F.xy(s.a[1]),q1=F.xy(s.b[0]),q2=F.xy(s.b[1]),d1=sub(p2,p1),d2=sub(q2,q1),den=d1[0]*d2[1]-d1[1]*d2[0];if(Math.abs(den)<1e-12)return;
+ const t=((q1[0]-p1[0])*d2[1]-(q1[1]-p1[1])*d2[0])/den,P=add(p1,d1,t);F.R(s.nm,P);if(s.show!==false)F.P(s.nm.replace(/^_/,''),P,{lab:s.lab===undefined?s.nm.replace(/^_/,''):s.lab,red:!!s.red});}
+/* 作った点に点をおく／線をひく：{k:'pt', at:'_M1', nm:'P'}・{k:'ln', a, b, o} */
+function ptk(F,s){F.P(s.nm,F.xy(s.at),{lab:s.lab===undefined?s.nm:s.lab});}
+function lnk(F,s){(s.seg?F.seg:F.line).call(F,s.a,s.b,s.o||{w:'c'});}
+const STEP={bis,pon,pext,pextw,ponw,a60w,meet,pt:ptk,ln:lnk,abis,a60};
+function SAKU(sp){const F=new Fig();
+ /* rot＝図全体を原点のまわりに回す角度（度）。ℓ の向きを選択肢ごとに変えるため（2026-11-09 系統K2） */
+ if(sp.rot){const a=sp.rot*Math.PI/180,R=q=>[q[0]*Math.cos(a)-q[1]*Math.sin(a),q[0]*Math.sin(a)+q[1]*Math.cos(a)],isP=v=>Array.isArray(v)&&v.length===2&&typeof v[0]==='number';
+  sp=JSON.parse(JSON.stringify(sp));(sp.pts||[]).forEach(q=>{const r=R([q[1],q[2]]);q[1]=r[0];q[2]=r[1];});
+  (sp.steps||[]).forEach(s=>Object.keys(s).forEach(k=>{if(isP(s[k]))s[k]=R(s[k]);}));(sp.txts||[]).forEach(q=>{const r=R([q[0],q[1]]);q[0]=r[0];q[1]=r[1];});}
+ (sp.pts||[]).forEach(q=>F.P(q[0],[q[1],q[2]],q[3]));
+ (sp.segs||[]).forEach(q=>F.seg(q[0],q[1],q[2]));(sp.lines||[]).forEach(q=>F.line(q[0],q[1],q[2]));(sp.rays||[]).forEach(q=>F.ray(q[0],q[1],q[2]));
+ (sp.steps||[]).forEach(s=>{F.sfx=s.id||'';STEP[s.k](F,s,!!sp.num);F.sfx='';});
+ (sp.show||[]).forEach(q=>F.P(q[1],F.xy(q[0]),q[2]));
+ (sp.ra||[]).forEach(q=>F.ra(q[0],q[1],q[2]));(sp.tick||[]).forEach(q=>F.tick(q[0],q[1],q[2],q[3]));(sp.dims||[]).forEach(q=>F.dim(q[0],q[1],q[2],q[3]));
+ (sp.labs||[]).forEach(q=>F.lab(q[0],q[1],q[2]));
+ (sp.txts||[]).forEach(q=>F.it.push({k:'txt',at:[q[0],q[1]],t:q[2],col:q[3]}));
+ return F.svg(sp.size||120,sp.cls||'gch',sp.pad,sp.H,sp.fs);}
+/* 座標平面の三角形の面積：長方形で囲み、まわりの3つの直角三角形を ①②③ でぬり分け、直角をはさむ2辺の長さを書く（2026-11-09 系統K1）
+   o＝{A:[x,y],B:[x,y],C:[x,y], w:220}。①＝辺 AB のそば・②＝辺 BC のそば・③＝辺 CA のそば */
+function AREA3(o){const P=[o.A,o.B,o.C],N=['A','B','C'],xs=P.map(p=>p[0]),ys=P.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+ const gx0=Math.min(x0,0)-1,gx1=Math.max(x1,0)+1,gy0=Math.min(y0,0)-1,gy1=Math.max(y1,0)+1,W=o.w||230,U=Math.min((W-20)/(gx1-gx0),(W-20)/(gy1-gy0)),Hh=(gy1-gy0)*U+20,Ww=(gx1-gx0)*U+20;
+ const X=x=>10+(x-gx0)*U,Y=y=>10+(gy1-y)*U;let s=`<svg class="gr" viewBox="0 0 ${n1(Ww)} ${n1(Hh)}" width="${n1(Ww)}" height="${n1(Hh)}">`;
+ for(let i=Math.ceil(gx0);i<=gx1;i++)s+=`<line x1="${n1(X(i))}" y1="${n1(Y(gy0))}" x2="${n1(X(i))}" y2="${n1(Y(gy1))}" stroke="#e5e7eb" stroke-width="1"/>`;
+ for(let j=Math.ceil(gy0);j<=gy1;j++)s+=`<line x1="${n1(X(gx0))}" y1="${n1(Y(j))}" x2="${n1(X(gx1))}" y2="${n1(Y(j))}" stroke="#e5e7eb" stroke-width="1"/>`;
+ s+=`<line x1="${n1(X(gx0))}" y1="${n1(Y(0))}" x2="${n1(X(gx1))}" y2="${n1(Y(0))}" stroke="#9ca3af" stroke-width="1.2"/><line x1="${n1(X(0))}" y1="${n1(Y(gy0))}" x2="${n1(X(0))}" y2="${n1(Y(gy1))}" stroke="#9ca3af" stroke-width="1.2"/>`;
+ const COL=['#fde68a','#bfdbfe','#bbf7d0'],NUM=['①','②','③'],lab=[];
+ const side=(p,a,b)=>(b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]);
+ [[0,1,2],[1,2,0],[2,0,1]].forEach(([i,j,k],t)=>{const p=P[i],q=P[j],r=P[k];let R=[p[0],q[1]];if(side(R,p,q)*side(r,p,q)>0)R=[q[0],p[1]];
+  s+=`<polygon points="${[p,q,R].map(z=>n1(X(z[0]))+','+n1(Y(z[1]))).join(' ')}" fill="${COL[t]}" fill-opacity=".85" stroke="none"/>`;
+  const g=[(p[0]+q[0]+R[0])/3,(p[1]+q[1]+R[1])/3];lab.push(`<text x="${n1(X(g[0]))}" y="${n1(Y(g[1])+5)}" text-anchor="middle" font-size="14" font-weight="700">${NUM[t]}</text>`);
+  /* 直角をはさむ2辺の長さ（辺のまん中・長方形の外がわ） */
+  [[p,R],[q,R]].forEach(([a,b])=>{const L=Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);if(L<1e-9)return;const m=[(a[0]+b[0])/2,(a[1]+b[1])/2],hz=Math.abs(a[1]-b[1])<1e-9;
+   const kk=L<1.5?1.7:1,out=hz?(Math.abs(m[1]-y1)<1e-9?[0,.45]:[0,-.6]):(Math.abs(m[0]-x1)<1e-9?[.42*kk,0]:[-.42*kk,0]);
+   lab.push(`<text x="${n1(X(m[0]+out[0]))}" y="${n1(Y(m[1]+out[1])+4)}" text-anchor="middle" font-size="12" font-weight="700" fill="#374151" ${SH}>${n1(L)}</text>`);});});
+ s+=`<polygon points="${[[x0,y0],[x1,y0],[x1,y1],[x0,y1]].map(z=>n1(X(z[0]))+','+n1(Y(z[1]))).join(' ')}" fill="none" stroke="#6b7280" stroke-width="1.3" stroke-dasharray="5 4"/>`;
+ s+=`<polygon points="${P.map(z=>n1(X(z[0]))+','+n1(Y(z[1]))).join(' ')}" fill="none" stroke="#111" stroke-width="2.1"/>`;
+ P.forEach((p,i)=>{s+=`<circle cx="${n1(X(p[0]))}" cy="${n1(Y(p[1]))}" r="3" fill="#111"/>`;const c=[(xs[0]+xs[1]+xs[2])/3,(ys[0]+ys[1]+ys[2])/3],d=unit([p[0]-c[0],p[1]-c[1]]);
+  lab.push(`<text x="${n1(X(p[0])+d[0]*19)}" y="${n1(Y(p[1])-d[1]*19+5)}" text-anchor="middle" font-size="14" font-weight="700" ${SH}>${N[i]}</text>`);});
+ return s+lab.join('')+'</svg>';}
+return {SAKU,NOTE,AREA3};})();
+return {"M1U6P1_ZU_ANG":(...a)=>M1U6P1_ZU.ANG(...a),"M1U6P1_ZU_TBL":(...a)=>M1U6P1_ZU.TBL(...a),"M1U6P1_ZU_LINES3":(...a)=>M1U6P1_ZU.LINES3(...a),"M1U6P1_SK_NOTE":(...a)=>M1U6P1_SK.NOTE(...a),"M1U6P1_SK_SAKU":(...a)=>M1U6P1_SK.SAKU(...a),"M1U6P1_ZU_PARPERP":(...a)=>M1U6P1_ZU.PARPERP(...a),"M1U6P1_ZU_DIST":(...a)=>M1U6P1_ZU.DIST(...a),"M1U6P1_ZU_BISECT":(...a)=>M1U6P1_ZU.BISECT(...a),"M1U6P1_ZU_PERP":(...a)=>M1U6P1_ZU.PERP(...a),"M1U6P1_ZU_HEIGHT":(...a)=>M1U6P1_ZU.HEIGHT(...a),"M1U6P1_ZU_SEG":(...a)=>M1U6P1_ZU.SEG(...a),"M1U6P1_ZU_TRI60":(...a)=>M1U6P1_ZU.TRI60(...a),"M1U6P1_SK_AREA3":(...a)=>M1U6P1_SK.AREA3(...a)};
+})();
+NS["gg_m2n08"]=(function(){
+function M2N08_SEN2(o){const FS=12,K='#111',CI='#c2410c',CD='#005AFF',lw=s=>[...s].reduce((a,c)=>a+(c.charCodeAt(0)>255?FS:FS*0.6),0);
+ const L=[0,1].flatMap(i=>[o.n[i]+'（'+o.b+'）',o.n[i]+'（'+o.a+'）']);const x0=Math.ceil(Math.max(...L.map(lw)))+12,BW=[150,110];
+ let s='',y=12,maxx=0;const T=(x,y,t,an,col,fs)=>`<text x="${x}" y="${y}" text-anchor="${an}" font-size="${fs||FS}" font-weight="bold" fill="${col||K}">${t}</text>`;
+ [0,1].forEach(i=>{const W=BW[i],r=+o.r[i],d=Math.max(Math.round(W*r),8),up=o.s[i]>0;
+  s+=T(x0-8,y+14,L[2*i],'end')+`<rect x="${x0}" y="${y}" width="${W}" height="20" fill="#fff" stroke="${K}" stroke-width="1.6"/>`+T(x0+W/2,y+15,o.b+' '+o.v[i],'middle',K,13);
+  const y2=y+30;s+=T(x0-8,y2+14,L[2*i+1],'end');
+  if(up){s+=`<rect x="${x0}" y="${y2}" width="${W}" height="20" fill="#fff" stroke="${K}" stroke-width="1.6"/><rect x="${x0+W}" y="${y2}" width="${d}" height="20" fill="#FFD9C4" stroke="${CI}" stroke-width="1.6"/>`+T(x0+W/2,y2+15,o.b+' '+o.v[i],'middle',K,13)+T(x0+W+d+5,y2+15,'増えた '+o.r[i]+o.v[i],'start',CI);maxx=Math.max(maxx,x0+W+d+5+lw('増えた '+o.r[i]+o.v[i]));}
+  else{s+=`<rect x="${x0}" y="${y2}" width="${W-d}" height="20" fill="#fff" stroke="${K}" stroke-width="1.6"/><rect x="${x0+W-d}" y="${y2}" width="${d}" height="20" fill="#DCE9FF" stroke="${CD}" stroke-width="1.6" stroke-dasharray="4 3"/>`+T(x0+W/2,y2+15,o.b+' '+o.v[i],'middle',K,13)+T(x0+W+5,y2+15,'減った '+o.r[i]+o.v[i],'start',CD);maxx=Math.max(maxx,x0+W+5+lw('減った '+o.r[i]+o.v[i]));}
+  s+=`<line x1="${x0+W}" y1="${y+22}" x2="${x0+W}" y2="${y2-2}" stroke="#9ca3af" stroke-width="1.2" stroke-dasharray="3 3"/>`;y=y2+40;});
+ const tt=`増えた分と減った分を合わせると、全体で ${o.tot} ${o.u}${o.sg>0?'増えた':'減った'}`.replace('増えた分と減った分',o.s[1]>0?'増えた分どうし':'増えた分と減った分');
+ const t1=tt.slice(0,tt.indexOf('、')+1),t2=tt.slice(tt.indexOf('、')+1);s+=T(x0,y+2,t1,'start',K)+T(x0,y+20,t2,'start',K);maxx=Math.max(maxx,x0+lw(t1));const W=Math.ceil(maxx+8),H=y+30;
+ return `<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="線分図">${s}</svg>`;}
+return {"M2N08_SEN2":M2N08_SEN2};
+})();
+NS["gg_m2n10"]=(function(){
+const S=(o)=>{if(o.ren){o.steps.forEach(st=>st.a=st.c.r);}else o.a=o.c.r;return o;};
+const M2N10_ZU=(()=>{
+const FIG=(o)=>{
+ const RED='#c2410c',SH='stroke="#fff" stroke-width="4" paint-order="stroke"';
+ const n_=v=>{let s=(Math.round(v*10)/10).toFixed(1);s=s.replace(/\.0$/,'');return s==='-0'?'0':s;};
+ const seg=s=>s.indexOf('-')>=0?s.split('-'):(s.length===2?[s[0],s[1]]:[s[0],s.slice(1)]);
+ const key=s=>{const a=seg(s);return a.slice().sort().join('');};
+ const P=o.P,w=o.w||200,pad=o.pad==null?20:o.pad,texts=o.texts||[],rings=o.rings||[],arcs0=o.arcs||[];
+ const xs=Object.values(P).map(p=>p[0]).concat(texts.map(t=>t[0])),ys=Object.values(P).map(p=>p[1]).concat(texts.map(t=>t[1]));
+ rings.forEach(([cx,cy,r])=>{xs.push(cx-r,cx+r);ys.push(cy-r,cy+r);});
+ arcs0.forEach(([cx,cy,r,a1,a2])=>{let b=a2;while(b<a1)b+=360;for(let a=a1;a<=b+1e-9;a+=5){xs.push(cx+r*Math.cos(a*Math.PI/180));ys.push(cy+r*Math.sin(a*Math.PI/180));}});
+ const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+ let sc=(w-2*pad)/Math.max(x1-x0,1e-9),H=(y1-y0)*sc+2*pad;
+ if(H>w*1.1){sc=(w*1.1-2*pad)/(y1-y0);H=w*1.1;}
+ const W=(x1-x0)*sc+2*pad,X=x=>pad+(x-x0)*sc,Y=y=>pad+(y1-y)*sc;
+ const S={};Object.keys(P).forEach(k=>{S[k]=[X(P[k][0]),Y(P[k][1])];});
+ const SEG=(o.segs||[]).map(seg),DSH=(o.dash||[]).map(seg),HID=(o.hid||[]).map(seg);
+ const out=[`<svg class="${o.cls||'gr'}" viewBox="0 0 ${n_(W)} ${n_(H)}" width="${n_(W)}" height="${n_(H)}">`];
+ (o.shade||[]).forEach(([t,col])=>{const v=t.indexOf('-')>=0?t.split('-'):t.split('');out.push(`<polygon points="${v.map(c=>n_(S[c][0])+','+n_(S[c][1])).join(' ')}" fill="${col}" fill-opacity=".14" stroke="none"/>`);});
+ rings.forEach(([cx,cy,r,op])=>{op=op||{};out.push(`<circle cx="${n_(X(cx))}" cy="${n_(Y(cy))}" r="${n_(r*sc)}" fill="none" stroke="${op.red?RED:'#111'}" stroke-width="${op.red?1.6:1.8}"${op.dash?' stroke-dasharray="5 4"':''}/>`);});
+ arcs0.forEach(([cx,cy,r,a1,a2,op])=>{op=op||{};let b=a2;while(b<a1)b+=360;const p=a=>[X(cx+r*Math.cos(a*Math.PI/180)),Y(cy+r*Math.sin(a*Math.PI/180))];const [ax,ay]=p(a1),[bx,by]=p(b);
+  out.push(`<path d="M${n_(ax)} ${n_(ay)} A${n_(r*sc)} ${n_(r*sc)} 0 ${b-a1>180?1:0} 0 ${n_(bx)} ${n_(by)}" fill="none" stroke="${op.red?RED:'#111'}" stroke-width="${op.w||(op.red?4:1.8)}" stroke-linecap="round"/>`);});
+ SEG.forEach(([a,b])=>out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="#111" stroke-width="2" stroke-linecap="round"/>`));
+ HID.forEach(([a,b])=>out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="#111" stroke-width="1.5" stroke-dasharray="5 4"/>`));
+ DSH.forEach(([a,b])=>out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="${RED}" stroke-width="1.6" stroke-dasharray="5 4"/>`));
+ (o.thick||[]).forEach(([s,red])=>{const [a,b]=seg(s);out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="${red?RED:'#111'}" stroke-width="4" stroke-linecap="round"/>`);});
+ const along=(a,b,t)=>[S[a][0]+(S[b][0]-S[a][0])*t,S[a][1]+(S[b][1]-S[a][1])*t];
+ const clear=(a,b,tt)=>{const [ax,ay]=S[a],[bx,by]=S[b],L2=(bx-ax)**2+(by-ay)**2;const near=[];
+  Object.keys(S).forEach(k=>{if(k===a||k===b)return;const [px,py]=S[k];const t=((px-ax)*(bx-ax)+(py-ay)*(by-ay))/L2;const cr=Math.abs((bx-ax)*(py-ay)-(by-ay)*(px-ax))/Math.sqrt(L2);if(cr<1.5&&t>0&&t<1)near.push(t);});
+  if(!near.some(t=>Math.abs(t-tt)<.13))return tt;for(const c of [.3,.7,.25,.75,.38,.62])if(!near.some(t=>Math.abs(t-c)<.13))return c;return tt;};
+ const norm=(a,b)=>((S[b][0]<S[a][0]-1e-6)||(Math.abs(S[b][0]-S[a][0])<1e-6&&S[b][1]>S[a][1]))?[b,a]:[a,b];
+ const pk=new Set((o.par||[]).map(p=>key(p[0]))),tk=new Set((o.ticks||[]).map(t=>key(t[0])));
+ (o.ticks||[]).forEach(([s,n,red])=>{let [a,b]=seg(s);const col=red?RED:'#111';if(pk.has(key(s)))[a,b]=norm(a,b);let tt=pk.has(key(s))?.62:.5;tt=clear(a,b,tt);
+  const [mx,my]=along(a,b,tt),dx=S[b][0]-S[a][0],dy=S[b][1]-S[a][1],L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,nx=-uy,ny=ux;
+  for(let i=0;i<n;i++){const off=(i-(n-1)/2)*4,cx=mx+ux*off,cy=my+uy*off;out.push(`<line x1="${n_(cx+nx*6)}" y1="${n_(cy+ny*6)}" x2="${n_(cx-nx*6)}" y2="${n_(cy-ny*6)}" stroke="${col}" stroke-width="2"/>`);}});
+ (o.par||[]).forEach(([s,n,red])=>{let [a,b]=seg(s);const col=red?RED:'#111';[a,b]=norm(a,b);let tt=tk.has(key(s))?.34:.5;tt=clear(a,b,tt);
+  const [mx,my]=along(a,b,tt),dx=S[b][0]-S[a][0],dy=S[b][1]-S[a][1],L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,nx=-uy,ny=ux;
+  for(let i=0;i<n;i++){const off=(i-(n-1)/2)*5+3,tx=mx+ux*off,ty=my+uy*off;out.push(`<polyline points="${n_(tx-ux*6+nx*5)},${n_(ty-uy*6+ny*5)} ${n_(tx)},${n_(ty)} ${n_(tx-ux*6-nx*5)},${n_(ty-uy*6-ny*5)}" fill="none" stroke="${col}" stroke-width="2"/>`);}});
+ (o.circ||[]).forEach(([s,red])=>{const [a,b]=seg(s);const [mx,my]=along(a,b,.5);out.push(`<circle cx="${n_(mx)}" cy="${n_(my)}" r="4.5" fill="#fff" stroke="${red?RED:'#111'}" stroke-width="2"/>`);});
+ const arcs={};
+ (o.angs||[]).forEach(([p1,v,p2,n,red,r0])=>{const col=red?RED:'#111';const [vx,vy]=S[v];let a1=Math.atan2(S[p1][1]-vy,S[p1][0]-vx),a2=Math.atan2(S[p2][1]-vy,S[p2][0]-vx);
+  let d=((a2-a1)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);if(d>Math.PI){[a1,a2]=[a2,a1];d=2*Math.PI-d;}const rb=r0||13;
+  (arcs[v]=arcs[v]||[]).push([a1,d,rb+4*Math.max(n-1,0)]);
+  if(Math.abs(d-Math.PI/2)<0.02&&n===-1){const q=9,ux=Math.cos(a1),uy=Math.sin(a1),wx=Math.cos(a1+d),wy=Math.sin(a1+d);out.push(`<polyline points="${n_(vx+ux*q)},${n_(vy+uy*q)} ${n_(vx+ux*q+wx*q)},${n_(vy+uy*q+wy*q)} ${n_(vx+wx*q)},${n_(vy+wy*q)}" fill="none" stroke="${col}" stroke-width="1.5"/>`);return;}
+  for(let i=0;i<Math.max(n,1);i++){const r=rb+4*i;if(n===0){const am=a1+d/2;out.push(`<circle cx="${n_(vx+Math.cos(am)*12)}" cy="${n_(vy+Math.sin(am)*12)}" r="2.6" fill="${col}"/>`);break;}
+   out.push(`<path d="M${n_(vx+Math.cos(a1)*r)} ${n_(vy+Math.sin(a1)*r)} A${r} ${r} 0 0 1 ${n_(vx+Math.cos(a1+d)*r)} ${n_(vy+Math.sin(a1+d)*r)}" fill="none" stroke="${col}" stroke-width="1.8"/>`);}});
+ (o.dots||[]).forEach(k=>out.push(`<circle cx="${n_(S[k][0])}" cy="${n_(S[k][1])}" r="3" fill="#111"/>`));
+ texts.forEach(([x,y,t,op])=>{op=op||{};out.push(`<text x="${n_(X(x)+(op.dx||0))}" y="${n_(Y(y)+(op.dy||0)+4)}" text-anchor="middle" font-size="${op.size||12}" font-weight="bold"${op.it?' font-style="italic"':''}${op.red?' fill="'+RED+'"':''} ${SH}>${t}</text>`);});
+ const free=k=>{const [px,py]=S[k];const dirs=[];SEG.concat(DSH,HID).forEach(([a,b])=>{const [ax,ay]=S[a],[bx,by]=S[b];
+   if(k===a)dirs.push(Math.atan2(by-py,bx-px));else if(k===b)dirs.push(Math.atan2(ay-py,ax-px));
+   else{const L=Math.hypot(bx-ax,by-ay),cr=Math.abs((bx-ax)*(py-ay)-(by-ay)*(px-ax))/L,t=((px-ax)*(bx-ax)+(py-ay)*(by-ay))/L/L;if(cr<1.5&&t>0&&t<1){dirs.push(Math.atan2(by-py,bx-px));dirs.push(Math.atan2(ay-py,ax-px));}}});
+  if(!dirs.length){const vs=Object.values(S);const cx=vs.reduce((s,v)=>s+v[0],0)/vs.length,cy=vs.reduce((s,v)=>s+v[1],0)/vs.length;return Math.atan2(py-cy,px-cx);}
+  dirs.sort((a,b)=>a-b);let best=-9,ang=0;dirs.forEach((d,i)=>{const e=dirs[(i+1)%dirs.length]+(i===dirs.length-1?2*Math.PI:0);const m=(d+e)/2;let sc=e-d;
+   if((arcs[k]||[]).some(([a1,dd])=>(((m-a1)%(2*Math.PI))+2*Math.PI)%(2*Math.PI)<dd))sc-=Math.PI;if(sc>best){best=sc;ang=m;}});return ang;};
+ Object.keys(S).forEach(k=>{if(k[0]==='_')return;const [px,py]=S[k];let ang=(o.lab||{})[k];if(ang==null)ang=free(k);let r=11;
+  (arcs[k]||[]).forEach(([a1,d,rr])=>{if((((ang-a1)%(2*Math.PI))+2*Math.PI)%(2*Math.PI)<d)r=Math.max(r,rr+10);});
+  out.push(`<text x="${n_(px+Math.cos(ang)*r)}" y="${n_(py+Math.sin(ang)*r+5)}" text-anchor="middle" font-size="14" font-weight="bold" ${SH}>${k}</text>`);});
+ return out.join('')+'</svg>';};
+
+const BX=t=>`<span class="bx" style="display:inline-block;min-width:2.4em;border:1.5px solid currentColor;border-radius:3px;text-align:center;line-height:1.3;padding:0 .3em;margin:0 .15em;font-weight:700">${t}</span>`;
+const PRF=L=>`<div class="prf" style="margin:4px 0 2px;line-height:1.6">［証明］<br>${L.map(l=>l.replace(/\[([ab])\]/g,(m,t)=>BX(t)).replace(/……([①-⑨])/g,'<span style="white-space:nowrap">……$1</span>')).join('<br>')}</div>`;
+const RD='#c2410c',T_=(x,y,t,ex)=>`<text x="${x}" y="${y}" font-size="13" text-anchor="middle" font-weight="bold" ${ex||''}>${t}</text>`;
+const L_=(x1,y1,x2,y2,st)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${st||'stroke="#111" stroke-width="1.6"'}/>`;
+const tk=(x1,y1,x2,y2,n)=>{const mx=(x1+x2)/2,my=(y1+y2)/2,L=Math.hypot(x2-x1,y2-y1),ux=(x2-x1)/L,uy=(y2-y1)/L;let s='';for(let i=0;i<n;i++){const o=(i-(n-1)/2)*4;s+=L_((mx+ux*o-uy*5).toFixed(1),(my+uy*o+ux*5).toFixed(1),(mx+ux*o+uy*5).toFixed(1),(my+uy*o-ux*5).toFixed(1),`stroke="${RD}" stroke-width="1.6"`);}return s;};
+const ar=(vx,vy,a1,a2,r,n)=>{let s='';for(let i=0;i<n;i++){const R=r+i*4,p=t=>[(vx+R*Math.cos(t*Math.PI/180)).toFixed(1),(vy-R*Math.sin(t*Math.PI/180)).toFixed(1)];const [x1,y1]=p(a1),[x2,y2]=p(a2);s+=`<path d="M${x1},${y1} A${R},${R} 0 0 0 ${x2},${y2}" fill="none" stroke="${RD}" stroke-width="1.6"/>`;}return s;};
+/* 三角形の合同条件の3つの図。k＝この問題で使う条件（1〜3）に朱のわく */
+function GJ(k){let s='';const cap=['3組の辺','2組の辺と','1組の辺と'],cap2=['','その間の角','その両端の角'];
+ for(let i=0;i<3;i++){const dx=i*98,A=[dx+52,18],B=[dx+10,74],C=[dx+78,74];s+=`<polygon points="${A} ${B} ${C}" fill="none" stroke="#111" stroke-width="1.6"/>`;
+  if(i===0)s+=tk(...B,...C,1)+tk(...C,...A,2)+tk(...A,...B,3);
+  if(i===1)s+=tk(...B,...C,1)+tk(...A,...B,2)+ar(...B,0,53,13,1);
+  if(i===2)s+=tk(...B,...C,1)+ar(...B,0,53,13,1)+ar(...C,115,180,13,2);
+  if(k===i+1)s+=`<rect x="${dx+2}" y="6" width="94" height="${cap2[i]?114:98}" rx="6" fill="none" stroke="${RD}" stroke-width="2"/>`;
+  s+=T_(dx+48,94,cap[i])+(cap2[i]?T_(dx+48,110,cap2[i]):'');}
+ return `<svg viewBox="0 0 296 124" width="296" height="124" aria-label="三角形の合同条件の図">${s}</svg>`;}
+/* 平行線と錯角（Z の形） */
+function SAK(){const y1=26,y2=84;let s=L_(20,y1,150,y1)+L_(10,y2,140,y2)+L_(118,10,32,100);
+ s+=`<polygon points="62,${y1-4} 70,${y1} 62,${y1+4}" fill="#111"/><polygon points="56,${y2-4} 64,${y2} 56,${y2+4}" fill="#111"/>`;
+ const X1=[118-(y1-10)*86/90,y1],X2=[118-(y2-10)*86/90,y2];s+=ar(...X1,180,226,16,1)+ar(...X2,0,46,16,1);
+ return `<svg viewBox="0 0 160 124" width="160" height="124" aria-label="平行線の錯角の図">${s+T_(80,118,'錯角（Z の形）は等しい')}</svg>`;}
+/* 対頂角 */
+function TAI(){let s=L_(14,20,146,92)+L_(14,92,146,20);s+=ar(80,56,151,209,18,1)+ar(80,56,-29,29,18,1);
+ return `<svg viewBox="0 0 160 116" width="160" height="116" aria-label="対頂角の図">${s+T_(80,110,'向かい合う角は等しい')}</svg>`;}
+return {FIG,BX,PRF,GJ,SAK,TAI};})();
+return {"M2N10_ZU_GJ":(...a)=>M2N10_ZU.GJ(...a),"M2N10_ZU_FIG":(...a)=>M2N10_ZU.FIG(...a),"M2N10_ZU_SAK":(...a)=>M2N10_ZU.SAK(...a)};
 })();
 NS["gg_m2n12"]=(function(){
 const M2N12_ZU=(()=>{
@@ -289,7 +924,7 @@ const M2N12_ZU=(()=>{
   return s+'</svg>';};
  return {T,CARDS,STEP,POLY};
 })();
-return {"M2N12_ZU_T":(...a)=>M2N12_ZU.T(...a),"M2N12_ZU_CARDS":(...a)=>M2N12_ZU.CARDS(...a),"M2N12_ZU_STEP":(...a)=>M2N12_ZU.STEP(...a),"M2N12_ZU_POLY":(...a)=>M2N12_ZU.POLY(...a)};
+return {"M2N12_ZU_T":(...a)=>M2N12_ZU.T(...a),"M2N12_ZU_CARDS":(...a)=>M2N12_ZU.CARDS(...a),"M2N12_ZU_STEP":(...a)=>M2N12_ZU.STEP(...a)};
 })();
 NS["gg_m2n13"]=(function(){
 const M2N13_ZU=(()=>{
@@ -300,7 +935,7 @@ const M2N13_ZU=(()=>{
  const nv=v=>n_(v);  /* 値の字（小数は .5 など） */
 
  /* HIST({lo:最初の階級の下の端, w:階級の幅, f:[度数…], u:'分', ttl:'A中学校（50人）', ymax, yt:目もりの間, hl:[色をつける階級の番号], cnt:true（棒の上に度数）, bw:棒の幅})
-    問題の図には hl・cnt を付けない（答えになるため）。rect class="hbar"。data-ax＝「左はしの x, 1 あたりの横の長さ, 0 人の y, 1 人あたりのたての長さ」 */
+    問題の図には hl・cnt を付けない（答えになるため）。rect class="hbar"（"bar" は gg_app の .wsp .bar{display:none} に当たって消えるので使わない・2026-11-08）。data-ax＝「左はしの x, 1 あたりの横の長さ, 0 人の y, 1 人あたりのたての長さ」 */
  const HIST=(o)=>{
   const f=o.f,n=f.length,bw=o.bw||26,mx=Math.max(...f);
   const ymax=o.ymax||(mx<=6?mx+1:(mx%2?mx+1:mx+2));const yt=o.yt||1;const ph=o.ph||(ymax<=8?18:(ymax<=12?14:(ymax<=16?11:9)));
@@ -394,6 +1029,32 @@ const M2N13_ZU=(()=>{
 })();
 return {"M2N13_ZU_SEQ":(...a)=>M2N13_ZU.SEQ(...a),"M2N13_ZU_BOX":(...a)=>M2N13_ZU.BOX(...a),"M2N13_ZU_HIST":(...a)=>M2N13_ZU.HIST(...a)};
 })();
+NS["gg_m2u4p3"]=(function(){
+const mi=v=>String(v).replace(/^-/,'−');
+function GS(o){const R=o.R||5,U=20,L=R+.5,W=(2*R+1)*U,c=W/2,X=x=>c+x*U,Y=y=>c-y*U,sm=!!o.sm,K=sm?1.35:1;
+ const H=`stroke="#fff" stroke-width="${4*K}" paint-order="stroke"`;
+ let s=`<svg class="${sm?'gch':'gr'}" viewBox="0 0 ${W} ${W}" width="${o.w||200}" height="${o.w||200}">`;
+ if(o.grid!==false)for(let i=-R;i<=R;i++){s+=`<line x1="${X(i)}" y1="${Y(-L)}" x2="${X(i)}" y2="${Y(L)}" stroke="#d1d5db" stroke-width="1"/><line x1="${X(-L)}" y1="${Y(i)}" x2="${X(L)}" y2="${Y(i)}" stroke="#d1d5db" stroke-width="1"/>`;}
+ (o.yhl?[o.yhl]:[]).forEach(q=>{s+=`<line x1="${c}" y1="${Y(q[0])}" x2="${c}" y2="${Y(q[1])}" stroke="#c2410c" stroke-width="6" stroke-opacity=".55"/>`;});
+ s+=`<line x1="${X(-L)}" y1="${c}" x2="${X(L)}" y2="${c}" stroke="#111" stroke-width="1.4"/><line x1="${c}" y1="${Y(-L)}" x2="${c}" y2="${Y(L)}" stroke="#111" stroke-width="1.4"/>`;
+ s+=`<text x="${X(L)-9*K}" y="${c-6}" font-size="${13*K}" font-style="italic">x</text><text x="${c+6}" y="${Y(L)+13*K}" font-size="${13*K}" font-style="italic">y</text><text x="${c-4}" y="${c+14*K}" font-size="${12*K}" text-anchor="end">O</text>`;
+ if(o.nums!==false)[-4,-2,2,4].forEach(v=>{s+=`<text x="${X(v)}" y="${c+14*K}" font-size="${11*K}" text-anchor="middle" fill="#555" ${H}>${mi(v)}</text><text x="${c-5}" y="${Y(v)+4*K}" font-size="${11*K}" text-anchor="end" fill="#555" ${H}>${mi(v)}</text>`;});
+ const CL=(a,b)=>{let p=[];[-L,L].forEach(x=>{const y=a*x+b;if(y>=-L-1e-9&&y<=L+1e-9)p.push([x,y]);});if(a!==0)[-L,L].forEach(y=>{const x=(y-b)/a;if(x>-L&&x<L)p.push([x,y]);});p.sort((u,v)=>u[0]-v[0]);return [p[0],p[p.length-1]];};
+ /* 2026-11-09 解説の図で、使う図形を塗る（poly＝[[x,y],…]）。川上さん 13:14「三角形CDEをちゃんと書いてあげて」 */
+ (o.poly?[o.poly]:[]).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fde68a" fill-opacity=".75" stroke="none"/>`;});
+ (o.lines||[]).forEach(l=>{const [p,q]=CL(l[0],l[1]);s+=`<line x1="${X(p[0])}" y1="${Y(p[1])}" x2="${X(q[0])}" y2="${Y(q[1])}" stroke="#111" stroke-width="${sm?3:2.4}"/>`;});
+ (o.dsh||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="#c2410c" stroke-width="1.4" stroke-dasharray="4 3"/>`;});
+ (o.segs||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="#111" stroke-width="2.6"/>`;});
+ if(o.st){const [x0,y0,dx,dy]=o.st;s+=`<line x1="${X(x0)}" y1="${Y(y0)}" x2="${X(x0+dx)}" y2="${Y(y0)}" stroke="#c2410c" stroke-width="2.6"/><line x1="${X(x0+dx)}" y1="${Y(y0)}" x2="${X(x0+dx)}" y2="${Y(y0+dy)}" stroke="#c2410c" stroke-width="2.6"/><text x="${(X(x0)+X(x0+dx))/2}" y="${Y(y0)+(dy>0?17:-8)}" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle" ${H}>右へ${dx}</text><text x="${X(x0+dx)+6}" y="${(Y(y0)+Y(y0+dy))/2+5}" font-size="13" font-weight="700" fill="#c2410c" ${H}>${dy>0?'上へ'+dy:'下へ'+(-dy)}</text>`;}
+ /* 2026-11-09 色つきの線分と札（segc＝[[x1,y1,x2,y2,色,札,札の向き r|l|t|b]]）。底辺・高さを見せる */
+ (o.segc||[]).forEach(q=>{const c2=q[4]||'#c2410c',mx=(X(q[0])+X(q[2]))/2,my=(Y(q[1])+Y(q[3]))/2,F={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,18,'middle']}[q[6]||'r'];s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="${c2}" stroke-width="4" stroke-linecap="round"/>`;if(q[5])s+=`<text x="${mx+F[0]}" y="${my+F[1]}" text-anchor="${F[2]}" font-size="14" font-weight="700" fill="${c2}" ${H}>${q[5]}</text>`;});
+ const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
+ (o.pts||[]).forEach(q=>{const f=OF[q[3]||'tr'];s+=q[4]?`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#fff" stroke="#111" stroke-width="2"/>`:`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])+f[0]}" y="${Y(q[1])+f[1]}" text-anchor="${f[2]}" font-size="13" font-weight="700" ${H}>${q[2]}</text>`;});
+ return s+'</svg>';}
+function M2U4P3_HALF(o){const s=GS(o);if(!o.poly2)return s;const R=o.R||5,U=20,W=(2*R+1)*U,c=W/2,X=x=>c+x*U,Y=y=>c-y*U;
+ const p=`<polygon points="${o.poly2.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#bfdbfe" fill-opacity=".8" stroke="none"/>`;const i=s.indexOf('<polygon');return i<0?s:s.slice(0,i)+p+s.slice(i);}
+return {"M2U4P3_HALF":M2U4P3_HALF};
+})();
 NS["gg_m2u4p4"]=(function(){
 function GQ4(o){const nx=o.xmax/o.xs,ny=o.ymax/o.ys,csx=230/nx,csy=Math.min(170/ny,csx*1.6),L=42,B=28,T=24,Rm=56,PW=nx*csx,PH=ny*csy,W=L+PW+Rm,H=T+PH+B;
  const X=x=>L+x/o.xs*csx,Y=y=>T+PH-y/o.ys*csy;
@@ -426,10 +1087,14 @@ function GS(o){const R=o.R||5,U=20,L=R+.5,W=(2*R+1)*U,c=W/2,X=x=>c+x*U,Y=y=>c-y*
  s+=`<text x="${X(L)-9*K}" y="${c-6}" font-size="${13*K}" font-style="italic">x</text><text x="${c+6}" y="${Y(L)+13*K}" font-size="${13*K}" font-style="italic">y</text><text x="${c-4}" y="${c+14*K}" font-size="${12*K}" text-anchor="end">O</text>`;
  if(o.nums!==false)[-4,-2,2,4].forEach(v=>{s+=`<text x="${X(v)}" y="${c+14*K}" font-size="${11*K}" text-anchor="middle" fill="#555" ${H}>${mi(v)}</text><text x="${c-5}" y="${Y(v)+4*K}" font-size="${11*K}" text-anchor="end" fill="#555" ${H}>${mi(v)}</text>`;});
  const CL=(a,b)=>{let p=[];[-L,L].forEach(x=>{const y=a*x+b;if(y>=-L-1e-9&&y<=L+1e-9)p.push([x,y]);});if(a!==0)[-L,L].forEach(y=>{const x=(y-b)/a;if(x>-L&&x<L)p.push([x,y]);});p.sort((u,v)=>u[0]-v[0]);return [p[0],p[p.length-1]];};
+ /* 2026-11-09 解説の図で、使う図形を塗る（poly＝[[x,y],…]）。川上さん 13:14「三角形CDEをちゃんと書いてあげて」 */
+ (o.poly?[o.poly]:[]).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fde68a" fill-opacity=".75" stroke="none"/>`;});
  (o.lines||[]).forEach(l=>{const [p,q]=CL(l[0],l[1]);s+=`<line x1="${X(p[0])}" y1="${Y(p[1])}" x2="${X(q[0])}" y2="${Y(q[1])}" stroke="#111" stroke-width="${sm?3:2.4}"/>`;});
  (o.dsh||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="#c2410c" stroke-width="1.4" stroke-dasharray="4 3"/>`;});
  (o.segs||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="#111" stroke-width="2.6"/>`;});
  if(o.st){const [x0,y0,dx,dy]=o.st;s+=`<line x1="${X(x0)}" y1="${Y(y0)}" x2="${X(x0+dx)}" y2="${Y(y0)}" stroke="#c2410c" stroke-width="2.6"/><line x1="${X(x0+dx)}" y1="${Y(y0)}" x2="${X(x0+dx)}" y2="${Y(y0+dy)}" stroke="#c2410c" stroke-width="2.6"/><text x="${(X(x0)+X(x0+dx))/2}" y="${Y(y0)+(dy>0?17:-8)}" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle" ${H}>右へ${dx}</text><text x="${X(x0+dx)+6}" y="${(Y(y0)+Y(y0+dy))/2+5}" font-size="13" font-weight="700" fill="#c2410c" ${H}>${dy>0?'上へ'+dy:'下へ'+(-dy)}</text>`;}
+ /* 2026-11-09 色つきの線分と札（segc＝[[x1,y1,x2,y2,色,札,札の向き r|l|t|b]]）。底辺・高さを見せる */
+ (o.segc||[]).forEach(q=>{const c2=q[4]||'#c2410c',mx=(X(q[0])+X(q[2]))/2,my=(Y(q[1])+Y(q[3]))/2,F={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,18,'middle']}[q[6]||'r'];s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="${c2}" stroke-width="4" stroke-linecap="round"/>`;if(q[5])s+=`<text x="${mx+F[0]}" y="${my+F[1]}" text-anchor="${F[2]}" font-size="14" font-weight="700" fill="${c2}" ${H}>${q[5]}</text>`;});
  const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
  (o.pts||[]).forEach(q=>{const f=OF[q[3]||'tr'];s+=q[4]?`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#fff" stroke="#111" stroke-width="2"/>`:`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])+f[0]}" y="${Y(q[1])+f[1]}" text-anchor="${f[2]}" font-size="13" font-weight="700" ${H}>${q[2]}</text>`;});
  return s+'</svg>';}
@@ -788,6 +1453,13 @@ function GQ(o){const sm=!!o.sm,nx=o.xmax/o.xs,ny=o.ymax/o.ys;
  (o.labs||[]).forEach(q=>{const [x,y,t,an,dx,dy,red]=q;s+=`<text x="${X(x)+(dx||0)}" y="${Y(y)+(dy||0)}" text-anchor="${an||'start'}" font-size="12" font-weight="700" ${red?'fill="#c2410c"':''} ${SH}>${t}</text>`;});
  return s+'</svg>';}
 
+/* 2026-11-09 直しの係 f2：2人のグラフに、どの線がだれか（名前）と、家・目的地を書く（決まり56・系統K4）。
+   L＝[[名前,[x1,y1],[x2,y2],'u'（線の左上）|'d'（線の右下）,t（線のどこに置くか 0〜1）],…]。返すのは GQ の labs */
+const NML=(ax,L,home,dest,D,mx)=>{const r=[];const yAt=(l,x)=>{const p=l[1],q=l[2];if(q[0]===p[0])return null;x=Math.min(Math.max(x,Math.min(p[0],q[0])),Math.max(p[0],q[0]));return p[1]+(q[1]-p[1])*(x-p[0])/(q[0]-p[0]);};
+ L.forEach((l,k)=>{let [nm,p,q,sd,t]=l;const lo=0.3,hi=0.9;t=Math.min(hi,Math.max(lo,t));if(mx!==undefined&&q[0]!==p[0]){const tm=(mx-p[0])/(q[0]-p[0]);if(Math.abs(t-tm)<0.3){const af=tm+0.32,bf=tm-0.32;t=k===0?(bf>=0.3?bf:Math.min(hi,af)):(af<=hi?af:Math.max(0.3,bf));}}
+  const x=p[0]+(q[0]-p[0])*t,y=p[1]+(q[1]-p[1])*t;const o=L[1-k];const oy=o?yAt(o,x):null;if(oy!==null)sd=oy>y?'d':'u';
+  r.push(sd==='u'?[x,y,nm,'end',-7,-7]:[x,y,nm,'start',9,15]);});
+ if(home)r.push([0,0,home,'end',-6,-3]);if(dest)r.push([ax.xmax,D,dest,'start',4,4]);return r;};
 /* ---------- 長方形 ABCD と点 P（P は A→B→C→D を s cm 進んだ所）。ct2.js の RECTP と同じ形 ---------- */
 const TWD=t=>[...String(t)].reduce((a,c)=>a+(c.charCodeAt(0)>255?12.5:7),0);
 function RECT(AD,AB,s,o){o=o||{};const k=Math.min(110/AD,110/AB),Wd=AD*k,Hd=AB*k;let L1=(o.seg&&s<=AB)?36+TWD(o.seg):30,R1=(o.seg&&s>AB+AD)?36+TWD(o.seg):40;
@@ -796,12 +1468,12 @@ function RECT(AD,AB,s,o){o=o||{};const k=Math.min(110/AD,110/AB),Wd=AD*k,Hd=AB*k
  if(s<=AB){px=x0;py=y0+s*k;}else if(s<=AB+AD){px=x0+(s-AB)*k;py=y0+Hd;}else{px=x0+Wd;py=y0+Hd-(s-AB-AD)*k;}
  const W=Wd+L1+R1,H=Hd+y0+(o.path?58:30),ww=Math.min(Math.max(o.w||150,W),330);
  let t=`<svg viewBox="0 0 ${nr(W)} ${nr(H)}" width="${nr(ww)}" height="${nr(ww*H/W)}"><defs><pattern id="rp${o.id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#d97706" stroke-width="2"/></pattern></defs>`;
- if(s>0&&s<AB+AD+AB)t+=`<polygon points="${x0},${y0} ${px},${py} ${x0+Wd},${y0}" fill="url(#rp${o.id})" stroke="#111" stroke-width="1.4"/>`;
+ if(s>0&&s<AB+AD+AB)t+=`<polygon points="${x0},${y0} ${px},${py} ${x0+Wd},${y0}" fill="${o.yel?'#fde68a':`url(#rp${o.id})`}" stroke="#111" stroke-width="1.4"/>`;
  t+=`<rect x="${x0}" y="${y0}" width="${Wd}" height="${Hd}" fill="none" stroke="#111" stroke-width="2"/>`;
  t+=`<text x="${x0-6}" y="${y0-4}" text-anchor="end" font-size="13" font-weight="700">A</text><text x="${x0-6}" y="${y0+Hd+14}" text-anchor="end" font-size="13" font-weight="700">B</text><text x="${x0+Wd+6}" y="${y0+Hd+14}" font-size="13" font-weight="700">C</text><text x="${x0+Wd+6}" y="${y0-4}" font-size="13" font-weight="700">D</text>`;
- if(o.dims||o.ad){const lw=TWD(o.ad||AD+' cm'),lx=Math.min(Math.max(x0+Wd/2,lw/2+4),W-lw/2-4);t+=`<text x="${lx}" y="${o.ad?y0-20:y0-7}" text-anchor="middle" font-size="12" font-weight="700">${o.ad||AD+' cm'}</text>`;}
+ if(o.dims||o.ad){const lw=TWD(o.ad||AD+' cm'),lx=Math.min(Math.max(x0+Wd/2,lw/2+4),W-lw/2-4);t+=`<text x="${lx}" y="${o.ad?y0-20:y0-7}" text-anchor="middle" font-size="12" font-weight="700"${o.adc?` fill="${o.adc}"`:''}>${o.ad||AD+' cm'}</text>`;}
  if(o.dims)t+=`<text x="${x0+Wd+6}" y="${y0+Hd/2+4}" font-size="12">${AB} cm</text>`;
- if(o.seg){const c='#c2410c';if(s<=AB){const bx=x0-24;t+=`<line x1="${bx}" y1="${y0}" x2="${bx}" y2="${py}" stroke="${c}" stroke-width="1.6"/><line x1="${bx-4}" y1="${y0}" x2="${bx+4}" y2="${y0}" stroke="${c}" stroke-width="1.6"/><line x1="${bx-4}" y1="${py}" x2="${bx+4}" y2="${py}" stroke="${c}" stroke-width="1.6"/><text x="${bx-5}" y="${(y0+py)/2+4}" text-anchor="end" font-size="12" font-weight="700" fill="${c}" ${SH}>${o.seg}</text>`;}
+ if(o.seg){const c=o.sc||'#c2410c';if(s<=AB){const bx=x0-24;t+=`<line x1="${bx}" y1="${y0}" x2="${bx}" y2="${py}" stroke="${c}" stroke-width="1.6"/><line x1="${bx-4}" y1="${y0}" x2="${bx+4}" y2="${y0}" stroke="${c}" stroke-width="1.6"/><line x1="${bx-4}" y1="${py}" x2="${bx+4}" y2="${py}" stroke="${c}" stroke-width="1.6"/><text x="${bx-5}" y="${(y0+py)/2+4}" text-anchor="end" font-size="12" font-weight="700" fill="${c}" ${SH}>${o.seg}</text>`;}
   else if(s>AB+AD){const bx=x0+Wd+22;t+=`<line x1="${bx}" y1="${y0}" x2="${bx}" y2="${py}" stroke="${c}" stroke-width="1.6"/><line x1="${bx-4}" y1="${y0}" x2="${bx+4}" y2="${y0}" stroke="${c}" stroke-width="1.6"/><line x1="${bx-4}" y1="${py}" x2="${bx+4}" y2="${py}" stroke="${c}" stroke-width="1.6"/><text x="${bx+5}" y="${(y0+py)/2+4}" font-size="12" font-weight="700" fill="${c}" ${SH}>${o.seg}</text>`;}}
  if(o.path){const c='#c2410c',pts=[[x0,y0]];if(s>AB)pts.push([x0,y0+Hd]);if(s>AB+AD)pts.push([x0+Wd,y0+Hd]);pts.push([px,py]);
   t+=`<polyline points="${pts.map(q=>q.join(',')).join(' ')}" fill="none" stroke="${c}" stroke-width="6" stroke-opacity=".45" stroke-linejoin="round"/>`;
@@ -814,14 +1486,16 @@ function TRI(BC,CA,s,o){o=o||{};const k=Math.min(150/BC,120/CA),Wb=BC*k,Hc=CA*k,
  const B=[x0,y0+Hc],C=[x0+Wb,y0+Hc],A=[x0+Wb,y0];let P;if(s<=BC)P=[x0+s*k,y0+Hc];else P=[x0+Wb,y0+Hc-(s-BC)*k];
  const ww=Math.min(Math.max(o.w||200,W),330);
  let t=`<svg viewBox="0 0 ${nr(W)} ${nr(H)}" width="${nr(ww)}" height="${nr(ww*H/W)}"><defs><pattern id="tp${o.id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#d97706" stroke-width="2"/></pattern></defs>`;
- if(s>0&&s<BC+CA)t+=`<polygon points="${A.join(',')} ${B.join(',')} ${P.join(',')}" fill="url(#tp${o.id})" stroke="#111" stroke-width="1.4"/>`;
+ if(s>0&&s<BC+CA)t+=`<polygon points="${A.join(',')} ${B.join(',')} ${P.join(',')}" fill="${o.yel?'#fde68a':`url(#tp${o.id})`}" stroke="#111" stroke-width="1.4"/>`;
  t+=`<polygon points="${A.join(',')} ${B.join(',')} ${C.join(',')}" fill="none" stroke="#111" stroke-width="2"/>`;
  t+=`<polyline points="${C[0]-10},${C[1]} ${C[0]-10},${C[1]-10} ${C[0]},${C[1]-10}" fill="none" stroke="#111" stroke-width="1.2"/>`;
  t+=`<text x="${A[0]+6}" y="${A[1]+4}" font-size="13" font-weight="700">A</text><text x="${B[0]-6}" y="${B[1]+5}" text-anchor="end" font-size="13" font-weight="700">B</text><text x="${C[0]+6}" y="${C[1]+12}" font-size="13" font-weight="700">C</text>`;
  if(o.dims){t+=`<text x="${x0+Wb/2}" y="${y0+Hc+(o.path?44:26)}" text-anchor="middle" font-size="12" font-weight="700">${BC} cm</text><text x="${C[0]+8}" y="${y0+Hc/2+4}" font-size="12" font-weight="700">${CA} cm</text>`;}
- if(o.seg&&s>BC){const c='#c2410c',bx=C[0]+26;t+=`<line x1="${bx}" y1="${A[1]}" x2="${bx}" y2="${P[1]}" stroke="${c}" stroke-width="1.6"/><line x1="${bx-4}" y1="${A[1]}" x2="${bx+4}" y2="${A[1]}" stroke="${c}" stroke-width="1.6"/><line x1="${bx-4}" y1="${P[1]}" x2="${bx+4}" y2="${P[1]}" stroke="${c}" stroke-width="1.6"/><text x="${bx+5}" y="${(A[1]+P[1])/2+4}" font-size="12" font-weight="700" fill="${c}" ${SH}>${o.seg}</text>`;}
+ if(o.seg&&s>BC){const c=o.sc||'#c2410c',bx=C[0]+26;t+=`<line x1="${bx}" y1="${A[1]}" x2="${bx}" y2="${P[1]}" stroke="${c}" stroke-width="1.6"/><line x1="${bx-4}" y1="${A[1]}" x2="${bx+4}" y2="${A[1]}" stroke="${c}" stroke-width="1.6"/><line x1="${bx-4}" y1="${P[1]}" x2="${bx+4}" y2="${P[1]}" stroke="${c}" stroke-width="1.6"/><text x="${bx+5}" y="${(A[1]+P[1])/2+4}" font-size="12" font-weight="700" fill="${c}" ${SH}>${o.seg}</text>`;}
  if(o.path!==undefined){const c='#c2410c',pts=[B];if(s>BC)pts.push(C);pts.push(P);t+=`<polyline points="${pts.map(q=>q.join(',')).join(' ')}" fill="none" stroke="${c}" stroke-width="6" stroke-opacity=".45" stroke-linejoin="round"/>`;
   o.path.split('|').filter(Boolean).forEach((pl,i)=>{t+=`<text x="${x0+Wb/2}" y="${y0+Hc+20+i*15}" text-anchor="middle" font-size="12" font-weight="700" fill="${c}" ${SH}>${pl}</text>`;});}
+ /* 2026-11-09 f2：高さ BC を青の寸法線で見せる（決まり49。底辺＝朱 #FF4B00・高さ＝青 #005AFF） */
+ if(o.hb){const c='#005AFF',by=C[1]+16;t+=`<line x1="${B[0]}" y1="${by}" x2="${C[0]}" y2="${by}" stroke="${c}" stroke-width="2.4"/><line x1="${B[0]}" y1="${by-5}" x2="${B[0]}" y2="${by+5}" stroke="${c}" stroke-width="2"/><line x1="${C[0]}" y1="${by-5}" x2="${C[0]}" y2="${by+5}" stroke="${c}" stroke-width="2"/><text x="${(B[0]+C[0])/2}" y="${by+17}" text-anchor="middle" font-size="13" font-weight="700" fill="${c}" ${SH}>${o.hb}</text>`;}
  t+=`<circle cx="${P[0]}" cy="${P[1]}" r="4.5" fill="#c2410c"/><text x="${P[0]+(s<=BC?0:-8)}" y="${P[1]+(s<=BC?-8:4)}" text-anchor="${s<=BC?'middle':'end'}" font-size="13" font-weight="700" fill="#c2410c" ${SH}>P</text>`;
  return t+'</svg>';}
 
@@ -876,7 +1550,7 @@ function bun(o){const {b0,r,s}=o;const ok=M(EQ(s*r,b0));
  const fy=R`y=\UA{\text{初めの${o.what}}}${sg}\UB{\text{${ch}}}`,sy=R`y=\UA{${N(b0)}}${sg}\UB{${N(r)}x}`;
  const w=[BOX(TBL([['時間（分）','1','2',M('x')],[`${ch}（${o.u}）`,T(r),M(`${N(r)}\\times 2`),M(`${N(r)}\\times x`)]]),`!${ch} ＝ 1分間に${o.unitw} × 時間`),
   `${o.what} ＝ 初めの${o.what} ${s<0?'−':'＋'} ${ch}`,`${ch} ＝ 1分間に${o.unitw} × 時間`,M(fc),'>代入する',M(R`\text{${ch}}=${U(R`\UA{${N(r)}}\times\UB{x}`,`${N(r)}x`)}`),DAI(C,fc,sc,false),M(R`\text{${ch}}=${N(r)}x`),
-  `>\\(y\\) が${o.what}`,M(fy),'>代入する',M(sy),'>\\(x\\) の項を前に書く（項の順番を入れかえる）',M(EQ(s*r,b0)),
+  `>\\(y\\) が${o.what}`,M(fy),'>代入する',M(sy),M(EQ(s*r,b0)),
   ...(s<0?[...WM(c,M(EQ(-s*r,b0)),[`#まちがい：\\(x\\) の係数をプラスにした`,`#❌ \\(y=${N(r)}x+${N(b0)}\\)`,`#${o.verb2}ので、\\(x\\) の係数はマイナス`])]:[...WM(c,M(EQ(s*r,0)),[`#まちがい：初めの ${T(b0)} ${o.u} を入れ忘れた`,`#❌ \\(y=${N(r)}x\\)`,`#初めの${o.what}をたす。\\(${EQ(s*r,b0)}\\)`])])];
  return {ty:o.ty||'a3',g:o.g||'a3',gh:'次の問いに答えなさい。',q:o.q,c:C6(ok,c,o.p),w:CL(w),chk:{t:'bun',b0,r,s,ans:[s*r,b0]}};}
 /* ===== a4・a5 道のりのグラフ（1本）と、後から追いかける人 ===== */
@@ -885,7 +1559,7 @@ function walk(o){const {who,ap,h,dest,T1,D}=o;const ax=o.ax||AX(T1,[D]);const w0
  const fig=GQ({...ax,xu:'分',yu:'m',polys:[[[[0,0],[T1,D]]]],pts:[[T1,D]]});
  const fig1=GQ({...ax,xu:'分',yu:'m',polys:[[[[0,0],[T1,D]]]],pts:[[T1,D]],rings:[[T1,D]],dsh:[[T1,0,T1,D],[0,D,T1,D]],labs:[[T1,D,`(${T1}, ${D})`,'end',-12,-8,1]]});
  const xe=L.dl+D/L.u;
- const fig2=GQ({...ax,xu:'分',yu:'m',polys:[[[[0,0],[T1,D]]],[[[L.dl,0],[Math.min(xe,ax.xmax),L.u*(Math.min(xe,ax.xmax)-L.dl)]],1]],pts:[[L.dl,0]],rings:[[xm,ym]],labs:[[xm,ym,'追いつく','end',-12,-6,1],[L.dl,0,`(${L.dl}, 0)`,'start',6,-6,1]]});
+ const fig2=GQ({...ax,xu:'分',yu:'m',polys:[[[[0,0],[T1,D]]],[[[L.dl,0],[Math.min(xe,ax.xmax),L.u*(Math.min(xe,ax.xmax)-L.dl)]],1]],pts:[[L.dl,0]],rings:[[xm,ym]],labs:[[xm,ym,'追いつく','end',-12,-6,1],[L.dl,0,`(${L.dl}, 0)`,'start',6,-6,1],...NML(ax,[[who,[0,0],[T1,D],'u',.35],[L.who,[L.dl,0],[Math.min(xe,ax.xmax),L.u*(Math.min(xe,ax.xmax)-L.dl)],'d',.55]],'家',dest,D,xm)]});
  /* a4 速さ */
  const ok4=`分速 ${T(w0)} m`;
  const c4=PICK(ok4,[I(D/(T1+ax.xs),`分速 ${T(D/(T1+ax.xs))} m`),I(D/(T1-ax.xs),`分速 ${T(D/(T1-ax.xs))} m`),`分速 ${T(D)} m`,`分速 ${T(w0/10)} m`,`分速 ${T(w0*10)} m`,`分速 ${FRT(T1,D)} m`,`分速 ${T(w0*2)} m`,I(w0/2,`分速 ${T(w0/2)} m`),`分速 ${T1} m`]);
@@ -917,7 +1591,7 @@ function dotAB(o){const {AD,AB,v,k}=o;const cf=AD*v/2;const x0=k/cf;const tend=A
  const fig=RECT(AD,AB,AB*0.55,{id:o.id+'q',dims:1,w:170});
  const DER=C=>{const fa=R`\text{AP}=\UA{\text{速さ}}\times\UB{\text{時間}}`,sa=R`\text{AP}=\UA{${v}}\times\UB{x}`,fy=R`y=\UA{\text{底辺}}\times\UB{\text{高さ}}\div 2`;
   return [M(fa),BOX(TBL([['時間（秒）','1','2',M('x')],['AP（cm）',String(v),String(2*v),M(`${v}x`)]]),`!秒速 ${v} cm：1秒間に ${v} cm 進む`),`>秒速 ${v} cm で \\(x\\) 秒進む。代入する`,M(R`\text{AP}=${U(R`\UA{${v}}\times\UB{x}`,`${v}x`)}`),DAI(C,fa,sa,false),M(R`\text{AP}=${v}x`),
-  RECT(AD,AB,AB*0.55,{id:o.id+'w',w:200,ad:`底辺 AD ＝ ${AD} cm`,seg:`AP ＝ ${v}x cm`}),AREA,M(fy),`>底辺 AD ＝ ${AD}、高さ AP ＝ \\(${v}x\\) を代入する`,
+  RECT(AD,AB,AB*0.55,{id:o.id+'w',w:200,ad:`底辺 AD ＝ ${AD} cm`,adc:'#FF4B00',seg:`高さ AP ＝ ${v}x cm`,sc:'#005AFF',yel:1}),AREA,M(fy),`>底辺 AD ＝ ${AD}、高さ AP ＝ \\(${v}x\\) を代入する`,
   M(R`y=${U(R`\UA{${AD}}\times\UB{${v}x}`,`${AD*v}x`)}\div 2`),M(R`y=${U(`${AD*v}x\\div 2`,`${N(cf)}x`)}`),M(R`y=${N(cf)}x`)];};
  const ok6=M(EQ(cf,0));
  const c6=PICK(ok6,[M(EQ(AD*v,0)),M(EQ(AD/2,0)),M(EQ(AB*v/2,0)),M(EQ(cf,AD)),M(EQ(v/2,0)),M(EQ(AD*AB/2,0))]);
@@ -957,7 +1631,7 @@ function stop(o){const {who,ap,h,shop,dest,w1,t1,t2,w2,t3}=o;const d1=w1*t1,D=d1
  const xm=(D+u*S.s-d1+w2*t2)/(w2+u),ym=d1+w2*(xm-t2);
  const ctx=`${who}は${ap}${h}時に家を出発し、とちゅうで${shop}に寄ってから、家から ${D} m はなれた${dest}まで行った。下のグラフは、${who}が家を出発してから \\(x\\) 分後に家から \\(y\\) m はなれた所にいるとして、\\(x\\) と \\(y\\) の関係を表したものである。`;
  const poly=[[0,0],[t1,d1],[t2,d1],[t3,D]];
- const fig=GQ({...ax,xu:'分',yu:'m',polys:[[poly]],pts:[[t3,D]]});
+ const fig=GQ({...ax,xu:'分',yu:'m',polys:[[poly]]});/* 決まり58：B・C の問題の図に読む点の●を打たない */
  /* b4 止まっていた時間 */
  const st=t2-t1,ok4=`${st} 分間`;
  const c4=PICK(ok4,[`${t1} 分間`,`${t2} 分間`,`${t3-t2} 分間`,`${st+ax.xs} 分間`,`${st*2} 分間`,st-ax.xs>0?`${st-ax.xs} 分間`:null,`${t3} 分間`,`${st+2*ax.xs} 分間`,`${t1+t2} 分間`,`${t3-t1} 分間`,`${st+3*ax.xs} 分間`,`${t3+t2} 分間`]);
@@ -977,7 +1651,7 @@ function stop(o){const {who,ap,h,shop,dest,w1,t1,t2,w2,t3}=o;const d1=w1*t1,D=d1
  const b1=d1-w2*t2,b2=D+u*S.s;const A6=(tt,dd)=>`${TM(ap,h,tt)}、家から ${T(dd)} m`;const ok6=A6(xm,ym);
  const c6=PICK(ok6,[A6(xm,D-ym),A6(S.s,d1),A6(t3,D),A6(xm-S.s,ym),A6(xm+ax.xs,ym+w2*ax.xs),A6(xm,ym+100)]);
  const xe=S.s+D/u;const C={};
- const w6=[GQ({...ax,xu:'分',yu:'m',polys:[[poly],[[[S.s,D],[Math.min(xe,ax.xmax),D-u*(Math.min(xe,ax.xmax)-S.s)]],1]],pts:[[S.s,D]],rings:[[xm,ym]],labs:[[xm,ym,'すれちがう','start',10,14,1],[S.s,D,`(${S.s}, ${D})`,'end',-8,-8,1]]}),
+ const w6=[GQ({...ax,xu:'分',yu:'m',polys:[[poly],[[[S.s,D],[Math.min(xe,ax.xmax),D-u*(Math.min(xe,ax.xmax)-S.s)]],1]],pts:[[S.s,D]],rings:[[xm,ym]],labs:[[xm,ym,'すれちがう','start',10,14,1],[S.s,D,`(${S.s}, ${D})`,'end',-8,-8,1],...NML(ax,[[who,[t1,d1],[t2,d1],'u',.5],[S.who,[S.s,D],[Math.min(xe,ax.xmax),D-u*(Math.min(xe,ax.xmax)-S.s)],'d',.6]],'家',dest,D,xm)]}),
   'すれちがう所 ＝ 2つのグラフの交点。2つの直線の式を連立方程式にして解く',`${who}が${shop}を出てからの式`,M(R`y=ax+b`),`>2点 \\((${t2},\\ ${d1})\\)、\\((${t3},\\ ${D})\\) を通る`,
   ...SLOPE(C,{x1:t2,y1:d1,x2:t3,y2:D}),...LINE(C,{a:w2,x:t3,y:D,lab:'①'}),
   `${S.who}の式`,BOX(TBL([['時間','1 時間（60 分）','1 分'],['道のり',`${T(S.kmh)} km ＝ ${T(S.kmh*1000)} m`,`${T(S.kmh*1000)}÷60 ＝ ${T(u)} m`]]),'!時速を分速に直す'),
@@ -1005,12 +1679,12 @@ function tri(o){const {BC,CA,v}=o;const L=BC+CA,tc=BC/v,ta=L/v,hb=BC/2;const a=-
  const q=`直角三角形 ABC（BC ＝ ${BC} cm、CA ＝ ${CA} cm、∠C ＝ 90°）で、点 P は B を出発して秒速 ${v} cm で辺 BC、CA 上を A まで動く。点 P が B を出発してから \\(x\\) 秒後の △ABP の面積を \\(y\\) cm² とする。点 P が辺 CA 上にあるとき、\\(y\\) を \\(x\\) の式で表し、\\(x\\) の変域も求めなさい。`+G(TRI(BC,CA,BC+CA*0.4,{id:o.id+'q',dims:1,w:210}));
  const sP=BC+CA*0.4;const C={};const ft=R`\text{時間}=\UA{\text{道のり}}\div\UB{\text{速さ}}`;
  const w=['初めに、P が頂点に着く時刻を調べる',M(ft),`>C に着くのは、BC（${BC} cm）を進んだとき。代入する`,M(R`\text{時間}=${U(R`\UA{${BC}}\div\UB{${v}}`,N(tc))}`),DAI(C,ft,R`\text{時間}=\UA{${BC}}\div\UB{${v}}`,false),
-  `>A に着くのは、BC と CA（${BC}＋${CA} ＝ ${L} cm）を進んだとき`,M(R`\text{時間}=${U(R`\UA{${L}}\div\UB{${v}}`,N(ta))}`),`辺 CA 上にあるのは ${T(tc)} 秒後から ${T(ta)} 秒後まで → \\(${N(tc)}\\leqq x\\leqq ${N(ta)}\\)`,
+  `B から A までの道のりは、BC と CA の長さの和`,M(R`\text{BC}+\text{CA}=${U(`${BC}+${CA}`,L)}`),`>A に着くのは、BC と CA（${BC}＋${CA} ＝ ${L} cm）を進んだとき`,M(R`\text{時間}=${U(R`\UA{${L}}\div\UB{${v}}`,N(ta))}`),`辺 CA 上にあるのは ${T(tc)} 秒後から ${T(ta)} 秒後まで → \\(${N(tc)}\\leqq x\\leqq ${N(ta)}\\)`,
   BOX(NLINE([[0,'B'],[tc,'C'],[ta,'A']],[1,2]),'!変域：P が辺 CA 上にある時間（太い線。● はふくむ）'),
-  TRI(BC,CA,sP,{id:o.id+'w',w:230,seg:'PA ＝ ？',path:''}),`>太い線が、P が進んだ道（B → C → P）。\\(x\\) 秒で ${v}×\\(x\\) ＝ \\(${v}x\\) cm 進む。PA は、全部の長さから進んだ長さを引いて出す`,
-  M(R`\text{PA}=\UA{\text{全部の長さ}}-\UB{\text{進んだ長さ}}`),'>代入する',M(R`\text{PA}=\UA{${L}}-\UB{${v}x}`),AREA,M(R`y=\UA{\text{底辺}}\times\UB{\text{高さ}}\div 2`),`>底辺 PA ＝ \\(${L}-${v}x\\)、高さ BC ＝ ${BC}（BC は CA と垂直）を代入する`,M(R`y=\UA{(${L}-${v}x)}\times\UB{${BC}}\div 2`),
+  TRI(BC,CA,sP,{id:o.id+'w',w:230,seg:`底辺 PA ＝ ${L}−${v}x`,sc:'#FF4B00',hb:`高さ BC ＝ ${BC}`,yel:1,path:''}),`>太い線が、P が進んだ道（B → C → P）。\\(x\\) 秒で ${v}×\\(x\\) ＝ \\(${v}x\\) cm 進む。PA は、B から A までの道のりから進んだ長さを引いて出す`,
+  M(R`\text{PA}=\UA{\text{B から A までの道のり}}-\UB{\text{進んだ長さ}}`),'>代入する',M(R`\text{PA}=\UA{${L}}-\UB{${v}x}`),AREA,M(R`y=\UA{\text{底辺}}\times\UB{\text{高さ}}\div 2`),`>底辺 PA ＝ \\(${L}-${v}x\\)、高さ BC ＝ ${BC}（BC は CA と垂直）を代入する`,M(R`y=\UA{(${L}-${v}x)}\times\UB{${BC}}\div 2`),
   `>${BC}÷2 を先に計算する`,M(R`y=(${L}-${v}x)\times${U(`${BC}\\div 2`,N(hb))}`),'>かけ算の順番を入れかえる',M(R`y=${AF(`両方に ×${N(hb)}`,N(hb))}(${AT(String(L))}${AT('-'+v+'x')})`),BX.bunpai(),
-  '>分配法則でかっこをはずす',M(R`y=${N(b)}${UR('-'+N(-a)+'x')}`),'>\\(x\\) の項を前に書く（項の順番を入れかえる）',M(EQ(a,b)),
+  '>分配法則でかっこをはずす',M(R`y=${N(b)}${UR('-'+N(-a)+'x')}`),M(EQ(a,b)),
   `答え　${ok}`,...WM(c,A(a,b,0,ta),[`#まちがい：変域を 0 秒からにした`,`#❌ \\(0\\leqq x\\leqq ${N(ta)}\\)`,`#変域は辺 CA の上にいる間だけ。辺 BC の上の時間（${T(tc)} 秒後まで）は入れない`])];
  return {ty:o.ty||'b7',g:o.g||'b7',q,c:C6(ok,c,o.p),w:CL(w),chk:{t:'tri',BC,CA,v,ans:[a,b,tc,ta]}};}
 /* ===== c1 三角形の面積 ===== */
@@ -1061,7 +1735,7 @@ function sys(o){const {D,v1,v2,T:TT}=o;const l=v1*v2/gcd(v1,v2),A=l/v1,B=l/v2;
 function round(o){const {who,ap,h,place,D,T1,T2}=o;const ax=o.ax||AX(T2,[D]);const g1=D/T1,g2=D/(T2-T1),b=g2*T2;const S=o.sib;const xm=(b+S.u*S.s)/(S.u+g2),ym=S.u*(xm-S.s);
  const ctx=`${who}は${ap}${h}時に家を出発し、家から ${D} m はなれた${place}まで、一定の速さで歩いた。${place}に着くとすぐに、行きとはちがう一定の速さで走って、同じ道を家にもどった。下のグラフは、${who}が家を出発してから \\(x\\) 分後に家から \\(y\\) m はなれた所にいるとして、\\(x\\) と \\(y\\) の関係を表したものである。`;
  const poly=[[0,0],[T1,D],[T2,0]];
- const fig=GQ({...ax,xu:'分',yu:'m',polys:[[poly]],pts:[[T1,D]]});
+ const fig=GQ({...ax,xu:'分',yu:'m',polys:[[poly]]});/* 決まり58：B・C の問題の図に読む点の●を打たない */
  const ok4=`分速 ${T(g1)} m`;
  const c4=PICK(ok4,[`分速 ${T(g2)} m`,D2(D/T2,`分速 ${T(D/T2)} m`),D2(2*D/T2,`分速 ${T(2*D/T2)} m`),`分速 ${T(D)} m`,`分速 ${T(g1*10)} m`,D2(D/(T1+ax.xs),`分速 ${T(D/(T1+ax.xs))} m`),`分速 ${T(g1*2)} m`,`分速 ${T(g1/2)} m`,`分速 ${T1} m`,`分速 ${T(g1+g2)} m`]);
  const w4=[GQ({...ax,xu:'分',yu:'m',polys:[[poly]],rings:[[T1,D]],dsh:[[T1,0,T1,D],[0,D,T1,D]],labs:[[T1,D,`(${T1}, ${D})`,'start',10,-6,1]]}),...SPEED({},{from:'家',to:place,D,T1,v:g1,note:`グラフから、行きは ${T1} 分で ${D} m 進んでいる`}),`答え　分速 ${T(g1)} m`,...WM(c4,`分速 ${T(g2)} m`,[`#まちがい：帰りの速さを求めた`,`#❌ \\(\\text{速さ}=${D}\\div ${T2-T1}=${N(g2)}\\)`,`#行きはグラフの右上がりの所。\\(${D}\\div ${T1}=${N(g1)}\\)`])];
@@ -1073,7 +1747,7 @@ function round(o){const {who,ap,h,place,D,T1,T2}=o;const ax=o.ax||AX(T2,[D]);con
  const ok6=TM(ap,h,xm);const kk=S.u+g2,rr=b+S.u*S.s;
  const c6=PICK(ok6,[TM(ap,h,xm-S.s),TM(ap,h,T1),TM(ap,h,T2),I((D+S.u*S.s)/(S.u+g1),TM(ap,h,(D+S.u*S.s)/(S.u+g1))),TM(ap,h,xm+5),TM(ap,h,xm-1),TM(ap,h,S.s+D/S.u)]);
  const xe=S.s+D/S.u;
- const w6=(full)=>{const C={};return [GQ({...ax,xu:'分',yu:'m',polys:[[poly],[[[S.s,0],[Math.min(xe,ax.xmax),S.u*(Math.min(xe,ax.xmax)-S.s)]],1]],pts:[[S.s,0]],rings:[[xm,ym]],labs:[[xm,ym,'出会う','start',10,4,1],[S.s,0,`(${S.s}, 0)`,'start',6,-6,1]]}),'出会う所 ＝ 2つのグラフの交点。2つの直線の式を連立方程式にして解く',`${who}の帰りの式`,
+ const w6=(full)=>{const C={};return [GQ({...ax,xu:'分',yu:'m',polys:[[poly],[[[S.s,0],[Math.min(xe,ax.xmax),S.u*(Math.min(xe,ax.xmax)-S.s)]],1]],pts:[[S.s,0]],rings:[[xm,ym]],labs:[[xm,ym,'出会う','start',10,4,1],[S.s,0,`(${S.s}, 0)`,'start',6,-6,1],...NML(ax,[[who,[0,0],[T1,D],'u',.4],[S.who,[S.s,0],[Math.min(xe,ax.xmax),S.u*(Math.min(xe,ax.xmax)-S.s)],'d',.55]],'家',place,D,xm)]}),'出会う所 ＝ 2つのグラフの交点。2つの直線の式を連立方程式にして解く',`${who}の帰りの式`,
   ...(full?der(C,'①'):['>(2) で求めた式',M(R`${EQ(-g2,b)}\quad\text{…①}`)]),
   `${S.who}の式`,...LATER(C,{u:S.u,s:S.s,lab:'②'}),
   ...MEET(C,{l:[tm(-g2,'x'),tm(b)],r:[tm(S.u,'x'),tm(-S.u*S.s)],lt:`-${N(g2)}x+${N(b)}`,rt:`${S.u}x-${S.u*S.s}`}),
@@ -1154,7 +1828,7 @@ const TJA=r=>{if(!r||typeof r!=='object')return r;
  for(const k of Object.keys(r)){if(k!=='w'&&k!=='c'&&r[k]&&typeof r[k]==='object'&&!Array.isArray(r[k])&&r[k].w)TJA(r[k]);}
  if(Array.isArray(r.steps))r.steps.forEach(TJA);return r;};
 /* 2026-11-06 決まり42：説明の行を短くする（手順の頭書き「手順n：」を付けたあとで、長い行だけを置きかえる。数学の中身は変えない） */
-const SHORTR=[["^>左右を入れかえる（移項とちがって、符号は変えない）$", ">左右を入れかえる"], ["^>点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">\\(x\\) に $3、\\(y\\) に $4 を代入する"], ["^>(\\d+(?:\\.\\d+)?)つの分数にまとめる。分子はかっこのまま書く$", ">$1つの分数にまとめる"], ["^>(\\d+(?:\\.\\d+)?)分間に (\\d+(?:\\.\\d+)?) m 進むので、傾き \\\\\\(a\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">1分間に $2 m なので、\\(a\\) に $3 を代入"], ["^>(\\d+(?:\\.\\d+)?) 分後に家（(\\d+(?:\\.\\d+)?) m）を出るので、点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">\\(x\\) に $5、\\(y\\) に $6 を代入する"], ["^>グラフから、(\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる（点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\)）。代入する$", ">$1 分で $2 m 進んでいる。代入する"], ["^>グラフから、(\\d+(?:\\.\\d+)?) 分後に着いて (\\d+(?:\\.\\d+)?) 分後に出た。代入する$", ">$1 分後に着いて $2 分後に出た。代入する"], ["^>手順(\\d+(?:\\.\\d+)?)：分速 m を時速 km に直す。(\\d+(?:\\.\\d+)?)時間 ＝ (\\d+(?:\\.\\d+)?) 分なので、(\\d+(?:\\.\\d+)?)時間に進む道のりは分速の (\\d+(?:\\.\\d+)?) 倍$", ">手順$1：1時間に進む道のりは分速の $5 倍"], ["^>(\\d+(?:\\.\\d+)?)点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\)、\\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る$", ">\\(($2,\\ $3)\\)・\\(($4,\\ $5)\\) を通る"], ["^>手順(\\d+(?:\\.\\d+)?)：① の右辺 \\\\\\((\\d+(?:\\.\\d+)?)x-(\\d+(?:\\.\\d+)?)\\\\\\) を、② の \\\\\\(y\\\\\\) に代入する$", ">手順$1：① の右辺を ② の \\(y\\) に代入"], ["^>手順(\\d+(?:\\.\\d+)?)：C に着くのは、BC（(\\d+(?:\\.\\d+)?) cm）を進んだとき。代入する$", ">手順$1：C に着くのは $2 cm 進んだとき。代入する"], ["^>A に着くのは、BC と CA（(\\d+(?:\\.\\d+)?)＋(\\d+(?:\\.\\d+)?) ＝ (\\d+(?:\\.\\d+)?) cm）を進んだとき$", ">A に着くのは $3 cm 進んだとき"], ["^>手順(\\d+(?:\\.\\d+)?)：太い線が、P が進んだ道（B → C → P）。\\\\\\(x\\\\\\) 秒で (\\d+(?:\\.\\d+)?)×\\\\\\(x\\\\\\) ＝ \\\\\\((\\d+(?:\\.\\d+)?)x\\\\\\) cm 進む。PA は、全部の長さから進んだ長さを引いて出す$", ">手順$1：PA は、全部の長さから進んだ長さを引く"], ["^>手順(\\d+(?:\\.\\d+)?)：底辺 PA ＝ \\\\\\((\\d+(?:\\.\\d+)?)-(\\d+(?:\\.\\d+)?)x\\\\\\)、高さ BC ＝ (\\d+(?:\\.\\d+)?)（BC は CA と垂直）を代入する$", ">手順$1：底辺 PA、高さ BC を代入"], ["^>方程式なので、両辺に同じ数をかけてよい。分母 (\\d+(?:\\.\\d+)?) と (\\d+(?:\\.\\d+)?) の最小公倍数 (\\d+(?:\\.\\d+)?) を、両辺にかける（分母をはらう）$", ">両辺に最小公倍数 $3 をかける"], ["^>約分すると、左辺は (\\d+(?:\\.\\d+)?)÷(\\d+(?:\\.\\d+)?) ＝ (\\d+(?:\\.\\d+)?)、右辺は (\\d+(?:\\.\\d+)?)÷(\\d+(?:\\.\\d+)?) ＝ (\\d+(?:\\.\\d+)?) が残る$", ">左辺は $3、右辺は $6 が残る"], ["^>手順(\\d+(?:\\.\\d+)?)：② の両辺に (\\d+(?:\\.\\d+)?) と (\\d+(?:\\.\\d+)?) の最小公倍数 (\\d+(?:\\.\\d+)?) をかけて、分母をはらう$", ">手順$1：② の両辺に $4 をかける"], ["^>グラフから、行きは (\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる。代入する$", ">行きは $1 分で $2 m。代入する"], ["^>手順(\\d+(?:\\.\\d+)?)：帰りのグラフは、(\\d+(?:\\.\\d+)?)点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\)、\\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る$", ">手順$1：帰りは \\(($3,\\ $4)\\)・\\(($5,\\ $6)\\) を通る"], ["^>手順(\\d+(?:\\.\\d+)?)：点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">手順$1：\\(x\\) に $4、\\(y\\) に $5 を代入"], ["^>手順(\\d+(?:\\.\\d+)?)：① の右辺 \\\\\\(-(\\d+(?:\\.\\d+)?)x\\+(\\d+(?:\\.\\d+)?)\\\\\\) を、② の \\\\\\(y\\\\\\) に代入する$", ">手順$1：① の右辺を ② の \\(y\\) に代入"], ["^>手順(\\d+(?:\\.\\d+)?)：B に着く：AB（(\\d+(?:\\.\\d+)?) cm）を進んだとき。代入する$", ">手順$1：B に着くのは $2 cm 進んだとき。代入する"], ["^>C に着く：AB＋BC（(\\d+(?:\\.\\d+)?) cm）を進んだとき$", ">C に着くのは $1 cm 進んだとき"], ["^>(\\d+(?:\\.\\d+)?) m ＝ (\\d+(?:\\.\\d+)?) km（(\\d+(?:\\.\\d+)?) m ＝ (\\d+(?:\\.\\d+)?) km）。(\\d+(?:\\.\\d+)?)時間に (\\d+(?:\\.\\d+)?) km 進むので、時速 (\\d+(?:\\.\\d+)?) km$", ">$1 m ＝ $2 km。$5時間に $6 km 進むので時速 $7 km"], ["^>帰りのグラフは、(\\d+(?:\\.\\d+)?)点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\)、\\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る$", ">帰りは \\(($2,\\ $3)\\)・\\(($4,\\ $5)\\) を通る"], ["^>手順(\\d+(?:\\.\\d+)?)：グラフから、本屋までは (\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる。代入する$", ">手順$1：本屋まで $2 分で $3 m。代入する"], ["^>(\\d+(?:\\.\\d+)?) 分後に図書館（(\\d+(?:\\.\\d+)?) m）を出るので、点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">\\(x\\) に $5、\\(y\\) に $6 を代入する"], ["^>(\\d+(?:\\.\\d+)?) 分後に駅（(\\d+(?:\\.\\d+)?) m）を出るので、点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">\\(x\\) に $5、\\(y\\) に $6 を代入する"], ["^>時速 (\\d+(?:\\.\\d+)?) km ＝ 分速 (\\d+(?:\\.\\d+)?) m。家に近づくので \\\\\\(y\\\\\\) は減る。傾き \\\\\\(a\\\\\\) に \\\\\\(-(\\d+(?:\\.\\d+)?)\\\\\\) を代入する$", ">分速 $2 m。家に近づくので、傾きは \\(-$3\\)"], ["^>手順(\\d+(?:\\.\\d+)?)：グラフから、コンビニまでは (\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる。代入する$", ">手順$1：コンビニまで $2 分で $3 m。代入する"], ["^>手順(\\d+(?:\\.\\d+)?)：グラフから、公園までは (\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる。代入する$", ">手順$1：公園まで $2 分で $3 m。代入する"], ["^>手順(\\d+(?:\\.\\d+)?)：グラフから、郵便局までは (\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる。代入する$", ">手順$1：郵便局まで $2 分で $3 m。代入する"], ["^>(\\d+(?:\\.\\d+)?) 分後に郵便局（(\\d+(?:\\.\\d+)?) m）を出るので、点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">\\(x\\) に $5、\\(y\\) に $6 を代入する"]].map(([s,r])=>[new RegExp(s),r]);
+const SHORTR=[["^>左右を入れかえる（移項とちがって、符号は変えない）$", ">左右を入れかえる"], ["^>点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">\\(x\\) に $3、\\(y\\) に $4 を代入する"], ["^>(\\d+(?:\\.\\d+)?)つの分数にまとめる。分子はかっこのまま書く$", ">$1つの分数にまとめる"], ["^>(\\d+(?:\\.\\d+)?)分間に (\\d+(?:\\.\\d+)?) m 進むので、傾き \\\\\\(a\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">1分間に $2 m なので、\\(a\\) に $3 を代入"], ["^>(\\d+(?:\\.\\d+)?) 分後に家（(\\d+(?:\\.\\d+)?) m）を出るので、点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">\\(x\\) に $5、\\(y\\) に $6 を代入する"], ["^>グラフから、(\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる（点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\)）。代入する$", ">$1 分で $2 m 進んでいる。代入する"], ["^>グラフから、(\\d+(?:\\.\\d+)?) 分後に着いて (\\d+(?:\\.\\d+)?) 分後に出た。代入する$", ">$1 分後に着いて $2 分後に出た。代入する"], ["^>手順(\\d+(?:\\.\\d+)?)：分速 m を時速 km に直す。(\\d+(?:\\.\\d+)?)時間 ＝ (\\d+(?:\\.\\d+)?) 分なので、(\\d+(?:\\.\\d+)?)時間に進む道のりは分速の (\\d+(?:\\.\\d+)?) 倍$", ">手順$1：1時間に進む道のりは分速の $5 倍"], ["^>(\\d+(?:\\.\\d+)?)点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\)、\\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る$", ">\\(($2,\\ $3)\\)・\\(($4,\\ $5)\\) を通る"], ["^>手順(\\d+(?:\\.\\d+)?)：① の右辺 \\\\\\((\\d+(?:\\.\\d+)?)x-(\\d+(?:\\.\\d+)?)\\\\\\) を、② の \\\\\\(y\\\\\\) に代入する$", ">手順$1：① の右辺を ② の \\(y\\) に代入"], ["^>手順(\\d+(?:\\.\\d+)?)：C に着くのは、BC（(\\d+(?:\\.\\d+)?) cm）を進んだとき。代入する$", ">手順$1：C に着くのは $2 cm 進んだとき。代入する"], ["^>A に着くのは、BC と CA（(\\d+(?:\\.\\d+)?)＋(\\d+(?:\\.\\d+)?) ＝ (\\d+(?:\\.\\d+)?) cm）を進んだとき$", ">A に着くのは $3 cm 進んだとき"], ["^>手順(\\d+(?:\\.\\d+)?)：太い線が、P が進んだ道（B → C → P）。\\\\\\(x\\\\\\) 秒で (\\d+(?:\\.\\d+)?)×\\\\\\(x\\\\\\) ＝ \\\\\\((\\d+(?:\\.\\d+)?)x\\\\\\) cm 進む。PA は、B から A までの道のりから進んだ長さを引いて出す$", ">手順$1：PA は、B から A までの道のりから進んだ長さを引く"], ["^>手順(\\d+(?:\\.\\d+)?)：底辺 PA ＝ \\\\\\((\\d+(?:\\.\\d+)?)-(\\d+(?:\\.\\d+)?)x\\\\\\)、高さ BC ＝ (\\d+(?:\\.\\d+)?)（BC は CA と垂直）を代入する$", ">手順$1：底辺 PA、高さ BC を代入"], ["^>方程式なので、両辺に同じ数をかけてよい。分母 (\\d+(?:\\.\\d+)?) と (\\d+(?:\\.\\d+)?) の最小公倍数 (\\d+(?:\\.\\d+)?) を、両辺にかける（分母をはらう）$", ">両辺に最小公倍数 $3 をかける"], ["^>約分すると、左辺は (\\d+(?:\\.\\d+)?)÷(\\d+(?:\\.\\d+)?) ＝ (\\d+(?:\\.\\d+)?)、右辺は (\\d+(?:\\.\\d+)?)÷(\\d+(?:\\.\\d+)?) ＝ (\\d+(?:\\.\\d+)?) が残る$", ">左辺は $3、右辺は $6 が残る"], ["^>手順(\\d+(?:\\.\\d+)?)：② の両辺に (\\d+(?:\\.\\d+)?) と (\\d+(?:\\.\\d+)?) の最小公倍数 (\\d+(?:\\.\\d+)?) をかけて、分母をはらう$", ">手順$1：② の両辺に $4 をかける"], ["^>グラフから、行きは (\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる。代入する$", ">行きは $1 分で $2 m。代入する"], ["^>手順(\\d+(?:\\.\\d+)?)：帰りのグラフは、(\\d+(?:\\.\\d+)?)点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\)、\\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る$", ">手順$1：帰りは \\(($3,\\ $4)\\)・\\(($5,\\ $6)\\) を通る"], ["^>手順(\\d+(?:\\.\\d+)?)：点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">手順$1：\\(x\\) に $4、\\(y\\) に $5 を代入"], ["^>手順(\\d+(?:\\.\\d+)?)：① の右辺 \\\\\\(-(\\d+(?:\\.\\d+)?)x\\+(\\d+(?:\\.\\d+)?)\\\\\\) を、② の \\\\\\(y\\\\\\) に代入する$", ">手順$1：① の右辺を ② の \\(y\\) に代入"], ["^>手順(\\d+(?:\\.\\d+)?)：B に着く：AB（(\\d+(?:\\.\\d+)?) cm）を進んだとき。代入する$", ">手順$1：B に着くのは $2 cm 進んだとき。代入する"], ["^>C に着く：AB＋BC（(\\d+(?:\\.\\d+)?) cm）を進んだとき$", ">C に着くのは $1 cm 進んだとき"], ["^>(\\d+(?:\\.\\d+)?) m ＝ (\\d+(?:\\.\\d+)?) km（(\\d+(?:\\.\\d+)?) m ＝ (\\d+(?:\\.\\d+)?) km）。(\\d+(?:\\.\\d+)?)時間に (\\d+(?:\\.\\d+)?) km 進むので、時速 (\\d+(?:\\.\\d+)?) km$", ">$1 m ＝ $2 km。$5時間に $6 km 進むので時速 $7 km"], ["^>帰りのグラフは、(\\d+(?:\\.\\d+)?)点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\)、\\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る$", ">帰りは \\(($2,\\ $3)\\)・\\(($4,\\ $5)\\) を通る"], ["^>手順(\\d+(?:\\.\\d+)?)：グラフから、本屋までは (\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる。代入する$", ">手順$1：本屋まで $2 分で $3 m。代入する"], ["^>(\\d+(?:\\.\\d+)?) 分後に図書館（(\\d+(?:\\.\\d+)?) m）を出るので、点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">\\(x\\) に $5、\\(y\\) に $6 を代入する"], ["^>(\\d+(?:\\.\\d+)?) 分後に駅（(\\d+(?:\\.\\d+)?) m）を出るので、点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">\\(x\\) に $5、\\(y\\) に $6 を代入する"], ["^>時速 (\\d+(?:\\.\\d+)?) km ＝ 分速 (\\d+(?:\\.\\d+)?) m。家に近づくので \\\\\\(y\\\\\\) は減る。傾き \\\\\\(a\\\\\\) に \\\\\\(-(\\d+(?:\\.\\d+)?)\\\\\\) を代入する$", ">分速 $2 m。家に近づくので、傾きは \\(-$3\\)"], ["^>手順(\\d+(?:\\.\\d+)?)：グラフから、コンビニまでは (\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる。代入する$", ">手順$1：コンビニまで $2 分で $3 m。代入する"], ["^>手順(\\d+(?:\\.\\d+)?)：グラフから、公園までは (\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる。代入する$", ">手順$1：公園まで $2 分で $3 m。代入する"], ["^>手順(\\d+(?:\\.\\d+)?)：グラフから、郵便局までは (\\d+(?:\\.\\d+)?) 分で (\\d+(?:\\.\\d+)?) m 進んでいる。代入する$", ">手順$1：郵便局まで $2 分で $3 m。代入する"], ["^>(\\d+(?:\\.\\d+)?) 分後に郵便局（(\\d+(?:\\.\\d+)?) m）を出るので、点 \\\\\\(\\((\\d+(?:\\.\\d+)?),\\\\ (\\d+(?:\\.\\d+)?)\\)\\\\\\) を通る → \\\\\\(x\\\\\\) に (\\d+(?:\\.\\d+)?)、\\\\\\(y\\\\\\) に (\\d+(?:\\.\\d+)?) を代入する$", ">\\(x\\) に $5、\\(y\\) に $6 を代入する"]].map(([s,r])=>[new RegExp(s),r]);
 const SHORT=r=>{if(!r||typeof r!=='object')return r;if(Array.isArray(r.w))r.w=r.w.map(l=>{if(typeof l!=='string'||l[0]!=='>')return l;for(const [re,rp] of SHORTR)if(re.test(l))return l.replace(re,rp);return l;});
  for(const k of Object.keys(r)){if(k!=='w'&&k!=='c'&&r[k]&&typeof r[k]==='object'&&!Array.isArray(r[k])&&r[k].w)SHORT(r[k]);}
  if(Array.isArray(r.steps))r.steps.forEach(SHORT);return r;};
@@ -1192,7 +1866,266 @@ return {XW,R,N,T,M,U,EQ,FR,TM,GQ,RECT,TRI,G,dist:WR(dist),subst:WR(subst),bun:WR
 })();
 return {"M2U4P5_H_G":(...a)=>M2U4P5_H.G(...a)};
 })();
+NS["gg_m2u5p1"]=(function(){
+const M2U5P1_ZU=(()=>{
+const nr=v=>Math.round(v*10)/10,RAD=Math.PI/180,K='#111',GR='#6b7280',COL={k:K,b:'#005AFF',g:'#03AF7A',r:'#FF4B00',p:'#990099'};
+const ST='stroke="#fff" stroke-width="4" paint-order="stroke"';
+const ln=(a,b,ex)=>`<line x1="${nr(a[0])}" y1="${nr(a[1])}" x2="${nr(b[0])}" y2="${nr(b[1])}" stroke="#111" stroke-width="2" stroke-linecap="round"${ex||''}/>`;
+const aux=(a,b)=>`<line x1="${nr(a[0])}" y1="${nr(a[1])}" x2="${nr(b[0])}" y2="${nr(b[1])}" stroke="${GR}" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="5 4"/>`;
+const tx=(x,y,t,o)=>{o=o||{};return `<text x="${nr(x)}" y="${nr(y+4.7)}" text-anchor="middle" font-size="13" font-weight="700"${o.it?' font-style="italic"':''}${o.cls?` class="${o.cls}"`:''}${o.c&&o.c!==K?` fill="${o.c}"`:''} ${ST}>${t}</text>`;};
+const mark=(x,y)=>`<polyline points="${nr(x-5.4)},${nr(y-4.5)} ${nr(x)},${y} ${nr(x-5.4)},${nr(y+4.5)}" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`;
+const P=(v,th,r)=>[v[0]+r*Math.cos(th*RAD),v[1]-r*Math.sin(th*RAD)];
+/* 頂点 v で、向き t1 から t2 へ（数学の角度・反時計回り）の角。lab＝字（'64°'・'x' など）、c＝色の字、r＝弧の半径、d＝字までの長さ */
+function ang(v,t1,t2,lab,c,r,d){const sp=((t2-t1)%360+360)%360;r=r||14;const cc=COL[c||'k'];
+ const a=P(v,t1,r),b=P(v,t1+sp,r);let s=`<path d="M${nr(a[0])} ${nr(a[1])} A${r} ${r} 0 0 0 ${nr(b[0])} ${nr(b[1])}" fill="none" stroke="${cc}" stroke-width="${c&&c!=='k'?2.4:1.8}"/>`;
+ if(lab){if(!d)d=Math.max(23,Math.min(46,15+7/Math.sin(sp/2*RAD)))+(r>16?r-14:0);const m=P(v,t1+sp/2,d);s+=tx(m[0],m[1],lab,{it:/^[xy]$/.test(lab),c:cc});}
+ return {s,ab:[a,b]};}
+function box(parts,pad){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const [x,y] of parts){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}pad=pad||10;return [x0-pad,y0-pad,x1-x0+2*pad,y1-y0+2*pad];}
+const svg=(vb,body,lab)=>`<svg class="gr" viewBox="${vb.map(nr).join(' ')}" width="${nr(vb[2])}" height="${nr(vb[3])}" role="img" aria-label="${lab}">${body}</svg>`;
+/* 平行線 ℓ（y＝yl）・m（y＝ym）を x0〜x1 に。ex のとき平行の印（mx＝[ℓ の印の x, m の印の x]） */
+function par(yl,ym,x0,x1,ex,mx){mx=mx||[x0+30,x0+30];return ln([x0,yl],[x1,yl],' class="pl"')+ln([x0,ym],[x1,ym],' class="pl"')+(ex?mark(mx[0],yl)+mark(mx[1],ym):'')+tx(x1+11,yl,'ℓ',{it:1,cls:'ln'})+tx(x1+11,ym,'m',{it:1,cls:'ln'});}
+/* くの字（折れ点1つ）：o.a＝ℓ と AP の角・o.b＝m と BP の角（どちらも右側）。∠x＝∠APB（左に開く）＝a＋b */
+function KUNO1(o){const a=o.a,b=o.b,ex=o.ex,yl=40,ym=165,A=[70,yl],B=[70,ym];const px=70+(ym-yl)/(Math.tan(a*RAD)+Math.tan(b*RAD)),py=yl+Math.tan(a*RAD)*(px-70),Q=[px,py];
+ const x1=Math.max(px+70,207);let s=par(yl,ym,15,x1,ex)+ln(A,Q)+ln(Q,B)+tx(66,yl-13,'A')+tx(66,ym+15,'B')+tx(px+14,py+(ex?-7:0),'P');const pts=[[15,yl-18],[x1+20,ym+26],[px+22,py]];
+ if(!ex){s+=ang(A,-a,0,a+'°').s+ang(B,0,b,b+'°').s+ang(Q,180-a,180+b,'x').s;}
+ else{return KUNOX({V:[A,Q,B],yl,ym,x0:15,x1,vals:[a+'°',b+'°'],xi:1,names:['A','P','B'],ex:1});/* 2026-11-09 20:20 数字と ∠x の弧が重ならない形（KUNOX）に */}
+ return svg(box(pts,8),s,'平行線と折れ線の図');}
+/* くの字（折れ点2つ）：A（ℓ 上）→P→Q→B（m 上）。o.a＝ℓ と AP の角（右）・o.p＝∠APQ（左に開く）・o.b＝m と BQ の角（左）。∠x＝∠PQB（右に開く）＝(p−a)＋b */
+function KUNO2(o){const a=o.a,p=o.p,b=o.b,ex=o.ex,yl=30,y1=88,y2=146,ym=204,A=[90,yl];const Pp=[90+(y1-yl)/Math.tan(a*RAD),y1],Qq=[Pp[0]-(y2-y1)/Math.tan((p-a)*RAD),y2],B=[Qq[0]+(ym-y2)/Math.tan(b*RAD),ym];
+ const xs=[A[0],Pp[0],Qq[0],B[0]],x0=Math.min(...xs)-60,x1=Math.max(...xs)+60;
+ let s=par(yl,ym,x0,x1,ex)+`<polyline points="${[A,Pp,Qq,B].map(q=>nr(q[0])+','+nr(q[1])).join(' ')}" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`;
+ s+=tx(A[0]-6,yl-13,'A')+tx(Pp[0]+14,y1+(ex?-8:0),'P')+tx(Qq[0]-14,y2+(ex?8:0),'Q')+tx(B[0]+6,ym+15,'B');const pts=[[x0,yl-18],[x1+22,ym+26]];
+ if(!ex){s+=ang(A,-a,0,a+'°').s+ang(Pp,180-a,180+p-a,p+'°').s+ang(B,180-b,180,b+'°').s+ang(Qq,-b,p-a,'x').s;}
+ else{const c=p-a;return KUNOX({V:[A,Pp,Qq,B],yl,ym,x0,x1,vals:[a+'°',c+'°',b+'°'],xi:2,names:['A','P','Q','B'],ex:1});/* 2026-11-09 20:20 KUNOX に */}
+ return svg(box(pts,8),s,'平行線と折れ線の図');}
+/* 平行線に2本の直線：o.t＝[[ℓ と交わる x, 向き（ℓ の右からの角度）],…]・o.an＝[[直線の番号, 'l'|'m', 'UR'|'UL'|'LL'|'LR', 字, 色],…]。ex のとき平行の印 */
+function HEI2(o){const yl=40,ym=128,T=o.t.map(([px,th])=>({th,L:[px,yl],M:[px-(ym-yl)/Math.tan(th*RAD),ym]}));
+ const xs=T.flatMap(t=>[t.L[0],t.M[0]]),x0=Math.min(...xs)-45,x1=Math.max(...xs)+45;let s=par(yl,ym,x0,x1,o.ex,[(T[0].L[0]+T[1].L[0])/2+3,(T[0].M[0]+T[1].M[0])/2+3]);const pts=[[x0,yl-40],[x1+20,ym+40]];
+ T.forEach(t=>{const u=[Math.cos(t.th*RAD),-Math.sin(t.th*RAD)],e=36/Math.sin(t.th*RAD);s+=ln([t.L[0]+u[0]*e,t.L[1]+u[1]*e],[t.M[0]-u[0]*e,t.M[1]-u[1]*e]);});
+ const Q={UR:th=>[0,th],UL:th=>[th,180],LL:th=>[180,180+th],LR:th=>[180+th,360]};
+ (o.an||[]).forEach(([i,w,q,lab,c])=>{const t=T[i],[a1,a2]=Q[q](t.th);s+=ang(w==='l'?t.L:t.M,a1,a2,lab,c||'k',/^[xy]$/.test(lab)&&c?20:14).s;});
+ return svg(box(pts,0),s,'平行線と交わる直線の図');}
+/* ===== くの字の図（2026-11-09 20:20 川上さん「x の線と角度の数字が重なって印刷だと見づらい」・係 f9b）=====
+   KUNOX({V:[A,P(,Q…),B]（画面の座標・y は下向き。A は ℓ 上、B は m 上、間が折れた点）, yl, ym（ℓ・m の y）, x0, x1（平行線の左右の端）,
+          vals:['38°','47°']（錯角の組の値。上から順に＝A と1つ目の折れ点の上の角、1つ目の下の角と2つ目の上の角、…、最後の折れ点の下の角と B）,
+          xi:1（∠x の折れ点の番号。0 なら ∠x を描かない）, names:['A','P','B']（なくてよい）, ex:1（解説の図＝補助線・色。なければ問題の図）,
+          extra:[[[x,y],[x,y],[x,y],'143°','k'],…]（ほかに描く角：点1・頂点・点2）, mark:1（平行の印）})
+   解説の図：折れた点を通る補助線＝灰色の点線。組の色＝青・緑・紫の順。折れた所で分けた角は小さい弧（半径 12）、数字はそのすぐ外。
+   ∠x の朱の弧は数字より外（数字の四角の外側＋6px）、x の字はさらに外。朱の弧が辺より長くなる・62px をこえるときは、朱の弧を小さい弧のすぐ外（半径 21）にして数字をその外に置く。数字・x の字と、線・弧・点線のすき間は 3px 以上になるよう置く */
+const KUNOX0=(o)=>{
+ const COL={b:'#005AFF',g:'#03AF7A',p:'#990099',r:'#FF4B00',k:'#111'},PC=['b','g','p'],RAD=Math.PI/180,SH='stroke="#fff" stroke-width="4" paint-order="stroke"';
+ const n_=v=>{let s=(Math.round(v*10)/10).toFixed(1);s=s.replace(/\.0$/,'');return s==='-0'?'0':s;};
+ const V=o.V,k=V.length-2,ex=!!o.ex,yl=o.yl,ym=o.ym,x0=o.x0,x1=o.x1;
+ const th=(v,p)=>Math.atan2(-(p[1]-v[1]),p[0]-v[0])/RAD;
+ const segs=[];const out=[];const boxes=[];
+ const L=(a,b,st,keep)=>{out.push(`<line x1="${n_(a[0])}" y1="${n_(a[1])}" x2="${n_(b[0])}" y2="${n_(b[1])}" ${st}/>`);if(keep!==false)segs.push([a,b]);};
+ const BLK='stroke="#111" stroke-width="2" stroke-linecap="round"';
+ L([x0,yl],[x1,yl],BLK);L([x0,ym],[x1,ym],BLK);
+ for(let i=0;i<=k;i++)L(V[i],V[i+1],BLK);
+ if(o.mark!==0){[yl,ym].forEach(y=>{const x=x0+22,pa=[x-5.4,y-4.5],pb=[x,y],pc=[x-5.4,y+4.5];out.push(`<polyline points="${n_(pa[0])},${n_(pa[1])} ${n_(pb[0])},${n_(pb[1])} ${n_(pc[0])},${n_(pc[1])}" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`);segs.push([pa,pb],[pb,pc]);});}
+ const hdir=i=>((V[i-1][0]+V[i+1][0])/2-V[i][0])>0?0:180;
+ if(ex)for(let i=1;i<=k;i++)L([x0,V[i][1]],[x1,V[i][1]],'stroke="#6b7280" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="5 4"');
+ /* 角：頂点 v で、数学の角度 t1・t2 の間（小さいほう） */
+ const span=(t1,t2)=>{let s=((t2-t1)%360+360)%360;if(s>180){return [t2,360-s];}return [t1,s];};
+ const P=(v,t,r)=>[v[0]+r*Math.cos(t*RAD),v[1]-r*Math.sin(t*RAD)];
+ const arc=(v,t1,t2,c,r,w)=>{const [s,sp]=span(t1,t2),a=P(v,s,r),b=P(v,s+sp,r);const fill=(c!=='k'&&ex&&w!=='o')?`<path d="M${n_(v[0])} ${n_(v[1])} L${n_(a[0])} ${n_(a[1])} A${r} ${r} 0 0 0 ${n_(b[0])} ${n_(b[1])} Z" fill="${COL[c]}" fill-opacity=".28" stroke="none"/>`:'';
+  out.push(fill+`<path d="M${n_(a[0])} ${n_(a[1])} A${r} ${r} 0 0 0 ${n_(b[0])} ${n_(b[1])}" fill="none" stroke="${COL[c]}" stroke-width="${c==='k'?1.8:2.2}"/>`);
+  for(let j=0;j<12;j++)segs.push([P(v,s+sp*j/12,r),P(v,s+sp*(j+1)/12,r)]);return [s,sp];};
+ const tw=t=>[...String(t).replace(/<[^>]*>/g,'')].reduce((w,ch)=>w+(/[0-9]/.test(ch)?7.4:ch==='°'?5.2:/[a-z]/.test(ch)?7:9.6),0);
+ const bx=(cx,cy,t)=>{const w=tw(t);return [cx-w/2-0.5,cy-5.5,cx+w/2+0.5,cy+5.5];};
+ const dseg=(b,[p,q])=>{/* 四角と線分の距離 */const inb=pt=>pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3];if(inb(p)||inb(q))return 0;
+  const E=[[[b[0],b[1]],[b[2],b[1]]],[[b[2],b[1]],[b[2],b[3]]],[[b[2],b[3]],[b[0],b[3]]],[[b[0],b[3]],[b[0],b[1]]]];
+  const ss=(a1,a2,c1,c2)=>{const cr=(u,v,w)=>(v[0]-u[0])*(w[1]-u[1])-(v[1]-u[1])*(w[0]-u[0]);if(cr(a1,a2,c1)*cr(a1,a2,c2)<0&&cr(c1,c2,a1)*cr(c1,c2,a2)<0)return 0;
+   const pd=(z,u,v)=>{const dx=v[0]-u[0],dy=v[1]-u[1],L2=dx*dx+dy*dy;let t=L2?((z[0]-u[0])*dx+(z[1]-u[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(z[0]-u[0]-t*dx,z[1]-u[1]-t*dy);};
+   return Math.min(pd(a1,c1,c2),pd(a2,c1,c2),pd(c1,a1,a2),pd(c2,a1,a2));};
+  return Math.min(...E.map(([u,v])=>ss(u,v,p,q)));};
+ const dbox=(a,b)=>Math.max(0,a[0]-b[2],b[0]-a[2],a[1]-b[3],b[1]-a[3]);
+ const ok=(b,gap)=>segs.every(sg=>dseg(b,sg)>=gap)&&boxes.every(c=>dbox(b,c)>=2)&&b[0]>=x0-30&&b[2]<=x1+30;
+ const T=(cx,cy,t,c,it)=>{const b=bx(cx,cy,t);boxes.push(b);out.push(`<text x="${n_(cx)}" y="${n_(cy+4.6)}" text-anchor="middle" font-size="13" font-weight="700"${it?' font-style="italic"':''} fill="${COL[c]||c}" ${SH}>${t}</text>`);return b;};
+ /* 角の字：二等分線の上で、r0 から外へ。だめなら向きを少しずつずらす */
+ const find=(v,s,sp,t,r0)=>{const m=s+sp/2;for(let d=r0;d<=r0+60;d+=1){for(const off of [0,-1,1,-2,2,-3,3].map(z=>z*sp/10)){const a=m+off;if(a<=s+2||a>=s+sp-2)continue;const p=P(v,a,d);const b=bx(p[0],p[1],t);if(ok(b,3.4))return [p,b];}}const p=P(v,m,r0+20);return [p,bx(p[0],p[1],t)];};
+ const farOf=(v,b)=>Math.max(...[[b[0],b[1]],[b[2],b[1]],[b[0],b[3]],[b[2],b[3]]].map(q=>Math.hypot(q[0]-v[0],q[1]-v[1])));
+ const place=(v,s,sp,t,c,r0,it)=>{const [p,b]=find(v,s,sp,t,r0);T(p[0],p[1],t,c,it);return farOf(v,b);};
+ const pend=[];
+ if(ex){
+  for(let i=1;i<=k;i++){const h=hdir(i),cu=PC[(i-1)%3],cd=PC[i%3];const su=arc(V[i],th(V[i],V[i-1]),h,cu,12),sd=arc(V[i],h,th(V[i],V[i+1]),cd,12);pend.push([V[i],su,o.vals[i-1],cu,15],[V[i],sd,o.vals[i],cd,15]);}
+  const hA=hdir(1),hB=hdir(k);const sA=arc(V[0],(hA+180)%360,th(V[0],V[1]),PC[0],15),sB=arc(V[k+1],(hB+180)%360,th(V[k+1],V[k]),PC[k%3],15);
+  pend.push([V[0],sA,o.vals[0],PC[0],18],[V[k+1],sB,o.vals[k],PC[k%3],18]);
+ }else{
+  for(let i=1;i<=k;i++){if(o.xi===i)continue;}
+ }
+ (o.extra||[]).forEach(([p1,v,p2,t,c])=>{const s=arc(v,th(v,p1),th(v,p2),c||'k',c&&c!=='k'?15:17,'o');pend.push([v,s,t,c||'k',20]);});
+ if(!ex){const hA=hdir(1),hB=hdir(k);const sA=arc(V[0],(hA+180)%360,th(V[0],V[1]),'k',14),sB=arc(V[k+1],(hB+180)%360,th(V[k+1],V[k]),'k',14);pend.push([V[0],sA,o.vals[0],'k',18],[V[k+1],sB,o.vals[k],'k',18]);}
+ /* 点の記号（先に置いて、数字がよける） */
+ if(o.names){o.names.forEach((nm,i)=>{if(!nm)return;const v=V[i];let c;if(i===0)c=[[v[0],yl-13],[v[0]-12,yl-13],[v[0]+12,yl-13]];else if(i===k+1)c=[[v[0],ym+15],[v[0]-12,ym+15],[v[0]+12,ym+15]];else{const h=hdir(i)===0?1:-1;c=[[v[0]-h*13,v[1]-12],[v[0]-h*13,v[1]+12],[v[0]-h*16,v[1]-14]];}
+  for(const p of c){const b=bx(p[0],p[1],nm);if(ok(b,2)||p===c[c.length-1]){boxes.push(b);out.push(`<text x="${n_(p[0])}" y="${n_(p[1]+5)}" text-anchor="middle" font-size="14" font-weight="700" fill="#111" ${SH}>${nm}</text>`);break;}}});}
+ [[x1+11,yl,'ℓ'],[x1+11,ym,'m']].forEach(([x,y,t])=>{boxes.push(bx(x,y,'m'));out.push(`<text x="${n_(x)}" y="${n_(y+5)}" text-anchor="middle" font-size="14" font-weight="700" font-style="italic" fill="#111" ${SH}>${t}</text>`);});
+ const far={};const bend=new Set(V.slice(1,k+1).map(v=>v.join(',')));
+ const doP=f=>pend.filter(z=>f(bend.has(z[0].join(',')))).forEach(([v,[s,sp],t,c,r0])=>{const g=place(v,s,sp,t,c,r0,false);const key=v.join(',');far[key]=Math.max(far[key]||0,g);});
+ /* ∠x の弧の半径：折れた所の数字の外側＋6px。辺より長くなるときは、朱の弧を小さい弧のすぐ外（半径 21）にして、数字をその外に置く */
+ let Rin=0;if(ex&&o.xi){const i=o.xi,v=V[i],Lmin=Math.min(Math.hypot(V[i-1][0]-v[0],V[i-1][1]-v[1]),Math.hypot(V[i+1][0]-v[0],V[i+1][1]-v[1]))-6;
+  const need=Math.max(30,Math.ceil(Math.max(0,...pend.filter(z=>z[0]===v).map(([vv,[s,sp],t,c,r0])=>farOf(vv,find(vv,s,sp,t,r0)[1])))+6));
+  if(need>Math.min(Lmin,62)){const [s,sp]=span(th(v,V[i-1]),th(v,V[i+1]));const n0=out.length;arc(v,s,s+sp,'r',21,'o');out.push(out.splice(n0,1)[0]);Rin=21;pend.forEach(z=>{if(z[0]===v)z[4]=27;});}}
+ doP(b=>b);
+ /* ∠x（折れた所の数字を置いたあと、ほかの数字より先） */
+ if(o.xi){const i=o.xi,v=V[i];const [s,sp]=span(th(v,V[i-1]),th(v,V[i+1]));
+  if(ex){if(Rin)place(v,s,sp,'x','r',27,true);else{const R=Math.max(30,Math.ceil((far[v.join(',')]||20)+6));arc(v,s,s+sp,'r',R,'o');place(v,s,sp,'x','r',R+8,true);}}
+  else{arc(v,s,s+sp,'k',14);place(v,s,sp,'x','k',18,true);}}
+ doP(b=>!b);
+ let X0=x0-4,Y0=yl-26,X1=x1+22,Y1=ym+24;boxes.forEach(b=>{X0=Math.min(X0,b[0]-4);X1=Math.max(X1,b[2]+4);Y0=Math.min(Y0,b[1]-4);Y1=Math.max(Y1,b[3]+4);});
+ if(o._box)return [X0,Y0];
+ const dv=o.pts?` data-v="${Object.entries(o.pts).map(([kk,p])=>kk+':'+n_(p[0])+','+n_(p[1])).join(';')}"`+(o.dc?` data-c="${o.dc}"`:''):'';
+ return `<svg class="gr" viewBox="${n_(X0)} ${n_(Y0)} ${n_(X1-X0)} ${n_(Y1-Y0)}" width="${n_(X1-X0)}" height="${n_(Y1-Y0)}" role="img" aria-label="${ex?'くの字に補助線をひいた図':'平行線と折れ線の図'}"${dv}>${out.join('')}</svg>`;};
+/* 画面の lfFix は viewBox の左上を 0,0 として図の外かどうかを見るので、全部の座標を左上が 0,0 になるようにずらしてから描く（o.pts＝data-v に書く点・o.dc＝data-c） */
+const KUNOX=(o)=>{const [X0,Y0]=KUNOX0(Object.assign({},o,{_box:1}));const f=p=>[Math.round((p[0]-X0)*10)/10,Math.round((p[1]-Y0)*10)/10];
+ const q=Object.assign({},o,{V:o.V.map(f),yl:o.yl-Y0,ym:o.ym-Y0,x0:o.x0-X0,x1:o.x1-X0,extra:(o.extra||[]).map(([a,b,c,t,cl])=>[f(a),f(b),f(c),t,cl])});
+ if(o.pts){q.pts={};Object.keys(o.pts).forEach(kk=>{q.pts[kk]=f(o.pts[kk]);});}return KUNOX0(q);};
+/* くの字の箱の図：KUNOBOX()。平行線2本とくの字、上の角と折れた所の上の部分に ●、下の角と下の部分に ○（錯角の箱の図と同じ大きさ・線・色） */
+const KUNOBOX=()=>{const RD='#FF4B00',n_=v=>Math.round(v*10)/10,RAD=Math.PI/180,yl=26,ym=100,A=[56,yl],B=[56,ym],P=[122,63];
+ const th=(v,p)=>Math.atan2(-(p[1]-v[1]),p[0]-v[0])/RAD,Q=(v,t,r)=>[v[0]+r*Math.cos(t*RAD),v[1]-r*Math.sin(t*RAD)];
+ const arc=(v,t1,t2,r)=>{let s=((t2-t1)%360+360)%360;let a=t1;if(s>180){a=t2;s=360-s;}const p=Q(v,a,r),q=Q(v,a+s,r);return `<path d="M${n_(p[0])} ${n_(p[1])} A${r} ${r} 0 0 0 ${n_(q[0])} ${n_(q[1])}" fill="none" stroke="${RD}" stroke-width="2.2"/>`;};
+ const dot=(v,t1,t2,d,ch)=>{let s=((t2-t1)%360+360)%360;let a=t1;if(s>180){a=t2;s=360-s;}const p=Q(v,a+s/2,d);return `<text x="${n_(p[0])}" y="${n_(p[1]+4)}" text-anchor="middle" font-size="11" font-weight="bold" fill="${RD}" stroke="#fff" stroke-width="4" paint-order="stroke">${ch}</text>`;};
+ const ln=(a,b,st)=>`<line x1="${n_(a[0])}" y1="${n_(a[1])}" x2="${n_(b[0])}" y2="${n_(b[1])}" ${st||'stroke="#111" stroke-width="1.8" stroke-linecap="round"'}/>`;
+ const mk=y=>`<polyline points="${36.5},${y+4.5} 42.5,${y} ${36.5},${y-4.5}" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`;
+ let s=ln([20,yl],[170,yl])+ln([20,ym],[170,ym])+mk(yl)+mk(ym)+ln(A,P)+ln(P,B)+ln([20,P[1]],[170,P[1]],'stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="4 3"');
+ s+=arc(A,0,th(A,P),15)+arc(P,th(P,A),180,15)+arc(P,180,th(P,B),15)+arc(B,th(B,P),0,15);
+ s+=dot(A,0,th(A,P),26,'●')+dot(P,th(P,A),180,25,'●')+dot(P,180,th(P,B),25,'○')+dot(B,th(B,P),0,26,'○');
+ s+=`<text x="95" y="124" text-anchor="middle" font-size="12" font-weight="bold" stroke="#fff" stroke-width="4" paint-order="stroke">くの字：● ＋ ○</text>`;
+ return `<svg viewBox="14 8 162 124" width="162" height="124" role="img" aria-label="くの字の図">${s}</svg>`;};
+
+return {KUNO1,KUNO2,HEI2,KUNOX,KUNOBOX};})();
+return {"M2U5P1_ZU_HEI2":(...a)=>M2U5P1_ZU.HEI2(...a),"M2U5P1_ZU_KUNO1":(...a)=>M2U5P1_ZU.KUNO1(...a),"M2U5P1_ZU_KUNOBOX":(...a)=>M2U5P1_ZU.KUNOBOX(...a),"M2U5P1_ZU_KUNO2":(...a)=>M2U5P1_ZU.KUNO2(...a)};
+})();
+NS["gg_m2u5p3"]=(function(){
+const M2U5P3_ZU=(()=>{
+const nr=v=>Math.round(v*10)/10,RAD=Math.PI/180,COL={r:'#FF4B00',b:'#005AFF',g:'#03AF7A',k:'#111'};
+const ST='stroke="#fff" stroke-width="4" paint-order="stroke"';
+const tz=t=>String(t).replace(/\{([a-z])\}/g,'<tspan font-style="italic">$1</tspan>');
+const tl=t=>String(t).replace(/\{([a-z])\}/g,'$1').length;
+const ln=(a,b,c,w)=>`<line x1="${nr(a[0])}" y1="${nr(a[1])}" x2="${nr(b[0])}" y2="${nr(b[1])}" stroke="${c||'#111'}" stroke-width="${w||2}" stroke-linecap="round"/>`;
+const tx=(p,t,o)=>{o=o||{};return `<text x="${nr(p[0])}" y="${nr(p[1]+(o.fs||13)*0.36)}" text-anchor="middle" font-size="${o.fs||13}"${o.b?' font-weight="bold"':''} fill="${o.c||'#111'}"${/\{[a-z]\}/.test(t)?'':' '+ST}>${tz(t)}</text>`;};
+const sub=(p,q)=>[p[0]-q[0],p[1]-q[1]],nrm=v=>{const L=Math.hypot(v[0],v[1]);return [v[0]/L,v[1]/L];};
+const dir=(v,a)=>Math.atan2(-(a[1]-v[1]),a[0]-v[0])/RAD;
+function shape(V,N,o,side){const n=V.length,cx=V.reduce((s,p)=>s+p[0],0)/n,cy=V.reduce((s,p)=>s+p[1],0)/n;let s='',T=[];const pts=[];
+ for(let i=0;i<n;i++)s+=ln(V[i],V[(i+1)%n]);
+ (o.sd||[]).forEach(([i,lt,rt,c])=>{const a=V[i],b=V[(i+1)%n],t=side?rt:lt;if(c)s+=ln(a,b,COL[c],3.4);
+  if(t){const m=[(a[0]+b[0])/2,(a[1]+b[1])/2];let u=nrm([-(b[1]-a[1]),b[0]-a[0]]);if((m[0]-cx)*u[0]+(m[1]-cy)*u[1]<0)u=[-u[0],-u[1]];
+   const w=tl(t)*7.2,off=7+Math.abs(u[0])*w/2+Math.abs(u[1])*7.5,p=[m[0]+u[0]*off,m[1]+u[1]*off];T.push(tx(p,t,{c:c?COL[c]:''}));pts.push([p[0]-w/2,p[1]-9],[p[0]+w/2,p[1]+9]);}});
+ (o.tk||[]).forEach(([i,k])=>{const a=V[i],b=V[(i+1)%n],m=[(a[0]+b[0])/2,(a[1]+b[1])/2],u=nrm(sub(b,a)),w=[-u[1],u[0]];
+  for(let j=0;j<k;j++){const d=(j-(k-1)/2)*4.5,c=[m[0]+u[0]*d,m[1]+u[1]*d];s+=ln([c[0]-w[0]*6,c[1]-w[1]*6],[c[0]+w[0]*6,c[1]+w[1]*6]);}});
+ (o.an||[]).forEach(([i,lt,rt,c])=>{const v=V[i],p=V[(i+n-1)%n],q=V[(i+1)%n],t=side?rt:lt;if(!t&&!c)return;let a1=dir(v,p),a2=dir(v,q),sp=((a2-a1)%360+360)%360;if(sp>180){[a1,a2]=[a2,a1];sp=360-sp;}
+  const r=12,P=th=>[v[0]+r*Math.cos(th*RAD),v[1]-r*Math.sin(th*RAD)],A=P(a1),B=P(a1+sp);
+  s+=`<path d="M${nr(A[0])} ${nr(A[1])} A${r} ${r} 0 0 0 ${nr(B[0])} ${nr(B[1])}" fill="none" stroke="${c?COL[c]:'#111'}" stroke-width="${c?2.4:1.8}"/>`;
+  if(t){const mid=(a1+sp/2)*RAD,d=Math.max(25,Math.min(44,12+13/Math.sin(sp/2*RAD))),pp=[v[0]+d*Math.cos(mid),v[1]-d*Math.sin(mid)];T.push(tx(pp,t,{c:c?COL[c]:''}));}});
+ for(let i=0;i<n;i++){const v=V[i],u=nrm(sub(v,[cx,cy])),p=[v[0]+u[0]*14,v[1]+u[1]*14];T.push(tx(p,N[i],{fs:14,b:1}));pts.push([p[0]-8,p[1]-10],[p[0]+8,p[1]+10]);}
+ V.forEach(p=>pts.push(p));return {s:s+T.join(''),pts};}
+function SOROE(o){const v0=o.v,wx=Math.max(...v0.map(p=>p[0]))-Math.min(...v0.map(p=>p[0])),hy=Math.max(...v0.map(p=>p[1]))-Math.min(...v0.map(p=>p[1])),f=Math.min(1.6,Math.max(1,140/wx,115/hy));o=Object.assign({},o,{s:Math.round(o.s*f*1000)/1000});const V=v0.map(p=>[p[0]*f,p[1]*f]),[L,R]=o.n,n=V.length,xs=V.map(p=>p[0]),dx=Math.max(...xs)-Math.min(...xs)+(o.gap||70),V2=V.map(p=>[p[0]+dx,p[1]]);
+ const A=shape(V,L.split(''),o,0),B=shape(V2,R.split(''),o,1),pts=A.pts.concat(B.pts);
+ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;pts.forEach(([x,y])=>{x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);});x0-=6;y0-=6;x1+=6;y1+=6;
+ const dv=V.map((p,i)=>L[i]+':'+nr(p[0])+','+nr(p[1])).concat(V2.map((p,i)=>R[i]+':'+nr(p[0])+','+nr(p[1]))).join(';');
+ const c=['S:'+o.s,'K:'+L.split('').join(',')+'='+R.split('').join(',')];
+ (o.sd||[]).forEach(([i,lt])=>{const m=/^(\d+) cm$/.exec(lt||'');if(m)c.push('L:'+L[i]+','+L[(i+1)%n]+'='+m[1]);});
+ (o.an||[]).forEach(([i,lt])=>{const m=/^(\d+)°$/.exec(lt||'');if(m)c.push('G:'+L[(i+n-1)%n]+','+L[i]+','+L[(i+1)%n]+'='+m[1]);});
+ (o.tk||[]).forEach(([i])=>c.push('E:'+L[i]+','+L[(i+1)%n]+'='+R[i]+','+R[(i+1)%n]));
+ return `<svg class="gr" viewBox="${nr(x0)} ${nr(y0)} ${nr(x1-x0)} ${nr(y1-y0)}" width="${nr(x1-x0)}" height="${nr(y1-y0)}" role="img" aria-label="向きをそろえてかき直した合同な図形" data-v="${dv}" data-c="${c.join(';')}">${A.s+B.s}</svg>`;}
+/* KUNO＝平行線と折れ線（くの字）の解説の図（2026-11-09 係 f9a・くの字の説明をそろえた形）。o.v＝問題の図の data-v の点 {L1,L2,M1,M2,Q,R,P}（P＝折れた点・右に折れる）、o.a＝ℓ と QP の角、o.b＝m と RP の角
+   補助線＝点線・上の角の組＝青・下の角の組＝緑・∠x＝朱（外側の大きな弧）。data-v・data-c を付ける */
+function KUNO(o){const V=o.v,a=o.a,b=o.b,P=V.P,N1=[V.L1[0],P[1]],N2=[V.L2[0],P[1]];/* 2026-11-09 20:20 数字と ∠x の弧が重ならない形（KUNOX）に */
+ const pts={L1:V.L1,L2:V.L2,M1:V.M1,M2:V.M2,Q:V.Q,R:V.R,P,N1,N2};
+ return KUNOX({V:[V.Q,P,V.R],yl:V.L1[1],ym:V.M1[1],x0:V.L1[0],x1:V.L2[0],vals:[a+'°',b+'°'],xi:1,ex:1,pts,dc:`P:L1,L2|M1,M2;G:L2,Q,P=${a};G:M2,R,P=${b};G:Q,P,N1=${a};G:R,P,N1=${b};P:N1,N2|L1,L2`});}
+/* ===== くの字の図（2026-11-09 20:20 川上さん「x の線と角度の数字が重なって印刷だと見づらい」・係 f9b）=====
+   KUNOX({V:[A,P(,Q…),B]（画面の座標・y は下向き。A は ℓ 上、B は m 上、間が折れた点）, yl, ym（ℓ・m の y）, x0, x1（平行線の左右の端）,
+          vals:['38°','47°']（錯角の組の値。上から順に＝A と1つ目の折れ点の上の角、1つ目の下の角と2つ目の上の角、…、最後の折れ点の下の角と B）,
+          xi:1（∠x の折れ点の番号。0 なら ∠x を描かない）, names:['A','P','B']（なくてよい）, ex:1（解説の図＝補助線・色。なければ問題の図）,
+          extra:[[[x,y],[x,y],[x,y],'143°','k'],…]（ほかに描く角：点1・頂点・点2）, mark:1（平行の印）})
+   解説の図：折れた点を通る補助線＝灰色の点線。組の色＝青・緑・紫の順。折れた所で分けた角は小さい弧（半径 12）、数字はそのすぐ外。
+   ∠x の朱の弧は数字より外（数字の四角の外側＋6px）、x の字はさらに外。朱の弧が辺より長くなる・62px をこえるときは、朱の弧を小さい弧のすぐ外（半径 21）にして数字をその外に置く。数字・x の字と、線・弧・点線のすき間は 3px 以上になるよう置く */
+const KUNOX0=(o)=>{
+ const COL={b:'#005AFF',g:'#03AF7A',p:'#990099',r:'#FF4B00',k:'#111'},PC=['b','g','p'],RAD=Math.PI/180,SH='stroke="#fff" stroke-width="4" paint-order="stroke"';
+ const n_=v=>{let s=(Math.round(v*10)/10).toFixed(1);s=s.replace(/\.0$/,'');return s==='-0'?'0':s;};
+ const V=o.V,k=V.length-2,ex=!!o.ex,yl=o.yl,ym=o.ym,x0=o.x0,x1=o.x1;
+ const th=(v,p)=>Math.atan2(-(p[1]-v[1]),p[0]-v[0])/RAD;
+ const segs=[];const out=[];const boxes=[];
+ const L=(a,b,st,keep)=>{out.push(`<line x1="${n_(a[0])}" y1="${n_(a[1])}" x2="${n_(b[0])}" y2="${n_(b[1])}" ${st}/>`);if(keep!==false)segs.push([a,b]);};
+ const BLK='stroke="#111" stroke-width="2" stroke-linecap="round"';
+ L([x0,yl],[x1,yl],BLK);L([x0,ym],[x1,ym],BLK);
+ for(let i=0;i<=k;i++)L(V[i],V[i+1],BLK);
+ if(o.mark!==0){[yl,ym].forEach(y=>{const x=x0+22,pa=[x-5.4,y-4.5],pb=[x,y],pc=[x-5.4,y+4.5];out.push(`<polyline points="${n_(pa[0])},${n_(pa[1])} ${n_(pb[0])},${n_(pb[1])} ${n_(pc[0])},${n_(pc[1])}" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`);segs.push([pa,pb],[pb,pc]);});}
+ const hdir=i=>((V[i-1][0]+V[i+1][0])/2-V[i][0])>0?0:180;
+ if(ex)for(let i=1;i<=k;i++)L([x0,V[i][1]],[x1,V[i][1]],'stroke="#6b7280" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="5 4"');
+ /* 角：頂点 v で、数学の角度 t1・t2 の間（小さいほう） */
+ const span=(t1,t2)=>{let s=((t2-t1)%360+360)%360;if(s>180){return [t2,360-s];}return [t1,s];};
+ const P=(v,t,r)=>[v[0]+r*Math.cos(t*RAD),v[1]-r*Math.sin(t*RAD)];
+ const arc=(v,t1,t2,c,r,w)=>{const [s,sp]=span(t1,t2),a=P(v,s,r),b=P(v,s+sp,r);const fill=(c!=='k'&&ex&&w!=='o')?`<path d="M${n_(v[0])} ${n_(v[1])} L${n_(a[0])} ${n_(a[1])} A${r} ${r} 0 0 0 ${n_(b[0])} ${n_(b[1])} Z" fill="${COL[c]}" fill-opacity=".28" stroke="none"/>`:'';
+  out.push(fill+`<path d="M${n_(a[0])} ${n_(a[1])} A${r} ${r} 0 0 0 ${n_(b[0])} ${n_(b[1])}" fill="none" stroke="${COL[c]}" stroke-width="${c==='k'?1.8:2.2}"/>`);
+  for(let j=0;j<12;j++)segs.push([P(v,s+sp*j/12,r),P(v,s+sp*(j+1)/12,r)]);return [s,sp];};
+ const tw=t=>[...String(t).replace(/<[^>]*>/g,'')].reduce((w,ch)=>w+(/[0-9]/.test(ch)?7.4:ch==='°'?5.2:/[a-z]/.test(ch)?7:9.6),0);
+ const bx=(cx,cy,t)=>{const w=tw(t);return [cx-w/2-0.5,cy-5.5,cx+w/2+0.5,cy+5.5];};
+ const dseg=(b,[p,q])=>{/* 四角と線分の距離 */const inb=pt=>pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3];if(inb(p)||inb(q))return 0;
+  const E=[[[b[0],b[1]],[b[2],b[1]]],[[b[2],b[1]],[b[2],b[3]]],[[b[2],b[3]],[b[0],b[3]]],[[b[0],b[3]],[b[0],b[1]]]];
+  const ss=(a1,a2,c1,c2)=>{const cr=(u,v,w)=>(v[0]-u[0])*(w[1]-u[1])-(v[1]-u[1])*(w[0]-u[0]);if(cr(a1,a2,c1)*cr(a1,a2,c2)<0&&cr(c1,c2,a1)*cr(c1,c2,a2)<0)return 0;
+   const pd=(z,u,v)=>{const dx=v[0]-u[0],dy=v[1]-u[1],L2=dx*dx+dy*dy;let t=L2?((z[0]-u[0])*dx+(z[1]-u[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(z[0]-u[0]-t*dx,z[1]-u[1]-t*dy);};
+   return Math.min(pd(a1,c1,c2),pd(a2,c1,c2),pd(c1,a1,a2),pd(c2,a1,a2));};
+  return Math.min(...E.map(([u,v])=>ss(u,v,p,q)));};
+ const dbox=(a,b)=>Math.max(0,a[0]-b[2],b[0]-a[2],a[1]-b[3],b[1]-a[3]);
+ const ok=(b,gap)=>segs.every(sg=>dseg(b,sg)>=gap)&&boxes.every(c=>dbox(b,c)>=2)&&b[0]>=x0-30&&b[2]<=x1+30;
+ const T=(cx,cy,t,c,it)=>{const b=bx(cx,cy,t);boxes.push(b);out.push(`<text x="${n_(cx)}" y="${n_(cy+4.6)}" text-anchor="middle" font-size="13" font-weight="700"${it?' font-style="italic"':''} fill="${COL[c]||c}" ${SH}>${t}</text>`);return b;};
+ /* 角の字：二等分線の上で、r0 から外へ。だめなら向きを少しずつずらす */
+ const find=(v,s,sp,t,r0)=>{const m=s+sp/2;for(let d=r0;d<=r0+60;d+=1){for(const off of [0,-1,1,-2,2,-3,3].map(z=>z*sp/10)){const a=m+off;if(a<=s+2||a>=s+sp-2)continue;const p=P(v,a,d);const b=bx(p[0],p[1],t);if(ok(b,3.4))return [p,b];}}const p=P(v,m,r0+20);return [p,bx(p[0],p[1],t)];};
+ const farOf=(v,b)=>Math.max(...[[b[0],b[1]],[b[2],b[1]],[b[0],b[3]],[b[2],b[3]]].map(q=>Math.hypot(q[0]-v[0],q[1]-v[1])));
+ const place=(v,s,sp,t,c,r0,it)=>{const [p,b]=find(v,s,sp,t,r0);T(p[0],p[1],t,c,it);return farOf(v,b);};
+ const pend=[];
+ if(ex){
+  for(let i=1;i<=k;i++){const h=hdir(i),cu=PC[(i-1)%3],cd=PC[i%3];const su=arc(V[i],th(V[i],V[i-1]),h,cu,12),sd=arc(V[i],h,th(V[i],V[i+1]),cd,12);pend.push([V[i],su,o.vals[i-1],cu,15],[V[i],sd,o.vals[i],cd,15]);}
+  const hA=hdir(1),hB=hdir(k);const sA=arc(V[0],(hA+180)%360,th(V[0],V[1]),PC[0],15),sB=arc(V[k+1],(hB+180)%360,th(V[k+1],V[k]),PC[k%3],15);
+  pend.push([V[0],sA,o.vals[0],PC[0],18],[V[k+1],sB,o.vals[k],PC[k%3],18]);
+ }else{
+  for(let i=1;i<=k;i++){if(o.xi===i)continue;}
+ }
+ (o.extra||[]).forEach(([p1,v,p2,t,c])=>{const s=arc(v,th(v,p1),th(v,p2),c||'k',c&&c!=='k'?15:17,'o');pend.push([v,s,t,c||'k',20]);});
+ if(!ex){const hA=hdir(1),hB=hdir(k);const sA=arc(V[0],(hA+180)%360,th(V[0],V[1]),'k',14),sB=arc(V[k+1],(hB+180)%360,th(V[k+1],V[k]),'k',14);pend.push([V[0],sA,o.vals[0],'k',18],[V[k+1],sB,o.vals[k],'k',18]);}
+ /* 点の記号（先に置いて、数字がよける） */
+ if(o.names){o.names.forEach((nm,i)=>{if(!nm)return;const v=V[i];let c;if(i===0)c=[[v[0],yl-13],[v[0]-12,yl-13],[v[0]+12,yl-13]];else if(i===k+1)c=[[v[0],ym+15],[v[0]-12,ym+15],[v[0]+12,ym+15]];else{const h=hdir(i)===0?1:-1;c=[[v[0]-h*13,v[1]-12],[v[0]-h*13,v[1]+12],[v[0]-h*16,v[1]-14]];}
+  for(const p of c){const b=bx(p[0],p[1],nm);if(ok(b,2)||p===c[c.length-1]){boxes.push(b);out.push(`<text x="${n_(p[0])}" y="${n_(p[1]+5)}" text-anchor="middle" font-size="14" font-weight="700" fill="#111" ${SH}>${nm}</text>`);break;}}});}
+ [[x1+11,yl,'ℓ'],[x1+11,ym,'m']].forEach(([x,y,t])=>{boxes.push(bx(x,y,'m'));out.push(`<text x="${n_(x)}" y="${n_(y+5)}" text-anchor="middle" font-size="14" font-weight="700" font-style="italic" fill="#111" ${SH}>${t}</text>`);});
+ const far={};const bend=new Set(V.slice(1,k+1).map(v=>v.join(',')));
+ const doP=f=>pend.filter(z=>f(bend.has(z[0].join(',')))).forEach(([v,[s,sp],t,c,r0])=>{const g=place(v,s,sp,t,c,r0,false);const key=v.join(',');far[key]=Math.max(far[key]||0,g);});
+ /* ∠x の弧の半径：折れた所の数字の外側＋6px。辺より長くなるときは、朱の弧を小さい弧のすぐ外（半径 21）にして、数字をその外に置く */
+ let Rin=0;if(ex&&o.xi){const i=o.xi,v=V[i],Lmin=Math.min(Math.hypot(V[i-1][0]-v[0],V[i-1][1]-v[1]),Math.hypot(V[i+1][0]-v[0],V[i+1][1]-v[1]))-6;
+  const need=Math.max(30,Math.ceil(Math.max(0,...pend.filter(z=>z[0]===v).map(([vv,[s,sp],t,c,r0])=>farOf(vv,find(vv,s,sp,t,r0)[1])))+6));
+  if(need>Math.min(Lmin,62)){const [s,sp]=span(th(v,V[i-1]),th(v,V[i+1]));const n0=out.length;arc(v,s,s+sp,'r',21,'o');out.push(out.splice(n0,1)[0]);Rin=21;pend.forEach(z=>{if(z[0]===v)z[4]=27;});}}
+ doP(b=>b);
+ /* ∠x（折れた所の数字を置いたあと、ほかの数字より先） */
+ if(o.xi){const i=o.xi,v=V[i];const [s,sp]=span(th(v,V[i-1]),th(v,V[i+1]));
+  if(ex){if(Rin)place(v,s,sp,'x','r',27,true);else{const R=Math.max(30,Math.ceil((far[v.join(',')]||20)+6));arc(v,s,s+sp,'r',R,'o');place(v,s,sp,'x','r',R+8,true);}}
+  else{arc(v,s,s+sp,'k',14);place(v,s,sp,'x','k',18,true);}}
+ doP(b=>!b);
+ let X0=x0-4,Y0=yl-26,X1=x1+22,Y1=ym+24;boxes.forEach(b=>{X0=Math.min(X0,b[0]-4);X1=Math.max(X1,b[2]+4);Y0=Math.min(Y0,b[1]-4);Y1=Math.max(Y1,b[3]+4);});
+ if(o._box)return [X0,Y0];
+ const dv=o.pts?` data-v="${Object.entries(o.pts).map(([kk,p])=>kk+':'+n_(p[0])+','+n_(p[1])).join(';')}"`+(o.dc?` data-c="${o.dc}"`:''):'';
+ return `<svg class="gr" viewBox="${n_(X0)} ${n_(Y0)} ${n_(X1-X0)} ${n_(Y1-Y0)}" width="${n_(X1-X0)}" height="${n_(Y1-Y0)}" role="img" aria-label="${ex?'くの字に補助線をひいた図':'平行線と折れ線の図'}"${dv}>${out.join('')}</svg>`;};
+/* 画面の lfFix は viewBox の左上を 0,0 として図の外かどうかを見るので、全部の座標を左上が 0,0 になるようにずらしてから描く（o.pts＝data-v に書く点・o.dc＝data-c） */
+const KUNOX=(o)=>{const [X0,Y0]=KUNOX0(Object.assign({},o,{_box:1}));const f=p=>[Math.round((p[0]-X0)*10)/10,Math.round((p[1]-Y0)*10)/10];
+ const q=Object.assign({},o,{V:o.V.map(f),yl:o.yl-Y0,ym:o.ym-Y0,x0:o.x0-X0,x1:o.x1-X0,extra:(o.extra||[]).map(([a,b,c,t,cl])=>[f(a),f(b),f(c),t,cl])});
+ if(o.pts){q.pts={};Object.keys(o.pts).forEach(kk=>{q.pts[kk]=f(o.pts[kk]);});}return KUNOX0(q);};
+/* くの字の箱の図：KUNOBOX()。平行線2本とくの字、上の角と折れた所の上の部分に ●、下の角と下の部分に ○（錯角の箱の図と同じ大きさ・線・色） */
+const KUNOBOX=()=>{const RD='#FF4B00',n_=v=>Math.round(v*10)/10,RAD=Math.PI/180,yl=26,ym=100,A=[56,yl],B=[56,ym],P=[122,63];
+ const th=(v,p)=>Math.atan2(-(p[1]-v[1]),p[0]-v[0])/RAD,Q=(v,t,r)=>[v[0]+r*Math.cos(t*RAD),v[1]-r*Math.sin(t*RAD)];
+ const arc=(v,t1,t2,r)=>{let s=((t2-t1)%360+360)%360;let a=t1;if(s>180){a=t2;s=360-s;}const p=Q(v,a,r),q=Q(v,a+s,r);return `<path d="M${n_(p[0])} ${n_(p[1])} A${r} ${r} 0 0 0 ${n_(q[0])} ${n_(q[1])}" fill="none" stroke="${RD}" stroke-width="2.2"/>`;};
+ const dot=(v,t1,t2,d,ch)=>{let s=((t2-t1)%360+360)%360;let a=t1;if(s>180){a=t2;s=360-s;}const p=Q(v,a+s/2,d);return `<text x="${n_(p[0])}" y="${n_(p[1]+4)}" text-anchor="middle" font-size="11" font-weight="bold" fill="${RD}" stroke="#fff" stroke-width="4" paint-order="stroke">${ch}</text>`;};
+ const ln=(a,b,st)=>`<line x1="${n_(a[0])}" y1="${n_(a[1])}" x2="${n_(b[0])}" y2="${n_(b[1])}" ${st||'stroke="#111" stroke-width="1.8" stroke-linecap="round"'}/>`;
+ const mk=y=>`<polyline points="${36.5},${y+4.5} 42.5,${y} ${36.5},${y-4.5}" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`;
+ let s=ln([20,yl],[170,yl])+ln([20,ym],[170,ym])+mk(yl)+mk(ym)+ln(A,P)+ln(P,B)+ln([20,P[1]],[170,P[1]],'stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="4 3"');
+ s+=arc(A,0,th(A,P),15)+arc(P,th(P,A),180,15)+arc(P,180,th(P,B),15)+arc(B,th(B,P),0,15);
+ s+=dot(A,0,th(A,P),26,'●')+dot(P,th(P,A),180,25,'●')+dot(P,180,th(P,B),25,'○')+dot(B,th(B,P),0,26,'○');
+ s+=`<text x="95" y="124" text-anchor="middle" font-size="12" font-weight="bold" stroke="#fff" stroke-width="4" paint-order="stroke">くの字：● ＋ ○</text>`;
+ return `<svg viewBox="14 8 162 124" width="162" height="124" role="img" aria-label="くの字の図">${s}</svg>`;};
+
+return {SOROE,KUNO,KUNOX,KUNOBOX};})();
+return {"M2U5P3_ZU_SOROE":(...a)=>M2U5P3_ZU.SOROE(...a),"M2U5P3_ZU_KUNO":(...a)=>M2U5P3_ZU.KUNO(...a),"M2U5P3_ZU_KUNOBOX":(...a)=>M2U5P3_ZU.KUNOBOX(...a)};
+})();
 NS["gg_m2u5p4"]=(function(){
+const S=(o)=>{if(o.ren){o.steps.forEach(st=>st.a=st.c.r);}else o.a=o.c.r;return o;};
 const M2U5P4_ZU=(()=>{
 const FS='font-size="13"',RD='#FF4B00',GR='#6b7280';
 const nr=v=>Math.round(v*100)/100;
@@ -1237,8 +2170,158 @@ function SUISO(b,a,full){const W=250,x0=10,k=W/full,xb=x0+b*k;let s=`<rect x="${
  return SVG(270,94,s,'水の量の図');}
 /* 表 */
 function TBL(rows){return `<table class="tb inc">${rows.map(r=>`<tr>${r.map((c,j)=>j===0?`<th style="min-width:24px;padding:1px 6px">${c}</th>`:`<td style="min-width:24px;padding:1px 6px">${c}</td>`).join('')}</tr>`).join('')}</table>`;}
-return {GOUDOU,SAKKAKU,TAICHO,GAIKAKU,LINE4,SUISO,TBL};})();
-return {"M2U5P4_ZU_GOUDOU":(...a)=>M2U5P4_ZU.GOUDOU(...a),"M2U5P4_ZU_SAKKAKU":(...a)=>M2U5P4_ZU.SAKKAKU(...a),"M2U5P4_ZU_TBL":(...a)=>M2U5P4_ZU.TBL(...a),"M2U5P4_ZU_GAIKAKU":(...a)=>M2U5P4_ZU.GAIKAKU(...a),"M2U5P4_ZU_LINE4":(...a)=>M2U5P4_ZU.LINE4(...a),"M2U5P4_ZU_TAICHO":(...a)=>M2U5P4_ZU.TAICHO(...a)};
+/* 角の図（2026-11-09 係 f9b）：くの字・ブーメラン型・ちょうちょ型・星形の解説の図を同じ色・同じ形で描く
+   KAKU({P:{A:[x,y],…}（数学の向き・y は上）, segs:['A-B',…]（黒の線）, dash:['D-E',…]（補助線＝灰色の点線）,
+         fill:[['A-M-N','#facc15'],…]（うすくぬる）, angs:[[p1,v,p2,色,半径],…]（色＝'b'青・'g'緑・'r'朱・'k'黒の弧だけ）,
+         texts:[[x,y,'38°',{c:'b',it:true,size:13}],…], w:220, pad:22, lab:{A:向き(ラジアン・画面の向き)}, nolab:['O',…]})
+   点の名前が '_' で始まる点は記号を書かない。外角で集める角は青・緑、求める ∠x は朱、補助線は点線（図形の角の4つの形の説明 2026-11-09）
+   KUNOJI(o)・BOOM(o)・CHOCHO(o)・STAR(o) は KAKU の引数を作って呼ぶ（使い方は各関数の頭） */
+const KAKU=(o)=>{
+ const COL={b:'#005AFF',g:'#03AF7A',r:'#FF4B00',k:'#111'},SH='stroke="#fff" stroke-width="4" paint-order="stroke"';
+ const n_=v=>{let s=(Math.round(v*10)/10).toFixed(1);s=s.replace(/\.0$/,'');return s==='-0'?'0':s;};
+ const sp=s=>s.split('-');
+ const P=o.P,w=o.w||220,pad=o.pad==null?22:o.pad,texts=o.texts||[];
+ const xs=Object.values(P).map(p=>p[0]).concat(texts.map(t=>t[0])),ys=Object.values(P).map(p=>p[1]).concat(texts.map(t=>t[1]));
+ const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+ let sc=(w-2*pad)/Math.max(x1-x0,1e-9),H=(y1-y0)*sc+2*pad;
+ if(H>w*1.1){sc=(w*1.1-2*pad)/(y1-y0);H=w*1.1;}
+ const W=(x1-x0)*sc+2*pad,X=x=>pad+(x-x0)*sc,Y=y=>pad+(y1-y)*sc;
+ const S={};Object.keys(P).forEach(k=>{S[k]=[X(P[k][0]),Y(P[k][1])];});
+ const out=[`<svg class="gr" viewBox="0 0 ${n_(W)} ${n_(H)}" width="${n_(W)}" height="${n_(H)}" role="img" aria-label="${o.aria||'角の図'}">`];
+ (o.fill||[]).forEach(([t,c])=>out.push(`<polygon points="${sp(t).map(k=>n_(S[k][0])+','+n_(S[k][1])).join(' ')}" fill="${c}" fill-opacity="0.35" stroke="none"/>`));
+ (o.segs||[]).map(sp).forEach(([a,b])=>out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="#111" stroke-width="2" stroke-linecap="round"/>`));
+ (o.dash||[]).map(sp).forEach(([a,b])=>out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="#6b7280" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="5 4"/>`));
+ const arcs={};
+ (o.angs||[]).forEach(([p1,v,p2,c,r])=>{const col=COL[c]||c;const [vx,vy]=S[v];let a1=Math.atan2(S[p1][1]-vy,S[p1][0]-vx),a2=Math.atan2(S[p2][1]-vy,S[p2][0]-vx);
+  let d=((a2-a1)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);if(d>Math.PI){[a1,a2]=[a2,a1];d=2*Math.PI-d;}r=r||14;(arcs[v]=arcs[v]||[]).push([a1,d,r]);
+  const q1=[vx+Math.cos(a1)*r,vy+Math.sin(a1)*r],q2=[vx+Math.cos(a1+d)*r,vy+Math.sin(a1+d)*r];
+  if(c!=='k'&&c!=='o')out.push(`<path d="M${n_(vx)} ${n_(vy)} L${n_(q1[0])} ${n_(q1[1])} A${r} ${r} 0 0 1 ${n_(q2[0])} ${n_(q2[1])} Z" fill="${col}" fill-opacity=".38" stroke="none"/>`);
+  out.push(`<path d="M${n_(q1[0])} ${n_(q1[1])} A${r} ${r} 0 0 1 ${n_(q2[0])} ${n_(q2[1])}" fill="none" stroke="${c==='o'?COL.r:col}" stroke-width="1.8"/>`);});
+ (o.dots||[]).forEach(k=>out.push(`<circle cx="${n_(S[k][0])}" cy="${n_(S[k][1])}" r="3" fill="#111"/>`));
+ texts.forEach(([x,y,t,op])=>{op=op||{};if(op.at){const [p1,v,p2]=op.at,V=S[v],u=a=>{const dx=S[a][0]-V[0],dy=S[a][1]-V[1],L=Math.hypot(dx,dy);return [dx/L,dy/L];},a=u(p1),b=u(p2);let m=[a[0]+b[0],a[1]+b[1]];const L=Math.hypot(m[0],m[1])||1;if(op.out){m=[-m[0],-m[1]];}const h=Math.acos(Math.max(-1,Math.min(1,a[0]*b[0]+a[1]*b[1])))/2,dd=Math.min(50,Math.max(op.d||28,13/Math.max(Math.sin(h),.05)));const px=V[0]+m[0]/L*dd,py=V[1]+m[1]/L*dd;x=x0+(px-pad)/sc;y=y1-(py-pad)/sc;}const col=op.c?(COL[op.c]||op.c):'#111';const tt=op.it?`<tspan font-style="italic">${t}</tspan>`:t;
+  out.push(`<text x="${n_(X(x)+(op.dx||0))}" y="${n_(Y(y)+(op.dy||0)+4)}" text-anchor="middle" font-size="${op.size||13}" font-weight="700" fill="${col}" ${SH}>${tt}</text>`);});
+ const vs=Object.values(S),cx=vs.reduce((s,v)=>s+v[0],0)/vs.length,cy=vs.reduce((s,v)=>s+v[1],0)/vs.length;
+ Object.keys(S).forEach(k=>{if(k[0]==='_'||(o.nolab||[]).indexOf(k)>=0)return;const [px,py]=S[k];let ang=(o.lab||{})[k];if(ang==null)ang=Math.atan2(py-cy,px-cx);const r=12;
+  out.push(`<text x="${n_(px+Math.cos(ang)*r)}" y="${n_(py+Math.sin(ang)*r+5)}" text-anchor="middle" font-size="14" font-weight="700" fill="#111" ${SH}>${k}</text>`);});
+ return out.join('')+'</svg>';};
+/* 点の計算 */
+const KK_={
+ X:(p,q,r,s)=>{const d=(q[0]-p[0])*(s[1]-r[1])-(q[1]-p[1])*(s[0]-r[0]);const t=((r[0]-p[0])*(s[1]-r[1])-(r[1]-p[1])*(s[0]-r[0]))/d;return [p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];},
+ /* 頂点 v の角 p1-v-p2 の二等分線の向きに、距離 k の所（数学の座標） */
+ IN:(p1,v,p2,k)=>{const u=a=>{const dx=a[0]-v[0],dy=a[1]-v[1],L=Math.hypot(dx,dy);return [dx/L,dy/L];};const a=u(p1),b=u(p2);let m=[a[0]+b[0],a[1]+b[1]];const L=Math.hypot(m[0],m[1])||1;return [v[0]+m[0]/L*k,v[1]+m[1]/L*k];}};
+/* くの字：KUNOJI({A:[x,y]（ℓ 上の点）, B:[x,y]（m 上の点）, P:[x,y]（折れた点）, xl:[左の x, 右の x], top:'38°', bot:'45°', names:true（A・B・P の記号を書く）, n:'n'（補助線の名前・なくてよい）, k:0.6（角の字の距離）, w:220})
+   ℓ と m の角は、P のある側。補助線は P を通る ℓ に平行な点線。上の角＝青、下の角＝緑、∠x＝朱の弧と字 */
+const KUNOJI=(o)=>{const {A,B,P}=o,xl=o.xl;const side=P[0]>A[0]?1:-1;const nm=z=>(o.names&&({_A:'A',_B:'B',_P:'P'})[z])||z;
+ const Q={_l1:[xl[0],A[1]],_l2:[xl[1],A[1]],_m1:[xl[0],B[1]],_m2:[xl[1],B[1]],_n1:[xl[0],P[1]],_n2:[xl[1],P[1]]};Q[nm('_A')]=A;Q[nm('_B')]=B;Q[nm('_P')]=P;
+ const a_=nm('_A'),b_=nm('_B'),p_=nm('_P'),lE=side>0?'_l2':'_l1',mE=side>0?'_m2':'_m1',nE=side>0?'_n1':'_n2',d=o.d||30;
+ const t=[[xl[1]+0.15,A[1]+0.42,'ℓ',{it:true,size:14}],[xl[1]+0.15,B[1]+0.42,'m',{it:true,size:14}]];
+ if(o.n)t.push([xl[side>0?0:1]+(side>0?-0.25:0.25),P[1]+0.3,o.n,{it:true,size:13,c:'#6b7280'}]);
+ t.push([0,0,o.top,{c:'b',at:[lE,a_,p_],d:d}],[0,0,o.top,{c:'b',at:[a_,p_,nE],d:d}],[0,0,o.bot,{c:'g',at:[b_,p_,nE],d:d}],[0,0,o.bot,{c:'g',at:[mE,b_,p_],d:d}]);
+ return KAKU({P:Q,segs:['_l1-_l2','_m1-_m2',a_+'-'+p_,b_+'-'+p_],dash:['_n1-_n2'],
+  angs:[[lE,a_,p_,'b',16],[a_,p_,nE,'b',16],[b_,p_,nE,'g',16],[mE,b_,p_,'g',16]],
+  texts:t,w:o.w||240,lab:o.lab||{},aria:'くの字に補助線をひいた図'});};
+/* ブーメラン型：BOOM({A,B,C,D（へこんだ点）:[x,y], t:{A:'35°',B:'28°',C:'42°',D:'x'}（B＝∠ABD・C＝∠ACD・D＝∠BDC の字）, x:'D'（求める角の頂点）, k:0.9, w:220, lab:{}})
+   BD を D の先へのばして AC と交わる点を E（点線）。∠A・∠ABD・∠BEC＝青、∠ACD＝緑、求める角＝朱 */
+const BOOM=(o)=>{const {A,B,C,D}=o,E=KK_.X(B,D,A,C),x=o.x||'D',P={A,B,C,D,E},d=o.d||30;
+ const cl=v=>v===x?'r':({A:'b',B:'b',C:'g',D:'k'})[v];
+ const ix=v=>o.t[v]==='x'?{it:true,size:14}:{};const T=[[0,0,o.t.A,Object.assign({c:cl('A'),at:['B','A','C'],d:d+6},ix('A'))],[0,0,o.t.B,Object.assign({c:cl('B'),at:['A','B','D'],d:d+6},ix('B'))],[0,0,o.t.C,Object.assign({c:cl('C'),at:['A','C','D'],d:d+6},ix('C'))],[0,0,o.t.D,Object.assign({c:cl('D'),at:['B','D','C'],d:d-4},ix('D'))]];
+ return KAKU({P,segs:['A-B','A-C','B-D','D-C'],dash:['D-E'],angs:[['B','A','C',cl('A'),16],['A','B','D',cl('B'),22],['D','E','C','b',12],['A','C','D',cl('C'),22],['B','D','C',cl('D'),13]],texts:T,w:o.w||220,lab:Object.assign({D:-1.5708},o.lab||{}),aria:'ブーメラン型の辺をのばした図'});};
+/* 星形：STAR({V:[[x,y]×5]（A〜E の順・A から線が C と D へ）, w:220, lab:{}})  M＝AC と BE、N＝AD と BE の交わる点
+   ∠C・∠E・∠AMN＝青、∠B・∠D・∠ANM＝緑、△AMN＝うすい黄、∠A＝黒の弧 */
+const STAR=(o)=>{const [A,B,C,D,E]=o.V,M=KK_.X(A,C,B,E),N=KK_.X(A,D,B,E),P={A,B,C,D,E,M,N};
+ return KAKU({P,fill:[['A-M-N','#facc15']],segs:['A-C','A-D','B-D','B-E','C-E'],angs:[['C','A','D','k',13],['A','C','E','b',16],['B','E','C','b',16],['A','M','N','b',12],['E','B','D','g',16],['A','D','B','g',16],['A','N','M','g',12]],w:o.w||220,lab:o.lab||{},aria:'星形の角を三角形に集めた図'});};
+/* ちょうちょ型：CHOCHO({P:{A,B,C,D,O…}, segs:[…], dash:[…], b:[[p1,v,p2],…]（青）, r:[[p1,v,p2],…]（朱＝∠x をふくむ組）, g:[[p1,v,p2],[p1,v,p2]]（対頂角・緑）, k:[[p1,v,p2],…]（黒の弧）, pq:[[p1,v,p2,色],…]（色を決めてぬる）, texts, w, lab}) */
+const CHOCHO=(o)=>KAKU({P:o.P,segs:o.segs,dash:o.dash||[],fill:o.fill||[],angs:[].concat((o.b||[]).map(a=>a.concat(['b',16])),(o.r||[]).map(a=>a.concat(['r',16])),(o.g||[]).map(a=>a.concat(['g',12])),(o.k||[]).map(a=>a.concat(['k',13])),(o.pq||[]).map(a=>[a[0],a[1],a[2],a[3],16])),texts:o.texts||[],w:o.w||220,lab:o.lab||{},nolab:o.nolab||[],aria:'ちょうちょ型の図'});
+/* ===== くの字の図（2026-11-09 20:20 川上さん「x の線と角度の数字が重なって印刷だと見づらい」・係 f9b）=====
+   KUNOX({V:[A,P(,Q…),B]（画面の座標・y は下向き。A は ℓ 上、B は m 上、間が折れた点）, yl, ym（ℓ・m の y）, x0, x1（平行線の左右の端）,
+          vals:['38°','47°']（錯角の組の値。上から順に＝A と1つ目の折れ点の上の角、1つ目の下の角と2つ目の上の角、…、最後の折れ点の下の角と B）,
+          xi:1（∠x の折れ点の番号。0 なら ∠x を描かない）, names:['A','P','B']（なくてよい）, ex:1（解説の図＝補助線・色。なければ問題の図）,
+          extra:[[[x,y],[x,y],[x,y],'143°','k'],…]（ほかに描く角：点1・頂点・点2）, mark:1（平行の印）})
+   解説の図：折れた点を通る補助線＝灰色の点線。組の色＝青・緑・紫の順。折れた所で分けた角は小さい弧（半径 12）、数字はそのすぐ外。
+   ∠x の朱の弧は数字より外（数字の四角の外側＋6px）、x の字はさらに外。朱の弧が辺より長くなる・62px をこえるときは、朱の弧を小さい弧のすぐ外（半径 21）にして数字をその外に置く。数字・x の字と、線・弧・点線のすき間は 3px 以上になるよう置く */
+const KUNOX0=(o)=>{
+ const COL={b:'#005AFF',g:'#03AF7A',p:'#990099',r:'#FF4B00',k:'#111'},PC=['b','g','p'],RAD=Math.PI/180,SH='stroke="#fff" stroke-width="4" paint-order="stroke"';
+ const n_=v=>{let s=(Math.round(v*10)/10).toFixed(1);s=s.replace(/\.0$/,'');return s==='-0'?'0':s;};
+ const V=o.V,k=V.length-2,ex=!!o.ex,yl=o.yl,ym=o.ym,x0=o.x0,x1=o.x1;
+ const th=(v,p)=>Math.atan2(-(p[1]-v[1]),p[0]-v[0])/RAD;
+ const segs=[];const out=[];const boxes=[];
+ const L=(a,b,st,keep)=>{out.push(`<line x1="${n_(a[0])}" y1="${n_(a[1])}" x2="${n_(b[0])}" y2="${n_(b[1])}" ${st}/>`);if(keep!==false)segs.push([a,b]);};
+ const BLK='stroke="#111" stroke-width="2" stroke-linecap="round"';
+ L([x0,yl],[x1,yl],BLK);L([x0,ym],[x1,ym],BLK);
+ for(let i=0;i<=k;i++)L(V[i],V[i+1],BLK);
+ if(o.mark!==0){[yl,ym].forEach(y=>{const x=x0+22,pa=[x-5.4,y-4.5],pb=[x,y],pc=[x-5.4,y+4.5];out.push(`<polyline points="${n_(pa[0])},${n_(pa[1])} ${n_(pb[0])},${n_(pb[1])} ${n_(pc[0])},${n_(pc[1])}" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`);segs.push([pa,pb],[pb,pc]);});}
+ const hdir=i=>((V[i-1][0]+V[i+1][0])/2-V[i][0])>0?0:180;
+ if(ex)for(let i=1;i<=k;i++)L([x0,V[i][1]],[x1,V[i][1]],'stroke="#6b7280" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="5 4"');
+ /* 角：頂点 v で、数学の角度 t1・t2 の間（小さいほう） */
+ const span=(t1,t2)=>{let s=((t2-t1)%360+360)%360;if(s>180){return [t2,360-s];}return [t1,s];};
+ const P=(v,t,r)=>[v[0]+r*Math.cos(t*RAD),v[1]-r*Math.sin(t*RAD)];
+ const arc=(v,t1,t2,c,r,w)=>{const [s,sp]=span(t1,t2),a=P(v,s,r),b=P(v,s+sp,r);const fill=(c!=='k'&&ex&&w!=='o')?`<path d="M${n_(v[0])} ${n_(v[1])} L${n_(a[0])} ${n_(a[1])} A${r} ${r} 0 0 0 ${n_(b[0])} ${n_(b[1])} Z" fill="${COL[c]}" fill-opacity=".28" stroke="none"/>`:'';
+  out.push(fill+`<path d="M${n_(a[0])} ${n_(a[1])} A${r} ${r} 0 0 0 ${n_(b[0])} ${n_(b[1])}" fill="none" stroke="${COL[c]}" stroke-width="${c==='k'?1.8:2.2}"/>`);
+  for(let j=0;j<12;j++)segs.push([P(v,s+sp*j/12,r),P(v,s+sp*(j+1)/12,r)]);return [s,sp];};
+ const tw=t=>[...String(t).replace(/<[^>]*>/g,'')].reduce((w,ch)=>w+(/[0-9]/.test(ch)?7.4:ch==='°'?5.2:/[a-z]/.test(ch)?7:9.6),0);
+ const bx=(cx,cy,t)=>{const w=tw(t);return [cx-w/2-0.5,cy-5.5,cx+w/2+0.5,cy+5.5];};
+ const dseg=(b,[p,q])=>{/* 四角と線分の距離 */const inb=pt=>pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3];if(inb(p)||inb(q))return 0;
+  const E=[[[b[0],b[1]],[b[2],b[1]]],[[b[2],b[1]],[b[2],b[3]]],[[b[2],b[3]],[b[0],b[3]]],[[b[0],b[3]],[b[0],b[1]]]];
+  const ss=(a1,a2,c1,c2)=>{const cr=(u,v,w)=>(v[0]-u[0])*(w[1]-u[1])-(v[1]-u[1])*(w[0]-u[0]);if(cr(a1,a2,c1)*cr(a1,a2,c2)<0&&cr(c1,c2,a1)*cr(c1,c2,a2)<0)return 0;
+   const pd=(z,u,v)=>{const dx=v[0]-u[0],dy=v[1]-u[1],L2=dx*dx+dy*dy;let t=L2?((z[0]-u[0])*dx+(z[1]-u[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(z[0]-u[0]-t*dx,z[1]-u[1]-t*dy);};
+   return Math.min(pd(a1,c1,c2),pd(a2,c1,c2),pd(c1,a1,a2),pd(c2,a1,a2));};
+  return Math.min(...E.map(([u,v])=>ss(u,v,p,q)));};
+ const dbox=(a,b)=>Math.max(0,a[0]-b[2],b[0]-a[2],a[1]-b[3],b[1]-a[3]);
+ const ok=(b,gap)=>segs.every(sg=>dseg(b,sg)>=gap)&&boxes.every(c=>dbox(b,c)>=2)&&b[0]>=x0-30&&b[2]<=x1+30;
+ const T=(cx,cy,t,c,it)=>{const b=bx(cx,cy,t);boxes.push(b);out.push(`<text x="${n_(cx)}" y="${n_(cy+4.6)}" text-anchor="middle" font-size="13" font-weight="700"${it?' font-style="italic"':''} fill="${COL[c]||c}" ${SH}>${t}</text>`);return b;};
+ /* 角の字：二等分線の上で、r0 から外へ。だめなら向きを少しずつずらす */
+ const find=(v,s,sp,t,r0)=>{const m=s+sp/2;for(let d=r0;d<=r0+60;d+=1){for(const off of [0,-1,1,-2,2,-3,3].map(z=>z*sp/10)){const a=m+off;if(a<=s+2||a>=s+sp-2)continue;const p=P(v,a,d);const b=bx(p[0],p[1],t);if(ok(b,3.4))return [p,b];}}const p=P(v,m,r0+20);return [p,bx(p[0],p[1],t)];};
+ const farOf=(v,b)=>Math.max(...[[b[0],b[1]],[b[2],b[1]],[b[0],b[3]],[b[2],b[3]]].map(q=>Math.hypot(q[0]-v[0],q[1]-v[1])));
+ const place=(v,s,sp,t,c,r0,it)=>{const [p,b]=find(v,s,sp,t,r0);T(p[0],p[1],t,c,it);return farOf(v,b);};
+ const pend=[];
+ if(ex){
+  for(let i=1;i<=k;i++){const h=hdir(i),cu=PC[(i-1)%3],cd=PC[i%3];const su=arc(V[i],th(V[i],V[i-1]),h,cu,12),sd=arc(V[i],h,th(V[i],V[i+1]),cd,12);pend.push([V[i],su,o.vals[i-1],cu,15],[V[i],sd,o.vals[i],cd,15]);}
+  const hA=hdir(1),hB=hdir(k);const sA=arc(V[0],(hA+180)%360,th(V[0],V[1]),PC[0],15),sB=arc(V[k+1],(hB+180)%360,th(V[k+1],V[k]),PC[k%3],15);
+  pend.push([V[0],sA,o.vals[0],PC[0],18],[V[k+1],sB,o.vals[k],PC[k%3],18]);
+ }else{
+  for(let i=1;i<=k;i++){if(o.xi===i)continue;}
+ }
+ (o.extra||[]).forEach(([p1,v,p2,t,c])=>{const s=arc(v,th(v,p1),th(v,p2),c||'k',c&&c!=='k'?15:17,'o');pend.push([v,s,t,c||'k',20]);});
+ if(!ex){const hA=hdir(1),hB=hdir(k);const sA=arc(V[0],(hA+180)%360,th(V[0],V[1]),'k',14),sB=arc(V[k+1],(hB+180)%360,th(V[k+1],V[k]),'k',14);pend.push([V[0],sA,o.vals[0],'k',18],[V[k+1],sB,o.vals[k],'k',18]);}
+ /* 点の記号（先に置いて、数字がよける） */
+ if(o.names){o.names.forEach((nm,i)=>{if(!nm)return;const v=V[i];let c;if(i===0)c=[[v[0],yl-13],[v[0]-12,yl-13],[v[0]+12,yl-13]];else if(i===k+1)c=[[v[0],ym+15],[v[0]-12,ym+15],[v[0]+12,ym+15]];else{const h=hdir(i)===0?1:-1;c=[[v[0]-h*13,v[1]-12],[v[0]-h*13,v[1]+12],[v[0]-h*16,v[1]-14]];}
+  for(const p of c){const b=bx(p[0],p[1],nm);if(ok(b,2)||p===c[c.length-1]){boxes.push(b);out.push(`<text x="${n_(p[0])}" y="${n_(p[1]+5)}" text-anchor="middle" font-size="14" font-weight="700" fill="#111" ${SH}>${nm}</text>`);break;}}});}
+ [[x1+11,yl,'ℓ'],[x1+11,ym,'m']].forEach(([x,y,t])=>{boxes.push(bx(x,y,'m'));out.push(`<text x="${n_(x)}" y="${n_(y+5)}" text-anchor="middle" font-size="14" font-weight="700" font-style="italic" fill="#111" ${SH}>${t}</text>`);});
+ const far={};const bend=new Set(V.slice(1,k+1).map(v=>v.join(',')));
+ const doP=f=>pend.filter(z=>f(bend.has(z[0].join(',')))).forEach(([v,[s,sp],t,c,r0])=>{const g=place(v,s,sp,t,c,r0,false);const key=v.join(',');far[key]=Math.max(far[key]||0,g);});
+ /* ∠x の弧の半径：折れた所の数字の外側＋6px。辺より長くなるときは、朱の弧を小さい弧のすぐ外（半径 21）にして、数字をその外に置く */
+ let Rin=0;if(ex&&o.xi){const i=o.xi,v=V[i],Lmin=Math.min(Math.hypot(V[i-1][0]-v[0],V[i-1][1]-v[1]),Math.hypot(V[i+1][0]-v[0],V[i+1][1]-v[1]))-6;
+  const need=Math.max(30,Math.ceil(Math.max(0,...pend.filter(z=>z[0]===v).map(([vv,[s,sp],t,c,r0])=>farOf(vv,find(vv,s,sp,t,r0)[1])))+6));
+  if(need>Math.min(Lmin,62)){const [s,sp]=span(th(v,V[i-1]),th(v,V[i+1]));const n0=out.length;arc(v,s,s+sp,'r',21,'o');out.push(out.splice(n0,1)[0]);Rin=21;pend.forEach(z=>{if(z[0]===v)z[4]=27;});}}
+ doP(b=>b);
+ /* ∠x（折れた所の数字を置いたあと、ほかの数字より先） */
+ if(o.xi){const i=o.xi,v=V[i];const [s,sp]=span(th(v,V[i-1]),th(v,V[i+1]));
+  if(ex){if(Rin)place(v,s,sp,'x','r',27,true);else{const R=Math.max(30,Math.ceil((far[v.join(',')]||20)+6));arc(v,s,s+sp,'r',R,'o');place(v,s,sp,'x','r',R+8,true);}}
+  else{arc(v,s,s+sp,'k',14);place(v,s,sp,'x','k',18,true);}}
+ doP(b=>!b);
+ let X0=x0-4,Y0=yl-26,X1=x1+22,Y1=ym+24;boxes.forEach(b=>{X0=Math.min(X0,b[0]-4);X1=Math.max(X1,b[2]+4);Y0=Math.min(Y0,b[1]-4);Y1=Math.max(Y1,b[3]+4);});
+ if(o._box)return [X0,Y0];
+ const dv=o.pts?` data-v="${Object.entries(o.pts).map(([kk,p])=>kk+':'+n_(p[0])+','+n_(p[1])).join(';')}"`+(o.dc?` data-c="${o.dc}"`:''):'';
+ return `<svg class="gr" viewBox="${n_(X0)} ${n_(Y0)} ${n_(X1-X0)} ${n_(Y1-Y0)}" width="${n_(X1-X0)}" height="${n_(Y1-Y0)}" role="img" aria-label="${ex?'くの字に補助線をひいた図':'平行線と折れ線の図'}"${dv}>${out.join('')}</svg>`;};
+/* 画面の lfFix は viewBox の左上を 0,0 として図の外かどうかを見るので、全部の座標を左上が 0,0 になるようにずらしてから描く（o.pts＝data-v に書く点・o.dc＝data-c） */
+const KUNOX=(o)=>{const [X0,Y0]=KUNOX0(Object.assign({},o,{_box:1}));const f=p=>[Math.round((p[0]-X0)*10)/10,Math.round((p[1]-Y0)*10)/10];
+ const q=Object.assign({},o,{V:o.V.map(f),yl:o.yl-Y0,ym:o.ym-Y0,x0:o.x0-X0,x1:o.x1-X0,extra:(o.extra||[]).map(([a,b,c,t,cl])=>[f(a),f(b),f(c),t,cl])});
+ if(o.pts){q.pts={};Object.keys(o.pts).forEach(kk=>{q.pts[kk]=f(o.pts[kk]);});}return KUNOX0(q);};
+/* くの字の箱の図：KUNOBOX()。平行線2本とくの字、上の角と折れた所の上の部分に ●、下の角と下の部分に ○（錯角の箱の図と同じ大きさ・線・色） */
+const KUNOBOX=()=>{const RD='#FF4B00',n_=v=>Math.round(v*10)/10,RAD=Math.PI/180,yl=26,ym=100,A=[56,yl],B=[56,ym],P=[122,63];
+ const th=(v,p)=>Math.atan2(-(p[1]-v[1]),p[0]-v[0])/RAD,Q=(v,t,r)=>[v[0]+r*Math.cos(t*RAD),v[1]-r*Math.sin(t*RAD)];
+ const arc=(v,t1,t2,r)=>{let s=((t2-t1)%360+360)%360;let a=t1;if(s>180){a=t2;s=360-s;}const p=Q(v,a,r),q=Q(v,a+s,r);return `<path d="M${n_(p[0])} ${n_(p[1])} A${r} ${r} 0 0 0 ${n_(q[0])} ${n_(q[1])}" fill="none" stroke="${RD}" stroke-width="2.2"/>`;};
+ const dot=(v,t1,t2,d,ch)=>{let s=((t2-t1)%360+360)%360;let a=t1;if(s>180){a=t2;s=360-s;}const p=Q(v,a+s/2,d);return `<text x="${n_(p[0])}" y="${n_(p[1]+4)}" text-anchor="middle" font-size="11" font-weight="bold" fill="${RD}" stroke="#fff" stroke-width="4" paint-order="stroke">${ch}</text>`;};
+ const ln=(a,b,st)=>`<line x1="${n_(a[0])}" y1="${n_(a[1])}" x2="${n_(b[0])}" y2="${n_(b[1])}" ${st||'stroke="#111" stroke-width="1.8" stroke-linecap="round"'}/>`;
+ const mk=y=>`<polyline points="${36.5},${y+4.5} 42.5,${y} ${36.5},${y-4.5}" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`;
+ let s=ln([20,yl],[170,yl])+ln([20,ym],[170,ym])+mk(yl)+mk(ym)+ln(A,P)+ln(P,B)+ln([20,P[1]],[170,P[1]],'stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="4 3"');
+ s+=arc(A,0,th(A,P),15)+arc(P,th(P,A),180,15)+arc(P,180,th(P,B),15)+arc(B,th(B,P),0,15);
+ s+=dot(A,0,th(A,P),26,'●')+dot(P,th(P,A),180,25,'●')+dot(P,180,th(P,B),25,'○')+dot(B,th(B,P),0,26,'○');
+ s+=`<text x="95" y="124" text-anchor="middle" font-size="12" font-weight="bold" stroke="#fff" stroke-width="4" paint-order="stroke">くの字：● ＋ ○</text>`;
+ return `<svg viewBox="14 8 162 124" width="162" height="124" role="img" aria-label="くの字の図">${s}</svg>`;};
+
+return {GOUDOU,SAKKAKU,TAICHO,GAIKAKU,LINE4,SUISO,TBL,KAKU,STAR};})();
+return {"M2U5P4_ZU_GOUDOU":(...a)=>M2U5P4_ZU.GOUDOU(...a),"M2U5P4_ZU_SAKKAKU":(...a)=>M2U5P4_ZU.SAKKAKU(...a),"M2U5P4_ZU_TBL":(...a)=>M2U5P4_ZU.TBL(...a),"M2U5P4_ZU_STAR":(...a)=>M2U5P4_ZU.STAR(...a),"M2U5P4_ZU_GAIKAKU":(...a)=>M2U5P4_ZU.GAIKAKU(...a),"M2U5P4_ZU_LINE4":(...a)=>M2U5P4_ZU.LINE4(...a),"M2U5P4_ZU_TAICHO":(...a)=>M2U5P4_ZU.TAICHO(...a)};
 })();
 NS["gg_m3n18"]=(function(){
 function NYGP(o){const u=o.u||16,v=o.v||1,[x0,x1]=o.xr,[y0,y1]=o.yr,pd=14,W=(x1-x0)*u+2*pd,Hh=(y1-y0)*u*v+2*pd,X=x=>pd+(x-x0)*u,Y=y=>pd+(y1-y)*u*v;
@@ -1246,12 +2329,12 @@ function NYGP(o){const u=o.u||16,v=o.v||1,[x0,x1]=o.xr,[y0,y1]=o.yr,pd=14,W=(x1-
  const sw=o.w||Math.min(300,Math.round(W*1.0)),sh=Math.round(sw*Hh/W);
  let s=`<svg class="gr" viewBox="0 0 ${W} ${Hh}" width="${sw}" height="${sh}" font-family="sans-serif">`;
  if(o.grid){for(let i=Math.ceil(x0);i<=x1;i++)s+=`<line x1="${X(i)}" y1="${Y(y0)}" x2="${X(i)}" y2="${Y(y1)}" stroke="#d1d5db" stroke-width="1"/>`;for(let j=Math.ceil(y0);j<=y1;j++)s+=`<line x1="${X(x0)}" y1="${Y(j)}" x2="${X(x1)}" y2="${Y(j)}" stroke="#d1d5db" stroke-width="1"/>`;}
- (o.poly&&o.poly.length&&typeof o.poly[0][0]==='number'?[o.poly]:(o.poly||[])).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fdba74" fill-opacity=".45" stroke="none"/>`;});
- if(o.yhl)s+=`<line x1="${X(0)}" y1="${Y(o.yhl[0])}" x2="${X(0)}" y2="${Y(o.yhl[1])}" stroke="${OR}" stroke-width="6" stroke-opacity=".6"/>`;
+/* 2026-11-09 係 f5（系統K1・決まり49）：o.pf＝ぬる多角形 [[[x,y],…], 色]（使う図形をうすい黄色・青でぬる）。o.sc＝色つきの線と札 [[x1,y1,x2,y2,色,札,札の向き r|l|t|b|tr|tl|br|bl, 点線]]（底辺・高さ） */(o.pf||[]).forEach(P=>{s+=`<polygon points="${P[0].map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="${P[1]||'#fde68a'}" fill-opacity=".8" stroke="none"/>`;}); (o.poly&&o.poly.length&&typeof o.poly[0][0]==='number'?[o.poly]:(o.poly||[])).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fdba74" fill-opacity=".45" stroke="none"/>`;});
+ /* 2026-11-09 係 f5（系統K1）：y の変域の太い線は y 軸の上に不透明の太い線で描き、両はしに●を打つ（ずらすと放物線・目もりの字と重なるため） */const yhlS=0;
  if(o.xhl)s+=`<line x1="${X(o.xhl[0])}" y1="${Y(0)}" x2="${X(o.xhl[1])}" y2="${Y(0)}" stroke="${OR}" stroke-width="6" stroke-opacity=".6"/>`;
  if(y0<=0&&y1>=0)s+=`<line x1="${X(x0)}" y1="${Y(0)}" x2="${X(x1)}" y2="${Y(0)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(x1)},${Y(0)} ${X(x1)-7},${Y(0)-4} ${X(x1)-7},${Y(0)+4}" fill="#111"/><text x="${X(x1)-4}" y="${Y(0)-7}" font-size="13" font-style="italic" text-anchor="end">x</text>`;
  if(x0<=0&&x1>=0)s+=`<line x1="${X(0)}" y1="${Y(y0)}" x2="${X(0)}" y2="${Y(y1)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(0)},${Y(y1)} ${X(0)-4},${Y(y1)+7} ${X(0)+4},${Y(y1)+7}" fill="#111"/><text x="${X(0)+7}" y="${Y(y1)+11}" font-size="13" font-style="italic">y</text>`;
- if(x0<=0&&x1>=0&&y0<=0&&y1>=0)s+=`<text x="${X(0)-4}" y="${Y(0)+14}" font-size="12" text-anchor="end" ${H}>O</text>`;
+ /* 2026-11-09 係 f5：下に開く放物線だけのときは O を原点の右上に（放物線と重ならないように） */const oUp=(o.c||[]).some(c=>c[0]<0)&&!(o.c||[]).some(c=>c[0]>0);if(x0<=0&&x1>=0&&y0<=0&&y1>=0)s+=`<text x="${X(0)+(oUp?4:-4)}" y="${Y(0)+(oUp?-5:14)}" font-size="12" text-anchor="${oUp?'start':'end'}" ${H}>O</text>`;
  if(o.grid){for(let i=Math.ceil(x0/2)*2;i<x1;i+=2)if(i)s+=`<text x="${X(i)}" y="${Y(0)+14}" font-size="11" text-anchor="middle" fill="#555" ${H}>${String(i).replace('-','−')}</text>`;for(let j=Math.ceil(y0/2)*2;j<y1;j+=2)if(j)s+=`<text x="${X(0)-5}" y="${Y(j)+4}" font-size="11" text-anchor="end" fill="#555" ${H}>${String(j).replace('-','−')}</text>`;}
  (o.tk||[]).forEach(k=>{if(k[0]==='x')s+=`<line x1="${X(k[1])}" y1="${Y(0)-3}" x2="${X(k[1])}" y2="${Y(0)+3}" stroke="#111"/><text x="${X(k[1])}" y="${Y(0)+(k[3]?-6:15)}" font-size="12" text-anchor="middle" ${H}>${k[2]}</text>`;else s+=`<line x1="${X(0)-3}" y1="${Y(k[1])}" x2="${X(0)+3}" y2="${Y(k[1])}" stroke="#111"/><text x="${X(0)+(k[3]?6:-6)}" y="${Y(k[1])+4}" font-size="12" text-anchor="${k[3]?'start':'end'}" ${H}>${k[2]}</text>`;});
  const clipPath=(f,a,b)=>{let d='',on=false;const N=160;for(let i=0;i<=N;i++){const x=a+(b-a)*i/N,y=f(x);if(y>=y0-.5&&y<=y1+.5&&isFinite(y)){d+=(on?'L':'M')+X(x).toFixed(1)+' '+Y(Math.max(y0-.5,Math.min(y1+.5,y))).toFixed(1);on=true;}else on=false;}return d;};
@@ -1261,9 +2344,11 @@ function NYGP(o){const u=o.u||16,v=o.v||1,[x0,x1]=o.xr,[y0,y1]=o.yr,pd=14,W=(x1-
  (o.l||[]).forEach(l=>{s+=`<path d="${clipPath(x=>l[0]*x+l[1],x0,x1)}" fill="none" stroke="#111" stroke-width="1.6"/>`;if(l[2]){const lx=l[3];lab(lx,l[0]*lx+l[1],l[2]);}});
  if(o.hl){const [k,a,b,f]=o.hl;s+=`<path d="${clipPath(x=>k*x*x,a,b)}" fill="none" stroke="${OR}" stroke-width="5"/>`;[[a,f&&f[0]],[b,f&&f[1]]].forEach(e=>{s+=`<circle cx="${X(e[0])}" cy="${Y(k*e[0]*e[0])}" r="4.5" fill="${e[1]==='o'?'#fff':OR}" stroke="${OR}" stroke-width="2"/>`;});}
  (o.s||[]).forEach(q=>{const st=q[4]===1?`stroke="${OR}" stroke-width="1.5" stroke-dasharray="4 3"`:q[4]===2?`stroke="${OR}" stroke-width="3.2"`:`stroke="#111" stroke-width="1.8"`;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" ${st}/>`;});
+ (o.sc||[]).forEach(q=>{const c2=q[4]||OR,F2={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,17,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']}[q[6]||'r'],mx=(X(q[0])+X(q[2]))/2,my=(Y(q[1])+Y(q[3]))/2;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="${c2}" stroke-width="${q[7]?3:4}" stroke-linecap="round"${q[7]?' stroke-dasharray="5 4"':''}/>`;if(q[5])s+=`<text x="${mx+F2[0]}" y="${my+F2[1]}" text-anchor="${F2[2]}" font-size="13" font-weight="700" fill="${c2}" ${H}>${q[5]}</text>`;});
  const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
  (o.p||[]).forEach(q=>{const f=OF[q[3]||'tr'];s+=q[4]?`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#fff" stroke="#111" stroke-width="1.8"/>`:`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])+f[0]}" y="${Y(q[1])+f[1]}" text-anchor="${f[2]}" font-size="13" font-weight="700" ${H}>${q[2]}</text>`;});
  (o.tx||[]).forEach(q=>{s+=`<text x="${X(q[0])}" y="${Y(q[1])}" text-anchor="${q[3]||'middle'}" font-size="12" font-weight="700" fill="${q[4]?OR:'#111'}" ${H}>${q[2]}</text>`;});
+ if(o.yhl){const xo=X(0)+yhlS;s+=`<line x1="${xo}" y1="${Y(o.yhl[0])}" x2="${xo}" y2="${Y(o.yhl[1])}" stroke="${OR}" stroke-width="5" stroke-linecap="round"/>`;[o.yhl[0],o.yhl[1]].forEach(v=>{s+=`<circle cx="${xo}" cy="${Y(v)}" r="4.2" fill="${OR}"/>`;});}
  return s+'</svg>';}
 return {"NYGP":NYGP};
 })();
@@ -1273,12 +2358,12 @@ function NYGP(o){const u=o.u||16,v=o.v||1,[x0,x1]=o.xr,[y0,y1]=o.yr,pd=14,W=(x1-
  const sw=o.w||Math.min(300,Math.round(W*1.0)),sh=Math.round(sw*Hh/W);
  let s=`<svg class="gr" viewBox="0 0 ${W} ${Hh}" width="${sw}" height="${sh}" font-family="sans-serif">`;
  if(o.grid){for(let i=Math.ceil(x0);i<=x1;i++)s+=`<line x1="${X(i)}" y1="${Y(y0)}" x2="${X(i)}" y2="${Y(y1)}" stroke="#d1d5db" stroke-width="1"/>`;for(let j=Math.ceil(y0);j<=y1;j++)s+=`<line x1="${X(x0)}" y1="${Y(j)}" x2="${X(x1)}" y2="${Y(j)}" stroke="#d1d5db" stroke-width="1"/>`;}
- (o.poly&&o.poly.length&&typeof o.poly[0][0]==='number'?[o.poly]:(o.poly||[])).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fdba74" fill-opacity=".45" stroke="none"/>`;});
- if(o.yhl)s+=`<line x1="${X(0)}" y1="${Y(o.yhl[0])}" x2="${X(0)}" y2="${Y(o.yhl[1])}" stroke="${OR}" stroke-width="6" stroke-opacity=".6"/>`;
+/* 2026-11-09 係 f5（系統K1・決まり49）：o.pf＝ぬる多角形 [[[x,y],…], 色]（使う図形をうすい黄色・青でぬる）。o.sc＝色つきの線と札 [[x1,y1,x2,y2,色,札,札の向き r|l|t|b|tr|tl|br|bl, 点線]]（底辺・高さ） */(o.pf||[]).forEach(P=>{s+=`<polygon points="${P[0].map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="${P[1]||'#fde68a'}" fill-opacity=".8" stroke="none"/>`;}); (o.poly&&o.poly.length&&typeof o.poly[0][0]==='number'?[o.poly]:(o.poly||[])).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fdba74" fill-opacity=".45" stroke="none"/>`;});
+ /* 2026-11-09 係 f5（系統K1）：y の変域の太い線は y 軸の上に不透明の太い線で描き、両はしに●を打つ（ずらすと放物線・目もりの字と重なるため） */const yhlS=0;
  if(o.xhl)s+=`<line x1="${X(o.xhl[0])}" y1="${Y(0)}" x2="${X(o.xhl[1])}" y2="${Y(0)}" stroke="${OR}" stroke-width="6" stroke-opacity=".6"/>`;
  if(y0<=0&&y1>=0)s+=`<line x1="${X(x0)}" y1="${Y(0)}" x2="${X(x1)}" y2="${Y(0)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(x1)},${Y(0)} ${X(x1)-7},${Y(0)-4} ${X(x1)-7},${Y(0)+4}" fill="#111"/><text x="${X(x1)-4}" y="${Y(0)-7}" font-size="13" font-style="italic" text-anchor="end">x</text>`;
  if(x0<=0&&x1>=0)s+=`<line x1="${X(0)}" y1="${Y(y0)}" x2="${X(0)}" y2="${Y(y1)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(0)},${Y(y1)} ${X(0)-4},${Y(y1)+7} ${X(0)+4},${Y(y1)+7}" fill="#111"/><text x="${X(0)+7}" y="${Y(y1)+11}" font-size="13" font-style="italic">y</text>`;
- if(x0<=0&&x1>=0&&y0<=0&&y1>=0)s+=`<text x="${X(0)-4}" y="${Y(0)+14}" font-size="12" text-anchor="end" ${H}>O</text>`;
+ /* 2026-11-09 係 f5：下に開く放物線だけのときは O を原点の右上に（放物線と重ならないように） */const oUp=(o.c||[]).some(c=>c[0]<0)&&!(o.c||[]).some(c=>c[0]>0);if(x0<=0&&x1>=0&&y0<=0&&y1>=0)s+=`<text x="${X(0)+(oUp?4:-4)}" y="${Y(0)+(oUp?-5:14)}" font-size="12" text-anchor="${oUp?'start':'end'}" ${H}>O</text>`;
  if(o.grid){for(let i=Math.ceil(x0/2)*2;i<x1;i+=2)if(i)s+=`<text x="${X(i)}" y="${Y(0)+14}" font-size="11" text-anchor="middle" fill="#555" ${H}>${String(i).replace('-','−')}</text>`;for(let j=Math.ceil(y0/2)*2;j<y1;j+=2)if(j)s+=`<text x="${X(0)-5}" y="${Y(j)+4}" font-size="11" text-anchor="end" fill="#555" ${H}>${String(j).replace('-','−')}</text>`;}
  (o.tk||[]).forEach(k=>{if(k[0]==='x')s+=`<line x1="${X(k[1])}" y1="${Y(0)-3}" x2="${X(k[1])}" y2="${Y(0)+3}" stroke="#111"/><text x="${X(k[1])}" y="${Y(0)+(k[3]?-6:15)}" font-size="12" text-anchor="middle" ${H}>${k[2]}</text>`;else s+=`<line x1="${X(0)-3}" y1="${Y(k[1])}" x2="${X(0)+3}" y2="${Y(k[1])}" stroke="#111"/><text x="${X(0)+(k[3]?6:-6)}" y="${Y(k[1])+4}" font-size="12" text-anchor="${k[3]?'start':'end'}" ${H}>${k[2]}</text>`;});
  const clipPath=(f,a,b)=>{let d='',on=false;const N=160;for(let i=0;i<=N;i++){const x=a+(b-a)*i/N,y=f(x);if(y>=y0-.5&&y<=y1+.5&&isFinite(y)){d+=(on?'L':'M')+X(x).toFixed(1)+' '+Y(Math.max(y0-.5,Math.min(y1+.5,y))).toFixed(1);on=true;}else on=false;}return d;};
@@ -1288,9 +2373,11 @@ function NYGP(o){const u=o.u||16,v=o.v||1,[x0,x1]=o.xr,[y0,y1]=o.yr,pd=14,W=(x1-
  (o.l||[]).forEach(l=>{s+=`<path d="${clipPath(x=>l[0]*x+l[1],x0,x1)}" fill="none" stroke="#111" stroke-width="1.6"/>`;if(l[2]){const lx=l[3];lab(lx,l[0]*lx+l[1],l[2]);}});
  if(o.hl){const [k,a,b,f]=o.hl;s+=`<path d="${clipPath(x=>k*x*x,a,b)}" fill="none" stroke="${OR}" stroke-width="5"/>`;[[a,f&&f[0]],[b,f&&f[1]]].forEach(e=>{s+=`<circle cx="${X(e[0])}" cy="${Y(k*e[0]*e[0])}" r="4.5" fill="${e[1]==='o'?'#fff':OR}" stroke="${OR}" stroke-width="2"/>`;});}
  (o.s||[]).forEach(q=>{const st=q[4]===1?`stroke="${OR}" stroke-width="1.5" stroke-dasharray="4 3"`:q[4]===2?`stroke="${OR}" stroke-width="3.2"`:`stroke="#111" stroke-width="1.8"`;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" ${st}/>`;});
+ (o.sc||[]).forEach(q=>{const c2=q[4]||OR,F2={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,17,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']}[q[6]||'r'],mx=(X(q[0])+X(q[2]))/2,my=(Y(q[1])+Y(q[3]))/2;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="${c2}" stroke-width="${q[7]?3:4}" stroke-linecap="round"${q[7]?' stroke-dasharray="5 4"':''}/>`;if(q[5])s+=`<text x="${mx+F2[0]}" y="${my+F2[1]}" text-anchor="${F2[2]}" font-size="13" font-weight="700" fill="${c2}" ${H}>${q[5]}</text>`;});
  const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
  (o.p||[]).forEach(q=>{const f=OF[q[3]||'tr'];s+=q[4]?`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#fff" stroke="#111" stroke-width="1.8"/>`:`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])+f[0]}" y="${Y(q[1])+f[1]}" text-anchor="${f[2]}" font-size="13" font-weight="700" ${H}>${q[2]}</text>`;});
  (o.tx||[]).forEach(q=>{s+=`<text x="${X(q[0])}" y="${Y(q[1])}" text-anchor="${q[3]||'middle'}" font-size="12" font-weight="700" fill="${q[4]?OR:'#111'}" ${H}>${q[2]}</text>`;});
+ if(o.yhl){const xo=X(0)+yhlS;s+=`<line x1="${xo}" y1="${Y(o.yhl[0])}" x2="${xo}" y2="${Y(o.yhl[1])}" stroke="${OR}" stroke-width="5" stroke-linecap="round"/>`;[o.yhl[0],o.yhl[1]].forEach(v=>{s+=`<circle cx="${xo}" cy="${Y(v)}" r="4.2" fill="${OR}"/>`;});}
  return s+'</svg>';}
 return {"NYGP":NYGP};
 })();
@@ -1300,12 +2387,12 @@ function NYGP(o){const u=o.u||16,v=o.v||1,[x0,x1]=o.xr,[y0,y1]=o.yr,pd=14,W=(x1-
  const sw=o.w||Math.min(300,Math.round(W*1.0)),sh=Math.round(sw*Hh/W);
  let s=`<svg class="gr" viewBox="0 0 ${W} ${Hh}" width="${sw}" height="${sh}" font-family="sans-serif">`;
  if(o.grid){for(let i=Math.ceil(x0);i<=x1;i++)s+=`<line x1="${X(i)}" y1="${Y(y0)}" x2="${X(i)}" y2="${Y(y1)}" stroke="#d1d5db" stroke-width="1"/>`;for(let j=Math.ceil(y0);j<=y1;j++)s+=`<line x1="${X(x0)}" y1="${Y(j)}" x2="${X(x1)}" y2="${Y(j)}" stroke="#d1d5db" stroke-width="1"/>`;}
- (o.poly&&o.poly.length&&typeof o.poly[0][0]==='number'?[o.poly]:(o.poly||[])).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fdba74" fill-opacity=".45" stroke="none"/>`;});
- if(o.yhl)s+=`<line x1="${X(0)}" y1="${Y(o.yhl[0])}" x2="${X(0)}" y2="${Y(o.yhl[1])}" stroke="${OR}" stroke-width="6" stroke-opacity=".6"/>`;
+/* 2026-11-09 係 f5（系統K1・決まり49）：o.pf＝ぬる多角形 [[[x,y],…], 色]（使う図形をうすい黄色・青でぬる）。o.sc＝色つきの線と札 [[x1,y1,x2,y2,色,札,札の向き r|l|t|b|tr|tl|br|bl, 点線]]（底辺・高さ） */(o.pf||[]).forEach(P=>{s+=`<polygon points="${P[0].map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="${P[1]||'#fde68a'}" fill-opacity=".8" stroke="none"/>`;}); (o.poly&&o.poly.length&&typeof o.poly[0][0]==='number'?[o.poly]:(o.poly||[])).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fdba74" fill-opacity=".45" stroke="none"/>`;});
+ /* 2026-11-09 係 f5（系統K1）：y の変域の太い線は y 軸の上に不透明の太い線で描き、両はしに●を打つ（ずらすと放物線・目もりの字と重なるため） */const yhlS=0;
  if(o.xhl)s+=`<line x1="${X(o.xhl[0])}" y1="${Y(0)}" x2="${X(o.xhl[1])}" y2="${Y(0)}" stroke="${OR}" stroke-width="6" stroke-opacity=".6"/>`;
  if(y0<=0&&y1>=0)s+=`<line x1="${X(x0)}" y1="${Y(0)}" x2="${X(x1)}" y2="${Y(0)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(x1)},${Y(0)} ${X(x1)-7},${Y(0)-4} ${X(x1)-7},${Y(0)+4}" fill="#111"/><text x="${X(x1)-4}" y="${Y(0)-7}" font-size="13" font-style="italic" text-anchor="end">x</text>`;
  if(x0<=0&&x1>=0)s+=`<line x1="${X(0)}" y1="${Y(y0)}" x2="${X(0)}" y2="${Y(y1)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(0)},${Y(y1)} ${X(0)-4},${Y(y1)+7} ${X(0)+4},${Y(y1)+7}" fill="#111"/><text x="${X(0)+7}" y="${Y(y1)+11}" font-size="13" font-style="italic">y</text>`;
- if(x0<=0&&x1>=0&&y0<=0&&y1>=0)s+=`<text x="${X(0)-4}" y="${Y(0)+14}" font-size="12" text-anchor="end" ${H}>O</text>`;
+ /* 2026-11-09 係 f5：下に開く放物線だけのときは O を原点の右上に（放物線と重ならないように） */const oUp=(o.c||[]).some(c=>c[0]<0)&&!(o.c||[]).some(c=>c[0]>0);if(x0<=0&&x1>=0&&y0<=0&&y1>=0)s+=`<text x="${X(0)+(oUp?4:-4)}" y="${Y(0)+(oUp?-5:14)}" font-size="12" text-anchor="${oUp?'start':'end'}" ${H}>O</text>`;
  if(o.grid){for(let i=Math.ceil(x0/2)*2;i<x1;i+=2)if(i)s+=`<text x="${X(i)}" y="${Y(0)+14}" font-size="11" text-anchor="middle" fill="#555" ${H}>${String(i).replace('-','−')}</text>`;for(let j=Math.ceil(y0/2)*2;j<y1;j+=2)if(j)s+=`<text x="${X(0)-5}" y="${Y(j)+4}" font-size="11" text-anchor="end" fill="#555" ${H}>${String(j).replace('-','−')}</text>`;}
  (o.tk||[]).forEach(k=>{if(k[0]==='x')s+=`<line x1="${X(k[1])}" y1="${Y(0)-3}" x2="${X(k[1])}" y2="${Y(0)+3}" stroke="#111"/><text x="${X(k[1])}" y="${Y(0)+(k[3]?-6:15)}" font-size="12" text-anchor="middle" ${H}>${k[2]}</text>`;else s+=`<line x1="${X(0)-3}" y1="${Y(k[1])}" x2="${X(0)+3}" y2="${Y(k[1])}" stroke="#111"/><text x="${X(0)+(k[3]?6:-6)}" y="${Y(k[1])+4}" font-size="12" text-anchor="${k[3]?'start':'end'}" ${H}>${k[2]}</text>`;});
  const clipPath=(f,a,b)=>{let d='',on=false;const N=160;for(let i=0;i<=N;i++){const x=a+(b-a)*i/N,y=f(x);if(y>=y0-.5&&y<=y1+.5&&isFinite(y)){d+=(on?'L':'M')+X(x).toFixed(1)+' '+Y(Math.max(y0-.5,Math.min(y1+.5,y))).toFixed(1);on=true;}else on=false;}return d;};
@@ -1315,9 +2402,11 @@ function NYGP(o){const u=o.u||16,v=o.v||1,[x0,x1]=o.xr,[y0,y1]=o.yr,pd=14,W=(x1-
  (o.l||[]).forEach(l=>{s+=`<path d="${clipPath(x=>l[0]*x+l[1],x0,x1)}" fill="none" stroke="#111" stroke-width="1.6"/>`;if(l[2]){const lx=l[3];lab(lx,l[0]*lx+l[1],l[2]);}});
  if(o.hl){const [k,a,b,f]=o.hl;s+=`<path d="${clipPath(x=>k*x*x,a,b)}" fill="none" stroke="${OR}" stroke-width="5"/>`;[[a,f&&f[0]],[b,f&&f[1]]].forEach(e=>{s+=`<circle cx="${X(e[0])}" cy="${Y(k*e[0]*e[0])}" r="4.5" fill="${e[1]==='o'?'#fff':OR}" stroke="${OR}" stroke-width="2"/>`;});}
  (o.s||[]).forEach(q=>{const st=q[4]===1?`stroke="${OR}" stroke-width="1.5" stroke-dasharray="4 3"`:q[4]===2?`stroke="${OR}" stroke-width="3.2"`:`stroke="#111" stroke-width="1.8"`;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" ${st}/>`;});
+ (o.sc||[]).forEach(q=>{const c2=q[4]||OR,F2={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,17,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']}[q[6]||'r'],mx=(X(q[0])+X(q[2]))/2,my=(Y(q[1])+Y(q[3]))/2;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="${c2}" stroke-width="${q[7]?3:4}" stroke-linecap="round"${q[7]?' stroke-dasharray="5 4"':''}/>`;if(q[5])s+=`<text x="${mx+F2[0]}" y="${my+F2[1]}" text-anchor="${F2[2]}" font-size="13" font-weight="700" fill="${c2}" ${H}>${q[5]}</text>`;});
  const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
  (o.p||[]).forEach(q=>{const f=OF[q[3]||'tr'];s+=q[4]?`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#fff" stroke="#111" stroke-width="1.8"/>`:`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])+f[0]}" y="${Y(q[1])+f[1]}" text-anchor="${f[2]}" font-size="13" font-weight="700" ${H}>${q[2]}</text>`;});
  (o.tx||[]).forEach(q=>{s+=`<text x="${X(q[0])}" y="${Y(q[1])}" text-anchor="${q[3]||'middle'}" font-size="12" font-weight="700" fill="${q[4]?OR:'#111'}" ${H}>${q[2]}</text>`;});
+ if(o.yhl){const xo=X(0)+yhlS;s+=`<line x1="${xo}" y1="${Y(o.yhl[0])}" x2="${xo}" y2="${Y(o.yhl[1])}" stroke="${OR}" stroke-width="5" stroke-linecap="round"/>`;[o.yhl[0],o.yhl[1]].forEach(v=>{s+=`<circle cx="${xo}" cy="${Y(v)}" r="4.2" fill="${OR}"/>`;});}
  return s+'</svg>';}
 return {"NYGP":NYGP};
 })();
@@ -1516,6 +2605,8 @@ const FIG=(o)=>{
  const SEG=(o.segs||[]).map(seg),DSH=(o.dash||[]).map(seg),HID=(o.hid||[]).map(seg);
  const out=[`<svg class="${o.cls||'gr'}" viewBox="0 0 ${n_(W)} ${n_(H)}" width="${n_(W)}" height="${n_(H)}">`];
  (o.shade||[]).forEach(([t,col])=>{const v=t.indexOf('-')>=0?t.split('-'):t.split('');out.push(`<polygon points="${v.map(c=>n_(S[c][0])+','+n_(S[c][1])).join(' ')}" fill="${col}" fill-opacity=".14" stroke="none"/>`);});
+ /* 2026-11-09 決まり49：面積に使う図形を薄い黄色でぬる（fill:['ABC',…]） */
+ (o.fill||[]).forEach(t=>{const v=t.indexOf('-')>=0?t.split('-'):t.split('');out.push(`<polygon points="${v.map(c=>n_(S[c][0])+','+n_(S[c][1])).join(' ')}" fill="#fde68a" fill-opacity=".75" stroke="none"/>`);});
  rings.forEach(([cx,cy,r,op])=>{op=op||{};out.push(`<circle cx="${n_(X(cx))}" cy="${n_(Y(cy))}" r="${n_(r*sc)}" fill="none" stroke="${op.red?RED:'#111'}" stroke-width="${op.red?1.6:1.8}"${op.dash?' stroke-dasharray="5 4"':''}/>`);});
  arcs0.forEach(([cx,cy,r,a1,a2,op])=>{op=op||{};let b=a2;while(b<a1)b+=360;const p=a=>[X(cx+r*Math.cos(a*Math.PI/180)),Y(cy+r*Math.sin(a*Math.PI/180))];const [ax,ay]=p(a1),[bx,by]=p(b);
   out.push(`<path d="M${n_(ax)} ${n_(ay)} A${n_(r*sc)} ${n_(r*sc)} 0 ${b-a1>180?1:0} 0 ${n_(bx)} ${n_(by)}" fill="none" stroke="${op.red?RED:'#111'}" stroke-width="${op.w||(op.red?4:1.8)}" stroke-linecap="round"/>`);});
@@ -1523,6 +2614,9 @@ const FIG=(o)=>{
  HID.forEach(([a,b])=>out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="#111" stroke-width="1.5" stroke-dasharray="5 4"/>`));
  DSH.forEach(([a,b])=>out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="${RED}" stroke-width="1.6" stroke-dasharray="5 4"/>`));
  (o.thick||[]).forEach(([s,red])=>{const [a,b]=seg(s);out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="${red?RED:'#111'}" stroke-width="4" stroke-linecap="round"/>`);});
+ /* 2026-11-09 決まり49：底辺・高さの色つきの線と札（segc:[['A-B','#FF4B00','底辺 AB＝6','b'（札の向き r|l|t|b）,0.5（札の位置 0〜1）],…]）。線は最後に描く札より下 */
+ const SEGC=[];(o.segc||[]).forEach(([s,col,lab,dir,t])=>{const [a,b]=seg(s);t=t==null?.5:t;out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="${col}" stroke-width="3.4" stroke-linecap="round"/>`);
+  if(lab){const mx=S[a][0]+(S[b][0]-S[a][0])*t,my=S[a][1]+(S[b][1]-S[a][1])*t,F={r:[7,5,'start'],l:[-7,5,'end'],t:[0,-8,'middle'],b:[0,17,'middle']}[dir||'r'];SEGC.push(`<text x="${n_(mx+F[0])}" y="${n_(my+F[1])}" text-anchor="${F[2]}" font-size="13" font-weight="700" fill="${col}" ${SH}>${lab}</text>`);}});
  const along=(a,b,t)=>[S[a][0]+(S[b][0]-S[a][0])*t,S[a][1]+(S[b][1]-S[a][1])*t];
  const clear=(a,b,tt)=>{const [ax,ay]=S[a],[bx,by]=S[b],L2=(bx-ax)**2+(by-ay)**2;const near=[];
   Object.keys(S).forEach(k=>{if(k===a||k===b)return;const [px,py]=S[k];const t=((px-ax)*(bx-ax)+(py-ay)*(by-ay))/L2;const cr=Math.abs((bx-ax)*(py-ay)-(by-ay)*(px-ax))/Math.sqrt(L2);if(cr<1.5&&t>0&&t<1)near.push(t);});
@@ -1545,6 +2639,7 @@ const FIG=(o)=>{
    out.push(`<path d="M${n_(vx+Math.cos(a1)*r)} ${n_(vy+Math.sin(a1)*r)} A${r} ${r} 0 0 1 ${n_(vx+Math.cos(a1+d)*r)} ${n_(vy+Math.sin(a1+d)*r)}" fill="none" stroke="${col}" stroke-width="1.8"/>`);}});
  (o.dots||[]).forEach(k=>out.push(`<circle cx="${n_(S[k][0])}" cy="${n_(S[k][1])}" r="3" fill="#111"/>`));
  texts.forEach(([x,y,t,op])=>{op=op||{};out.push(`<text x="${n_(X(x)+(op.dx||0))}" y="${n_(Y(y)+(op.dy||0)+4)}" text-anchor="middle" font-size="${op.size||12}" font-weight="700"${op.it?' font-style="italic"':''}${op.red?' fill="'+RED+'"':''} ${SH}>${t}</text>`);});
+ out.push(...SEGC);
  const free=k=>{const [px,py]=S[k];const dirs=[];SEG.concat(DSH,HID).forEach(([a,b])=>{const [ax,ay]=S[a],[bx,by]=S[b];
    if(k===a)dirs.push(Math.atan2(by-py,bx-px));else if(k===b)dirs.push(Math.atan2(ay-py,ax-px));
    else{const L=Math.hypot(bx-ax,by-ay),cr=Math.abs((bx-ax)*(py-ay)-(by-ay)*(px-ax))/L,t=((px-ax)*(bx-ax)+(py-ay)*(by-ay))/L/L;if(cr<1.5&&t>0&&t<1){dirs.push(Math.atan2(by-py,bx-px));dirs.push(Math.atan2(ay-py,ax-px));}}});
@@ -1567,8 +2662,18 @@ const CONE=(o)=>{const W=210,H=190,cx=96,top=18,by=150,rx=62,ry=16,RED='#c2410c'
  if(o.pts){s+=ZT(cx,top-4,'O')+ZT(cx+rx+10,by+5,'A')+`<circle cx="${cx+rx}" cy="${by}" r="2.6" fill="#111"/>`;
   if(o.pts==='M'){const mx=(cx+cx+rx)/2,my=(top+by)/2;s+=`<circle cx="${mx}" cy="${my}" r="3" fill="#111"/>`+ZT(mx+12,my+12,'M','start');}}
  s+=`<circle cx="${cx}" cy="${by}" r="2.6" fill="#111"/>`;return s+'</svg>';};
-return {FIG,CONE};})();
-return {"M3N23_ZU_CONE":(...a)=>M3N23_ZU.CONE(...a),"M3N23_ZU_FIG":(...a)=>M3N23_ZU.FIG(...a)};
+/* 円錐（入試の形・2026-11-08）：CONE2({r:'底面の半径の字'（OB に書く）, L:'母線の字'（AC に書く）, red:'L'|'r'（その線を赤く）})。頂点 C・底面の直径 AB・中心 O の記号を書く */
+const CONE2=(o)=>{const W=220,H=196,cx=104,top=24,by=150,rx=64,ry=16,RED='#c2410c',cl=k=>o.red===k?RED:'#111';
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="sans-serif">`;
+ s+=`<path d="M${cx-rx} ${by} A${rx} ${ry} 0 0 0 ${cx+rx} ${by}" fill="none" stroke="#111" stroke-width="1.8"/><path d="M${cx-rx} ${by} A${rx} ${ry} 0 0 1 ${cx+rx} ${by}" fill="none" stroke="#111" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+ s+=`<line x1="${cx}" y1="${top}" x2="${cx-rx}" y2="${by}" stroke="${cl('L')}" stroke-width="${o.red==='L'?3:1.8}"/><line x1="${cx}" y1="${top}" x2="${cx+rx}" y2="${by}" stroke="#111" stroke-width="1.8"/>`;
+ s+=`<line x1="${cx-rx}" y1="${by}" x2="${cx}" y2="${by}" stroke="#111" stroke-width="1.4"/><line x1="${cx}" y1="${by}" x2="${cx+rx}" y2="${by}" stroke="${cl('r')}" stroke-width="${o.red==='r'?2.6:1.4}"/>`;
+ if(o.r)s+=ZT(cx+rx/2,by+ry+14,o.r,'middle',o.red==='r'?'fill="'+RED+'"':'');
+ if(o.L)s+=ZT(cx-rx/2-14,(top+by)/2-2,o.L,'end',o.red==='L'?'fill="'+RED+'"':'');
+ s+=ZT(cx,top-6,'C')+ZT(cx-rx-10,by+5,'A')+ZT(cx+rx+10,by+5,'B')+ZT(cx,by-7,'O');
+ s+=`<circle cx="${cx}" cy="${by}" r="2.6" fill="#111"/>`;return s+'</svg>';};
+return {FIG,CONE,CONE2};})();
+return {"M3N23_ZU_CONE":(...a)=>M3N23_ZU.CONE(...a),"M3N23_ZU_FIG":(...a)=>M3N23_ZU.FIG(...a),"M3N23_ZU_CONE2":(...a)=>M3N23_ZU.CONE2(...a)};
 })();
 NS["gg_m3u1p3"]=(function(){
 const mi=v=>String(v).replace(/^-/,'−');
@@ -1581,10 +2686,14 @@ function GS(o){const R=o.R||5,U=20,L=R+.5,W=(2*R+1)*U,c=W/2,X=x=>c+x*U,Y=y=>c-y*
  s+=`<text x="${X(L)-9*K}" y="${c-6}" font-size="${13*K}" font-style="italic">x</text><text x="${c+6}" y="${Y(L)+13*K}" font-size="${13*K}" font-style="italic">y</text><text x="${c-4}" y="${c+14*K}" font-size="${12*K}" text-anchor="end">O</text>`;
  if(o.nums!==false)[-4,-2,2,4].forEach(v=>{s+=`<text x="${X(v)}" y="${c+14*K}" font-size="${11*K}" text-anchor="middle" fill="#555" ${H}>${mi(v)}</text><text x="${c-5}" y="${Y(v)+4*K}" font-size="${11*K}" text-anchor="end" fill="#555" ${H}>${mi(v)}</text>`;});
  const CL=(a,b)=>{let p=[];[-L,L].forEach(x=>{const y=a*x+b;if(y>=-L-1e-9&&y<=L+1e-9)p.push([x,y]);});if(a!==0)[-L,L].forEach(y=>{const x=(y-b)/a;if(x>-L&&x<L)p.push([x,y]);});p.sort((u,v)=>u[0]-v[0]);return [p[0],p[p.length-1]];};
+ /* 2026-11-09 解説の図で、使う図形を塗る（poly＝[[x,y],…]）。川上さん 13:14「三角形CDEをちゃんと書いてあげて」 */
+ (o.poly?[o.poly]:[]).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fde68a" fill-opacity=".75" stroke="none"/>`;});
  (o.lines||[]).forEach(l=>{const [p,q]=CL(l[0],l[1]);s+=`<line x1="${X(p[0])}" y1="${Y(p[1])}" x2="${X(q[0])}" y2="${Y(q[1])}" stroke="#111" stroke-width="${sm?3:2.4}"/>`;});
  (o.dsh||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="#c2410c" stroke-width="1.4" stroke-dasharray="4 3"/>`;});
  (o.segs||[]).forEach(q=>{s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="#111" stroke-width="2.6"/>`;});
  if(o.st){const [x0,y0,dx,dy]=o.st;s+=`<line x1="${X(x0)}" y1="${Y(y0)}" x2="${X(x0+dx)}" y2="${Y(y0)}" stroke="#c2410c" stroke-width="2.6"/><line x1="${X(x0+dx)}" y1="${Y(y0)}" x2="${X(x0+dx)}" y2="${Y(y0+dy)}" stroke="#c2410c" stroke-width="2.6"/><text x="${(X(x0)+X(x0+dx))/2}" y="${Y(y0)+(dy>0?17:-8)}" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle" ${H}>右へ${dx}</text><text x="${X(x0+dx)+6}" y="${(Y(y0)+Y(y0+dy))/2+5}" font-size="13" font-weight="700" fill="#c2410c" ${H}>${dy>0?'上へ'+dy:'下へ'+(-dy)}</text>`;}
+ /* 2026-11-09 色つきの線分と札（segc＝[[x1,y1,x2,y2,色,札,札の向き r|l|t|b]]）。底辺・高さを見せる */
+ (o.segc||[]).forEach(q=>{const c2=q[4]||'#c2410c',mx=(X(q[0])+X(q[2]))/2,my=(Y(q[1])+Y(q[3]))/2,F={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,18,'middle']}[q[6]||'r'];s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="${c2}" stroke-width="4" stroke-linecap="round"/>`;if(q[5])s+=`<text x="${mx+F[0]}" y="${my+F[1]}" text-anchor="${F[2]}" font-size="14" font-weight="700" fill="${c2}" ${H}>${q[5]}</text>`;});
  const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
  (o.pts||[]).forEach(q=>{const f=OF[q[3]||'tr'];s+=q[4]?`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#fff" stroke="#111" stroke-width="2"/>`:`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="4.5" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])+f[0]}" y="${Y(q[1])+f[1]}" text-anchor="${f[2]}" font-size="13" font-weight="700" ${H}>${q[2]}</text>`;});
  return s+'</svg>';}
@@ -1779,7 +2888,157 @@ const SEN=(o)=>{const W=320,H=112,x0=22,x2=298,x1=150,y=58;
  s+=`<path d="M${x0} ${y+32} L${x0} ${y+38} L${x2} ${y+38} L${x2} ${y+32}" fill="none" stroke="#6b7280" stroke-width="1.3"/>`+ZT((x0+x2)/2,y+52,o.tot+(o.t?'　'+o.t:''));
  s+=`<path d="M${x0} ${y-26} L${x0} ${y-32} L${x2} ${y-32} L${x2} ${y-26}" fill="none" stroke="none"/>`;
  return s+'</svg>';};
-return {FIG,CONE,SPHERE,SECT,DEV,SEN};})();
-return {"M3U1P4_ZU_FIG":(...a)=>M3U1P4_ZU.FIG(...a),"M3U1P4_ZU_SECT":(...a)=>M3U1P4_ZU.SECT(...a),"M3U1P4_ZU_CONE":(...a)=>M3U1P4_ZU.CONE(...a),"M3U1P4_ZU_SEN":(...a)=>M3U1P4_ZU.SEN(...a),"M3U1P4_ZU_SPHERE":(...a)=>M3U1P4_ZU.SPHERE(...a),"M3U1P4_ZU_DEV":(...a)=>M3U1P4_ZU.DEV(...a)};
+/* 角の図（2026-11-09 係 f9b）：くの字・ブーメラン型・ちょうちょ型・星形の解説の図を同じ色・同じ形で描く
+   KAKU({P:{A:[x,y],…}（数学の向き・y は上）, segs:['A-B',…]（黒の線）, dash:['D-E',…]（補助線＝灰色の点線）,
+         fill:[['A-M-N','#facc15'],…]（うすくぬる）, angs:[[p1,v,p2,色,半径],…]（色＝'b'青・'g'緑・'r'朱・'k'黒の弧だけ）,
+         texts:[[x,y,'38°',{c:'b',it:true,size:13}],…], w:220, pad:22, lab:{A:向き(ラジアン・画面の向き)}, nolab:['O',…]})
+   点の名前が '_' で始まる点は記号を書かない。外角で集める角は青・緑、求める ∠x は朱、補助線は点線（図形の角の4つの形の説明 2026-11-09）
+   KUNOJI(o)・BOOM(o)・CHOCHO(o)・STAR(o) は KAKU の引数を作って呼ぶ（使い方は各関数の頭） */
+const KAKU=(o)=>{
+ const COL={b:'#005AFF',g:'#03AF7A',r:'#FF4B00',k:'#111'},SH='stroke="#fff" stroke-width="4" paint-order="stroke"';
+ const n_=v=>{let s=(Math.round(v*10)/10).toFixed(1);s=s.replace(/\.0$/,'');return s==='-0'?'0':s;};
+ const sp=s=>s.split('-');
+ const P=o.P,w=o.w||220,pad=o.pad==null?22:o.pad,texts=o.texts||[];
+ const xs=Object.values(P).map(p=>p[0]).concat(texts.map(t=>t[0])),ys=Object.values(P).map(p=>p[1]).concat(texts.map(t=>t[1]));
+ const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+ let sc=(w-2*pad)/Math.max(x1-x0,1e-9),H=(y1-y0)*sc+2*pad;
+ if(H>w*1.1){sc=(w*1.1-2*pad)/(y1-y0);H=w*1.1;}
+ const W=(x1-x0)*sc+2*pad,X=x=>pad+(x-x0)*sc,Y=y=>pad+(y1-y)*sc;
+ const S={};Object.keys(P).forEach(k=>{S[k]=[X(P[k][0]),Y(P[k][1])];});
+ const out=[`<svg class="gr" viewBox="0 0 ${n_(W)} ${n_(H)}" width="${n_(W)}" height="${n_(H)}" role="img" aria-label="${o.aria||'角の図'}">`];
+ (o.fill||[]).forEach(([t,c])=>out.push(`<polygon points="${sp(t).map(k=>n_(S[k][0])+','+n_(S[k][1])).join(' ')}" fill="${c}" fill-opacity="0.35" stroke="none"/>`));
+ (o.segs||[]).map(sp).forEach(([a,b])=>out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="#111" stroke-width="2" stroke-linecap="round"/>`));
+ (o.dash||[]).map(sp).forEach(([a,b])=>out.push(`<line x1="${n_(S[a][0])}" y1="${n_(S[a][1])}" x2="${n_(S[b][0])}" y2="${n_(S[b][1])}" stroke="#6b7280" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="5 4"/>`));
+ const arcs={};
+ (o.angs||[]).forEach(([p1,v,p2,c,r])=>{const col=COL[c]||c;const [vx,vy]=S[v];let a1=Math.atan2(S[p1][1]-vy,S[p1][0]-vx),a2=Math.atan2(S[p2][1]-vy,S[p2][0]-vx);
+  let d=((a2-a1)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);if(d>Math.PI){[a1,a2]=[a2,a1];d=2*Math.PI-d;}r=r||14;(arcs[v]=arcs[v]||[]).push([a1,d,r]);
+  const q1=[vx+Math.cos(a1)*r,vy+Math.sin(a1)*r],q2=[vx+Math.cos(a1+d)*r,vy+Math.sin(a1+d)*r];
+  if(c!=='k'&&c!=='o')out.push(`<path d="M${n_(vx)} ${n_(vy)} L${n_(q1[0])} ${n_(q1[1])} A${r} ${r} 0 0 1 ${n_(q2[0])} ${n_(q2[1])} Z" fill="${col}" fill-opacity=".38" stroke="none"/>`);
+  out.push(`<path d="M${n_(q1[0])} ${n_(q1[1])} A${r} ${r} 0 0 1 ${n_(q2[0])} ${n_(q2[1])}" fill="none" stroke="${c==='o'?COL.r:col}" stroke-width="1.8"/>`);});
+ (o.dots||[]).forEach(k=>out.push(`<circle cx="${n_(S[k][0])}" cy="${n_(S[k][1])}" r="3" fill="#111"/>`));
+ texts.forEach(([x,y,t,op])=>{op=op||{};if(op.at){const [p1,v,p2]=op.at,V=S[v],u=a=>{const dx=S[a][0]-V[0],dy=S[a][1]-V[1],L=Math.hypot(dx,dy);return [dx/L,dy/L];},a=u(p1),b=u(p2);let m=[a[0]+b[0],a[1]+b[1]];const L=Math.hypot(m[0],m[1])||1;if(op.out){m=[-m[0],-m[1]];}const h=Math.acos(Math.max(-1,Math.min(1,a[0]*b[0]+a[1]*b[1])))/2,dd=Math.min(50,Math.max(op.d||28,13/Math.max(Math.sin(h),.05)));const px=V[0]+m[0]/L*dd,py=V[1]+m[1]/L*dd;x=x0+(px-pad)/sc;y=y1-(py-pad)/sc;}const col=op.c?(COL[op.c]||op.c):'#111';const tt=op.it?`<tspan font-style="italic">${t}</tspan>`:t;
+  out.push(`<text x="${n_(X(x)+(op.dx||0))}" y="${n_(Y(y)+(op.dy||0)+4)}" text-anchor="middle" font-size="${op.size||13}" font-weight="700" fill="${col}" ${SH}>${tt}</text>`);});
+ const vs=Object.values(S),cx=vs.reduce((s,v)=>s+v[0],0)/vs.length,cy=vs.reduce((s,v)=>s+v[1],0)/vs.length;
+ Object.keys(S).forEach(k=>{if(k[0]==='_'||(o.nolab||[]).indexOf(k)>=0)return;const [px,py]=S[k];let ang=(o.lab||{})[k];if(ang==null)ang=Math.atan2(py-cy,px-cx);const r=12;
+  out.push(`<text x="${n_(px+Math.cos(ang)*r)}" y="${n_(py+Math.sin(ang)*r+5)}" text-anchor="middle" font-size="14" font-weight="700" fill="#111" ${SH}>${k}</text>`);});
+ return out.join('')+'</svg>';};
+/* 点の計算 */
+const KK_={
+ X:(p,q,r,s)=>{const d=(q[0]-p[0])*(s[1]-r[1])-(q[1]-p[1])*(s[0]-r[0]);const t=((r[0]-p[0])*(s[1]-r[1])-(r[1]-p[1])*(s[0]-r[0]))/d;return [p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];},
+ /* 頂点 v の角 p1-v-p2 の二等分線の向きに、距離 k の所（数学の座標） */
+ IN:(p1,v,p2,k)=>{const u=a=>{const dx=a[0]-v[0],dy=a[1]-v[1],L=Math.hypot(dx,dy);return [dx/L,dy/L];};const a=u(p1),b=u(p2);let m=[a[0]+b[0],a[1]+b[1]];const L=Math.hypot(m[0],m[1])||1;return [v[0]+m[0]/L*k,v[1]+m[1]/L*k];}};
+/* くの字：KUNOJI({A:[x,y]（ℓ 上の点）, B:[x,y]（m 上の点）, P:[x,y]（折れた点）, xl:[左の x, 右の x], top:'38°', bot:'45°', names:true（A・B・P の記号を書く）, n:'n'（補助線の名前・なくてよい）, k:0.6（角の字の距離）, w:220})
+   ℓ と m の角は、P のある側。補助線は P を通る ℓ に平行な点線。上の角＝青、下の角＝緑、∠x＝朱の弧と字 */
+const KUNOJI=(o)=>{const {A,B,P}=o,xl=o.xl;const side=P[0]>A[0]?1:-1;const nm=z=>(o.names&&({_A:'A',_B:'B',_P:'P'})[z])||z;
+ const Q={_l1:[xl[0],A[1]],_l2:[xl[1],A[1]],_m1:[xl[0],B[1]],_m2:[xl[1],B[1]],_n1:[xl[0],P[1]],_n2:[xl[1],P[1]]};Q[nm('_A')]=A;Q[nm('_B')]=B;Q[nm('_P')]=P;
+ const a_=nm('_A'),b_=nm('_B'),p_=nm('_P'),lE=side>0?'_l2':'_l1',mE=side>0?'_m2':'_m1',nE=side>0?'_n1':'_n2',d=o.d||30;
+ const t=[[xl[1]+0.15,A[1]+0.42,'ℓ',{it:true,size:14}],[xl[1]+0.15,B[1]+0.42,'m',{it:true,size:14}]];
+ if(o.n)t.push([xl[side>0?0:1]+(side>0?-0.25:0.25),P[1]+0.3,o.n,{it:true,size:13,c:'#6b7280'}]);
+ t.push([0,0,o.top,{c:'b',at:[lE,a_,p_],d:d}],[0,0,o.top,{c:'b',at:[a_,p_,nE],d:d}],[0,0,o.bot,{c:'g',at:[b_,p_,nE],d:d}],[0,0,o.bot,{c:'g',at:[mE,b_,p_],d:d}]);
+ return KAKU({P:Q,segs:['_l1-_l2','_m1-_m2',a_+'-'+p_,b_+'-'+p_],dash:['_n1-_n2'],
+  angs:[[lE,a_,p_,'b',16],[a_,p_,nE,'b',16],[b_,p_,nE,'g',16],[mE,b_,p_,'g',16]],
+  texts:t,w:o.w||240,lab:o.lab||{},aria:'くの字に補助線をひいた図'});};
+/* ブーメラン型：BOOM({A,B,C,D（へこんだ点）:[x,y], t:{A:'35°',B:'28°',C:'42°',D:'x'}（B＝∠ABD・C＝∠ACD・D＝∠BDC の字）, x:'D'（求める角の頂点）, k:0.9, w:220, lab:{}})
+   BD を D の先へのばして AC と交わる点を E（点線）。∠A・∠ABD・∠BEC＝青、∠ACD＝緑、求める角＝朱 */
+const BOOM=(o)=>{const {A,B,C,D}=o,E=KK_.X(B,D,A,C),x=o.x||'D',P={A,B,C,D,E},d=o.d||30;
+ const cl=v=>v===x?'r':({A:'b',B:'b',C:'g',D:'k'})[v];
+ const ix=v=>o.t[v]==='x'?{it:true,size:14}:{};const T=[[0,0,o.t.A,Object.assign({c:cl('A'),at:['B','A','C'],d:d+6},ix('A'))],[0,0,o.t.B,Object.assign({c:cl('B'),at:['A','B','D'],d:d+6},ix('B'))],[0,0,o.t.C,Object.assign({c:cl('C'),at:['A','C','D'],d:d+6},ix('C'))],[0,0,o.t.D,Object.assign({c:cl('D'),at:['B','D','C'],d:d-4},ix('D'))]];
+ return KAKU({P,segs:['A-B','A-C','B-D','D-C'],dash:['D-E'],angs:[['B','A','C',cl('A'),16],['A','B','D',cl('B'),22],['D','E','C','b',12],['A','C','D',cl('C'),22],['B','D','C',cl('D'),13]],texts:T,w:o.w||220,lab:Object.assign({D:-1.5708},o.lab||{}),aria:'ブーメラン型の辺をのばした図'});};
+/* 星形：STAR({V:[[x,y]×5]（A〜E の順・A から線が C と D へ）, w:220, lab:{}})  M＝AC と BE、N＝AD と BE の交わる点
+   ∠C・∠E・∠AMN＝青、∠B・∠D・∠ANM＝緑、△AMN＝うすい黄、∠A＝黒の弧 */
+const STAR=(o)=>{const [A,B,C,D,E]=o.V,M=KK_.X(A,C,B,E),N=KK_.X(A,D,B,E),P={A,B,C,D,E,M,N};
+ return KAKU({P,fill:[['A-M-N','#facc15']],segs:['A-C','A-D','B-D','B-E','C-E'],angs:[['C','A','D','k',13],['A','C','E','b',16],['B','E','C','b',16],['A','M','N','b',12],['E','B','D','g',16],['A','D','B','g',16],['A','N','M','g',12]],w:o.w||220,lab:o.lab||{},aria:'星形の角を三角形に集めた図'});};
+/* ちょうちょ型：CHOCHO({P:{A,B,C,D,O…}, segs:[…], dash:[…], b:[[p1,v,p2],…]（青）, r:[[p1,v,p2],…]（朱＝∠x をふくむ組）, g:[[p1,v,p2],[p1,v,p2]]（対頂角・緑）, k:[[p1,v,p2],…]（黒の弧）, pq:[[p1,v,p2,色],…]（色を決めてぬる）, texts, w, lab}) */
+const CHOCHO=(o)=>KAKU({P:o.P,segs:o.segs,dash:o.dash||[],fill:o.fill||[],angs:[].concat((o.b||[]).map(a=>a.concat(['b',16])),(o.r||[]).map(a=>a.concat(['r',16])),(o.g||[]).map(a=>a.concat(['g',12])),(o.k||[]).map(a=>a.concat(['k',13])),(o.pq||[]).map(a=>[a[0],a[1],a[2],a[3],16])),texts:o.texts||[],w:o.w||220,lab:o.lab||{},nolab:o.nolab||[],aria:'ちょうちょ型の図'});
+/* ===== くの字の図（2026-11-09 20:20 川上さん「x の線と角度の数字が重なって印刷だと見づらい」・係 f9b）=====
+   KUNOX({V:[A,P(,Q…),B]（画面の座標・y は下向き。A は ℓ 上、B は m 上、間が折れた点）, yl, ym（ℓ・m の y）, x0, x1（平行線の左右の端）,
+          vals:['38°','47°']（錯角の組の値。上から順に＝A と1つ目の折れ点の上の角、1つ目の下の角と2つ目の上の角、…、最後の折れ点の下の角と B）,
+          xi:1（∠x の折れ点の番号。0 なら ∠x を描かない）, names:['A','P','B']（なくてよい）, ex:1（解説の図＝補助線・色。なければ問題の図）,
+          extra:[[[x,y],[x,y],[x,y],'143°','k'],…]（ほかに描く角：点1・頂点・点2）, mark:1（平行の印）})
+   解説の図：折れた点を通る補助線＝灰色の点線。組の色＝青・緑・紫の順。折れた所で分けた角は小さい弧（半径 12）、数字はそのすぐ外。
+   ∠x の朱の弧は数字より外（数字の四角の外側＋6px）、x の字はさらに外。朱の弧が辺より長くなる・62px をこえるときは、朱の弧を小さい弧のすぐ外（半径 21）にして数字をその外に置く。数字・x の字と、線・弧・点線のすき間は 3px 以上になるよう置く */
+const KUNOX0=(o)=>{
+ const COL={b:'#005AFF',g:'#03AF7A',p:'#990099',r:'#FF4B00',k:'#111'},PC=['b','g','p'],RAD=Math.PI/180,SH='stroke="#fff" stroke-width="4" paint-order="stroke"';
+ const n_=v=>{let s=(Math.round(v*10)/10).toFixed(1);s=s.replace(/\.0$/,'');return s==='-0'?'0':s;};
+ const V=o.V,k=V.length-2,ex=!!o.ex,yl=o.yl,ym=o.ym,x0=o.x0,x1=o.x1;
+ const th=(v,p)=>Math.atan2(-(p[1]-v[1]),p[0]-v[0])/RAD;
+ const segs=[];const out=[];const boxes=[];
+ const L=(a,b,st,keep)=>{out.push(`<line x1="${n_(a[0])}" y1="${n_(a[1])}" x2="${n_(b[0])}" y2="${n_(b[1])}" ${st}/>`);if(keep!==false)segs.push([a,b]);};
+ const BLK='stroke="#111" stroke-width="2" stroke-linecap="round"';
+ L([x0,yl],[x1,yl],BLK);L([x0,ym],[x1,ym],BLK);
+ for(let i=0;i<=k;i++)L(V[i],V[i+1],BLK);
+ if(o.mark!==0){[yl,ym].forEach(y=>{const x=x0+22,pa=[x-5.4,y-4.5],pb=[x,y],pc=[x-5.4,y+4.5];out.push(`<polyline points="${n_(pa[0])},${n_(pa[1])} ${n_(pb[0])},${n_(pb[1])} ${n_(pc[0])},${n_(pc[1])}" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`);segs.push([pa,pb],[pb,pc]);});}
+ const hdir=i=>((V[i-1][0]+V[i+1][0])/2-V[i][0])>0?0:180;
+ if(ex)for(let i=1;i<=k;i++)L([x0,V[i][1]],[x1,V[i][1]],'stroke="#6b7280" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="5 4"');
+ /* 角：頂点 v で、数学の角度 t1・t2 の間（小さいほう） */
+ const span=(t1,t2)=>{let s=((t2-t1)%360+360)%360;if(s>180){return [t2,360-s];}return [t1,s];};
+ const P=(v,t,r)=>[v[0]+r*Math.cos(t*RAD),v[1]-r*Math.sin(t*RAD)];
+ const arc=(v,t1,t2,c,r,w)=>{const [s,sp]=span(t1,t2),a=P(v,s,r),b=P(v,s+sp,r);const fill=(c!=='k'&&ex&&w!=='o')?`<path d="M${n_(v[0])} ${n_(v[1])} L${n_(a[0])} ${n_(a[1])} A${r} ${r} 0 0 0 ${n_(b[0])} ${n_(b[1])} Z" fill="${COL[c]}" fill-opacity=".28" stroke="none"/>`:'';
+  out.push(fill+`<path d="M${n_(a[0])} ${n_(a[1])} A${r} ${r} 0 0 0 ${n_(b[0])} ${n_(b[1])}" fill="none" stroke="${COL[c]}" stroke-width="${c==='k'?1.8:2.2}"/>`);
+  for(let j=0;j<12;j++)segs.push([P(v,s+sp*j/12,r),P(v,s+sp*(j+1)/12,r)]);return [s,sp];};
+ const tw=t=>[...String(t).replace(/<[^>]*>/g,'')].reduce((w,ch)=>w+(/[0-9]/.test(ch)?7.4:ch==='°'?5.2:/[a-z]/.test(ch)?7:9.6),0);
+ const bx=(cx,cy,t)=>{const w=tw(t);return [cx-w/2-0.5,cy-5.5,cx+w/2+0.5,cy+5.5];};
+ const dseg=(b,[p,q])=>{/* 四角と線分の距離 */const inb=pt=>pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3];if(inb(p)||inb(q))return 0;
+  const E=[[[b[0],b[1]],[b[2],b[1]]],[[b[2],b[1]],[b[2],b[3]]],[[b[2],b[3]],[b[0],b[3]]],[[b[0],b[3]],[b[0],b[1]]]];
+  const ss=(a1,a2,c1,c2)=>{const cr=(u,v,w)=>(v[0]-u[0])*(w[1]-u[1])-(v[1]-u[1])*(w[0]-u[0]);if(cr(a1,a2,c1)*cr(a1,a2,c2)<0&&cr(c1,c2,a1)*cr(c1,c2,a2)<0)return 0;
+   const pd=(z,u,v)=>{const dx=v[0]-u[0],dy=v[1]-u[1],L2=dx*dx+dy*dy;let t=L2?((z[0]-u[0])*dx+(z[1]-u[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(z[0]-u[0]-t*dx,z[1]-u[1]-t*dy);};
+   return Math.min(pd(a1,c1,c2),pd(a2,c1,c2),pd(c1,a1,a2),pd(c2,a1,a2));};
+  return Math.min(...E.map(([u,v])=>ss(u,v,p,q)));};
+ const dbox=(a,b)=>Math.max(0,a[0]-b[2],b[0]-a[2],a[1]-b[3],b[1]-a[3]);
+ const ok=(b,gap)=>segs.every(sg=>dseg(b,sg)>=gap)&&boxes.every(c=>dbox(b,c)>=2)&&b[0]>=x0-30&&b[2]<=x1+30;
+ const T=(cx,cy,t,c,it)=>{const b=bx(cx,cy,t);boxes.push(b);out.push(`<text x="${n_(cx)}" y="${n_(cy+4.6)}" text-anchor="middle" font-size="13" font-weight="700"${it?' font-style="italic"':''} fill="${COL[c]||c}" ${SH}>${t}</text>`);return b;};
+ /* 角の字：二等分線の上で、r0 から外へ。だめなら向きを少しずつずらす */
+ const find=(v,s,sp,t,r0)=>{const m=s+sp/2;for(let d=r0;d<=r0+60;d+=1){for(const off of [0,-1,1,-2,2,-3,3].map(z=>z*sp/10)){const a=m+off;if(a<=s+2||a>=s+sp-2)continue;const p=P(v,a,d);const b=bx(p[0],p[1],t);if(ok(b,3.4))return [p,b];}}const p=P(v,m,r0+20);return [p,bx(p[0],p[1],t)];};
+ const farOf=(v,b)=>Math.max(...[[b[0],b[1]],[b[2],b[1]],[b[0],b[3]],[b[2],b[3]]].map(q=>Math.hypot(q[0]-v[0],q[1]-v[1])));
+ const place=(v,s,sp,t,c,r0,it)=>{const [p,b]=find(v,s,sp,t,r0);T(p[0],p[1],t,c,it);return farOf(v,b);};
+ const pend=[];
+ if(ex){
+  for(let i=1;i<=k;i++){const h=hdir(i),cu=PC[(i-1)%3],cd=PC[i%3];const su=arc(V[i],th(V[i],V[i-1]),h,cu,12),sd=arc(V[i],h,th(V[i],V[i+1]),cd,12);pend.push([V[i],su,o.vals[i-1],cu,15],[V[i],sd,o.vals[i],cd,15]);}
+  const hA=hdir(1),hB=hdir(k);const sA=arc(V[0],(hA+180)%360,th(V[0],V[1]),PC[0],15),sB=arc(V[k+1],(hB+180)%360,th(V[k+1],V[k]),PC[k%3],15);
+  pend.push([V[0],sA,o.vals[0],PC[0],18],[V[k+1],sB,o.vals[k],PC[k%3],18]);
+ }else{
+  for(let i=1;i<=k;i++){if(o.xi===i)continue;}
+ }
+ (o.extra||[]).forEach(([p1,v,p2,t,c])=>{const s=arc(v,th(v,p1),th(v,p2),c||'k',c&&c!=='k'?15:17,'o');pend.push([v,s,t,c||'k',20]);});
+ if(!ex){const hA=hdir(1),hB=hdir(k);const sA=arc(V[0],(hA+180)%360,th(V[0],V[1]),'k',14),sB=arc(V[k+1],(hB+180)%360,th(V[k+1],V[k]),'k',14);pend.push([V[0],sA,o.vals[0],'k',18],[V[k+1],sB,o.vals[k],'k',18]);}
+ /* 点の記号（先に置いて、数字がよける） */
+ if(o.names){o.names.forEach((nm,i)=>{if(!nm)return;const v=V[i];let c;if(i===0)c=[[v[0],yl-13],[v[0]-12,yl-13],[v[0]+12,yl-13]];else if(i===k+1)c=[[v[0],ym+15],[v[0]-12,ym+15],[v[0]+12,ym+15]];else{const h=hdir(i)===0?1:-1;c=[[v[0]-h*13,v[1]-12],[v[0]-h*13,v[1]+12],[v[0]-h*16,v[1]-14]];}
+  for(const p of c){const b=bx(p[0],p[1],nm);if(ok(b,2)||p===c[c.length-1]){boxes.push(b);out.push(`<text x="${n_(p[0])}" y="${n_(p[1]+5)}" text-anchor="middle" font-size="14" font-weight="700" fill="#111" ${SH}>${nm}</text>`);break;}}});}
+ [[x1+11,yl,'ℓ'],[x1+11,ym,'m']].forEach(([x,y,t])=>{boxes.push(bx(x,y,'m'));out.push(`<text x="${n_(x)}" y="${n_(y+5)}" text-anchor="middle" font-size="14" font-weight="700" font-style="italic" fill="#111" ${SH}>${t}</text>`);});
+ const far={};const bend=new Set(V.slice(1,k+1).map(v=>v.join(',')));
+ const doP=f=>pend.filter(z=>f(bend.has(z[0].join(',')))).forEach(([v,[s,sp],t,c,r0])=>{const g=place(v,s,sp,t,c,r0,false);const key=v.join(',');far[key]=Math.max(far[key]||0,g);});
+ /* ∠x の弧の半径：折れた所の数字の外側＋6px。辺より長くなるときは、朱の弧を小さい弧のすぐ外（半径 21）にして、数字をその外に置く */
+ let Rin=0;if(ex&&o.xi){const i=o.xi,v=V[i],Lmin=Math.min(Math.hypot(V[i-1][0]-v[0],V[i-1][1]-v[1]),Math.hypot(V[i+1][0]-v[0],V[i+1][1]-v[1]))-6;
+  const need=Math.max(30,Math.ceil(Math.max(0,...pend.filter(z=>z[0]===v).map(([vv,[s,sp],t,c,r0])=>farOf(vv,find(vv,s,sp,t,r0)[1])))+6));
+  if(need>Math.min(Lmin,62)){const [s,sp]=span(th(v,V[i-1]),th(v,V[i+1]));const n0=out.length;arc(v,s,s+sp,'r',21,'o');out.push(out.splice(n0,1)[0]);Rin=21;pend.forEach(z=>{if(z[0]===v)z[4]=27;});}}
+ doP(b=>b);
+ /* ∠x（折れた所の数字を置いたあと、ほかの数字より先） */
+ if(o.xi){const i=o.xi,v=V[i];const [s,sp]=span(th(v,V[i-1]),th(v,V[i+1]));
+  if(ex){if(Rin)place(v,s,sp,'x','r',27,true);else{const R=Math.max(30,Math.ceil((far[v.join(',')]||20)+6));arc(v,s,s+sp,'r',R,'o');place(v,s,sp,'x','r',R+8,true);}}
+  else{arc(v,s,s+sp,'k',14);place(v,s,sp,'x','k',18,true);}}
+ doP(b=>!b);
+ let X0=x0-4,Y0=yl-26,X1=x1+22,Y1=ym+24;boxes.forEach(b=>{X0=Math.min(X0,b[0]-4);X1=Math.max(X1,b[2]+4);Y0=Math.min(Y0,b[1]-4);Y1=Math.max(Y1,b[3]+4);});
+ if(o._box)return [X0,Y0];
+ const dv=o.pts?` data-v="${Object.entries(o.pts).map(([kk,p])=>kk+':'+n_(p[0])+','+n_(p[1])).join(';')}"`+(o.dc?` data-c="${o.dc}"`:''):'';
+ return `<svg class="gr" viewBox="${n_(X0)} ${n_(Y0)} ${n_(X1-X0)} ${n_(Y1-Y0)}" width="${n_(X1-X0)}" height="${n_(Y1-Y0)}" role="img" aria-label="${ex?'くの字に補助線をひいた図':'平行線と折れ線の図'}"${dv}>${out.join('')}</svg>`;};
+/* 画面の lfFix は viewBox の左上を 0,0 として図の外かどうかを見るので、全部の座標を左上が 0,0 になるようにずらしてから描く（o.pts＝data-v に書く点・o.dc＝data-c） */
+const KUNOX=(o)=>{const [X0,Y0]=KUNOX0(Object.assign({},o,{_box:1}));const f=p=>[Math.round((p[0]-X0)*10)/10,Math.round((p[1]-Y0)*10)/10];
+ const q=Object.assign({},o,{V:o.V.map(f),yl:o.yl-Y0,ym:o.ym-Y0,x0:o.x0-X0,x1:o.x1-X0,extra:(o.extra||[]).map(([a,b,c,t,cl])=>[f(a),f(b),f(c),t,cl])});
+ if(o.pts){q.pts={};Object.keys(o.pts).forEach(kk=>{q.pts[kk]=f(o.pts[kk]);});}return KUNOX0(q);};
+/* くの字の箱の図：KUNOBOX()。平行線2本とくの字、上の角と折れた所の上の部分に ●、下の角と下の部分に ○（錯角の箱の図と同じ大きさ・線・色） */
+const KUNOBOX=()=>{const RD='#FF4B00',n_=v=>Math.round(v*10)/10,RAD=Math.PI/180,yl=26,ym=100,A=[56,yl],B=[56,ym],P=[122,63];
+ const th=(v,p)=>Math.atan2(-(p[1]-v[1]),p[0]-v[0])/RAD,Q=(v,t,r)=>[v[0]+r*Math.cos(t*RAD),v[1]-r*Math.sin(t*RAD)];
+ const arc=(v,t1,t2,r)=>{let s=((t2-t1)%360+360)%360;let a=t1;if(s>180){a=t2;s=360-s;}const p=Q(v,a,r),q=Q(v,a+s,r);return `<path d="M${n_(p[0])} ${n_(p[1])} A${r} ${r} 0 0 0 ${n_(q[0])} ${n_(q[1])}" fill="none" stroke="${RD}" stroke-width="2.2"/>`;};
+ const dot=(v,t1,t2,d,ch)=>{let s=((t2-t1)%360+360)%360;let a=t1;if(s>180){a=t2;s=360-s;}const p=Q(v,a+s/2,d);return `<text x="${n_(p[0])}" y="${n_(p[1]+4)}" text-anchor="middle" font-size="11" font-weight="bold" fill="${RD}" stroke="#fff" stroke-width="4" paint-order="stroke">${ch}</text>`;};
+ const ln=(a,b,st)=>`<line x1="${n_(a[0])}" y1="${n_(a[1])}" x2="${n_(b[0])}" y2="${n_(b[1])}" ${st||'stroke="#111" stroke-width="1.8" stroke-linecap="round"'}/>`;
+ const mk=y=>`<polyline points="${36.5},${y+4.5} 42.5,${y} ${36.5},${y-4.5}" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`;
+ let s=ln([20,yl],[170,yl])+ln([20,ym],[170,ym])+mk(yl)+mk(ym)+ln(A,P)+ln(P,B)+ln([20,P[1]],[170,P[1]],'stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="4 3"');
+ s+=arc(A,0,th(A,P),15)+arc(P,th(P,A),180,15)+arc(P,180,th(P,B),15)+arc(B,th(B,P),0,15);
+ s+=dot(A,0,th(A,P),26,'●')+dot(P,th(P,A),180,25,'●')+dot(P,180,th(P,B),25,'○')+dot(B,th(B,P),0,26,'○');
+ s+=`<text x="95" y="124" text-anchor="middle" font-size="12" font-weight="bold" stroke="#fff" stroke-width="4" paint-order="stroke">くの字：● ＋ ○</text>`;
+ return `<svg viewBox="14 8 162 124" width="162" height="124" role="img" aria-label="くの字の図">${s}</svg>`;};
+
+return {FIG,CONE,SPHERE,SECT,DEV,SEN,KAKU,KUNOJI,BOOM,STAR,CHOCHO,KUNOX,KUNOBOX};})();
+return {"M3U1P4_ZU_FIG":(...a)=>M3U1P4_ZU.FIG(...a),"M3U1P4_ZU_KUNOX":(...a)=>M3U1P4_ZU.KUNOX(...a),"M3U1P4_ZU_KUNOBOX":(...a)=>M3U1P4_ZU.KUNOBOX(...a),"M3U1P4_ZU_SECT":(...a)=>M3U1P4_ZU.SECT(...a),"M3U1P4_ZU_CONE":(...a)=>M3U1P4_ZU.CONE(...a),"M3U1P4_ZU_SEN":(...a)=>M3U1P4_ZU.SEN(...a),"M3U1P4_ZU_BOOM":(...a)=>M3U1P4_ZU.BOOM(...a),"M3U1P4_ZU_SPHERE":(...a)=>M3U1P4_ZU.SPHERE(...a),"M3U1P4_ZU_DEV":(...a)=>M3U1P4_ZU.DEV(...a),"M3U1P4_ZU_CHOCHO":(...a)=>M3U1P4_ZU.CHOCHO(...a)};
 })();
 })();
