@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-14i"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-15a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3523,7 +3523,7 @@ function shEkMtLis_(w){
   var st=$('sub-title');if(st)st.innerHTML=rb('聞','き')+'き'+rb('取','と')+'りの'+rb('音','おと');
   var rid=String(w.part_id||'');
   host.style.display='block';host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
-  fetch('guru/eiken_mt/'+rid+'.json?v='+GG_LIB_V).then(function(r){if(!r.ok)throw new Error('json '+r.status);return r.json();}).then(function(D){
+  fetch('eiken_mt/'+rid+'.json?v='+EKMT_V).then(function(r){if(!r.ok)throw new Error('json '+r.status);return r.json();}).then(function(D){
     var L=[];(D.items||[]).forEach(function(it,i){var m=/data-ak="([^"]+)"[^>]*data-au="([^"]+)"/.exec(String(it.q||''));if(m)L.push({no:it.no||(i+1),ak:m[1],au:m[2].split('|')});});
     var key='ekmtlis_'+rid,use={};try{use=JSON.parse(localStorage.getItem(key)||'{}')||{};}catch(e0){}
     var now=Date.now();Object.keys(use).forEach(function(k){if(now-use[k]>3*3600*1000)delete use[k];});
@@ -5894,12 +5894,33 @@ function _ggLoadLibs_(){
   return _ggLibP;
 }
 /* ===== 英検のまとめテスト（2026-11-13・仕様書 英検タブ_… §18・川上さん 17:30 質問A・B「ア」）=====
-   ぐるぐるの章まとめテストの仕組み（guru/gg_app.js の ggMount：表紙 → 解く → 採点 → 直し・80点以上で直しが全部終われば合格・リスニングは1回押すと2回）にそのまま乗せる。新しい解き方は作らない。
-   問題＝guru/eiken_mt/<id>.json（シートには入れない。作る道具＝ジョブス用\道具\20261113_英検のまとめテスト\）。一覧の表＝_EKMT_（範囲の最後のパート after の次に出す）。
-   記録＝GAS の gg_submit・gg_state・gg_records（ぐるぐると同じ受け口。英検のまとめテストだけは kwt_gg_record が無くても受け付ける）。行 id＝mt-eiken4-bunpo-1-A1 */
+   形はぐるぐるの章まとめテストと同じ（表紙 → 解く → 採点 → 直し・80点以上で直しが全部終われば合格・リスニングは1回押すと2回）。
+   2026-11-15 川上さん「英検・架け橋とぐるぐるはもう分けてください」：部品は英検専用＝eiken_mt/ekmt_app.js の ekMtMount（ぐるぐるの guru/ は読まない）。形を合わせるときは、ぐるぐるの良い仕組みを写して英検の側に持つ。
+   問題＝eiken_mt/<id>.json（シートには入れない。作る道具＝ジョブス用\道具\20261113_英検のまとめテスト\）。一覧の表＝_EKMT_（範囲の最後のパート after の次に出す）。部品を直したら EKMT_V を上げる（teacher.html と同じ値）。
+   記録＝GAS の ekmt_submit・ekmt_state・ekmt_records（英検専用の受け口・quiz_results の ekmt_state 列）。行 id＝mt-eiken4-bunpo-1-A1 */
+var EKMT_V='20261115a',_ekMtLibP=null,_ekMtApi=null;
+function _ekMtLoadLibs_(){
+  if(_ekMtLibP)return _ekMtLibP;
+  _ekMtLibP=new Promise(function(ok,ng){var sc=document.createElement('script');sc.src='eiken_mt/ekmt_app.js?v='+EKMT_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error('eiken_mt/ekmt_app.js'));};document.head.appendChild(sc);});
+  _ekMtLibP.catch(function(){_ekMtLibP=null;});
+  return _ekMtLibP;
+}
+/* 記録をサーバーに送る（2026-11-15 ぐるぐるの ggRecBridge を英検の側に写した）。提出＝ekmt_submit、それ以外（解説を見た・ノート・類題・完了）＝ekmt_state。同じ行は順番に送る */
+function _ekMtBridge_(call,records){
+  var R=records||{},Q={},n=0;
+  var B={records:R,last:null,
+    tstateOf:function(id){return R[id]?R[id].state:undefined;},
+    onRecord:function(ev){if(!ev||!ev.rowId)return;R[ev.rowId]=Object.assign(R[ev.rowId]||{},{state:ev.state});var rs=ev.res||null;
+      var body=ev.submit?{action:'ekmt_submit',part_id:ev.rowId,state:JSON.stringify(ev.state),score:rs&&rs.score,correct:rs&&rs.correct,total:rs&&rs.total,miss_word_ids:(rs&&rs.miss_word_ids)||[],el_ms:rs&&rs.el_ms,miss_no:(rs&&rs.miss_no)||[],send_id:'ek'+Date.now().toString(36)+(n++)}
+        :{action:'ekmt_state',part_id:ev.rowId,state:JSON.stringify(ev.state)};
+      var go=function(){return Promise.resolve(call(body)).then(function(d){B.last=d;if(d&&d.ok&&d.data&&d.data.state)R[ev.rowId].state=d.data.state;return d;});};
+      Q[ev.rowId]=(Q[ev.rowId]||Promise.resolve()).then(go,go);return Q[ev.rowId];},
+    flush:function(){return Promise.all(Object.keys(Q).map(function(k){return Q[k];}));}};
+  return B;
+}
 var _EKMT_=[{"id":"mt-eiken3-bunpo-1","mid":"mat-eiken3-bunpo","title":"まとめテスト①（第1〜5回）","vers":["A1","A2"],"after":"part-eiken3-bunpo-rv-2-a2"},{"id":"mt-eiken3-bunpo-2","mid":"mat-eiken3-bunpo","title":"まとめテスト②（第6〜8回）","vers":["A1","A2"],"after":"part-eiken3-bunpo-rv-3-a2"},{"id":"mt-eiken3-dokkai-1","mid":"mat-eiken3-dokkai","title":"まとめテスト①（第19〜23回）","vers":["A1","A2"],"after":"part-eiken3-dokkai-23-12-a2"},{"id":"mt-eiken3-kaiwa-1","mid":"mat-eiken3-kaiwa","title":"まとめテスト①（第14〜18回）","vers":["A1","A2"],"after":"part-eiken3-kaiwa-rv-5-a2"},{"id":"mt-eiken3-writing-1","mid":"mat-eiken3-writing","title":"まとめテスト（第9〜13回）","vers":["A1","A2"],"after":"part-eiken3-writing-13-1"},{"id":"mt-eiken4-bunpo-1","mid":"mat-eiken4-bunpo","title":"まとめテスト①（第1〜5回）","vers":["A1","A2"],"after":"part-eiken4-bunpo-rv-2-a2"},{"id":"mt-eiken4-bunpo-2","mid":"mat-eiken4-bunpo","title":"まとめテスト②（第6〜8回）","vers":["A1","A2"],"after":"part-eiken4-bunpo-rv-3-a2"},{"id":"mt-eiken4-bunpo-3","mid":"mat-eiken4-bunpo","title":"まとめテスト③（第9〜11回）","vers":["A1","A2"],"after":"part-eiken4-bunpo-rv-4-a2"},{"id":"mt-eiken4-dokkai-1","mid":"mat-eiken4-dokkai","title":"まとめテスト①（第17〜21回）","vers":["A1","A2"],"after":"part-eiken4-dokkai-21-13-a2"},{"id":"mt-eiken4-kaiwa-1","mid":"mat-eiken4-kaiwa","title":"まとめテスト①（第12〜16回）","vers":["A1","A2"],"after":"part-eiken4-kaiwa-16-4-a2"},{"id":"mt-eiken5-bunpo-1","mid":"mat-eiken5-unit-01","title":"まとめテスト①（第1〜4回）","vers":["A1","A2"],"after":"part-eiken5-g2-rv-2-a2"},{"id":"mt-eiken5-bunpo-2","mid":"mat-eiken5-unit-01","title":"まとめテスト②（第5〜9回）","vers":["A1","A2"],"after":"part-eiken5-g2-rv-4-a2"},{"id":"mt-eiken5-kaiwa-1","mid":"mat-eiken5-scene","title":"まとめテスト①（第10〜14回）","vers":["A1","A2"],"after":"part-eiken5-g2-rv-7-a2"},{"id":"mt-kakehashi-1","mid":"mat-eiken5-kakehashi","title":"まとめテスト①（第0〜4回）","vers":["A1","A2"],"after":"part-eiken5-kh-rv-5-a2"},{"id":"mt-kakehashi-2","mid":"mat-eiken5-kakehashi","title":"まとめテスト②（第5〜8回）","vers":["A1","A2"],"after":"part-eiken5-kh-rv-8-a2"},{"id":"mt-kakehashi-3","mid":"mat-eiken5-kakehashi","title":"まとめテスト③（第9〜12回）","vers":["A1","A2"],"after":"part-eiken5-kh-rv-4-a2"}];
 var _ekMtRec={},_ekMtRecAsk=false,_ekMtMats=null,_ekMtOpt=null,_ekMtB=null,_ekMtOn=false;
-function _ekMtLoadRec_(){_ekMtRecAsk=true;call({action:'gg_records'}).then(function(d){if(d&&d.ok&&d.data&&d.data.records){_ekMtRec=d.data.records;if(_ekMtB)_ekMtB.records=_ekMtRec;if(_ekMtMats)try{renderUnitZone_(_ekMtMats,_ekMtOpt);}catch(e){}}else _ekMtRecAsk=false;}).catch(function(){_ekMtRecAsk=false;});}
+function _ekMtLoadRec_(){_ekMtRecAsk=true;call({action:'ekmt_records'}).then(function(d){if(d&&d.ok&&d.data&&d.data.records){_ekMtRec=d.data.records;if(_ekMtB)_ekMtB.records=_ekMtRec;if(_ekMtMats)try{renderUnitZone_(_ekMtMats,_ekMtOpt);}catch(e){}}else _ekMtRecAsk=false;}).catch(function(){_ekMtRecAsk=false;});}
 function _ekMtSt_(rid){var r=_ekMtRec[rid],S=r&&r.state;if(!S||S.got==null)return {k:'mada'};if(S.pass||r.passed)return {k:'pass',S:S};return {k:'fx',S:S};}
 /* 英検タブのパートの行（2026-11-13 川上さん 18:17「ア」＝ぐるぐるのモックと同じ形）：1パート1行（No.・パート名・A-1 と A-2 の点・→）。▼で開くと A-1・A-2 の行。
    → は A-1 がまだのときだけ（A-1 を始める）。A-1 が済んだら → は出さない＝A-2 は開いて選んだときだけ始まる（教室で A-1 → A-2 と何も考えずに進まないように） */
@@ -5934,20 +5955,20 @@ function openEikenMt_(rid,xo){
   $('ws-ttl').textContent=t.title+' '+R;
   host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
   ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;_wsDirect=true;_ekMtOn=true;try{_auPreload_([]);}catch(eP){}   /* 2026-11-14 iPad：単元別の先読みの音を捨て、まとめテストの間は音なし再生をしない（放送の音を止めないため） */
-  if(_ggApi){try{_ggApi.destroy();}catch(e0){}_ggApi=null;}
-  var J=fetch('guru/eiken_mt/'+rid+'.json?v='+GG_LIB_V,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('json '+r.status);return r.json();});
-  var Rq=_ekMtRecAsk&&Object.keys(_ekMtRec).length?Promise.resolve(null):call({action:'gg_records'});
-  Promise.all([_ggLoadLibs_(),J,Rq]).then(function(r){
+  if(_ekMtApi){try{_ekMtApi.destroy();}catch(e0){}_ekMtApi=null;}
+  var J=fetch('eiken_mt/'+rid+'.json?v='+EKMT_V,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('json '+r.status);return r.json();});
+  var Rq=_ekMtRecAsk&&Object.keys(_ekMtRec).length?Promise.resolve(null):call({action:'ekmt_records'});
+  Promise.all([_ekMtLoadLibs_(),J,Rq]).then(function(r){
     var D=r[1],d=r[2];if(d&&d.ok&&d.data&&d.data.records)_ekMtRec=d.data.records;
-    if(!_ekMtB)_ekMtB=ggRecBridge(call,_ekMtRec);else _ekMtB.records=_ekMtRec;
+    if(!_ekMtB)_ekMtB=_ekMtBridge_(call,_ekMtRec);else _ekMtB.records=_ekMtRec;
     var T=JSON.parse(JSON.stringify(D.T));T.items=D.items;T.part_id=rid;T.tag=t.title+' '+R;T.range=t.title;T.vers=t.vers.slice();T.lb='英検';
     host.innerHTML='';var root=document.createElement('div');root.className='gg-root';root.style.position='relative';host.appendChild(root);
     var onSt=function(S,first,res){_ekMtB.onRecord({rowId:rid,state:S,submit:!!first,res:res||null});_ekMtRec[rid]=Object.assign(_ekMtRec[rid]||{},{state:S,passed:!!(S&&S.pass)});};
-    var o={katexCss:'ws/katex/katex.min.css',dark:_wsDark_(),book:t.title,shuffle:false,innerBack:false,tkey:'ekmt_'+rid,startPid:rid,en:true,ekmt:true,paper:(xo&&xo.paper)||'',entryHead:(xo&&xo.entryHead)||null,audioBase:'',live:true,
+    var o={dark:_wsDark_(),book:t.title,shuffle:false,innerBack:false,tkey:'ekmt_'+rid,startPid:rid,en:true,ekmt:true,paper:(xo&&xo.paper)||'',entryHead:(xo&&xo.entryHead)||null,audioBase:'',live:true,
       tstate:(_ekMtRec[rid]&&_ekMtRec[rid].state)||null,
       rangePass:function(){var p=null;t.vers.forEach(function(x){if(!p&&_ekMtSt_(t.id+'-'+x).k==='pass')p=x.replace(/^([AB])([12])$/,'$1-$2');});return p;},
       onTestSubmit:function(pid,S,res){onSt(S,true,res);},onTestState:function(pid,S){onSt(S,false);}};
-    _ggApi=ggMount(root,{UNIT_TITLE:t.title,PATS:[],TEST:T,POOL:D.pool||{},BACKN:D.backn||{}},o);
+    _ekMtApi=ekMtMount(root,{UNIT_TITLE:t.title,PATS:[],TEST:T,POOL:D.pool||{},BACKN:D.backn||{}},o);
     try{var _cs=document.createElement('style');_cs.textContent='.app>.side{display:none!important}.app{grid-template-columns:min(860px,100%)!important;justify-content:center}.wsbk{display:none!important}.phone{margin-left:auto!important;margin-right:auto!important;width:100%;box-sizing:border-box}.pcc{flex:1 1 0;min-width:0;flex-wrap:nowrap;gap:4px;padding:4px}.pcx{flex:1 1 0;min-width:0;max-width:96px;flex-direction:column;justify-content:center;gap:0;padding:4px 2px;font-size:12px;line-height:1.25}.pcn{min-width:38px;padding:6px 6px}';root.shadowRoot.appendChild(_cs);}catch(eCs){}   /* パートの一覧（左の列）は出さない＝問題を真ん中に */
   }).catch(function(e){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';try{console.log(e);}catch(e2){}});
 }
@@ -6079,7 +6100,7 @@ function _wsSend_(pid,r){
 }
 function closeWs_(){
   var ov=$('ws-ov'),host=$('ws-host');if(!ov)return;
-  if(_ekMtOn){_ekMtOn=false;if(_ggApi){try{_ggApi.destroy&&_ggApi.destroy();}catch(e){}_ggApi=null;}ov.classList.remove('on');document.body.classList.remove('ws-lock');setTimeout(_fcRelease_,0);if(host)host.innerHTML='';
+  if(_ekMtOn){_ekMtOn=false;if(_ekMtApi){try{_ekMtApi.destroy&&_ekMtApi.destroy();}catch(e){}_ekMtApi=null;}ov.classList.remove('on');document.body.classList.remove('ws-lock');setTimeout(_fcRelease_,0);if(host)host.innerHTML='';
     var fl=_ekMtB?_ekMtB.flush():Promise.resolve();fl.then(function(){_ekMtRecAsk=false;_ekMtLoadRec_();});try{if(_ekMtMats)renderUnitZone_(_ekMtMats,_ekMtOpt);}catch(e){}return;}   /* 2026-11-13 英検のまとめテスト */
   ov.classList.remove('on');document.body.classList.remove('ws-lock');setTimeout(_fcRelease_,0);if(host)host.innerHTML='';_wsApi=null;try{comboBreak_();}catch(e){} /* 画面から外すと ws_app.js の繰り返しの処理も止まる */
   _wsMats.forEach(function(c){(c.parts||[]).forEach(function(l){if(_wsDone[String(l.part_id)])l.passed=true;});});
