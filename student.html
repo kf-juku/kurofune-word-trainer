@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-14a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-14b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -8088,7 +8088,7 @@ function _ptShow_(s){
   var f=card.querySelector('.bl:not(.done)'); if(f)openBl(f);
   return true;
 }
-function renderQz_(s){_exCurS_=s;try{clearTimeout(_sentAfterT_);_sentAfterT_=null;}catch(eSa){}try{_d1Sync_(s);}catch(eD1){} /* 前の問題の答え合わせの音（600ms後）を取り消す。残すと次の聞き取りの音を止めて番号が押せなくなる 2026-09-25 */if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestore_();if(_ptShow_(_ps))return;}catch(e){}}/* 更新ボタンは要点カードのことを知らない。片づけて問題を描くと【要点を飛ばせてしまう】ので、終えていなければカードを描き直す（埋めた穴は復元する）2026-09-06③ */
+function renderQz_(s){_exCurS_=s;try{clearTimeout(_sentAfterT_);_sentAfterT_=null;}catch(eSa){}try{_lxStop_();}catch(eLx){}   /* 前の問題の指示（日本語）・番号の音を止める。残すと次の問題の英語の音と同時に鳴る 2026-11-14 */try{_d1Sync_(s);}catch(eD1){} /* 前の問題の答え合わせの音（600ms後）を取り消す。残すと次の聞き取りの音を止めて番号が押せなくなる 2026-09-25 */if(_ptHidden_){try{var _ps=s||_actSes()||session;_ptRestore_();if(_ptShow_(_ps))return;}catch(e){}}/* 更新ボタンは要点カードのことを知らない。片づけて問題を描くと【要点を飛ばせてしまう】ので、終えていなければカードを描き直す（埋めた穴は復元する）2026-09-06③ */
   /* 英検5級：語を全部終えて文の問題に来た1回だけ、文法解説カードをはさむ。
      _ptShow_ の中で「文の問題かどうか」「もう出したか」を見るので、ここは呼ぶだけ 2026-09-09 */
   if(!_ptHidden_&&_ptKind_(s)==='sent'){try{if(_ptShow_(s))return;}catch(e){}}
@@ -9865,8 +9865,8 @@ function renderRO_(s,w,q,pl){
    ・自動で流すのは1回。聞き直しは「もう一回聞く」（全部）と ▶（その番号だけ）
    ・答えたら、会話と3つの選択肢を英文と訳で出す。▶ は答えたあとも使える
    ・mp3 が読めないときは端末の読み上げに落ちる（文の問題と同じ考え方） */
-var _lxRun=0,_lxAu=null;
-function _lxStop_(){_lxRun++;try{if(_lxAu){_lxAu.pause();_lxAu=null;}}catch(e){}}
+var _lxRun=0,_lxAu=null,_lxMp3s=[];   /* _lxMp3s＝指示・番号の mp3（_lxPlayMp3_）。前は止める手段がなく、次の問題や一時停止のあとも鳴り続けた 2026-11-14 */
+function _lxStop_(){_lxRun++;try{if(_lxAu){_lxAu.pause();_lxAu=null;}}catch(e){}var L=_lxMp3s;_lxMp3s=[];L.forEach(function(r){try{r.a.pause();}catch(e){}try{r.fin();}catch(e){}});}
 function _lxWait_(ms){return new Promise(function(r){setTimeout(r,ms);});}
 function _lxSay_(t){return new Promise(function(res){
   var done=false,fin=function(){if(done)return;done=true;res();};
@@ -10047,9 +10047,9 @@ function _lxRwShow_(key){ _lxRwDrop_(); var ask=$('sent-ask'); if(!ask)return nu
 function _lxRwRun_(d,key){ d=document.querySelector('#sent-ask .lx-rw')||_lxRwShow_(key);   /* 見出しは解き方の帯を足すときに innerHTML で描き直されるので、出したときの要素は使わず今あるものを探す（2026-10-15 本番で帯が動かず残った） */
   if(d){ var b=d.querySelector('.lx-rwbar b'); if(b){ void b.offsetWidth; b.style.transition='width '+_LX_RW_MS_+'ms linear'; b.style.width='0%'; } } return _lxWait_(_LX_RW_MS_).then(function(){ _lxRwDrop_(); }); }
 function _lxPlayMp3_(src,st){return new Promise(function(res){
-  var done=false,fin=function(){if(done)return;done=true;res();};
+  var done=false,rec=null,fin=function(){if(done)return;done=true;_lxMp3s=_lxMp3s.filter(function(x){return x!==rec;});res();};
   try{
-    var a=new Audio(src);
+    var a=new Audio(src);rec={a:a,fin:fin};_lxMp3s.push(rec);
     a.onended=fin;
     a.onerror=function(){ if(st)st.textContent='音が見つかりません：'+src; setTimeout(fin,800); };
     var p=a.play(); if(p&&p.catch)p.catch(function(){ if(st)st.textContent='音を鳴らせませんでした：'+src; setTimeout(fin,800); });
@@ -10340,6 +10340,9 @@ function pausePractice_(){
   pauseQTimer_();
   try{pronStop_();}catch(e){}
   try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
+  try{_sentStop_();}catch(e){}   /* 文の音声（mp3）・聞き取りの並びも止める。前は発音と読み上げしか止めず、mp3 は鳴り続けた 2026-11-14 */
+  try{clearTimeout(_sentAfterT_);_sentAfterT_=null;}catch(e){}   /* 答え合わせの600ms後の自動再生も取り消す */
+  try{if(_tcAuEl)_tcAuEl.pause();}catch(e){}
   try{var pw=$('pause-where');if(pw){var nb=$('now-bar'),h='';
     if(nb&&nb.innerHTML&&nb.style.display!=='none')h+='<div class="'+esc(nb.className)+'">'+nb.innerHTML+'</div>';
     var tot=(s.words||[]).length;if(tot)h+='<div class="pz-q">'+(s.quizMode?rb('確認','かくにん')+'テスト':rb('問題','もんだい'))+' <b>'+(Math.min(s.idx||0,tot-1)+1)+'</b> / '+tot+' '+rb('問目','もんめ')+'</div>';
@@ -10354,6 +10357,8 @@ function resumePractice_(){
   _pauseAt=0;
   if(!s)return;
   if(s.mode==='daily'&&s.step===1){ try{pronBegin_();}catch(e){} return; } // 発音は途中で止められないので出し直す
+  /* 聞き取りの問題：止めた音は途中から続けられないので、答える前なら［もう一回聞く］と同じ処理で頭から出し直す（番号は音が終わるまで押せない作りなので、出し直さないと押せないまま残る）2026-11-14 */
+  try{var _ag=$('lx-again');if(_ag&&!_ag.hidden&&_ag.style.display!=='none'&&$('scr-practice')&&$('scr-practice').classList.contains('active')){_ag.click();}}catch(e){}
   resumeQTimer_();
 }
 try{var _bpz=$('btn-pause');if(_bpz)_bpz.onclick=pausePractice_;}catch(e){}
