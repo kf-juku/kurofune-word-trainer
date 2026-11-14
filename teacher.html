@@ -7108,7 +7108,7 @@ function _ggprCssOnce_(){
     +'.ggp-doc{width:210mm;background:#fff}.ggp-doc .sheet{box-shadow:none;margin:0}'
     +'.wsp .eqg.ggpr-n2{grid-template-columns:max-content max-content!important}.wsp .eqg.ggpr-n2>.eqn{grid-column:1/-1;padding-left:2em!important}.wsp .eqg.ggpr-stk{display:block!important}.wsp .eqg.ggpr-stk>*{display:block;text-align:left!important}.wsp .eqg.ggpr-stk>.eqr{padding-left:1em}.wsp .eqg.ggpr-stk>.eql:empty{display:none}'
     +'.ggp .sh-f .nm .ggpr-nm{font-size:15pt;font-weight:700;margin-left:2mm}'
-    +'.ggp .sh-qr svg.fs-qr{width:100%;height:auto;display:block}.ggp .sh-qr.has{border:0;flex-direction:column;gap:0}.ggp .sh-qr .ggqr-ls{font-size:7.5pt;font-weight:800;color:#111;white-space:nowrap;margin-bottom:.5mm;letter-spacing:0}.ggp .sh-qr .ggqr-cd{font-size:7pt;color:#111;letter-spacing:0;margin-top:.5mm;white-space:normal;text-align:center;line-height:1.15}.ggp .sh-qr.has{height:auto;min-height:17mm;width:22mm}.ggp .sh-qr.big.has{width:27mm}.ggp .sh-r{align-items:flex-end}'
+    +'.ggp .sh-qr svg.fs-qr{width:100%;height:auto;display:block}.ggp .sh-qr.has{border:0;flex-direction:column;gap:0}.ggp.ekmt-p .sq{padding:1.5px 0 2.5px}.ggp .sh-qr .ggqr-ls{font-size:7.5pt;font-weight:800;color:#111;white-space:nowrap;margin-bottom:.5mm;letter-spacing:0}.ggp .sh-qr .ggqr-cd{font-size:7pt;color:#111;letter-spacing:0;margin-top:.5mm;white-space:normal;text-align:center;line-height:1.15}.ggp .sh-qr.has{height:auto;min-height:17mm;width:22mm}.ggp .sh-qr.big.has{width:27mm}.ggp .sh-r{align-items:flex-end}'
     /* 印刷：紙の余白を @page で取り、.sheet は中身の大きさ（186×277mm）だけにする。紙の幅 210mm の箱のまま刷ると、ほかの紙（186mm）より広いので Chrome が全部のページを縮めて刷る（2026-11-03 試験で発覚） */
     /* ページからはみ出す物（KaTeX の \\underbrace の線は 40万 px の幅の図）があると、Chrome が全部のページを縮めて刷る＝ぐるぐる印刷のページははみ出しを切る */
     +'@page ggp{size:A4 portrait;margin:11mm 10mm 9mm 14mm;@bottom-center{content:none}}'
@@ -12846,12 +12846,12 @@ function ekMtPrint_(how,named){var ids=[].slice.call(document.querySelectorAll('
       var mat=(_ppMats||[]).filter(function(x){return String(x.id)===t.mid;})[0]||{};
       var T=JSON.parse(JSON.stringify(D.T));T.items=D.items;var c={id:t.id,unit:t.title,rng:'',grade:'',subj:'en',ek:{book:String(mat.title||'')},rounds:{},rowIds:{}};c.rounds[m[2]]=T;var GG={cts:[c],parts:[],units:[]};
       (named?['a']:['q','a']).forEach(function(k){chain=chain.then(function(){
-        var meas=document.createElement('div');meas.className='ggp ggp-doc';meas.style.cssText='position:absolute;left:-99999px;top:0;';document.body.appendChild(meas);
+        var meas=document.createElement('div');meas.className='ggp ggp-doc ekmt-p';meas.style.cssText='position:absolute;left:-99999px;top:0;';document.body.appendChild(meas);
         meas.innerHTML=ggPaper.ctEn(GG,t.id,m[2],k);_ekMtQr_(meas,_ekMtCode_(rid),k==='q');
         return (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
           ggPaper.layoutEn(meas);document.body.removeChild(meas);meas.style.cssText='';
           if(!named&&out.length%2===1)out.push(_ppBlankPg_());
-          var base=[].slice.call(meas.querySelectorAll('.sheet')).map(function(sh){var w=document.createElement('div');w.className='ggp ggp-doc';w.appendChild(sh);return w;});
+          var base=[].slice.call(meas.querySelectorAll('.sheet')).map(function(sh){var w=document.createElement('div');w.className='ggp ggp-doc ekmt-p';w.appendChild(sh);return w;});
           if(!named){base.forEach(function(w){out.push(w);});return;}
           STU.forEach(function(x){var ky=keys[rid+'|'+x.id];if(!ky)return;if(out.length%2===1)out.push(_ppBlankPg_());base.forEach(function(w){var c=w.cloneNode(true);_ekMtQr_(c,_ekMtCode_(rid),false,ky);_ggprName_([c],x.nm);out.push(c);});});});});});});
     return chain;}).then(function(){
