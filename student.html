@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-13n"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-14a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3478,6 +3478,7 @@ function shOpen_(){
   if(!btn)return;
   shMsg_('');
   btn.disabled=true; btn.innerHTML=kwtSpin(18)+'<span style="vertical-align:middle"> '+rb('読','よ')+'み'+rb('込','こ')+'み'+rb('中','ちゅう')+'…</span>';
+  if(_shLisOnly){var _lc=_ekMtLocal_(v);if(_lc){btn.disabled=false;btn.innerHTML='<span>'+rb('開','ひら')+'く</span> <i class="ti ti-arrow-right"></i>';shEkMtLis_({code:_lc.code,part_id:_lc.part_id});return;}}   /* 音だけの画面はサーバーに聞かず端末で引く 2026-11-14 */
   (_qaPre_(v)||call({action:'sheet_open',code:v})).then(function(d){
     btn.disabled=false; btn.innerHTML='<span>'+rb('開','ひら')+'く</span> <i class="ti ti-arrow-right"></i>';
     if(_netNG_(d)){ shMsg_(d&&d.error?esc(d.error):_NET_NG_MSG_); return; }
@@ -3522,15 +3523,23 @@ function shEkMtLis_(w){
   var st=$('sub-title');if(st)st.innerHTML=rb('聞','き')+'き'+rb('取','と')+'りの'+rb('音','おと');
   var rid=String(w.part_id||'');
   host.style.display='block';host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
-  fetch('guru/eiken_mt/'+rid+'.json?v='+GG_LIB_V,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('json '+r.status);return r.json();}).then(function(D){
+  fetch('guru/eiken_mt/'+rid+'.json?v='+GG_LIB_V).then(function(r){if(!r.ok)throw new Error('json '+r.status);return r.json();}).then(function(D){
     var L=[];(D.items||[]).forEach(function(it,i){var m=/data-ak="([^"]+)"[^>]*data-au="([^"]+)"/.exec(String(it.q||''));if(m)L.push({no:it.no||(i+1),ak:m[1],au:m[2].split('|')});});
     var key='ekmtlis_'+rid,use={};try{use=JSON.parse(localStorage.getItem(key)||'{}')||{};}catch(e0){}
     var now=Date.now();Object.keys(use).forEach(function(k){if(now-use[k]>3*3600*1000)delete use[k];});
-    var h='<div class="sh-head"><span class="sh-code">'+esc(w.code||'')+'</span><span class="sh-tot">'+rb('聞','き')+'き'+rb('取','と')+'り'+L.length+rb('問','もん')+'</span></div>'
-      +'<div class="sh-lis-lead">🔊 <b>'+rb('音','おと')+'を'+rb('聞','き')+'く'+rb('画面','がめん')+'です。</b><br>'+rb('問題用紙','もんだいようし')+'の'+rb('番号','ばんごう')+'と'+rb('同','おな')+'じボタンを'+rb('押','お')+'すと、その'+rb('問','もん')+'の'+rb('音','おと')+'が<b>2'+rb('回','かい')+'</b>'+rb('流','なが')+'れます。'+rb('聞','き')+'けるのは'+rb('1番','いちばん')+'につき1'+rb('回','かい')+'ぶん（2'+rb('回','かい')+'）だけです。</div>'
-      +'<div class="sh-grid lisonly" id="ekl-g">';
-    L.forEach(function(x){var dn=!!use[x.ak];h+='<div class="sh-q lis"><span class="sh-n">'+x.no+'</span><button class="sh-play" type="button" data-ak="'+esc(x.ak)+'"'+(dn?' disabled':'')+'><i class="ti ti-volume"></i><span>'+x.no+rb('番','ばん')+'の'+rb('音','おと')+(dn?rb('は終','はお')+'わりました':'を'+rb('聞','き')+'く')+'</span></button></div>';});
+    var h='<style>.ekl-warn{border:2px solid var(--gold);background:var(--n-goldsoft);border-radius:12px;padding:14px 16px;margin:12px 0;line-height:1.7;font-size:15px}.ekl-warn b{display:block;font-size:19px;margin-bottom:2px}.ekl-vol{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 12px}.ekl-vol .ekl-vt{font-weight:800;margin-bottom:8px}.ekl-vol .btn{width:100%;margin:4px 0}.ekl-lock .sh-q{opacity:.4;pointer-events:none}.ekl-step2{font-weight:800;margin:4px 0 6px}</style>'
+      +'<div class="sh-head"><span class="sh-code">'+esc(w.code||'')+'</span><span class="sh-tot">'+rb('聞','き')+'き'+rb('取','と')+'り'+L.length+rb('問','もん')+'</span></div>'
+      +'<div class="ekl-warn"><b>⚠ '+rb('音','おと')+'は、'+rb('1問','いちもん')+'につき<u>2'+rb('回','かい')+'だけ</u>'+rb('流','なが')+'れます。</b>2'+rb('回','かい')+rb('流','なが')+'れたら、もう'+rb('聞','き')+'けません。ボタンは1'+rb('回','かい')+'しか'+rb('押','お')+'せません。'+rb('間違','まちが')+'えて'+rb('押','お')+'さないように'+rb('注意','ちゅうい')+'しよう。</div>'
+      +'<div class="ekl-vol"><div class="ekl-vt">① まず、'+rb('音量','おんりょう')+'を'+rb('合','あ')+'わせよう（'+rb('何回','なんかい')+'でも'+rb('聞','き')+'けます）</div>'
+      +'<button type="button" class="btn sub" id="ekl-vb"><i class="ti ti-volume"></i> '+rb('音量','おんりょう')+'チェック（テストとは'+rb('別','べつ')+'の'+rb('音','おと')+'）</button>'
+      +'<button type="button" class="btn" id="ekl-ok" disabled>'+rb('音量','おんりょう')+'OK。'+rb('聞','き')+'き'+rb('取','と')+'りを'+rb('始','はじ')+'める</button></div>'
+      +'<div class="ekl-step2">② '+rb('問題用紙','もんだいようし')+'の'+rb('番号','ばんごう')+'と'+rb('同','おな')+'じボタンを'+rb('押','お')+'す</div>'
+      +'<div class="sh-grid lisonly ekl-lock" id="ekl-g">';
+    L.forEach(function(x){var dn=!!use[x.ak];h+='<div class="sh-q lis"><span class="sh-n">'+x.no+'</span><button class="sh-play" type="button" data-ak="'+esc(x.ak)+'"'+(dn?' disabled':'')+'><i class="ti ti-volume"></i><span>'+x.no+rb('番','ばん')+(dn?'の'+rb('音','おと')+'は'+rb('終','お')+'わりました':'の'+rb('音','おと')+'を'+rb('聞','き')+'く（2'+rb('回','かい')+'だけ）')+'</span></button></div>';});
     host.innerHTML=h+'</div>';window.scrollTo(0,0);
+    var vb=$('ekl-vb'),ok=$('ekl-ok'),au0=null;
+    vb.onclick=function(){try{if(au0){au0.pause();}au0=new Audio('img/audio/kakehashi/kh-050_chirp3-hd-achernar.mp3');au0.play();}catch(e2){}ok.disabled=false;};
+    ok.onclick=function(){try{if(au0)au0.pause();}catch(e3){}$('ekl-g').classList.remove('ekl-lock');vb.disabled=true;ok.disabled=true;ok.textContent='✓ '+'音量OK';$('ekl-g').scrollIntoView({behavior:'smooth',block:'start'});};
     var cur=null;
     $('ekl-g').addEventListener('click',function(e){
       var b=e.target&&e.target.closest?e.target.closest('.sh-play'):null;if(!b||b.disabled||cur)return;
@@ -3544,6 +3553,9 @@ function shEkMtLis_(w){
     });
   }).catch(function(){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';});
 }
+/* 英検まとめテストの番号（GQ…）を、サーバーに聞かず端末の中で引く（2026-11-14 川上さん「読み込みが遅い」）。式は teacher.html の _ekMtCode_ ・kwtGAS.gs の eikenMtCodeOf_ と同じ */
+function _ekMtCodeOf_(s){s=String(s||'');var m=/^mt-(kakehashi|eiken([345]))-/.exec(s);if(!m)return '';var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}var t=String(Math.floor(h/9)%100000);while(t.length<5)t='0'+t;return 'GQ'+(m[1]==='kakehashi'?'0':m[2])+'-'+t;}
+function _ekMtLocal_(v){var n=String(v||'').toUpperCase().replace(/[^0-9A-Z]/g,'');if(!/^GQ\d{6}$/.test(n))return null;var hit=null;try{_EKMT_.forEach(function(t){(t.vers||[]).forEach(function(R){var rid=t.id+'-'+R,c=_ekMtCodeOf_(rid);if(c.replace('-','')===n)hit={code:c,part_id:rid};});});}catch(e){}return hit;}
 function shWsChoose_(w,ok){
   var s1=$('sheet-step1'); if(s1)s1.style.display='none';
   var host=$('sheet-step2'); if(!host)return;

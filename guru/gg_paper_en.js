@@ -115,7 +115,7 @@ function headCt(c,T,R,GN,kind){if(c.ek)return headEk(c,T,R,GN,kind);const h=`<di
 function headEk(c,T,R,GN,kind){const lis=(T.items||[]).some(x=>/class="eau"/.test(String(x.q||''))||(x.steps||[]).some(s=>/class="eau"/.test(String(s.q||''))));const h=`<div class="sh-h"><div class="sh-l"><div class="sh-k">${esc(c.ek.book||'')}</div><div class="sh-tt">${esc(c.unit)}</div><div class="sh-ps">${kind==='a'?'解答用紙':'問題用紙'}</div></div><div class="sh-r"><div class="sh-rd">${R}</div><div class="sh-rt">${GN}問・${T.min||30}分・100点</div></div>${kind==='a'||lis?`<div class="sh-qr${kind==='a'?' big':''}">QR<br>${kind==='a'?'このテストを開く':'音声を聞く'}</div>`:''}</div>`;   /* 解答用紙＝このテストを開く QR（答え合わせ）／問題用紙＝リスニングがあるときだけ音の QR（11-13 川上さん「ア」）。QR は teacher.html の ekMtPrint_ が入れる */
  const pt=`<div class="sh-pt">配点：各5点（100点満点・80点で合格）／制限時間：${T.min||30}分</div>`;
  if(kind==='a')return h+`<div class="sh-f"><span class="b" style="width:24mm">　月　　日</span><span class="b nm">名前</span><span class="b sc"><span>点数</span><span>／100</span></span></div>${pt}<div class="sh-ins">選ぶ問題は記号（ア〜エ）を、並べかえは英文を全部、書きなさい。</div>`;
- return h+pt+`<div class="sh-ins">答えはすべて解答用紙に書きなさい。${lis?'リスニングの音声は右上の QR から聞きます（1問につき2回流れます）。':''}</div>`;}
+ return h+pt+`<div class="sh-ins">答えはすべて解答用紙に書きなさい。${lis?'リスニングの問題は、右上の「リスニング用 QR」から音を聞きます（1問につき2回流れます）。':''}</div>`;}
 function itemC(it,ps,sec){const k=kindOf(it);
  const head=sec?`<div class="sh-sec">${sec}</div>`:'';
  const gh=ps.k===0?`<div class="egh2">${ghPaper(it,'c')}</div>`:'';
@@ -130,7 +130,7 @@ function itemC(it,ps,sec){const k=kindOf(it);
 
 function ctEn(GG,id,R,kind){const o=ctOf(GG,id,R);if(!o)return '';const {c,T,rd}=o;const GN=ctNQ(rd);const {BK,POS}=blocks(rd);
  const CALLC=c.ek?`${c.ek.book||''} ${c.unit} ${R}`:`章まとめテスト ${c.unit} ${c.rng||''} ${RD(R)}`;
- if(kind!=='a'){let prev='';const U=rd.map((it,i)=>{const k=SECK(it);let sec='';if(k!==prev){const pt=ptOf(it);sec=`${secName(it)}<small>（各${pt}点）</small>`;}prev=k;return itemC(it,POS[i],sec);});
+ if(kind!=='a'){let prev='';const U=rd.map((it,i)=>{const k=SECK(it);let sec='';if(k!==prev){const pt=ptOf(it);sec=`${secName(it)}<small>（各${pt}点）</small>${/class="eau"/.test(String(it.q||''))?'<span class="ls-n">🎧 音は右上の QR（リスニング用）から聞く（1問2回）</span>':''}`;}prev=k;return itemC(it,POS[i],sec);});
   return `<div class="sheet ctq en" data-r="${R}" data-id="${id}" data-call="${esc(CALLC)}">${headCt(c,T,R,GN,'q')}<div class="sbody">${U.join('')}</div><div class="sh-ft">問題用紙</div></div>`;}
  /* 解答用紙：区切り（語句・文法・リスニング・並び替え・読解）ごとに、選ぶ問題は記号の枠を並べ、並び替えは4本線 */
  const S=[];let cur=null;
@@ -210,7 +210,7 @@ const CSS_EN=`
 .ggp .eac span{position:absolute;top:0;left:3px;font-size:10px;color:#334155}
 .ggp .cta .eol{margin:4.2mm 0 0 2mm}.ggp .cta .eoln{min-width:11mm;font-size:12px}
 .ggp .egr{display:flex;align-items:center;gap:3mm}.ggp .egr .eword{flex:none;width:34mm;font-size:16px}.ggp .egr .ech{flex:1;margin:0}
-.ggp .sh-sec small{font-weight:600;font-size:11px;margin-left:4px;color:#334155}
+.ggp .sh-sec .ls-n{font-size:11px;font-weight:700;margin-left:8px;border:1.3px solid #111;border-radius:4px;padding:0 5px;color:#111}.ggp .sh-sec small{font-weight:600;font-size:11px;margin-left:4px;color:#334155}
 .ggp .sheet.blank{display:flex}
 `;
 PP.cssEn=CSS_EN;PP.roundEn=roundEn;PP.ctEn=ctEn;PP.layoutEn=layoutEn;
