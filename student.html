@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-15b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-15c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5867,7 +5867,7 @@ function _navEmptyFromMats_(ms){
   _navEmptySet_('daily',!ms.some(function(c){return !_isUnitCt_(c.content_type)&&c.content_type!=='worksheet'&&c.content_type!=='guruguru';}));   /* 2026-11-03 ぐるぐるは毎日学習ではない */
   _navEmptySet_('unit',!ms.some(function(c){return c.content_type==='test';}));
   _navEmptySet_('eiken',!ms.some(function(c){return _isEikenCt_(c.content_type);}));   /* 2026-11-12 */
-  _navEmptySet_('ws',!ms.some(_ggMathMat_));   /* 2026-11-15 ワークシート → ぐるぐる（数学） */
+  /* 2026-11-15 ぐるぐるのタブの空の印は renderGgZone_ が gg_unit を読んでから付ける（material_parts はぐるぐるを返さない） */
 }
 function _wsLoadLibs_(){
   if(_wsLibP)return _wsLibP;
@@ -5979,21 +5979,30 @@ function openEikenMt_(rid,xo){
    記録＝ggRecBridge（gg_shell.js）→ GAS の gg_submit・gg_state・gg_records（スクリプト プロパティ kwt_gg_record が '1' のときだけ受け付ける）。端末の記録の名前の頭＝kwtgg_<生徒id>_ */
 var _ggOn=false,_ggB=null,_ggRec=null;
 function _ggMathMat_(c){return c&&c.content_type==='guruguru'&&_subjGuess_(c)!=='english'&&!/英語|英作文/.test(String(c.material_title||c.title||''));}
+/* 一覧の元＝gg_unit（割り当てのあるぐるぐるの教材とパートの行）。material_parts（学習マップの口）はぐるぐるを返さないので、ここで1回だけ取る（2026-11-15 本番で見つけた） */
+var _ggUnitP=null;
+function _ggUnitGet_(fresh){if(fresh||!_ggUnitP){_ggUnitP=call({action:'gg_unit'}).then(function(d){if(!d||!d.ok)_ggUnitP=null;return d;},function(e){_ggUnitP=null;throw e;});}return _ggUnitP;}
+function _ggMathOnly_(D){var mats=((D&&D.materials)||[]).filter(function(m){return String(m.content_type||'guruguru')==='guruguru'&&String(m.subject||'')!=='english'&&!/英語|英作文/.test(String(m.title||''));}),want={};
+  mats.forEach(function(m){want[String(m.id)]=1;});return {materials:mats,parts:((D&&D.parts)||[]).filter(function(p){return want[String(p.material_id)];})};}
 function renderGgZone_(materials){
   var host=$('ws-list');if(!host)return;
-  var ms=(materials||[]).filter(_ggMathMat_).sort(function(a,b){return (a.display_order||0)-(b.display_order||0);});
-  if(!ms.length){host.innerHTML='<div class="empty-note"><i class="ti ti-refresh"></i><div>'+_nvRuby_('今(いま)はぐるぐるがありません。',true)+'<br>'+_nvRuby_('先生(せんせい)がぐるぐるを出(だ)すと、ここに並(なら)びます。',true)+'</div></div>';return;}
-  host.innerHTML='';
-  ms.forEach(function(c){
-    var ps=(c.parts||[]),n=ps.length,d=ps.filter(function(l){return l.passed;}).length,pct=n?Math.round(d/n*100):0;
-    var book=document.createElement('div');book.className='nbook unitbook wsbook';
-    book.innerHTML='<div class="nbook-head" role="button" tabindex="0"><div class="nbk-ic"><i class="ti '+subjIcon_('math')+'"></i></div>'
-      +'<div class="nbk-body"><div class="nbk-nm">'+esc(String(c.material_title||c.title||'ぐるぐる'))+'</div>'
-      +'<div class="nbk-meta"><span class="nbk-subj">'+esc(subjLabel('math'))+'</span> <span class="ws-tag"><i class="ti ti-refresh"></i>ぐるぐる</span></div>'
-      +'</div><span class="ncf-go"><i class="ti ti-arrow-right"></i></span></div>';
-    book.querySelector('.nbook-head').onclick=function(){openGg_(String(c.material_id),String(c.material_title||c.title||''));};
-    host.appendChild(book);
-  });
+  _ggUnitGet_(false).then(function(d){
+    if(_netNG_(d)){if(!host.querySelector('.nbook'))host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';return;}
+    var M=_ggMathOnly_(d.data).materials,G={},order=[];
+    M.forEach(function(m){var g=String(m.grade||'');if(!G[g]){G[g]=[];order.push(g);}G[g].push(m);});
+    order.sort();_navEmptySet_('ws',!M.length);
+    if(!M.length){host.innerHTML='<div class="empty-note"><i class="ti ti-refresh"></i><div>'+_nvRuby_('今(いま)はぐるぐるがありません。',true)+'<br>'+_nvRuby_('先生(せんせい)がぐるぐるを出(だ)すと、ここに並(なら)びます。',true)+'</div></div>';return;}
+    host.innerHTML='';
+    order.forEach(function(g){
+      var book=document.createElement('div');book.className='nbook unitbook wsbook';
+      book.innerHTML='<div class="nbook-head" role="button" tabindex="0"><div class="nbk-ic"><i class="ti '+subjIcon_('math')+'"></i></div>'
+        +'<div class="nbk-body"><div class="nbk-nm">'+esc(g+'数学 ぐるぐる')+'</div>'
+        +'<div class="nbk-meta"><span class="nbk-subj">'+esc(subjLabel('math'))+'</span> <span class="ws-tag"><i class="ti ti-refresh"></i>ぐるぐる</span> <span class="nbk-rate">'+G[g].length+_nvRuby_('単元(たんげん)',true)+'</span></div>'
+        +'</div><span class="ncf-go"><i class="ti ti-arrow-right"></i></span></div>';
+      book.querySelector('.nbook-head').onclick=function(){openGg_(String(G[g][0].id),g+'数学 ぐるぐる');};
+      host.appendChild(book);
+    });
+  }).catch(function(){if(!host.querySelector('.nbook'))host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';});
 }
 function openGg_(mid,title,xo){   /* xo.startPid＝開く行（紙の QR から来た章まとめテスト gg_ct…_A1 など）2026-11-15 */
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
@@ -6001,13 +6010,11 @@ function openGg_(mid,title,xo){   /* xo.startPid＝開く行（紙の QR から�
   host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
   ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;_wsDirect=true;_ggOn=true;try{comboBreak_();}catch(e){}
   if(_ggApi){try{_ggApi.destroy();}catch(e0){}_ggApi=null;}
-  Promise.all([_ggLoadLibs_(),call({action:'gg_unit'}),call({action:'gg_records'})]).then(function(r){
+  Promise.all([_ggLoadLibs_(),_ggUnitGet_(false),call({action:'gg_records'})]).then(function(r){
     if(!_ggOn)return;
     var d=r[1],dr=r[2];
     if(!d||!d.ok||!d.data){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+(d&&d.error?esc(d.error):_NET_NG_MSG_)+'</div></div>';return;}
-    var mats=(d.data.materials||[]).filter(function(m){return String(m.subject||'')!=='english'&&!/英語|英作文/.test(String(m.title||''));}),want={};
-    mats.forEach(function(m){want[String(m.id)]=1;});
-    var parts=(d.data.parts||[]).filter(function(p){return want[String(p.material_id)];});
+    var MO=_ggMathOnly_(d.data),mats=MO.materials,parts=MO.parts;
     _ggRec=(dr&&dr.ok&&dr.data&&dr.data.records)||{};
     /* 記録を受け付けていない（kwt_gg_record が '1' でない）ときの gg_records は英検のまとめテストの記録を返す（移行の間）。mt- の行は捨てる */
     Object.keys(_ggRec).forEach(function(k){if(!/^gg_/.test(k))delete _ggRec[k];});
