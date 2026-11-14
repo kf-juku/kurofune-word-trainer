@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-14f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-14g"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -8425,7 +8425,7 @@ function _auPrime_(a){
    音が重なる原因の最有力＝この同時再生。先頭の1本（英文）だけにする。選択肢は鳴らす番が来たときに読み込む */
 function _auPrimeAll_(){if(_ekMtOn)return;try{var ks=Object.keys(_AU_PRE_);for(var i=0;i<ks.length;i++){var a=_AU_PRE_[ks[i]];if(a&&!a._kwtUse){_auPrime_(a);break;}}}catch(e){}}
 function _auGestNow_(){try{var ua=navigator.userActivation;return !!(ua&&ua.isActive);}catch(e){return false;}}
-(function(){var f=function(){_auPrimeAll_();setTimeout(_auPrimeAll_,0);};
+(function(){var f=function(){_auPrimeAll_();setTimeout(_auPrimeAll_,0);try{_lxUnlock_();}catch(e){}};
   ['pointerup','touchend','click','keydown'].forEach(function(ev){try{window.addEventListener(ev,f,false);}catch(e){}});})();
 function _auTake_(u,fresh){
   var a=_AU_PRE_[u];
@@ -10066,13 +10066,26 @@ function _lxRwRun_(d,key){ d=document.querySelector('#sent-ask .lx-rw')||_lxRwSh
 function _lxPlayMp3_(src,st){return new Promise(function(res){
   var done=false,rec=null,fin=function(){if(done)return;done=true;_lxMp3s=_lxMp3s.filter(function(x){return x!==rec;});res();};
   try{
-    var a=new Audio(src);rec={a:a,fin:fin};_lxMp3s.push(rec);
+    _lxMp3s.slice().forEach(function(r){try{r.fin();}catch(e){}});   /* 2026-11-14 部品は1つなので、前の指示・番号の待ちを先に終わらせる */
+    var a=_lxElGet_();try{a.pause();}catch(e){}a.muted=false;a.volume=1;a.src=src;rec={a:a,fin:fin};_lxMp3s.push(rec);
     a.onended=fin;
-    a.onerror=function(){ if(st)st.textContent='音が見つかりません：'+src; setTimeout(fin,800); };
-    var p=a.play(); if(p&&p.catch)p.catch(function(){ if(st)st.textContent='音を鳴らせませんでした：'+src; setTimeout(fin,800); });
+    a.onerror=function(){ if(done)return; if(st)st.textContent='音が見つかりません：'+src; setTimeout(fin,800); };
+    var p=a.play(); if(p&&p.catch)p.catch(function(er){ if(done)return; if(st)st.textContent='音を鳴らせませんでした（'+((er&&er.name)||'')+'）：'+src; setTimeout(fin,800); });
     setTimeout(fin,20000);
   }catch(e){fin();}
 });}
+/* 2026-11-14 iPad：指示・番号の音は、押してから数秒後に鳴らすので、毎回 new Audio すると止められる恐れがある。
+   部品を1つ（_lxEl）だけ持って src を替えて使い回し、最初に画面を押したときに無音の mp3（listen_intro/silent.mp3）で一度だけ鳴らしておく（_lxUnlock_）。
+   ほかの音が鳴っている間・まとめテストの間はしない。決まり＝KWT_生徒アプリ.md「音を鳴らす作りの決まりと事故の記録」 */
+var _lxEl=null,_lxElOk=false;
+function _lxElGet_(){if(!_lxEl){_lxEl=new Audio();_lxEl.preload='auto';}return _lxEl;}
+function _lxUnlock_(){
+  if(_lxElOk||_ekMtOn||_AU_ON_>0||_lxMp3s.length||(_tcAuEl&&!_tcAuEl.paused))return;var a=_lxElGet_();if(!a.paused)return;_lxElOk=true;
+  try{a.src=_LX_DIR_+'silent.mp3';a.muted=true;a.volume=0;var p=a.play();
+    var back=function(){try{if(!_lxMp3s.length)a.pause();}catch(e){}a.muted=false;a.volume=1;};
+    if(p&&p.then)p.then(back,function(){a.muted=false;a.volume=1;_lxElOk=false;});else back();
+  }catch(e){_lxElOk=false;try{a.muted=false;a.volume=1;}catch(e2){}}
+}
 function _lxPreRoll_(s,w,isResp,isPrint,setBtns,st,alive,nl){
   var tok=++_lxRun;
   var ok=function(){return tok===_lxRun&&alive();};
