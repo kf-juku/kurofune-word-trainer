@@ -21,13 +21,28 @@ window.ggMount=function(root,D,opt){
   const __eAK=()=>(opt.tkey||'gg')+'_au';const __eAG=()=>{try{return JSON.parse(localStorage.getItem(__eAK())||'{}')||{};}catch(x){return {};}};const __eAS=o=>{try{localStorage.setItem(__eAK(),JSON.stringify(o));}catch(x){}};
   const __eLab=(b,t,sm)=>{b.innerHTML=t+(sm?'<small>'+sm+'</small>':'');};
   const __eDone=b=>{b.disabled=true;b.classList.remove('on');b.classList.add('done');__eLab(b,'放送は終わりました','もう聞けません');};
+  let __eTm=0,__eWd=0,__eTok=0;   /* 2026-11-14 放送：2回目の予約タイマーと再生中の音を、画面を閉じる・別の放送を押すときに止める */
+  const __eRst=b=>{__eLab(b,'▶ 放送を聞く','押すと2回流れます。押せるのは1回だけ');};
+  const __eStop=()=>{__eTok++;clearTimeout(__eTm);__eTm=0;if(__eWd){window.clearInterval(__eWd);__eWd=0;}if(__eA){try{__eA.pause();}catch(x){}__eA=null;}
+   try{const g=__eAG();sh.querySelectorAll('.eau.on').forEach(b=>{b.classList.remove('on');if(g[b.dataset.ak||b.dataset.au])__eDone(b);else __eRst(b);});}catch(x){}};
+  if(__eT){   /* 先生用の隠し操作：使用済みになった放送ボタンを2.5秒長押し→確認→回数を戻す（音が出なかった・聞こえなかったとき）。無効なボタンは操作を受けないので、ボタンの上は pointer-events:none にして下の要素で位置を見分ける */
+   try{const sy=__realDoc.createElement('style');sy.textContent='.eau.done{pointer-events:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}';sh.appendChild(sy);}catch(x){}
+   let lpT=0,lpX=0,lpY=0;const lpC=()=>{clearTimeout(lpT);lpT=0;};
+   sh.addEventListener('pointerdown',e=>{lpC();const hit=[...sh.querySelectorAll('.eau.done')].find(b=>{const r=b.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;});if(!hit)return;lpX=e.clientX;lpY=e.clientY;
+    lpT=setTimeout(()=>{lpT=0;if(!hit.isConnected||!hit.classList.contains('done'))return;if(!window.confirm('【先生用】この放送の回数をもどします。\n音が出なかった・聞こえなかったときだけ使ってください。\nもどしますか？'))return;
+     const k=hit.dataset.ak||hit.dataset.au,g=__eAG();delete g[k];__eAS(g);hit.classList.remove('done');hit.disabled=false;__eRst(hit);},2500);},true);
+   sh.addEventListener('pointerup',lpC,true);sh.addEventListener('pointermove',e=>{if(lpT&&(Math.abs(e.clientX-lpX)>12||Math.abs(e.clientY-lpY)>12))lpC();},true);__realDoc.addEventListener('scroll',lpC,true);}
   if(__eT){const mark=()=>{const g=__eAG();sh.querySelectorAll('.eau[data-ak]').forEach(b=>{if(b.dataset.au&&!b.classList.contains('t2')){b.classList.add('t2');if(!b.classList.contains('on'))__eLab(b,'▶ 放送を聞く','押すと2回流れます。押せるのは1回だけ');}if(g[b.dataset.ak]&&!b.classList.contains('on')&&!b.classList.contains('done'))__eDone(b);});};   /* done の付いたボタンは描き直さない（描き直すと見張りがまた動いて止まらなくなる） */
    try{new MutationObserver(mark).observe(sh,{childList:true,subtree:true});}catch(x){}setTimeout(mark,0);
    sh.addEventListener('click',function(e){const n=e.target&&e.target.closest?e.target.closest('[data-a=new]'):null;if(n){try{localStorage.removeItem(__eAK());}catch(x){}}},true);}   /* 「はじめから」「準備ができたらスタート」＝新しく受ける：放送の回数を戻す（「続きから」は戻さない） */
   sh.addEventListener('click',function(e){const b=e.target&&e.target.closest?e.target.closest('.eau'):null;if(!b||!b.dataset.au||b.disabled)return;
-   if(__eT){if(b.classList.contains('on'))return;const k=b.dataset.ak||b.dataset.au;const g=__eAG();if(g[k]){__eDone(b);return;}g[k]=1;__eAS(g);   /* 押した時点で使ったことにする（途中で閉じても、もう一度は流せない） */
-    if(__eA){try{__eA.pause();}catch(x){}}b.classList.add('on');const src=b.dataset.au;let n=0;
-    const one=()=>{n++;__eLab(b,'放送中（'+n+'回目）','');__eA=__eAu(opt.audioBase||'',src);__eA.onended=()=>{if(n<2){__eLab(b,'もう1回流れます','');setTimeout(one,3000);}else{__eA=null;__eDone(b);}};__eA.play().catch(()=>{__eA=null;__eDone(b);});};one();return;}
+   if(__eT){if(b.classList.contains('on'))return;const k=b.dataset.ak||b.dataset.au;const g=__eAG();if(g[k]){__eDone(b);return;}   /* 使用済みにするのは、音が実際に鳴り始めたとき（2026-11-14）。鳴らなかったときは回数を減らさない */
+    __eStop();b.classList.add('on');const src=b.dataset.au;let n=0;const mine=__eTok;const alive=()=>mine===__eTok&&root.isConnected;
+    const fail=()=>{if(mine!==__eTok)return;__eStop();b.classList.remove('on');__eLab(b,'▶ 放送を聞く','音が出ませんでした。もう一度押してください');};
+    const one=()=>{if(!alive()){__eStop();return;}n++;__eLab(b,'放送中（'+n+'回目）','');__eA=__eAu(opt.audioBase||'',src);
+     __eA.onended=()=>{if(!alive()){__eStop();return;}if(n<2){__eLab(b,'もう1回流れます','');__eTm=setTimeout(one,3000);}else{__eStop();__eDone(b);}};
+     __eA.play().then(()=>{if(mine===__eTok){const g2=__eAG();if(!g2[k]){g2[k]=1;__eAS(g2);}}}).catch(()=>{if(mine!==__eTok)return;if(n===1&&!__eAG()[k])fail();else{__eStop();__eDone(b);}});};
+    __eWd=window.setInterval(()=>{if(!root.isConnected)__eStop();},400);one();return;}
    if(__eA){try{__eA.pause();}catch(x){}if(__eAB)__eAB.classList.remove('on');if(__eAB===b){__eA=null;__eAB=null;return;}}
    __eA=__eAu(opt.audioBase||'',b.dataset.au);__eAB=b;b.classList.add('on');__eA.onended=function(){b.classList.remove('on');__eA=null;__eAB=null;};__eA.play().catch(function(){b.classList.remove('on');});});}
  var document={getElementById:function(id){return sh.getElementById(id);},querySelector:function(q){return sh.querySelector(q);},querySelectorAll:function(q){return sh.querySelectorAll(q);},

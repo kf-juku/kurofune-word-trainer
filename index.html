@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-14b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-14c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3541,14 +3541,28 @@ function shEkMtLis_(w){
     vb.onclick=function(){try{if(au0){au0.pause();}au0=new Audio('img/audio/kakehashi/kh-050_chirp3-hd-achernar.mp3');au0.play();}catch(e2){}ok.disabled=false;};
     ok.onclick=function(){try{if(au0)au0.pause();}catch(e3){}$('ekl-g').classList.remove('ekl-lock');vb.disabled=true;ok.disabled=true;ok.textContent='✓ '+'音量OK';$('ekl-g').scrollIntoView({behavior:'smooth',block:'start'});};
     var cur=null;
+    (function(){   /* 先生用の隠し操作：「終わりました」のボタンを2.5秒長押し→確認→その放送の回数を戻す。無効なボタンは操作を受けないので、位置で見分ける */
+      var g1=$('ekl-g'),sy=document.createElement('style');sy.textContent='#ekl-g .sh-play:disabled{pointer-events:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}';g1.appendChild(sy);
+      var t=0,px=0,py=0,cl=function(){clearTimeout(t);t=0;};
+      g1.addEventListener('pointerdown',function(e){cl();if(cur)return;var hit=null;[].forEach.call(g1.querySelectorAll('.sh-play:disabled'),function(b){var r=b.getBoundingClientRect();if(use[b.getAttribute('data-ak')]&&e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)hit=b;});if(!hit)return;px=e.clientX;py=e.clientY;
+        t=setTimeout(function(){t=0;if(cur||!hit.isConnected)return;if(!window.confirm('【先生用】この音の回数をもどします。\n音が出なかった・聞こえなかったときだけ使ってください。\nもどしますか？'))return;
+          delete use[hit.getAttribute('data-ak')];try{localStorage.setItem(key,JSON.stringify(use));}catch(e6){}hit.disabled=false;if(hit._lab0)hit.querySelector('span').innerHTML=hit._lab0;else{var nn=hit.parentNode.querySelector('.sh-n');hit.querySelector('span').textContent=(nn?nn.textContent:'')+'番の音を聞く（2回だけ）';}},2500);},true);
+      g1.addEventListener('pointerup',cl,true);g1.addEventListener('pointermove',function(e){if(t&&(Math.abs(e.clientX-px)>12||Math.abs(e.clientY-py)>12))cl();},true);window.addEventListener('scroll',cl,true);
+    })();
     $('ekl-g').addEventListener('click',function(e){
       var b=e.target&&e.target.closest?e.target.closest('.sh-play'):null;if(!b||b.disabled||cur)return;
       var x=null;L.forEach(function(y){if(y.ak===b.getAttribute('data-ak'))x=y;});if(!x)return;
-      cur=x.ak;use[x.ak]=Date.now();try{localStorage.setItem(key,JSON.stringify(use));}catch(e1){}
+      cur=x.ak;   /* 使用済みにするのは、音が実際に鳴り始めたとき（2026-11-14）。鳴らなかったときは回数を減らさない */
+      if(!b._lab0)b._lab0=b.querySelector('span').innerHTML;
       b.disabled=true;b.querySelector('span').textContent=x.no+'番の音を再生中…';
-      var seq=[];for(var r2=0;r2<2;r2++)x.au.forEach(function(u,j){seq.push({u:u,gap:j===x.au.length-1&&r2===0?3000:300});});
-      var au=new Audio(),i=0;
-      var next=function(){if(i>=seq.length){b.querySelector('span').textContent=x.no+'番の音は終わりました';cur=null;return;}var q=seq[i++];au.src=q.u;au.onended=function(){setTimeout(next,q.gap);};au.onerror=function(){setTimeout(next,0);};var pr=au.play();if(pr&&pr.catch)pr.catch(function(){setTimeout(next,0);});};
+      var started=false,dead=false,seq=[];for(var r2=0;r2<2;r2++)x.au.forEach(function(u,j){seq.push({u:u,gap:j===x.au.length-1&&r2===0?3000:300});});
+      var au=new Audio(),i=0,g0=$('ekl-g');
+      var mark=function(){if(started)return;started=true;use[x.ak]=Date.now();try{localStorage.setItem(key,JSON.stringify(use));}catch(e1){}};
+      var fail=function(){if(dead)return;dead=true;cur=null;b.disabled=false;b.querySelector('span').textContent='音が出ませんでした。もう一度押してください';};
+      var next=function(){if(dead)return;if(!g0||!g0.isConnected){dead=true;try{au.pause();}catch(e5){}cur=null;return;}   /* 画面を閉じたら止める */
+        if(i>=seq.length){b.querySelector('span').textContent=x.no+'番の音は終わりました';cur=null;return;}var q=seq[i++],first=(i===1);
+        au.src=q.u;au.onended=function(){setTimeout(next,q.gap);};au.onerror=function(){if(first&&!started)fail();else setTimeout(next,0);};
+        var pr=au.play();if(pr&&pr.then)pr.then(mark,function(){if(first&&!started)fail();else setTimeout(next,0);});else mark();};
       next();
     });
   }).catch(function(){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';});
@@ -5871,7 +5885,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261113b',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261114c',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
