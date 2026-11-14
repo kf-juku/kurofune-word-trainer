@@ -138,7 +138,7 @@ function ctEn(GG,id,R,kind){const o=ctOf(GG,id,R);if(!o)return '';const {c,T,rd}
   b.items.forEach(i=>{const it=rd[i],ps=POS[i];if(it.ren){it.steps.forEach((s,si)=>{cur.cells.push({lab:`${ps.num}(${si+1})`});cur.n++;});return;}
    cur.cells.push({lab:ps.n>1?`${ps.num}(${ps.k+1})`:`${ps.num}`,it});cur.n++;});});
  const body=S.map(s=>{const hd=`<div class="sh-sec">${s.name}<small>（各${s.pt}点・${s.n}問）</small></div>`;
-  if(s.k==='order')return `<div class="su" data-k="order">${hd}${s.cells.map(x=>ansLine(x.it,`<b>${x.lab}</b>`)).join('')}</div>`;
+  if(s.k==='order')return `<div class="su${c.ek&&s.n>5?' ekmany':''}" data-k="order">${hd}${s.cells.map(x=>ansLine(x.it,`<b>${x.lab}</b>`)).join('')}</div>`;
   return `<div class="su" data-k="${s.k}">${hd}<div class="eag">${s.cells.map(x=>`<div class="eac"><span>${x.lab}</span></div>`).join('')}</div></div>`;}).join('');
  return `<div class="sheet cta en" data-r="${R}" data-id="${id}">${headCt(c,T,R,GN,'a')}<div class="sbody">${body}</div><div class="sh-ft">解答用紙　1／1</div></div>`;}
 
@@ -208,7 +208,7 @@ const CSS_EN=`
 .ggp .eag{display:grid;grid-template-columns:repeat(6,1fr);gap:2.2mm 3mm;margin:3px 0 2px 2mm}
 .ggp .eac{border:1.5px solid #111;border-radius:4px;height:12mm;position:relative}
 .ggp .eac span{position:absolute;top:0;left:3px;font-size:10px;color:#334155}
-.ggp .cta .eol{margin:4.2mm 0 0 2mm}.ggp .cta .eoln{min-width:11mm;font-size:12px}
+.ggp .cta .eol{margin:4.2mm 0 0 2mm}.ggp .cta .su.ekmany .eol{margin-top:2.4mm}   /* 2026-11-14 英検のまとめテスト40問：並べかえが6問以上なら行の間を詰めて解答用紙を1枚に */.ggp .cta .eoln{min-width:11mm;font-size:12px}
 .ggp .egr{display:flex;align-items:center;gap:3mm}.ggp .egr .eword{flex:none;width:34mm;font-size:16px}.ggp .egr .ech{flex:1;margin:0}
 .ggp .sh-sec .ls-n{font-size:11px;font-weight:700;margin-left:8px;border:1.3px solid #111;border-radius:4px;padding:0 5px;color:#111}.ggp .sh-sec small{font-weight:600;font-size:11px;margin-left:4px;color:#334155}
 .ggp .sheet.blank{display:flex}

@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-14h"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-14i"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5885,7 +5885,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261114e',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261114f',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -5913,6 +5913,8 @@ function _ekPartRow_(l,l2,mid,_h,subj){var k=String(l.part_id),op=_ekOpenGet_().
     +'<span class="ekp-ds">'+dot(l,'A-1')+dot(l2,'A-2')+'</span>'
     +(l.passed?'':'<span class="ncf-go ekp-go" data-go="'+esc(k)+'" title="A-1 を始める"><i class="ti ti-arrow-right"></i></span>')
     +'<i class="ti ti-chevron-down ekp-arw"></i></div><div class="ekp-b">'+sub(l,'A-1')+sub(l2,'A-2')+'</div></div>';}
+/* 2026-11-14 まとめテストの問題数（時間は全部20分・100点満点・川上さん 19:10）：40問＝かけはし・5級・4級の文法と会話／25問＝3級文法／20問＝読解・3級会話・3級ライティング */
+function _ekMtN_(id){id=String(id);return /^mt-(kakehashi|eiken5|eiken4-bunpo|eiken4-kaiwa)-/.test(id)?40:/^mt-eiken3-bunpo-/.test(id)?25:20;}
 function _ekMtRows_(afterPid,subj){var h='';_EKMT_.forEach(function(t){if(t.after!==String(afterPid))return;
   var sts=t.vers.map(function(R){return _ekMtSt_(t.id+'-'+R);}),k=String(t.id),op=_ekOpenGet_().indexOf(k)>=0,nx=-1;
   sts.forEach(function(x,i){if(nx<0&&x.k!=='pass')nx=i;});
@@ -5924,7 +5926,7 @@ function _ekMtRows_(afterPid,subj){var h='';_EKMT_.forEach(function(t){if(t.afte
   h+='<div class="ekp ekmt'+(op?' open':'')+'" data-ekp="'+esc(k)+'"><div class="nqp ekp-h"><div class="nqp-nm hz"><span class="ekmt-pill"><i class="ti ti-trophy"></i></span><span class="nqp-t">'+_jaRubySubj_(t.title,subj)+'</span></div>'
     +'<span class="ekp-ds">'+dots+'</span>'
     +(nx<0?'':'<span class="ncf-go ekp-go" data-emt="'+esc(t.id+'-'+t.vers[nx])+'" title="'+lab(t.vers[nx])+' を始める"><i class="ti ti-arrow-right"></i></span>')
-    +'<i class="ti ti-chevron-down ekp-arw"></i></div><div class="ekp-b"><div class="ekmt-note">1回 20問・30分・80点で合格</div>'+subs+'</div></div>';});
+    +'<i class="ti ti-chevron-down ekp-arw"></i></div><div class="ekp-b"><div class="ekmt-note">1回 '+_ekMtN_(t.id)+'問・20分・80点で合格</div>'+subs+'</div></div>';});
   return h;}
 function openEikenMt_(rid,xo){
   var m=String(rid).match(/^(.+)-(A1|A2|B1|B2)$/);if(!m)return;var t=null;_EKMT_.forEach(function(x){if(x.id===m[1])t=x;});if(!t)return;var R=m[2];
