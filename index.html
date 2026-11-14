@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-14c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-14d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -8404,7 +8404,8 @@ var _AU_PRE_={};
 function _auPreload_(urls){
   var keep={};
   (urls||[]).forEach(function(u){u=String(u||'');if(!u)return;keep[u]=1;
-    if(!_AU_PRE_[u]){try{var a=new Audio();a.preload='auto';a.src=u;try{a.load();}catch(e){}_AU_PRE_[u]=a;if(_auGestNow_())_auPrime_(a);}catch(e){}}});
+    if(!_AU_PRE_[u]){try{var a=new Audio();a.preload='auto';a.src=u;try{a.load();}catch(e){}_AU_PRE_[u]=a;}catch(e){}}});
+  if(_auGestNow_())_auPrimeAll_();   /* 2026-11-14 音なし再生は先頭の1本だけ（_auPrimeAll_） */
   Object.keys(_AU_PRE_).forEach(function(u){if(keep[u])return;var a=_AU_PRE_[u];delete _AU_PRE_[u];
     try{if(a.paused){a.removeAttribute('src');a.load();}}catch(e){}});
 }
@@ -8414,19 +8415,21 @@ function _auPreload_(urls){
    ほかの音が鳴っている間はしない（iPad は音を1つしか鳴らさないので、鳴っている音が止まる） */
 var _AU_ON_=0;
 function _auPrime_(a){
-  if(!a||a._kwtPr||a._kwtUse||_AU_ON_>0)return;a._kwtPr=1;
-  try{a.muted=true;var p=a.play();
-    var back=function(){try{if(!a._kwtUse){a.pause();a.currentTime=0;}}catch(e){}a.muted=false;};
-    if(p&&p.then)p.then(back,function(){a.muted=false;a._kwtPr=0;});else back();
-  }catch(e){try{a.muted=false;}catch(e2){}a._kwtPr=0;}
+  if(!a||a._kwtPr||a._kwtUse||_AU_ON_>0||_lxMp3s.length)return;a._kwtPr=1;
+  try{a.muted=true;a.volume=0;var p=a.play();
+    var back=function(){try{if(!a._kwtUse){a.pause();a.currentTime=0;}}catch(e){}a.muted=false;a.volume=1;};
+    if(p&&p.then)p.then(back,function(){a.muted=false;a.volume=1;a._kwtPr=0;});else back();
+  }catch(e){try{a.muted=false;a.volume=1;}catch(e2){}a._kwtPr=0;}
 }
-function _auPrimeAll_(){try{Object.keys(_AU_PRE_).forEach(function(u){_auPrime_(_AU_PRE_[u]);});}catch(e){}}
+/* 2026-11-14 川上さん「英文と選択肢の英語が同時に流れる」：以前は先読みした全部（英文1＋選択肢3）を一度に音なしで鳴らしていた。
+   音が重なる原因の最有力＝この同時再生。先頭の1本（英文）だけにする。選択肢は鳴らす番が来たときに読み込む */
+function _auPrimeAll_(){try{var ks=Object.keys(_AU_PRE_);for(var i=0;i<ks.length;i++){var a=_AU_PRE_[ks[i]];if(a&&!a._kwtUse){_auPrime_(a);break;}}}catch(e){}}
 function _auGestNow_(){try{var ua=navigator.userActivation;return !!(ua&&ua.isActive);}catch(e){return false;}}
 (function(){var f=function(){_auPrimeAll_();setTimeout(_auPrimeAll_,0);};
   ['pointerup','touchend','click','keydown'].forEach(function(ev){try{window.addEventListener(ev,f,false);}catch(e){}});})();
 function _auTake_(u,fresh){
   var a=_AU_PRE_[u];
-  if(a&&!fresh&&!a.error){a._kwtUse=1;try{a.muted=false;a.pause();a.currentTime=0;}catch(e){}return a;}
+  if(a&&!fresh&&!a.error){a._kwtUse=1;try{a.muted=false;a.volume=1;a.pause();a.currentTime=0;}catch(e){}return a;}
   if(a)delete _AU_PRE_[u];
   return new Audio(u);
 }
