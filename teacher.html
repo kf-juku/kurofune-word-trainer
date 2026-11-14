@@ -5790,6 +5790,7 @@ function _ekMtJson_(pid){if(!_ekMtJ_[pid])_ekMtJ_[pid]=fetch('eiken_mt/'+pid+'.j
 function _ekMtMiss_(e){var x=e.ekmt||{};if(x.miss_no&&x.miss_no.length>=0&&Array.isArray(x.miss_no))return Promise.resolve(x.miss_no);
   /* 11-14 18:5x より前の記録：並べかえの答え（英文）がサーバーで null になっている。選ぶ問題だけ答えとくらべ、並べかえは「まちがえた数＝全体−正解数−選ぶ問題のまちがい」で出す */
   return _ekMtJson_(e.part_id).then(function(D){var it=D.items||[],ans=x.ans||[],out=[],unk=0;
+    if(ans.length&&ans.length!==it.length)return '前の版（'+ans.length+'問）のテストなので番号は出せません';   /* 2026-11-15 11-14 に問題の数を増やす前の記録に、今の問題の正解をあてない */
     it.forEach(function(q,j){var v=ans[j];if((v===null||v===undefined)&&typeof q.a==='string'){unk++;return;}if(v===null||v===undefined||String(v)!==String(q.a))out.push(q.no||(j+1));});
     var wr=(Number(e.total_count)||it.length)-(Number(e.correct_count)||0)-out.length;if(unk&&wr>0)out.push('並べかえ'+wr+'問（番号の記録なし）');return out;});}
 function _ekMtFill_(list){
@@ -5800,7 +5801,7 @@ function _ekMtFill_(list){
     sl.innerHTML='<table class="sd2-tbl ab-tbl" style="margin-bottom:10px"><thead><tr><th>まとめテスト</th><th>点</th><th>合否</th><th>日付</th><th>かかった時間</th><th>まちがえた問題</th></tr></thead><tbody>'
       +L.map(function(e,i){var x=e.ekmt||{},r=Number(e.latest_rate);var pf=x.pass?'<span class="ab-c ok">合格</span>':(r>=80?'<span class="ab-c tr">80点以上・直し途中</span>':'<span class="ab-c no">不合格</span>');
         return '<tr><td class="nm">'+esc(_ekMtTitle_(e.part_id))+(e.attempt_count>1?' <span class="t-sub">'+e.attempt_count+'回目</span>':'')+'</td><td class="num"><b>'+(isNaN(r)?'-':r)+'</b>点</td><td>'+pf+'</td><td class="mt">'+esc(e.last_date||'')+'</td><td class="mt">'+_ekMtMin_(x.el)+'</td><td class="mt" data-mi="'+i+'">…</td></tr>';}).join('')+'</tbody></table>';
-    L.forEach(function(e,i){_ekMtMiss_(e).then(function(m){var c=sl.querySelector('[data-mi="'+i+'"]');if(c)c.textContent=m.length?m.join('・')+'番':'なし';},function(){var c=sl.querySelector('[data-mi="'+i+'"]');if(c)c.textContent='読めませんでした';});});
+    L.forEach(function(e,i){_ekMtMiss_(e).then(function(m){var c=sl.querySelector('[data-mi="'+i+'"]');if(c)c.textContent=(typeof m==='string')?m:(m.length?m.join('・')+'番':'なし');},function(){var c=sl.querySelector('[data-mi="'+i+'"]');if(c)c.textContent='読めませんでした';});});
   });
 }
 function sdGgBlock_(s){
@@ -12907,7 +12908,7 @@ function ekMtPrint_(how,named){var ids=[].slice.call(document.querySelectorAll('
       (named?['a']:['q','a']).forEach(function(k){chain=chain.then(function(){
         var meas=document.createElement('div');meas.className='ekp ekp-doc ekmt-p';meas.style.cssText='position:absolute;left:-99999px;top:0;';document.body.appendChild(meas);
         meas.innerHTML=ekMtPaper.ctEn(GG,t.id,m[2],k);_ekMtQr_(meas,_ekMtCode_(rid),k==='q');
-        return (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
+        return (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){return Promise.all([].slice.call(meas.querySelectorAll('img')).map(function(im){return (im.complete&&im.naturalWidth)?null:new Promise(function(r){im.addEventListener('load',r);im.addEventListener('error',r);setTimeout(r,20000);});}));}).then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){   /* 2026-11-15 絵が読み終わってから割り付ける（読み終わる前に測るとページ数が少なくはみ出した） */
           ekMtPaper.layoutEn(meas);document.body.removeChild(meas);meas.style.cssText='';
           if(!named&&out.length%2===1)out.push(_ppBlankPg_());
           var base=[].slice.call(meas.querySelectorAll('.sheet')).map(function(sh){var w=document.createElement('div');w.className='ekp ekp-doc ekmt-p';w.appendChild(sh);return w;});
