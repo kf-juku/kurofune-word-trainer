@@ -1,6 +1,6 @@
 /* gg_fig.js：ぐるぐる（数学）の図を描く関数。tools\gg_export.js が問題データ（helpers.js・{パート}_meta.js）から作る。手で直さない（直すときは問題データを直して gg_export.js を回し直す）
    本番の ws\math_fig.js のあとに読む。MathFig.ns に名前空間を足すだけ（math_fig.js は変えない）。
-   gg＝helpers.js の図の道具（OBI・OIKOSHI・TB・TBA・ZA・GS・G6・NETF・NET_CYL・NET_CONE・NET_PRISM）／gg_<パートid>＝そのパートの meta.js の図の道具
+   gg＝helpers.js の図の道具（OBI・OIKOSHI・TB・TBA・ZA・GS・G6・NYGP・NETF・NET_CYL・NET_CONE・NET_PRISM）／gg_<パートid>＝そのパートの meta.js の図の道具
    シートの問題（words の qdata）には図の印 ⟦F:名前空間.関数:[引数]⟧ だけが入っている。MathFig.data(qdata) で SVG にもどる */
 (function(){
 var NS=window.MathFig&&window.MathFig.ns;if(!NS){if(window.console)console.log('gg_fig.js：math_fig.js を先に読んでください');return;}
@@ -129,7 +129,33 @@ function NET_PRISM(o){const P=o.base,n=P.length,h=o.h,ca=o.ca||NETC.A,cb=o.cb||N
  if(o.lh)sh.push({t:'seg',p:[Wd,0,Wd,h],col:ca,lab:o.lh,side:'r'});
  if(o.lw){sh.push({t:'seg',p:[0,h,Wd,h],col:cb});sh.push({t:'lab',p:[Wd,h],s:o.lw,col:cb,side:'tl'});}
  return NETF(sh,Object.assign({aria:'角柱の展開図'},o));}
-return {"OBI":OBI,"OIKOSHI":OIKOSHI,"TB":TB,"TBA":TBA,"ZA":ZA,"GS":GS,"G6":G6,"NETF":NETF,"NET_CYL":NET_CYL,"NET_CONE":NET_CONE,"NET_PRISM":NET_PRISM};
+function NYGP(o){const u=o.u||16,v=o.v||1,[x0,x1]=o.xr,[y0,y1]=o.yr,pd=14,W=(x1-x0)*u+2*pd,Hh=(y1-y0)*u*v+2*pd,X=x=>pd+(x-x0)*u,Y=y=>pd+(y1-y)*u*v;
+ const H='stroke="#fff" stroke-width="4" paint-order="stroke"',OR='#c2410c';
+ const sw=o.w||Math.min(300,Math.round(W*1.0)),sh=Math.round(sw*Hh/W);
+ let s=`<svg class="gr" viewBox="0 0 ${W} ${Hh}" width="${sw}" height="${sh}" font-family="sans-serif">`;
+ if(o.grid){for(let i=Math.ceil(x0);i<=x1;i++)s+=`<line x1="${X(i)}" y1="${Y(y0)}" x2="${X(i)}" y2="${Y(y1)}" stroke="#d1d5db" stroke-width="1"/>`;for(let j=Math.ceil(y0);j<=y1;j++)s+=`<line x1="${X(x0)}" y1="${Y(j)}" x2="${X(x1)}" y2="${Y(j)}" stroke="#d1d5db" stroke-width="1"/>`;}
+/* 2026-11-09 係 f5（系統K1・決まり49）：o.pf＝ぬる多角形 [[[x,y],…], 色]（使う図形をうすい黄色・青でぬる）。o.sc＝色つきの線と札 [[x1,y1,x2,y2,色,札,札の向き r|l|t|b|tr|tl|br|bl, 点線]]（底辺・高さ） */(o.pf||[]).forEach(P=>{s+=`<polygon points="${P[0].map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="${P[1]||'#fde68a'}" fill-opacity=".8" stroke="none"/>`;}); (o.poly&&o.poly.length&&typeof o.poly[0][0]==='number'?[o.poly]:(o.poly||[])).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fdba74" fill-opacity=".45" stroke="none"/>`;});
+ /* 2026-11-09 係 f5（系統K1）：y の変域の太い線は y 軸の上に不透明の太い線で描き、両はしに●を打つ（ずらすと放物線・目もりの字と重なるため） */const yhlS=0;
+ if(o.xhl)s+=`<line x1="${X(o.xhl[0])}" y1="${Y(0)}" x2="${X(o.xhl[1])}" y2="${Y(0)}" stroke="${OR}" stroke-width="6" stroke-opacity=".6"/>`;
+ if(y0<=0&&y1>=0)s+=`<line x1="${X(x0)}" y1="${Y(0)}" x2="${X(x1)}" y2="${Y(0)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(x1)},${Y(0)} ${X(x1)-7},${Y(0)-4} ${X(x1)-7},${Y(0)+4}" fill="#111"/><text x="${X(x1)-4}" y="${Y(0)-7}" font-size="13" font-style="italic" text-anchor="end">x</text>`;
+ if(x0<=0&&x1>=0)s+=`<line x1="${X(0)}" y1="${Y(y0)}" x2="${X(0)}" y2="${Y(y1)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(0)},${Y(y1)} ${X(0)-4},${Y(y1)+7} ${X(0)+4},${Y(y1)+7}" fill="#111"/><text x="${X(0)+7}" y="${Y(y1)+11}" font-size="13" font-style="italic">y</text>`;
+ /* 2026-11-09 係 f5：下に開く放物線だけのときは O を原点の右上に（放物線と重ならないように） */const oUp=(o.c||[]).some(c=>c[0]<0)&&!(o.c||[]).some(c=>c[0]>0);if(x0<=0&&x1>=0&&y0<=0&&y1>=0)s+=`<text x="${X(0)+(oUp?4:-4)}" y="${Y(0)+(oUp?-5:14)}" font-size="12" text-anchor="${oUp?'start':'end'}" ${H}>O</text>`;
+ if(o.grid){for(let i=Math.ceil(x0/2)*2;i<x1;i+=2)if(i)s+=`<text x="${X(i)}" y="${Y(0)+14}" font-size="11" text-anchor="middle" fill="#555" ${H}>${String(i).replace('-','−')}</text>`;for(let j=Math.ceil(y0/2)*2;j<y1;j+=2)if(j)s+=`<text x="${X(0)-5}" y="${Y(j)+4}" font-size="11" text-anchor="end" fill="#555" ${H}>${String(j).replace('-','−')}</text>`;}
+ (o.tk||[]).forEach(k=>{if(k[0]==='x')s+=`<line x1="${X(k[1])}" y1="${Y(0)-3}" x2="${X(k[1])}" y2="${Y(0)+3}" stroke="#111"/><text x="${X(k[1])}" y="${Y(0)+(k[3]?-6:15)}" font-size="12" text-anchor="middle" ${H}>${k[2]}</text>`;else s+=`<line x1="${X(0)-3}" y1="${Y(k[1])}" x2="${X(0)+3}" y2="${Y(k[1])}" stroke="#111"/><text x="${X(0)+(k[3]?6:-6)}" y="${Y(k[1])+4}" font-size="12" text-anchor="${k[3]?'start':'end'}" ${H}>${k[2]}</text>`;});
+ const clipPath=(f,a,b)=>{let d='',on=false;const N=160;for(let i=0;i<=N;i++){const x=a+(b-a)*i/N,y=f(x);if(y>=y0-.5&&y<=y1+.5&&isFinite(y)){d+=(on?'L':'M')+X(x).toFixed(1)+' '+Y(Math.max(y0-.5,Math.min(y1+.5,y))).toFixed(1);on=true;}else on=false;}return d;};
+ const lab=(x,y,t)=>{if(t)s+=`<text x="${X(x)+5}" y="${Y(y)}" font-size="13" font-weight="700" ${H}>${t}</text>`;};
+ (o.c||[]).forEach(c=>{s+=`<path d="${clipPath(x=>c[0]*x*x,x0,x1)}" fill="none" stroke="#111" stroke-width="2"/>`;if(c[1]){const lx=c[2]!=null?c[2]:x1*0.7;lab(lx,c[0]*lx*lx,c[1]);}});
+ (o.h||[]).forEach(c=>{s+=`<path d="${clipPath(x=>c[0]/x,x0,-0.05)}" fill="none" stroke="#111" stroke-width="2"/><path d="${clipPath(x=>c[0]/x,0.05,x1)}" fill="none" stroke="#111" stroke-width="2"/>`;if(c[1]){const lx=c[2];lab(lx,c[0]/lx,c[1]);}});
+ (o.l||[]).forEach(l=>{s+=`<path d="${clipPath(x=>l[0]*x+l[1],x0,x1)}" fill="none" stroke="#111" stroke-width="1.6"/>`;if(l[2]){const lx=l[3];lab(lx,l[0]*lx+l[1],l[2]);}});
+ if(o.hl){const [k,a,b,f]=o.hl;s+=`<path d="${clipPath(x=>k*x*x,a,b)}" fill="none" stroke="${OR}" stroke-width="5"/>`;[[a,f&&f[0]],[b,f&&f[1]]].forEach(e=>{s+=`<circle cx="${X(e[0])}" cy="${Y(k*e[0]*e[0])}" r="4.5" fill="${e[1]==='o'?'#fff':OR}" stroke="${OR}" stroke-width="2"/>`;});}
+ (o.s||[]).forEach(q=>{const st=q[4]===1?`stroke="${OR}" stroke-width="1.5" stroke-dasharray="4 3"`:q[4]===2?`stroke="${OR}" stroke-width="3.2"`:`stroke="#111" stroke-width="1.8"`;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" ${st}/>`;});
+ (o.sc||[]).forEach(q=>{const c2=q[4]||OR,F2={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,17,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']}[q[6]||'r'],mx=(X(q[0])+X(q[2]))/2,my=(Y(q[1])+Y(q[3]))/2;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="${c2}" stroke-width="${q[7]?3:4}" stroke-linecap="round"${q[7]?' stroke-dasharray="5 4"':''}/>`;if(q[5])s+=`<text x="${mx+F2[0]}" y="${my+F2[1]}" text-anchor="${F2[2]}" font-size="13" font-weight="700" fill="${c2}" ${H}>${q[5]}</text>`;});
+ const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
+ (o.p||[]).forEach(q=>{const f=OF[q[3]||'tr'];s+=q[4]?`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#fff" stroke="#111" stroke-width="1.8"/>`:`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])+f[0]}" y="${Y(q[1])+f[1]}" text-anchor="${f[2]}" font-size="13" font-weight="700" ${H}>${q[2]}</text>`;});
+ (o.tx||[]).forEach(q=>{s+=`<text x="${X(q[0])}" y="${Y(q[1])}" text-anchor="${q[3]||'middle'}" font-size="12" font-weight="700" fill="${q[4]?OR:'#111'}" ${H}>${q[2]}</text>`;});
+ if(o.yhl){const xo=X(0)+yhlS;s+=`<line x1="${xo}" y1="${Y(o.yhl[0])}" x2="${xo}" y2="${Y(o.yhl[1])}" stroke="${OR}" stroke-width="5" stroke-linecap="round"/>`;[o.yhl[0],o.yhl[1]].forEach(v=>{s+=`<circle cx="${xo}" cy="${Y(v)}" r="4.2" fill="${OR}"/>`;});}
+ return s+'</svg>';}
+return {"OBI":OBI,"OIKOSHI":OIKOSHI,"TB":TB,"TBA":TBA,"ZA":ZA,"GS":GS,"G6":G6,"NYGP":NYGP,"NETF":NETF,"NET_CYL":NET_CYL,"NET_CONE":NET_CONE,"NET_PRISM":NET_PRISM};
 })();
 NS["gg_m1n04"]=(function(){
 const NETC={A:'#FF4B00',B:'#005AFF',C:'#03AF7A',K:'#111'};
@@ -2322,93 +2348,6 @@ const KUNOBOX=()=>{const RD='#FF4B00',n_=v=>Math.round(v*10)/10,RAD=Math.PI/180,
 
 return {GOUDOU,SAKKAKU,TAICHO,GAIKAKU,LINE4,SUISO,TBL,KAKU,STAR};})();
 return {"M2U5P4_ZU_GOUDOU":(...a)=>M2U5P4_ZU.GOUDOU(...a),"M2U5P4_ZU_SAKKAKU":(...a)=>M2U5P4_ZU.SAKKAKU(...a),"M2U5P4_ZU_TBL":(...a)=>M2U5P4_ZU.TBL(...a),"M2U5P4_ZU_STAR":(...a)=>M2U5P4_ZU.STAR(...a),"M2U5P4_ZU_GAIKAKU":(...a)=>M2U5P4_ZU.GAIKAKU(...a),"M2U5P4_ZU_LINE4":(...a)=>M2U5P4_ZU.LINE4(...a),"M2U5P4_ZU_TAICHO":(...a)=>M2U5P4_ZU.TAICHO(...a)};
-})();
-NS["gg_m3n18"]=(function(){
-function NYGP(o){const u=o.u||16,v=o.v||1,[x0,x1]=o.xr,[y0,y1]=o.yr,pd=14,W=(x1-x0)*u+2*pd,Hh=(y1-y0)*u*v+2*pd,X=x=>pd+(x-x0)*u,Y=y=>pd+(y1-y)*u*v;
- const H='stroke="#fff" stroke-width="4" paint-order="stroke"',OR='#c2410c';
- const sw=o.w||Math.min(300,Math.round(W*1.0)),sh=Math.round(sw*Hh/W);
- let s=`<svg class="gr" viewBox="0 0 ${W} ${Hh}" width="${sw}" height="${sh}" font-family="sans-serif">`;
- if(o.grid){for(let i=Math.ceil(x0);i<=x1;i++)s+=`<line x1="${X(i)}" y1="${Y(y0)}" x2="${X(i)}" y2="${Y(y1)}" stroke="#d1d5db" stroke-width="1"/>`;for(let j=Math.ceil(y0);j<=y1;j++)s+=`<line x1="${X(x0)}" y1="${Y(j)}" x2="${X(x1)}" y2="${Y(j)}" stroke="#d1d5db" stroke-width="1"/>`;}
-/* 2026-11-09 係 f5（系統K1・決まり49）：o.pf＝ぬる多角形 [[[x,y],…], 色]（使う図形をうすい黄色・青でぬる）。o.sc＝色つきの線と札 [[x1,y1,x2,y2,色,札,札の向き r|l|t|b|tr|tl|br|bl, 点線]]（底辺・高さ） */(o.pf||[]).forEach(P=>{s+=`<polygon points="${P[0].map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="${P[1]||'#fde68a'}" fill-opacity=".8" stroke="none"/>`;}); (o.poly&&o.poly.length&&typeof o.poly[0][0]==='number'?[o.poly]:(o.poly||[])).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fdba74" fill-opacity=".45" stroke="none"/>`;});
- /* 2026-11-09 係 f5（系統K1）：y の変域の太い線は y 軸の上に不透明の太い線で描き、両はしに●を打つ（ずらすと放物線・目もりの字と重なるため） */const yhlS=0;
- if(o.xhl)s+=`<line x1="${X(o.xhl[0])}" y1="${Y(0)}" x2="${X(o.xhl[1])}" y2="${Y(0)}" stroke="${OR}" stroke-width="6" stroke-opacity=".6"/>`;
- if(y0<=0&&y1>=0)s+=`<line x1="${X(x0)}" y1="${Y(0)}" x2="${X(x1)}" y2="${Y(0)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(x1)},${Y(0)} ${X(x1)-7},${Y(0)-4} ${X(x1)-7},${Y(0)+4}" fill="#111"/><text x="${X(x1)-4}" y="${Y(0)-7}" font-size="13" font-style="italic" text-anchor="end">x</text>`;
- if(x0<=0&&x1>=0)s+=`<line x1="${X(0)}" y1="${Y(y0)}" x2="${X(0)}" y2="${Y(y1)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(0)},${Y(y1)} ${X(0)-4},${Y(y1)+7} ${X(0)+4},${Y(y1)+7}" fill="#111"/><text x="${X(0)+7}" y="${Y(y1)+11}" font-size="13" font-style="italic">y</text>`;
- /* 2026-11-09 係 f5：下に開く放物線だけのときは O を原点の右上に（放物線と重ならないように） */const oUp=(o.c||[]).some(c=>c[0]<0)&&!(o.c||[]).some(c=>c[0]>0);if(x0<=0&&x1>=0&&y0<=0&&y1>=0)s+=`<text x="${X(0)+(oUp?4:-4)}" y="${Y(0)+(oUp?-5:14)}" font-size="12" text-anchor="${oUp?'start':'end'}" ${H}>O</text>`;
- if(o.grid){for(let i=Math.ceil(x0/2)*2;i<x1;i+=2)if(i)s+=`<text x="${X(i)}" y="${Y(0)+14}" font-size="11" text-anchor="middle" fill="#555" ${H}>${String(i).replace('-','−')}</text>`;for(let j=Math.ceil(y0/2)*2;j<y1;j+=2)if(j)s+=`<text x="${X(0)-5}" y="${Y(j)+4}" font-size="11" text-anchor="end" fill="#555" ${H}>${String(j).replace('-','−')}</text>`;}
- (o.tk||[]).forEach(k=>{if(k[0]==='x')s+=`<line x1="${X(k[1])}" y1="${Y(0)-3}" x2="${X(k[1])}" y2="${Y(0)+3}" stroke="#111"/><text x="${X(k[1])}" y="${Y(0)+(k[3]?-6:15)}" font-size="12" text-anchor="middle" ${H}>${k[2]}</text>`;else s+=`<line x1="${X(0)-3}" y1="${Y(k[1])}" x2="${X(0)+3}" y2="${Y(k[1])}" stroke="#111"/><text x="${X(0)+(k[3]?6:-6)}" y="${Y(k[1])+4}" font-size="12" text-anchor="${k[3]?'start':'end'}" ${H}>${k[2]}</text>`;});
- const clipPath=(f,a,b)=>{let d='',on=false;const N=160;for(let i=0;i<=N;i++){const x=a+(b-a)*i/N,y=f(x);if(y>=y0-.5&&y<=y1+.5&&isFinite(y)){d+=(on?'L':'M')+X(x).toFixed(1)+' '+Y(Math.max(y0-.5,Math.min(y1+.5,y))).toFixed(1);on=true;}else on=false;}return d;};
- const lab=(x,y,t)=>{if(t)s+=`<text x="${X(x)+5}" y="${Y(y)}" font-size="13" font-weight="700" ${H}>${t}</text>`;};
- (o.c||[]).forEach(c=>{s+=`<path d="${clipPath(x=>c[0]*x*x,x0,x1)}" fill="none" stroke="#111" stroke-width="2"/>`;if(c[1]){const lx=c[2]!=null?c[2]:x1*0.7;lab(lx,c[0]*lx*lx,c[1]);}});
- (o.h||[]).forEach(c=>{s+=`<path d="${clipPath(x=>c[0]/x,x0,-0.05)}" fill="none" stroke="#111" stroke-width="2"/><path d="${clipPath(x=>c[0]/x,0.05,x1)}" fill="none" stroke="#111" stroke-width="2"/>`;if(c[1]){const lx=c[2];lab(lx,c[0]/lx,c[1]);}});
- (o.l||[]).forEach(l=>{s+=`<path d="${clipPath(x=>l[0]*x+l[1],x0,x1)}" fill="none" stroke="#111" stroke-width="1.6"/>`;if(l[2]){const lx=l[3];lab(lx,l[0]*lx+l[1],l[2]);}});
- if(o.hl){const [k,a,b,f]=o.hl;s+=`<path d="${clipPath(x=>k*x*x,a,b)}" fill="none" stroke="${OR}" stroke-width="5"/>`;[[a,f&&f[0]],[b,f&&f[1]]].forEach(e=>{s+=`<circle cx="${X(e[0])}" cy="${Y(k*e[0]*e[0])}" r="4.5" fill="${e[1]==='o'?'#fff':OR}" stroke="${OR}" stroke-width="2"/>`;});}
- (o.s||[]).forEach(q=>{const st=q[4]===1?`stroke="${OR}" stroke-width="1.5" stroke-dasharray="4 3"`:q[4]===2?`stroke="${OR}" stroke-width="3.2"`:`stroke="#111" stroke-width="1.8"`;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" ${st}/>`;});
- (o.sc||[]).forEach(q=>{const c2=q[4]||OR,F2={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,17,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']}[q[6]||'r'],mx=(X(q[0])+X(q[2]))/2,my=(Y(q[1])+Y(q[3]))/2;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="${c2}" stroke-width="${q[7]?3:4}" stroke-linecap="round"${q[7]?' stroke-dasharray="5 4"':''}/>`;if(q[5])s+=`<text x="${mx+F2[0]}" y="${my+F2[1]}" text-anchor="${F2[2]}" font-size="13" font-weight="700" fill="${c2}" ${H}>${q[5]}</text>`;});
- const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
- (o.p||[]).forEach(q=>{const f=OF[q[3]||'tr'];s+=q[4]?`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#fff" stroke="#111" stroke-width="1.8"/>`:`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])+f[0]}" y="${Y(q[1])+f[1]}" text-anchor="${f[2]}" font-size="13" font-weight="700" ${H}>${q[2]}</text>`;});
- (o.tx||[]).forEach(q=>{s+=`<text x="${X(q[0])}" y="${Y(q[1])}" text-anchor="${q[3]||'middle'}" font-size="12" font-weight="700" fill="${q[4]?OR:'#111'}" ${H}>${q[2]}</text>`;});
- if(o.yhl){const xo=X(0)+yhlS;s+=`<line x1="${xo}" y1="${Y(o.yhl[0])}" x2="${xo}" y2="${Y(o.yhl[1])}" stroke="${OR}" stroke-width="5" stroke-linecap="round"/>`;[o.yhl[0],o.yhl[1]].forEach(v=>{s+=`<circle cx="${xo}" cy="${Y(v)}" r="4.2" fill="${OR}"/>`;});}
- return s+'</svg>';}
-return {"NYGP":NYGP};
-})();
-NS["gg_m3n19"]=(function(){
-function NYGP(o){const u=o.u||16,v=o.v||1,[x0,x1]=o.xr,[y0,y1]=o.yr,pd=14,W=(x1-x0)*u+2*pd,Hh=(y1-y0)*u*v+2*pd,X=x=>pd+(x-x0)*u,Y=y=>pd+(y1-y)*u*v;
- const H='stroke="#fff" stroke-width="4" paint-order="stroke"',OR='#c2410c';
- const sw=o.w||Math.min(300,Math.round(W*1.0)),sh=Math.round(sw*Hh/W);
- let s=`<svg class="gr" viewBox="0 0 ${W} ${Hh}" width="${sw}" height="${sh}" font-family="sans-serif">`;
- if(o.grid){for(let i=Math.ceil(x0);i<=x1;i++)s+=`<line x1="${X(i)}" y1="${Y(y0)}" x2="${X(i)}" y2="${Y(y1)}" stroke="#d1d5db" stroke-width="1"/>`;for(let j=Math.ceil(y0);j<=y1;j++)s+=`<line x1="${X(x0)}" y1="${Y(j)}" x2="${X(x1)}" y2="${Y(j)}" stroke="#d1d5db" stroke-width="1"/>`;}
-/* 2026-11-09 係 f5（系統K1・決まり49）：o.pf＝ぬる多角形 [[[x,y],…], 色]（使う図形をうすい黄色・青でぬる）。o.sc＝色つきの線と札 [[x1,y1,x2,y2,色,札,札の向き r|l|t|b|tr|tl|br|bl, 点線]]（底辺・高さ） */(o.pf||[]).forEach(P=>{s+=`<polygon points="${P[0].map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="${P[1]||'#fde68a'}" fill-opacity=".8" stroke="none"/>`;}); (o.poly&&o.poly.length&&typeof o.poly[0][0]==='number'?[o.poly]:(o.poly||[])).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fdba74" fill-opacity=".45" stroke="none"/>`;});
- /* 2026-11-09 係 f5（系統K1）：y の変域の太い線は y 軸の上に不透明の太い線で描き、両はしに●を打つ（ずらすと放物線・目もりの字と重なるため） */const yhlS=0;
- if(o.xhl)s+=`<line x1="${X(o.xhl[0])}" y1="${Y(0)}" x2="${X(o.xhl[1])}" y2="${Y(0)}" stroke="${OR}" stroke-width="6" stroke-opacity=".6"/>`;
- if(y0<=0&&y1>=0)s+=`<line x1="${X(x0)}" y1="${Y(0)}" x2="${X(x1)}" y2="${Y(0)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(x1)},${Y(0)} ${X(x1)-7},${Y(0)-4} ${X(x1)-7},${Y(0)+4}" fill="#111"/><text x="${X(x1)-4}" y="${Y(0)-7}" font-size="13" font-style="italic" text-anchor="end">x</text>`;
- if(x0<=0&&x1>=0)s+=`<line x1="${X(0)}" y1="${Y(y0)}" x2="${X(0)}" y2="${Y(y1)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(0)},${Y(y1)} ${X(0)-4},${Y(y1)+7} ${X(0)+4},${Y(y1)+7}" fill="#111"/><text x="${X(0)+7}" y="${Y(y1)+11}" font-size="13" font-style="italic">y</text>`;
- /* 2026-11-09 係 f5：下に開く放物線だけのときは O を原点の右上に（放物線と重ならないように） */const oUp=(o.c||[]).some(c=>c[0]<0)&&!(o.c||[]).some(c=>c[0]>0);if(x0<=0&&x1>=0&&y0<=0&&y1>=0)s+=`<text x="${X(0)+(oUp?4:-4)}" y="${Y(0)+(oUp?-5:14)}" font-size="12" text-anchor="${oUp?'start':'end'}" ${H}>O</text>`;
- if(o.grid){for(let i=Math.ceil(x0/2)*2;i<x1;i+=2)if(i)s+=`<text x="${X(i)}" y="${Y(0)+14}" font-size="11" text-anchor="middle" fill="#555" ${H}>${String(i).replace('-','−')}</text>`;for(let j=Math.ceil(y0/2)*2;j<y1;j+=2)if(j)s+=`<text x="${X(0)-5}" y="${Y(j)+4}" font-size="11" text-anchor="end" fill="#555" ${H}>${String(j).replace('-','−')}</text>`;}
- (o.tk||[]).forEach(k=>{if(k[0]==='x')s+=`<line x1="${X(k[1])}" y1="${Y(0)-3}" x2="${X(k[1])}" y2="${Y(0)+3}" stroke="#111"/><text x="${X(k[1])}" y="${Y(0)+(k[3]?-6:15)}" font-size="12" text-anchor="middle" ${H}>${k[2]}</text>`;else s+=`<line x1="${X(0)-3}" y1="${Y(k[1])}" x2="${X(0)+3}" y2="${Y(k[1])}" stroke="#111"/><text x="${X(0)+(k[3]?6:-6)}" y="${Y(k[1])+4}" font-size="12" text-anchor="${k[3]?'start':'end'}" ${H}>${k[2]}</text>`;});
- const clipPath=(f,a,b)=>{let d='',on=false;const N=160;for(let i=0;i<=N;i++){const x=a+(b-a)*i/N,y=f(x);if(y>=y0-.5&&y<=y1+.5&&isFinite(y)){d+=(on?'L':'M')+X(x).toFixed(1)+' '+Y(Math.max(y0-.5,Math.min(y1+.5,y))).toFixed(1);on=true;}else on=false;}return d;};
- const lab=(x,y,t)=>{if(t)s+=`<text x="${X(x)+5}" y="${Y(y)}" font-size="13" font-weight="700" ${H}>${t}</text>`;};
- (o.c||[]).forEach(c=>{s+=`<path d="${clipPath(x=>c[0]*x*x,x0,x1)}" fill="none" stroke="#111" stroke-width="2"/>`;if(c[1]){const lx=c[2]!=null?c[2]:x1*0.7;lab(lx,c[0]*lx*lx,c[1]);}});
- (o.h||[]).forEach(c=>{s+=`<path d="${clipPath(x=>c[0]/x,x0,-0.05)}" fill="none" stroke="#111" stroke-width="2"/><path d="${clipPath(x=>c[0]/x,0.05,x1)}" fill="none" stroke="#111" stroke-width="2"/>`;if(c[1]){const lx=c[2];lab(lx,c[0]/lx,c[1]);}});
- (o.l||[]).forEach(l=>{s+=`<path d="${clipPath(x=>l[0]*x+l[1],x0,x1)}" fill="none" stroke="#111" stroke-width="1.6"/>`;if(l[2]){const lx=l[3];lab(lx,l[0]*lx+l[1],l[2]);}});
- if(o.hl){const [k,a,b,f]=o.hl;s+=`<path d="${clipPath(x=>k*x*x,a,b)}" fill="none" stroke="${OR}" stroke-width="5"/>`;[[a,f&&f[0]],[b,f&&f[1]]].forEach(e=>{s+=`<circle cx="${X(e[0])}" cy="${Y(k*e[0]*e[0])}" r="4.5" fill="${e[1]==='o'?'#fff':OR}" stroke="${OR}" stroke-width="2"/>`;});}
- (o.s||[]).forEach(q=>{const st=q[4]===1?`stroke="${OR}" stroke-width="1.5" stroke-dasharray="4 3"`:q[4]===2?`stroke="${OR}" stroke-width="3.2"`:`stroke="#111" stroke-width="1.8"`;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" ${st}/>`;});
- (o.sc||[]).forEach(q=>{const c2=q[4]||OR,F2={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,17,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']}[q[6]||'r'],mx=(X(q[0])+X(q[2]))/2,my=(Y(q[1])+Y(q[3]))/2;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="${c2}" stroke-width="${q[7]?3:4}" stroke-linecap="round"${q[7]?' stroke-dasharray="5 4"':''}/>`;if(q[5])s+=`<text x="${mx+F2[0]}" y="${my+F2[1]}" text-anchor="${F2[2]}" font-size="13" font-weight="700" fill="${c2}" ${H}>${q[5]}</text>`;});
- const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
- (o.p||[]).forEach(q=>{const f=OF[q[3]||'tr'];s+=q[4]?`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#fff" stroke="#111" stroke-width="1.8"/>`:`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])+f[0]}" y="${Y(q[1])+f[1]}" text-anchor="${f[2]}" font-size="13" font-weight="700" ${H}>${q[2]}</text>`;});
- (o.tx||[]).forEach(q=>{s+=`<text x="${X(q[0])}" y="${Y(q[1])}" text-anchor="${q[3]||'middle'}" font-size="12" font-weight="700" fill="${q[4]?OR:'#111'}" ${H}>${q[2]}</text>`;});
- if(o.yhl){const xo=X(0)+yhlS;s+=`<line x1="${xo}" y1="${Y(o.yhl[0])}" x2="${xo}" y2="${Y(o.yhl[1])}" stroke="${OR}" stroke-width="5" stroke-linecap="round"/>`;[o.yhl[0],o.yhl[1]].forEach(v=>{s+=`<circle cx="${xo}" cy="${Y(v)}" r="4.2" fill="${OR}"/>`;});}
- return s+'</svg>';}
-return {"NYGP":NYGP};
-})();
-NS["gg_m3n20"]=(function(){
-function NYGP(o){const u=o.u||16,v=o.v||1,[x0,x1]=o.xr,[y0,y1]=o.yr,pd=14,W=(x1-x0)*u+2*pd,Hh=(y1-y0)*u*v+2*pd,X=x=>pd+(x-x0)*u,Y=y=>pd+(y1-y)*u*v;
- const H='stroke="#fff" stroke-width="4" paint-order="stroke"',OR='#c2410c';
- const sw=o.w||Math.min(300,Math.round(W*1.0)),sh=Math.round(sw*Hh/W);
- let s=`<svg class="gr" viewBox="0 0 ${W} ${Hh}" width="${sw}" height="${sh}" font-family="sans-serif">`;
- if(o.grid){for(let i=Math.ceil(x0);i<=x1;i++)s+=`<line x1="${X(i)}" y1="${Y(y0)}" x2="${X(i)}" y2="${Y(y1)}" stroke="#d1d5db" stroke-width="1"/>`;for(let j=Math.ceil(y0);j<=y1;j++)s+=`<line x1="${X(x0)}" y1="${Y(j)}" x2="${X(x1)}" y2="${Y(j)}" stroke="#d1d5db" stroke-width="1"/>`;}
-/* 2026-11-09 係 f5（系統K1・決まり49）：o.pf＝ぬる多角形 [[[x,y],…], 色]（使う図形をうすい黄色・青でぬる）。o.sc＝色つきの線と札 [[x1,y1,x2,y2,色,札,札の向き r|l|t|b|tr|tl|br|bl, 点線]]（底辺・高さ） */(o.pf||[]).forEach(P=>{s+=`<polygon points="${P[0].map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="${P[1]||'#fde68a'}" fill-opacity=".8" stroke="none"/>`;}); (o.poly&&o.poly.length&&typeof o.poly[0][0]==='number'?[o.poly]:(o.poly||[])).forEach(P=>{s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="#fdba74" fill-opacity=".45" stroke="none"/>`;});
- /* 2026-11-09 係 f5（系統K1）：y の変域の太い線は y 軸の上に不透明の太い線で描き、両はしに●を打つ（ずらすと放物線・目もりの字と重なるため） */const yhlS=0;
- if(o.xhl)s+=`<line x1="${X(o.xhl[0])}" y1="${Y(0)}" x2="${X(o.xhl[1])}" y2="${Y(0)}" stroke="${OR}" stroke-width="6" stroke-opacity=".6"/>`;
- if(y0<=0&&y1>=0)s+=`<line x1="${X(x0)}" y1="${Y(0)}" x2="${X(x1)}" y2="${Y(0)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(x1)},${Y(0)} ${X(x1)-7},${Y(0)-4} ${X(x1)-7},${Y(0)+4}" fill="#111"/><text x="${X(x1)-4}" y="${Y(0)-7}" font-size="13" font-style="italic" text-anchor="end">x</text>`;
- if(x0<=0&&x1>=0)s+=`<line x1="${X(0)}" y1="${Y(y0)}" x2="${X(0)}" y2="${Y(y1)}" stroke="#111" stroke-width="1.3"/><polygon points="${X(0)},${Y(y1)} ${X(0)-4},${Y(y1)+7} ${X(0)+4},${Y(y1)+7}" fill="#111"/><text x="${X(0)+7}" y="${Y(y1)+11}" font-size="13" font-style="italic">y</text>`;
- /* 2026-11-09 係 f5：下に開く放物線だけのときは O を原点の右上に（放物線と重ならないように） */const oUp=(o.c||[]).some(c=>c[0]<0)&&!(o.c||[]).some(c=>c[0]>0);if(x0<=0&&x1>=0&&y0<=0&&y1>=0)s+=`<text x="${X(0)+(oUp?4:-4)}" y="${Y(0)+(oUp?-5:14)}" font-size="12" text-anchor="${oUp?'start':'end'}" ${H}>O</text>`;
- if(o.grid){for(let i=Math.ceil(x0/2)*2;i<x1;i+=2)if(i)s+=`<text x="${X(i)}" y="${Y(0)+14}" font-size="11" text-anchor="middle" fill="#555" ${H}>${String(i).replace('-','−')}</text>`;for(let j=Math.ceil(y0/2)*2;j<y1;j+=2)if(j)s+=`<text x="${X(0)-5}" y="${Y(j)+4}" font-size="11" text-anchor="end" fill="#555" ${H}>${String(j).replace('-','−')}</text>`;}
- (o.tk||[]).forEach(k=>{if(k[0]==='x')s+=`<line x1="${X(k[1])}" y1="${Y(0)-3}" x2="${X(k[1])}" y2="${Y(0)+3}" stroke="#111"/><text x="${X(k[1])}" y="${Y(0)+(k[3]?-6:15)}" font-size="12" text-anchor="middle" ${H}>${k[2]}</text>`;else s+=`<line x1="${X(0)-3}" y1="${Y(k[1])}" x2="${X(0)+3}" y2="${Y(k[1])}" stroke="#111"/><text x="${X(0)+(k[3]?6:-6)}" y="${Y(k[1])+4}" font-size="12" text-anchor="${k[3]?'start':'end'}" ${H}>${k[2]}</text>`;});
- const clipPath=(f,a,b)=>{let d='',on=false;const N=160;for(let i=0;i<=N;i++){const x=a+(b-a)*i/N,y=f(x);if(y>=y0-.5&&y<=y1+.5&&isFinite(y)){d+=(on?'L':'M')+X(x).toFixed(1)+' '+Y(Math.max(y0-.5,Math.min(y1+.5,y))).toFixed(1);on=true;}else on=false;}return d;};
- const lab=(x,y,t)=>{if(t)s+=`<text x="${X(x)+5}" y="${Y(y)}" font-size="13" font-weight="700" ${H}>${t}</text>`;};
- (o.c||[]).forEach(c=>{s+=`<path d="${clipPath(x=>c[0]*x*x,x0,x1)}" fill="none" stroke="#111" stroke-width="2"/>`;if(c[1]){const lx=c[2]!=null?c[2]:x1*0.7;lab(lx,c[0]*lx*lx,c[1]);}});
- (o.h||[]).forEach(c=>{s+=`<path d="${clipPath(x=>c[0]/x,x0,-0.05)}" fill="none" stroke="#111" stroke-width="2"/><path d="${clipPath(x=>c[0]/x,0.05,x1)}" fill="none" stroke="#111" stroke-width="2"/>`;if(c[1]){const lx=c[2];lab(lx,c[0]/lx,c[1]);}});
- (o.l||[]).forEach(l=>{s+=`<path d="${clipPath(x=>l[0]*x+l[1],x0,x1)}" fill="none" stroke="#111" stroke-width="1.6"/>`;if(l[2]){const lx=l[3];lab(lx,l[0]*lx+l[1],l[2]);}});
- if(o.hl){const [k,a,b,f]=o.hl;s+=`<path d="${clipPath(x=>k*x*x,a,b)}" fill="none" stroke="${OR}" stroke-width="5"/>`;[[a,f&&f[0]],[b,f&&f[1]]].forEach(e=>{s+=`<circle cx="${X(e[0])}" cy="${Y(k*e[0]*e[0])}" r="4.5" fill="${e[1]==='o'?'#fff':OR}" stroke="${OR}" stroke-width="2"/>`;});}
- (o.s||[]).forEach(q=>{const st=q[4]===1?`stroke="${OR}" stroke-width="1.5" stroke-dasharray="4 3"`:q[4]===2?`stroke="${OR}" stroke-width="3.2"`:`stroke="#111" stroke-width="1.8"`;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" ${st}/>`;});
- (o.sc||[]).forEach(q=>{const c2=q[4]||OR,F2={r:[8,5,'start'],l:[-8,5,'end'],t:[0,-8,'middle'],b:[0,17,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']}[q[6]||'r'],mx=(X(q[0])+X(q[2]))/2,my=(Y(q[1])+Y(q[3]))/2;s+=`<line x1="${X(q[0])}" y1="${Y(q[1])}" x2="${X(q[2])}" y2="${Y(q[3])}" stroke="${c2}" stroke-width="${q[7]?3:4}" stroke-linecap="round"${q[7]?' stroke-dasharray="5 4"':''}/>`;if(q[5])s+=`<text x="${mx+F2[0]}" y="${my+F2[1]}" text-anchor="${F2[2]}" font-size="13" font-weight="700" fill="${c2}" ${H}>${q[5]}</text>`;});
- const OF={r:[8,4,'start'],l:[-8,4,'end'],t:[0,-9,'middle'],b:[0,18,'middle'],tr:[6,-7,'start'],tl:[-6,-7,'end'],br:[6,16,'start'],bl:[-6,16,'end']};
- (o.p||[]).forEach(q=>{const f=OF[q[3]||'tr'];s+=q[4]?`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#fff" stroke="#111" stroke-width="1.8"/>`:`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.8" fill="#111"/>`;if(q[2])s+=`<text x="${X(q[0])+f[0]}" y="${Y(q[1])+f[1]}" text-anchor="${f[2]}" font-size="13" font-weight="700" ${H}>${q[2]}</text>`;});
- (o.tx||[]).forEach(q=>{s+=`<text x="${X(q[0])}" y="${Y(q[1])}" text-anchor="${q[3]||'middle'}" font-size="12" font-weight="700" fill="${q[4]?OR:'#111'}" ${H}>${q[2]}</text>`;});
- if(o.yhl){const xo=X(0)+yhlS;s+=`<line x1="${xo}" y1="${Y(o.yhl[0])}" x2="${xo}" y2="${Y(o.yhl[1])}" stroke="${OR}" stroke-width="5" stroke-linecap="round"/>`;[o.yhl[0],o.yhl[1]].forEach(v=>{s+=`<circle cx="${xo}" cy="${Y(v)}" r="4.2" fill="${OR}"/>`;});}
- return s+'</svg>';}
-return {"NYGP":NYGP};
 })();
 NS["gg_m3n21"]=(function(){
 const S=(o)=>{if(o.ren){o.steps.forEach(st=>st.a=st.c.r);}else o.a=o.c.r;return o;};
