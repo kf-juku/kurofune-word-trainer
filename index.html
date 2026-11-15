@@ -3021,7 +3021,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-15d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-15f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5115,9 +5115,14 @@ function _m1Html_(parts){
   return h+'</div>';
 }
 /* 本の行の進み＝D1 の1行（済み「1〜12」→ 今 → 次の10ごとの旗を2つまで → トロフィー）。数は本の中の全教材の合計 */
+/* 2026-11-15 川上さん 04:58「両方推奨で」：英検・架け橋の進み（本・教材・まとまりの「できた ◯/◯」・バー・学習マップ）は、A-1 と A-2 の組を1パートと数え、両方できたら1つ（ぐるぐるの「A-1・A-2 まで終わったパート」と同じ）。
+   説明のパート（組の無いもの）は1つずつ。まとめテストは数えない。-a2 の無い教材は今までと同じ数になる */
+function _ekCnt_(ps){ps=ps||[];var ids={};ps.forEach(function(l){ids[String(l.part_id)]=l;});var t=0,p=0;
+  ps.forEach(function(l){var id=String(l.part_id);if(/-a2$/.test(id)&&ids[id.slice(0,-3)])return;var a2=ids[id+'-a2'];t++;if(a2?(l.passed&&a2.passed):l.passed)p++;});
+  return {t:t,p:p};}
 function _m1BookD1_(items){
   var tot=0,pas=0,cur='';
-  items.forEach(function(c){var ps=c.parts||[];tot+=ps.length;pas+=ps.filter(function(l){return l.passed;}).length;
+  items.forEach(function(c){var ps=c.parts||[],_k=_ekCnt_(ps);tot+=_k.t;pas+=_k.p;
     if(!cur){ps.forEach(function(l,i){if(!cur&&l.is_current)cur=_isUnitCt_(c.content_type)?(_pnoOf_(c.material_id,l.part_order)||rb('今','いま')):('DAY '+(l.part_order||i+1));});}});
   if(!tot)return '';
   /* 教材が1つの本＝「1〜12」と番号の旗（20・30）。教材が2つ以上の本＝番号が教材ごとなので、済みは数（できた 24）だけにして旗は出さない */
@@ -5609,7 +5614,7 @@ function renderUnitZone_(materials,opt){
     var _open=_unitOpenGet_();
     var _allClear=true;
     groups.forEach(function(g){
-      var tot=0,pas=0;g.items.forEach(function(c){var ps=(c.parts||[]);tot+=ps.length;pas+=ps.filter(function(l){return l.passed;}).length;});
+      var tot=0,pas=0;g.items.forEach(function(c){var _k=_ekCnt_(c.parts);tot+=_k.t;pas+=_k.p;});   /* 2026-11-15 A-1・A-2 の組を1つ */
       var pct=tot?Math.round(pas/tot*100):0;var subj=_subjGuess_(g.items[0]);
       var bookDone=(tot>0&&pas===tot);if(!bookDone)_allClear=false; // 100%の本＝緑・ぜんぶできた 2026-07-24
       var subjTag=subj?('<span class="nbk-subj">'+esc(subjLabel(subj))+'</span> '):'';
@@ -5624,7 +5629,7 @@ function renderUnitZone_(materials,opt){
       var detail='<div class="nbk-detail">';
       var _co=_unitChapOpenGet_(); // 章ごとのパート一覧の開閉を保持 2026-09-11
       g.items.forEach(function(c){
-        var ps=(c.parts||[]);var t2=ps.length,p2=ps.filter(function(l){return l.passed;}).length;
+        var ps=(c.parts||[]);var _k2=_ekCnt_(ps),t2=_k2.t,p2=_k2.p;   /* 2026-11-15 A-1・A-2 の組を1つ */
         var cur=null;ps.forEach(function(l){if(l.is_current&&!cur)cur=l;});
         // 単元別(test)はサーバーが is_current を常にfalseで返す。→は「最初の未合格パート」を始める（2026-07-26 修正：常に先頭パートを始めて前進しないバグ）
         var firstUnpassed=null;ps.forEach(function(l){if(!l.passed&&!firstUnpassed&&!(EK&&/-a2$/.test(String(l.part_id||''))))firstUnpassed=l;});   /* 2026-11-13 英検：→ は A-1 だけ */
@@ -5657,8 +5662,8 @@ function renderUnitZone_(materials,opt){
                2026-10-19 NB：hier のある教材は、まとまり（第1回 be動詞）の見出しを1回だけ出し、その下にパート（（1）I am・You are）を並べる。見出しの右に「できた ◯/◯」 */
             var _h=l.hier||null,_g=_hGrp_(_h);
             if(_g&&_g!==_gPrev&&!_gSeen[_g]){ _gSeen[_g]=1;   /* 見出しは本の中で1回だけ（ウォームアップがまとまりの途中にはさまっても、もう一度は出さない） */
-              var _gs=ps.filter(function(x){return _hGrp_(x.hier||null)===_g;}),_gp=_gs.filter(function(x){return x.passed;}).length;
-              detail+='<div class="nqg">'+(_h.group_no?'<span class="nqg-no">'+esc(String(_h.group_no))+'</span>':'')+'<span class="nqg-nm">'+_jaRubySubj_(String(_h.group_name||''),subj)+'</span><span class="nqg-cnt">できた '+_gp+'/'+_gs.length+'</span></div>';
+              var _gs=ps.filter(function(x){return _hGrp_(x.hier||null)===_g;}),_gk=_ekCnt_(_gs);   /* 2026-11-15 A-1・A-2 の組を1つ */
+              detail+='<div class="nqg">'+(_h.group_no?'<span class="nqg-no">'+esc(String(_h.group_no))+'</span>':'')+'<span class="nqg-nm">'+_jaRubySubj_(String(_h.group_name||''),subj)+'</span><span class="nqg-cnt">できた '+_gk.p+'/'+_gk.t+'</span></div>';
             }
             _gPrev=_g;
             if(EK&&/-a2$/.test(String(l.part_id||''))&&ps.some(function(x){return String(x.part_id)===String(l.part_id).replace(/-a2$/,'');}))return;   /* 2026-11-13 英検：A-2 は A-1 の行の中に出す */
@@ -5886,7 +5891,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261115a',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261115b',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -6391,7 +6396,7 @@ function loadHomeData_(showSkel){
     cs.forEach(function(c){var k=mtSeriesKeyMt(c)||('M:'+String(c.material_title||c.title||''));if(!_mgm[k]){_mgm[k]={lab:mtSeriesLabelMt(c),items:[],key:k};_mg.push(_mgm[k]);}_mgm[k].items.push(c);});
     var _mapOpen=_openGet_('kwt_map_open');
     _mg.forEach(function(g){
-      var btot=0,bpas=0;g.items.forEach(function(c){var _ps=c.parts||[];btot+=_ps.length;bpas+=_ps.filter(function(l){return l.passed;}).length;});
+      var btot=0,bpas=0;g.items.forEach(function(c){var _k=_ekCnt_(c.parts);btot+=_k.t;bpas+=_k.p;});   /* 2026-11-15 A-1・A-2 の組を1つ */
       var bpct=btot?Math.round(bpas/btot*100):0;var subjB=_subjGuess_(g.items[0]);
       // 本(シリーズ)は種類が混ざらないので、種類タグは一番外側の見出しに1個だけ出す 2026-07-26
       var _allTest=g.items.every(function(c){return _isUnitCt_(c.content_type);});var _allDaily=g.items.every(function(c){return !_isUnitCt_(c.content_type);});var _allEk=g.items.every(function(c){return _isEikenCt_(c.content_type);});   /* 英検も単元別と同じ 2026-11-12 */
@@ -6407,8 +6412,8 @@ function loadHomeData_(showSkel){
       g.items.forEach(function(c){
         var isTest=_isUnitCt_(c.content_type);
         var parts=c.parts||[];
-        var total=parts.length;
-        var passedN=parts.filter(function(l){return l.passed;}).length;
+        var _kM=_ekCnt_(parts),total=_kM.t;   /* 2026-11-15 英検・架け橋は A-1・A-2 の組を1つ */
+        var passedN=_kM.p;
         var curPart=null;parts.forEach(function(l,i){if(l.is_current&&!curPart)curPart={l:l,idx:i};});
         var _cpH=curPart&&curPart.l.hier,_cpNo=curPart?_pnoOf_(c.material_id,curPart.l.part_order):'';
         var curLbl=curPart?(isTest?((_cpNo?esc(_cpNo)+' ':'')+(_cpH?esc(_hGrpPart_([_cpH.group_no,_cpH.group_name].filter(Boolean).join(' '),_hPart_(_cpH,curPart.l.title))):_jaRubySubj_(curPart.l.title,subjB))):('DAY '+(curPart.l.part_order||curPart.idx+1))):'';
@@ -7182,10 +7187,12 @@ function _nowBarSync_(s){
   if(s.mode==='srs')kind='srs';
   else if(s.mode==='note')kind='note';
   else if(s.quizMode)kind='quiz';
+  else if(_isEikenCt_(s.content_type))kind='eiken';   /* 2026-11-15 川上さん 05:08「Aア」：英検タブから開いたパートは「英検」（英検タブと同じアイコン） */
   else if(_isUnitCt_(s.content_type))kind='unit';
   var K={
     daily:{ic:'ti-anchor',       c:'gold'  ,nm:rb('毎日','まいにち')+rb('学習','がくしゅう')},
     unit :{ic:'ti-flag',         c:'gold'  ,nm:rb('単元別','たんげんべつ')+'の'+rb('練習','れんしゅう')},
+    eiken:{ic:'ti-certificate',  c:'gold'  ,nm:rb('英検','えいけん')},
     quiz :{ic:'ti-checkup-list', c:'quiz'  ,nm:rb('確認','かくにん')+'テスト'},
     srs  :{ic:'ti-clock-bolt',   c:'accent',nm:'おさらい'},
     note :{ic:'ti-notebook',     c:'accent',nm:rb('間違','まちが')+'いノート'}
