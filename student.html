@@ -3022,7 +3022,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-15g"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-16a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4980,7 +4980,7 @@ $('nick-mask').onclick=function(e){if(e.target===this)closeNickModal();};var _ic
 $('nick-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveNick();}});
 $('btn-login').onclick=function(){var id=$('in-id').value.trim(),pass=$('in-pass').value.trim();$('login-err').textContent='';if(!id||!pass){$('login-err').innerHTML='IDとパスワードを<ruby>入力<rt class="uf">にゅうりょく</rt></ruby>してください';return;}this.disabled=true;this.innerHTML=kwtSpin(20)+'<span style="vertical-align:middle"> <ruby>確認中<rt class="uf">かくにんちゅう</rt></ruby>…</span>';call({action:'student_login',login_id:id,passcode:pass,with_home:1}).then(function(d){$('btn-login').disabled=false;$('btn-login').innerHTML='<ruby>始<rt class="uf">はじ</rt></ruby>める <i class="ti ti-arrow-right"></i>';if(!d.ok){$('login-err').textContent=d.error||'ログインできませんでした';return;}_loginApply_(d);});};
 /* ログインの返事をアプリに入れてホームへ（ID・パスコードのログインと、名前入りの解答用紙の QR のログインで同じ1つを通す 2026-10-20） */
-function _loginApply_(d){token=d.data.token;try{localStorage.setItem('kwt_sid',String(d.data.student.id||''));}catch(eSid){}/* 案内の済み印を生徒ごとに持つ。ログアウトでは消さない 2026-09-23 */nickname=d.data.student.nickname||'きみ';familyName=d.data.student.family_name||'';try{localStorage.setItem('kwt_sei',familyName);}catch(eS){}/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();clearedTodayReset_();/* 別生徒のキャッシュ防止 2026-07-05・今日終えた覚えも消す 2026-10-20 */try{if(d.data.home&&d.data.home.ok)window._ccFresh_={student_home:{t:Date.now(),d:d.data.home}};}catch(eH){}/* ログインの返事に入っていたホーム＝取り直さずに使う 2026-10-20 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();try{shGoIfPending_();}catch(e){}}
+function _loginApply_(d){token=d.data.token;try{localStorage.setItem('kwt_sid',String(d.data.student.id||''));}catch(eSid){}_sqFlushed_=false;_sqAuthAsked_=false;try{var _am=document.getElementById('sq-auth');if(_am)_am.remove();}catch(eAm){}/* 2026-11-16 ログインし直したら、残っていた記録をこのあとのホームで送り直す *//* 案内の済み印を生徒ごとに持つ。ログアウトでは消さない 2026-09-23 */nickname=d.data.student.nickname||'きみ';familyName=d.data.student.family_name||'';try{localStorage.setItem('kwt_sei',familyName);}catch(eS){}/* 動物ネーム自動付与フラグ（川上さん指示 2026-07-05） */if(d.data.student.nick_auto){try{localStorage.setItem('kwt_nick_auto','1');}catch(e){}}mode=d.data.student.mode||'normal';stuGrade=d.data.student.grade||'';try{localStorage.setItem('kwt_grade',stuGrade);}catch(e){}myIcon=d.data.student.icon||'';try{localStorage.setItem('kwt_icon',myIcon);}catch(e){}unlockedIcons=d.data.student.unlocked_icons||[];try{localStorage.setItem('kwt_unlocks',JSON.stringify(unlockedIcons));}catch(e){}applyFuriByGrade_(stuGrade);homeCacheClear_();clearedTodayReset_();/* 別生徒のキャッシュ防止 2026-07-05・今日終えた覚えも消す 2026-10-20 */try{if(d.data.home&&d.data.home.ok)window._ccFresh_={student_home:{t:Date.now(),d:d.data.home}};}catch(eH){}/* ログインの返事に入っていたホーム＝取り直さずに使う 2026-10-20 */localStorage.setItem('kwt_token',token);localStorage.setItem('kwt_nick',nickname);localStorage.setItem('kwt_mode',mode);openHome();try{shGoIfPending_();}catch(e){}}
 function doLogout_(){try{_sqFlush_();}catch(eSq){}try{_fcPend={};_nickNotice=null;_meDone=false;window._trioNoneThisSession=false;}catch(eFc){}/* 前の子の待たせていた案内・お知らせを次の子に出さない 2026-10-20 */try{clearedTodayReset_();}catch(eCr){}/* 今日終えた覚えを消す＝共用タブレットで次の生徒に出さない 2026-10-20 *//* 未送信があれば先に流す。1件ずつが自分のトークンを持つので token='' にしても届く 2026-09-02 */
   homeCacheClear_();try{var _rsLo=_resumeAny_();if(_rsLo)_abandonLog_(_rsLo,'logout',true);}catch(e){}try{_resumeClear_();}catch(e){}localStorage.removeItem('kwt_token');localStorage.removeItem('kwt_nick');localStorage.removeItem('kwt_sei');localStorage.removeItem('kwt_mode');localStorage.removeItem('kwt_grade');localStorage.removeItem('kwt_icon');localStorage.removeItem('kwt_unlocks');localStorage.removeItem('kwt_streak_pending');localStorage.removeItem('kwt_cele_shown');localStorage.removeItem('kwt_dc_cele');try{localStorage.removeItem('kwt_star_day');}catch(e){}localStorage.removeItem('kwt_badge_seen');localStorage.removeItem('kwt_icon_seen');localStorage.removeItem(FROZE_SEEN_KEY_);stuGrade='';myIcon='';unlockedIcons=[];_newBadge=false;_newIcon=false;_badgeAchKeys=[];applyFuriByGrade_('');try{sessionStorage.removeItem('kwt_view');}catch(e){}try{shPendSet_('');shPendLisSet_(false);}catch(e){}token='';show('scr-login');}
 $('btn-logout').onclick=function(){setTab5_(_homeTab||'daily');$('logout-mask').classList.add('show');}; // 誤タップ防止：確認してからログアウト（2026-07-24）。タブハイライトは元に戻す
@@ -5917,7 +5917,7 @@ function _ekMtLoadLibs_(){
    送れたら消す・送れずに残ったものは次に開いたとき _sqFlush_ が resend:true で送り直す。二重に入らない印＝send_id（GAS の ggSubmit・ekMtSubmit が見て duplicate を返す）。
    途中の記録（gg_state・ekmt_state＝直しの進み・類題）はためない：古い控えがあとから届くと新しい進みを上書きするため。提出が残れば点数と答えは失われない */
 function _recCall_(body){
-  if(!body||!/^(gg_submit|ekmt_submit)$/.test(String(body.action||'')))return call(body);
+  if(!body||!/^(gg_submit|ekmt_submit|gg_state|ekmt_state)$/.test(String(body.action||'')))return call(body);   /* 2026-11-16 進み具合（state）も積む＝届かなければ送り直す。同じ行は最新の1つだけ残す（_sqAdd_） */
   var q=null;try{q=_sqAdd_(body);}catch(e){}
   return call(body).then(function(d){if(q&&_sqGiveUp_(d))_sqDel_(q);return d;},function(e){throw e;});
 }
@@ -6285,7 +6285,9 @@ function loadHomeData_(showSkel){
       try{homeCacheClear_();}catch(e1){}
       try{toast('のこっていた記録をおくりました');}catch(e2){}
       try{loadHomeData_(false);}catch(e3){}
-    });}catch(eSq){}}
+    },{all:true});}catch(eSq){}
+      setTimeout(function(){try{_ggReconcile_();}catch(eRc){}},4000);   /* 2026-11-16 端末に残るぐるぐるの写しとサーバーを照らし合わせ、届いていない回を送り直す */
+    }
     renderDaily();
     bootPartsSave_(cards);  // つぎに開いたとき、ホームを待たずに先読みするためのIDを覚える 2026-09-02
     prefetchParts_(cards); // 先読み：毎日学習＋単元別の現在パート
@@ -10579,40 +10581,53 @@ function _abandonLog_(rs,reason,useBeacon){
      sheet_grade は紙のコードが1回きりで、GASが already を返す＝印はいらない。
    ★日付は client_completed_at（解き終わった時刻）を一緒に送る。GAS側は resend のときだけ使う。
    ★期限7日。GAS側の RESEND_MAX_DAYS_ とそろえてある（片方だけ直さない）。 */
-var SENDQ_KEY_='kwt_sendq_v1', SENDQ_MAX_=20, SENDQ_DAYS_=7;
+/* 【2026-11-16 記録を消さない作り】仕様書 KWT_サーバとデータ.md「★生徒の学習記録は、どんな理由でも黙って消さない」。
+   ・端末から消してよいのは、サーバーが ok を返したときだけ（_sqGiveUp_ は ok のときだけ true）。
+   ・件数・日数の上限で捨てない（SENDQ_MAX_ は端末の保存領域を守るための目安で、超えても捨てない）。
+   ・1件ずつに生徒の id（sid）とアプリの版（app_v）を持たせる。同じ生徒が送るときは、いまのトークンに差しかえる
+     （ログインし直したあとでも届く）。別の生徒の分は、その生徒がこの端末でログインしたときに送る。
+   ・ぐるぐる・英検まとめテストの進み具合（gg_state・ekmt_state）も積む。同じ行の分は最新の1つだけ残す。 */
+var SENDQ_KEY_='kwt_sendq_v1', SENDQ_MAX_=500, SENDQ_DAYS_=7;
 function _sqGet_(){try{var a=JSON.parse(localStorage.getItem(SENDQ_KEY_)||'[]');return (a&&a.length!==undefined)?a:[];}catch(e){return [];}}
-function _sqPut_(a){try{localStorage.setItem(SENDQ_KEY_,JSON.stringify(a||[]));}catch(e){}}
+function _sqPut_(a){try{localStorage.setItem(SENDQ_KEY_,JSON.stringify(a||[]));}catch(e){}try{_sqBadge_();}catch(e2){}}
+function _sqSid_(){try{return localStorage.getItem('kwt_sid')||'';}catch(e){return '';}}
+var _SQ_COALESCE_=/^(gg_state|ekmt_state)$/;
 /* 送る前に積む。戻り値＝送信ID。渡された body にも send_id と client_completed_at を書き込むので、
    本番の1回目と送り直しで同じ印になる＝GAS側が同じものだと分かる。 */
 function _sqAdd_(body){
   var id='sq'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
   try{
-    body.send_id=id;
+    body.send_id=body.send_id||id;
     if(body.client_completed_at===undefined)body.client_completed_at=new Date().toISOString();
     var cp={};for(var k in body){if(Object.prototype.hasOwnProperty.call(body,k))cp[k]=body[k];}
     cp.token=(typeof token!=='undefined'?token:'');
-    var a=_sqGet_();a.push({id:id,at:Date.now(),body:cp});
-    while(a.length>SENDQ_MAX_)a.shift();  // 古いものから捨てる＝端末の保存領域を太らせない
+    var sid=_sqSid_();
+    var a=_sqGet_();
+    if(_SQ_COALESCE_.test(String(body.action||''))){var pid=String(body.part_id||'');a=a.filter(function(x){return !(x&&x.body&&x.body.action===body.action&&String(x.body.part_id||'')===pid&&(x.sid||'')===sid);});}
+    a.push({id:id,at:Date.now(),sid:sid,app_v:(typeof APP_VERSION!=='undefined'?APP_VERSION:''),body:cp});
     _sqPut_(a);
   }catch(e){}
+  try{_sqKick_();}catch(e3){}
   return id;
 }
 function _sqDel_(id){try{_sqPut_(_sqGet_().filter(function(x){return x&&x.id!==id;}));}catch(e){}}
-/* この返事なら、もう送り直さずに捨ててよいか。
-   通信の失敗・混み合いは false＝残して次にまた試す。 */
-function _sqGiveUp_(d){
-  if(!d)return false;
-  if(d.ok)return true;
+function _sqUpd_(id,f){try{var a=_sqGet_();a.forEach(function(x){if(x&&x.id===id)f(x);});_sqPut_(a);}catch(e){}}
+/* 返事の種類。ok＝受け取った／wait＝通信・混雑・サーバー側の止まり（直れば通る）／auth＝ログインが通らない／reject＝それ以外で断られた */
+function _sqKind_(d){
+  if(d&&d.ok)return 'ok';
+  if(!d)return 'wait';
   var e=String(d.error||'');
-  if(!e)return false;
-  if(e.indexOf('通信')>=0||e.indexOf('混')>=0)return false;
-  if(/^locked/i.test(e)||e.indexOf('少し待')>=0)return false; // 確認テストの提出は混雑で「locked: 少し待って再試行…」を返す。これを捨てていた＝記録がどこにも残らなかった 2026-09-26
-  /* 【2026-10-20】サーバー（GAS）側の止まり・権限・時間切れは、直れば通る＝捨てない。
-     14:25〜 GAS がスプレッドシートの権限を失い、全部の保存が「…を呼び出す権限がありません」で返った。
-     これを「何度送っても通らない」と見て捨てていた＝その間に終えた学習の記録が消えた。 */
-  if(/権限|Service|timed out|Exception|上限|quota|Too many|内部|サーバー|しばらく/i.test(e))return false;
-  return true; // 「再度ログインしてください」「〜が必要です」「シートがありません」など、何度送っても通らないもの
+  if(!e)return 'wait';
+  if(e.indexOf('再度ログイン')>=0)return 'auth';
+  if(e.indexOf('通信')>=0||e.indexOf('混')>=0)return 'wait';
+  if(/^locked/i.test(e)||e.indexOf('少し待')>=0)return 'wait';
+  if(/権限|Service|timed out|Exception|上限|quota|Too many|内部|サーバー|しばらく|bad_reply|timeout|network/i.test(e))return 'wait';
+  return 'reject';
 }
+/* この返事なら端末から消してよいか＝サーバーが受け取ったときだけ（2026-11-16）。
+   前は「再度ログインしてください」などを「何度送っても通らない」と見て捨てていた＝番匠さんの記録が消えた。
+   断られたものは消さずに残し、_sqFlush_ が種類ごとに始末する（auth＝ログインし直して送る／reject＝サーバーの send_failures に中身ごと送る） */
+function _sqGiveUp_(d){return !!(d&&d.ok);}
 /* ===== 保存を待たずに画面を進める 2026-09-02 =====
    送り直しの仕組みが入って「閉じられても記録は消えない」ようになったので、
    保存が返るのを待ってボタンを止めておく理由がなくなった（採点の待ちは実測10.8秒だった）。
@@ -10639,29 +10654,153 @@ function _afterSaveSync_(seq){
    言われていない変更だったので川上さんの指示で戻した。
    「とじないで待ってね」だけは出さない＝閉じても記録は消えなくなったので、もう嘘になるため。 */
 function _savingHtml_(){return '<div class="sw-load"><span style="display:inline-block;vertical-align:middle">'+kwtSpin(30)+'</span><span style="vertical-align:middle"> <ruby>記録<rt class="uf">きろく</rt></ruby>を<ruby>保存<rt class="uf">ほぞん</rt></ruby><ruby>中<rt class="uf">ちゅう</rt></ruby>…</span></div>';}
-var _sqBusy_=false, _sqFlushed_=false;
+var _sqBusy_=false, _sqFlushed_=false, _sqAuthAsked_=false, _sqTimer_=null;
 /* 残っているものを1本ずつ送り直す。まとめて投げない＝GAS側のロックを取り合って共倒れしない。
-   done(送れた件数) を呼ぶ。 */
-function _sqFlush_(done){
-  done=done||function(){};
+   done(送れた件数) を呼ぶ。o.all＝積んだばかりのものも送る（ふつうは20秒より前に積んだものだけ＝いま送っている最中の分と重ねない） */
+function _sqFlush_(done,o){
+  done=done||function(){};o=o||{};
   if(_sqBusy_){done(0);return;}
-  var lim=Date.now()-SENDQ_DAYS_*24*3600*1000;
-  var all=_sqGet_(), live=all.filter(function(x){return x&&x.body&&x.at>lim;});
-  if(live.length!==all.length)_sqPut_(live); // 期限切れはここで捨てる
+  var cur=_sqSid_(),now=Date.now();
+  var live=_sqGet_().filter(function(x){if(!x||!x.body)return false;if(!o.all&&x.at>now-20000)return false;
+    if(x.sid&&cur&&x.sid!==cur)return false;   // 別の生徒の分＝その子がこの端末でログインしたときに送る
+    if(x.sid&&!cur)return false;
+    if(x.held&&!o.all&&x.held>now)return false;  // 断られた直後は少し待つ
+    return true;});
   if(!live.length){done(0);return;}
   _sqBusy_=true;
-  var sent=0,i=0;
+  var sent=0,i=0,authHit=false;
+  var finish=function(){_sqBusy_=false;if(authHit)_sqAuthNeed_();done(sent);};
   var step=function(){
-    if(i>=live.length){_sqBusy_=false;done(sent);return;}
+    if(i>=live.length){finish();return;}
     var it=live[i++];
     var b={};for(var k in it.body){if(Object.prototype.hasOwnProperty.call(it.body,k))b[k]=it.body[k];}
     b.resend=true;
+    if(it.sid&&it.sid===cur&&typeof token!=='undefined'&&token)b.token=token;   // 同じ生徒＝いまのトークンで送る（ログインし直したあとでも届く）
     call(b).then(function(d){
-      if(_sqGiveUp_(d)){if(d&&d.ok&&!(d.data&&(d.data.duplicate||d.data.already)))sent++;if(d&&!d.ok)clearedMemoDrop_(it.body);_sqDel_(it.id);}
-      sleep(150).then(step);
+      var kd=_sqKind_(d);
+      if(kd==='ok'){
+        if(!(d.data&&(d.data.duplicate||d.data.already)))sent++;
+        _sqDel_(it.id);
+        if(it.rep)_sqReport_(it,'resolved','');
+        sleep(150).then(step);return;
+      }
+      var er=String((d&&d.error)||'');
+      if(kd==='wait'&&er&&!/通信|network|timeout|bad_reply/.test(er)){   // 通信ではない「待って」（混雑・提出待ち）が20回続いたら、断られたのと同じに扱う＝中身ごと預けて止める
+        var tr=(it.tries||0)+1;_sqUpd_(it.id,function(x){x.tries=tr;});if(tr>=20)kd='reject';
+      }
+      if(kd==='wait'){finish();return;}   // 通信が切れている・混んでいる＝ここで止めて、あとでまた送る
+      if(kd==='auth'){
+        if(it.sid===cur)authHit=true;
+        if(!it.rep){_sqUpd_(it.id,function(x){x.rep=1;});_sqReport_(it,'auth',String(d.error||''));}
+        sleep(150).then(step);return;
+      }
+      /* reject＝通信・混雑・ログイン以外の理由で断られた。中身ごとサーバーの send_failures に送り、受け取ったと返ってから端末から消す */
+      _sqReport_(it,'reject',String(d.error||'')).then(function(ok){
+        if(ok){_sqDel_(it.id);try{clearedMemoDrop_(it.body);}catch(eC){}}
+        else _sqUpd_(it.id,function(x){x.held=Date.now()+600000;});
+        sleep(150).then(step);
+      });
     });
   };
   step();
+}
+/* 送れなかった記録をサーバーに知らせる（send_failures）。トークンは送らない。
+   kind＝auth（ログインが通らず端末に残している）／reject（断られた＝中身ごと預ける）／resolved（あとで届いた） */
+function _sqReport_(it,kind,err){
+  try{
+    var b={};for(var k in it.body){if(k!=='token'&&Object.prototype.hasOwnProperty.call(it.body,k))b[k]=it.body[k];}
+    var body={action:'sq_fail',kind:kind,error:String(err||'').slice(0,200),sid:it.sid||'',send_id:String(it.body.send_id||it.id),act:String(it.body.action||''),part_id:String(it.body.part_id||''),app_v:it.app_v||'',queued_at:new Date(it.at||Date.now()).toISOString(),body:(kind==='resolved'?'':JSON.stringify(b).slice(0,40000))};
+    if(typeof token!=='undefined'&&token&&it.sid===_sqSid_())body.token=token;else body.token='-';
+    return call(body).then(function(d){return !!(d&&d.ok);},function(){return false;});
+  }catch(e){return Promise.resolve(false);}
+}
+/* 送り直しのきっかけ：電波が戻った・画面に戻った・残っている間は30秒ごと・積んだとき（20秒あとに見る） */
+function _sqKick_(){if(_sqTimer_)return;_sqTimer_=setTimeout(function(){_sqTimer_=null;_sqTick_();},21000);}
+function _sqTick_(){
+  if(typeof token==='undefined'||!token)return;
+  var mine=_sqMine_();if(!mine.length)return;
+  _sqFlush_(function(n){if(n){try{homeCacheRenew_();}catch(e){}}if(_sqMine_().length)_sqKick2_();});
+}
+function _sqKick2_(){if(_sqTimer_)return;_sqTimer_=setTimeout(function(){_sqTimer_=null;_sqTick_();},30000);}
+function _sqMine_(){var cur=_sqSid_();return _sqGet_().filter(function(x){return x&&x.body&&(!x.sid||!cur||x.sid===cur);});}
+try{window.addEventListener('online',function(){setTimeout(_sqTick_,1500);});}catch(e){}
+try{document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(_sqTick_,1500);});}catch(e){}
+try{setInterval(function(){if(_sqMine_().length&&!_sqTimer_)_sqTick_();},30000);}catch(e){}
+/* ログインが通らない＝その場でログインし直してもらう。記録は端末に残してあり、ログインし直すと送る */
+function _sqAuthNeed_(){
+  if(_sqAuthAsked_)return;_sqAuthAsked_=true;
+  var n=_sqMine_().length;
+  try{
+    var m=document.getElementById('sq-auth');if(m)m.remove();
+    m=document.createElement('div');m.id='sq-auth';
+    m.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:20px';
+    m.innerHTML='<div style="background:#fff;color:#111827;border-radius:14px;max-width:380px;width:100%;padding:22px 20px;font-size:15px;line-height:1.8;box-shadow:0 10px 30px rgba(0,0,0,.25)">'
+      +'<div style="font-weight:800;font-size:17px;margin-bottom:6px">ログインし直してください</div>'
+      +'<div>まだサーバーに届いていない<ruby>記録<rt class="uf">きろく</rt></ruby>が <b>'+n+'件</b> あります。<ruby>記録<rt class="uf">きろく</rt></ruby>はこの<ruby>端末<rt class="uf">たんまつ</rt></ruby>に<ruby>残<rt class="uf">のこ</rt></ruby>してあります。ログインし直すと、そのまま<ruby>送<rt class="uf">おく</rt></ruby>ります。</div>'
+      +'<button id="sq-auth-go" style="margin-top:14px;width:100%;border:0;border-radius:10px;background:#0a6cff;color:#fff;font:inherit;font-weight:800;padding:12px">ログインし直す</button></div>';
+    document.body.appendChild(m);
+    document.getElementById('sq-auth-go').onclick=function(){m.remove();_sqAuthAsked_=false;try{doLogout_();}catch(e){location.reload();}};
+  }catch(e){}
+}
+/* 画面の札：「記録：まだ送れていない（n件）」。積んで20秒たっても残っているときだけ出す（ふつうの保存のたびに点滅させない）。
+   消えたら「記録が届きました ✓」を少し出す */
+var _sqBadgeOn_=false;
+function _sqBadge_(){
+  try{
+    if(!document.body)return;
+    var now=Date.now(),mine=_sqMine_(),old=mine.filter(function(x){return x.at<now-20000;});
+    var el=document.getElementById('sq-badge');
+    if(!el){el=document.createElement('div');el.id='sq-badge';el.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:8px;z-index:2147482000;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.18);display:none;cursor:pointer';
+      el.onclick=function(){_sqFlush_(function(n){if(n){try{homeCacheRenew_();}catch(e){}}_sqBadge_();},{all:true});};document.body.appendChild(el);}
+    if(old.length){_sqBadgeOn_=true;el.style.display='block';el.style.background='#fef3c7';el.style.color='#92400e';el.style.border='1.5px solid #f59e0b';
+      el.innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>：まだ<ruby>送<rt class="uf">おく</rt></ruby>れていない（'+old.length+'件）　タップで<ruby>送<rt class="uf">おく</rt></ruby>る';return;}
+    if(_sqBadgeOn_&&!mine.length){_sqBadgeOn_=false;el.style.display='block';el.style.background='#dcfce7';el.style.color='#166534';el.style.border='1.5px solid #22c55e';
+      el.innerHTML='<ruby>記録<rt class="uf">きろく</rt></ruby>が<ruby>届<rt class="uf">とど</rt></ruby>きました ✓';setTimeout(function(){if(!_sqBadgeOn_)el.style.display='none';},2500);return;}
+    if(!mine.length)el.style.display='none';
+  }catch(e){}
+}
+try{setInterval(_sqBadge_,5000);}catch(e){}
+/* 【2026-11-16】端末に残っているぐるぐるの写し（kwtgg_<生徒id>_t_…／_ct_…）とサーバーの記録を照らし合わせる。
+   サーバーに無い回・サーバーのほうが古い回は、端末の写しから送り直す（番匠さんの 11-16 の分のように、届かなかったものを取り戻す）。
+   照らし合わせ済みの印（kwtgg_<id>_sync）に写しの指紋を持ち、変わっていない回はもう見ない */
+function _ggLocalScan_(){
+  var sid=_sqSid_();if(!sid)return [];var pre='kwtgg_'+sid+'_',out=[];
+  try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(!k||k.indexOf(pre)!==0)continue;var rest=k.slice(pre.length);
+    var m=rest.match(/^(t|ct)_([A-Za-z0-9]+?)([A-F][12])$/);if(!m)continue;
+    var st=null;try{st=JSON.parse(localStorage.getItem(k)||'null');}catch(e){}
+    if(!st||!st.ans||!st.ans.length||!st.at)continue;
+    var h=null;try{h=JSON.parse(localStorage.getItem(pre+'h_'+m[2]+m[3])||'null');}catch(e){}
+    out.push({key:k,row:'gg_'+m[2]+'_'+m[3],st:st,h:h});}}catch(e){}
+  return out;
+}
+function _ggFp_(st){return [st.at,st.done?1:0,st.redo?1:0,st.note?1:0,Object.keys(st.seen||{}).length].join('|');}
+function _ggAt_(s){var t=new Date(String(s||''));return isNaN(t.getTime())?0:t.getTime();}
+function _ggReconcile_(){
+  var sid=_sqSid_();if(!sid||typeof token==='undefined'||!token)return;
+  var L=_ggLocalScan_();if(!L.length)return;
+  var SK='kwtgg_'+sid+'_sync',syn={};try{syn=JSON.parse(localStorage.getItem(SK)||'{}')||{};}catch(e){syn={};}
+  var todo=L.filter(function(x){return syn[x.row]!==_ggFp_(x.st);});if(!todo.length)return;
+  /* まだ積んである（送っている最中の）回は見ない */
+  var q={};_sqGet_().forEach(function(x){if(x&&x.body&&/^gg_/.test(String(x.body.action||'')))q[String(x.body.part_id||'')]=1;});
+  todo=todo.filter(function(x){return !q[x.row];});if(!todo.length)return;
+  call({action:'gg_records'}).then(function(d){
+    if(!d||!d.ok||!d.data)return;var R=d.data.records||{},n=0;
+    todo.forEach(function(x){
+      var sv=R[x.row]&&R[x.row].state,ls=x.st,fp=_ggFp_(ls);
+      var lt=_ggAt_(ls.at),stt=sv?_ggAt_(sv.at):0;
+      if(sv&&String(sv.at)===String(ls.at)){
+        var more=(ls.done&&!sv.done)||(ls.redo&&!sv.redo)||(ls.note&&!sv.note)||Object.keys(ls.seen||{}).length>Object.keys(sv.seen||{}).length;
+        if(more){_recCall_({action:'gg_state',part_id:x.row,state:JSON.stringify(ls),recovered:1});n++;}
+      }else if(!sv||lt>stt){
+        var tot=ls.ans.length,hh=(x.h||[]).filter(function(e){return e&&String(e.at)===String(ls.at);})[0];
+        var cc=hh&&hh.got!=null?hh.got:Math.round((Number(ls.got)||0)*tot/100);
+        _recCall_({action:'gg_submit',part_id:x.row,state:JSON.stringify(ls),score:ls.got,correct:cc,total:tot,miss_word_ids:[],miss_no:[],recovered:1,resend:true,send_id:'rc'+sid.slice(0,6)+'_'+x.row+'_'+lt,client_completed_at:(lt?new Date(lt).toISOString():undefined)});n++;
+      }
+      syn[x.row]=fp;
+    });
+    try{localStorage.setItem(SK,JSON.stringify(syn));}catch(e){}
+    if(n){try{_sqKick_();}catch(e){}}
+  });
 }
 function _resumeSave_(s,idx,step,ov){
   if(!s||s.mode!=='daily')return;
