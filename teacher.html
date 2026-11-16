@@ -5823,6 +5823,8 @@ function sdGgBlock_(s){
 /* 2026-11-16 BB（川上さん「何問中何問正解とどんな問題を間違えたかが出せれば」）：ぐるぐるの回ごとの点とまちがえた問題。
    材料＝quiz_board（student_id で絞った返事）の行のうち part_id が gg_ で始まるもの。missed_words＝提出のとき送ったまちがえた問題（id・番号 no・問題文 q）。
    端末の写しから取り戻した記録（recovered）は、まちがえた問題の id を持たない＝「記録なし」と出す */
+function _ggQ_(t){t=String(t||'');for(var i=0;i<3;i++)t=t.replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g,'$1/$2');
+  return t.replace(/<br\s*\/?>/gi,' ').replace(/\\times/g,'×').replace(/\\div/g,'÷').replace(/\\lt/g,'<').replace(/\\gt/g,'>').replace(/\\le(q)?/g,'≦').replace(/\\ge(q)?/g,'≧').replace(/\\pm/g,'±').replace(/\\sqrt\{([^{}]*)\}/g,'√$1').replace(/\^2/g,'²').replace(/\^3/g,'³').replace(/\\[,;! ]/g,' ').replace(/\\[a-zA-Z]+/g,'').replace(/[{}]/g,'').replace(/\s+/g,' ').trim();}
 function _ggRoundName_(pid){var m=String(pid).match(/^gg_(.+)_([A-F][12])$/);return m?m[2].replace(/([A-F])([12])/,'$1-$2'):pid;}
 function _ggFill_(list){
   var by={};(list||[]).forEach(function(e){(by[String(e.material_id)]=by[String(e.material_id)]||[]).push(e);});
@@ -5831,8 +5833,8 @@ function _ggFill_(list){
     if(!L.length){sl.innerHTML='<div class="t-sub" style="margin:2px 0 8px">まだ1回も届いていません</div>';return;}
     sl.innerHTML='<table class="sd2-tbl ab-tbl" style="margin-bottom:10px"><thead><tr><th>回</th><th>正解</th><th>日付</th><th>まちがえた問題</th></tr></thead><tbody>'
       +L.map(function(e){var c=e.correct_count,t=e.total_count,mw=(e.missed_words||[]).slice().sort(function(a,b){return (a.no||0)-(b.no||0);});
-        var mtxt=mw.length?mw.map(function(w){return '<div>('+esc(String(w.no||'?'))+') '+esc(w.q||w.en||w.ja||'')+'</div>';}).join(''):((c!=null&&t!=null&&c<t)?'<span class="t-sub">記録なし</span>':'なし');
-        return '<tr><td class="nm">'+esc(e.part_title||'')+' <b>'+esc(_ggRoundName_(e.part_id))+'</b>'+(e.attempt_count>1?' <span class="t-sub">'+e.attempt_count+'回目</span>':'')+'</td><td class="num"><b>'+(c==null?'-':c)+'</b> / '+(t==null?'-':t)+'問</td><td class="mt">'+esc(e.last_date||'')+'</td><td style="font-size:12.5px;line-height:1.6">'+mtxt+'</td></tr>';}).join('')
+        var mtxt=mw.length?mw.map(function(w){return '<div>('+esc(String(w.no||'?'))+') '+esc(_ggQ_(w.q||w.en||w.ja||''))+'</div>';}).join(''):((c!=null&&t!=null&&c<t)?'<span class="t-sub">記録なし</span>':'なし');
+        return '<tr><td class="nm">'+esc(e.part_title||_ggRoundName_(e.part_id))+(e.attempt_count>1?' <span class="t-sub">'+e.attempt_count+'回目</span>':'')+'</td><td class="num"><b>'+(c==null?'-':c)+'</b> / '+(t==null?'-':t)+'問</td><td class="mt">'+esc(e.last_date||'')+'</td><td style="font-size:12.5px;line-height:1.6">'+mtxt+'</td></tr>';}).join('')
       +'</tbody></table>';
   });
 }
