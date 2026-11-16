@@ -3022,7 +3022,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-16a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-17a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -10724,6 +10724,27 @@ function _sqTick_(){
 function _sqKick2_(){if(_sqTimer_)return;_sqTimer_=setTimeout(function(){_sqTimer_=null;_sqTick_();},30000);}
 function _sqMine_(){var cur=_sqSid_();return _sqGet_().filter(function(x){return x&&x.body&&(!x.sid||!cur||x.sid===cur);});}
 try{window.addEventListener('online',function(){setTimeout(_sqTick_,1500);});}catch(e){}
+/* 【2026-11-17 川上さん「ア」】画面を閉じた・アプリを切りかえた瞬間に、残っている記録を sendBeacon で送る。
+   sendBeacon はページが閉じても送信だけは最後まで続く。返事は受け取れないので端末からは消さない
+   （次に開いたときの送り直しで ok か duplicate を確かめてから消す。同じ send_id なのでサーバーで二重にならない）。
+   1件の同じ記録を60秒に1回まで・1回に合わせて60KB まで（ブラウザの上限 64KB の手前） */
+var _sqBcAt_={};
+function _sqBeacon_(){
+  try{
+    if(typeof navigator==='undefined'||!navigator.sendBeacon||typeof token==='undefined'||!token)return;
+    var cur=_sqSid_(),now=Date.now(),used=0;
+    _sqGet_().forEach(function(it){
+      if(!it||!it.body)return;if(it.sid&&cur&&it.sid!==cur)return;if(it.sid&&!cur)return;
+      if(_sqBcAt_[it.id]&&now-_sqBcAt_[it.id]<60000)return;
+      var b={};for(var k in it.body){if(Object.prototype.hasOwnProperty.call(it.body,k))b[k]=it.body[k];}
+      b.resend=true;if(it.sid&&it.sid===cur)b.token=token;
+      var js=JSON.stringify(b);if(used+js.length>60000)return;
+      try{if(navigator.sendBeacon(GAS_URL,new Blob([js],{type:'text/plain;charset=UTF-8'}))){used+=js.length;_sqBcAt_[it.id]=now;}}catch(e){}
+    });
+  }catch(e){}
+}
+try{window.addEventListener('pagehide',_sqBeacon_);}catch(e){}
+try{document.addEventListener('visibilitychange',function(){if(document.hidden)_sqBeacon_();});}catch(e){}
 try{document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(_sqTick_,1500);});}catch(e){}
 try{setInterval(function(){if(_sqMine_().length&&!_sqTimer_)_sqTick_();},30000);}catch(e){}
 /* ログインが通らない＝その場でログインし直してもらう。記録は端末に残してあり、ログインし直すと送る */
