@@ -2289,7 +2289,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
 .rd-para .rdx-s{padding:2px 1px}
 .rd-w{border-bottom:1px dotted var(--sub);border-radius:0}
 .rd-note{font-size:12px;color:var(--sub);margin:-2px 0 8px}
-.rd-tag{display:inline-block;font-size:12px;padding:1px 9px;border-radius:10px;background:var(--accent-soft);color:var(--accent);font-weight:700;margin:2px 0 4px}
+.rd-kind{display:none!important} /* 2026-11-18 読解の問題の上の札のうち「語句チェック」だけ出さない（上の帯「語句チェック 1/3」と重なる）。「内容をつかむ質問」「英検と同じ形の質問」は見分けるのに要るので出す（02:26 川上さん Aア）。並べかえの操作の案内（.ro-hint）はほかに書いてある所が無いので残す（01:39 川上さん） */ .rd-tag{display:inline-block;font-size:12px;padding:1px 9px;border-radius:10px;background:var(--accent-soft);color:var(--accent);font-weight:700;margin:2px 0 4px}
 .rd-q{font-weight:700;font-size:16px;margin:2px 0 8px;text-align:left}
 .rd-qja{font-size:13px;color:var(--sub);margin:-4px 0 8px;text-align:left}
 .choice.rd-ch{flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;font-size:15.5px;padding:12px 14px;margin-bottom:8px}
@@ -3023,7 +3023,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-18a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-18b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -9516,7 +9516,7 @@ function renderRD_(s,w,q,pl){
   if(_rdpNeed_(s,w,q,pl)){ _rdpShow_(s,w,q,pl,function(){ if(s.words[s.idx]===w)renderRD_(s,w,q,pl); }); return; }   /* 読むページ（3-78） */
   var locs=_rdLocs_(q),tg=(q.tg==null||q.tg==='')?-99:+q.tg,gl=(_RD_TAP_(s,w,q)&&pl.gloss)?pl.gloss:null;
   var qh=function(after){
-    return '<span class="rd-tag">'+(String(pl.kind||'')==='語句'?_jaRubyIf_('語句チェック'):(rc?_jaRubyIf_('内容をつかむ質問'):_jaRubyIf_('英検と同じ形の質問')))+'</span>'
+    return '<span class="rd-tag'+(String(pl.kind||'')==='語句'?' rd-kind':'')+'">'+(String(pl.kind||'')==='語句'?_jaRubyIf_('語句チェック'):(rc?_jaRubyIf_('内容をつかむ質問'):_jaRubyIf_('英検と同じ形の質問')))+'</span>'
       +'<div class="rd-q">'+(rc?_jaRubyIf_(String(q.q||w.japanese||'')):esc(String(q.q||w.japanese||'')))+'</div>'
       +(after&&!rc&&q.q_ja?'<div class="rd-qja">'+_jaRubyIf_(String(q.q_ja))+'</div>':'');
   };
@@ -10169,7 +10169,7 @@ function renderLX_(s,w,q,pl){
         return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+_whoC_(l.sp)+'">'+_whoT_(l.sp)+'</span>'+(q.show_line?'<span class="lx-en">'+esc(String(l.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div>';
       }).join('')
       +'<div class="lx-bub" id="lx-lqq"><span class="lx-who q">Q</span>'+(q.show_line?'<span class="lx-en">'+esc(String(qq.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div></div>'
-      ;   /* 2026-11-18 「答え 質問が終わったら…」の札は外した */
+      +'<div class="kw-sec pick"><span class="kw-secl pick"><ruby>答<rt class="uf">こた</rt></ruby>え</span><span class="kw-secn"><ruby>質問<rt class="uf">しつもん</rt></ruby>が<ruby>終<rt class="uf">お</rt></ruby>わったら、<ruby>合<rt class="uf">あ</rt></ruby>うものを<ruby>選<rt class="uf">えら</rt></ruby>ぶ</span></div>';   /* 2026-11-18 02:26 川上さん Bア：いつ押せるかの知らせなので残す（ボタンは質問が終わるまで押せない） */
   }else{
     h='<div class="lx-pic"><img src="'+esc(String(pl.img||''))+'" alt="" onerror="this.parentNode.classList.add(\'noimg\');this.style.display=\'none\';"></div>';
   }
