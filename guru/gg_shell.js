@@ -48,6 +48,8 @@ var CSS_GK='.qchw.gkct>.nchap{background:#fdf6e3;border-left:4px solid #b8860b;b
  +'.gkp.c{border:1.5px solid #b8860b;color:#7a5a00}.gkp.c>i{color:#e0b84a}.gkp.n{border:1.5px solid #0f766e;color:#0b5a53}.gkp.n>i{color:#7fd6c9}'
  +'.qchw.gkct>.nchap>.ncf-nm,.qchw.gkny>.nchap>.ncf-nm{margin-left:8px}.gkn{display:block;position:relative}.gkn>.imps{position:absolute;left:-1.05em;top:.1em;width:1.05em;font-size:.85em;line-height:1.53;color:#c2410c}:host([data-dk]) .gkn>.imps{color:#fb923c}'
  +':host([data-dk]) .qchw.gkct>.nchap{background:rgba(212,160,23,.13);border-left-color:#d4a017}:host([data-dk]) .qchw.gkny>.nchap{background:rgba(45,212,191,.11);border-left-color:#2dd4bf}'
+ +'.qchw.gkkw>.nchap{background:#fdf2f8;border-left:4px solid #db2777;border-radius:0 10px 10px 0}.qchw.gkkw>.nchap>.ncf-nm{margin-left:8px}.gkp.k{border:1.5px solid #db2777;color:#9d174d}.gkp.k>i{color:#f9a8d4}'
+ +':host([data-dk]) .qchw.gkkw>.nchap{background:rgba(219,39,119,.13);border-left-color:#f472b6}:host([data-dk]) .gkp.k{border-color:#f472b6;color:#fbcfe8}'
  +':host([data-dk]) .gkp{background:transparent}:host([data-dk]) .gkp>i{background:#0f172a}:host([data-dk]) .gkp.c{border-color:#d4a017;color:#f3d27a}:host([data-dk]) .gkp.n{border-color:#2dd4bf;color:#99f6e4}';
 var CSS_IMP='.ncf-nm{position:relative;padding-left:1.05em}.ncf-nm>.imps{position:absolute;left:0;top:.1em;width:1.05em;font-size:.85em;line-height:1.53;color:#c2410c}'
  +':host([data-dk]) .ncf-nm>.imps{color:#fb923c}.imp{color:#c2410c;font-size:.85em;margin-right:3px;vertical-align:1px}:host([data-dk]) .imp{color:#fb923c}'
@@ -78,7 +80,7 @@ window.ggShellMount=function(root,GG,opt){
  /* 2026-11-03 ぐるぐる 重要マーク ◆：行の左はしの場所（◆ の無い行も同じ幅を空ける）・見出しの ◆・ggMount の影に CSS を足す */
  const IMPS=on=>'<span class="imps"'+(on?' aria-label="重要マーク">\u25c6':'>')+'</span>';
  const GKSV=d=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';
- const GKP_C='<span class="gkp c"><i>'+GKSV('M8 21h8M12 17v4M7 4h10M17 4v8a5 5 0 0 1-10 0V4M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0')+'</i>章まとめテスト</span>',GKP_N='<span class="gkp n"><i>'+GKSV('M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0')+'</i>入試パターン</span>';   /* 2026-11-15 章まとめテスト＝トロフィー（英検のまとめテストと同じ）・入試パターン＝的 */
+ const GKP_C='<span class="gkp c"><i>'+GKSV('M8 21h8M12 17v4M7 4h10M17 4v8a5 5 0 0 1-10 0V4M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0')+'</i>章まとめテスト</span>',GKP_N='<span class="gkp n"><i>'+GKSV('M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0')+'</i>入試パターン</span>',GKP_K='<span class="gkp k"><i>'+GKSV('M21 14l-3 -3h-7a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1h9a1 1 0 0 1 1 1v10M14 15v2a1 1 0 0 1 -1 1h-7l-3 3v-10a1 1 0 0 1 1 -1h2')+'</i>会話表現</span>';   /* 2026-11-17 ぐるぐる英語の会話表現のパート＝ローズの帯・吹き出しの札（決まり A11） */   /* 2026-11-15 章まとめテスト＝トロフィー（英検のまとめテストと同じ）・入試パターン＝的 */
  const IMP=on=>on?'<span class="imp" aria-label="重要マーク">\u25c6</span>':'';
  const appImp=(host,on,k)=>{if(!on||!host||!host.shadowRoot)return;host.setAttribute('data-imp',k);const st=document.createElement('style');st.textContent=CSS_APP_IMP;host.shadowRoot.appendChild(st);};
  const RS=['A1','A2','B1','B2','C1','C2'];
@@ -111,7 +113,7 @@ window.ggShellMount=function(root,GG,opt){
  const NY_=id=>(GG.ny||[]).find(q=>q.id===id)||null;
  const NYAFT=q=>{const h=q&&q.after?HD(q.after):null;return h?h.unit+' '+h.maru:'';};
  function HD(id){const q=NY_(id);if(q){const nm=NMS(q.name);return {subj:SJ_(q),grade:q.grade,unit:'入試パターン',k:0,n:0,maru:'',main:nm.main,sub:nm.sub,name:q.name,ny:true,aft:NYAFT(q)};}
-  for(const u of GG.units){const k=u.parts.findIndex(x=>x.id===id);if(k>=0){const x=u.parts[k],nm=NMS(x.name);return {subj:SJ_(u),grade:u.grade,unit:u.unit,k:k+1,n:u.parts.length,maru:MARU[k]||'('+(k+1)+')',main:nm.main,sub:nm.sub,name:x.name,imp:!!x.imp};}}return null;}
+  for(const u of GG.units){const k=u.parts.findIndex(x=>x.id===id);if(k>=0){const x=u.parts[k],nm=NMS(x.name),kg=u.parts.slice(0,k).filter(y=>!y.kaiwa).length;return {subj:SJ_(u),grade:u.grade,unit:u.unit,k:k+1,n:u.parts.length,maru:x.kaiwa?' 会話表現':(MARU[kg]||'('+(kg+1)+')'),main:nm.main,sub:nm.sub,name:x.name,imp:!!x.imp,kaiwa:!!x.kaiwa};}}return null;}
  const CALL=(id,R)=>{const h=HD(id);return h?(h.ny?'入試パターン '+h.main:h.unit+h.maru)+(R?' '+RD(R):''):RD(R);};
  const MARU_='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';
  function HDBLK(id,kick){const h=HD(id);if(!h)return '';if(h.ny)return `<div class="hdk">${h.grade}${SJN[h.subj]||'数学'}　ぐるぐる${kick||''}</div><div class="hdt"><span class="tg" style="font-size:14px;vertical-align:5px">入試</span>${h.main}</div>${h.sub?`<div class="hds"><small>${h.sub}</small></div>`:''}<div class="hdk">${h.aft} が終わったら挑戦</div>`;const dots=Array.from({length:h.n},(_,i)=>`<span class="${i+1===h.k?'on':''}">${i+1}</span>`).join('');
@@ -144,7 +146,7 @@ window.ggShellMount=function(root,GG,opt){
  const IC={go:SV('<path d="M5 12l14 0"/><path d="M13 18l6 -6"/><path d="M13 6l6 6"/>'),dn:SV('<path d="M6 9l6 6l6 -6"/>'),ok:SV('<path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M9 12l2 2l4 -4"/>'),
   play:SV('<path d="M7 4v16l13 -8z"/>'),ck:SV('<path d="M5 12l5 5l10 -10"/>'),pen:SV('<path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"/>'),book:SV('<path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6l0 13"/><path d="M12 6l0 13"/><path d="M21 6l0 13"/>')};
  /* 本＝単元（単元表の単元・パートの名前と順）。問題のそろったパートだけ ready。章まとめテストは ukey が本の key と同じもの */
- function BOOKS(){return GG.units.map(u=>{const parts=u.parts.map(x=>({id:x.id,no:x.no,name:x.name,ready:!!x.ready&&!!P_(x.id),cu:x.cu,pre:x.pre,imp:!!x.imp}));
+ function BOOKS(){return GG.units.map(u=>{const parts=u.parts.map(x=>({id:x.id,no:x.no,name:x.name,ready:!!x.ready&&!!P_(x.id),cu:x.cu,pre:x.pre,imp:!!x.imp,kaiwa:!!x.kaiwa}));
    return {key:u.key,subj:SJ_(u),grade:u.grade,unit:u.unit,ui:u.ui,lin:parts.some(p=>p.ready),cts:(GG.cts||[]).filter(c=>c.ukey===u.key),parts};});}
  const OPEN={get(k){return LS.get('open_'+k);},set(k,v){LS.set('open_'+k,v);}};
  /* 学年のタブ：その子の学年が最初。押せるのは opt.grades（省くとデータにある学年）。プレビューは全部 */
@@ -155,7 +157,9 @@ window.ggShellMount=function(root,GG,opt){
   if(st.k==='fx')return `<span class="utag warn">${IC.pen}${pt} ・ 解き直しの途中</span>`;return `<span class="utag done">${IC.ck}できた ${pt}</span>`;}
  const DOTS=(on,cl,lb)=>`<div class="dprog-dots ${cl||''}${lb?' lb':''}" aria-label="${on.length}回のうち できた回 ${on.filter(Boolean).length}">${on.map((o,i)=>`<i class="${o?'on':''}">${lb?RD(lb[i]):''}</i>`).join('')}</div>`;   /* lb＝回の名前（2026-11-15） */
  const hasR=(id,R)=>{const p=P_(id);return !p||!p.rs||p.rs.includes(R);};   /* 2026-11-03 ぐるぐる英語：表紙の行の rs に無い回はまだ無い */
- function guruRow(id,ttl,oc,cls){const st=RS.map(R=>rState(id,R)),on=st.map(x=>x.k==='done'),all=on.every(Boolean),nx=RS.find((R,i)=>!on[i]&&hasR(id,R))||RS.find(R=>hasR(id,R));
+ const RS_ALL=RS;
+ function guruRow(id,ttl,oc,cls){const RS=(P_(id)&&P_(id).kaiwa)?RS_ALL.slice(0,4):RS_ALL;   /* 2026-11-17 会話表現のパートは A-1〜B-2 の4回（決まり A11） */
+  const st=RS.map(R=>rState(id,R)),on=st.map(x=>x.k==='done'),all=on.every(Boolean),nx=RS.find((R,i)=>!on[i]&&hasR(id,R))||RS.find(R=>hasR(id,R));
   const row=(R,i)=>!hasR(id,R)?`<div class="nqp" style="cursor:default;opacity:.55"><div class="nqp-nm"><span class="rn ${/2$/.test(R)?'r2':'r1'}">${RD(R)}</span></div><span class="ncf-soon">準備中</span></div>`:`<div class="nqp ${VIEW==='ws'&&SEL===id&&CUR_R===R?'on':''}" data-p="${id}" data-r="${R}"><div class="nqp-nm"><span class="rn ${/2$/.test(R)?'r2':'r1'}">${RD(R)}</span></div>${guruTag(st[i],id)}${st[i].k==='done'?'':`<span class="ncf-go">${IC.go}</span>`}</div>`;
   return `<div class="qchw ${cls||''} ${oc.includes(id)?'open':''}" data-ch="${id}"><div class="nchap" data-tg="${id}"><div class="ncf-nm">${ttl}${DOTS(on,'',RS)}</div>${all?`<span class="ncf-done">${IC.ok}</span>`:`<span class="ncf-go" data-go1="${id}" data-gor="${nx}" title="${RD(nx)} を解く">${IC.go}</span>`}<span class="ncf-arw">${IC.dn}</span></div>`
    +`<div class="nqparts">${RS.map(row).join('')}</div></div>`;}
@@ -184,12 +188,12 @@ window.ggShellMount=function(root,GG,opt){
     const fin=rdy.filter(p=>['A1','A2'].every(R=>rState(p.id,R).k==='done')).length;
     const meta=[b.cts.length?'章まとめテスト '+b.cts.map(c=>c.kind).join('・'):'',b.lin?`A-1・A-2 まで終わったパート ${fin} / ${rdy.length}`:'問題はまだ'].filter(Boolean).join('<br>');
     let rows='';
-    b.parts.forEach((p,pi)=>{const x=NMS(p.name),mr=IMPS(p.imp)+`<span class="mr">${b.unit} ${MARU[pi]||'('+p.no+')'}</span>`;
-     if(p.ready)rows+=guruRow(p.id,mr+x.main+(x.sub?`<small>${x.sub}</small>`:''),oc);
+    b.parts.forEach((p,pi)=>{const x=NMS(p.name),kg=b.parts.slice(0,pi).filter(y=>!y.kaiwa).length,mr=p.kaiwa?GKP_K+IMPS(p.imp):IMPS(p.imp)+`<span class="mr">${b.unit} ${MARU[kg]||'('+p.no+')'}</span>`;
+     if(p.ready)rows+=guruRow(p.id,mr+(p.kaiwa?`<span class="gkn">${x.main}</span>`:x.main)+(x.sub?`<small>${x.sub}</small>`:''),oc,p.kaiwa?'gkkw':'');
      else rows+=soonRow(mr+x.main+(x.sub?`<small>${x.sub}</small>`:''),`data-s="${p.id}"`,VIEW==='struct'&&SEL===p.id,b.subj==='en'?'問題はまだ':'ぐるぐるの型だけ（問題はまだ）');
      NY.filter(q=>q.after===p.id).forEach(q=>{rows+=nyRow(q,oc,'all');});
      b.cts.filter(c=>c.after===p.id).forEach(c=>{rows+=ctLeftRow(c,oc);});});
-    h+=`<div class="nbook ${b.lin?'':'soon'} ${ob.includes(b.key)?'open':''}" data-bk="${b.key}"><div class="nbook-head"><div class="nbk-ic">${IC.book}</div><div class="nbk-body"><div class="nbk-nm">${b.unit}${b.parts.length>1?`<span class="nbk-n">${b.parts.length===2?MARU_[0]+MARU_[1]:MARU_[0]+'〜'+MARU_[b.parts.length-1]}</span>`:''}</div><div class="nbk-meta">${meta}</div>${b.lin?`<div class="nbk-bar"><i style="width:${rdy.length?Math.round(fin/rdy.length*100):0}%"></i></div>`:''}</div><span class="nbk-arw">${IC.dn}</span></div><div class="nbk-detail">${rows}</div></div>`;});}
+    h+=`<div class="nbook ${b.lin?'':'soon'} ${ob.includes(b.key)?'open':''}" data-bk="${b.key}"><div class="nbook-head"><div class="nbk-ic">${IC.book}</div><div class="nbk-body"><div class="nbk-nm">${b.unit}${(()=>{const n=b.parts.filter(p=>!p.kaiwa).length;return n>1?`<span class="nbk-n">${n===2?MARU_[0]+MARU_[1]:MARU_[0]+'〜'+MARU_[n-1]}</span>`:'';})()}</div><div class="nbk-meta">${meta}</div>${b.lin?`<div class="nbk-bar"><i style="width:${rdy.length?Math.round(fin/rdy.length*100):0}%"></i></div>`:''}</div><span class="nbk-arw">${IC.dn}</span></div><div class="nbk-detail">${rows}</div></div>`;});}
   L.innerHTML=h;
   const tg=(k,v)=>{const a=OPEN.get(k)||(k==='bk'?DEF_BK():DEF_CH());const i=a.indexOf(v);if(i<0)a.push(v);else a.splice(i,1);OPEN.set(k,a);};
   L.querySelectorAll('[data-gr]').forEach(x=>x.onclick=()=>{GR=x.dataset.gr;LS.set('grade',GR);drawLeft();L.scrollTop=0;});

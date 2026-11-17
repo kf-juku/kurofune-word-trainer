@@ -3022,7 +3022,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-16a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-17b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5892,7 +5892,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261115f',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261117a',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -5988,7 +5988,8 @@ function openEikenMt_(rid,xo){
   }).catch(function(e){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';try{console.log(e);}catch(e2){}});
 }
 /* ===== ぐるぐるのタブ（2026-11-15 川上さん 03:12「ワークシートと差し替え」・03:15「Aイ Bア」）=====
-   一覧＝割り当て（student_materials の type='guruguru'）のある数学のぐるぐるの教材。英語のぐるぐるは出さない（Bア）。割り当ては先生が出す（Aイ＝自動では出さない）
+   一覧＝割り当て（student_materials の type='guruguru'）のあるぐるぐるの教材。割り当ては先生が出す（Aイ＝自動では出さない）
+   2026-11-17 川上さん 12:51「英語も実機で確認したい。ぐるぐるタブをクリックしたら教科を選ぶ」：一覧は 教科×学年 の本（中1数学 ぐるぐる・中1英語 ぐるぐる）。押した本の教科で開く（ggShellMount の subject。両方の教科の割り当てがあれば、中の一覧の見出しの［数学｜英語］でも切りかえられる）。11-15 の「英語は出さない（Bア）」はこれで取りやめ
    開く＝全画面（#ws-ov）に ggShellMount（gg_shell.js）。左の一覧で単元・パート・回・入試パターン・章まとめテストを選ぶ。問題は開いたときに gg_unit_part で読む
    記録＝ggRecBridge（gg_shell.js）→ GAS の gg_submit・gg_state・gg_records（スクリプト プロパティ kwt_gg_record が '1' のときだけ受け付ける）。端末の記録の名前の頭＝kwtgg_<生徒id>_ */
 var _ggOn=false,_ggB=null,_ggRec=null;
@@ -6000,24 +6001,27 @@ var _ggRecP=null;
 function _ggRecGet_(fresh){if(fresh||!_ggRecP){_ggRecP=call({action:'gg_records'}).then(function(d){if(!d||!d.ok)_ggRecP=null;return d;},function(e){_ggRecP=null;throw e;});}return _ggRecP;}
 function _ggPrefetch_(){setTimeout(function(){try{_ggLoadLibs_().catch(function(){});_ggRecGet_(false).catch(function(){});}catch(e){}},1500);}
 function _ggUnitGet_(fresh){if(fresh||!_ggUnitP){_ggUnitP=call({action:'gg_unit'}).then(function(d){if(!d||!d.ok)_ggUnitP=null;return d;},function(e){_ggUnitP=null;throw e;});}return _ggUnitP;}
-function _ggMathOnly_(D){var mats=((D&&D.materials)||[]).filter(function(m){return String(m.content_type||'guruguru')==='guruguru'&&String(m.subject||'')!=='english'&&!/英語|英作文/.test(String(m.title||''));}),want={};
+function _ggSj_(m){return (String((m&&m.subject)||'')==='english'||/英語|英作文/.test(String((m&&m.title)||'')))?'english':'math';}   /* 2026-11-17 教科 */
+function _ggMathOnly_(D){return _ggPick_(D,'math');}
+function _ggPick_(D,sj){var mats=((D&&D.materials)||[]).filter(function(m){return String(m.content_type||'guruguru')==='guruguru'&&(!sj||_ggSj_(m)===sj);}),want={};
   mats.forEach(function(m){want[String(m.id)]=1;});return {materials:mats,parts:((D&&D.parts)||[]).filter(function(p){return want[String(p.material_id)];})};}
 function renderGgZone_(materials){
   var host=$('ws-list');if(!host)return;
   _ggUnitGet_(false).then(function(d){
     if(_netNG_(d)){if(!host.querySelector('.nbook'))host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';return;}
-    var M=_ggMathOnly_(d.data).materials,G={},order=[];
-    M.forEach(function(m){var g=String(m.grade||'');if(!G[g]){G[g]=[];order.push(g);}G[g].push(m);});
-    order.sort();_navEmptySet_('ws',!M.length);if(M.length)_ggPrefetch_();
+    var M=_ggPick_(d.data,null).materials,G={},order=[];
+    M.forEach(function(m){var g=_ggSj_(m)+'|'+String(m.grade||'');if(!G[g]){G[g]=[];order.push(g);}G[g].push(m);});
+    order.sort(function(a,b){var sa=a.split('|'),sb=b.split('|');return sa[0]!==sb[0]?(sa[0]==='math'?-1:1):(sa[1]<sb[1]?-1:sa[1]>sb[1]?1:0);});   /* 2026-11-17 数学の本 → 英語の本。教科の中は学年の順 */_navEmptySet_('ws',!M.length);if(M.length)_ggPrefetch_();
     if(!M.length){host.innerHTML='<div class="empty-note"><i class="ti ti-infinity"></i><div>'+_nvRuby_('今(いま)はぐるぐるがありません。',true)+'<br>'+_nvRuby_('先生(せんせい)がぐるぐるを出(だ)すと、ここに並(なら)びます。',true)+'</div></div>';return;}
     host.innerHTML='';
-    order.forEach(function(g){
+    order.forEach(function(key){
+      var sj=key.split('|')[0],g=key.split('|')[1],nm=g+subjLabel(sj)+' ぐるぐる';
       var book=document.createElement('div');book.className='nbook unitbook wsbook';
-      book.innerHTML='<div class="nbook-head" role="button" tabindex="0"><div class="nbk-ic"><i class="ti '+subjIcon_('math')+'"></i></div>'
-        +'<div class="nbk-body"><div class="nbk-nm">'+esc(g+'数学 ぐるぐる')+'</div>'
-        +'<div class="nbk-meta"><span class="nbk-subj">'+esc(subjLabel('math'))+'</span> <span class="ws-tag"><i class="ti ti-infinity"></i>ぐるぐる</span> <span class="nbk-rate">'+G[g].length+_nvRuby_('単元(たんげん)',true)+'</span></div>'
+      book.innerHTML='<div class="nbook-head" role="button" tabindex="0"><div class="nbk-ic"><i class="ti '+subjIcon_(sj)+'"></i></div>'
+        +'<div class="nbk-body"><div class="nbk-nm">'+esc(nm)+'</div>'
+        +'<div class="nbk-meta"><span class="nbk-subj">'+esc(subjLabel(sj))+'</span> <span class="ws-tag"><i class="ti ti-infinity"></i>ぐるぐる</span> <span class="nbk-rate">'+G[key].length+_nvRuby_('単元(たんげん)',true)+'</span></div>'
         +'</div><span class="ncf-go"><i class="ti ti-arrow-right"></i></span></div>';
-      book.querySelector('.nbook-head').onclick=function(){openGg_(String(G[g][0].id),g+'数学 ぐるぐる');};
+      book.querySelector('.nbook-head').onclick=function(){openGg_(String(G[key][0].id),nm,{subj:sj});};
       host.appendChild(book);
     });
   }).catch(function(){if(!host.querySelector('.nbook'))host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';});
@@ -6032,17 +6036,17 @@ function openGg_(mid,title,xo){   /* xo.startPid＝開く行（紙の QR から�
     if(!_ggOn)return;
     var d=r[1],dr=r[2];
     if(!d||!d.ok||!d.data){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+(d&&d.error?esc(d.error):_NET_NG_MSG_)+'</div></div>';return;}
-    var MO=_ggMathOnly_(d.data),mats=MO.materials,parts=MO.parts;
+    var MO=_ggPick_(d.data,null),mats=MO.materials,parts=MO.parts;   /* 2026-11-17 両方の教科を渡す（中の見出しで切りかえられる）。開く教科は下の subject */
     _ggRec=(dr&&dr.ok&&dr.data&&dr.data.records)||{};
     /* 記録を受け付けていない（kwt_gg_record が '1' でない）ときの gg_records は英検のまとめテストの記録を返す（移行の間）。mt- の行は捨てる */
     Object.keys(_ggRec).forEach(function(k){if(!/^gg_/.test(k))delete _ggRec[k];});
     _ggB=window.ggRecBridge(_recCall_,_ggRec);   /* 2026-11-15 提出は端末にためてから送る（_recCall_） */
     var GG=ggBuildData({materials:mats,parts:parts,words:[]},{lazy:true});
     host.innerHTML='';var root=document.createElement('div');root.className='gg-root';root.style.position='relative';host.appendChild(root);
-    var me=String(mid||''),g0='';mats.forEach(function(m){if(String(m.id)===me)g0=String(m.grade||'');});
+    var me=String(mid||''),g0='',sj0=(xo&&xo.subj)||'';mats.forEach(function(m){if(String(m.id)===me){g0=String(m.grade||'');if(!sj0)sj0=_ggSj_(m);}});
     if(!g0)g0=(GG.units[0]&&GG.units[0].grade)||'';
     var sid='';try{sid=localStorage.getItem('kwt_sid')||'';}catch(e){}
-    _ggApi=ggShellMount(root,GG,{katexCss:'ws/katex/katex.min.css',dark:_wsDark_(),grade:g0,imgBase:'guru/',libV:GG_LIB_V,subject:'ma',keyPrefix:'kwtgg_'+(sid||'anon')+'_',
+    _ggApi=ggShellMount(root,GG,{katexCss:'ws/katex/katex.min.css',dark:_wsDark_(),grade:g0,imgBase:'guru/',libV:GG_LIB_V,subject:sj0==='english'?'en':'ma',audioBase:'',keyPrefix:'kwtgg_'+(sid||'anon')+'_',
       tstateOf:_ggB.tstateOf,onRecord:function(ev){_wsSent++;return _ggB.onRecord(ev);},
       resFx:function(lv){_wsResFx_(lv);},ctFx:function(lv){_wsResFx_(lv);},onClose:function(){closeWs_();},
       loadParts:function(ids,o){return call({action:'gg_unit_part',part_ids:ids,backs:(o&&o.backs===false)?'':'1'}).then(function(x){if(!x||!x.ok)throw new Error((x&&x.error)||'問題を読めませんでした');return (x.data&&x.data.words)||[];});}});
@@ -10724,6 +10728,27 @@ function _sqTick_(){
 function _sqKick2_(){if(_sqTimer_)return;_sqTimer_=setTimeout(function(){_sqTimer_=null;_sqTick_();},30000);}
 function _sqMine_(){var cur=_sqSid_();return _sqGet_().filter(function(x){return x&&x.body&&(!x.sid||!cur||x.sid===cur);});}
 try{window.addEventListener('online',function(){setTimeout(_sqTick_,1500);});}catch(e){}
+/* 【2026-11-17 川上さん「ア」】画面を閉じた・アプリを切りかえた瞬間に、残っている記録を sendBeacon で送る。
+   sendBeacon はページが閉じても送信だけは最後まで続く。返事は受け取れないので端末からは消さない
+   （次に開いたときの送り直しで ok か duplicate を確かめてから消す。同じ send_id なのでサーバーで二重にならない）。
+   1件の同じ記録を60秒に1回まで・1回に合わせて60KB まで（ブラウザの上限 64KB の手前） */
+var _sqBcAt_={};
+function _sqBeacon_(){
+  try{
+    if(typeof navigator==='undefined'||!navigator.sendBeacon||typeof token==='undefined'||!token)return;
+    var cur=_sqSid_(),now=Date.now(),used=0;
+    _sqGet_().forEach(function(it){
+      if(!it||!it.body)return;if(it.sid&&cur&&it.sid!==cur)return;if(it.sid&&!cur)return;
+      if(_sqBcAt_[it.id]&&now-_sqBcAt_[it.id]<60000)return;
+      var b={};for(var k in it.body){if(Object.prototype.hasOwnProperty.call(it.body,k))b[k]=it.body[k];}
+      b.resend=true;if(it.sid&&it.sid===cur)b.token=token;
+      var js=JSON.stringify(b);if(used+js.length>60000)return;
+      try{if(navigator.sendBeacon(GAS_URL,new Blob([js],{type:'text/plain;charset=UTF-8'}))){used+=js.length;_sqBcAt_[it.id]=now;}}catch(e){}
+    });
+  }catch(e){}
+}
+try{window.addEventListener('pagehide',_sqBeacon_);}catch(e){}
+try{document.addEventListener('visibilitychange',function(){if(document.hidden)_sqBeacon_();});}catch(e){}
 try{document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(_sqTick_,1500);});}catch(e){}
 try{setInterval(function(){if(_sqMine_().length&&!_sqTimer_)_sqTick_();},30000);}catch(e){}
 /* ログインが通らない＝その場でログインし直してもらう。記録は端末に残してあり、ログインし直すと送る */
