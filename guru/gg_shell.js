@@ -50,7 +50,11 @@ var CSS_GK='.qchw.gkct>.nchap{background:#fdf6e3;border-left:4px solid #b8860b;b
  +':host([data-dk]) .qchw.gkct>.nchap{background:rgba(212,160,23,.13);border-left-color:#d4a017}:host([data-dk]) .qchw.gkny>.nchap{background:rgba(45,212,191,.11);border-left-color:#2dd4bf}'
  +'.qchw.gkkw>.nchap{background:#fdf2f8;border-left:4px solid #db2777;border-radius:0 10px 10px 0}.qchw.gkkw>.nchap>.ncf-nm{margin-left:8px}.gkp.k{border:1.5px solid #db2777;color:#9d174d}.gkp.k>i{color:#f9a8d4}'
  +':host([data-dk]) .qchw.gkkw>.nchap{background:rgba(219,39,119,.13);border-left-color:#f472b6}:host([data-dk]) .gkp.k{border-color:#f472b6;color:#fbcfe8}'
- +':host([data-dk]) .gkp{background:transparent}:host([data-dk]) .gkp>i{background:#0f172a}:host([data-dk]) .gkp.c{border-color:#d4a017;color:#f3d27a}:host([data-dk]) .gkp.n{border-color:#2dd4bf;color:#99f6e4}';
+ +':host([data-dk]) .gkp{background:transparent}:host([data-dk]) .gkp>i{background:#0f172a}:host([data-dk]) .gkp.c{border-color:#d4a017;color:#f3d27a}:host([data-dk]) .gkp.n{border-color:#2dd4bf;color:#99f6e4}'
+ /* 2026-11-17 川上さん 19:28「トグルが開いてるのか開いてないのか分かりづらい」（iPad）：開いているパートは青い枠で囲み、見出しを薄い青に、開いて出た回の行は枠の中で右に下げる。矢印も大きく */
+ +'.qchw.open{border:2px solid #2563eb;border-radius:12px;margin:8px 0;background:#f8fbff;overflow:hidden}.qchw.open:last-child{border-bottom:2px solid #2563eb}.qchw.open>.nchap:not([class*=gk]){background:#dbeafe}'
+ +'.qchw.open>.nqparts{padding:4px 8px 8px 22px;border-top:1px dashed #93c5fd}.ncf-arw{font-size:24px}.qchw.open .ncf-arw{color:#2563eb}'
+ +':host([data-dk]) .qchw.open{border-color:#60a5fa;background:rgba(37,99,235,.10)}:host([data-dk]) .qchw.open>.nchap{background:rgba(37,99,235,.22)}:host([data-dk]) .qchw.open .ncf-arw{color:#93c5fd}';
 var CSS_IMP='.ncf-nm{position:relative;padding-left:1.05em}.ncf-nm>.imps{position:absolute;left:0;top:.1em;width:1.05em;font-size:.85em;line-height:1.53;color:#c2410c}'
  +':host([data-dk]) .ncf-nm>.imps{color:#fb923c}.imp{color:#c2410c;font-size:.85em;margin-right:3px;vertical-align:1px}:host([data-dk]) .imp{color:#fb923c}'
  /* 2026-11-03 ぐるぐる英語：一覧の見出しの教科の切り替え［数学｜英語］ */
@@ -194,7 +198,9 @@ window.ggShellMount=function(root,GG,opt){
      NY.filter(q=>q.after===p.id).forEach(q=>{rows+=nyRow(q,oc,'all');});
      b.cts.filter(c=>c.after===p.id).forEach(c=>{rows+=ctLeftRow(c,oc);});});
     h+=`<div class="nbook ${b.lin?'':'soon'} ${ob.includes(b.key)?'open':''}" data-bk="${b.key}"><div class="nbook-head"><div class="nbk-ic">${IC.book}</div><div class="nbk-body"><div class="nbk-nm">${b.unit}${(()=>{const n=b.parts.filter(p=>!p.kaiwa).length;return n>1?`<span class="nbk-n">${n===2?MARU_[0]+MARU_[1]:MARU_[0]+'〜'+MARU_[n-1]}</span>`:'';})()}</div><div class="nbk-meta">${meta}</div>${b.lin?`<div class="nbk-bar"><i style="width:${rdy.length?Math.round(fin/rdy.length*100):0}%"></i></div>`:''}</div><span class="nbk-arw">${IC.dn}</span></div><div class="nbk-detail">${rows}</div></div>`;});}
-  L.innerHTML=h;
+  /* 2026-11-17 川上さん 19:25（iPad）「タップすると違うところが開いたりする」「タッチが反応しないことが多い」：中身が同じなら一覧を作り直さない（解く画面を押すたびに 0.4秒後に作り直していた＝作り直しと重なったタップが空振り・別の所が開く）。作り直すときもスクロールの位置を保つ */
+  if(L.__h===h)return;
+  const _st=L.scrollTop;L.innerHTML=h;L.__h=h;L.scrollTop=_st;
   const tg=(k,v)=>{const a=OPEN.get(k)||(k==='bk'?DEF_BK():DEF_CH());const i=a.indexOf(v);if(i<0)a.push(v);else a.splice(i,1);OPEN.set(k,a);};
   L.querySelectorAll('[data-gr]').forEach(x=>x.onclick=()=>{GR=x.dataset.gr;LS.set('grade',GR);drawLeft();L.scrollTop=0;});
   L.querySelectorAll('[data-sj]').forEach(x=>x.onclick=()=>{if(SUBJ===x.dataset.sj)return;SUBJ=x.dataset.sj;LS.set('subj',SUBJ);SEL=null;VIEW='cover';CUR_R=null;render();L.scrollTop=0;});
@@ -207,7 +213,7 @@ window.ggShellMount=function(root,GG,opt){
   L.querySelectorAll('[data-s]').forEach(x=>x.onclick=()=>{SEL=x.dataset.s;VIEW='struct';render();});
   L.querySelectorAll('[data-ny]').forEach(x=>x.onclick=()=>{SEL=x.dataset.ny;VIEW='nys';render();});
   L.querySelectorAll('[data-cr]').forEach(x=>x.onclick=()=>openCt(x.dataset.ct,x.dataset.cr));
-  const on=L.querySelector('.nqp.on,.nchap.on')||(SEL&&L.querySelector(`.qchw[data-ch="${SEL}"]`));if(on){try{const r=on.getBoundingClientRect(),lr=L.getBoundingClientRect();if(r.top<lr.top||r.bottom>lr.bottom)L.scrollTop+=r.top-lr.top-60;}catch(e){}}}
+  const _sk=VIEW+'|'+SEL+'|'+CUR_R+'|'+GR+'|'+SUBJ+'|'+FLT;const on=L.__sk!==_sk&&(L.querySelector('.nqp.on,.nchap.on')||(SEL&&L.querySelector(`.qchw[data-ch="${SEL}"]`)));L.__sk=_sk;if(on){   /* 選んでいる所へ自動で寄せるのは、選んだものが変わったときだけ */try{const r=on.getBoundingClientRect(),lr=L.getBoundingClientRect();if(r.top<lr.top||r.bottom>lr.bottom)L.scrollTop+=r.top-lr.top-60;}catch(e){}}}
  const inpart=v=>{if(v)root.setAttribute('data-inpart','');else root.removeAttribute('data-inpart');};
  function render(){LDTOK++;inpart(!!SEL||VIEW==='ct');drawLeft();if(!SEL){API=null;M.innerHTML='<div class="card"><div class="cv-note" style="margin:0">左の一覧から、学校で習ったパートを選ぼう。青い矢印は、次にやる回。</div></div>';return;}
   if(VIEW==='struct')return drawStruct();

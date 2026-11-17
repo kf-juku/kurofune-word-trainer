@@ -3019,10 +3019,10 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div class="toast" id="toast"></div>
 
 <!-- ワークシートを開いた画面（全画面・2026-10-17）。中は ws_app.js が Shadow DOM に描く -->
-<div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
+<div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-17d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-17e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5925,11 +5925,18 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261117c',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261117d',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
-  _ggLibP=_wsLoadLibs_().then(function(){return js('guru/gg_fig.js');}).then(function(){return js('guru/gg_load.js');}).then(function(){return js('guru/gg_app.js');}).then(function(){return js('guru/gg_shell.js');});
+  /* 2026-11-17 川上さん 19:26「ぐるぐるの読み込みがとにかく遅い」：部品を1つずつ順に読んでいた（8回）のを、まとめて同時に読む（async=false＝読む順は今までどおり）。
+     ぐるぐるは ws/ws_load.js・ws/ws_app.js を使わない（guru/gg_app.js が自分で持っている）ので読まない。数式の字の形は読み終わるのを待つが、部品の読み込みと同時に進める */
+  var vs=function(src,v){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.async=false;sc.src=src+'?v='+v;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
+  var cssP=new Promise(function(ok){var l=document.querySelector('link[data-ws="katex"]');if(l){ok();return;}l=document.createElement('link');l.rel='stylesheet';l.href='ws/katex/katex.min.css';l.setAttribute('data-ws','katex');l.onload=function(){ok();};l.onerror=function(){ok();};document.head.appendChild(l);})
+    .then(function(){try{return Promise.all(['20px KaTeX_Main','bold 20px KaTeX_Main','italic 20px KaTeX_Main','italic 20px KaTeX_Math','20px KaTeX_AMS','20px KaTeX_Size1','20px KaTeX_Size2','20px KaTeX_Size3','20px KaTeX_Size4'].map(function(f){return document.fonts.load(f).catch(function(){});}));}catch(e){}});
+  var L=[];if(!window.katex)L.push(vs('ws/katex/katex.min.js',WS_LIB_V));if(!window.renderMathInElement)L.push(vs('ws/katex/contrib/auto-render.min.js',WS_LIB_V));if(!window.MathFig)L.push(vs('ws/math_fig.js',WS_LIB_V));
+  ['guru/gg_fig.js','guru/gg_load.js','guru/gg_app.js','guru/gg_shell.js'].forEach(function(f){L.push(vs(f,GG_LIB_V));});
+  _ggLibP=Promise.all([cssP].concat(L));
   _ggLibP.catch(function(){_ggLibP=null;});
   return _ggLibP;
 }
@@ -5998,6 +6005,7 @@ function _ekMtRows_(afterPid,subj){var h='';_EKMT_.forEach(function(t){if(t.afte
     +'<i class="ti ti-chevron-down ekp-arw"></i></div><div class="ekp-b"><div class="ekmt-note">1回 '+_ekMtN_(t.id)+'問・20分・80点で合格</div>'+subs+'</div></div>';});
   return h;}
 function openEikenMt_(rid,xo){
+  _wsRes_={k:'ek',rid:rid};
   var m=String(rid).match(/^(.+)-(A1|A2|B1|B2)$/);if(!m)return;var t=null;_EKMT_.forEach(function(x){if(x.id===m[1])t=x;});if(!t)return;var R=m[2];
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
   $('ws-ttl').textContent=t.title+' '+R;
@@ -6033,7 +6041,20 @@ var _ggUnitP=null;
 var _ggRecP=null;
 function _ggRecGet_(fresh){if(fresh||!_ggRecP){_ggRecP=call({action:'gg_records'}).then(function(d){if(!d||!d.ok)_ggRecP=null;return d;},function(e){_ggRecP=null;throw e;});}return _ggRecP;}
 function _ggPrefetch_(){setTimeout(function(){try{_ggLoadLibs_().catch(function(){});_ggRecGet_(false).catch(function(){});}catch(e){}},1500);}
-function _ggUnitGet_(fresh){if(fresh||!_ggUnitP){_ggUnitP=call({action:'gg_unit'}).then(function(d){if(!d||!d.ok)_ggUnitP=null;return d;},function(e){_ggUnitP=null;throw e;});}return _ggUnitP;}
+/* 2026-11-17 川上さん 19:26「ぐるぐるの読み込みがとにかく遅い」：gg_unit（教材とパートの一覧・約390KB・実測3.6秒）は、前に読んだもの（この端末・生徒ごと）をすぐ使い、裏で読み直して入れかえる。
+   読み直した中身が前とちがえば、ぐるぐるを開いていないときはタブの一覧を描き直す（開いているときは次に開いたときから新しい一覧） */
+function _ggUnitKey_(){var s='';try{s=localStorage.getItem('kwt_sid')||'';}catch(e){}return 'kwt_ggu_'+s;}
+function _ggUnitGet_(fresh){if(fresh||!_ggUnitP){
+  var key=_ggUnitKey_(),c=null;if(!fresh){try{c=localStorage.getItem(key);}catch(e){c=null;}}
+  var cd=null;if(c){try{cd=JSON.parse(c);}catch(e){cd=null;}if(!cd||!cd.ok)cd=null;}
+  var net=call({action:'gg_unit'}).then(function(d){if(!d||!d.ok){if(!cd)_ggUnitP=null;return cd||d;}
+    var js='';try{js=JSON.stringify(d);}catch(e){}
+    try{localStorage.setItem(key,js);}catch(e){try{localStorage.removeItem(key);}catch(e2){}}
+    _ggUnitP=Promise.resolve(d);
+    if(cd&&js!==c){try{if(!_ggOn&&$('ws-list'))renderGgZone_();}catch(e){}}
+    return d;},function(e){if(!cd)_ggUnitP=null;throw e;});
+  _ggUnitP=cd?Promise.resolve(cd):net;}
+ return _ggUnitP;}
 function _ggSj_(m){return (String((m&&m.subject)||'')==='english'||/英語|英作文/.test(String((m&&m.title)||'')))?'english':'math';}   /* 2026-11-17 教科 */
 function _ggMathOnly_(D){return _ggPick_(D,'math');}
 function _ggPick_(D,sj){var mats=((D&&D.materials)||[]).filter(function(m){return String(m.content_type||'guruguru')==='guruguru'&&(!sj||_ggSj_(m)===sj);}),want={};
@@ -6060,6 +6081,7 @@ function renderGgZone_(materials){
   }).catch(function(){if(!host.querySelector('.nbook'))host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';});
 }
 function openGg_(mid,title,xo){   /* xo.startPid＝開く行（紙の QR から来た章まとめテスト gg_ct…_A1 など）2026-11-15 */
+  _wsRes_={k:'gg',mid:mid,title:title,subj:(xo&&xo.subj)||''};
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
   $('ws-ttl').textContent=title||'ぐるぐる';
   host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
@@ -6085,6 +6107,7 @@ function openGg_(mid,title,xo){   /* xo.startPid＝開く行（紙の QR から�
       loadParts:function(ids,o){return call({action:'gg_unit_part',part_ids:ids,backs:(o&&o.backs===false)?'':'1'}).then(function(x){if(!x||!x.ok)throw new Error((x&&x.error)||'問題を読めませんでした');return (x.data&&x.data.words)||[];});}});
     var sp=xo&&xo.startPid,m=sp&&GG.pid&&GG.pid[String(sp)];
     if(m){if(m.k==='CT')_ggApi.openCt(m.pid,m.r);else if(m.k==='RD')_ggApi.open(m.pid,m.r);else _ggApi.open(m.pid);}
+    else if(xo&&xo.resume&&xo.resume.sel){try{var rs=xo.resume;if(rs.view==='ct')_ggApi.openCt(rs.sel,rs.r);else if(rs.view==='ws')_ggApi.open(rs.sel,rs.r);}catch(eR){}}   /* 2026-11-17［更新］で読み直したあと、同じパート・回へ */
     else{try{_ggApi.prefetchNext&&_ggApi.prefetchNext();}catch(e3){}}   /* 2026-11-15 続きのパートの問題を先に読む */
   }).catch(function(e){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';try{console.log(e);}catch(e2){}});
 }
@@ -6161,6 +6184,7 @@ function wsPrefetchVisible_(){
   }catch(e){}
 }
 function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（#pv=）：記録しない・モックのプレビューのバーを出す */
+  _wsRes_={k:'ws',mid:mid,pids:pids,title:title,pv:!!(xo&&xo.preview)};
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
   $('ws-ttl').textContent=title||'';
   host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
@@ -6214,6 +6238,20 @@ function _wsSend_(pid,r){
     });
   });
 }
+/* ===== ［更新］（2026-11-17 川上さん 19:26「あとからまとめて採点する形式のものは入力状態を失わない更新ボタンが必須」）=====
+   ぐるぐる・ワークシート・英検のまとめテストの画面の上の帯。押すと、送っていない記録を送ってから（最大5秒待つ）、いま開いているもの（教材・パート・回）を覚えて画面を読み直し、
+   読み直したら同じ所を開き直す。解いている途中の答えは、どの画面も1問ごとにこの端末に残している（テストの下書き tDraftSave・紙の答えの __pdSave）＝開き直すと「続きから」で戻る。最新の版のアプリに入れかわる */
+var _wsRes_=null;
+function wsReload_(){
+  var R=_wsRes_?JSON.parse(JSON.stringify(_wsRes_)):null;
+  if(R&&R.k==='gg'&&_ggApi&&_ggApi.state){try{var st=_ggApi.state();if(st&&st.SEL)R.resume={sel:st.SEL,r:st.CUR_R||'',view:st.VIEW||''};}catch(e){}}
+  if(R&&!R.pv){try{sessionStorage.setItem('kwt_ws_resume',JSON.stringify(R));}catch(e){}}
+  var b=$('ws-reload');if(b){b.disabled=true;b.innerHTML=kwtSpin(16)+' <span>'+rb('更新','こうしん')+'中…</span>';}
+  var fl=Promise.resolve();try{if(_ggOn&&_ggB&&_ggB.flush)fl=_ggB.flush();}catch(e){}
+  Promise.race([fl,new Promise(function(r){setTimeout(r,5000);})]).then(function(){location.reload();},function(){location.reload();});
+}
+function _wsResume_(){var R=null;try{R=JSON.parse(sessionStorage.getItem('kwt_ws_resume')||'null');sessionStorage.removeItem('kwt_ws_resume');}catch(e){R=null;}if(!R||!R.k)return;
+  try{if(R.k==='gg')openGg_(R.mid,R.title,{subj:R.subj,resume:R.resume||null});else if(R.k==='ws')openWs_(R.mid,R.pids,R.title,{});else if(R.k==='ek')openEikenMt_(R.rid,{});}catch(e){}}
 function closeWs_(){
   var ov=$('ws-ov'),host=$('ws-host');if(!ov)return;
   if(_ggOn){_ggOn=false;if(_ggApi){try{_ggApi.destroy&&_ggApi.destroy();}catch(e){}_ggApi=null;}ov.classList.remove('on');document.body.classList.remove('ws-lock');setTimeout(_fcRelease_,0);if(host)host.innerHTML='';
@@ -13038,7 +13076,7 @@ try{shReadUrl_();}catch(e){} // QRの ?sheet=XXXX を覚えてURLから消す（
 if(document.documentElement.classList.contains('kwt-bw'))bigWait_(true);   /* 先頭で出した読み込み中に、30秒で消える見張りを付ける */
 if(_qaGet_()){_qaLogin_();}   /* 名前入りの解答用紙の QR＝その子でログインしてから紙の画面（2026-10-20） */
 else if(_PV_&&_PV_.pid&&token){_pvStart_();}   /* 先生用プレビュー＝画面の復元をしない。openHome() の【あと】に showSub/showHomeTab が走るので、ここで分けないとホームに戻される 2026-09-09 */
-else if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}try{_ht=sessionStorage.getItem('kwt_htab');}catch(e){}openHome();try{if(shPendGet_()){showSub('sheet');}else if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}else if(_ht&&['daily','review','unit','eiken','ws'].indexOf(_ht)>=0){showHomeTab(_ht);}}catch(e){}} // 更新後は今の画面を復元：サブ画面(kwt_view)優先、なければホームのタブ(kwt_htab)。openHome内のbackToTiles()が復元キーを消すので必ず先に読む（川上さん 2026-07-06/24）
+else if(token){var _rv=null,_ht=null;try{_rv=sessionStorage.getItem('kwt_view');}catch(e){}try{_ht=sessionStorage.getItem('kwt_htab');}catch(e){}openHome();try{if(shPendGet_()){showSub('sheet');}else if(_rv&&SUB_TITLES[_rv]){showSub(_rv);}else if(_ht&&['daily','review','unit','eiken','ws'].indexOf(_ht)>=0){showHomeTab(_ht);}}catch(e){}try{_wsResume_();}catch(e){}} // 更新後は今の画面を復元：サブ画面(kwt_view)優先、なければホームのタブ(kwt_htab)。openHome内のbackToTiles()が復元キーを消すので必ず先に読む（川上さん 2026-07-06/24）
 
 /* ===== 生徒バグ報告（各画面から押せる・記録のみ＝メールは朝まとめ）2026-07-11 ===== */
 var _bugSending=false;
