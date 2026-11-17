@@ -3023,7 +3023,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-17f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-17g"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5753,7 +5753,7 @@ function renderUnitZone_(materials,opt){
    KaTeX・math_fig.js・ws_load.js・ws_app.js は、初めてワークシートを開いたときだけ読む。
    できた＝サーバーの passed（material_parts）。パートの最後まで進んだら session_complete と complete_extras を送る（正答率＝1回目の答え）。
    途中でやめたら、その日のうちは同じパートのやめた題から（ws_app.js が localStorage に持つ・今の「途中の学習」のカードには出さない）。 */
-var WS_LIB_V='20261101b';
+var WS_LIB_V='20261117a';
 var _wsMats=[],_wsDone={},_wsLibP=null,_wsApi=null,_wsSent=0,_wsTL={},_wsTq=Promise.resolve();
 /* ===== ワークシートのテスト（段④ 2026-10-18）=====
    受けどきの色は確認テスト（_quizReady_・quizStatus2_）と同じ3つ：青の塗り＝いま受けるところ／枠＝受けられるが今ではない／点線＝先に練習。
@@ -5793,7 +5793,17 @@ function _wsPartSet_(pid,o){_wsMats.forEach(function(c){(c.parts||[]).forEach(fu
 /* パートができた・テストに合格した＝単元別・確認テストの合格と同じ音・光・紙吹雪（sndWin・flash・confetti(120)）2026-10-18 04:22 川上さん「同じ仕組みは揃える」 */
 function _wsCele_(){try{sndWin();flash();confetti(120);}catch(e){}}
 /* ワークシートの練習の採点画面（ws_app.js の wresShow・2026-10-31）：はんこが着地したら「ポン」、そのあと完了の音と紙吹雪（単元別の完了画面と同じ順）*/
-function _wsResFx_(lv){setTimeout(function(){try{DFX.pon();}catch(e){}},470);setTimeout(function(){try{sndWin();}catch(e){}try{confetti(120);}catch(e){}},1100);}
+/* 2026-11-17 川上さん「類題まで終わってるのに淋しくない？」：ぐるぐる・ワークシートの完了・全問正解・章まとめテストの合格の演出を、統一の決まり（要件定義書_パートのあとの先生チェック の はんこと演出）に寄せる。
+   はんこはアプリの中（結果のカード）で押す。ここは音・帯・紙吹雪・クラッカー。done＝ぼんっ→ピロロン＋紙吹雪／perfect＝金の帯 PERFECT!（フォン）→ 大きなはんこの音（ぼーんっ＋和太鼓）→ クラッカー＋紙吹雪／mid（合格）＝大きなはんこの音 → クラッカー＋紙吹雪 */
+function _wsResFx_(lv){
+  if(lv==='perfect'){
+    try{var el=_dfxLayer_(1000);_dfxLines_(el);el.insertAdjacentHTML('beforeend','<div class="eca-band"></div><div class="eca-txt">PERFECT!</div>');DFX.whoosh();}catch(e){}
+    setTimeout(function(){try{DFX.don();}catch(e){}},1250);
+    setTimeout(function(){try{dfxCannons_(40);}catch(e){}try{confetti(120);}catch(e){}try{sndWin();}catch(e){}},1650);return;}
+  if(lv==='mid'){
+    setTimeout(function(){try{DFX.don();}catch(e){}},470);
+    setTimeout(function(){try{dfxCannons_(36);}catch(e){}try{confetti(60);}catch(e){}try{sndWin();}catch(e){}},1100);return;}
+  setTimeout(function(){try{DFX.pon();}catch(e){}},470);setTimeout(function(){try{sndWin();}catch(e){}try{confetti(120);}catch(e){}},1100);}
 function _wsTestSend_(body){var q=_sqAdd_(body);_wsTq=_wsTq.then(function(){return call(body).then(function(d){if(!d||!d.ok){if(_sqGiveUp_(d))_sqDel_(q);return d;}_sqDel_(q);homeCacheRenew_();return d;});});return _wsTq;}
 function _wsPlainTex_(t){return String(t||'').replace(/\\\(|\\\)/g,'').replace(/\\[a-zA-Z]+\s*/g,'').replace(/\s+/g,' ').trim();}
 function _wsIsTestT_(t){return /まとめテスト/.test(String(t||''));}
@@ -5926,7 +5936,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261117e',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261117f',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -6281,7 +6291,8 @@ function openHome(){
   if(_PV_&&_PV_.pid){ _pvStart_(); return; }   /* 先生用プレビュー＝ホームには落とさない。2回目以降の呼び出しは _pvStart_ が false を返すだけで、プレビューはそのまま残る 2026-09-09 */
   $('nick').innerHTML=nickHtml_();try{applyMyIcon_();}catch(e){}syncThemeIcon();show('scr-home');try{studentMe_();}catch(eMe){}
   // 初回ログイン：ニックネーム未設定なら設定モーダルを自動表示（スキップ可・1ログイン1回だけ・川上さん確定 2026-07-04 機能仕様書_テスト配信 §5-2）
-  if((!nickname||nickname==='きみ'||localStorage.getItem('kwt_nick_auto')==='1')&&!window._nickPrompted){window._nickPrompted=true;setTimeout(openNickModal,600);} // 自動付与された子にも初回1回だけ案内（§5-2踏襲・2026-07-05）
+  var _npk='';try{_npk=_hash32_(String((typeof token!=='undefined'&&token)||''));}catch(eNp){}var _npd='';try{_npd=localStorage.getItem('kwt_nick_pr')||'';}catch(eNp){}
+  if((!nickname||nickname==='きみ'||localStorage.getItem('kwt_nick_auto')==='1')&&!window._nickPrompted&&_npd!==_npk){window._nickPrompted=true;try{localStorage.setItem('kwt_nick_pr',_npk);}catch(eNp){}setTimeout(openNickModal,600);}   /* 2026-11-17 川上さん「更新する度にニックネーム変えるかポップでる」：読み直すたびに出ていた（1ログイン1回の印が画面の中だけだった）。ログインごとに1回＝印を端末に残す */ // 自動付与された子にも初回1回だけ案内（§5-2踏襲・2026-07-05）
   $('btn-nick-edit').onclick=openNickModal;
   try{_gdBoot_();}catch(eGd){} /* 案内（チュートリアル）の印と最初の案内 2026-09-23 */
   backToTiles();
