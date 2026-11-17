@@ -7068,7 +7068,7 @@ function _wsLoadLibs_(){
    ノートの書き方の絵は guru/img/gg/*.svg（画面に出たときに読む）。部品を直したら GG_LIB_V を上げる
    2026-11-02 段3 速くした：開いたときは［中身］の最初の material_preview の返事（ぐるぐるは words を読まない＝parts の行と表紙の説明だけ）で一覧を出す（ggBuildData の lazy）。
    回・［確かめる］・章まとめを開いたときに、そのパートの行だけ gg_preview_part で読む（gg_shell.js の opt.loadParts → ggFillWords）。読んだパートはこの窓を閉じるまで覚えておく */
-var GG_LIB_V='20261117a',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの rect の class を bar→hbar＝gg_fig.js）。2026-11-04 ぐるぐる：20261104c（よくあるまちがいの枠と選んだ答えでの出し分け・矢印の2組目・紙の補足ボックスと矢印＝gg_app.js・gg_load.js・gg_shell.js）。20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
+var GG_LIB_V='20261117b',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの rect の class を bar→hbar＝gg_fig.js）。2026-11-04 ぐるぐる：20261104c（よくあるまちがいの枠と選んだ答えでの出し分け・矢印の2組目・紙の補足ボックスと矢印＝gg_app.js・gg_load.js・gg_shell.js）。20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -7149,7 +7149,8 @@ function mpGgPreview_(mid,dt0){
    教材タブ［中身］でぐるぐるの教材を開いた帯の［🖨 ぐるぐる印刷］から開く。回（A-1〜C-2・章まとめ A-1〜B-2）と刷る物（5種類）を選んで1回で刷る。
    刷る物：通常回の問題（A4 表裏1枚・guru/gg_paper.js・gg_paper_en.js）／通常回の解答解説／章まとめテストの問題用紙・解答用紙・解答解説
      ・通常回の問題・英語の章まとめの問題用紙と解答用紙＝ggPaper（川上さんが PDF で確かめた形）
-     ・数学の章まとめの問題用紙・解答用紙と、解答解説（全部）＝アプリの紙（gg_shell の paperMount → paperHtml）をワークシートと同じ _ppWsLayout_ で組む
+     ・英語の解答解説（通常回・章まとめ）＝ggPaper.ansEn（2026-11-17）
+     ・数学の章まとめの問題用紙・解答用紙と、数学の解答解説＝アプリの紙（gg_shell の paperMount → paperHtml）をワークシートと同じ _ppWsLayout_ で組む
    はじめから印が付いているのは章まとめテストの問題用紙と解答用紙。並び＝刷る物の順 → 回の順。紙ごと・回ごとに新しい紙の表から（奇数ページなら白紙を1枚）。
    回と刷る物の選び方は端末に覚える（kwt_ggpr＝{教材: {jobs:[], kinds:[]}}）。印刷と PDF は練習プリントと同じ（印刷の画面。PDF は送り先を「PDFに保存」） */
 var GGPR_KINDS_=[['rq','通常回の問題','A4 表裏1枚'],['ra','通常回の解答解説','問題・正解・解説'],['cq','章まとめテストの問題用紙',''],['cs','章まとめテストの解答用紙','QR つき'],['ca','章まとめテストの解答解説','']];
@@ -7168,7 +7169,7 @@ function _ggprCssOnce_(){
     +'.ggp-doc{width:210mm;background:#fff}.ggp-doc .sheet{box-shadow:none;margin:0}'
     +'.wsp .eqg.ggpr-n2{grid-template-columns:max-content max-content!important}.wsp .eqg.ggpr-n2>.eqn{grid-column:1/-1;padding-left:2em!important}.wsp .eqg.ggpr-stk{display:block!important}.wsp .eqg.ggpr-stk>*{display:block;text-align:left!important}.wsp .eqg.ggpr-stk>.eqr{padding-left:1em}.wsp .eqg.ggpr-stk>.eql:empty{display:none}'
     +'.ggp .sh-f .nm .ggpr-nm{font-size:15pt;font-weight:700;margin-left:2mm}'
-    +'.ggp .sh-qr svg.fs-qr{width:100%;height:auto;display:block}.ggp .sh-qr.has{border:0;flex-direction:column;gap:0}.ggp .sh-qr .ggqr-ls{font-size:7.5pt;font-weight:800;color:#111;white-space:nowrap;margin-bottom:.5mm;letter-spacing:0}.ggp .sh-qr .ggqr-cd{font-size:7pt;color:#111;letter-spacing:0;margin-top:.5mm;white-space:normal;text-align:center;line-height:1.15}.ggp .sh-qr.has{height:auto;min-height:17mm;width:22mm}.ggp .sh-qr.big.has{width:27mm}.ggp .sh-r{align-items:flex-end}'
+    +'.ggp .sh-qr svg.fs-qr{width:100%;height:auto;display:block}.ggp .sh-qr.has{border:0;flex-direction:column;gap:0}.ggp .sh-qr .ggqr-ls{font-size:7.5pt;font-weight:800;color:#111;white-space:nowrap;margin-bottom:.5mm;letter-spacing:0}.ggp .sh-qr .ggqr-cd{font-size:7pt;color:#111;letter-spacing:0;margin-top:.5mm;white-space:normal;text-align:center;line-height:1.15}.ggp .sh-qr.has{height:auto;min-height:17mm;width:22mm}.ggp .sh-qr.has.sm{width:17mm}.ggp .sh-qr.sm .ggqr-ls{font-size:6.5pt;margin-bottom:0}.ggp .sh-qr.sm .ggqr-cd{font-size:6.5pt;margin-top:0}.ggp .sh-qr.big.has{width:27mm}.ggp .sh-r{align-items:flex-end}'
     /* 印刷：紙の余白を @page で取り、.sheet は中身の大きさ（186×277mm）だけにする。紙の幅 210mm の箱のまま刷ると、ほかの紙（186mm）より広いので Chrome が全部のページを縮めて刷る（2026-11-03 試験で発覚） */
     /* ページからはみ出す物（KaTeX の \\underbrace の線は 40万 px の幅の図）があると、Chrome が全部のページを縮めて刷る＝ぐるぐる印刷のページははみ出しを切る */
     +'@page ggp{size:A4 portrait;margin:11mm 10mm 9mm 14mm;@bottom-center{content:none}}'
@@ -7235,11 +7236,21 @@ function _ggprEqFit_(src){
 }
 /* ぐるぐるの章まとめテストの解答用紙の番号（2026-11-03 23:08〜23:18 川上さん）＝「GM7-23456」：G＋教科（M＝数学・E＝英語）＋学年の数字（小1〜小6＝1〜6・中1〜中3＝7〜9）＋数字5けた。
    学年はテストの grade（中1 など）から。数字は行の id（gg_ctm1u4k_A1 など）から計算する（kwtGAS.gs の ggCodeOf_ と同じ式。ワークシートの _wsCode_ と同じ計算で、桁だけ5）。単元の番号は入れない */
-function _ggGradeNo_(rid,grade){var g=String(grade||'').replace(/[１-６]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}),m=/^(小|中)([1-6])$/.exec(g);if(m)return (m[1]==='中'?6:0)+Number(m[2]);var k=/^gg_ct[a-z](\d)/.exec(String(rid||''));return k?6+Number(k[1]):0;}
+function _ggGradeNo_(rid,grade){var g=String(grade||'').replace(/[１-６]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}),m=/^(小|中)([1-6])$/.exec(g);if(m)return (m[1]==='中'?6:0)+Number(m[2]);var k=/^gg_(?:ct)?[a-z](\d)/.exec(String(rid||''));return k?6+Number(k[1]):0;}
+/* 2026-11-17 通常回（入試パターン・会話表現も）の紙の番号＝「GE7-123456」：章まとめテストと同じ G＋教科＋学年、数字だけ6けた（川上さん 15:40「大きなルールは変えずに被らないように」）。kwtGAS.gs の ggRdCodeOf_ と同じ計算 */
+function _ggRdCode_(rid,grade){var s=String(rid||''),m=/^gg_([a-z])\d/.exec(s);if(!m)return '';var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}var t=String(Math.floor(h/9)%1000000);while(t.length<6)t='0'+t;return 'G'+m[1].toUpperCase()+_ggGradeNo_(s,grade)+'-'+t;}
+/* 番号の重なりを調べる（刷る前に止める）：いま読んでいるぐるぐるの全部の回の行（章まとめテスト・通常回）の番号を計算して、同じ番号のほかの行の id を返す */
+function _ggCodeDup_(cd,rid){var D=_ggData||{},o=[];if(!cd)return o;
+  (D.parts||[]).forEach(function(p){Object.keys(p.rowIds||{}).forEach(function(R){if(R==='CV'||R==='RU')return;var r=p.rowIds[R];if(r!==rid&&_ggRdCode_(r,p.grade)===cd)o.push(r);});});
+  (D.cts||[]).forEach(function(c){Object.keys(c.rowIds||{}).forEach(function(R){var r=c.rowIds[R];if(r!==rid&&_ggCode_(r,c.grade)===cd)o.push(r);});});
+  return o;}
 function _ggCode_(rid,grade){var s=String(rid||''),m=/^gg_ct([a-z])\d/.exec(s);if(!m)return '';var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}var t=String(Math.floor(h/9)%100000);while(t.length<5)t='0'+t;return 'G'+m[1].toUpperCase()+_ggGradeNo_(s,grade)+'-'+t;}
 /* 解答用紙の QR を入れる。key＝名前入りの鍵（無ければ名前なし＝全員同じ紙）。英語の紙は .sh-qr、数学（アプリの紙）は .qr（_ptAsHead_ が真ん中に置いた所） */
-function _ggprQr_(pages,cd,key){if(!cd)return;var url=cd.replace('-','')+(key?'&qa='+key:''),lab='<div class="ggqr-cd">'+esc(cd)+' '+_ptDayLab_()+' 刷</div>';
-  pages.forEach(function(p){[].slice.call(p.querySelectorAll('.sh-qr')).forEach(function(q){q.classList.add('has');q.innerHTML=fsQrHtml_(url)+lab;});
+function _ggprQr_(pages,cd,key,ls){if(!cd)return;var url=cd.replace('-','')+(key?'&qa='+key:''),lab='<div class="ggqr-cd">'+esc(cd)+' '+_ptDayLab_()+' 刷</div>';
+  /* ls（2026-11-17 英語の章まとめテスト）：'listen'＝問題用紙の音だけの QR（&listen=1）・'ans'＝解答用紙の答え合わせの QR。上に「🎧 リスニング用」「✎ 答え合わせ用」と書く（英検のまとめテストの紙と同じ） */
+  if(ls==='open')lab='<div class="ggqr-cd">'+esc(cd)+'</div>';   /* 通常回の紙は刷った日を出さない（見出しを高くしない。紙は答えの記録に使わず、番号は回で決まる） */
+  var lsH=ls==='listen'?'<div class="ggqr-ls">🎧 リスニング用</div>':(ls==='ans'?'<div class="ggqr-ls">✎ 答え合わせ用</div>':(ls==='open'?'<div class="ggqr-ls">この回を開く</div>':''));
+  pages.forEach(function(p){[].slice.call(p.querySelectorAll('.sh-qr')).forEach(function(q){q.classList.add('has');if(ls==='open')q.classList.add('sm');q.innerHTML=lsH+fsQrHtml_(url,ls==='listen')+lab;});
     [].slice.call(p.querySelectorAll('.wsp .qr')).forEach(function(q){q.innerHTML=fsQrHtml_(url)+'<div class="wsqr-cd">'+esc(cd)+'<span class="dt">'+_ptDayLab_()+' 刷</span></div>';});});}
 function _ggprName_(pages,nm){pages.forEach(function(p){var a=p.querySelector('.as-nm');if(a)a.textContent=nm;var b=p.querySelector('.ggp .sh-f .nm');if(b)b.innerHTML='名前　<b class="ggpr-nm">'+esc(nm)+'</b>';});}
 /* 1つの紙（回×刷る物）を組んで、ページ（要素）の配列を返す */
@@ -7247,12 +7258,17 @@ function _ggprDoc_(j,k){
   var D=_ggData,isCt=j.kind==='ct',x=isCt?(D.cts||[]).filter(function(c){return c.id===j.id;})[0]:(D.parts||[]).filter(function(p){return p.id===j.id;})[0];if(!x)return Promise.resolve([]);
   var en=String(x.subj||'')==='en'||((ggPaper.HD(D,j.id)||{}).subj==='en');
   var fr=(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve());
-  var gp=(k==='rq')||(en&&isCt&&(k==='cq'||k==='cs'));
+  var ans=en&&(k==='ra'||k==='ca');   /* 2026-11-17 英語の解答解説＝ggPaper.ansEn（正解の記号・2つ選ぶは記号2つ・並べかえは英文、と解説） */
+  var gp=(k==='rq')||(en&&isCt&&(k==='cq'||k==='cs'))||ans;
   if(gp){   /* ggPaper の紙 */
     var meas=document.createElement('div');meas.className='ggp ggp-doc';meas.style.cssText='position:absolute;left:-99999px;top:0;';document.body.appendChild(meas);
-    meas.innerHTML=isCt?ggPaper.ctEn(D,j.id,j.R,k==='cs'?'a':'q'):(en?ggPaper.roundEn(D,j.id,j.R):ggPaper.round(D,j.id,j.R));
+    meas.innerHTML=ans?ggPaper.ansEn(D,j.id,j.R):isCt?ggPaper.ctEn(D,j.id,j.R,k==='cs'?'a':'q'):(en?ggPaper.roundEn(D,j.id,j.R):ggPaper.round(D,j.id,j.R));
     if(!meas.querySelector('.sheet')){document.body.removeChild(meas);return Promise.resolve([]);}
-    if(k==='cs')_ggprQr_([meas],_ggCode_((x.rowIds||{})[j.R]||'',x.grade),'');
+    if(k==='rq'){var rrid=(x.rowIds||{})[j.R]||'',rcd=_ggRdCode_(rrid,x.grade),rdp=_ggCodeDup_(rcd,rrid);   /* 2026-11-17 通常回の紙の QR（この回を開く・数学も英語も） */
+      if(rdp.length){document.body.removeChild(meas);return Promise.reject(new Error('番号 '+rcd+'（'+rrid+'）が、ほかの行（'+rdp.join('・')+'）と同じです。刷るのを止めました。ジョブスに伝えてください'));}
+      _ggprQr_([meas],rcd,'','open');}
+    if(k==='cs')_ggprQr_([meas],_ggCode_((x.rowIds||{})[j.R]||'',x.grade),'',en?'ans':'');
+    if(k==='cq'&&en&&isCt)_ggprQr_([meas],_ggCode_((x.rowIds||{})[j.R]||'',x.grade),'','listen');   /* 2026-11-17 問題用紙のリスニングの QR（リスニングがある回だけ枠がある） */
     try{ggPaper.KX(meas);}catch(e){}
     return fr.then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
       if(en)ggPaper.layoutEn(meas);else ggPaper.layout(meas);
@@ -7293,7 +7309,7 @@ function ggPrMake_(how){
       return new Promise(function(r){setTimeout(r,30);}).then(function(){return _ggprDoc_(d.j,d.k);}).then(function(pg){if(!pg.length)return step();
         var put=function(ps){if(out.length%2===1)out.push(_ppBlankPg_());ps.forEach(function(p){out.push(p);});};
         if(d.k==='cs'&&S.length){var c=(_ggData.cts||[]).filter(function(x){return x.id===d.j.id;})[0],rid=c&&(c.rowIds||{})[d.j.R],cd=_ggCode_(rid,c&&c.grade);
-          S.forEach(function(s){var key=keys[rid+'|'+String(s.student_id)];if(!key)return;var ps=pg.map(function(p){return p.cloneNode(true);});_ggprQr_(ps,cd,key);_ggprName_(ps,s.name||s.nickname||'');put(ps);nm.named=(nm.named||0)+1;});}
+          S.forEach(function(s){var key=keys[rid+'|'+String(s.student_id)];if(!key)return;var ps=pg.map(function(p){return p.cloneNode(true);});_ggprQr_(ps,cd,key,String((c&&c.subj)||'')==='en'?'ans':'');_ggprName_(ps,s.name||s.nickname||'');put(ps);nm.named=(nm.named||0)+1;});}
         else put(pg);
         nm[d.k]=(nm[d.k]||0)+1;return step();});};return step();})
   .then(function(){

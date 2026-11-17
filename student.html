@@ -2767,7 +2767,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
         <div class="subview" id="sv-sheet">
           <div id="sheet-step1">
             <div class="sh-lead"><ruby>先生<rt class="uf">せんせい</rt></ruby>からもらった<ruby>紙<rt class="uf">かみ</rt></ruby>のうらにある<ruby>番号<rt class="uf">ばんごう</rt></ruby>を<ruby>入<rt class="uf">い</rt></ruby>れてください。</div>
-            <div class="sh-in"><input id="sheet-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="8" placeholder="E7-2208"><button class="btn" id="sheet-open" type="button"><span><ruby>開<rt class="uf">ひら</rt></ruby>く</span> <i class="ti ti-arrow-right"></i></button></div>
+            <div class="sh-in"><input id="sheet-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" placeholder="E7-2208"><button class="btn" id="sheet-open" type="button"><span><ruby>開<rt class="uf">ひら</rt></ruby>く</span> <i class="ti ti-arrow-right"></i></button></div>
             <div class="sh-msg" id="sheet-msg"></div>
           </div>
           <div id="sheet-step2" style="display:none;"></div>
@@ -3022,7 +3022,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-17b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-17c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3483,7 +3483,7 @@ function shOpen_(){
   (_qaPre_(v)||call({action:'sheet_open',code:v})).then(function(d){
     btn.disabled=false; btn.innerHTML='<span>'+rb('開','ひら')+'く</span> <i class="ti ti-arrow-right"></i>';
     if(_netNG_(d)){ shMsg_(d&&d.error?esc(d.error):_NET_NG_MSG_); return; }
-    if(d.data&&d.data.ws&&d.data.eiken_mt&&_shLisOnly){ shEkMtLis_(d.data); return; }   /* 英検のまとめテストの問題用紙の QR＝音だけ 2026-11-13 */
+    if(d.data&&d.data.ws&&d.data.eiken_mt&&_shLisOnly){ shEkMtLis_(d.data); return; }   if(d.data&&d.data.ws&&d.data.gg_ct&&_shLisOnly){ shGgLis_(d.data); return; }   /* ぐるぐる英語の章まとめテストの問題用紙の QR＝音だけ 2026-11-17 */   /* 英検のまとめテストの問題用紙の QR＝音だけ 2026-11-13 */
     if(d.data&&d.data.ws){ shWsChoose_(d.data); return; }   /* 段⑤：ワークシートのテストの解答用紙（全員同じ紙） */
     /* 段7b：音を聞くだけのときは、答え合わせが終わった紙・古い紙でも音は聞ける（○×は入れない） */
     if(String(d.data.status||'')==='done'&&!_shLisOnly){ shMsg_('この'+rb('紙','かみ')+'は'+rb('答','こた')+'え'+rb('合','あ')+'わせが'+rb('終','お')+'わっています。'); return; }
@@ -3526,10 +3526,17 @@ function shEkMtLis_(w){
   host.style.display='block';host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
   fetch('eiken_mt/'+rid+'.json?v='+EKMT_V).then(function(r){if(!r.ok)throw new Error('json '+r.status);return r.json();}).then(function(D){
     var L=[];(D.items||[]).forEach(function(it,i){var m=/data-ak="([^"]+)"[^>]*data-au="([^"]+)"/.exec(String(it.q||''));if(m)L.push({no:it.no||(i+1),ak:m[1],au:m[2].split('|')});});
-    var key='ekmtlis_'+rid,use={};try{use=JSON.parse(localStorage.getItem(key)||'{}')||{};}catch(e0){}
+    shLisDraw_(w,L,'ekmtlis_'+rid);
+  }).catch(function(){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';});
+}
+/* 音だけの画面を描く（英検のまとめテストとぐるぐるの章まとめテストで共通・2026-11-17 shEkMtLis_ から分けた）。L＝[{no:紙の番号,ak:音の名前（使ったかの記録の鍵）,au:[mp3,…]}]・key＝使った記録の置き場 */
+function shLisDraw_(w,L,key,o){
+  var host=$('sheet-step2');if(!host)return;
+    var use={};try{use=JSON.parse(localStorage.getItem(key)||'{}')||{};}catch(e0){}
     var now=Date.now();Object.keys(use).forEach(function(k){if(now-use[k]>3*3600*1000)delete use[k];});
     var h='<style>.ekl-warn{border:2px solid var(--gold);background:var(--n-goldsoft);border-radius:12px;padding:14px 16px;margin:12px 0;line-height:1.7;font-size:15px}.ekl-warn b{display:block;font-size:19px;margin-bottom:2px}.ekl-vol{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 12px}.ekl-vol .ekl-vt{font-weight:800;margin-bottom:8px}.ekl-vol .btn{width:100%;margin:4px 0}.ekl-lock .sh-q{opacity:.4;pointer-events:none}.ekl-step2{font-weight:800;margin:4px 0 6px}</style>'
       +'<div class="sh-head"><span class="sh-code">'+esc(w.code||'')+'</span><span class="sh-tot">'+rb('聞','き')+'き'+rb('取','と')+'り'+L.length+rb('問','もん')+'</span></div>'
+      +((o&&o.go)?'<button type="button" class="btn" id="ekl-go" style="margin:10px 0 4px">'+rb('答','こた')+'えを'+rb('入','い')+'れる・アプリで'+rb('解','と')+'く <i class="ti ti-arrow-right"></i></button><div style="font-size:13px;color:var(--sub);margin-bottom:6px">'+rb('紙','かみ')+'に'+rb('書','か')+'き'+rb('終','お')+'わったら、ここから'+rb('答','こた')+'えを'+rb('入','い')+'れます。</div>':'')
       +'<div class="ekl-warn"><b>⚠ '+rb('音','おと')+'は、'+rb('1問','いちもん')+'につき<u>2'+rb('回','かい')+'だけ</u>'+rb('流','なが')+'れます。</b>2'+rb('回','かい')+rb('流','なが')+'れたら、もう'+rb('聞','き')+'けません。ボタンは1'+rb('回','かい')+'しか'+rb('押','お')+'せません。'+rb('間違','まちが')+'えて'+rb('押','お')+'さないように'+rb('注意','ちゅうい')+'しよう。</div>'
       +'<div class="ekl-vol"><div class="ekl-vt">① まず、'+rb('音量','おんりょう')+'を'+rb('合','あ')+'わせよう（'+rb('何回','なんかい')+'でも'+rb('聞','き')+'けます）</div>'
       +'<button type="button" class="btn sub" id="ekl-vb"><i class="ti ti-volume"></i> '+rb('音量','おんりょう')+'チェック（テストとは'+rb('別','べつ')+'の'+rb('音','おと')+'）</button>'
@@ -3538,6 +3545,7 @@ function shEkMtLis_(w){
       +'<div class="sh-grid lisonly ekl-lock" id="ekl-g">';
     L.forEach(function(x){var dn=!!use[x.ak];h+='<div class="sh-q lis"><span class="sh-n">'+x.no+'</span><button class="sh-play" type="button" data-ak="'+esc(x.ak)+'"'+(dn?' disabled':'')+'><i class="ti ti-volume"></i><span>'+x.no+rb('番','ばん')+(dn?'の'+rb('音','おと')+'は'+rb('終','お')+'わりました':'の'+rb('音','おと')+'を'+rb('聞','き')+'く（2'+rb('回','かい')+'だけ）')+'</span></button></div>';});
     host.innerHTML=h+'</div>';window.scrollTo(0,0);
+    if(o&&o.go){var gb=$('ekl-go');if(gb)gb.onclick=function(){o.go();};}
     var vb=$('ekl-vb'),ok=$('ekl-ok'),au0=null;
     vb.onclick=function(){try{if(au0){au0.pause();}au0=new Audio('img/audio/kakehashi/kh-050_chirp3-hd-achernar.mp3');au0.play();}catch(e2){}ok.disabled=false;};
     ok.onclick=function(){try{if(au0)au0.pause();}catch(e3){}$('ekl-g').classList.remove('ekl-lock');vb.disabled=true;ok.disabled=true;ok.textContent='✓ '+'音量OK';$('ekl-g').scrollIntoView({behavior:'smooth',block:'start'});};
@@ -3566,7 +3574,30 @@ function shEkMtLis_(w){
         var pr=au.play();if(pr&&pr.then)pr.then(mark,function(){if(first&&!started)fail();else setTimeout(next,0);});else mark();};
       next();
     });
-  }).catch(function(){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';});
+}
+/* ぐるぐる英語の章まとめテストの問題用紙の QR（&listen=1）＝音だけの画面（2026-11-17・英検のまとめテストと同じ画面）。
+   問題は sheet_open の part_id（章まとめテストの回の行）の words を gg_unit_part で読む。番号は紙と同じ数え方（guru\gg_paper_en.js の blocks()：連問は1つ、続けて同じ見出し g の問題は1つの番号の (1)(2)…） */
+function shGgLis_(w,o){
+  var host=$('sheet-step2'),s1=$('sheet-step1');if(s1)s1.style.display='none';if(!host)return;
+  var st=$('sub-title');if(st)st.innerHTML=rb('聞','き')+'き'+rb('取','と')+'りの'+rb('音','おと');
+  var rid=String(w.part_id||'');
+  host.style.display='block';host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
+  var NG=function(){host.innerHTML='<div class="empty-note"><i class="ti ti-wifi-off"></i><div>'+_NET_NG_MSG_+'</div></div>';};
+  Promise.all([_ggLoadLibs_(),_ggUnitGet_(false),call({action:'gg_unit_part',part_ids:[rid],backs:''})]).then(function(r){
+    var d=r[1],x=r[2];if(!d||!d.ok||!d.data||!x||!x.ok)return NG();
+    var MO=_ggPick_(d.data,null),GG=ggBuildData({materials:MO.materials,parts:MO.parts,words:[]},{lazy:true});
+    ggFillWords(GG,(x.data&&x.data.words)||[],{fig:false});
+    var m=GG.pid&&GG.pid[rid],c=null,rd=null;
+    if(m&&m.k==='RD'){(GG.parts||[]).forEach(function(y){if(y.id===m.pid)c=y;});rd=c&&c.rounds[m.r];}   /* 2026-11-17 通常回の紙の QR */
+    else{(GG.cts||[]).forEach(function(y){if(m&&y.id===m.pid)c=y;});rd=c&&c.rounds[m.r]&&c.rounds[m.r].items;}
+    if(!rd)return NG();
+    var L=[],B=[],gk=null;
+    rd.forEach(function(it,i){if(it.ren||gk===null||gk!==String(it.g||'')){B.push([i]);gk=it.ren?null:String(it.g||'');}else B[B.length-1].push(i);});
+    B.forEach(function(b,bi){b.forEach(function(i,k){var it=rd[i],q=String(it.q||''),mm=/class="eau"[^>]*data-au="([^"]+)"/.exec(q)||/data-au="([^"]+)"[^>]*class="eau"/.exec(q);if(!mm)return;
+      L.push({no:(bi+1)+(b.length>1?'('+(k+1)+')':''),ak:rid+'_'+i,au:mm[1].split('|')});});});
+    if(!L.length&&o&&o.go){o.go();return;}   /* リスニングの無い回（数学など）は音の画面を出さない */
+    shLisDraw_(w,L,'gglis_'+rid,o);
+  })['catch'](NG);
 }
 /* 英検まとめテストの番号（GQ…）を、サーバーに聞かず端末の中で引く（2026-11-14 川上さん「読み込みが遅い」）。式は teacher.html の _ekMtCode_ ・kwtGAS.gs の eikenMtCodeOf_ と同じ */
 function _ekMtCodeOf_(s){s=String(s||'');var m=/^mt-(kakehashi|eiken([345]))-/.exec(s);if(!m)return '';var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}var t=String(Math.floor(h/9)%100000);while(t.length<5)t='0'+t;return 'GQ'+(m[1]==='kakehashi'?'0':m[2])+'-'+t;}
@@ -3578,6 +3609,8 @@ function shWsChoose_(w,ok){
   var top='<div class="sh-head"><span class="sh-code">'+esc(w.code)+'</span></div>'
     +'<div class="shw-t">'+esc(String(w.material_title||'').replace(/^中[123]数学[ 　]+\S+[ 　]+/,''))+'<b>'+esc(w.part_title||'')+'</b></div>';
   if(!ok){ shAccAsk_(w.code,top,function(){shWsChoose_(w,true);}); return; }
+  /* 2026-11-17 ぐるぐるの通常回の紙の QR（この回を開く・GE7-123456）：リスニングがある回は、先に音だけの画面（上に［答えを入れる・アプリで解く］）。リスニングが無い回はそのまま入口へ（川上さん 15:52「Cア」） */
+  if(w.gg_rd&&!w.__lis){ shGgLis_(w,{go:function(){w.__lis=1;shWsChoose_(w,true);}}); return; }
   /* 2026-10-20 川上さん 02:53〜03:10：選ぶ画面はテストの入口（ws_app の __drawEntry）に移した。どこから開いても同じ画面＝前の結果と［続きから］・受け方3つ（クロトレで解く・自動採点・○×入力）。
      この画面には見出しと［開く］だけを残す（入口を閉じたときに戻る所） */
   var go=function(){var eh={code:String(w.code||''),who:nm?(nm+(familyName?'（'+familyName+'）':'')):''};if(w.eiken_mt){openEikenMt_(w.part_id,{entryHead:eh});return;}if(w.gg_ct){openGg_(w.material_id,String(w.part_title||''),{startPid:w.part_id,entryHead:eh});return;}openWs_(w.material_id,[w.part_id],w.part_title,{entryHead:eh});};   /* 英検のまとめテスト 2026-11-13 */
@@ -5892,7 +5925,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261117a',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261117b',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};

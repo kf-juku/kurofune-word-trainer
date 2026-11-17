@@ -10,7 +10,7 @@
    紙に出さないもの：.eaf（放送文・和訳＝答え合わせのあとだけ。解答解説には出す）・.eau（音のボタン。音は見出しの QR）・.egh。英検のまとめテスト（c.ek・it.pk）の部品（kindOf・secName・ghPaper・itemC・headEk）は前のまま */
 (function(G){
 const PP=G.ggPaper;const RD=PP.RD,HD=PP.HD;
-const KANA='アイウエオカ';
+const KANA='アイウエオカキクケコ';   /* 並べかえの札は10個まで（決まり K5・11-17） */
 const SJN={ma:'数学',en:'英語'};
 const kindOf=it=>it.pk||(it.ren?'read':String(it.g||'').split('|')[0]);   /* 2026-11-13 英検のまとめテスト：it.pk＝紙の形（goku2・listen・order・read） */
 const vis=s=>String(s==null?'':s).replace(/<[^>]+>/g,'');
@@ -71,7 +71,8 @@ function ghG(it,mode){const k=gKind(it);
 function chG(c){const n=Math.max(0,...(c||[]).map(wOf));const col=n<=12?6:n<=26?3:n<=54?2:1;
  return `<div class="gch" data-c="${col}" style="--gc:${col}">${(c||[]).map((x,i)=>`<span><b>${KANA6(i)}</b><i>${x}</i></span>`).join('')}</div>`;}
 /* 答えの枠。2つ選ぶ問題は枠を2つ（K12） */
-const anG=(st,lab)=>st&&st.m2?`<div class="an2"><div class="an"></div><div class="an">${lab?`<span class="ank">${lab}</span>`:''}</div></div>`:`<div class="an">${lab?`<span class="ank">${lab}</span>`:''}</div>`;
+/* 2026-11-17 並べかえ（st.op＝[3,5]）：札に記号・答えは「3番目」「5番目」の枠2つ（決まり K5） */
+const anG=(st,lab)=>st&&st.op?`<div class="an2 op"><div class="an"><span class="ank">${st.op[0]}番目</span></div><div class="an"><span class="ank">${st.op[1]}番目</span></div></div>`:st&&st.m2?`<div class="an2"><div class="an"></div><div class="an">${lab?`<span class="ank">${lab}</span>`:''}</div></div>`:`<div class="an">${lab?`<span class="ank">${lab}</span>`:''}</div>`;
 const m2Tag=st=>st&&st.m2?'<span class="m2t">2つ選ぶ</span>':'';
 const qG=it=>strip(it.q,['.eau','.eaf','.egh']);
 const tokG=it=>`<div class="etk">${(it.ord&&it.ord.tok||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div>`;
@@ -94,7 +95,7 @@ function headRound(GG,p,R,H,GN){
  const ttl=H.ny?`${H.unit} <span class="mr">${H.maru}</span>`:p.kaiwa?`${H.unit} <span class="kw">会話表現</span>`:`${H.unit}${H.n>1?`<span class="sh-dots sh-di">${dots}</span>`:''}`;
  return `<div class="sh-h"><div class="sh-l"><div class="sh-k">${H.grade}${SJN[H.subj]||'英語'}<b>ぐるぐる</b></div><div class="sh-tt">${ttl}</div><div class="sh-ps">${H.main}${H.sub?` <small>（${H.sub}）</small>`:''}</div>${H.ny&&H.aft?`<div class="sh-dots"><i>${H.aft} が終わったら挑戦</i></div>`:''}${ca}</div><div class="sh-r"><div class="sh-rd">${RD(R)}</div><div class="sh-rt">${GN}問・${p.min||10}分</div></div><div class="sh-qr">QR<br>この回を開く</div></div>
  <div class="sh-f"><span class="b" style="width:24mm">　月　　日</span><span class="b nm">名前</span><span class="b sc"><span>正解</span><span>／${GN}</span></span></div>
- <div class="sh-ins">選ぶ問題は ア〜カ から選び、右の枠に記号を書きなさい（2つ選ぶ問題は枠に1つずつ）。並べかえは英文を全部4本線に書きなさい。リスニングの音声は右上の QR から聞きます。（${p.min||10}分）</div>`;}
+ <div class="sh-ins">選ぶ問題は ア〜カ から選び、右の枠に記号を書きなさい（2つ選ぶ問題は枠に1つずつ）。並べかえは英文をノートに全部書き、聞かれた2つの位置に来る語の記号を枠に書きなさい。リスニングの音声は右上の QR から聞きます。（${p.min||10}分）</div>`;}
 
 function roundEn(GG,id,R){const p=(GG.parts||[]).find(x=>x.id===id);if(!p||!p.rounds[R])return '';const rd=p.rounds[R];
  const H=HD(GG,id);const GN=nqOf(rd);const {POS}=blocks(rd);let pg='';
@@ -131,8 +132,8 @@ function secOfJ(T){const S=T.secs||[];const at=[];let j0=0;S.forEach((s,si)=>{fo
 function headCtG(c,T,R,GN,kind){const lis=(T.items||[]).some(x=>gKind(x)==='listen');
  const h=`<div class="sh-h"><div class="sh-l"><div class="sh-k">${c.grade}${SJN[c.subj]||'英語'}<b>ぐるぐる</b></div><div class="sh-tt">${c.unit} <span class="mr">${c.rng||''}</span></div><div class="sh-ps">章まとめテスト　${kind==='a'?'解答用紙':'問題用紙'}</div></div><div class="sh-r"><div class="sh-rd">${RD(R)}</div><div class="sh-rt">${GN}問・${T.min||30}分・100点</div></div>${kind==='a'||lis?`<div class="sh-qr${kind==='a'?' big':''}">QR<br>${kind==='a'?'このテストを開く':'音声を聞く'}</div>`:''}</div>`;
  const pt=`<div class="sh-pt">配点：${T.wpt||''}（100点満点）／制限時間：${T.min||30}分</div>`;
- if(kind==='a')return h+`<div class="sh-f"><span class="b" style="width:24mm">　月　　日</span><span class="b nm">名前</span><span class="b sc"><span>点数</span><span>／100</span></span></div>${pt}<div class="sh-ins">選ぶ問題は記号（ア〜カ）を枠に書きなさい。2つ選ぶ問題は枠に1つずつ書きなさい。並べかえは英文を全部4本線に書きなさい。</div>`;
- return h+pt+`<div class="sh-ins">答えはすべて解答用紙に書きなさい。選ぶ問題は記号（ア〜カ）を、2つ選ぶ問題は記号を2つ、並べかえは英文を全部書きなさい。${lis?'リスニングの音声は右上の QR から聞きます。':''}</div>`;}
+ if(kind==='a')return h+`<div class="sh-f"><span class="b" style="width:24mm">　月　　日</span><span class="b nm">名前</span><span class="b sc"><span>点数</span><span>／100</span></span></div>${pt}<div class="sh-ins">選ぶ問題は記号（ア〜カ）を枠に書きなさい。2つ選ぶ問題は枠に1つずつ書きなさい。並べかえは、聞かれた2つの位置（◯番目・◯番目）に来る語の記号を、枠の左と右に書きなさい。</div>`;
+ return h+pt+`<div class="sh-ins">答えはすべて解答用紙に書きなさい。選ぶ問題は記号（ア〜カ）を、2つ選ぶ問題は記号を2つ、並べかえは聞かれた2つの位置に来る語の記号を書きなさい。${lis?'リスニングの音声は右上の QR から聞きます。':''}</div>`;}
 function ctG(GG,c,T,R,kind){const rd=T.items;const GN=nqOf(rd);const {POS}=blocks(rd);const SA=secOfJ(T);const S=T.secs||[];
  const id=c.id,CALLC=`章まとめテスト ${c.unit} ${c.rng||''} ${RD(R)}`;
  const secH=si=>{const s=S[si];if(!s)return '';return `<div class="sh-sec">${esc(s.name)}<small>（${s.n}問・各${T.pt||ptOf(rd[0])||''}点）</small></div>`;};
@@ -142,7 +143,7 @@ function ctG(GG,c,T,R,kind){const rd=T.items;const GN=nqOf(rd);const {POS}=block
  const Q=[];rd.forEach((it,i)=>{const ps=POS[i];if(it.ren){it.steps.forEach((s,si)=>Q.push({lab:`${ps.num}(${si+1})`,st:s,k:'read'}));return;}Q.push({lab:`${ps.num}`,st:it,it,k:gKind(it)});});
  const G2=[];Q.forEach((q,j)=>{const si=SA[j]!=null?SA[j]:0;if(!G2[si])G2[si]=[];G2[si].push(q);});
  const body=G2.map((L,si)=>{const hd=secH(si);if(L.every(q=>q.k==='order'))return `<div class="su" data-k="order">${hd}${L.map(q=>`<div class="eol"><span class="eoln"><b>${q.lab}</b></span>${L4B}${postOf(q.it)?`<span class="epost">${esc(postOf(q.it))}</span>`:''}</div>`).join('')}</div>`;
-  return `<div class="su" data-k="ch">${hd}<div class="eag">${L.map(q=>q.k==='order'?'':`<div class="eac${q.st.m2?' m2':''}"><span>${q.lab}${q.st.m2?'（2つ）':''}</span>${q.st.m2?'<i></i>':''}</div>`).join('')}</div>${L.filter(q=>q.k==='order').map(q=>`<div class="eol"><span class="eoln"><b>${q.lab}</b></span>${L4B}${postOf(q.it)?`<span class="epost">${esc(postOf(q.it))}</span>`:''}</div>`).join('')}</div>`;}).join('');
+  return `<div class="su" data-k="ch">${hd}<div class="eag">${L.map(q=>q.k==='order'?'':`<div class="eac${q.st.m2||q.st.op?' m2':''}"><span>${q.lab}${q.st.op?`（${q.st.op[0]}番目・${q.st.op[1]}番目）`:q.st.m2?'（2つ）':''}</span>${q.st.m2||q.st.op?'<i></i>':''}</div>`).join('')}</div>${L.filter(q=>q.k==='order').map(q=>`<div class="eol"><span class="eoln"><b>${q.lab}</b></span>${L4B}${postOf(q.it)?`<span class="epost">${esc(postOf(q.it))}</span>`:''}</div>`).join('')}</div>`;}).join('');
  return `<div class="sheet cta en gge" data-r="${R}" data-id="${id}">${headCtG(c,T,R,GN,'a')}<div class="sbody">${body}</div><div class="sh-ft">解答用紙　1／1</div></div>`;}
 
 /* ===== 解答解説（ぐるぐる英語の1回・章まとめテスト）：問題ごとに 正解（記号・2つ選ぶは記号2つ・並べかえは英文）と解説。リスニングは放送文と和訳も（答え合わせのあとに見る紙なので） ===== */
@@ -150,6 +151,7 @@ function wLine(l,c){l=String(l==null?'':l);let m=/^#\{(\d+)\}(.*)$/.exec(l);if(m
  if(l.charAt(0)==='#')return `<div class="wx">${l.slice(1)}</div>`;if(l.charAt(0)==='>')return `<div class="wu">${l.slice(1)}</div>`;return `<div class="wl">${l}</div>`;}
 const wHtml=(w,c)=>(w||[]).map(l=>wLine(l,c)).join('');
 function ansOf(st){if(st.ord)return `<span class="ae">${esc(st.a)}</span>${(st.ord.alt||[]).length?`<div class="aalt">別の正しい語順：${st.ord.alt.map(esc).join('　／　')}</div>`:''}`;
+ if(st.op){const a=String(st.a).split(',').map(Number);return `<b class="ak">${st.op.map((p,n)=>`${p}番目 ${KANA6(a[n])}`).join('・')}</b><span class="act">${esc(st.full||'')}</span>`;}
  if(st.m2){const a=String(st.a).split(',').map(Number);return `<b class="ak">${a.map(KANA6).join('・')}</b><span class="act">${a.map(i=>`${KANA6(i)} ${st.c[i]}`).join('　／　')}</span>`;}
  return `<b class="ak">${KANA6(st.a)}</b><span class="act">${st.c[st.a]}</span>`;}
 function ansItem(it,num){const k=gKind(it);const eaf=(()=>{const t=document.createElement('template');t.innerHTML=String(it.q||'');const e=t.content.querySelector('.eaf');return e?`<div class="xaf">${e.innerHTML}</div>`:'';})();
@@ -157,7 +159,7 @@ function ansItem(it,num){const k=gKind(it);const eaf=(()=>{const t=document.crea
  return `<div class="su xa"><div class="sq"><div class="no">${num}</div><div class="bd"><div class="xh">${ansOf(it)}</div>${k==='listen'?eaf:''}${wHtml(it.w,it.c)}</div></div></div>`;}
 function ansEn(GG,id,R){let rd,head,call;const p=(GG.parts||[]).find(x=>x.id===id);
  if(p){if(!p.rounds[R])return '';rd=p.rounds[R];const H=HD(GG,id);call=callG(GG,p,id,R);
-  head=`<div class="sh-h"><div class="sh-l"><div class="sh-k">${H.grade}${SJN[H.subj]||'英語'}<b>ぐるぐる</b></div><div class="sh-tt">${H.ny?'入試パターン':H.unit}</div><div class="sh-ps">${H.main}${H.sub?` <small>（${H.sub}）</small>`:''}　解答解説</div></div><div class="sh-r"><div class="sh-rd">${RD(R)}</div><div class="sh-rt">${nqOf(rd)}問</div></div></div>`;}
+  head=`<div class="sh-h"><div class="sh-l"><div class="sh-k">${H.grade}${SJN[H.subj]||'英語'}<b>ぐるぐる</b></div><div class="sh-tt">${H.ny?'入試パターン':p.kaiwa?`${H.unit} <span class="kw">会話表現</span>`:H.unit}</div><div class="sh-ps">${H.main}${H.sub?` <small>（${H.sub}）</small>`:''}　解答解説</div></div><div class="sh-r"><div class="sh-rd">${RD(R)}</div><div class="sh-rt">${nqOf(rd)}問</div></div></div>`;}
  else{const o=ctOf(GG,id,R);if(!o)return '';rd=o.rd;call=`章まとめテスト ${o.c.unit} ${o.c.rng||''} ${RD(R)}`;
   head=`<div class="sh-h"><div class="sh-l"><div class="sh-k">${o.c.grade}${SJN[o.c.subj]||'英語'}<b>ぐるぐる</b></div><div class="sh-tt">${o.c.unit} <span class="mr">${o.c.rng||''}</span></div><div class="sh-ps">章まとめテスト　解答解説</div></div><div class="sh-r"><div class="sh-rd">${RD(R)}</div><div class="sh-rt">${nqOf(rd)}問・100点</div></div></div>`;}
  const {POS}=blocks(rd);
@@ -294,6 +296,9 @@ const CSS_GG=`
 .ggp .gge .sq .an{height:11mm;width:16mm}
 .ggp .gge .an2{flex:none;display:flex;gap:1.2mm;align-self:center}
 .ggp .gge .an2 .an{width:12.5mm;align-self:auto}
+.ggp .gge .an2.op .an{width:14mm}
+.ggp .gge .an2.op .an:before{content:none}
+.ggp .gge .an2.op .ank{left:2px;top:1px;right:auto;bottom:auto;font-size:8.5px}
 .ggp .gge .erd{display:flex;flex-wrap:wrap;gap:1mm 4mm;align-items:flex-start;margin:2px 0 1px}
 .ggp .gge .erd>.edlg{flex:1 1 100%}
 .ggp .gge .edoc{margin:2px 0 2px;padding:3px 8px 4px;max-width:100%}
