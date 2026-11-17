@@ -54,7 +54,9 @@ var CSS_GK='.qchw.gkct>.nchap{background:#fdf6e3;border-left:4px solid #b8860b;b
  /* 2026-11-17 川上さん 19:28「トグルが開いてるのか開いてないのか分かりづらい」（iPad）：開いているパートは青い枠で囲み、見出しを薄い青に、開いて出た回の行は枠の中で右に下げる。矢印も大きく */
  +'.qchw.open{border:2px solid #2563eb;border-radius:12px;margin:8px 0;background:#f8fbff;overflow:hidden}.qchw.open:last-child{border-bottom:2px solid #2563eb}.qchw.open>.nchap:not([class*=gk]){background:#dbeafe}'
  +'.qchw.open>.nqparts{padding:4px 8px 8px 22px;border-top:1px dashed #93c5fd}.ncf-arw{font-size:24px}.qchw.open .ncf-arw{color:#2563eb}'
- +':host([data-dk]) .qchw.open{border-color:#60a5fa;background:rgba(37,99,235,.10)}:host([data-dk]) .qchw.open>.nchap{background:rgba(37,99,235,.22)}:host([data-dk]) .qchw.open .ncf-arw{color:#93c5fd}';
+ +':host([data-dk]) .qchw.open{border-color:#60a5fa;background:rgba(37,99,235,.10)}:host([data-dk]) .qchw.open>.nchap{background:rgba(37,99,235,.22)}:host([data-dk]) .qchw.open .ncf-arw{color:#93c5fd}'
+ +'.nbook.open{box-shadow:0 0 0 2px #2563eb}.nbook.open>.nbook-head{background:#eff6ff}.nbk-arw{font-size:24px}.nbook.open .nbk-arw{color:#2563eb}'   /* 2026-11-17 20:4x 章（本の札）も開いていると青い枠（川上さん「確認して」→ ジョブスが本番で見てパートだけだったのに気づいた） */
+ +':host([data-dk]) .nbook.open{box-shadow:0 0 0 2px #60a5fa}:host([data-dk]) .nbook.open>.nbook-head{background:rgba(37,99,235,.18)}:host([data-dk]) .nbook.open .nbk-arw{color:#93c5fd}';
 var CSS_IMP='.ncf-nm{position:relative;padding-left:1.05em}.ncf-nm>.imps{position:absolute;left:0;top:.1em;width:1.05em;font-size:.85em;line-height:1.53;color:#c2410c}'
  +':host([data-dk]) .ncf-nm>.imps{color:#fb923c}.imp{color:#c2410c;font-size:.85em;margin-right:3px;vertical-align:1px}:host([data-dk]) .imp{color:#fb923c}'
  /* 2026-11-03 ぐるぐる英語：一覧の見出しの教科の切り替え［数学｜英語］ */
@@ -342,7 +344,7 @@ window.ggShellMount=function(root,GG,opt){
   const T={k:'X',min:p.min||10,name:CALL(id,R),ver:R,test:true,pt:GPTof(id),ins:'正しいものを選ぼう',items:CL(p.rounds[R]),part_id:rowOf(id,R),gr:1};
   return ggMount(host,{UNIT_TITLE:H.ny?H.main:'単元'+H.k+' '+H.main,PATS:[],TEST:T,POOL:{}},{katexCss:KCSS,dark:false,book:H.ny?p.grade+SN+' 入試パターン '+H.main:p.grade+SN+' '+p.unit,shuffle:false,innerBack:false,tkey:'ggpp_'+id+R,startPid:T.part_id,en:SJ_(p)==='en',audioBase:opt.audioBase,preview:true});}
  render();
- return {render,prefetchNext,prefetch,open:(id,R)=>openRound(id,R||nextR(id)),openCt:(id,R)=>openCt(id,R),state:()=>({SEL,VIEW,CUR_R,GR,FLT}),app:()=>API,paperLoad,paperMount,
+ return {render,prefetchNext,prefetch,open:(id,R)=>{try{const bk=BOOKS().find(b=>b.parts.some(x=>x.id===id));const ob=OPEN.get('bk')||DEF_BK();if(bk&&!ob.includes(bk.key)){ob.push(bk.key);OPEN.set('bk',ob);}}catch(e){}openRound(id,R||nextR(id));},   /* 2026-11-17 外から開いたとき（［更新］のあと・紙の QR）その単元の本も開く＝左の一覧に選んだパートが出る */openCt:(id,R)=>openCt(id,R),state:()=>({SEL,VIEW,CUR_R,GR,FLT}),app:()=>API,paperLoad,paperMount,
   destroy:()=>{API=null;sh.innerHTML='';if(PV)Object.keys(localStorage).filter(k=>/^ggpv_/.test(k)).forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});}};
 };
 /* 記録をサーバーに送る形（2026-11-02 段3・生徒にはまだ出していない＝student.html はまだ使っていない）

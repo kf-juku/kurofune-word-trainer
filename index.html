@@ -2316,6 +2316,7 @@ html.furi-on .dy-l .nw{white-space:normal;} /* ふりがなが付くと狭い画
   #ws-ov .subhead{margin:0;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--bg)}
   #ws-host{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 12px 40px}
   body.ws-lock{overflow:hidden}
+  body.ws-lock>.wrap{display:none}   /* 2026-11-17 iPad（第6世代）で白くなって一覧に戻される：ぐるぐる・ワークシートなどを開いているあいだ、後ろのホーム（約4万個の部品・ぼかしの下のメニュー）を描かない。戻るときにスクロールの位置を戻す（_wsLock_） */
   body.ws-lock .cmb,body.ws-lock .ec{z-index:72}body.ws-lock .cmb-meter{z-index:71} /* ワークシート（#ws-ov＝70）の上にコンボを出す 2026-10-18 */
   .e2j-known{font-size:.5em;font-weight:600;color:#6b7280;margin-left:.6em;vertical-align:middle;white-space:nowrap} /* 知っている語の新しい意味 2026-10-23 */
 
@@ -3022,7 +3023,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-17e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-17f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5925,7 +5926,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261117d',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261117e',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -6010,7 +6011,7 @@ function openEikenMt_(rid,xo){
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
   $('ws-ttl').textContent=t.title+' '+R;
   host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
-  ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;_wsDirect=true;_ekMtOn=true;try{_auPreload_([]);}catch(eP){}   /* 2026-11-14 iPad：単元別の先読みの音を捨て、まとめテストの間は音なし再生をしない（放送の音を止めないため） */
+  ov.classList.add('on');_wsLock_(true);_wsApi=null;_wsDirect=true;_ekMtOn=true;try{_auPreload_([]);}catch(eP){}   /* 2026-11-14 iPad：単元別の先読みの音を捨て、まとめテストの間は音なし再生をしない（放送の音を止めないため） */
   if(_ekMtApi){try{_ekMtApi.destroy();}catch(e0){}_ekMtApi=null;}
   var J=fetch('eiken_mt/'+rid+'.json?v='+EKMT_V,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('json '+r.status);return r.json();});
   var Rq=_ekMtRecAsk&&Object.keys(_ekMtRec).length?Promise.resolve(null):call({action:'ekmt_records'});
@@ -6085,7 +6086,7 @@ function openGg_(mid,title,xo){   /* xo.startPid＝開く行（紙の QR から�
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
   $('ws-ttl').textContent=title||'ぐるぐる';
   host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
-  ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;_wsDirect=true;_ggOn=true;try{comboBreak_();}catch(e){}
+  ov.classList.add('on');_wsLock_(true);_wsApi=null;_wsDirect=true;_ggOn=true;try{comboBreak_();}catch(e){}
   if(_ggApi){try{_ggApi.destroy();}catch(e0){}_ggApi=null;}
   Promise.all([_ggLoadLibs_(),_ggUnitGet_(false),_ggRecGet_(false)]).then(function(r){
     if(!_ggOn)return;
@@ -6115,7 +6116,7 @@ function openGgPv_(mid,startPid){
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
   $('ws-ttl').textContent='プレビュー';
   host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
-  ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;_wsDirect=false;
+  ov.classList.add('on');_wsLock_(true);_wsApi=null;_wsDirect=false;
   if(_ggApi){try{_ggApi.destroy();}catch(e0){}_ggApi=null;}
   Promise.all([_ggLoadLibs_(),call({action:'gg_unit',material_id:mid})]).then(function(r){
     var d=r[1];
@@ -6188,7 +6189,7 @@ function openWs_(mid,pids,title,xo){ /* xo.preview＝先生用プレビュー（
   var ov=$('ws-ov'),host=$('ws-host');if(!ov||!host)return;
   $('ws-ttl').textContent=title||'';
   host.innerHTML='<div class="loading" style="padding:30px 0;text-align:center">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div>';
-  ov.classList.add('on');document.body.classList.add('ws-lock');_wsApi=null;_wsDirect=!!(xo&&xo.startPid&&!xo.preview);try{comboBreak_();}catch(e){}
+  ov.classList.add('on');_wsLock_(true);_wsApi=null;_wsDirect=!!(xo&&xo.startPid&&!xo.preview);try{comboBreak_();}catch(e){}
   var _wp=(!(xo&&xo.preview)&&_wsPre_[mid]&&_wsPre_[mid].gen===_hrGen_)?_wsPre_[mid].p:null;delete _wsPre_[mid]; /* 先読みがあれば使う（1回だけ）2026-10-20 */
   var _wu=_wp?_wp.then(function(d){return (d&&d.ok)?d:call({action:'ws_unit',material_id:mid});}):call({action:'ws_unit',material_id:mid});
   Promise.all([_wsLoadLibs_(),_wu]).then(function(r){
@@ -6242,6 +6243,7 @@ function _wsSend_(pid,r){
    ぐるぐる・ワークシート・英検のまとめテストの画面の上の帯。押すと、送っていない記録を送ってから（最大5秒待つ）、いま開いているもの（教材・パート・回）を覚えて画面を読み直し、
    読み直したら同じ所を開き直す。解いている途中の答えは、どの画面も1問ごとにこの端末に残している（テストの下書き tDraftSave・紙の答えの __pdSave）＝開き直すと「続きから」で戻る。最新の版のアプリに入れかわる */
 var _wsRes_=null;
+var _wsSY_=0;function _wsLock_(on){var b=document.body;if(on){if(!b.classList.contains('ws-lock'))_wsSY_=window.scrollY||0;b.classList.add('ws-lock');}else{var was=b.classList.contains('ws-lock');b.classList.remove('ws-lock');if(was){try{window.scrollTo(0,_wsSY_);}catch(e){}}}}
 function wsReload_(){
   var R=_wsRes_?JSON.parse(JSON.stringify(_wsRes_)):null;
   if(R&&R.k==='gg'&&_ggApi&&_ggApi.state){try{var st=_ggApi.state();if(st&&st.SEL)R.resume={sel:st.SEL,r:st.CUR_R||'',view:st.VIEW||''};}catch(e){}}
@@ -6254,11 +6256,11 @@ function _wsResume_(){var R=null;try{R=JSON.parse(sessionStorage.getItem('kwt_ws
   try{if(R.k==='gg')openGg_(R.mid,R.title,{subj:R.subj,resume:R.resume||null});else if(R.k==='ws')openWs_(R.mid,R.pids,R.title,{});else if(R.k==='ek')openEikenMt_(R.rid,{});}catch(e){}}
 function closeWs_(){
   var ov=$('ws-ov'),host=$('ws-host');if(!ov)return;
-  if(_ggOn){_ggOn=false;if(_ggApi){try{_ggApi.destroy&&_ggApi.destroy();}catch(e){}_ggApi=null;}ov.classList.remove('on');document.body.classList.remove('ws-lock');setTimeout(_fcRelease_,0);if(host)host.innerHTML='';
+  if(_ggOn){_ggOn=false;if(_ggApi){try{_ggApi.destroy&&_ggApi.destroy();}catch(e){}_ggApi=null;}ov.classList.remove('on');_wsLock_(false);setTimeout(_fcRelease_,0);if(host)host.innerHTML='';
     _ggRecP=null;var fl=_ggB?_ggB.flush():Promise.resolve();fl.then(function(){_ggRecGet_(true).catch(function(){});if(_wsSent){_wsSent=0;try{loadHomeData_(false);}catch(e){}}});return;}   /* 2026-11-15 ぐるぐるのタブ・記録は送り終わってから読み直す（次に開くとき待たない） */
-  if(_ekMtOn){_ekMtOn=false;if(_ekMtApi){try{_ekMtApi.destroy&&_ekMtApi.destroy();}catch(e){}_ekMtApi=null;}ov.classList.remove('on');document.body.classList.remove('ws-lock');setTimeout(_fcRelease_,0);if(host)host.innerHTML='';
+  if(_ekMtOn){_ekMtOn=false;if(_ekMtApi){try{_ekMtApi.destroy&&_ekMtApi.destroy();}catch(e){}_ekMtApi=null;}ov.classList.remove('on');_wsLock_(false);setTimeout(_fcRelease_,0);if(host)host.innerHTML='';
     var fl=_ekMtB?_ekMtB.flush():Promise.resolve();fl.then(function(){_ekMtRecAsk=false;_ekMtLoadRec_();});try{if(_ekMtMats)renderUnitZone_(_ekMtMats,_ekMtOpt);}catch(e){}return;}   /* 2026-11-13 英検のまとめテスト */
-  ov.classList.remove('on');document.body.classList.remove('ws-lock');setTimeout(_fcRelease_,0);if(host)host.innerHTML='';_wsApi=null;try{comboBreak_();}catch(e){} /* 画面から外すと ws_app.js の繰り返しの処理も止まる */
+  ov.classList.remove('on');_wsLock_(false);setTimeout(_fcRelease_,0);if(host)host.innerHTML='';_wsApi=null;try{comboBreak_();}catch(e){} /* 画面から外すと ws_app.js の繰り返しの処理も止まる */
   _wsMats.forEach(function(c){(c.parts||[]).forEach(function(l){if(_wsDone[String(l.part_id)])l.passed=true;});});
   try{renderWsZone_(_wsMats.concat([]));}catch(e){}
   if(_wsSent){_wsSent=0;try{loadHomeData_(false);}catch(e){}}

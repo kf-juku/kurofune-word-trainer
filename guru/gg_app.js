@@ -176,12 +176,12 @@ window.ggMount=function(root,D,opt){
   __gTkCoach(ph);}
  /* 案内：その日はじめて言葉が見えたときに1回（英検の「分からない英語は押すと意味」と同じ）。解説を開いたときにも見る */
  function __gTkCoach(ph){if(!ph.__gtkc){ph.__gtkc=1;ph.addEventListener('click',e=>{if(e.target.closest('.trh,.rdr summary,.wr-hid'))setTimeout(()=>__gTkCoach(ph),450);});}
-  const g=[...ph.querySelectorAll('.gtk')].find(x=>x.getBoundingClientRect().width>0&&(!x.checkVisibility||x.checkVisibility({checkVisibilityCSS:true}))&&!x.closest('.wr-hid:not(.peel)')&&!x.closest('details:not([open])'));if(!g)return;const day=new Date().toISOString().slice(0,10);let seen='';try{seen=localStorage.getItem('gg_tk_coach')||'';}catch(e){}
-  if(seen===day)return;try{localStorage.setItem('gg_tk_coach',day);}catch(e){}
+  const g=[...ph.querySelectorAll('.gtk')].find(x=>x.getBoundingClientRect().width>0&&(!x.checkVisibility||x.checkVisibility({checkVisibilityCSS:true}))&&!x.closest('.wr-hid:not(.peel)')&&!x.closest('details:not([open])'));if(!g)return;let used='';try{used=localStorage.getItem('gg_tk_used')||'';}catch(e){}
+  if(used||ph.querySelector('.gtk-coach'))return;
   const P=g.closest('.phone')||ph,pr=P.getBoundingClientRect(),r=g.getBoundingClientRect();const c=__realDoc.createElement('div');c.className='gtk-coach';
-  c.innerHTML='<b>灰色の言葉</b>は、押すと意味が出る';c.style.top=(r.bottom-pr.top+8)+'px';P.appendChild(c);const cw=c.offsetWidth||220,lf=Math.max(8,Math.min(pr.width-cw-8,r.left-pr.left-10));c.style.left=lf+'px';
+  c.innerHTML='<b>'+__gCAP.replace('<svg ','<svg style=\"width:15px;height:15px;vertical-align:-3px\" ')+' の付いた言葉</b>を押すと、説明が出る';c.style.top=(r.bottom-pr.top+8)+'px';P.appendChild(c);const cw=c.offsetWidth||220,lf=Math.max(8,Math.min(pr.width-cw-8,r.left-pr.left-10));c.style.left=lf+'px';
   c.style.setProperty('--ax',Math.max(10,Math.min(cw-22,r.left-pr.left+Math.min(r.width,40)/2-lf-6))+'px');
-  const kill=()=>{try{c.remove();}catch(e){}};setTimeout(()=>ph.addEventListener('click',kill,{once:true,capture:true}),0);setTimeout(kill,12000);}
+  const kill=()=>{try{c.remove();}catch(e){}};ph.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.gtk')){try{localStorage.setItem('gg_tk_used','1');}catch(x){}kill();}},true);setTimeout(kill,15000);}
  /* 進み具合のバーを押すと、その段を見返せる（14:47「再入力ではなく見返す用」）。済んだ段と今の段だけ */
  function __gBarNav(ph,L,at,go){const ws=[...ph.querySelectorAll('.wd1 .ws')];const cur=(()=>{const i=L.findIndex(x=>!x.done&&!x.opt);return i<0?L.length:i;})();
   const lock=false; /* 17:20 に解き直し中は戻れなくしたが、17:37「解き直しは自己管理なので、やっぱり戻る制限なしで、解説に戻ってもよい」で戻した */
@@ -247,7 +247,7 @@ window.ggMount=function(root,D,opt){
  function __gEntHead(){const g=GURU,R=TEST.ver||'A1',P=__gPrev();
   const ex=__gCvEx(g.examples);
   return __gCvHd()
-   +(P?`<div class="gprev"><span class="gpvl">前回 ${P.dt}</span><b class="gpvs">${P.n} / ${TFL.length}<small> 正解</small></b><span class="ent-tag ${P.dn?'ok':'fx'}">${P.dn?'完了':'直しの途中'}</span><button type="button" class="next sub" data-e="cont">${P.dn?'前回の解説を見る':'続きから'}</button></div>`:'')
+   +(P?`<div class="gprev"><span class="gpvl">前回 ${P.dt}</span><b class="gpvs">${P.n} / ${TFL.length}<small> 正解</small></b><span class="ent-tag ${P.dn?'ok':'fx'}">${P.dn?'完了':'直しの途中'}</span>${P.dn?'<button type="button" class="next sub" data-e="cont">前回の解説を見る</button>':''}</div>${P.dn?'':'<button type="button" class="ent-big gcont" data-e="cont" style="margin:2px 0 14px">前回の続きから</button>'}`:'')
    +`<div class="gcc">${g.catch||''}</div>`
    +(ex?`<div class="gcl">${__gCvNY(g.examples)?'この回で解けるようになる入試問題':'こんな問題が解けるようになる'}</div><div class="gcxs">${ex}</div>`:'')
    +(GURU.en&&GURU.en.meta?`<div class="gmeta">${GURU.en.meta}</div>`:`<div class="gmeta">ノートと鉛筆を用意しよう。</div>`)
