@@ -3023,7 +3023,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-17i"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-18a"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3555,7 +3555,7 @@ function shLisDraw_(w,L,key,o){
       var g1=$('ekl-g'),sy=document.createElement('style');sy.textContent='#ekl-g .sh-play:disabled{pointer-events:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}';g1.appendChild(sy);
       var t=0,px=0,py=0,cl=function(){clearTimeout(t);t=0;};
       g1.addEventListener('pointerdown',function(e){cl();if(cur)return;var hit=null;[].forEach.call(g1.querySelectorAll('.sh-play:disabled'),function(b){var r=b.getBoundingClientRect();if(use[b.getAttribute('data-ak')]&&e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)hit=b;});if(!hit)return;px=e.clientX;py=e.clientY;
-        t=setTimeout(function(){t=0;if(cur||!hit.isConnected)return;if(!window.confirm('【先生用】この音の回数をもどします。\n音が出なかった・聞こえなかったときだけ使ってください。\nもどしますか？'))return;
+        t=setTimeout(function(){t=0;if(cur||!hit.isConnected)return;if(!window.confirm('先生用のコマンドです。\n実行してよいですか？'))return;
           delete use[hit.getAttribute('data-ak')];try{localStorage.setItem(key,JSON.stringify(use));}catch(e6){}hit.disabled=false;if(hit._lab0)hit.querySelector('span').innerHTML=hit._lab0;else{var nn=hit.parentNode.querySelector('.sh-n');hit.querySelector('span').textContent=(nn?nn.textContent:'')+'番の音を聞く（2回だけ）';}},2500);},true);
       g1.addEventListener('pointerup',cl,true);g1.addEventListener('pointermove',function(e){if(t&&(Math.abs(e.clientX-px)>12||Math.abs(e.clientY-py)>12))cl();},true);window.addEventListener('scroll',cl,true);
     })();
@@ -5939,7 +5939,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261117h',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261118a',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -5959,7 +5959,7 @@ function _ggLoadLibs_(){
    2026-11-15 川上さん「英検・架け橋とぐるぐるはもう分けてください」：部品は英検専用＝eiken_mt/ekmt_app.js の ekMtMount（ぐるぐるの guru/ は読まない）。形を合わせるときは、ぐるぐるの良い仕組みを写して英検の側に持つ。
    問題＝eiken_mt/<id>.json（シートには入れない。作る道具＝ジョブス用\道具\20261113_英検のまとめテスト\）。一覧の表＝_EKMT_（範囲の最後のパート after の次に出す）。部品を直したら EKMT_V を上げる（teacher.html と同じ値）。
    記録＝GAS の ekmt_submit・ekmt_state・ekmt_records（英検専用の受け口・quiz_results の ekmt_state 列）。行 id＝mt-eiken4-bunpo-1-A1 */
-var EKMT_V='20261117a',_ekMtLibP=null,_ekMtApi=null;
+var EKMT_V='20261118a',_ekMtLibP=null,_ekMtApi=null;
 function _ekMtLoadLibs_(){
   if(_ekMtLibP)return _ekMtLibP;
   _ekMtLibP=new Promise(function(ok,ng){var sc=document.createElement('script');sc.src='eiken_mt/ekmt_app.js?v='+EKMT_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error('eiken_mt/ekmt_app.js'));};document.head.appendChild(sc);});
@@ -8830,7 +8830,7 @@ function _lxDecor_(s,w,q){
     _TKS_=[];var _br=function(t){return String(t).replace(/\{\{([^|}]+)\|([^}]*)\}\}/g,function(_,en,ja){return _tkPut_(en,ja);});};
     h='<div class="lx-point"><span class="lx-pn">'+esc(String(q.point[0]))+'</span><span>'+_tkRender_(_jaRubyIf_(_br(q.point[1]||'')))
       +(q.point[2]?'<span class="lx-fex">'+_tkRender_(_jaRubyIf_(_br('例　'+q.point[2])))+'</span>':'')+'</span></div>';
-  }else if(q.memo&&!s.quizMode&&s.mode!=='note'){
+  }else if(false&&q.memo&&!s.quizMode&&s.mode!=='note'){   /* 2026-11-18 川上さん「一番上の注意書きいる？」→ 外した（Bア）。解き方のメモ（_LX_MEMO_）は出さない */
     var qt=(q.fmt&&_LX_MEMO_[q.fmt])?String(q.fmt):String(w.qtype||''),m=_LX_MEMO_[qt];s._memoShown=s._memoShown||{};   /* fmt で引く（2026-10-07） */
     if(m&&(!s._memoShown[qt]||s._memoShown[qt]===String(w.id))){s._memoShown[qt]=String(w.id);
       h='<div class="lx-memo">'+_LX_BULB_+'<span>'+_jaRubyIf_(m)+'</span></div>';}
@@ -10156,21 +10156,20 @@ function renderLX_(s,w,q,pl){
     /* 確定52（2026-09-23）＝本番の第1部は聞こえる英文が1つだけ。確定50（承認モック 20260921_モック_会話編_第1部型.html の③）の形：
        「聞こえる英文」→「ここまでが英文」の線→「返事」の欄（番号を選ぶ）。3つ目の「？」の吹き出しはやめた */
     h=(pl.img?'<div class="lx-pic"><img src="'+esc(String(pl.img))+'" alt="" onerror="this.parentNode.classList.add(\'noimg\');this.style.display=\'none\';"></div>':'')   /* 第1部型にも絵（本番どおり・2026-09-26 §19d B13／4級 4-62）。素材に img が無い問題は今までどおり */
-     +'<div class="kw-sec"><span class="kw-secl"><ruby>聞<rt class="uf">き</rt></ruby>こえる<ruby>英文<rt class="uf">えいぶん</rt></ruby></span></div>'
+     /* 2026-11-18 「聞こえる英文」の札は外した（川上さん 00:46 Bア） */
       +'<div class="lx-talk">'+lines.map(function(l,i){
         var b=(String(l.sp)==='B');
         return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+_whoC_(l.sp)+'">'+_whoT_(l.sp)+'</span>'+(q.show_line?'<span class="lx-en">'+esc(String(l.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div>';
       }).join('')+'</div>'
-      +'<div class="kw-gap"><span></span><b>ここまでが<ruby>英文<rt class="uf">えいぶん</rt></ruby></b><span></span></div>'
-      +'<div class="kw-sec pick"><span class="kw-secl pick"><ruby>返事<rt class="uf">へんじ</rt></ruby></span><span class="kw-secn">1・2・3 の<ruby>英文<rt class="uf">えいぶん</rt></ruby>が<ruby>流<rt class="uf">なが</rt></ruby>れる</span></div>';
+      ;   /* 2026-11-18 「ここまでが英文」の線と「返事 1・2・3 の英文が流れる」の札は外した */
   }else if(isPrint){
-    h='<div class="kw-sec"><span class="kw-secl"><ruby>聞<rt class="uf">き</rt></ruby>こえる<ruby>英文<rt class="uf">えいぶん</rt></ruby></span></div>'
+    h=''   /* 2026-11-18 「聞こえる英文」の札は外した */
       +'<div class="lx-talk">'+lines.map(function(l,i){
         var b=(String(l.sp)==='B'||String(l.sp)==='★');
         return '<div class="lx-bub'+(b?' b':'')+'" id="lx-l'+i+'"><span class="lx-who '+(b?'b':'a')+_whoC_(l.sp)+'">'+_whoT_(l.sp)+'</span>'+(q.show_line?'<span class="lx-en">'+esc(String(l.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div>';
       }).join('')
       +'<div class="lx-bub" id="lx-lqq"><span class="lx-who q">Q</span>'+(q.show_line?'<span class="lx-en">'+esc(String(qq.en||''))+'</span>':'<span class="lx-wave"></span>')+'</div></div>'
-      +'<div class="kw-sec pick"><span class="kw-secl pick"><ruby>答<rt class="uf">こた</rt></ruby>え</span><span class="kw-secn"><ruby>質問<rt class="uf">しつもん</rt></ruby>が<ruby>終<rt class="uf">お</rt></ruby>わったら、<ruby>合<rt class="uf">あ</rt></ruby>うものを<ruby>選<rt class="uf">えら</rt></ruby>ぶ</span></div>';
+      ;   /* 2026-11-18 「答え 質問が終わったら…」の札は外した */
   }else{
     h='<div class="lx-pic"><img src="'+esc(String(pl.img||''))+'" alt="" onerror="this.parentNode.classList.add(\'noimg\');this.style.display=\'none\';"></div>';
   }
@@ -10199,13 +10198,13 @@ function renderLX_(s,w,q,pl){
     var steps=[];
     lines.forEach(function(l,i){steps.push({it:l,gap:(i===lines.length-1?(isPrint?_LX_GAP_.toQ:_LX_GAP_.toCh):_LX_GAP_.line),on:lit('lx-l'+i)});});   /* 2026-11-17 会話のあと選択肢まで2秒・質問まで1.5秒（前＝1.4秒・0.8秒） */
     if(isPrint){steps.push({it:qq,gap:0,on:lit('lx-lqq')});}   /* 第2部型＝会話のあとに Question。選択肢は読まない */
-    else steps=steps.concat(_lxChSteps_(order.map(function(ci){return chs[ci];}),function(jj){return function(){lit('lx-o'+jj)();var e=$('lx-lq');if(e)e.classList.add('now');if(st&&!answered)st.textContent=(jj+1)+'番を読んでいます';};}));   /* 2026-11-17 番号の声＋1秒の間 */
-    if(!answered){setBtns(false);stopQTimer();if(st)st.textContent='英文を聞いています';}
+    else steps=steps.concat(_lxChSteps_(order.map(function(ci){return chs[ci];}),function(jj){return function(){lit('lx-o'+jj)();var e=$('lx-lq');if(e)e.classList.add('now');};}));   /* 2026-11-17 番号の声＋1秒の間 */
+    if(!answered){setBtns(false);stopQTimer();if(st)st.textContent='';}   /* 2026-11-18 状態の文（英文を聞いています・◯番を読んでいます・番号を選んでください）は外した。鳴らなかったときの知らせは残す */
     return _lxRunSeq_(steps).then(function(ok){
       if(!ok||!alive())return;
       clear();setBtns(true);
       if(answered){if(st)st.textContent='';return;}
-      if(st)st.textContent=isPrint?'答えを選んでください':'番号を選んでください';
+      if(st)st.textContent='';
       if(!started){started=true;_t0=Date.now();}
       if(_tl>0&&!retried)startQTimer(_qtSecFinal_(_tl,[],true),function(){finish(false,null);});
     });
@@ -10302,7 +10301,7 @@ function _lxPreRoll_(s,w,isResp,isPrint,setBtns,st,alive,nl){
   var prevOpt=!!(_pq&&_pq.mode==='opt_ja');   /* 2026-10-28 川上さん：「選択肢だけを読む」（qtype は同じ listen_print）のあとの1問目でも指示の音声を流す */
   var prevFmt=isPrint&&prev===qt&&!prevOpt&&((String((_pq&&_pq.fmt)||'')==='l3')!==(key==='p3'));   /* 2026-11-09 第2部型と第3部型が入れかわったら指示を流す（見出しと帯の文が変わるため） */
   var intro=(prev!==qt||prevOpt||prevFmt)?_LX_INTRO_[key]:'';
-  setBtns(false); if(st)st.textContent=(intro&&!isPrint)?'説明を聞いています':'';
+  setBtns(false); if(st)st.textContent='';   /* 2026-11-18 状態の文は外した */
   var rw=isPrint?_lxRwShow_(key):null;   /* 会話と質問は最初から文と帯を出す（指示の音声と同じ文） */
   var img=document.querySelector('#sent-body .lx-pic img, #sent-choices .lx-pic img, .lx-pic img');
   var waitImg=new Promise(function(r){ if(!img||img.complete)return r(); var t=setTimeout(r,3000); img.addEventListener('load',function(){clearTimeout(t);r();}); img.addEventListener('error',function(){clearTimeout(t);r();}); });
@@ -10513,6 +10512,9 @@ function _dfJaOf_(pl,en){
   for(var i=0;i<c.length;i++)if(String(c[i].en||'').trim()===String(en||'').trim())return String(c[i].ja||'');
   return '';
 }
+/* 2026-11-18 川上さん（英検4級 ②会話編 No.56 の7問目「英文がちょっと長くて、制限時間ギリギリ」→「文字数によっては広めてもいい。任せます」）：
+   会話の空所の制限時間は、会話と選択肢の英語の語数が20語までは今の20秒、そこから2語ごとに1秒足す（30語で25秒・40語で30秒）。本番4級の大問2は平均27語・最長37語 */
+function _dfAddSec_(lines,chs){var n=0,c=function(t){return (String(t||'').match(/[A-Za-z']+/g)||[]).length;};(lines||[]).forEach(function(l){n+=c(l&&l.en);});(chs||[]).forEach(function(x){n+=c(x&&x.en);});return Math.max(0,Math.ceil((n-20)/2));}
 function renderDF_(s,w,pl,_tl){
   var ask=$('sent-ask'),body=$('sent-body'),box=$('sent-choices');
   var lines=(pl&&pl.lines)||[],chs=(pl&&pl.choices)||[];
@@ -10527,7 +10529,7 @@ function renderDF_(s,w,pl,_tl){
     :'<ruby>会話<rt class="uf">かいわ</rt></ruby>に<ruby>合<rt class="uf">あ</rt></ruby>う<ruby>英文<rt class="uf">えいぶん</rt></ruby>を<ruby>選<rt class="uf">えら</rt></ruby>ぼう';
   body.innerHTML='<div class="df-talk">'+lines.map(function(l,i){return _dfLineHtml_(l,i,null);}).join('')+'</div>';
   buildChoices('sent-choices',w.english,[],function(ok,_el){_quizAns(s,w,ok,_el,'e2j');},
-    {fig:true,fixedChoices:chs.map(function(c){return String(c.en||'');}),timeLimit:_tl,kaisetsu:w.kaisetsu,next:s.onNext,
+    {fig:true,fixedChoices:chs.map(function(c){return String(c.en||'');}),timeLimit:(_tl>0?_tl+_dfAddSec_(lines,chs):_tl),kaisetsu:w.kaisetsu,next:s.onNext,
      afterShow:function(){_dfAfter_(w,pl);}});
 }
 /* 紙の答え合わせページの音（段7）。第1部型・第3部型は seq（会話→選択肢の順）を順に鳴らす 2026-09-17 */
