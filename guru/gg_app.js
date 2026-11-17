@@ -798,7 +798,6 @@ function __w2(ph){if(!__W2Q())return;const P=[...ph.children].find(x=>x.classLis
  const kids=[...P.children];let at=-1;
  if(P.classList.contains('tent')){if(!kids.some(x=>x.classList.contains('ent-prev')))return;at=kids.findIndex(x=>x.classList.contains('ent-ask'));}
  else if(P.classList.contains('ppaper'))at=kids.findIndex(x=>x.classList.contains('ppad'));
- else if(kids.some(x=>x.classList.contains('ch'))&&!P.querySelector('.bl:not(.fill)'))at=kids.findIndex(x=>x.classList.contains('ch'));
  if(at<0)return;
  const L=document.createElement('div'),R=document.createElement('div');L.className='w2l';R.className='w2r';
  kids.forEach((x,i)=>{if(i>=at)R.appendChild(x);else if(!x.matches('.prog,.wd1,.pplead,.pdres,.ghd'))L.appendChild(x);});

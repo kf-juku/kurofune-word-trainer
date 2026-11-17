@@ -3722,8 +3722,9 @@ function _pqLxSeq_(it){
   var o=_pqLxOrder_(it); if(!o) return [];
   var seq=[];
   o.lines.forEach(function(l){ seq.push({en:String(l.en||''),audios:(l.audio?[String(l.audio)]:[])}); });
-  if(o.print){ if(o.q) seq.push({en:String(o.q.en||''),audios:(o.q.audio?[String(o.q.audio)]:[])}); return seq; }   /* 第2部型＝会話→Question。選択肢は紙に印刷してあるので鳴らさない */
+  if(o.print){ if(o.q){ seq.push({en:String(o.q.en||''),audios:(o.q.audio?[String(o.q.audio)]:[])}); seq.push({en:'@lx:q',audios:[]}); } return seq; }   /* 2026-11-17 印「@lx:q」＝最後が質問（生徒側 _shPlay_ が質問の前を1.5秒あける） */   /* 第2部型＝会話→Question。選択肢は紙に印刷してあるので鳴らさない */
   o.order.forEach(function(ci){ var c=o.chs[ci]||{}; seq.push({en:String(c.en||''),audios:(c.audio?[String(c.audio)]:[])}); });
+  if(o.order.length===3) seq.push({en:'@lx:c',audios:[]});   /* 2026-11-17 印「@lx:c」＝最後の3つが選択肢（生徒側 _shPlay_ が番号の声と間を入れる） */
   return seq;
 }
 /* ===== 英検の大問2型（dialog_fill）＝会話文の空所補充。2026-09-18 =====
@@ -7068,7 +7069,7 @@ function _wsLoadLibs_(){
    ノートの書き方の絵は guru/img/gg/*.svg（画面に出たときに読む）。部品を直したら GG_LIB_V を上げる
    2026-11-02 段3 速くした：開いたときは［中身］の最初の material_preview の返事（ぐるぐるは words を読まない＝parts の行と表紙の説明だけ）で一覧を出す（ggBuildData の lazy）。
    回・［確かめる］・章まとめを開いたときに、そのパートの行だけ gg_preview_part で読む（gg_shell.js の opt.loadParts → ggFillWords）。読んだパートはこの窓を閉じるまで覚えておく */
-var GG_LIB_V='20261117g',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの rect の class を bar→hbar＝gg_fig.js）。2026-11-04 ぐるぐる：20261104c（よくあるまちがいの枠と選んだ答えでの出し分け・矢印の2組目・紙の補足ボックスと矢印＝gg_app.js・gg_load.js・gg_shell.js）。20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
+var GG_LIB_V='20261117h',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの rect の class を bar→hbar＝gg_fig.js）。2026-11-04 ぐるぐる：20261104c（よくあるまちがいの枠と選んだ答えでの出し分け・矢印の2組目・紙の補足ボックスと矢印＝gg_app.js・gg_load.js・gg_shell.js）。20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -12914,7 +12915,7 @@ function _ekMtStuHtml_(ts){var S=_ekMtStus_(ts);if(!S.length)return '';return '<
 function ekMtStuAll_(v){[].slice.call(document.querySelectorAll('.pp-ekms')).forEach(function(c){c.checked=!!v;});}
 /* ===== 英検・架け橋のまとめテストの紙（2026-11-15 ぐるぐるから分けた・川上さん「英検・架け橋とぐるぐるはもう分けてください」）=====
    部品＝eiken_mt/ekmt_paper.js の ekMtPaper（ぐるぐるの guru/gg_paper*.js は読まない）。紙の CSS は .ekp の中だけ（ぐるぐるの .ggp と別）。部品を直したら EKMT_V を上げる（index.html・student.html と同じ値） */
-var EKMT_V='20261115a',_ekprLibP=null;
+var EKMT_V='20261117a',_ekprLibP=null;
 function _ekprLibs_(){
   if(_ekprLibP)return _ekprLibP;
   _ekprLibP=new Promise(function(ok,ng){var sc=document.createElement('script');sc.src='eiken_mt/ekmt_paper.js?v='+EKMT_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error('eiken_mt/ekmt_paper.js'));};document.head.appendChild(sc);}).then(function(){_ekprCssOnce_();});

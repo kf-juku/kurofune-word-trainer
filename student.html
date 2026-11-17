@@ -3023,7 +3023,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-17h"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-17i"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -3565,7 +3565,7 @@ function shLisDraw_(w,L,key,o){
       cur=x.ak;   /* 使用済みにするのは、音が実際に鳴り始めたとき（2026-11-14）。鳴らなかったときは回数を減らさない */
       if(!b._lab0)b._lab0=b.querySelector('span').innerHTML;
       b.disabled=true;b.querySelector('span').textContent=x.no+'番の音を再生中…';
-      var started=false,dead=false,seq=[];for(var r2=0;r2<2;r2++)x.au.forEach(function(u,j){seq.push({u:u,gap:j===x.au.length-1&&r2===0?3000:300});});
+      var started=false,dead=false,seq=[],hasT=x.au.some(function(u){return String(u).charAt(0)==='@';});for(var r2=0;r2<2;r2++){var part=[];x.au.forEach(function(u){u=String(u);if(u.charAt(0)==='@'){if(part.length)part[part.length-1].gap=+u.slice(1)||0;return;}part.push({u:u,gap:hasT?700:300});});if(part.length)part[part.length-1].gap=(r2===0?3000:300);seq=seq.concat(part);}   /* 2026-11-17 英検のまとめテストの音は「@ミリ秒」（間）と番号の声（listen_intro/choice_a.mp3 など）を含む。印の無い音（ぐるぐる英語）は前のまま */
       var au=new Audio(),i=0,g0=$('ekl-g');
       var mark=function(){if(started)return;started=true;use[x.ak]=Date.now();try{localStorage.setItem(key,JSON.stringify(use));}catch(e1){}};
       var fail=function(){if(dead)return;dead=true;cur=null;b.disabled=false;b.querySelector('span').textContent='音が出ませんでした。もう一度押してください';};
@@ -4649,7 +4649,7 @@ function _tcItem_(s,w,no,ok,pick,shown){
       if(_md==='pic_yn'){var _l=((p.lines||[])[0])||{};it.qa=function(){_sentPlay_(_l);};it.scr=[{en:String(_l.en||''),ja:String(_l.ja||'')}];}}
     else{var _pc=p.choices||[],_ix=_tcMix_(_pc.map(function(_,i){return String(i);}),w.id).map(Number),_ps=_ix.map(function(i){return _pc[i]||{};}),_c0=_pc[0]||{};
       it.ch=_ps.map(function(c){return String(c.en||'');});it.ans=String(_c0.en||w.english||'');it.ansja=String(_c0.ja||'');
-      it.qa=function(){_lxRunSeq_(_ps.map(function(c){return {it:c,gap:350};}));};}}
+      it.qa=function(){_lxRunSeq_(_lxChSteps_(_ps,null));};}}   /* 2026-11-17 番号の声＋間 */
   else if(t==='phonics'){var _pm=String(q.mode||'read'),_pp=p;it.ask=(_pm==='say')?'':_phAsk_(_pm);it.ch=_tcMix_(q.choices,w.id);
     if(_pm==='read'||_pm==='say'){it.en=String(p.word||'');it.ap=function(){_phWhole_(_pp);};it.ans=(_pm==='say')?String(p.read||''):String(w.japanese||'');}
     else{it.qa=function(){_phWhole_(_pp);};it.ans=String(w.english||p.word||'');}}
@@ -4661,7 +4661,7 @@ function _tcItem_(s,w,no,ok,pick,shown){
   else if(t==='dialog_fill'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:_tcHole_(esc(l.en||'')),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);}
   else if(t==='reorder'){var tk=((q.tokens&&q.tokens.length)?q.tokens:(p.tokens||[])).concat(q.extra||[]);it.ask=String((q.do&&q.do[0])||'');it.rp=(q.qx||[]).map(function(r){return {lab:String(r.lab||''),q:String(r.en||''),en:'',ja:String(r.ja||'')};});for(var i=tk.length-1;i>0;i--){var j=(Math.abs((String(w.id)+i).split('').reduce(function(a,c){return (a*31+c.charCodeAt(0))|0;},7))%(i+1));var x=tk[i];tk[i]=tk[j];tk[j]=x;}it.ja=String(w.japanese||'');it.toks=tk;var _fp=String(q.pre||'').trim(),_fo=String(q.post||'').trim(),_tq=(q.tokens&&q.tokens.length)?q.tokens:((p.tokens&&p.tokens.length)?p.tokens:[]);if(!_fp&&!_fo&&q.tokens&&q.tokens.length&&p&&p.en){try{var _ft=_sentTok_(p.en),_fq=_sentTok_(q.tokens.join(' ')),_fn=_fq.length;if(_ft.length>_fn&&_ft.slice(0,_fn).join(' ').toLowerCase()===_fq.join(' ').toLowerCase())_fo=_sentJoin_(_ft.slice(_fn));}catch(e){}}it.pre=_fp;it.post=_fo;it.nsl=_tq.length;}   /* 2026-11-07 解く画面（renderRO_）と同じ前後の固定の語・枠の数 */
   else if(t==='listen'){it.ch=_tcMix_(q.choices_ja,w.id);it.kh=_khMapFor_(w,q,p);it.au=(p.audios||[])[0]||p.audio||'';it.ans=String(w.japanese||'');it.script=String(w.english||'');}
-  else if(t==='listen_resp'||t==='listen_print'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:String(l.en||''),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);it.aus=(p.lines||[]).map(function(l){return l.audio||'';}).concat((p.q&&p.q.audio)?[p.q.audio]:[]).filter(Boolean);if(t==='listen_resp'){it.chA={};(p.choices||[]).forEach(function(c){if(c&&typeof c==='object')it.chA[String(c.en||'')]=c;});}}   /* 2026-11-08 第1部型は返事ごとの音を出す（生徒の答え合わせの▶と同じ音） */
+  else if(t==='listen_resp'||t==='listen_print'){it.lines=(p.lines||[]).map(function(l){return {sp:String(l.sp||''),en:String(l.en||''),ja:String(l.ja||'')};});it.ch=_tcMix_((p.choices||[]).map(function(c){return String(c.en||c);}),w.id);var _la=(p.lines||[]).map(function(l){return l.audio||'';}).filter(Boolean);it.aus=[];_la.forEach(function(u,i){if(i)it.aus.push('@'+_LX_GAP_.line);it.aus.push(u);});if(p.q&&p.q.audio){if(it.aus.length)it.aus.push('@'+_LX_GAP_.toQ);it.aus.push(p.q.audio);}   /* 2026-11-17 「@ミリ秒」＝間（_tcPlay_）。前は会話と質問を間なしで続けて流していた */if(t==='listen_resp'){it.chA={};(p.choices||[]).forEach(function(c){if(c&&typeof c==='object')it.chA[String(c.en||'')]=c;});}}   /* 2026-11-08 第1部型は返事ごとの音を出す（生徒の答え合わせの▶と同じ音） */
   else if(t==='image_fill'){var _a0=(s.assets||{})[q.asset]||{};it.fig=String(p.url||p.src||_a0.url||'');it.ja=String(w.japanese||'');it.ch=_tcMix_(q.choices,w.id);it.rd=String(w.reading_hint||'');}
   else if(t===''){
     /* 英単語か用語か：教科（s.isEnglish）で決める（EU・DNA など英字の用語を英単語にしない）*/
@@ -4709,7 +4709,7 @@ function _waUrl_(s,en){var M=_tcWAM||{},k=String(en||'').toLowerCase().replace(/
   if(!e){k=k.replace(/^[\s"'“‘(（]+|[\s"'”’)）.,!?;:]+$/g,'');e=k?M[k]:null;}
   if(!e)return '';var g=_tcGr_(s);return String(e[g]||e['5']||e['4']||e['3']||e.p||'');}
 function _tcSay_(s,en){var e=(_tcWAM||{})[String(en||'').toLowerCase().trim()]||{},g=_tcGr_(s);speak({english:String(en||''),audio:e[g]||e['5']||e['4']||e['3']||e.p||''});}
-var _tcAuEl=null;function _tcPlay_(list){try{if(_tcAuEl)_tcAuEl.pause();}catch(e){}var i=0;var a=new Audio();_tcAuEl=a;var nx=function(){if(i>=list.length||_tcAuEl!==a)return;a.src=list[i++];a.onended=nx;var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});};nx();}   /* 2026-11-14 iPad：押したときに作った1つの部品で続きの音も流す（続きごとに new Audio すると iPad は2本目から止める） */
+var _tcAuEl=null;function _tcPlay_(list){try{if(_tcAuEl)_tcAuEl.pause();}catch(e){}var i=0;var a=new Audio();_tcAuEl=a;var nx=function(){if(i>=list.length||_tcAuEl!==a)return;var u=String(list[i++]);if(u.charAt(0)==='@'){setTimeout(nx,+u.slice(1)||0);return;}a.src=u;a.onended=nx;var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});};nx();}   /* 2026-11-14 iPad：押したときに作った1つの部品で続きの音も流す（続きごとに new Audio すると iPad は2本目から止める） */
 function _tcChs_(it){return '<div class="tc-chs">'+(it.ch||[]).map(function(c){return '<span'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+esc(c)+'</span>';}).join('')+'</div>';}
 function _tcChl_(it){return '<ol class="tc-chl">'+(it.ch||[]).map(function(c){return '<li'+((it.you!==undefined&&String(c)===it.you)?' class="tc-me"':'')+'>'+((it.kh&&_khHtml_(it.kh,c))||esc(c))+'</li>';}).join('')+'</ol>';}
 /* 2026-11-08 第1部型の返事の並び（出したときの順）に、返事ごとの▶。mp3 が無い返事は _sentPlay_ が端末の読み上げにする（生徒の画面と同じ） */
@@ -5939,7 +5939,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261117g',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261117h',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -5959,7 +5959,7 @@ function _ggLoadLibs_(){
    2026-11-15 川上さん「英検・架け橋とぐるぐるはもう分けてください」：部品は英検専用＝eiken_mt/ekmt_app.js の ekMtMount（ぐるぐるの guru/ は読まない）。形を合わせるときは、ぐるぐるの良い仕組みを写して英検の側に持つ。
    問題＝eiken_mt/<id>.json（シートには入れない。作る道具＝ジョブス用\道具\20261113_英検のまとめテスト\）。一覧の表＝_EKMT_（範囲の最後のパート after の次に出す）。部品を直したら EKMT_V を上げる（teacher.html と同じ値）。
    記録＝GAS の ekmt_submit・ekmt_state・ekmt_records（英検専用の受け口・quiz_results の ekmt_state 列）。行 id＝mt-eiken4-bunpo-1-A1 */
-var EKMT_V='20261115a',_ekMtLibP=null,_ekMtApi=null;
+var EKMT_V='20261117a',_ekMtLibP=null,_ekMtApi=null;
 function _ekMtLoadLibs_(){
   if(_ekMtLibP)return _ekMtLibP;
   _ekMtLibP=new Promise(function(ok,ng){var sc=document.createElement('script');sc.src='eiken_mt/ekmt_app.js?v='+EKMT_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error('eiken_mt/ekmt_app.js'));};document.head.appendChild(sc);});
@@ -10114,11 +10114,16 @@ function _lxRunSeq_(steps){
     chain=chain.then(function(){
       if(tok!==_lxRun)return;
       try{if(st.on)st.on();}catch(e){}
-      return _lxOne_(st.it,tok).then(function(){return (tok===_lxRun)?_lxWait_(st.gap||0):null;});
+      return (st.mp3?_lxPlayMp3_(st.mp3,null):_lxOne_(st.it,tok)).then(function(){return (tok===_lxRun)?_lxWait_(st.gap||0):null;});   /* 2026-11-17 st.mp3＝選択肢の前の番号の声（指示・Number と同じ1つの部品で鳴らす） */
     });
   });
   return chain.then(function(){return tok===_lxRun;});
 }
+/* 【2026-11-17 22:31 川上さん Cア】「問題の音声と、質問や選択肢の音声が続けて流れて区別がつかない」。聞き取りの間と番号の声を1か所で決める。
+   会話の行どうし 0.35秒／会話のあと選択肢まで 2秒／会話のあと質問まで 1.5秒／選択肢の前に番号の声（One. Two. Three.＝listen_intro/choice_1〜3.mp3）→ すぐ選択肢 → 1.5秒。
+   選択肢の音を流す所は全部 _lxChSteps_ を通す（決まり＝KWT_生徒アプリ.md「聞き取りの間と番号の声」） */
+var _LX_GAP_={line:350,toCh:2000,toQ:1500,num:0,ch:1500};   /* 22:5x 番号の声は頭の無音を0.15秒に詰め、番号のすぐあとに選択肢（選択肢の mp3 の頭の無音が間になる）。選択肢のあと次の番号まで1.5秒 */
+function _lxChSteps_(list,onFor){var st=[];(list||[]).forEach(function(c,j){var on=onFor?onFor(j):null;st.push({mp3:_LX_DIR_+'choice_'+(j+1)+'.mp3',gap:_LX_GAP_.num,on:on});st.push({it:c,gap:(j===list.length-1?0:_LX_GAP_.ch),on:on});});return st;}
 /* 【A⑤ 2026-10-02】役名の長さで文字の大きさを変える（丸・札は広げない）。9字以上は2行（Grand／mother） */
 function _whoC_(sp){var n=String(sp==null?'':sp).length;return n<=4?'':n<=6?' n6':n<=8?' n8':' n9';}
 function _whoT_(sp){return esc(String(sp==null?'':sp));}   /* 2026-10-03 横長の札にしたので2行に割らない */
@@ -10192,9 +10197,9 @@ function renderLX_(s,w,q,pl){
     [].forEach.call(box.querySelectorAll('.lx-ch'),function(b){b.disabled=(!on||answered||b.classList.contains('tried'));});};
   function playAll(){
     var steps=[];
-    lines.forEach(function(l,i){steps.push({it:l,gap:(i===lines.length-1?(isPrint?800:1400):350),on:lit('lx-l'+i)});});   /* 英文と選択肢のあいだは 1400ms（確定50） */
+    lines.forEach(function(l,i){steps.push({it:l,gap:(i===lines.length-1?(isPrint?_LX_GAP_.toQ:_LX_GAP_.toCh):_LX_GAP_.line),on:lit('lx-l'+i)});});   /* 2026-11-17 会話のあと選択肢まで2秒・質問まで1.5秒（前＝1.4秒・0.8秒） */
     if(isPrint){steps.push({it:qq,gap:0,on:lit('lx-lqq')});}   /* 第2部型＝会話のあとに Question。選択肢は読まない */
-    else order.forEach(function(ci,j){steps.push({it:chs[ci],gap:500,on:(function(jj){return function(){lit('lx-o'+jj)();var e=$('lx-lq');if(e)e.classList.add('now');if(st&&!answered)st.textContent=(jj+1)+'番を読んでいます';};})(j)});});
+    else steps=steps.concat(_lxChSteps_(order.map(function(ci){return chs[ci];}),function(jj){return function(){lit('lx-o'+jj)();var e=$('lx-lq');if(e)e.classList.add('now');if(st&&!answered)st.textContent=(jj+1)+'番を読んでいます';};}));   /* 2026-11-17 番号の声＋1秒の間 */
     if(!answered){setBtns(false);stopQTimer();if(st)st.textContent='英文を聞いています';}
     return _lxRunSeq_(steps).then(function(ok){
       if(!ok||!alive())return;
@@ -10428,9 +10433,9 @@ function _lxExplain_(s,w,pl,isResp,lines,chs,order,retried,ok2,H){
   var nx=$('ex-next'),selfDone=false,self=$('lx-self'),hd=$('lx-hd'),wt=$('lx-wt');
   var _pick=retried?_lxPickMount_(s,w,ok2,true):null;   /* 【2026-10-11 案A】選び直した問題＝2つの答えを「次へ」の場所に。聞き終わるまで押せない */
   var steps=function(){var st=[];
-    if(isResp)lines.forEach(function(l,i){st.push({it:l,gap:900,on:H.lit('lx-x-l'+i)});});
+    if(isResp)lines.forEach(function(l,i){st.push({it:l,gap:(i===lines.length-1?(qq?_LX_GAP_.toQ:_LX_GAP_.toCh):900),on:H.lit('lx-x-l'+i)});});
     if(qq)st.push({it:qq,gap:0,on:H.lit('lx-x-q')});   /* 第2部型は選択肢を読まない */
-    else order.forEach(function(ci,j){st.push({it:chs[ci],gap:400,on:H.lit('lx-x-c'+j)});});
+    else st=st.concat(_lxChSteps_(order.map(function(ci){return chs[ci];}),function(j){return H.lit('lx-x-c'+j);}));   /* 2026-11-17 番号の声＋間 */
     return st;};
   /* 2026-11-11 修正メモ（川上さん「選択肢のすぐ横に音声のボタンを置けば」）：第2部型・第3部型（選択肢が紙に書いてある形）も、解説では選択肢の横に ▶ を出す。
      解く前の画面には出さない（本番と同じ）。選択肢の mp3 が無いときは、英語を押して出る窓の🔊と同じ音（_tkSay_＝文の mp3・word_audio.json・端末の読み上げ） */
@@ -10527,7 +10532,14 @@ function renderDF_(s,w,pl,_tl){
 }
 /* 紙の答え合わせページの音（段7）。第1部型・第3部型は seq（会話→選択肢の順）を順に鳴らす 2026-09-17 */
 function _shPlay_(pl){
-  if(pl&&pl.seq&&pl.seq.length){ try{_sentStop_();}catch(e){} _lxRunSeq_(pl.seq.map(function(x){return {it:{en:x.en,audio:(x.audios&&x.audios[0])||x.audio||''},gap:450};})); return; }
+  if(pl&&pl.seq&&pl.seq.length){ try{_sentStop_();}catch(e){}
+    var L=pl.seq.map(function(x){return {en:x.en,audio:(x.audios&&x.audios[0])||x.audio||''};}),last=String((L[L.length-1]||{}).en||''),k=/^@lx:([cq])$/.exec(last);
+    /* 2026-11-17 先生画面が11-17 からの紙に「@lx:c」（最後の3つが選択肢）・「@lx:q」（最後が質問）の印を付ける。印の無い前の紙と読み方の音（フォニックス）は前のまま */
+    if(!k){ _lxRunSeq_(L.map(function(it){return {it:it,gap:450};})); return; }
+    L=L.slice(0,-1);
+    if(k[1]==='q'){ _lxRunSeq_(L.map(function(it,i){return {it:it,gap:(i===L.length-2?_LX_GAP_.toQ:_LX_GAP_.line)};})); return; }
+    var nc=Math.min(3,L.length),hd=L.slice(0,L.length-nc);
+    _lxRunSeq_(hd.map(function(it,i){return {it:it,gap:(i===hd.length-1?_LX_GAP_.toCh:_LX_GAP_.line)};}).concat(_lxChSteps_(L.slice(L.length-nc),null))); return; }
   _sentPlay_(pl);
 }
 function nextWord(){var s=session;
@@ -12158,7 +12170,7 @@ function _qrvItem_(s,w,mine){
         return '<div class="qrv-line"><span class="lx-tg">'+esc(String(l.sp||''))+'</span><div class="lx-xb">'+((hasC&&l.c)?_lxChunks_(l.c):esc(String(l.en||'')))
           +'<small>'+(hasC?_lxJaMark_(l.ja,pl.line_kja):_jaRubyIf_(String(l.ja||'')))+'</small></div></div>';}).join('')+'</div>';
     h+=_qrvAns_(mine,String(c0.en||w.english||''),(mine?_qrvChJa_(chs,mine):''),String(c0.ja||''))+_qrvKai_(w.kaisetsu);
-    play=function(){var st=ls.map(function(l){return {it:l,gap:350};});if(c0.en)st.push({it:c0,gap:0});_lxRunSeq_(st);};
+    play=function(){var st=ls.map(function(l,i){return {it:l,gap:(i===ls.length-1?_LX_GAP_.toQ:_LX_GAP_.line)};});if(c0.en)st.push({it:c0,gap:0});_lxRunSeq_(st);};   /* 2026-11-17 会話のあと正解の返事まで1.5秒 */
   }else if(qt==='listen_print'){   /* 第2部型（会話と質問）2026-09-27：会話＋Question＋答え。音は会話→質問の順 */
     var chs2=pl.choices||[],c02=chs2[0]||{},ls2=(pl.lines||[]),qq2=pl.q||{},hasC2=!!(c02.c&&c02.c.length||(ls2[0]&&ls2[0].c));
     h+=_qrvAgain_();
@@ -12166,7 +12178,7 @@ function _qrvItem_(s,w,mine){
         return '<div class="qrv-line"><span class="lx-tg">'+esc(String(l.sp||''))+'</span><div class="lx-xb">'+((hasC2&&l.c)?_lxChunks_(l.c):esc(String(l.en||'')))
           +'<small>'+(hasC2&&l.sp!=='Q'?_lxJaMark_(l.ja,pl.line_kja):_jaRubyIf_(String(l.ja||'')))+'</small></div></div>';}).join('')+'</div>';
     h+=_qrvAns_(mine,String(c02.en||w.english||''),(mine?_qrvChJa_(chs2,mine):''),String(c02.ja||''))+_qrvKai_(w.kaisetsu);
-    play=function(){var st=ls2.map(function(l){return {it:l,gap:350};});if(qq2.en||qq2.audio)st.push({it:qq2,gap:0});_lxRunSeq_(st);};
+    play=function(){var st=ls2.map(function(l,i){return {it:l,gap:(i===ls2.length-1?_LX_GAP_.toQ:_LX_GAP_.line)};});if(qq2.en||qq2.audio)st.push({it:qq2,gap:0});_lxRunSeq_(st);};   /* 2026-11-17 会話のあと質問まで1.5秒 */
   }else if(qt==='reading'){   /* 英検4級の読解 2026-09-30：質問・答えのある行（黄色）と訳・あなた／正解・解説 */
     var rch=(q.choices||[]).map(function(c){return (c&&typeof c==='object')?c:{en:String(c==null?'':c),ja:''};}),r0=rch[0]||{},rl=pl.lines||[],rrq=(String(q.kind||'')==='rq');
     var rhl=_rdLocs_(q).map(function(k){return k===-1?{en:pl.title,ja:''}:rl[k];}).filter(function(x){return x&&x.en;});
