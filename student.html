@@ -3023,7 +3023,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-17g"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-17h"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5719,11 +5719,8 @@ function renderUnitZone_(materials,opt){
         detail+='</div>';
       });
       detail+='</div>';
-      book.innerHTML=head+detail;
-      if(_open.indexOf(g.key)>=0)book.classList.add('open'); // リロード後も開いた本を保持
-      /* 先読みする「次はこれ」＝完走していない章の最初のまだのパート 2026-10-20 */
-      book._pfIds=[];g.items.forEach(function(c){var ps=(c.parts||[]);if(String(c.sm_status)==='completed')return;var fu=null;ps.forEach(function(l){if(!l.passed&&!fu)fu=l;});if(fu&&fu.part_id)book._pfIds.push(String(fu.part_id));});
-      book.querySelector('.nbook-head').onclick=function(){book.classList.toggle('open');_unitOpenToggle_(g.key,book.classList.contains('open'));if(book.classList.contains('open'))unitPrefetchBook_(book);};
+      var _dHtml=detail;book.innerHTML=head+'<div class="nbk-lz"></div>';   /* 2026-11-17 iPad で白くなる：閉じている本の中身（章とパートの行）は開いたときに作る（本番のかわかみで英検のタブに 約1万1千個の部品が最初から作ってあった） */
+      var bindD=function(){
       book.querySelectorAll('.nchap').forEach(function(row){var pid=row.getAttribute('data-pid');var isMap=row.getAttribute('data-map')==='1';row.onclick=function(){ if(isMap){goMapSub_(row.getAttribute('data-mid'));} else if(pid){startPractice(pid);} };}); // 完走章は学習マップ(復習)へ・未完走は練習へ 2026-08-08
       /* 矢印＝パート一覧の開閉だけ（章行の → の動きは変えないので stopPropagation する）。開いた状態は sessionStorage に持つ 2026-09-11 */
       book.querySelectorAll('.qchw').forEach(function(w){
@@ -5735,6 +5732,12 @@ function renderUnitZone_(materials,opt){
           var go=h.querySelector('.ekp-go');if(go)go.onclick=function(ev){ev.stopPropagation();var em=go.getAttribute('data-emt');if(em)openEikenMt_(em);else startPractice(go.getAttribute('data-go'));};});
         w.querySelectorAll('.nqp:not(.ekp-h)').forEach(function(prow){var upid=prow.getAttribute('data-upid'),emt=prow.getAttribute('data-emt');prow.onclick=function(ev){ev.stopPropagation();if(emt){openEikenMt_(emt);return;}if(upid)startPractice(upid);};});
       });
+      };
+      book._fillD=function(){if(book._dOk)return;book._dOk=true;var lz=book.querySelector('.nbk-lz');if(lz)lz.outerHTML=_dHtml;_dHtml=null;bindD();};
+      if(_open.indexOf(g.key)>=0){book.classList.add('open');book._fillD();} // リロード後も開いた本を保持
+      /* 先読みする「次はこれ」＝完走していない章の最初のまだのパート 2026-10-20 */
+      book._pfIds=[];g.items.forEach(function(c){var ps=(c.parts||[]);if(String(c.sm_status)==='completed')return;var fu=null;ps.forEach(function(l){if(!l.passed&&!fu)fu=l;});if(fu&&fu.part_id)book._pfIds.push(String(fu.part_id));});
+      book.querySelector('.nbook-head').onclick=function(){book._fillD();book.classList.toggle('open');_unitOpenToggle_(g.key,book.classList.contains('open'));if(book.classList.contains('open'))unitPrefetchBook_(book);};
       host.appendChild(book);
     });
     host.appendChild(uhint); // 本の一覧の下に置く（帯→本→学習マップ導線 の順）2026-08-20
@@ -5753,7 +5756,7 @@ function renderUnitZone_(materials,opt){
    KaTeX・math_fig.js・ws_load.js・ws_app.js は、初めてワークシートを開いたときだけ読む。
    できた＝サーバーの passed（material_parts）。パートの最後まで進んだら session_complete と complete_extras を送る（正答率＝1回目の答え）。
    途中でやめたら、その日のうちは同じパートのやめた題から（ws_app.js が localStorage に持つ・今の「途中の学習」のカードには出さない）。 */
-var WS_LIB_V='20261117a';
+var WS_LIB_V='20261117b';
 var _wsMats=[],_wsDone={},_wsLibP=null,_wsApi=null,_wsSent=0,_wsTL={},_wsTq=Promise.resolve();
 /* ===== ワークシートのテスト（段④ 2026-10-18）=====
    受けどきの色は確認テスト（_quizReady_・quizStatus2_）と同じ3つ：青の塗り＝いま受けるところ／枠＝受けられるが今ではない／点線＝先に練習。
@@ -5936,7 +5939,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261117f',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261117g',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -6522,6 +6525,7 @@ function loadHomeData_(showSkel){
         ov.innerHTML='<div class="ov-top"><div class="ov-nm">'+_jaRubySubj_(mtShortMt(c),subjB)+lapPill+doneTag+'</div><div class="ov-now num">'+right+' <i class="ti ti-chevron-down acc-arw"></i></div></div>'
           +map+(curPart&&passedN<total?'<div class="m1-now"><i class="ti ti-map-2"></i>'+rb('今','いま')+'ここ：'+curLbl+'</div>':'');   /* 下の「■クリア済み・■今ここ・残り」→「今ここ：…」だけ（M1）2026-10-19 */
         var detail=document.createElement('div');detail.className='macc-detail';
+        detail._fill=function(){if(detail._filled)return;detail._filled=true;   /* 2026-11-17 iPad で白くなる：閉じている教材の中身（パートの行）は開いたときに作る（本番のかわかみで 約2万6千個の部品が最初から作ってあった） */
         var cleared=parts.filter(function(l){return l.passed&&!l.is_current;});
         var rest=parts.filter(function(l){return !(l.passed&&!l.is_current);});
         /* 【案B・2026-08-21】全部合格した教材は「クリア済み（N）」に畳まない。
@@ -6539,7 +6543,8 @@ function loadHomeData_(showSkel){
           detail.appendChild(fold);detail.appendChild(farea);
         }
         if(!_allDone)rest.forEach(function(l){detail.appendChild(buildMapRow(l,isTest,false,subjB,c.material_id));});
-        ov.onclick=function(){ov.classList.toggle('open');detail.classList.toggle('open');};
+        };
+        ov.onclick=function(){detail._fill();ov.classList.toggle('open');detail.classList.toggle('open');};
         bdetail.appendChild(ov);bdetail.appendChild(detail);
       });
       macc.appendChild(book);
@@ -11789,7 +11794,7 @@ function _mapApplyFocus_(macc){
   var book=ov.closest('.nbook');
   if(book&&!book.classList.contains('open')){book.classList.add('open');try{_openToggle_('kwt_map_open',book.getAttribute('data-bk')||'',true);}catch(e){}}
   var dt=ov.nextElementSibling;
-  if(!ov.classList.contains('open')){ov.classList.add('open');if(dt&&dt.classList.contains('macc-detail'))dt.classList.add('open');}
+  if(!ov.classList.contains('open')){ov.classList.add('open');if(dt&&dt.classList.contains('macc-detail')){try{if(dt._fill)dt._fill();}catch(eF){}dt.classList.add('open');}}
   if(_mapFocusDone)return;
   _mapFocusDone=true;
   setTimeout(function(){

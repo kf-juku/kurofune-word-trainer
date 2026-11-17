@@ -215,7 +215,7 @@ window.ggShellMount=function(root,GG,opt){
   L.querySelectorAll('[data-s]').forEach(x=>x.onclick=()=>{SEL=x.dataset.s;VIEW='struct';render();});
   L.querySelectorAll('[data-ny]').forEach(x=>x.onclick=()=>{SEL=x.dataset.ny;VIEW='nys';render();});
   L.querySelectorAll('[data-cr]').forEach(x=>x.onclick=()=>openCt(x.dataset.ct,x.dataset.cr));
-  const _sk=VIEW+'|'+SEL+'|'+CUR_R+'|'+GR+'|'+SUBJ+'|'+FLT;const on=L.__sk!==_sk&&(L.querySelector('.nqp.on,.nchap.on')||(SEL&&L.querySelector(`.qchw[data-ch="${SEL}"]`)));L.__sk=_sk;if(on){   /* 選んでいる所へ自動で寄せるのは、選んだものが変わったときだけ */try{const r=on.getBoundingClientRect(),lr=L.getBoundingClientRect();if(r.top<lr.top||r.bottom>lr.bottom)L.scrollTop+=r.top-lr.top-60;}catch(e){}}}
+  const _sk=VIEW+'|'+SEL+'|'+CUR_R+'|'+GR+'|'+SUBJ+'|'+FLT;const on=L.__sk!==_sk&&(L.querySelector('.nqp.on,.nchap.on')||(SEL&&L.querySelector(`.qchw[data-ch="${SEL}"]`)));L.__sk=_sk;if(on){   /* 選んでいる所へ自動で寄せるのは、選んだものが変わったときだけ */const go=(n)=>{try{const r=on.getBoundingClientRect(),lr=L.getBoundingClientRect();if(!lr.height||!r.height){if(n<8)setTimeout(()=>go(n+1),150);return;}if(r.top<lr.top||r.bottom>lr.bottom)L.scrollTop+=r.top-lr.top-60;}catch(e){}};go(0);}}   /* 2026-11-17 開いた直後（画面の大きさがまだ0）でも、出てから寄せる */
  const inpart=v=>{if(v)root.setAttribute('data-inpart','');else root.removeAttribute('data-inpart');};
  function render(){LDTOK++;inpart(!!SEL||VIEW==='ct');drawLeft();if(!SEL){API=null;M.innerHTML='<div class="card"><div class="cv-note" style="margin:0">左の一覧から、学校で習ったパートを選ぼう。青い矢印は、次にやる回。</div></div>';return;}
   if(VIEW==='struct')return drawStruct();
@@ -344,7 +344,7 @@ window.ggShellMount=function(root,GG,opt){
   const T={k:'X',min:p.min||10,name:CALL(id,R),ver:R,test:true,pt:GPTof(id),ins:'正しいものを選ぼう',items:CL(p.rounds[R]),part_id:rowOf(id,R),gr:1};
   return ggMount(host,{UNIT_TITLE:H.ny?H.main:'単元'+H.k+' '+H.main,PATS:[],TEST:T,POOL:{}},{katexCss:KCSS,dark:false,book:H.ny?p.grade+SN+' 入試パターン '+H.main:p.grade+SN+' '+p.unit,shuffle:false,innerBack:false,tkey:'ggpp_'+id+R,startPid:T.part_id,en:SJ_(p)==='en',audioBase:opt.audioBase,preview:true});}
  render();
- return {render,prefetchNext,prefetch,open:(id,R)=>{try{const bk=BOOKS().find(b=>b.parts.some(x=>x.id===id));const ob=OPEN.get('bk')||DEF_BK();if(bk&&!ob.includes(bk.key)){ob.push(bk.key);OPEN.set('bk',ob);}}catch(e){}openRound(id,R||nextR(id));},   /* 2026-11-17 外から開いたとき（［更新］のあと・紙の QR）その単元の本も開く＝左の一覧に選んだパートが出る */openCt:(id,R)=>openCt(id,R),state:()=>({SEL,VIEW,CUR_R,GR,FLT}),app:()=>API,paperLoad,paperMount,
+ return {render,prefetchNext,prefetch,open:(id,R)=>{try{const bk=BOOKS().find(b=>b.parts.some(x=>x.id===id));const ob=OPEN.get('bk')||DEF_BK();if(bk&&!ob.includes(bk.key)){ob.push(bk.key);OPEN.set('bk',ob);}const oc=OPEN.get('ch')||DEF_CH();if(!oc.includes(id)){oc.push(id);OPEN.set('ch',oc);}}catch(e){}openRound(id,R||nextR(id));},   /* 2026-11-17 外から開いたとき（［更新］のあと・紙の QR）その単元の本も開く＝左の一覧に選んだパートが出る */openCt:(id,R)=>openCt(id,R),state:()=>({SEL,VIEW,CUR_R,GR,FLT}),app:()=>API,paperLoad,paperMount,
   destroy:()=>{API=null;sh.innerHTML='';if(PV)Object.keys(localStorage).filter(k=>/^ggpv_/.test(k)).forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});}};
 };
 /* 記録をサーバーに送る形（2026-11-02 段3・生徒にはまだ出していない＝student.html はまだ使っていない）
