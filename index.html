@@ -2677,7 +2677,6 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
             <div class="psub" id="todo-sub"></div>
             <div id="todo-top"></div>
             <div id="todo-list"></div>
-            <div id="todo-addbtn" role="button" tabindex="0"><span>＋</span> <span>やることを<ruby>足<rt class="uf">た</rt></ruby>す</span></div>
           </div>
           <!-- 全体像への導線（行動カードと並べない・控えめリンク）2026-07-26 -->
           <div id="daily-maplink" role="button" tabindex="0" style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--sub);padding:12px;margin-top:2px;cursor:pointer;"><i class="ti ti-map-2" style="color:var(--gold);font-size:16px;"></i> <span><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>の<ruby>進<rt class="uf">すす</rt></ruby>みを<ruby>見<rt class="uf">み</rt></ruby>る</span> <i class="ti ti-chevron-right"></i></div>
@@ -3031,7 +3030,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-18f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-18g"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -13544,17 +13543,29 @@ function _tdRow_(t,withMat){var me=(t.src==='self');   /* 自分で足したも�
   +((withMat&&t.mtitle)||me?'<div class="td-mt">'+(withMat&&t.mtitle?esc(t.mtitle):'')+(me?' <span class="td-self">'+_nvRuby_('自分(じぶん)で',true)+'</span>':'')+'</div>':'')+'<div class="td-nm">'+esc(t.ptitle||t.label)+'</div></div>'+_tdDue_(t)
   +(me&&t.state!=='done'?'<button type="button" class="td-x" data-tdx="'+esc(t.id)+'" aria-label="外す"><i class="ti ti-x"></i></button>':'')+'</div>';}
 function todoRender_(){
-  var w=$('todo-wrap');if(!w)return;var it=(_todo&&_todo.items)||[];
-  w.style.display='';   /* 段4：やることが無くても見出しと［＋ やることを足す］は出す（読み込む前は出さない） */
-  if(!it.length){var s0=$('todo-sub');if(s0)s0.innerHTML=_nvRuby_('今(いま)はありません',true);$('todo-top').innerHTML='';$('todo-list').innerHTML='';return;}
-  var left=it.filter(function(t){return t.state!=='done';});
-  var few=(it.length<=3),top=few?it:left.slice(0,3);   /* サーバーが 過ぎた→まだ→完了 の順・締め切りの近い順に並べて返す。3つ以下なら教材ごとの行は出さない（同じものが2回並ぶので） */
-  var by={},ord=[];it.forEach(function(t){var k=t.material_id||t.mtitle;if(!by[k]){by[k]={t:t.mtitle||t.label,a:[]};ord.push(k);}by[k].a.push(t);});
-  var sub=$('todo-sub');if(sub)sub.innerHTML=left.length?(_nvRuby_('残(のこ)り',true)+' <b>'+left.length+'</b>'):_nvRuby_('全部(ぜんぶ)完了(かんりょう)！',true);
-  $('todo-top').innerHTML=top.length?top.map(function(t){return _tdRow_(t,true);}).join(''):'';
-  $('todo-list').innerHTML=few?'':'<div class="td-h2">'+_nvRuby_('教材(きょうざい)ごと',true)+'</div>'+ord.map(function(k){var g=by[k],n=g.a.filter(function(t){return t.state!=='done';}).length,late=g.a.some(function(t){return t.state==='late';}),op=!!_todoOpen[k];
-    return '<div class="td-m'+(op?' op':'')+'"><div class="td-mh" role="button" tabindex="0" data-tdm="'+esc(k)+'"><span class="td-mtl">'+esc(g.t)+'</span><span class="td-mn'+(late?' late':'')+'">'+(n?n+'<small>'+_nvRuby_('個(こ)',true)+'</small>':_nvRuby_('完了(かんりょう)',true))+'</span><i class="ti ti-chevron-down td-arw"></i></div>'
-      +'<div class="td-mb">'+g.a.map(function(t){return _tdRow_(t,false);}).join('')+'</div></div>';}).join('');
+  /* 【2026-11-18 18:0x §11 の57〜59】やることは「今日のデイリー」と同じ形のカード1枚。今日のデイリーのカードのすぐ下に置く。
+     丸＝1つのやること（済み＝✓・締め切りを過ぎた＝赤・次にやる回＝青く光る）。押すとその回が始まる。6つ以上は横に動かす */
+  var w=$('todo-wrap');if(w)w.style.display='none';   /* 前の一覧（使わない・要素だけ残す） */
+  var it=(_todo&&_todo.items)||[];
+  var road=document.querySelector('#tp-daily .dy-road:not(.td-card)');
+  var card=$('todo-card');
+  if(!card){card=document.createElement('div');card.id='todo-card';card.className='dprog dy-road td-card';}
+  if(road&&road.parentNode){if(card.previousSibling!==road)road.parentNode.insertBefore(card,road.nextSibling);}
+  else{var tp=$('tp-daily');if(!tp)return;if(card.parentNode!==tp)tp.insertBefore(card,tp.querySelector('#daily-list')||tp.firstChild);}
+  var dn=it.filter(function(t){return t.state==='done';}).length;
+  var ord=it.filter(function(t){return t.state==='late';}).concat(it.filter(function(t){return t.state==='open';})).concat(it.filter(function(t){return t.state==='done';}));
+  var nowId=null;ord.forEach(function(t){if(!nowId&&t.state!=='done')nowId=t.id;});
+  var IC={eiken:'ti-certificate',mt:'ti-certificate',gg:'ti-infinity',tan:'ti-flag',daily:'ti-anchor'};
+  var sp=function(t){var s=String(t.ptitle||t.label||''),m=s.match(/^(.*?)\s*([A-C]-?[12])$/);return m?{n:m[1]||s,r:m[2]}:{n:s,r:''};};
+  var h=ord.map(function(t){var x=sp(t),late=(t.state==='late'),done=(t.state==='done');
+    return '<button type="button" class="dy-st'+(done?' done':'')+(late?' late':'')+(t.id===nowId?' now':'')+'" data-tdid="'+esc(t.id)+'">'
+      +'<span class="dy-si">'+(late?'<span class="td-lt">'+_nvRuby_('過(す)ぎた',true)+'</span>':'<i class="ti '+(IC[t.kind]||'ti-clipboard-list')+'"></i>')+'<span class="dy-ck"><i class="ti ti-check"></i></span></span>'
+      +'<span class="dy-l">'+esc(x.n)+'</span><span class="dy-n">'+(x.r?esc(x.r):'')+(late?'<br><span class="td-ltd">'+_tdMd_(t.due)+'</span>':'')+'</span></button>';}).join('');
+  var dues={};it.forEach(function(t){if(t.state!=='done')dues[t.due]=1;});var dk=Object.keys(dues).sort();
+  var foot=it.length?('<ruby>押<rt class="uf">お</rt></ruby>すと、そこから<ruby>始<rt class="uf">はじ</rt></ruby>められる'+(dk.length?'・'+_nvRuby_('締(し)め切(き)り',true)+' '+_tdMd_(dk[0])+(dk.length>1?' ほか':''):'')):_nvRuby_('今(いま)はありません',true);
+  card.innerHTML='<div class="dprog-t"><span>やること</span>'+(it.length?'<b>'+dn+'<span class="tot"> / '+it.length+' できた</span></b>':'')+'</div>'
+    +(it.length?'<div class="dy-steps td-steps'+(it.length>5?' many':'')+'">'+h+'</div>':'')
+    +'<div class="dy-foot td-foot"><span>'+foot+'</span><button type="button" id="todo-addbtn">＋ '+_nvRuby_('足(た)す',true)+'</button></div>';
 }
 function todoLoad_(force){
   if(!force&&_todo&&(Date.now()-_todoAt)<60000){todoRender_();return;}
@@ -13575,6 +13586,9 @@ function todoGo_(id){var t=null;((_todo&&_todo.items)||[]).forEach(function(x){i
 var _tdCh=null,_tdBk=null;
 function _tdRemove_(x){if(!x.classList.contains('arm')){x.classList.add('arm');x.innerHTML=_nvRuby_('外(はず)す',true);setTimeout(function(){if(x&&x.classList){x.classList.remove('arm');x.innerHTML='<i class="ti ti-x"></i>';}},4000);return;}
   x.disabled=true;call({action:'todo_remove',id:x.getAttribute('data-tdx')}).then(function(d){if(!d||!d.ok){x.disabled=false;try{toast((d&&d.error)||'外せませんでした');}catch(e){}return;}todoLoad_(true);},function(){x.disabled=false;});}
+function _tdRmCell_(c){if(c.getAttribute('data-busy'))return;var tid=c.getAttribute('data-tdrm'),pid=c.getAttribute('data-tdpid');if(!tid)return;c.setAttribute('data-busy','1');
+  call({action:'todo_remove',id:tid}).then(function(d){c.removeAttribute('data-busy');var m=$('td-sh-msg');if(!d||!d.ok){if(m)m.textContent=(d&&d.error)||'外せませんでした';return;}
+    (_tdCh||[]).forEach(function(bk){bk.rows.forEach(function(r){r.cells.forEach(function(x){if(x.id===pid){x.st='';x.tid='';}});});});_tdSheetDraw_();var m2=$('td-sh-msg');if(m2)m2.innerHTML=_nvRuby_('やることから外(はず)しました',true);todoLoad_(true);},function(){c.removeAttribute('data-busy');});}
 function _tdSheetClose_(){var s=$('td-sh');if(s)s.remove();}
 function todoSheet_(){_tdSheetClose_();var s=document.createElement('div');s.id='td-sh';
   s.innerHTML='<div class="td-sh"><div class="td-sh-hd"><span>'+_nvRuby_('やることを足(た)す',true)+'</span><button type="button" id="td-sh-x" aria-label="閉じる"><i class="ti ti-x"></i></button></div><div id="td-sh-b"><div class="loading">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div></div></div>';
@@ -13585,7 +13599,8 @@ function _tdSheetDraw_(){var b=$('td-sh-b');if(!b)return;var bs=_tdCh||[];
   if(!bs.length){b.innerHTML='<div class="td-sh-msg">'+_nvRuby_('足(た)せる教材(きょうざい)がありません',true)+'</div>';return;}
   var cur=null;bs.forEach(function(x){if(x.key===_tdBk)cur=x;});
   var lab={done:_nvRuby_('済(す)み',true),'in':_nvRuby_('入(はい)っている',true)};
-  var cell=function(c){if(c.st)return '<div class="td-c '+c.st+'">'+(c.lab?esc(c.lab)+' ':'')+lab[c.st]+'</div>';return '<div class="td-c add" role="button" data-tdadd="'+esc(c.id)+'">＋ '+(c.lab?esc(c.lab):_nvRuby_('足(た)す',true))+'</div>';};
+  var cell=function(c){if(c.st==='mine')return '<div class="td-c mine" role="button" data-tdrm="'+esc(c.tid||'')+'" data-tdpid="'+esc(c.id)+'">'+(c.lab?esc(c.lab)+' ':'')+_nvRuby_('外(はず)す',true)+'</div>';   /* 自分で足した回は窓の中で外す（§11 の60） */
+    if(c.st)return '<div class="td-c '+c.st+'">'+(c.lab?esc(c.lab)+' ':'')+lab[c.st]+'</div>';return '<div class="td-c add" role="button" data-tdadd="'+esc(c.id)+'">＋ '+(c.lab?esc(c.lab):_nvRuby_('足(た)す',true))+'</div>';};
   var two=cur&&cur.rows.some(function(r){return r.cells.length>1;});
   b.innerHTML='<div class="td-sh-l">1. '+_nvRuby_('本(ほん)をえらぶ',true)+'</div><div class="td-bks">'+bs.map(function(x){return '<span class="td-bk'+(x.key===_tdBk?' on':'')+'" role="button" data-tdbk="'+esc(x.key)+'">'+esc(x.title)+'</span>';}).join('')+'</div>'
     +'<div class="td-sh-l">2. '+_nvRuby_('押(お)して足(た)す',true)+'</div><div class="td-rows">'+(cur?cur.rows.map(function(r){
@@ -13595,7 +13610,7 @@ function _tdSheetDraw_(){var b=$('td-sh-b');if(!b)return;var bs=_tdCh||[];
 function _tdAdd_(c){if(c.getAttribute('data-busy'))return;c.setAttribute('data-busy','1');var id=c.getAttribute('data-tdadd');
   call({action:'todo_add',part_id:id}).then(function(d){c.removeAttribute('data-busy');var m=$('td-sh-msg');
     if(!d||!d.ok){if(m)m.textContent=(d&&d.error)||'足せませんでした';return;}
-    (_tdCh||[]).forEach(function(bk){bk.rows.forEach(function(r){r.cells.forEach(function(x){if(x.id===id)x.st='in';});});});_tdSheetDraw_();
+    var _it0=d.data&&d.data.item;(_tdCh||[]).forEach(function(bk){bk.rows.forEach(function(r){r.cells.forEach(function(x){if(x.id===id){x.st='mine';x.tid=_it0?_it0.id:'';}});});});_tdSheetDraw_();
     var it=d.data&&d.data.item;if(it){todoToast_([it]);var m2=$('td-sh-msg');if(m2)m2.innerHTML='「'+esc(it.label)+'」を'+_nvRuby_('やることリストに追加(ついか)しました',true)+'（'+_tdMd_(it.due)+'まで）';}
     todoLoad_(true);},function(){c.removeAttribute('data-busy');});}
 function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
@@ -13628,12 +13643,18 @@ function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
     '.td-rw.hd{background:rgba(0,0,0,.035);font-size:11.5px;font-weight:700;color:var(--sub)}',
     '.td-c{border:1px solid var(--line);border-radius:9px;padding:6px 0;text-align:center;font-size:12px;font-weight:700}.td-c.add{border-color:var(--accent);color:var(--accent);cursor:pointer}.td-c.done,.td-c.in{color:var(--sub);opacity:.75}.td-c.in{background:rgba(0,0,0,.04)}',
     '.td-sh-msg{font-size:12px;color:var(--sub);text-align:center;margin:10px 0 2px}',
+    '.td-card .dy-l{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:10.5px;max-width:100%;padding:0 2px}',
+    '.td-steps.many{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}.td-steps.many .dy-st{flex:0 0 66px}',
+    '.td-card .dy-st.late .dy-si{background:transparent;box-shadow:0 0 0 2.5px var(--ng);color:var(--ng)}.td-lt{font-size:10px;font-weight:800;line-height:1.1}.td-ltd{color:var(--ng);font-weight:700}',
+    '.td-foot{display:flex;align-items:center;justify-content:center;gap:10px}.td-foot #todo-addbtn{display:inline-flex;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:14px;padding:3px 10px;font-size:11.5px;font-weight:800;margin:0;cursor:pointer}',
+    '.td-c.mine{border-color:var(--ng);color:var(--ng);cursor:pointer}',
     '#toast{z-index:400}'   /* 足す窓の上にトーストを出す（窓は 300） */
   ].join('');document.head.appendChild(css);
   document.addEventListener('click',function(e){
     var x=e.target.closest&&e.target.closest('[data-tdx]');if(x){e.stopPropagation();_tdRemove_(x);return;}
     if(e.target.closest&&e.target.closest('#todo-addbtn')){todoSheet_();return;}
     var c=e.target.closest&&e.target.closest('[data-tdadd]');if(c){_tdAdd_(c);return;}
+    var rmc=e.target.closest&&e.target.closest('[data-tdrm]');if(rmc){_tdRmCell_(rmc);return;}
     if(e.target.closest&&(e.target.closest('#td-sh-x')||e.target.id==='td-sh')){_tdSheetClose_();return;}
     var bk=e.target.closest&&e.target.closest('[data-tdbk]');if(bk){_tdBk=bk.getAttribute('data-tdbk');_tdSheetDraw_();return;}
     var r=e.target.closest&&e.target.closest('[data-tdid]');if(r){todoGo_(r.getAttribute('data-tdid'));return;}
