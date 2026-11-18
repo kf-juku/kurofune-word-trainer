@@ -2677,7 +2677,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
             <div class="psub" id="todo-sub"></div>
             <div id="todo-top"></div>
             <div id="todo-list"></div>
-            <div id="todo-addbtn" role="button" tabindex="0"><i class="ti ti-plus"></i> <span>やることを<ruby>足<rt class="uf">た</rt></ruby>す</span></div>
+            <div id="todo-addbtn" role="button" tabindex="0"><span>＋</span> <span>やることを<ruby>足<rt class="uf">た</rt></ruby>す</span></div>
           </div>
           <!-- 全体像への導線（行動カードと並べない・控えめリンク）2026-07-26 -->
           <div id="daily-maplink" role="button" tabindex="0" style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--sub);padding:12px;margin-top:2px;cursor:pointer;"><i class="ti ti-map-2" style="color:var(--gold);font-size:16px;"></i> <span><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>の<ruby>進<rt class="uf">すす</rt></ruby>みを<ruby>見<rt class="uf">み</rt></ruby>る</span> <i class="ti ti-chevron-right"></i></div>
@@ -3031,7 +3031,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-18e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-18f"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -13627,7 +13627,8 @@ function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
     '.td-rw{display:grid;grid-template-columns:1fr 92px 92px;gap:6px;align-items:center;padding:7px 10px;border-top:1px solid var(--line);font-size:13px}.td-rw:first-child{border-top:0}.td-rw.one{grid-template-columns:1fr 92px}',
     '.td-rw.hd{background:rgba(0,0,0,.035);font-size:11.5px;font-weight:700;color:var(--sub)}',
     '.td-c{border:1px solid var(--line);border-radius:9px;padding:6px 0;text-align:center;font-size:12px;font-weight:700}.td-c.add{border-color:var(--accent);color:var(--accent);cursor:pointer}.td-c.done,.td-c.in{color:var(--sub);opacity:.75}.td-c.in{background:rgba(0,0,0,.04)}',
-    '.td-sh-msg{font-size:12px;color:var(--sub);text-align:center;margin:10px 0 2px}'
+    '.td-sh-msg{font-size:12px;color:var(--sub);text-align:center;margin:10px 0 2px}',
+    '#toast{z-index:400}'   /* 足す窓の上にトーストを出す（窓は 300） */
   ].join('');document.head.appendChild(css);
   document.addEventListener('click',function(e){
     var x=e.target.closest&&e.target.closest('[data-tdx]');if(x){e.stopPropagation();_tdRemove_(x);return;}
@@ -13642,6 +13643,9 @@ function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
   var _c0=call;call=function(b,t){var p=_c0(b,t);try{if(b&&/^(session_complete|gg_submit|ekmt_submit)$/.test(String(b.action||''))&&p&&p.then)p.then(function(d){try{if(d&&d.ok)todoLoad_(true);}catch(e2){}},function(){});}catch(e){}return p;};
   /* 毎日学習を描くたびに、やることも描く（1分は取り直さない） */
   var _rd0=renderDailyList_;renderDailyList_=function(){var r=_rd0.apply(this,arguments);try{todoLoad_(false);}catch(e){}return r;};
+  /* デイリーのタブを開いたときと、起動して少したったときにも読む（本番で、起動のあと一覧が出ないことがあった 2026-11-18） */
+  var _sh0=showHomeTab;showHomeTab=function(n){var r=_sh0.apply(this,arguments);try{if(n==='daily'&&token)todoLoad_(false);}catch(e){}return r;};
+  setTimeout(function(){try{if(token&&!_todo)todoLoad_(true);}catch(e){}},3000);setTimeout(function(){try{if(token&&!_todo)todoLoad_(true);}catch(e){}},9000);
 })();
 </script>
 </body>
