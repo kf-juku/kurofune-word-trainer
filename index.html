@@ -2671,6 +2671,13 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
                間違いノートは下メニューに専用タブ（赤●つき）があり、毎日タブ内のタイルは2つ目の入口だった。
                毎日タブ側の入口は「次はこれ」（毎日学習→おさらい→集中攻略の順に切り替わる）に集約する。
                おさらいは専用タブが無いので #tile-review は残す（消すと行き場が無くなる）。 -->
+          <!-- 【2026-11-18 やること 段2】デイリーのタブの2つ目の見出し「やること」（§11 の30）。中身は todoRender_ が描く。やることが無い子には出さない -->
+          <div id="todo-wrap" style="display:none;">
+            <div class="ph"><i class="ti ti-clipboard-list" style="color:var(--gold)"></i> <span>やること</span></div>
+            <div class="psub" id="todo-sub"></div>
+            <div id="todo-top"></div>
+            <div id="todo-list"></div>
+          </div>
           <!-- 全体像への導線（行動カードと並べない・控えめリンク）2026-07-26 -->
           <div id="daily-maplink" role="button" tabindex="0" style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--sub);padding:12px;margin-top:2px;cursor:pointer;"><i class="ti ti-map-2" style="color:var(--gold);font-size:16px;"></i> <span><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>の<ruby>進<rt class="uf">すす</rt></ruby>みを<ruby>見<rt class="uf">み</rt></ruby>る</span> <i class="ti ti-chevron-right"></i></div>
         </div>
@@ -2778,7 +2785,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
     <div class="ntc-mask" id="ntc-mask"></div>
     <!-- ===== 下部メニュー 2026-07-24 ===== -->
     <nav class="ntabbar" id="ntabbar">
-      <button class="ntab on" id="ntab5-daily" type="button"><span class="ic"><i class="ti ti-anchor"></i><span class="bdg" id="bdg-daily"></span></span><ruby>毎日<rt class="uf">まいにち</rt></ruby></button>
+      <button class="ntab on" id="ntab5-daily" type="button"><span class="ic"><i class="ti ti-anchor"></i><span class="bdg" id="bdg-daily"></span></span>デイリー</button>
       <button class="ntab" id="ntab5-unit" type="button"><span class="ic"><i class="ti ti-flag"></i><span class="bdg" id="bdg-unit"></span></span><ruby>単元別<rt class="uf">たんげんべつ</rt></ruby></button>
       <button class="ntab" id="ntab5-eiken" type="button"><span class="ic"><i class="ti ti-certificate"></i><span class="bdg" id="bdg-eiken"></span></span><ruby>英検<rt class="uf">えいけん</rt></ruby></button>
       <button class="ntab" id="ntab5-ws" type="button"><span class="ic"><i class="ti ti-infinity"></i><span class="bdg" id="bdg-ws"></span></span><span class="ntab-nl">ぐるぐる</span></button>
@@ -3023,7 +3030,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-18b"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-18c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5444,7 +5451,7 @@ var _dailyUndone=0;
 var _dailyMain=null; // デイリー進捗をおさらい取得後に描き直すため、直近のmainを保持 2026-07-26
 var _dailyCompletedMains=[]; // 完走した毎日学習(main・sm_status=completed)。毎日タブに「学習マップで復習」バナーを出す判定に使う 2026-08-08。material_parts から供給
 // 毎日タブ＝毎日学習の未完了＋おさらい残りの合計（2026-07-25 おさらいを毎日タブへ移設＝デイリーの構成要素）
-function setDailyNavNum_(){var osDone=(dailyState.review===true),_nc=_ntCount_();setBadge_('daily',(_dailyUndone||0)+(osDone?0:1)+(_nc.tot-_nc.done));} /* 集中攻略の枠の数ぶん 2026-10-03 */ /* 間違いノート枠を数に入れる 2026-08-26 */ // デイリーの残り「個数」＝毎日学習の未完＋おさらい枠(1)。おさらいの残り語数(最大20)を足さない＝分母4と一致（2026-07-26）
+function setDailyNavNum_(){var osDone=(dailyState.review===true),_nc=_ntCount_();setBadge_('daily',(_dailyUndone||0)+(osDone?0:1)+(_nc.tot-_nc.done)+(typeof _todoN!=='undefined'?(_todoN||0):0));}   /* やることの残り 2026-11-18 */ /* 集中攻略の枠の数ぶん 2026-10-03 */ /* 間違いノート枠を数に入れる 2026-08-26 */ // デイリーの残り「個数」＝毎日学習の未完＋おさらい枠(1)。おさらいの残り語数(最大20)を足さない＝分母4と一致（2026-07-26）
 // 間違いノートタブ＝間違いノート残りのみ（2026-07-25 おさらいは毎日タブへ）
 function setReviewNavNum_(){setNavDot_('review',(_revNum.note||0)>0);try{_navEmptySet_('review',!(_revNum.note||0));}catch(e){}} // 間違いノート＝自主ペースの復習なので数字(9+)ではなく赤●で「たまってるよ」。実数は中の教科カードで見える 2026-07-26
 var _homeTab='daily',_quizMiss=0;
@@ -13516,5 +13523,71 @@ function _pvStart_(){
     <button class="kz-close" id="kz-close"><i class="ti ti-x"></i>とじる</button>
   </div>
 </div>
+<script>
+/* ======================================================================
+   【2026-11-18 やること 段2】生徒アプリ：デイリーのタブの「やること」
+   決まりの正本＝ジョブス用\仕様書\要件定義書_先生画面の再編_Kurofune-Word-Trainer.md §11 の 30・43〜53
+   ・見出し「やること」の下に、締め切りが近い3つ（過ぎたものを先頭）→ 教材ごとに1行（押すと開いて全部）
+   ・締め切り＝「11/24(火)まで」。過ぎたものは赤。終えたものは「完了」と薄く出し、締め切りの日まで残る（サーバーが決める）
+   ・デイリーのタブの赤い数字に、まだのやること（過ぎたものも）を足す（§11 の53）
+   ・記録を送った返事（session_complete・gg_submit・ekmt_submit）に todo_added があれば、トーストで知らせる（§11 の45）
+   ・押すとその回を開く：英検・架け橋・単元別・毎日学習＝startPractice／ぐるぐる＝openGg_（startPid）／まとめテスト＝openEikenMt_
+   ====================================================================== */
+var _todo=null,_todoAt=0,_todoN=0,_todoOpen={};
+function _tdMd_(d){var a=String(d||'').split('-');if(a.length!==3)return String(d||'');var w='日月火水木金土'.charAt(new Date(+a[0],+a[1]-1,+a[2]).getDay());return (+a[1])+'/'+(+a[2])+'('+w+')';}
+function _tdDue_(t){if(t.state==='done')return '<span class="td-ok">'+_nvRuby_('完了(かんりょう)',true)+'</span>';
+  if(t.state==='late')return '<span class="td-late">'+_nvRuby_('締(し)め切(き)りを過(す)ぎています',true)+'（'+_tdMd_(t.due)+'まで）</span>';
+  return '<span class="td-due">'+_tdMd_(t.due)+'まで</span>';}
+function _tdRow_(t,withMat){return '<div class="td-it '+t.state+'" role="button" tabindex="0" data-tdid="'+esc(t.id)+'"><div class="td-tx">'
+  +(withMat&&t.mtitle?'<div class="td-mt">'+esc(t.mtitle)+'</div>':'')+'<div class="td-nm">'+esc(t.ptitle||t.label)+'</div></div>'+_tdDue_(t)+'</div>';}
+function todoRender_(){
+  var w=$('todo-wrap');if(!w)return;var it=(_todo&&_todo.items)||[];
+  if(!it.length){w.style.display='none';return;}w.style.display='';
+  var left=it.filter(function(t){return t.state!=='done';});
+  var few=(it.length<=3),top=few?it:left.slice(0,3);   /* サーバーが 過ぎた→まだ→完了 の順・締め切りの近い順に並べて返す。3つ以下なら教材ごとの行は出さない（同じものが2回並ぶので） */
+  var by={},ord=[];it.forEach(function(t){var k=t.material_id||t.mtitle;if(!by[k]){by[k]={t:t.mtitle||t.label,a:[]};ord.push(k);}by[k].a.push(t);});
+  var sub=$('todo-sub');if(sub)sub.innerHTML=left.length?(_nvRuby_('残(のこ)り',true)+' <b>'+left.length+'</b>'):_nvRuby_('全部(ぜんぶ)完了(かんりょう)！',true);
+  $('todo-top').innerHTML=top.length?top.map(function(t){return _tdRow_(t,true);}).join(''):'';
+  $('todo-list').innerHTML=few?'':'<div class="td-h2">'+_nvRuby_('教材(きょうざい)ごと',true)+'</div>'+ord.map(function(k){var g=by[k],n=g.a.filter(function(t){return t.state!=='done';}).length,late=g.a.some(function(t){return t.state==='late';}),op=!!_todoOpen[k];
+    return '<div class="td-m'+(op?' op':'')+'"><div class="td-mh" role="button" tabindex="0" data-tdm="'+esc(k)+'"><span class="td-mtl">'+esc(g.t)+'</span><span class="td-mn'+(late?' late':'')+'">'+(n?n+'<small>'+_nvRuby_('個(こ)',true)+'</small>':_nvRuby_('完了(かんりょう)',true))+'</span><i class="ti ti-chevron-down td-arw"></i></div>'
+      +'<div class="td-mb">'+g.a.map(function(t){return _tdRow_(t,false);}).join('')+'</div></div>';}).join('');
+}
+function todoLoad_(force){
+  if(!force&&_todo&&(Date.now()-_todoAt)<60000){todoRender_();return;}
+  _todoAt=Date.now();
+  try{call({action:'todo_list'}).then(function(d){if(!d||!d.ok||!d.data)return;_todo=d.data;_todoN=(d.data.items||[]).filter(function(t){return t.state!=='done';}).length;todoRender_();try{setDailyNavNum_();}catch(e){}},function(){});}catch(e){}
+}
+function todoGo_(id){var t=null;((_todo&&_todo.items)||[]).forEach(function(x){if(x.id===id)t=x;});if(!t)return;
+  if(t.kind==='mt'){openEikenMt_(t.part_id);return;}
+  if(t.kind==='gg'){openGg_(t.material_id,t.mtitle||'ぐるぐる',{subj:t.subj||'',startPid:t.part_id});return;}
+  startPractice(t.part_id);}
+function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
+  t.innerHTML='「'+esc(x.label)+'」を'+_nvRuby_('やることリストに追加(ついか)しました',true)+'（'+_tdMd_(x.due)+'まで）'+(a.length>1?' ほか'+(a.length-1):'');
+  t.classList.add('show');clearTimeout(window._tdToT);window._tdToT=setTimeout(function(){t.classList.remove('show');},3500);}
+(function(){
+  var css=document.createElement('style');css.textContent=[
+    '#todo-wrap{margin:16px 0 6px}',
+    '.td-it{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-bottom:8px;cursor:pointer}',
+    '.td-it.late{border-color:var(--ng)}',
+    '.td-it.done{opacity:.5}',
+    '.td-tx{flex:1;min-width:0}.td-mt{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.td-nm{font-size:14px;font-weight:700;line-height:1.45}',
+    '.td-due{font-size:12px;font-weight:700;color:var(--sub);white-space:nowrap}.td-late{font-size:12px;font-weight:800;color:var(--ng);text-align:right;max-width:46%}.td-ok{font-size:12px;font-weight:800;color:var(--ok);white-space:nowrap}',
+    '.td-m{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:8px;overflow:hidden}',
+    '.td-mh{display:flex;align-items:center;gap:8px;padding:11px 12px;cursor:pointer}.td-mtl{flex:1;min-width:0;font-size:13.5px;font-weight:700}',
+    '.td-mn{font-size:15px;font-weight:800}.td-mn small{font-size:11px;margin-left:1px}.td-mn.late{color:var(--ng)}',
+    '.td-arw{color:var(--sub);transition:transform .2s}.td-m.op .td-arw{transform:rotate(180deg)}',
+    '.td-mb{display:none;padding:0 8px 2px}.td-m.op .td-mb{display:block}.td-mb .td-it{border-radius:12px}',
+    '.td-h2{font-size:12px;color:var(--sub);font-weight:700;margin:10px 2px 6px}'
+  ].join('');document.head.appendChild(css);
+  document.addEventListener('click',function(e){
+    var r=e.target.closest&&e.target.closest('[data-tdid]');if(r){todoGo_(r.getAttribute('data-tdid'));return;}
+    var m=e.target.closest&&e.target.closest('[data-tdm]');if(m){var k=m.getAttribute('data-tdm');_todoOpen[k]=!_todoOpen[k];todoRender_();}
+  });
+  /* 記録を送った返事に todo_added があればトースト。返事が来たら一覧を取り直す */
+  var _c0=call;call=function(b,t){var p=_c0(b,t);try{if(b&&/^(session_complete|gg_submit|ekmt_submit)$/.test(String(b.action||''))&&p&&p.then)p.then(function(d){try{var a=d&&d.ok&&d.data&&d.data.todo_added;if(a&&a.length)todoToast_(a);if(d&&d.ok&&!(d.data&&d.data.duplicate))todoLoad_(true);}catch(e2){}},function(){});}catch(e){}return p;};
+  /* 毎日学習を描くたびに、やることも描く（1分は取り直さない） */
+  var _rd0=renderDailyList_;renderDailyList_=function(){var r=_rd0.apply(this,arguments);try{todoLoad_(false);}catch(e){}return r;};
+})();
+</script>
 </body>
 </html>
