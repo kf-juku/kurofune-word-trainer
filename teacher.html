@@ -13535,6 +13535,59 @@ function ov2Print_(){
   if(tw){var lc=document.createElement('div');lc.className='ov2-card';lc.id='ov2ListCard';lc.innerHTML='<div id="ov2Wrap"></div>';tw.parentNode.insertBefore(lc,tw);}
   var tb=document.querySelector('.topbarK');if(tb){var pb=document.createElement('button');pb.className='btn-ghost';pb.type='button';pb.textContent='🖨 この一覧を印刷';pb.title='A4 横・両面。表＝見た方がいい子・裏＝一覧';pb.onclick=ov2Print_;tb.appendChild(pb);}
 })();
+/* ======================================================================
+   【2026-11-18 先生画面の整理 段3】③深掘り（生徒の名前を押すと開く窓）に「この期間の学習」を足す
+   ・今の詳細の窓（openStudentDetail）の中身は1つも消さない。デイリーの帯のすぐ下に1つの欄を差しこむ
+   ・中身はモックの③と同じ：上のボタン（⚙ 教材の割り当て・🖨 この子の紙を出す）／期間（この1週間・4週間・全部）／
+     種類ごとの回数と正答率／英検・架け橋の編ごとの正答率／持っている本の進み（マスの帯）／この期間にやったこと
+   ・材料は ②全員の一覧と同じ（_ov2Model_）。練習の記録は overview_sess の直近35日なので、「全部」でも練習は35日まで
+   ====================================================================== */
+var _ov3Per=7,_ov3Sid=null;
+function _ov3Html_(s){
+  var M=(_ov2Models_()||{})[String(s.student_id)]||_ov2Model_(s);var per=_ov3Per;
+  var ev=M.ev.filter(function(e){var a=_ov2Ago_(e.d);return per===0||(a!=null&&a<per);});
+  var byK={};ev.forEach(function(e){if(e.r==null)return;(byK[e.k]=byK[e.k]||[]).push(e.r);});
+  var bx=function(k){return '<div class="ov3-bx"><b>'+_OV2_KL[k]+'</b><span class="v">'+(byK[k]?byK[k].length:0)+'回 </span>'+_ov2Rt_(_ov2Avg_(byK[k]||[]))+'</div>';};
+  var ekB={};ev.filter(function(e){return e.k==='eiken'&&e.r!=null;}).forEach(function(e){var key=e.mtst?'まとめテスト':e.mt;(ekB[key]=ekB[key]||[]).push(e.r);});
+  var ek=Object.keys(ekB).length?'<div class="ov3-h">英検・架け橋：編ごとの正答率（この期間）</div><table class="ov3-log"><tr><th>編</th><th>回数</th><th>正答率</th></tr>'+Object.keys(ekB).map(function(k){return '<tr><td>'+esc(k)+'</td><td>'+ekB[k].length+'</td><td>'+_ov2Rt_(_ov2Avg_(ekB[k]))+'</td></tr>';}).join('')+'</table>':'';
+  var books=Object.keys(M.books).map(function(k){return M.books[k];}).sort(function(a,b){var o={daily:0,eiken:1,gg:2,tan:3};return (o[a.k]-o[b.k])||String(a.ser).localeCompare(String(b.ser));});
+  var bk='<div class="ov3-h">持っている本の進み（全部の期間）</div>'+(books.length?'<table class="ov3-log"><tr><th>種類</th><th>本</th><th>進み</th><th>この期間</th></tr>'+books.map(function(b){var e=ev.filter(function(x){return x.k===b.k&&x.ser===b.ser&&x.r!=null;});return '<tr><td>'+_OV2_KL[b.k]+'</td><td>'+esc(b.ser)+'</td><td>'+_ov2Band_(b)+'</td><td>'+(e.length?e.length+'回 '+_ov2Rt_(_ov2Avg_(e.map(function(x){return x.r;}))):'<span class="ov2-none">0回</span>')+'</td></tr>';}).join('')+'</table>':'<div class="ov2-none">割り当てている本はありません</div>');
+  var lg='<div class="ov3-h">この期間にやったこと（新しい順）</div><table class="ov3-log"><tr><th>日付</th><th>種類</th><th>教材</th><th>回・パート</th><th>正答率</th></tr>'+(ev.length?ev.slice(0,300).map(function(e){return '<tr><td>'+_ov2Md_(e.d)+'</td><td>'+(_OV2_KL[e.k]||'その他')+'</td><td>'+esc(e.mt)+'</td><td>'+esc(e.p)+(e.miss?'<span class="ov2-tag gr">まちがい'+e.miss+'</span>':'')+(e.pa?'<span class="ov2-tag gr">＋α</span>':'')+'</td><td>'+_ov2Rt_(e.r)+'</td></tr>';}).join(''):'<tr><td colspan="5" class="ov2-none">この期間の記録はありません</td></tr>')+'</table>';
+  var pb=[[7,'この1週間'],[28,'4週間'],[0,'全部']].map(function(p){return '<button type="button" class="filter-chip'+(per===p[0]?' active':'')+'" onclick="_ov3Per='+p[0]+';_ov3Redraw_()">'+p[1]+'</button>';}).join(' ');
+  var sid=esc(String(s.student_id));
+  return '<div class="ov3-btns"><button type="button" class="btn-ghost" onclick="openAssign(\''+sid+'\')">⚙ 教材の割り当て</button><button type="button" class="btn-ghost" onclick="printOne(\''+sid+'\')">🖨 この子の紙を出す</button></div>'
+    +'<div class="ov3-per"><span class="ov3-lb">期間</span>'+pb+(per===0?'<span class="ov2-leg" style="margin-left:8px">練習の記録は直近35日まで</span>':'')+'</div>'
+    +'<div class="ov3-sum">'+['daily','eiken','gg','tan'].map(bx).join('')+'</div>'+ek+bk+lg
+    +(_ov2Sess?'':'<div class="ov2-leg">練習の記録を読み込み中…</div>');
+}
+function _ov3Redraw_(){var el=$('ov3Body');if(!el||!_ov3Sid)return;var s=null;(_students||[]).forEach(function(x){if(String(x.student_id)===String(_ov3Sid))s=x;});if(s)el.innerHTML=_ov3Html_(s);}
+(function(){
+  var css=document.createElement('style');css.textContent=[
+    '.ov3-box{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin:0 0 10px;background:#fff}',
+    '.ov3-btns{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px}',
+    '.ov3-per{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 8px}.ov3-lb{color:var(--text-muted);font-size:12px;width:40px}',
+    '.ov3-sum{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:8px;margin:0 0 10px}.ov3-bx{border:1px solid var(--border);border-radius:8px;padding:8px}.ov3-bx b{display:block;font-size:12px;color:var(--text-muted);font-weight:600}.ov3-bx .v{font-size:16px;font-weight:800}',
+    '.ov3-h{font-size:13.5px;font-weight:800;margin:12px 0 4px}',
+    '.ov3-log{border-collapse:collapse;width:100%;font-size:12.5px}.ov3-log th,.ov3-log td{border-bottom:1px solid var(--border);padding:4px 6px;text-align:left;vertical-align:top}.ov3-log th{color:var(--text-muted);font-weight:600}',
+    '.ov2-tag.gr{background:var(--gray-light);color:var(--text-muted)}'
+  ].join('');document.head.appendChild(css);
+})();
+var _ov3Open0=openStudentDetail;
+openStudentDetail=function(sid,focusKey){
+  _ov3Open0(sid,focusKey);
+  try{
+    var s=null;(_students||[]).forEach(function(x){if(String(x.student_id)===String(sid))s=x;});if(!s)return;
+    if(String(_ov3Sid)!==String(sid))_ov3Per=7;_ov3Sid=sid;
+    _ov2LoadSess_(false);
+    if(!_quizBoard&&typeof ensureQuizBoard_==='function'){try{ensureQuizBoard_(function(){_ov2Cache=null;_ov3Redraw_();});}catch(eQ){}}
+    var root=$('sdBody');if(!root)return;var band=root.querySelector('.sd2-band');var host=band?band.parentNode:root.querySelector('.sd2');if(!host)return;
+    var box=document.createElement('div');box.className='ov3-box';box.innerHTML='<div class="sd2-h">この期間の学習</div><div id="ov3Body">'+_ov3Html_(s)+'</div>';
+    if(band&&band.nextSibling)host.insertBefore(box,band.nextSibling);else host.insertBefore(box,host.firstChild);
+  }catch(e){try{console.error(e);}catch(e2){}}
+};
+/* 練習の記録・点数表が後から届いたら、開いている深掘りも描き直す */
+var _ov3Ls0=_ov2LoadSess_;
+_ov2LoadSess_=function(force){var was=!!_ov2Sess;_ov3Ls0(force);if(!was){var t=setInterval(function(){if(_ov2Sess){clearInterval(t);_ov3Redraw_();}},800);setTimeout(function(){clearInterval(t);},30000);}};
 
 </script>
 </body>
