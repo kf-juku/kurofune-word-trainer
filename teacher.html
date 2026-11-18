@@ -1755,9 +1755,11 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
       </div>
       <!-- 【2026-09-13d・段A】学習の種類・教材で絞る。原則16の並び（教室→学年→中学校）の下に、.filter-grp で1行ずつ足す -->
       <div class="filter-grp">
-        <span class="filter-label">学習の種類</span>
-        <button class="filter-chip active" data-kd="all" onclick="setKindFilter('all',this)">すべて</button>
+        <span class="filter-label">教材の種類</span><!-- 2026-11-18 先生画面の整理：学習の種類→教材の種類（全部・毎日学習・英検と架け橋・ぐるぐる・単元別）。選ぶと一覧が学年ごと・本ごとになる -->
+        <button class="filter-chip active" data-kd="all" onclick="setKindFilter('all',this)">全部（種類ごと）</button>
         <button class="filter-chip" data-kd="main" onclick="setKindFilter('main',this)">毎日学習</button>
+        <button class="filter-chip" data-kd="eiken" onclick="setKindFilter('eiken',this)">英検・架け橋</button>
+        <button class="filter-chip" data-kd="gg" onclick="setKindFilter('gg',this)">ぐるぐる</button>
         <button class="filter-chip" data-kd="test" onclick="setKindFilter('test',this)">単元別</button>
         <!-- 2026-11-15 ワークシートは先生画面に出さない（_wsHide_）。絞り込みのボタンも外した --><button class="filter-chip" data-kd="worksheet" onclick="setKindFilter('worksheet',this)" style="display:none">ワークシート</button>
       </div>
@@ -3026,6 +3028,7 @@ function dailyGapNum_(s){var da=daysAgo(s.daily_last);return da===null?1e9:da;}
 function dailyReload_(){if(typeof loadDash_silent==='function')loadDash_silent();}
 function alertBucketMatch(s,k){
   if(!s)return false;
+  if(String(k).indexOf('ov:')===0)return !!((window._ov2Ids||{})[k]||{})[String(s.student_id)];   /* 2026-11-18 見た方がいい子の見出しで絞る */
   if(k==='dy_bad'||k==='dy_t'||k==='dy_y')return dailyBucket_(s)===k;
   if(_cheerCfg&&_cheerCfg.exclude_alert&&s.is_teacher_account)return false;
   if(k==='praise')return _isPraised(s);
@@ -5944,8 +5947,10 @@ function renderTable(){try{searchClearSync_();}catch(eSc){}try{fltResetSync_();}
     if(_alertFilter&&!alertBucketMatch(s,_alertFilter))return false;
     /* 【2026-09-13d・段A】学習の種類・教材。どちらも「その教材を割り当てられている子」を残すだけ */
     if(_kindSel!=='all'){
-      var _kd=function(m){var t=String(m.type);return t==='test'?'test':(t==='worksheet'?'worksheet':'main');};   /* ワークシートは別の種類 2026-10-20 */
-      if(!(s.materials_view||[]).some(function(m){return _kd(m)===_kindSel;}))return false;
+      /* 2026-11-18 英検・架け橋（content_type eiken・かけはし）とぐるぐる（gg_view）を分けた */
+      var _kd=function(m){var t=String(m.type);if(t==='test')return (String(m.ct||'')==='eiken'||/かけはし/.test(String(m.title||'')))?'eiken':'test';return t==='worksheet'?'worksheet':'main';};   /* ワークシートは別の種類 2026-10-20 */
+      if(_kindSel==='gg'){ if(!(s.gg_view||[]).length)return false; }
+      else if(!(s.materials_view||[]).some(function(m){return _kd(m)===_kindSel;}))return false;
     }
     if(msel.length){
       if(!(s.materials_view||[]).some(function(m){return msel.indexOf(_bookKey(m))>=0;}))return false;
@@ -5958,6 +5963,14 @@ function renderTable(){try{searchClearSync_();}catch(eSc){}try{fltResetSync_();}
   if(_sortKey==='name'){rows.sort(function(a,b){return _sortDir*_nmCmp_(a,b);});}
   else if(_sortKey){rows.sort(function(a,b){var d=sortVal_(a,_sortKey)-sortVal_(b,_sortKey);if(d===0)d=_nmCmp_(a,b);return _sortDir*d;});}
   $('filterCount').textContent=rows.length+'名';
+  /* 2026-11-18 先生画面の整理 段2：一覧は ②全員の一覧（ov2Render_）で描く。今の表（#tableWrap）は出さない */
+  if(typeof ov2Render_==='function'){
+    try{ if(!_alertFilter)window._ov2Base=rows; ov2Render_(rows,window._ov2Base||rows); }catch(eOv){ try{console.error(eOv);}catch(e2){} }
+    $('tableWrap').style.display='none'; $('emptyState').style.display=rows.length?'none':'';
+    try{var _ol=$('ov2ListCard');if(_ol)_ol.style.display=rows.length?'':'none';}catch(eOl){}
+    try{var _rl=$('rowLegend');if(_rl)_rl.style.display='none';}catch(eRl){}
+    renderAlertsK(); return;
+  }
   if(!rows.length){$('tableWrap').style.display='none';$('emptyState').style.display='';return;}
   $('emptyState').style.display='none';$('tableWrap').style.display='';updateSortIndicators();
   var tb=$('tbody');tb.innerHTML='';
@@ -13295,6 +13308,234 @@ function pgGo_(k){
   else if(k==='rt') openRealtime();
   else if(k==='report') switchTab('report');
 }
+</script>
+<script>
+/* ======================================================================
+   【2026-11-18 先生画面の整理 段2】②全員の一覧（ov2）
+   決まりの正本＝ジョブス用\仕様書\要件定義書_先生画面の再編_Kurofune-Word-Trainer.md §11
+   形の正本＝ジョブス用\道具\20261118_先生画面の整理_モック\モックの型.html（川上さん 14:44「実装でOK・モック終わり」）
+   ・生徒一覧のタブの表（#tableWrap の中）を、教材の種類で切り替える一覧に置きかえる。絞り込み・検索・リセット・
+     デイリーのカード・完走／つまずき・操作ボタンの列は今のまま（renderTable が絞った rows をそのまま使う）
+   ・材料＝dashboard（_students）＋点数表（_quizBoard・確認テストとぐるぐるとまとめテスト）＋overview_sess（直近35日の練習）
+   ・やることの列・見た方がいい子の「やることが残っている」は、やることの機能を作ってから足す（§11 の 27）
+   ====================================================================== */
+var _ov2Sess=null,_ov2SessAt=0,_ov2SessLoading=false,_ov2Sort={k:null,d:1},_ov2Ids={},_ov2Cache=null;
+var _OV2_KL={daily:'毎日学習',eiken:'英検・架け橋',gg:'ぐるぐる',tan:'単元別'};
+var _OV2_BASE=60;
+function _ov2Ago_(d){return daysAgo(d);}
+function _ov2Avg_(a){return a.length?Math.round(a.reduce(function(x,y){return x+y;},0)/a.length):null;}
+function _ov2Rt_(r){if(r==null)return '<span class="ov2-none">–</span>';return '<span class="ov2-rt '+(r<60?'lo':(r<80?'mid':'hi'))+'">'+r+'%</span>';}
+function _ov2Kind_(m){var t=String(m.type||'');if(t==='main')return 'daily';if(t==='test')return (String(m.ct||'')==='eiken'||/かけはし/.test(String(m.title||'')))?'eiken':'tan';return null;}
+function _ov2Short_(ser,t){var x=String(t).replace(/（英→日）/,'');var sp=String(ser).replace(/（英→日）/,'');if(x.indexOf(sp)===0)x=x.slice(sp.length).trim();return x||String(t);}
+function _ov2EkKey_(n){n=String(n).replace(/ A-[12]$/,'');var m=n.match(/^(第\d+回)/);if(m)return m[1];if(/^復習/.test(n))return '復習';if(/^ウォームアップ/.test(n))return null;return n.split('（')[0];}
+function _ov2LoadSess_(force){
+  if(_ov2SessLoading)return; if(_ov2Sess&&!force&&Date.now()-_ov2SessAt<5*60*1000)return;
+  _ov2SessLoading=true;
+  call({action:'overview_sess'}).then(function(r){_ov2SessLoading=false;if(r&&r.ok&&r.data){_ov2Sess=r.data;_ov2SessAt=Date.now();_ov2Cache=null;try{renderTable();}catch(e){}}})
+    .catch(function(){_ov2SessLoading=false;});
+}
+/* 生徒1人ぶんの材料を組む（本・単元・記録） */
+function _ov2Model_(s){
+  var M={books:{},ev:[]};var matOf={},pName={};
+  [].concat(s.materials_view||[],s.completed_view||[]).forEach(function(m){
+    var k=_ov2Kind_(m);if(!k)return;var mid=String(m.material_id);matOf[mid]={k:k,t:m.title||'',ser:(k==='eiken'?(m.title||''):(m.series_label||m.book||m.title||'')),o:parseInt(m.display_order,10)||0};
+    var b=M.books[k+'|'+matOf[mid].ser]||(M.books[k+'|'+matOf[mid].ser]={k:k,ser:matOf[mid].ser,done:0,tot:0,parts:[],mats:{}});
+    b.mats[m.title]=matOf[mid].o;
+    (m.parts||[]).forEach(function(p){pName[String(p.id)]=p.name;b.tot++;if(p.status==='done')b.done++;b.parts.push({mt:m.title,n:p.name,acc:p.acc,st:p.status,last:p.last||'',o:matOf[mid].o});});
+  });
+  (s.gg_view||[]).forEach(function(m){var ser=m.series_label||m.book||m.title;var b=M.books['gg|'+ser]||(M.books['gg|'+ser]={k:'gg',ser:ser,done:0,tot:0,parts:[],mats:{},gu:[]});
+    var d=0,n=0;(m.parts||[]).forEach(function(p){(p.rounds||[]).forEach(function(r){n++;if(r.done)d++;});});b.done+=d;b.tot+=n;b.gu.push({t:m.title,sh:_ov2Short_(ser,m.title),d:d,n:n});matOf[String(m.material_id)]={k:'gg',t:m.title,ser:ser};});
+  /* 単元（マス） */
+  Object.keys(M.books).forEach(function(key){var b=M.books[key];
+    if(b.k==='gg'){b.units=b.gu;return;}
+    if(b.k==='tan'){var by={},ord=[];b.parts.forEach(function(p){if(!by[p.mt]){by[p.mt]={d:0,n:0,o:p.o};ord.push(p.mt);}by[p.mt].n++;if(p.st==='done')by[p.mt].d++;});
+      ord.sort(function(x,y){return by[x].o-by[y].o;});b.units=ord.map(function(t){return {t:t,sh:_ov2Short_(b.ser,t),d:by[t].d,n:by[t].n};});return;}
+    if(b.k==='eiken'){var keys=[],bk={},pend=[];b.parts.forEach(function(p){var k=_ov2EkKey_(p.n);if(k==null){pend.push(p);return;}if(!bk[k]){bk[k]={d:0,n:0};keys.push(k);}pend.concat([p]).forEach(function(q){bk[k].n++;if(q.st==='done')bk[k].d++;});pend=[];});
+      b.units=keys.map(function(k){return {t:k,sh:k,d:bk[k].d,n:bk[k].n};});return;}
+    if(b.k==='daily'){var ps=b.parts.slice().sort(function(x,y){return x.o-y.o;});b.dailyParts=ps;var u=[];for(var i=0;i<ps.length;i+=10){var ch=ps.slice(i,i+10);u.push({t:(i+1)+'〜'+(i+ch.length)+'回',sh:(i+1)+'〜'+(i+ch.length)+'回',d:ch.filter(function(p){return p.st==='done';}).length,n:ch.length});}b.units=u;}
+  });
+  /* 記録：練習（overview_sess）＋確認テスト・ぐるぐる・まとめテスト（点数表） */
+  var ss=(_ov2Sess&&_ov2Sess.sess&&_ov2Sess.sess[String(s.student_id)])||[];
+  ss.forEach(function(x){var mo=matOf[x[1]]||{k:'other',t:'',ser:''};M.ev.push({d:x[0],k:mo.k,ser:mo.ser,mt:mo.t,p:pName[x[2]]||'',r:x[4],pa:x[5]});});
+  var qz={};
+  ((_quizBoard&&_quizBoard.entries)||[]).forEach(function(e){if(String(e.student_id)!==String(s.student_id))return;var pid=String(e.part_id||'');
+    if(/^gg_/.test(pid)){if(!e.last_date)return;var mo=matOf[String(e.material_id)]||{ser:e.material_title};M.ev.push({d:e.last_date,k:'gg',ser:mo.ser,mt:e.material_title,p:e.part_title,r:(e.total_count?Math.round(e.correct_count/e.total_count*100):e.latest_rate),miss:(e.missed_words||[]).length});return;}
+    if(/^mt-/.test(pid)){if(!e.last_date)return;M.ev.push({d:e.last_date,k:'eiken',ser:'まとめテスト',mt:e.material_title,p:'まとめテスト '+pid.split('-').pop(),r:e.latest_rate,mtst:1});return;}
+    var o=qz[e.material_title]||(qz[e.material_title]=[0,0,0]);if(e.status==='ok')o[0]++;else if(e.status==='ng')o[1]++;else o[2]++;
+  });
+  Object.keys(M.books).forEach(function(key){var b=M.books[key];if(b.k!=='tan')return;b.tunits=(b.units||[]).map(function(x){var o=qz[x.t]||[0,0,0];return {sh:x.sh,ok:o[0],ng:o[1],n:o[0]+o[1]+o[2]};});});
+  M.ev.sort(function(a,b){return String(b.d).localeCompare(String(a.d));});
+  M.lastAgo=_ov2Ago_(s.last_studied_at);
+  var e7=M.ev.filter(function(e){var a=_ov2Ago_(e.d);return a!=null&&a<7&&e.r!=null;});M.n7=e7.length;M.r7=_ov2Avg_(e7.map(function(e){return e.r;}));
+  M.lowDone=M.ev.filter(function(e){var a=_ov2Ago_(e.d);return (e.k==='eiken'||e.k==='gg')&&!e.mtst&&a!=null&&a<14&&e.r!=null&&e.r<_OV2_BASE;});
+  return M;
+}
+function _ov2Models_(){
+  var key=(_students||[]).length+'|'+_ov2SessAt+'|'+(typeof _quizBoardAt!=='undefined'?_quizBoardAt:0)+'|'+(_quizBoard?1:0);
+  if(_ov2Cache&&_ov2Cache.key===key&&_ov2Cache.ref===_students)return _ov2Cache.map;
+  var map={};(_students||[]).forEach(function(s){map[String(s.student_id)]=_ov2Model_(s);});
+  /* 比べて遅い：同じ学年で同じ本を持つ子が3人以上・進みが真ん中の3分の1以下（真ん中が15%以上のとき・毎日学習は比べない） */
+  var g={};(_students||[]).forEach(function(s){if(s.is_teacher_account)return;var M=map[String(s.student_id)];Object.keys(M.books).forEach(function(k){var b=M.books[k];if(b.k==='daily')return;var gk=b.k+'|'+b.ser+'|'+s.grade;(g[gk]=g[gk]||[]).push({M:M,b:b});});});
+  Object.keys(g).forEach(function(gk){var arr=g[gk];if(arr.length<3)return;var v=arr.map(function(x){return x.b.tot?x.b.done/x.b.tot:0;}).sort(function(a,b){return a-b;});var med=v[Math.floor(v.length/2)];if(med<0.15)return;
+    arr.forEach(function(x){var r=x.b.tot?x.b.done/x.b.tot:0;if(r<=med/3)(x.M.slow=x.M.slow||[]).push(x.b.ser+'：'+Math.round(r*100)+'%（同じ学年でこの本を持つ'+arr.length+'人の真ん中は'+Math.round(med*100)+'%）');});});
+  _ov2Cache={key:key,ref:_students,map:map};return map;
+}
+function _ov2Recent_(evs){var e7=evs.filter(function(e){var a=_ov2Ago_(e.d);return a!=null&&a<7&&e.r!=null;});if(e7.length)return {n:e7.length,r:_ov2Avg_(e7.map(function(e){return e.r;})),old:null};
+  var l5=evs.filter(function(e){return e.r!=null;}).slice(0,5);if(!l5.length)return null;return {n:0,r:_ov2Avg_(l5.map(function(e){return e.r;})),old:l5[0].d,cnt:l5.length};}
+function _ov2Md_(d){var m=String(d||'').match(/^\d{4}-(\d{2})-(\d{2})/);return m?(parseInt(m[1],10)+'/'+parseInt(m[2],10)):'';}
+function _ov2RecentHtml_(rr){
+  var lg,sh;
+  if(!rr){lg='直近7日 <span class="ov2-none">0回・記録なし</span>';sh='<span class="ov2-none">記録なし</span>';}
+  else if(!rr.old){lg='直近7日 '+rr.n+'回 '+_ov2Rt_(rr.r);sh='7日'+rr.n+'回 '+_ov2Rt_(rr.r);}
+  else{lg='直近7日 <span class="ov2-none">0回</span><br><span class="ov2-old">最後の'+rr.cnt+'回 '+_ov2Rt_(rr.r)+'（'+_ov2Md_(rr.old)+'まで）</span>';sh='<span class="ov2-old">最後'+rr.cnt+'回 '+_ov2Rt_(rr.r)+'</span>';}
+  return '<span class="ov2-s">'+lg+'</span><span class="ov2-p">'+sh+'</span>';
+}
+function _ov2Cut_(t){t=String(t);return t.length>5?t.slice(0,5)+'…':t;}
+function _ov2LastIdx_(b){var u=b.units||[],last=-1;u.forEach(function(x,i){if(b.k==='gg'?x.d>0:(x.n&&x.d===x.n))last=i;});return last;}
+function _ov2Band_(b){
+  var u=b.units||[];if(!u.length)return '<span class="ov2-none">–</span>';var last=_ov2LastIdx_(b);
+  var gap=0;for(var i=0;i<last;i++){if(b.k==='gg'?u[i].d===0:!(u[i].n&&u[i].d===u[i].n))gap++;}
+  var sq=u.map(function(x){var c=x.n&&x.d===x.n?'f':(x.d>0?'h':'');return '<i class="'+c+'" title="'+esc(x.sh)+' '+x.d+'/'+x.n+'"></i>';}).join('');
+  var labS,labP;
+  if(b.k==='daily'){var mx=-1;(b.dailyParts||[]).forEach(function(p,i){if(p.st==='done')mx=i;});labS=labP=(mx<0?'<span class="ov2-none">まだ</span>':(mx+1)+'回目まで');}
+  else if(last<0){labS=labP='<span class="ov2-none">'+(u.some(function(x){return x.d>0;})?'途中':'まだ')+'</span>';}
+  else{var gp=gap?'<span class="ov2-tag ng">抜け'+gap+'</span>':'';labS=esc(u[last].sh)+' まで'+gp;labP=esc(_ov2Cut_(u[last].sh))+' まで'+gp;}
+  var scr='<span class="ov2-band">'+sq+'</span><span class="ov2-upto"><span class="ov2-s">'+labS+'</span><span class="ov2-p">'+labP+'</span></span>';
+  if(b.k!=='tan'||!b.tunits)return scr;
+  var tl=-1,ngN=0;b.tunits.forEach(function(x,i){if(x.n&&x.ok===x.n)tl=i;ngN+=x.ng;});
+  var tq=b.tunits.map(function(x){var c=x.n&&x.ok===x.n?'f':(x.ok>0?'h':'');return '<i class="'+c+(x.ng?' ng':'')+'" title="'+esc(x.sh)+' テスト 合格'+x.ok+'・未合格'+x.ng+'・未受験'+(x.n-x.ok-x.ng)+'"></i>';}).join('');
+  var ngT=ngN?'<span class="ov2-tag ng">未合格'+ngN+'</span>':'';
+  var tlab=(tl<0?'<span class="ov2-none">'+(b.tunits.some(function(x){return x.ok>0;})?'途中':'まだ')+'</span>':esc(b.tunits[tl].sh)+' まで')+ngT;
+  var col=function(st,f,h){return st==='f'?f:(st==='h'?h:'#fff');};
+  var pq=u.map(function(x,i){var p=x.n&&x.d===x.n?'f':(x.d>0?'h':'');var t=b.tunits[i]||{n:0,ok:0,ng:0};var q=t.n&&t.ok===t.n?'f':(t.ok>0?'h':'');return '<i class="'+(t.ng?'ng':'')+'" style="background:linear-gradient(to bottom,'+col(p,'#1d4ed8','#9db5f5')+' 50%,'+col(q,'#15803d','#9fd9b1')+' 50%)"></i>';}).join('');
+  var plab='練'+(last<0?'–':esc(_ov2Cut_(u[last].sh)))+' テ'+(tl<0?'–':esc(_ov2Cut_(b.tunits[tl].sh)))+(ngN?' '+ngT:'');
+  return '<span class="ov2-s"><span class="ov2-b2"><span class="ov2-lt">練習</span><span class="ov2-band">'+sq+'</span><span class="ov2-upto">'+labS+'</span><span class="ov2-lt">テスト</span><span class="ov2-band tst">'+tq+'</span><span class="ov2-upto">'+tlab+'</span></span></span>'
+    +'<span class="ov2-p"><span class="ov2-band pb">'+pq+'</span><span class="ov2-upto">'+plab+'</span></span>';
+}
+function _ov2CellBook_(M,b){if(!b)return '<td class="ov2-cell ov2-none">–</td>';
+  var evs=M.ev.filter(function(e){return e.k===b.k&&e.ser===b.ser;});var rr=_ov2Recent_(evs);
+  if(!rr||rr.old){var pp=(b.parts||[]).filter(function(p){return p.acc!=null&&p.last;}).sort(function(x,y){return String(y.last).localeCompare(String(x.last));}).slice(0,5);if(pp.length&&(!rr||String(pp[0].last)>String(rr.old)))rr={n:0,r:_ov2Avg_(pp.map(function(p){return p.acc;})),old:pp[0].last,cnt:pp.length};}
+  return '<td class="ov2-cell">'+_ov2Band_(b)+'<div class="ov2-ln2">'+_ov2RecentHtml_(rr)+'</div></td>';}
+function _ov2CellKind_(M,k){var bs=Object.keys(M.books).map(function(x){return M.books[x];}).filter(function(b){return b.k===k;});if(!bs.length)return '<td class="ov2-cell ov2-none">–</td>';
+  var d=0,t=0;bs.forEach(function(b){d+=b.done;t+=b.tot;});var pr=t?Math.round(d/t*100):0;
+  return '<td class="ov2-cell"><span class="ov2-pg"><span class="ov2-bar"><i style="width:'+pr+'%"></i></span>'+pr+'%<span class="ov2-leg">（'+bs.length+'冊）</span></span><div class="ov2-ln2">'+_ov2RecentHtml_(_ov2Recent_(M.ev.filter(function(e){return e.k===k;})))+'</div></td>';}
+function _ov2R7Cell_(M){var rr=_ov2Recent_(M.ev);if(!rr)return '<span class="ov2-none">–</span>';if(!rr.old)return _ov2Rt_(rr.r);return '<span class="ov2-old">最後の'+rr.cnt+'回<br>'+_ov2Rt_(rr.r)+'</span>';}
+/* 見た方がいい子（条件はモックと同じ・§11 のモックの節） */
+function _ov2Watch_(list,map){
+  var tek=[],non=[],hom=[];
+  list.forEach(function(s){if(s.is_teacher_account)return;var M=map[String(s.student_id)];if(!M||!Object.keys(M.books).length)return;
+    var why=[];
+    if(M.n7>=3&&M.r7!=null&&M.r7<_OV2_BASE)why.push('直近7日の正答率 '+M.r7+'%（'+M.n7+'回）');
+    if(M.lowDone.length>=2)why.push('正答率'+_OV2_BASE+'%未満で終えた回が14日で'+M.lowDone.length+'つ');
+    if(M.slow)why.push('進みが遅い：'+M.slow[0]);
+    var idle=(M.lastAgo==null||M.lastAgo>=7);
+    if(why.length&&!idle)tek.push({s:s,why:why});
+    if(idle)non.push({s:s,why:[M.lastAgo==null?'学習の記録なし':'最終学習 '+M.lastAgo+'日前（'+_ov2Md_(s.last_studied_at)+'）']});
+    if(M.n7>=8&&M.r7!=null&&M.r7>=80)hom.push({s:s,why:['直近7日 '+M.n7+'回・正答率 '+M.r7+'%']});
+  });
+  non.sort(function(a,b){var x=map[String(a.s.student_id)].lastAgo,y=map[String(b.s.student_id)].lastAgo;return (y==null?999:y)-(x==null?999:x);});
+  hom.sort(function(a,b){return map[String(b.s.student_id)].n7-map[String(a.s.student_id)].n7;});
+  return [['ov:tek','🔧 テコ入れ（正答率・進み）',tek],['ov:non','💤 やっていない（7日以上）',non],['ov:hom','👏 ほめる（直近7日で8回以上・80%以上）',hom]];
+}
+function _ov2DrawWatch_(base,map){
+  var el=$('ov2Watch');if(!el)return;var cats=_ov2Watch_(base,map);_ov2Ids={};
+  el.innerHTML=cats.map(function(c){var ids={};c[2].forEach(function(x){ids[String(x.s.student_id)]=1;});_ov2Ids[c[0]]=ids;_AF_LABEL[c[0]]=c[1].replace(/（.*$/,'');
+    return '<div class="ov2-wcol"><h3 class="afc" onclick="alertFilterClick(event,\''+c[0]+'\')" title="押すと、この子たちだけを一覧に出す">'+esc(c[1])+'（'+c[2].length+'名）</h3><ul>'
+      +(c[2].length?c[2].map(function(x){return '<li onclick="openStudentDetail(\''+esc(String(x.s.student_id))+'\')"><span class="nm">'+esc(x.s.name||'')+'</span> <span class="sb">'+esc(x.s.grade||'')+'・'+esc(x.s.class_name||'')+'</span><span class="why">'+x.why.map(esc).join('<br>')+'</span></li>';}).join(''):'<li class="ov2-none">なし</li>')+'</ul></div>';}).join('');
+  var at=$('ov2WatchAt');if(at)at.textContent=(_ov2Sess?'':'（練習の記録を読み込み中…）');
+}
+/* 一覧を描く（renderTable が絞り込んだ rows を受け取る） */
+function ov2Render_(rows,base){
+  _ov2LoadSess_(false);
+  if(!_quizBoard&&typeof ensureQuizBoard_==='function'){try{ensureQuizBoard_(function(){_ov2Cache=null;try{renderTable();}catch(e){}});}catch(eQ){}}
+  var map=_ov2Models_();_ov2DrawWatch_(base,map);
+  var kind=({main:'daily',eiken:'eiken',gg:'gg',test:'tan'})[_kindSel]||'all';
+  var wrap=$('ov2Wrap');if(!wrap)return;
+  var groups=kind==='all'?[['',rows]]:Array.from(new Set(rows.map(function(s){return String(s.grade||'');}))).sort().map(function(g){return [g,rows.filter(function(s){return String(s.grade||'')===g;})];});
+  var html='';
+  groups.forEach(function(G){
+    var grows=G[1].slice(),cols;
+    if(kind==='all')cols=['daily','eiken','gg','tan'].map(function(k){return {key:k,lab:_OV2_KL[k]};});
+    else{var m={};grows.forEach(function(s){var M=map[String(s.student_id)];Object.keys(M.books).forEach(function(k){var b=M.books[k];if(b.k===kind)m[b.ser]=(m[b.ser]||0)+1;});});cols=Object.keys(m).sort().map(function(x){return {key:x,lab:x,cnt:m[x]};});}
+    var getB=function(M,c){var f=null;Object.keys(M.books).forEach(function(k){var b=M.books[k];if(b.k===kind&&b.ser===c.key)f=b;});return f;};
+    var sv=function(s,ci){var M=map[String(s.student_id)];if(ci==='last')return M.lastAgo==null?999:M.lastAgo;if(ci==='n7')return M.n7;if(ci==='r7')return M.r7==null?-1:M.r7;if(ci==='mis')return s.mistake_active||0;
+      var c=cols[ci];if(!c)return 0;if(kind==='all'){var d=0,t=0;Object.keys(M.books).forEach(function(k){var b=M.books[k];if(b.k===c.key){d+=b.done;t+=b.tot;}});return t?d/t:-1;}var b=getB(M,c);return b&&b.tot?b.done/b.tot:-1;};
+    if(_ov2Sort.k!=null)grows.sort(function(a,b){var x=sv(a,_ov2Sort.k),y=sv(b,_ov2Sort.k);return (x>y?1:x<y?-1:_nmCmp_(a,b))*_ov2Sort.d;});
+    var th=function(lab,ci,cls){return '<th class="'+(cls||'')+'"'+(ci!=null?' onclick="ov2Sort_(\''+ci+'\')" style="cursor:pointer"':'')+'>'+lab+(ci!=null&&String(_ov2Sort.k)===String(ci)?(_ov2Sort.d>0?' ▲':' ▼'):'')+'</th>';};
+    var h=(G[0]?'<div class="ov2-gsec">'+esc(G[0])+'（'+grows.length+'名）</div>':'')+'<table class="ov2-grid"><thead><tr>'+th('生徒',null,'stu')+th('最終学習','last')+th('直近7日<br>回数','n7')+th('直近7日<br>正答率','r7')
+      +cols.map(function(c,i){return th(esc(c.lab)+(c.cnt?'<br><span class="ov2-leg">'+c.cnt+'人</span>':''),i);}).join('')
+      +(kind==='all'?th('デイリー',null,'gcol')+th('弱点<br><small>いま間違えている語</small>','mis'):'')+th('教材<br><small>指定</small>',null,'ov2-gearc')+'</tr></thead><tbody>';
+    grows.forEach(function(s){var M=map[String(s.student_id)];var sid=esc(String(s.student_id));
+      h+='<tr class="'+(isInactive(s)?'row-inactive':'')+'" onclick="if(!event.target.closest(\'button\'))openStudentDetail(\''+sid+'\')">'
+        +'<td class="stu"><div class="t-name">'+esc(s.name||'(無名)')+'</div><div class="ov2-sb">'+esc(s.grade||'')+'・'+esc(s.class_name||'')+'</div></td>'
+        +'<td class="t-sub">'+lastStudiedCell(s)+'</td><td>'+(M.n7||'<span class="ov2-none">0</span>')+'</td><td>'+_ov2R7Cell_(M)+'</td>'
+        +cols.map(function(c){return kind==='all'?_ov2CellKind_(M,c.key):_ov2CellBook_(M,getB(M,c));}).join('')
+        +(kind==='all'?'<td class="gcol tdDly">'+dailyMarks_(s,'<br>')+'</td><td>'+(s.mistake_active>0?'<span class="badge badge-amber num">'+s.mistake_active+' 語</span>':'<span class="badge badge-gray">0</span>')+'</td>':'')
+        +'<td class="ov2-gearc">'+gearBtn(s)+'</td></tr>';});
+    html+=h+'</tbody></table>';
+  });
+  var legend=kind==='all'?'':'<div class="ov2-leg" style="margin-top:6px">マス＝'+(kind==='daily'?'10回ずつ':(kind==='eiken'?'回（A-1 と A-2 の両方が済んで ■）':'単元'))+'（■ 全部済み・◧ 途中・□ まだ）。マスにカーソルを当てると名前。「◯◯ まで」＝全部済んだいちばん先（ぐるぐるは手を付けたいちばん先・毎日学習は済んだいちばん先の回）。「抜け」＝それより前で終わっていない数。直近7日に記録が無いときは、最後の5回の正答率を灰色で出す'
+    +(kind==='tan'?'。上の段が練習（青）・下の段が確認テスト（緑＝合格。赤い下線＝未合格がある単元）。印刷では1つのマスの上半分が練習・下半分がテスト':'')
+    +(kind==='eiken'?'。英検の本番の形（大問1型など）ごとの正答率は、あとで足す（今は深掘りで編ごとに見る）':'')+'</div>';
+  wrap.innerHTML=html+legend+(_ov2Sess?'':'<div class="ov2-leg">練習の記録を読み込み中…（読み込めたら直近7日の数が入ります）</div>');
+  var pt=$('ov2PrintTtl');if(pt){var lab=kind==='all'?'全部（種類ごと）':_OV2_KL[kind];pt.textContent='クロトレ　'+lab+'　'+_ov2Md_(new Date(Date.now()+9*3600e3).toISOString())+' '+new Date().toTimeString().slice(0,5)+' 時点　'+rows.length+'名';}
+}
+function ov2Sort_(k){if(String(_ov2Sort.k)===String(k))_ov2Sort.d*=-1;else{_ov2Sort.k=isNaN(k)?k:Number(k);_ov2Sort.d=(k==='last'||k==='mis')?-1:1;}renderTable();}
+function ov2Print_(){
+  var root=document.createElement('div');root.id='ov2PrintRoot';
+  ['ov2WatchCard','ov2ListCard'].forEach(function(id){var el=$(id);if(el){var c=el.cloneNode(true);c.removeAttribute('id');c.className=el.className+' '+id+'P';root.appendChild(c);}});
+  document.body.appendChild(root);
+  var pg=document.createElement('style');pg.id='ov2PageCss';pg.textContent='@page{size:A4 landscape;margin:7mm}';document.head.appendChild(pg);
+  document.body.classList.add('ov2print');
+  var off=function(){document.body.classList.remove('ov2print');var r=$('ov2PrintRoot');if(r)r.remove();var p=$('ov2PageCss');if(p)p.remove();window.removeEventListener('afterprint',off);};
+  window.addEventListener('afterprint',off);setTimeout(function(){window.print();},50);
+}
+/* 置き場をつくる（見た方がいい子のカード・一覧の入れ物・印刷のボタン） */
+(function(){
+  var css=document.createElement('style');css.textContent=[
+    '.ov2-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin:0 0 12px}',
+    '.ov2-h2{font-size:15px;font-weight:800;margin:0 0 8px;border-left:4px solid var(--border);padding-left:8px}',
+    '#ov2Watch{display:grid;grid-template-columns:repeat(3,minmax(240px,1fr));gap:10px}',
+    '.ov2-wcol h3{margin:0 0 6px;font-size:13.5px;cursor:pointer}.ov2-wcol h3:hover{text-decoration:underline}.ov2-wcol ul{list-style:none;margin:0;padding:0;max-height:260px;overflow:auto}',
+    '.ov2-wcol li{padding:5px 6px;border-bottom:1px dashed var(--border);cursor:pointer}.ov2-wcol li:hover{background:var(--blue-light)}.ov2-wcol .nm{font-weight:700}.ov2-wcol .sb{color:var(--text-muted);font-size:12px}.ov2-wcol .why{color:var(--text-muted);font-size:12px;display:block}',
+    '#ov2Wrap{overflow:auto}',
+    '.ov2-grid{border-collapse:separate;border-spacing:0;font-size:12.5px;background:#fff}',
+    '.ov2-grid th,.ov2-grid td{border-bottom:1px solid var(--border);padding:5px 8px;vertical-align:top;text-align:left;white-space:nowrap}',
+    '.ov2-grid thead th{position:sticky;top:0;background:#fff;z-index:5;font-size:12px;border-bottom:2px solid var(--border)}',
+    '.ov2-grid th.stu,.ov2-grid td.stu{position:sticky;left:0;background:#fff;z-index:4;min-width:130px}.ov2-grid thead th.stu{z-index:6}',
+    '.ov2-grid tbody tr{cursor:pointer}.ov2-grid tbody tr:hover td{background:var(--gray-light)}.ov2-grid tr.row-inactive td{background:#fff5f6}',
+    '.ov2-sb{color:var(--text-muted);font-size:11.5px}.ov2-cell{min-width:118px}.ov2-ln2{color:var(--text-muted);font-size:11.5px;margin-top:2px}',
+    '.ov2-pg{display:inline-flex;align-items:center;gap:6px}.ov2-bar{width:52px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;display:inline-block}.ov2-bar i{display:block;height:100%;background:var(--blue-dark)}',
+    '.ov2-rt{font-weight:800;padding:0 4px;border-radius:4px}.ov2-rt.lo{color:var(--crimson);background:var(--crimson-light)}.ov2-rt.mid{color:var(--amber-dark);background:var(--amber-light)}.ov2-rt.hi{color:var(--green-dark);background:var(--green-light)}',
+    '.ov2-none{color:var(--text-light)}.ov2-old{color:var(--text-muted);font-size:11px}.ov2-leg{color:var(--text-muted);font-size:12px}',
+    '.ov2-tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:4px;margin-left:3px;font-weight:700}.ov2-tag.ng{background:var(--crimson-light);color:var(--crimson)}',
+    '.ov2-band{display:inline-flex;gap:2px;vertical-align:middle}.ov2-band i{width:9px;height:12px;border:1px solid var(--blue-dark);display:inline-block;border-radius:2px}.ov2-band i.f{background:var(--blue-dark)}.ov2-band i.h{background:linear-gradient(90deg,var(--blue-dark) 50%,transparent 50%)}',
+    '.ov2-band.tst i{border-color:var(--green-dark)}.ov2-band.tst i.f{background:var(--green-dark)}.ov2-band.tst i.h{background:linear-gradient(90deg,var(--green-dark) 50%,transparent 50%)}.ov2-band i.ng{border-color:var(--crimson);box-shadow:inset 0 -3px 0 var(--crimson)}',
+    '.ov2-upto{font-weight:700;margin-left:6px}.ov2-b2{display:inline-grid;grid-template-columns:auto auto 1fr;gap:1px 4px;align-items:center}.ov2-lt{font-size:10.5px;color:var(--text-muted)}',
+    '.ov2-gsec{font-size:14px;font-weight:800;margin:14px 0 4px}',
+    '.ov2-p{display:none}',
+    '#ov2PrintTtl{display:none}',
+    '#ov2PrintRoot{display:none}',
+    '@media print{body.ov2print>*:not(#ov2PrintRoot){display:none!important}body.ov2print #ov2PrintRoot{display:block}body.ov2print{background:#fff}',
+    'body.ov2print .ov2WatchCardP{break-after:page;page-break-after:always;border:none;padding:0;margin:0}body.ov2print .ov2ListCardP{border:none;padding:0;margin:0}',
+    'body.ov2print #ov2PrintRoot [id=ov2PrintTtl],body.ov2print .ov2WatchCardP>div:first-child{display:block!important;font-size:11px;font-weight:800;margin:0 0 4px}',
+    'body.ov2print .ov2-s{display:none!important}body.ov2print .ov2-p{display:inline!important}',
+    'body.ov2print #ov2Watch{grid-template-columns:repeat(3,1fr);gap:6px}body.ov2print .ov2-wcol ul{max-height:none;overflow:visible}body.ov2print .ov2-wcol li{border:none;padding:0 0 2px;font-size:9px}body.ov2print .ov2-wcol .why{font-size:8.5px}',
+    'body.ov2print #ov2Wrap{overflow:visible}body.ov2print .ov2-grid{font-size:7.5px;width:100%}body.ov2print .ov2-grid th,body.ov2print .ov2-grid td{padding:0 2px;white-space:normal;position:static!important;line-height:1.1}',
+    'body.ov2print .ov2-grid thead{display:table-header-group}body.ov2print .ov2-grid tr{break-inside:avoid}body.ov2print .ov2-grid th.stu,body.ov2print .ov2-grid td.stu{min-width:0;white-space:nowrap}body.ov2print .ov2-sb,body.ov2print .ov2-gearc{display:none}',
+    'body.ov2print .ov2-ln2{display:inline;margin-left:4px;font-size:7.5px}body.ov2print .ov2-pg{display:inline-flex}body.ov2print .ov2-band i{width:4px;height:6px}body.ov2print .ov2-band.pb i{width:5px;height:8px;border:1px solid #888;box-shadow:none}body.ov2print .ov2-band.pb i.ng{border-color:#d00;border-width:1px 1px 2px 1px}',
+    'body.ov2print .ov2-gsec{font-size:10px;margin:4px 0 1px}body.ov2print .ov2-leg{font-size:7.5px}body.ov2print *{-webkit-print-color-adjust:exact;print-color-adjust:exact}}',
+    ''
+  ].join('');document.head.appendChild(css);
+  var ops=document.querySelector('button[onclick="openTargetModal(\'assign\')"]');ops=ops&&ops.parentNode;
+  var wc=document.createElement('div');wc.className='ov2-card';wc.id='ov2WatchCard';
+  wc.innerHTML='<div id="ov2PrintTtl"></div><div class="ov2-h2">見た方がいい子（自動の提案・理由つき）<span class="ov2-leg" id="ov2WatchAt" style="font-weight:400;margin-left:8px"></span></div><div id="ov2Watch"></div>';
+  if(ops&&ops.parentNode)ops.parentNode.insertBefore(wc,ops.nextSibling);
+  var tw=$('tableWrap');
+  if(tw){var lc=document.createElement('div');lc.className='ov2-card';lc.id='ov2ListCard';lc.innerHTML='<div id="ov2Wrap"></div>';tw.parentNode.insertBefore(lc,tw);}
+  var tb=document.querySelector('.topbarK');if(tb){var pb=document.createElement('button');pb.className='btn-ghost';pb.type='button';pb.textContent='🖨 この一覧を印刷';pb.title='A4 横・両面。表＝見た方がいい子・裏＝一覧';pb.onclick=ov2Print_;tb.appendChild(pb);}
+})();
+
 </script>
 </body>
 </html>
