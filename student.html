@@ -2677,6 +2677,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
             <div class="psub" id="todo-sub"></div>
             <div id="todo-top"></div>
             <div id="todo-list"></div>
+            <div id="todo-addbtn" role="button" tabindex="0"><i class="ti ti-plus"></i> <span>やることを<ruby>足<rt class="uf">た</rt></ruby>す</span></div>
           </div>
           <!-- 全体像への導線（行動カードと並べない・控えめリンク）2026-07-26 -->
           <div id="daily-maplink" role="button" tabindex="0" style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--sub);padding:12px;margin-top:2px;cursor:pointer;"><i class="ti ti-map-2" style="color:var(--gold);font-size:16px;"></i> <span><ruby>学習<rt class="uf">がくしゅう</rt></ruby>マップで<ruby>全部<rt class="uf">ぜんぶ</rt></ruby>の<ruby>進<rt class="uf">すす</rt></ruby>みを<ruby>見<rt class="uf">み</rt></ruby>る</span> <i class="ti ti-chevron-right"></i></div>
@@ -3030,7 +3031,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-18d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-18e"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -13538,11 +13539,14 @@ function _tdMd_(d){var a=String(d||'').split('-');if(a.length!==3)return String(
 function _tdDue_(t){if(t.state==='done')return '<span class="td-ok">'+_nvRuby_('完了(かんりょう)',true)+'</span>';
   if(t.state==='late')return '<span class="td-late">'+_nvRuby_('締(し)め切(き)りを過(す)ぎています',true)+'（'+_tdMd_(t.due)+'まで）</span>';
   return '<span class="td-due">'+_tdMd_(t.due)+'まで</span>';}
-function _tdRow_(t,withMat){return '<div class="td-it '+t.state+'" role="button" tabindex="0" data-tdid="'+esc(t.id)+'"><div class="td-tx">'
-  +(withMat&&t.mtitle?'<div class="td-mt">'+esc(t.mtitle)+'</div>':'')+'<div class="td-nm">'+esc(t.ptitle||t.label)+'</div></div>'+_tdDue_(t)+'</div>';}
+function _tdRow_(t,withMat){var me=(t.src==='self');   /* 自分で足したものだけ「自分で」と × （§11 の56） */
+  return '<div class="td-it '+t.state+'" role="button" tabindex="0" data-tdid="'+esc(t.id)+'"><div class="td-tx">'
+  +((withMat&&t.mtitle)||me?'<div class="td-mt">'+(withMat&&t.mtitle?esc(t.mtitle):'')+(me?' <span class="td-self">'+_nvRuby_('自分(じぶん)で',true)+'</span>':'')+'</div>':'')+'<div class="td-nm">'+esc(t.ptitle||t.label)+'</div></div>'+_tdDue_(t)
+  +(me&&t.state!=='done'?'<button type="button" class="td-x" data-tdx="'+esc(t.id)+'" aria-label="外す"><i class="ti ti-x"></i></button>':'')+'</div>';}
 function todoRender_(){
   var w=$('todo-wrap');if(!w)return;var it=(_todo&&_todo.items)||[];
-  if(!it.length){w.style.display='none';return;}w.style.display='';
+  w.style.display='';   /* 段4：やることが無くても見出しと［＋ やることを足す］は出す（読み込む前は出さない） */
+  if(!it.length){var s0=$('todo-sub');if(s0)s0.innerHTML=_nvRuby_('今(いま)はありません',true);$('todo-top').innerHTML='';$('todo-list').innerHTML='';return;}
   var left=it.filter(function(t){return t.state!=='done';});
   var few=(it.length<=3),top=few?it:left.slice(0,3);   /* サーバーが 過ぎた→まだ→完了 の順・締め切りの近い順に並べて返す。3つ以下なら教材ごとの行は出さない（同じものが2回並ぶので） */
   var by={},ord=[];it.forEach(function(t){var k=t.material_id||t.mtitle;if(!by[k]){by[k]={t:t.mtitle||t.label,a:[]};ord.push(k);}by[k].a.push(t);});
@@ -13567,6 +13571,33 @@ function todoGo_(id){var t=null;((_todo&&_todo.items)||[]).forEach(function(x){i
   if(t.kind==='mt'){openEikenMt_(t.part_id);return;}
   if(t.kind==='gg'){openGg_(t.material_id,t.mtitle||'ぐるぐる',{subj:t.subj||'',startPid:t.part_id});return;}
   startPractice(t.part_id);}
+/* ===== 【2026-11-18 やること 段4】自分で足す（§11 の54〜56） ===== */
+var _tdCh=null,_tdBk=null;
+function _tdRemove_(x){if(!x.classList.contains('arm')){x.classList.add('arm');x.innerHTML=_nvRuby_('外(はず)す',true);setTimeout(function(){if(x&&x.classList){x.classList.remove('arm');x.innerHTML='<i class="ti ti-x"></i>';}},4000);return;}
+  x.disabled=true;call({action:'todo_remove',id:x.getAttribute('data-tdx')}).then(function(d){if(!d||!d.ok){x.disabled=false;try{toast((d&&d.error)||'外せませんでした');}catch(e){}return;}todoLoad_(true);},function(){x.disabled=false;});}
+function _tdSheetClose_(){var s=$('td-sh');if(s)s.remove();}
+function todoSheet_(){_tdSheetClose_();var s=document.createElement('div');s.id='td-sh';
+  s.innerHTML='<div class="td-sh"><div class="td-sh-hd"><span>'+_nvRuby_('やることを足(た)す',true)+'</span><button type="button" id="td-sh-x" aria-label="閉じる"><i class="ti ti-x"></i></button></div><div id="td-sh-b"><div class="loading">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div></div></div>';
+  document.body.appendChild(s);
+  call({action:'todo_choices'}).then(function(d){if(!$('td-sh'))return;if(!d||!d.ok){$('td-sh-b').innerHTML='<div class="td-sh-msg">'+esc((d&&d.error)||'読み込めませんでした')+'</div>';return;}
+    _tdCh=d.data.books||[];if(!_tdBk||!_tdCh.some(function(b){return b.key===_tdBk;}))_tdBk=_tdCh.length?_tdCh[0].key:null;_tdSheetDraw_();},function(){});}
+function _tdSheetDraw_(){var b=$('td-sh-b');if(!b)return;var bs=_tdCh||[];
+  if(!bs.length){b.innerHTML='<div class="td-sh-msg">'+_nvRuby_('足(た)せる教材(きょうざい)がありません',true)+'</div>';return;}
+  var cur=null;bs.forEach(function(x){if(x.key===_tdBk)cur=x;});
+  var lab={done:_nvRuby_('済(す)み',true),'in':_nvRuby_('入(はい)っている',true)};
+  var cell=function(c){if(c.st)return '<div class="td-c '+c.st+'">'+(c.lab?esc(c.lab)+' ':'')+lab[c.st]+'</div>';return '<div class="td-c add" role="button" data-tdadd="'+esc(c.id)+'">＋ '+(c.lab?esc(c.lab):_nvRuby_('足(た)す',true))+'</div>';};
+  var two=cur&&cur.rows.some(function(r){return r.cells.length>1;});
+  b.innerHTML='<div class="td-sh-l">1. '+_nvRuby_('本(ほん)をえらぶ',true)+'</div><div class="td-bks">'+bs.map(function(x){return '<span class="td-bk'+(x.key===_tdBk?' on':'')+'" role="button" data-tdbk="'+esc(x.key)+'">'+esc(x.title)+'</span>';}).join('')+'</div>'
+    +'<div class="td-sh-l">2. '+_nvRuby_('押(お)して足(た)す',true)+'</div><div class="td-rows">'+(cur?cur.rows.map(function(r){
+      if(r.head)return '<div class="td-rw hd'+(two?'':' one')+'"><span>'+esc(r.name)+'</span><span></span>'+(two?'<span></span>':'')+'</div>';
+      return '<div class="td-rw'+(two?'':' one')+'"><span>'+esc(r.name)+'</span>'+r.cells.map(cell).join('')+(two&&r.cells.length<2?'<span></span>':'')+'</div>';}).join(''):'')+'</div>'
+    +'<div class="td-sh-msg" id="td-sh-msg"></div>';}
+function _tdAdd_(c){if(c.getAttribute('data-busy'))return;c.setAttribute('data-busy','1');var id=c.getAttribute('data-tdadd');
+  call({action:'todo_add',part_id:id}).then(function(d){c.removeAttribute('data-busy');var m=$('td-sh-msg');
+    if(!d||!d.ok){if(m)m.textContent=(d&&d.error)||'足せませんでした';return;}
+    (_tdCh||[]).forEach(function(bk){bk.rows.forEach(function(r){r.cells.forEach(function(x){if(x.id===id)x.st='in';});});});_tdSheetDraw_();
+    var it=d.data&&d.data.item;if(it){todoToast_([it]);var m2=$('td-sh-msg');if(m2)m2.innerHTML='「'+esc(it.label)+'」を'+_nvRuby_('やることリストに追加(ついか)しました',true)+'（'+_tdMd_(it.due)+'まで）';}
+    todoLoad_(true);},function(){c.removeAttribute('data-busy');});}
 function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
   t.innerHTML='「'+esc(x.label)+'」を'+_nvRuby_('やることリストに追加(ついか)しました',true)+'（'+_tdMd_(x.due)+'まで）'+(a.length>1?' ほか'+(a.length-1):'');
   t.classList.add('show');clearTimeout(window._tdToT);window._tdToT=setTimeout(function(){t.classList.remove('show');},3500);}
@@ -13583,9 +13614,27 @@ function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
     '.td-mn{font-size:15px;font-weight:800}.td-mn small{font-size:11px;margin-left:1px}.td-mn.late{color:var(--ng)}',
     '.td-arw{color:var(--sub);transition:transform .2s}.td-m.op .td-arw{transform:rotate(180deg)}',
     '.td-mb{display:none;padding:0 8px 2px}.td-m.op .td-mb{display:block}.td-mb .td-it{border-radius:12px}',
-    '.td-h2{font-size:12px;color:var(--sub);font-weight:700;margin:10px 2px 6px}'
+    '.td-h2{font-size:12px;color:var(--sub);font-weight:700;margin:10px 2px 6px}',
+    '.td-self{display:inline-block;font-size:10.5px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:0 5px;margin-left:2px}',
+    '.td-x{border:0;background:transparent;color:var(--sub);font-size:16px;padding:4px 2px 4px 6px;cursor:pointer;white-space:nowrap}.td-x.arm{color:var(--ng);font-size:12px;font-weight:800}',
+    '#todo-addbtn{display:flex;align-items:center;justify-content:center;gap:6px;border:1.5px dashed var(--line);border-radius:14px;padding:11px;font-size:14px;font-weight:700;color:var(--sub);cursor:pointer;margin:2px 0 8px}',
+    '#td-sh{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:300;display:flex;align-items:flex-end;justify-content:center}',
+    '.td-sh{width:100%;max-width:430px;max-height:84vh;overflow:auto;background:var(--bg,#fff);border-radius:18px 18px 0 0;padding:14px 14px calc(16px + env(safe-area-inset-bottom))}',
+    '.td-sh-hd{display:flex;align-items:center;font-size:17px;font-weight:800;margin-bottom:8px}.td-sh-hd span{flex:1}#td-sh-x{border:0;background:transparent;font-size:20px;color:var(--sub);cursor:pointer}',
+    '.td-sh-l{font-size:12px;color:var(--sub);font-weight:700;margin:10px 2px 6px}',
+    '.td-bks{display:flex;flex-wrap:wrap;gap:6px}.td-bk{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:6px 11px;font-size:12.5px;font-weight:700;cursor:pointer}.td-bk.on{border-color:var(--accent);color:var(--accent);background:rgba(37,99,235,.08)}',
+    '.td-rows{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}',
+    '.td-rw{display:grid;grid-template-columns:1fr 92px 92px;gap:6px;align-items:center;padding:7px 10px;border-top:1px solid var(--line);font-size:13px}.td-rw:first-child{border-top:0}.td-rw.one{grid-template-columns:1fr 92px}',
+    '.td-rw.hd{background:rgba(0,0,0,.035);font-size:11.5px;font-weight:700;color:var(--sub)}',
+    '.td-c{border:1px solid var(--line);border-radius:9px;padding:6px 0;text-align:center;font-size:12px;font-weight:700}.td-c.add{border-color:var(--accent);color:var(--accent);cursor:pointer}.td-c.done,.td-c.in{color:var(--sub);opacity:.75}.td-c.in{background:rgba(0,0,0,.04)}',
+    '.td-sh-msg{font-size:12px;color:var(--sub);text-align:center;margin:10px 0 2px}'
   ].join('');document.head.appendChild(css);
   document.addEventListener('click',function(e){
+    var x=e.target.closest&&e.target.closest('[data-tdx]');if(x){e.stopPropagation();_tdRemove_(x);return;}
+    if(e.target.closest&&e.target.closest('#todo-addbtn')){todoSheet_();return;}
+    var c=e.target.closest&&e.target.closest('[data-tdadd]');if(c){_tdAdd_(c);return;}
+    if(e.target.closest&&(e.target.closest('#td-sh-x')||e.target.id==='td-sh')){_tdSheetClose_();return;}
+    var bk=e.target.closest&&e.target.closest('[data-tdbk]');if(bk){_tdBk=bk.getAttribute('data-tdbk');_tdSheetDraw_();return;}
     var r=e.target.closest&&e.target.closest('[data-tdid]');if(r){todoGo_(r.getAttribute('data-tdid'));return;}
     var m=e.target.closest&&e.target.closest('[data-tdm]');if(m){var k=m.getAttribute('data-tdm');_todoOpen[k]=!_todoOpen[k];todoRender_();}
   });
