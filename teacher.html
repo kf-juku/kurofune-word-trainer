@@ -13681,6 +13681,25 @@ var _ov4W0=_ov2Watch_;_ov2Watch_=function(list,map){var c=_ov4W0(list,map),tdo=[
   tdo.sort(function(a,b){return _ov4Of_(b.s.student_id).length-_ov4Of_(a.s.student_id).length;});
   c.splice(1,0,['ov:tdo','📋 やることが残っている（締め切りを過ぎた）',tdo]);return c;};
 
+/* 【2026-11-18 17:3x 川上さん「これと差し替えるって話じゃないの？」「完走した子のは新しい方にも残してほしい」】
+   ・前の「📅 デイリー（声かけ・ほめる）」「🎉 完走」「⚠️ つまずき」のカードは出さない（見た方がいい子に差し替え）。しきい値の帯と「通知について」は残す
+   ・見た方がいい子の5列目に「🎉 完走」：前のカードと同じ材料（next_actions の done・done_mains・doneDayText_）。次の毎日学習が未割当なら書き添える */
+(function(){
+  var css=document.createElement('style');css.textContent=[
+    '.alertsK.big{display:none!important}#alCardDone,#alCardStuck{display:none!important}',
+    '#ov2Watch{grid-template-columns:repeat(5,minmax(180px,1fr))!important}body.ov2print .ov2WatchCardP #ov2Watch,body.ov2print #ov2Watch{grid-template-columns:repeat(5,1fr)!important}'
+  ].join('');document.head.appendChild(css);
+})();
+var _ov5W0=_ov2Watch_;_ov2Watch_=function(list,map){var c=_ov5W0(list,map),dn=[];
+  (list||[]).forEach(function(s){
+    if(_cheerCfg&&_cheerCfg.exclude_alert&&s.is_teacher_account)return;
+    if((s.next_actions||[]).indexOf('done')<0)return;
+    var why=(s.done_mains||[]).map(function(d){return (mtLabel(d)||d.material_id||'')+'（'+doneDayText_(d)+'）';});
+    if(!s.has_active_main)why.push('次の毎日学習が未割当');
+    dn.push({s:s,why:why.length?why:['完走']});
+  });
+  c.push(['ov:done','🎉 完走（毎日学習を最後まで終えた）',dn]);return c;};
+
 </script>
 </body>
 </html>
