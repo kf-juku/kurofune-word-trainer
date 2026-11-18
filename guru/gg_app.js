@@ -258,7 +258,8 @@ window.ggMount=function(root,D,opt){
  function __gPass(got){const d=LIVE()&&TSTATE?tDone(TSTATE):false;const nx=NEXTV(TEST.ver||'A1'),n=Math.round(got/TEST.pt),N=TFL.length,same=/1$/.test(TEST.ver||'');
   /* 合格・クリアは置かない（2026-10-21 02:27 川上さん「合格とかは別にいらん。何問中何問」）。最後まで行ったら完了 */
   /* 完了のスタンプは、合格のはんこと同じ右上（drawTRes の .hanko。2026-10-21 10:39 川上さん「合格スタンプってどこに押されてた？」） */
-  const h=d?`<div class="tsd">${same?`次の ${__gRD(nx)} は、同じ型の問題。宿題や次の授業で。`:`次の ${__gRD(nx)} は、ちがう型の問題（もっと練習）。`}</div><button class="next ${same?'':'sub '}gnx" type="button" data-r="${nx}">ぐるぐる ${__gRD(nx)} へ</button>`
+  const _q=(GURU&&GURU.nextOf)?GURU.nextOf(TEST.ver||'A1'):undefined;const _qt=same?`${__gRD(String(TEST.ver||'A1').replace(/1$/,'2'))} は、同じ型の問題。宿題で。`:(_q?`次の ${_q.lab} は、ちがう型の問題（もっと練習）。`:'');
+  const h=d?(_q===undefined?`<div class="tsd">${same?`次の ${__gRD(nx)} は、同じ型の問題。宿題や次の授業で。`:`次の ${__gRD(nx)} は、ちがう型の問題（もっと練習）。`}</div><button class="next ${same?'':'sub '}gnx" type="button" data-r="${nx}">ぐるぐる ${__gRD(nx)} へ</button>`:((_qt?`<div class="tsd">${_qt}</div>`:'')+(_q?`<button class="next gnx" type="button" data-r="${_q.id}|${_q.r}">${_q.lab} へ</button>`:'')))
    :`<div class="passn">解説・ノートに解き直し・類題が終わると完了。</div>`;
   return `<div class="tpass gpz">${h}</div>`;}
 

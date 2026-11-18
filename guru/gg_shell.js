@@ -168,6 +168,15 @@ window.ggShellMount=function(root,GG,opt){
   if(st.k==='fx')return `<span class="utag warn">${IC.pen}<span>${pt}<small>解き直しの途中</small></span></span>`;   /* 2026-11-18 回の一覧を2マスにした＝マスに入るよう2段に */return `<span class="utag done">${IC.ck}できた ${pt}</span>`;}
  const DOTS=(on,cl,lb)=>`<div class="dprog-dots ${cl||''}${lb?' lb':''}" aria-label="${on.length}回のうち できた回 ${on.filter(Boolean).length}">${on.map((o,i)=>`<i class="${o?'on':''}">${lb?RD(lb[i]):''}</i>`).join('')}</div>`;   /* lb＝回の名前（2026-11-15） */
  const hasR=(id,R)=>{const p=P_(id);return !p||!p.rs||p.rs.includes(R);};   /* 2026-11-03 ぐるぐる英語：表紙の行の rs に無い回はまだ無い */
+ /* 2026-11-19 川上さん Nア：採点画面の「次」＝同じ列で次の行（A-1→B-1→C-1→次のパートの A-1／A-2→B-2→C-2→なし）。A-2 は宿題（英検の「A-1 は教室・A-2 は家で」と同じ使い方）。
+    問題のまだ無い回（準備中）・入試パターン・次のパートが無いときは null＝「次へ」を出さない。返す形＝{id,r,lab} */
+ const GNX_=(id,R)=>{const m=String(R||'').match(/^([ABC])([12])$/);if(!m)return null;
+  if(m[1]!=='C'){const r2=({A:'B',B:'C'})[m[1]]+m[2];return hasR(id,r2)?{id,r:r2,lab:'ぐるぐる '+RD(r2)}:null;}
+  if(m[2]!=='1')return null;
+  const u=GG.units.find(v=>v.parts.some(x=>x.id===id));if(!u)return null;const k=u.parts.findIndex(x=>x.id===id);
+  let nx=u.parts[k+1];if(!nx){const us=GG.units.filter(v=>v.grade===u.grade&&SJ_(v)===SJ_(u));const nu=us[us.indexOf(u)+1];nx=nu&&nu.parts[0];}
+  if(!nx||!P_(nx.id)||!hasR(nx.id,'A1'))return null;
+  return {id:nx.id,r:'A1',lab:CALL(nx.id,'A1')};};
  const RS_ALL=RS;
  function guruRow(id,ttl,oc,cls){const RS=(P_(id)&&P_(id).kaiwa)?RS_ALL.slice(0,4):RS_ALL;   /* 2026-11-17 会話表現のパートは A-1〜B-2 の4回（決まり A11） */
   const st=RS.map(R=>rState(id,R)),on=st.map(x=>x.k==='done'),all=on.every(Boolean),nx=RS.find((R,i)=>!on[i]&&hasR(id,R))||RS.find(R=>hasR(id,R));
@@ -284,7 +293,7 @@ window.ggShellMount=function(root,GG,opt){
   const key=tkey(id,R);
   const SN=SJN[SJ_(p)]||'数学';
   const o={katexCss:KCSS,dark:isDark(),book:H.ny?p.grade+SN+' 入試パターン '+H.main:p.grade+SN+' '+p.unit,shuffle:false,innerBack:false,tkey:key,startPid:T.part_id,
-   guru:{id,no:p.no,name:p.name,hd:H,unit:p.grade+SN+'　'+p.unit,catch:p.catch,cover:false,pointDone:true,examples:p.cover,onEntry:()=>openRound(id,R),kiso:p.kiso||{},noteSvg:EN?null:noteSvg(id),types:p.types,rui:p.rui,onNext:r=>openRound(id,r)}};
+   guru:{id,no:p.no,name:p.name,hd:H,unit:p.grade+SN+'　'+p.unit,catch:p.catch,cover:false,pointDone:true,examples:p.cover,onEntry:()=>openRound(id,R),kiso:p.kiso||{},noteSvg:EN?null:noteSvg(id),types:p.types,rui:p.rui,onNext:r=>{const t=String(r||''),k=t.indexOf('|');if(k>0)openRound(t.slice(0,k),t.slice(k+1));else openRound(id,t);},nextOf:x=>GNX_(id,x)}};   /* 2026-11-19 Nア nextOf＝採点画面の次の回 */
   if(EN){o.en=true;o.guru.en={meta:p.meta||''};if(opt.audioBase)o.audioBase=opt.audioBase;}   /* 2026-11-03 ぐるぐる英語 */
   if(PV)Object.assign(o,{preview:true});
   else{Object.assign(o,{live:true,resumeKey:PFX+'res_'+id+R});if(opt.resFx)o.resFx=(lv,x)=>{try{opt.resFx(lv,x);}catch(e){}};
