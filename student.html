@@ -3030,7 +3030,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-18c"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-18d"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -13555,8 +13555,14 @@ function todoRender_(){
 function todoLoad_(force){
   if(!force&&_todo&&(Date.now()-_todoAt)<60000){todoRender_();return;}
   _todoAt=Date.now();
-  try{call({action:'todo_list'}).then(function(d){if(!d||!d.ok||!d.data)return;_todo=d.data;_todoN=(d.data.items||[]).filter(function(t){return t.state!=='done';}).length;todoRender_();try{setDailyNavNum_();}catch(e){}},function(){});}catch(e){}
+  try{call({action:'todo_list'}).then(function(d){if(!d||!d.ok||!d.data)return;_todo=d.data;try{_todoSeen_(d.data.items||[]);}catch(eS){}_todoN=(d.data.items||[]).filter(function(t){return t.state!=='done';}).length;todoRender_();try{setDailyNavNum_();}catch(e){}},function(){});}catch(e){}
 }
+/* まだ知らせていない自動のやることをトーストで知らせる（送り直しで返事が「もう届いています」になったときや、閉じている間に入ったときも知らせるため・2026-11-18 本番で見つけた）。
+   見たことのある id は端末に覚える。初めて読むときは知らせずに覚えるだけ */
+function _todoSeen_(items){var k='kwt_todo_seen',seen=null;try{seen=JSON.parse(localStorage.getItem(k)||'null');}catch(e){seen=null;}
+  var ids=items.map(function(t){return t.id;});
+  if(seen&&typeof seen==='object'){var nw=items.filter(function(t){return t.src!=='self'&&t.state!=='done'&&!seen[t.id];   /* 自動で入ったもの・先生が足したもの（自分で足したものは足したときに知らせる） */});if(nw.length)todoToast_(nw);}
+  var o={};ids.forEach(function(i){o[i]=1;});try{localStorage.setItem(k,JSON.stringify(o));}catch(e){}}
 function todoGo_(id){var t=null;((_todo&&_todo.items)||[]).forEach(function(x){if(x.id===id)t=x;});if(!t)return;
   if(t.kind==='mt'){openEikenMt_(t.part_id);return;}
   if(t.kind==='gg'){openGg_(t.material_id,t.mtitle||'ぐるぐる',{subj:t.subj||'',startPid:t.part_id});return;}
@@ -13584,7 +13590,7 @@ function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
     var m=e.target.closest&&e.target.closest('[data-tdm]');if(m){var k=m.getAttribute('data-tdm');_todoOpen[k]=!_todoOpen[k];todoRender_();}
   });
   /* 記録を送った返事に todo_added があればトースト。返事が来たら一覧を取り直す */
-  var _c0=call;call=function(b,t){var p=_c0(b,t);try{if(b&&/^(session_complete|gg_submit|ekmt_submit)$/.test(String(b.action||''))&&p&&p.then)p.then(function(d){try{var a=d&&d.ok&&d.data&&d.data.todo_added;if(a&&a.length)todoToast_(a);if(d&&d.ok&&!(d.data&&d.data.duplicate))todoLoad_(true);}catch(e2){}},function(){});}catch(e){}return p;};
+  var _c0=call;call=function(b,t){var p=_c0(b,t);try{if(b&&/^(session_complete|gg_submit|ekmt_submit)$/.test(String(b.action||''))&&p&&p.then)p.then(function(d){try{if(d&&d.ok)todoLoad_(true);}catch(e2){}},function(){});}catch(e){}return p;};
   /* 毎日学習を描くたびに、やることも描く（1分は取り直さない） */
   var _rd0=renderDailyList_;renderDailyList_=function(){var r=_rd0.apply(this,arguments);try{todoLoad_(false);}catch(e){}return r;};
 })();
