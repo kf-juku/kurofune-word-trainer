@@ -3030,7 +3030,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-18g"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-18h"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -13666,7 +13666,11 @@ function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
   var _rd0=renderDailyList_;renderDailyList_=function(){var r=_rd0.apply(this,arguments);try{todoLoad_(false);}catch(e){}return r;};
   /* デイリーのタブを開いたときと、起動して少したったときにも読む（本番で、起動のあと一覧が出ないことがあった 2026-11-18） */
   var _sh0=showHomeTab;showHomeTab=function(n){var r=_sh0.apply(this,arguments);try{if(n==='daily'&&token)todoLoad_(false);}catch(e){}return r;};
-  setTimeout(function(){try{if(token&&!_todo)todoLoad_(true);}catch(e){}},3000);setTimeout(function(){try{if(token&&!_todo)todoLoad_(true);}catch(e){}},9000);
+  setTimeout(function(){try{if(token&&!_todo)todoLoad_(true);}catch(e){}},3000);
+  /* 【2026-11-18 18:1x 本番で見つけた】毎日学習の欄が描き直されると（renderDailyList_ 以外の描き方もある）カードが一緒に消える。
+     デイリーのタブの中が変わったら、カードが今日のデイリーのすぐ下に無いときだけ描き直す（描いたあとは何もしない＝くり返さない） */
+  try{var _tdMo=null,_tdMoT=0;var _tdFix=function(){var road=document.querySelector('#tp-daily .dy-road:not(.td-card)'),card=$('todo-card');if(!_todo||!road)return;if(!card||card.previousSibling!==road)todoRender_();};
+    var _tp=$('tp-daily');if(_tp&&window.MutationObserver){_tdMo=new MutationObserver(function(){clearTimeout(_tdMoT);_tdMoT=setTimeout(_tdFix,60);});_tdMo.observe(_tp,{childList:true,subtree:true});}}catch(eMo){}setTimeout(function(){try{if(token&&!_todo)todoLoad_(true);}catch(e){}},9000);
 })();
 </script>
 </body>
