@@ -3030,7 +3030,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-18h"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-18j"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4217,6 +4217,19 @@ function call(b,_try){
    直後に通常のGAS取得が走り、届き次第 同じ描画関数で上書きする（描画は冪等）。書き込み系には使わない。
    ログイン・ログアウト時にキャッシュを消す（別生徒のデータが一瞬見えるのを防ぐ）。 */
 var HOME_CACHE_KEY='kwt_home_cache_v1';
+/* 【2026-11-18 18:3x 起動を速くする】ホーム（student_home／ログイン）の返事が来るまで、後回しにしてよい読み込みを待たせる。
+   起動の直後に6つの問い合わせが同時に出て、1つ1つが 8〜16秒かかっていた（サーバーは同時に来ると遅くなる）。ホームを先に出す。
+   待たせるのは「読むだけ」のもの。解き始める（student_today の start）・記録を送るものは待たせない。待つのは長くても8秒 */
+var _HG_DEFER_=/^(gg_unit|gg_records|ekmt_records|trio_stars|todo_list|todo_all|badges|icon_unlocks|nickname_status|review_due|advisor_summary)$/;
+var _hgDone=false,_hgWait=[];
+function _hgOpen_(){if(_hgDone)return;_hgDone=true;var w=_hgWait;_hgWait=[];w.forEach(function(f){try{f();}catch(e){}});}
+setTimeout(_hgOpen_,8000);
+(function(){var _c0=call;call=function(b,t){
+  var a=String((b&&b.action)||'');
+  if(!_hgDone&&(_HG_DEFER_.test(a)||(a==='student_today'&&!b.start))){return new Promise(function(res){_hgWait.push(function(){res(call(b,t));});});}
+  var p=_c0(b,t);
+  if(!_hgDone&&(a==='student_home'||a==='student_login'||a==='ws_sheet_login')&&p&&p.then){p.then(function(){setTimeout(_hgOpen_,300);},function(){_hgOpen_();});}
+  return p;};})();
 function homeCacheGet_(){try{return JSON.parse(localStorage.getItem(HOME_CACHE_KEY)||'{}');}catch(e){return {};}}
 function homeCachePut_(k,d){try{var c=homeCacheGet_();c[k]=d;c._day=todayStr_();/* JST日付を焼き込む（日付ガード用）川上さん報告2026-07-11 */localStorage.setItem(HOME_CACHE_KEY,JSON.stringify(c));}catch(e){}}
 function homeCacheClear_(){try{localStorage.removeItem(HOME_CACHE_KEY);}catch(e){}}
@@ -5946,7 +5959,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261118a',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261118b',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -13583,36 +13596,43 @@ function todoGo_(id){var t=null;((_todo&&_todo.items)||[]).forEach(function(x){i
   if(t.kind==='gg'){openGg_(t.material_id,t.mtitle||'ぐるぐる',{subj:t.subj||'',startPid:t.part_id});return;}
   startPractice(t.part_id);}
 /* ===== 【2026-11-18 やること 段4】自分で足す（§11 の54〜56） ===== */
-var _tdCh=null,_tdBk=null;
+var _tdCh=null,_tdBk=null,_tdKind=null,_tdChAt=0;
 function _tdRemove_(x){if(!x.classList.contains('arm')){x.classList.add('arm');x.innerHTML=_nvRuby_('外(はず)す',true);setTimeout(function(){if(x&&x.classList){x.classList.remove('arm');x.innerHTML='<i class="ti ti-x"></i>';}},4000);return;}
   x.disabled=true;call({action:'todo_remove',id:x.getAttribute('data-tdx')}).then(function(d){if(!d||!d.ok){x.disabled=false;try{toast((d&&d.error)||'外せませんでした');}catch(e){}return;}todoLoad_(true);},function(){x.disabled=false;});}
-function _tdRmCell_(c){if(c.getAttribute('data-busy'))return;var tid=c.getAttribute('data-tdrm'),pid=c.getAttribute('data-tdpid');if(!tid)return;c.setAttribute('data-busy','1');
+function _tdRmCell_(c){if(c.getAttribute('data-busy'))return;var tid=c.getAttribute('data-tdrm'),pid=c.getAttribute('data-tdpid');if(!tid)return;c.setAttribute('data-busy','1');c.innerHTML='<span class="td-spn"></span>'+_nvRuby_('外(はず)し中(ちゅう)',true);
   call({action:'todo_remove',id:tid}).then(function(d){c.removeAttribute('data-busy');var m=$('td-sh-msg');if(!d||!d.ok){if(m)m.textContent=(d&&d.error)||'外せませんでした';return;}
     (_tdCh||[]).forEach(function(bk){bk.rows.forEach(function(r){r.cells.forEach(function(x){if(x.id===pid){x.st='';x.tid='';}});});});_tdSheetDraw_();var m2=$('td-sh-msg');if(m2)m2.innerHTML=_nvRuby_('やることから外(はず)しました',true);todoLoad_(true);},function(){c.removeAttribute('data-busy');});}
 function _tdSheetClose_(){var s=$('td-sh');if(s)s.remove();}
 function todoSheet_(){_tdSheetClose_();var s=document.createElement('div');s.id='td-sh';
   s.innerHTML='<div class="td-sh"><div class="td-sh-hd"><span>'+_nvRuby_('やることを足(た)す',true)+'</span><button type="button" id="td-sh-x" aria-label="閉じる"><i class="ti ti-x"></i></button></div><div id="td-sh-b"><div class="loading">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div></div></div>';
   document.body.appendChild(s);
-  call({action:'todo_choices'}).then(function(d){if(!$('td-sh'))return;if(!d||!d.ok){$('td-sh-b').innerHTML='<div class="td-sh-msg">'+esc((d&&d.error)||'読み込めませんでした')+'</div>';return;}
-    _tdCh=d.data.books||[];if(!_tdBk||!_tdCh.some(function(b){return b.key===_tdBk;}))_tdBk=_tdCh.length?_tdCh[0].key:null;_tdSheetDraw_();},function(){});}
+  if(_tdCh&&(Date.now()-_tdChAt)<600000)_tdSheetDraw_();   /* 前に読んだ一覧をすぐ出す（10分） */
+  call({action:'todo_choices'}).then(function(d){if(!$('td-sh'))return;if(!d||!d.ok){if(!_tdCh)$('td-sh-b').innerHTML='<div class="td-sh-msg">'+esc((d&&d.error)||'読み込めませんでした')+'</div>';return;}
+    _tdCh=d.data.books||[];_tdChAt=Date.now();_tdSheetDraw_();},function(){});}
 function _tdSheetDraw_(){var b=$('td-sh-b');if(!b)return;var bs=_tdCh||[];
+  /* 【2026-11-18 18:3x 川上さん「見づらすぎ」】本のチップを全部並べない。種類（英検・架け橋／ぐるぐる／単元別／毎日学習）を4つの切りかえにして、その種類の本だけを1つの選ぶ欄に出す */
   if(!bs.length){b.innerHTML='<div class="td-sh-msg">'+_nvRuby_('足(た)せる教材(きょうざい)がありません',true)+'</div>';return;}
-  var cur=null;bs.forEach(function(x){if(x.key===_tdBk)cur=x;});
+  var KL=[['eiken','英検・架け橋'],['gg','ぐるぐる'],['tan','単元別'],['daily','毎日学習']].filter(function(k){return bs.some(function(x){return x.kind===k[0];});});
+  if(!_tdKind||!KL.some(function(k){return k[0]===_tdKind;}))_tdKind=KL[0][0];
+  var inK=bs.filter(function(x){return x.kind===_tdKind;});
+  if(!_tdBk||!inK.some(function(x){return x.key===_tdBk;}))_tdBk=inK[0].key;
+  var cur=null;inK.forEach(function(x){if(x.key===_tdBk)cur=x;});
   var lab={done:_nvRuby_('済(す)み',true),'in':_nvRuby_('入(はい)っている',true)};
-  var cell=function(c){if(c.st==='mine')return '<div class="td-c mine" role="button" data-tdrm="'+esc(c.tid||'')+'" data-tdpid="'+esc(c.id)+'">'+(c.lab?esc(c.lab)+' ':'')+_nvRuby_('外(はず)す',true)+'</div>';   /* 自分で足した回は窓の中で外す（§11 の60） */
+  var cell=function(c){if(c.st==='mine')return '<div class="td-c mine" role="button" data-tdrm="'+esc(c.tid||'')+'" data-tdpid="'+esc(c.id)+'">'+(c.lab?esc(c.lab)+' ':'')+_nvRuby_('外(はず)す',true)+'</div>';
     if(c.st)return '<div class="td-c '+c.st+'">'+(c.lab?esc(c.lab)+' ':'')+lab[c.st]+'</div>';return '<div class="td-c add" role="button" data-tdadd="'+esc(c.id)+'">＋ '+(c.lab?esc(c.lab):_nvRuby_('足(た)す',true))+'</div>';};
   var two=cur&&cur.rows.some(function(r){return r.cells.length>1;});
-  b.innerHTML='<div class="td-sh-l">1. '+_nvRuby_('本(ほん)をえらぶ',true)+'</div><div class="td-bks">'+bs.map(function(x){return '<span class="td-bk'+(x.key===_tdBk?' on':'')+'" role="button" data-tdbk="'+esc(x.key)+'">'+esc(x.title)+'</span>';}).join('')+'</div>'
-    +'<div class="td-sh-l">2. '+_nvRuby_('押(お)して足(た)す',true)+'</div><div class="td-rows">'+(cur?cur.rows.map(function(r){
+  b.innerHTML='<div class="td-kinds">'+KL.map(function(k){return '<button type="button" class="td-kd'+(k[0]===_tdKind?' on':'')+'" data-tdkd="'+k[0]+'">'+k[1]+'</button>';}).join('')+'</div>'
+    +'<select class="td-bsel" id="td-bsel">'+inK.map(function(x){return '<option value="'+esc(x.key)+'"'+(x.key===_tdBk?' selected':'')+'>'+esc(x.title)+'</option>';}).join('')+'</select>'
+    +'<div class="td-sh-msg" id="td-sh-msg"></div>'
+    +'<div class="td-rows">'+(cur?cur.rows.map(function(r){
       if(r.head)return '<div class="td-rw hd'+(two?'':' one')+'"><span>'+esc(r.name)+'</span><span></span>'+(two?'<span></span>':'')+'</div>';
-      return '<div class="td-rw'+(two?'':' one')+'"><span>'+esc(r.name)+'</span>'+r.cells.map(cell).join('')+(two&&r.cells.length<2?'<span></span>':'')+'</div>';}).join(''):'')+'</div>'
-    +'<div class="td-sh-msg" id="td-sh-msg"></div>';}
-function _tdAdd_(c){if(c.getAttribute('data-busy'))return;c.setAttribute('data-busy','1');var id=c.getAttribute('data-tdadd');
+      return '<div class="td-rw'+(two?'':' one')+'"><span>'+esc(r.name)+'</span>'+r.cells.map(cell).join('')+(two&&r.cells.length<2?'<span></span>':'')+'</div>';}).join(''):'')+'</div>';}
+function _tdAdd_(c){if(c.getAttribute('data-busy'))return;c.setAttribute('data-busy','1');var id=c.getAttribute('data-tdadd');c.classList.add('busy');c.innerHTML='<span class="td-spn"></span>'+_nvRuby_('追加中(ついかちゅう)',true);var _m0=$('td-sh-msg');if(_m0)_m0.textContent='';
   call({action:'todo_add',part_id:id}).then(function(d){c.removeAttribute('data-busy');var m=$('td-sh-msg');
-    if(!d||!d.ok){if(m)m.textContent=(d&&d.error)||'足せませんでした';return;}
+    if(!d||!d.ok){c.classList.remove('busy');_tdSheetDraw_();var m3=$('td-sh-msg');if(m3)m3.textContent=(d&&d.error)||'足せませんでした。もう一度押してください';return;}
     var _it0=d.data&&d.data.item;(_tdCh||[]).forEach(function(bk){bk.rows.forEach(function(r){r.cells.forEach(function(x){if(x.id===id){x.st='mine';x.tid=_it0?_it0.id:'';}});});});_tdSheetDraw_();
     var it=d.data&&d.data.item;if(it){todoToast_([it]);var m2=$('td-sh-msg');if(m2)m2.innerHTML='「'+esc(it.label)+'」を'+_nvRuby_('やることリストに追加(ついか)しました',true)+'（'+_tdMd_(it.due)+'まで）';}
-    todoLoad_(true);},function(){c.removeAttribute('data-busy');});}
+    todoLoad_(true);},function(){c.removeAttribute('data-busy');_tdSheetDraw_();var m4=$('td-sh-msg');if(m4)m4.textContent='通信できませんでした。もう一度押してください';});}
 function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
   t.innerHTML='「'+esc(x.label)+'」を'+_nvRuby_('やることリストに追加(ついか)しました',true)+'（'+_tdMd_(x.due)+'まで）'+(a.length>1?' ほか'+(a.length-1):'');
   t.classList.add('show');clearTimeout(window._tdToT);window._tdToT=setTimeout(function(){t.classList.remove('show');},3500);}
@@ -13648,8 +13668,12 @@ function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
     '.td-card .dy-st.late .dy-si{background:transparent;box-shadow:0 0 0 2.5px var(--ng);color:var(--ng)}.td-lt{font-size:10px;font-weight:800;line-height:1.1}.td-ltd{color:var(--ng);font-weight:700}',
     '.td-foot{display:flex;align-items:center;justify-content:center;gap:10px}.td-foot #todo-addbtn{display:inline-flex;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:14px;padding:3px 10px;font-size:11.5px;font-weight:800;margin:0;cursor:pointer}',
     '.td-c.mine{border-color:var(--ng);color:var(--ng);cursor:pointer}',
+    '.td-kinds{display:flex;gap:4px;background:rgba(0,0,0,.05);border-radius:12px;padding:3px;margin:2px 0 8px}.td-kd{flex:1;border:0;background:transparent;border-radius:9px;padding:7px 2px;font:inherit;font-size:12.5px;font-weight:800;color:var(--sub);cursor:pointer}.td-kd.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}',
+    '.td-bsel{width:100%;font:inherit;font-size:14px;font-weight:700;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);margin-bottom:8px}',
+    '.td-c.busy{border-color:var(--line);color:var(--sub);pointer-events:none}.td-spn{display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;margin-right:4px;vertical-align:-1px;animation:tdspin .7s linear infinite}@keyframes tdspin{to{transform:rotate(360deg)}}',
     '#toast{z-index:400}'   /* 足す窓の上にトーストを出す（窓は 300） */
   ].join('');document.head.appendChild(css);
+  document.addEventListener('change',function(e){if(e.target&&e.target.id==='td-bsel'){_tdBk=e.target.value;_tdSheetDraw_();}});
   document.addEventListener('click',function(e){
     var x=e.target.closest&&e.target.closest('[data-tdx]');if(x){e.stopPropagation();_tdRemove_(x);return;}
     if(e.target.closest&&e.target.closest('#todo-addbtn')){todoSheet_();return;}
@@ -13657,6 +13681,7 @@ function todoToast_(a){var t=$('toast');if(!t||!a||!a.length)return;var x=a[0];
     var rmc=e.target.closest&&e.target.closest('[data-tdrm]');if(rmc){_tdRmCell_(rmc);return;}
     if(e.target.closest&&(e.target.closest('#td-sh-x')||e.target.id==='td-sh')){_tdSheetClose_();return;}
     var bk=e.target.closest&&e.target.closest('[data-tdbk]');if(bk){_tdBk=bk.getAttribute('data-tdbk');_tdSheetDraw_();return;}
+    var kd=e.target.closest&&e.target.closest('[data-tdkd]');if(kd){_tdKind=kd.getAttribute('data-tdkd');_tdBk=null;_tdSheetDraw_();return;}
     var r=e.target.closest&&e.target.closest('[data-tdid]');if(r){todoGo_(r.getAttribute('data-tdid'));return;}
     var m=e.target.closest&&e.target.closest('[data-tdm]');if(m){var k=m.getAttribute('data-tdm');_todoOpen[k]=!_todoOpen[k];todoRender_();}
   });
