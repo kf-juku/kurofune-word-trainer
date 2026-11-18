@@ -335,6 +335,9 @@
   .ptr-ind.show{border-bottom:1px solid transparent;}
   .ptr-ind.spin{color:var(--accent);}
   .q-head{font-size:11px;color:var(--sub);font-weight:700;margin:2px 4px 6px;}
+  .q-head.q-fold{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--ink,#1f2937);background:var(--surface);border:1.5px solid rgba(128,128,128,.35);border-radius:12px;padding:12px 14px;margin:10px 0 8px;cursor:pointer;}
+  .q-head.q-fold .q-fold-t{font-size:12.5px;font-weight:500;color:var(--sub);}
+  .q-head.q-fold:active{transform:scale(.99);}
   .q-head.done{color:var(--ok);display:flex;align-items:center;gap:5px;margin-top:14px;}
   .dprog{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 14px 12px;box-shadow:var(--shadow);margin-bottom:12px;}
   .dprog-t{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--sub);font-weight:700;margin-bottom:8px;}
@@ -2614,7 +2617,9 @@ html[data-theme=dark] .mz-hard{background:#3a2c08;color:#ffd77a;border-color:#c9
 /* 英検のまとめテストの行＝パートの行と同じ開閉。目立たせるのは金（ここぞ）の左線と薄い地・墨の札だけ（新しい色は足さない）2026-11-13 */
 .ekmt{border-left:3px solid var(--gold);background:var(--n-goldsoft);border-radius:0 10px 10px 0;margin:8px 0}
 .ekmt-pill{display:inline-flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;margin-right:8px;background:var(--ink,#334155);border-radius:50%}.ekmt-pill i{color:var(--gold);font-size:14px}
-.ekmt .ekp-s{background:transparent}.ekmt-note{padding:2px 12px 4px 30px;font-size:10.5px;font-weight:700;color:var(--sub,#64748b)}
+.ekmt .ekp-s{background:transparent}
+/* 2026-11-18 回の一覧を2マスに（A-1 と A-2 を横に並べる）。マスの1行目＝札と名前・2行目＝状態と → */
+.ekpr{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px 10px 6px 30px}.ekpr .nqp.ekp-s{flex-wrap:wrap;gap:4px 6px;padding:7px 8px;border:1px solid rgba(128,128,128,.28);border-radius:10px;background:var(--surface);min-width:0}.ekpr .nqp-nm{flex:1 0 100%;display:flex;align-items:center;gap:5px;min-width:0}.ekpr .nqp-t{font-size:12px}.ekpr .ncf-go{margin-left:auto;width:28px;height:28px}.ekmt-note{padding:2px 12px 4px 30px;font-size:10.5px;font-weight:700;color:var(--sub,#64748b)}
 </style>
 <script>/* 2026-10-30 川上さん：①テーマは画面を描く前に決める（後ろのスクリプトで決めると、読み込みの遅い端末で白い画面が先に出る）
    ②解答用紙の QR から来たら、最初の描画から「読み込み中」を大きく出す（ログイン画面だけが出て、止まって見えた） */
@@ -2666,7 +2671,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
           <div id="daily-list"><div class="loading"><ruby>読<rt class="uf">よ</rt></ruby>み<ruby>込<rt class="uf">こ</rt></ruby>み<ruby>中<rt class="uf">ちゅう</rt></ruby>…</div></div>
           <span id="nz-daily-sub" style="display:none;"></span>
           <!-- おさらい（毎日学習の間隔反復）＝デイリーの一部（2026-07-25 ふくしゅうから移設） -->
-          <div class="rcard" id="tile-review"><span class="reddot" id="dot-review" style="display:none;"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> ・ <span id="cnt-review">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
+          <div class="rcard" id="tile-review" style="display:none;"><span class="reddot" id="dot-review" style="display:none;"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s"><ruby>今日<rt class="uf">きょう</rt></ruby>の<ruby>分<rt class="uf">ぶん</rt></ruby> ・ <span id="cnt-review">–</span></div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div></div>
           <!-- 【2026-08-27 川上さん確定】間違いノートのタイルはここから外した。入口を1つにするため。
                間違いノートは下メニューに専用タブ（赤●つき）があり、毎日タブ内のタイルは2つ目の入口だった。
                毎日タブ側の入口は「次はこれ」（毎日学習→おさらい→集中攻略の順に切り替わる）に集約する。
@@ -3030,7 +3035,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-18k"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-18l"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -5578,7 +5583,11 @@ function renderDailyList_(main){
     var fi=0;for(var i=0;i<main.length;i++){if(!main[i].cleared_today){fi=i;break;}}
     host.appendChild(_dailyFocus_(main[fi]));
     var upNext=main.filter(function(m,i){return i!==fi&&!m.cleared_today;});
-    if(upNext.length){var qh=document.createElement('div');qh.className='q-head';qh.innerHTML='<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>の<ruby>残<rt class="uf">のこ</rt></ruby>り（'+upNext.length+'）'; /* 【2026-10-03 川上さん確定・案A】見出し「この後」は、デイリーの道の「毎日学習 ◯/◯」と同じ教材を数えていて、おさらい・集中攻略が後に無いように見えた。道の1つ目の内訳だと読める名前にした */host.appendChild(qh);var q=document.createElement('div');q.className='queue';upNext.forEach(function(m){q.appendChild(_dailyQueueRow_(m));});host.appendChild(q);}
+    if(upNext.length){var qh=document.createElement('div');qh.className='q-head';qh.innerHTML='<ruby>毎日<rt class="uf">まいにち</rt></ruby><ruby>学習<rt class="uf">がくしゅう</rt></ruby>の<ruby>残<rt class="uf">のこ</rt></ruby>り（'+upNext.length+'）'; /* 【2026-10-03 川上さん確定・案A】見出し「この後」は、デイリーの道の「毎日学習 ◯/◯」と同じ教材を数えていて、おさらい・集中攻略が後に無いように見えた。道の1つ目の内訳だと読める名前にした */host.appendChild(qh);var q=document.createElement('div');q.className='queue';upNext.forEach(function(m){q.appendChild(_dailyQueueRow_(m));});host.appendChild(q);
+      /* 2026-11-18 19:1x 川上さん「デイリーのタブの情報量」A：毎日学習の残りは「ほかの毎日学習（N冊）ひらく」の1行に畳む。押すと今の一覧が開く（開いたかはこの画面の間だけ覚える） */
+      qh.className='q-head q-fold';qh.setAttribute('role','button');qh.tabIndex=0;
+      var _qf=function(){var op=!!window._dyQOpen;q.style.display=op?'':'none';qh.innerHTML='<span>ほかの'+rb('毎日','まいにち')+rb('学習','がくしゅう')+'（'+upNext.length+'冊）</span><span class="q-fold-t">'+(op?'とじる ▴':'ひらく ▾')+'</span>';};
+      qh.onclick=function(){window._dyQOpen=!window._dyQOpen;_qf();};qh.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();qh.onclick();}};_qf();}
   }else if(!osDone){
     // 毎日学習は全部おわり・おさらい枠が残り → つぎは おさらい 2026-07-26
     host.appendChild(_osaraiFocus_());
@@ -5959,7 +5968,7 @@ function _wsDark_(){return document.documentElement.getAttribute('data-theme')==
    先生画面の教材の［中身］→［生徒の画面で見る］／［QR］が #pv=<ぐるぐるのパートの行 id> の URL を作る。ログインするアカウント（テスト用）に、その教材の割り当て（type='guruguru'）が要る。
    部品：_wsLoadLibs_（KaTeX → ws/math_fig.js・ws/ws_load.js → ws/ws_app.js）→ guru/gg_fig.js → guru/gg_load.js → guru/gg_app.js → guru/gg_shell.js（teacher.html の _ggLoadLibs_ と同じ順）。部品を直したら GG_LIB_V を上げる（teacher.html と同じ値）
    中身：gg_unit（教材とパートの行）→ ggBuildData（lazy＝問題は開いたときに gg_unit_part で読む）→ ggShellMount（preview＝記録しない・全部の回を開ける・下の黒いバー） */
-var GG_LIB_V='20261118b',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
+var GG_LIB_V='20261118c',_ggLibP=null,_ggApi=null;   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの class＝gg_fig.js）。2026-11-03 ぐるぐる：20261103c（重要マーク ◆）。teacher.html と同じ値 */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -6022,7 +6031,7 @@ function _ekPartRow_(l,l2,mid,_h,subj){var k=String(l.part_id),op=_ekOpenGet_().
   return '<div class="ekp'+(op?' open':'')+'" data-ekp="'+esc(k)+'"><div class="nqp ekp-h"><div class="nqp-nm hz">'+(_h?_impSlot_(_h):'')+_pnoHtml_(mid,l.part_order)+'<span class="nqp-t">'+_jaRubySubj_(nm,subj)+'</span></div>'
     +'<span class="ekp-ds">'+dot(l,'A-1')+dot(l2,'A-2')+'</span>'
     +(l.passed?'':'<span class="ncf-go ekp-go" data-go="'+esc(k)+'" title="A-1 を始める"><i class="ti ti-arrow-right"></i></span>')
-    +'<i class="ti ti-chevron-down ekp-arw"></i></div><div class="ekp-b">'+sub(l,'A-1')+sub(l2,'A-2')+'</div></div>';}
+    +'<i class="ti ti-chevron-down ekp-arw"></i></div><div class="ekp-b"><div class="ekpr">'+sub(l,'A-1')+sub(l2,'A-2')+'</div></div></div>';}   /* 2026-11-18 A-1 と A-2 を横に2マス（要件定義書_先生画面の再編 C） */
 /* 2026-11-14 まとめテストの問題数（時間は全部20分・100点満点・川上さん 19:10）：40問＝かけはし・5級・4級の文法と会話／25問＝3級文法／20問＝読解・3級会話・3級ライティング */
 function _ekMtN_(id){id=String(id);return /^mt-(kakehashi|eiken5|eiken4-bunpo|eiken4-kaiwa)-/.test(id)?40:/^mt-eiken3-bunpo-/.test(id)?25:20;}
 function _ekMtRows_(afterPid,subj){var h='';_EKMT_.forEach(function(t){if(t.after!==String(afterPid))return;
@@ -6032,7 +6041,7 @@ function _ekMtRows_(afterPid,subj){var h='';_EKMT_.forEach(function(t){if(t.afte
   var dots=t.vers.map(function(R,i){return '<span class="ekp-d'+(sts[i].k==='pass'?' on':'')+'">'+lab(R)+'</span>';}).join('');
   var subs=t.vers.map(function(R,i){var st=sts[i];
     var tag=st.k==='mada'?'<span class="utag"><i class="ti ti-player-play"></i>まだ</span>':st.k==='pass'?'<span class="utag done"><i class="ti ti-circle-check"></i>できた '+Math.round(st.S.got)+'点</span>':'<span class="utag"><i class="ti ti-pencil"></i>'+Math.round(st.S.got)+'点</span>';
-    return '<div class="nqp ekp-s" data-emt="'+esc(t.id+'-'+R)+'"><div class="nqp-nm"><span class="ebtag '+(i===0?'a1':'a2')+'">'+lab(R)+'</span><span class="nqp-t">'+(i===0?'教室':'家で（2回目）')+'</span></div>'+tag+(st.k==='pass'?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>';}).join('');
+    return (i%2===0?'<div class="ekpr">':'')+'<div class="nqp ekp-s" data-emt="'+esc(t.id+'-'+R)+'"><div class="nqp-nm"><span class="ebtag '+(i===0?'a1':'a2')+'">'+lab(R)+'</span><span class="nqp-t">'+(i===0?'教室':'家で（2回目）')+'</span></div>'+tag+(st.k==='pass'?'':'<span class="ncf-go"><i class="ti ti-arrow-right"></i></span>')+'</div>'+(i%2===1||i===t.vers.length-1?'</div>':'');}).join('');   /* 2026-11-18 A・B の1行ずつに2マス */
   h+='<div class="ekp ekmt'+(op?' open':'')+'" data-ekp="'+esc(k)+'"><div class="nqp ekp-h"><div class="nqp-nm hz"><span class="ekmt-pill"><i class="ti ti-trophy"></i></span><span class="nqp-t">'+_jaRubySubj_(t.title,subj)+'</span></div>'
     +'<span class="ekp-ds">'+dots+'</span>'
     +(nx<0?'':'<span class="ncf-go ekp-go" data-emt="'+esc(t.id+'-'+t.vers[nx])+'" title="'+lab(t.vers[nx])+' を始める"><i class="ti ti-arrow-right"></i></span>')
@@ -12830,6 +12839,7 @@ function loadReviewSrs(){
         tile.innerHTML='<span class="reddot" id="dot-review"></span><div class="rc-ic"><i class="ti ti-clock-bolt"></i></div><div class="rc-b"><div class="rc-t">おさらい</div><div class="rc-s">'+rb('今日','きょう')+'の'+rb('分','ぶん')+' ・ <b>'+todayRemain+'</b> '+rb('語','ご')+'</div></div><div class="rc-go"><i class="ti ti-arrow-right"></i></div>';
       }
     }
+    if(tile)tile.style.display=moreAvail?'':'none';   /* 2026-11-18 19:1x 川上さん「デイリーのタブの情報量」A：今日の分はデイリーの丸「おさらい」から入る。札は、今日の分が済んで続けられる語があるとき（もっと続ける入口）だけ出す */
     _revNum.osarai=todayRemain;setDailyNavNum_();
     _revDone.osarai=todayDone;renderReviewFin_();
     dailySetReview_(todayDone);renderDaily();
