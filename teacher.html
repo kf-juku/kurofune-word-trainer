@@ -13482,9 +13482,21 @@ function ov2Render_(rows,base){
     +(kind==='tan'?'。上の段が練習（青）・下の段が確認テスト（緑＝合格。赤い下線＝未合格がある単元）。印刷では1つのマスの上半分が練習・下半分がテスト':'')
     +(kind==='eiken'?'。英検の本番の形（大問1型など）ごとの正答率は、あとで足す（今は深掘りで編ごとに見る）':'')+'</div>';
   wrap.innerHTML=html+legend+(_ov2Sess?'':'<div class="ov2-leg">練習の記録を読み込み中…（読み込めたら直近7日の数が入ります）</div>');
-  var pt=$('ov2PrintTtl');if(pt){var lab=kind==='all'?'全部（種類ごと）':_OV2_KL[kind];pt.textContent='クロトレ　'+lab+'　'+_ov2Md_(new Date(Date.now()+9*3600e3).toISOString())+' '+new Date().toTimeString().slice(0,5)+' 時点　'+rows.length+'名';}
+  var pt=$('ov2PrintTtl');if(pt){var lab=kind==='all'?'全部（種類ごと）':_OV2_KL[kind];pt.textContent='クロトレ　'+lab+'　'+_ov2Md_(new Date(Date.now()+9*3600e3).toISOString())+' '+new Date().toTimeString().slice(0,5)+' 時点　'+rows.length+'名'+_ov2FltText_();}
+  var pbn=$('ov2PrintBtn');if(pbn)pbn.textContent='🖨 この一覧を印刷（'+rows.length+'名）';
 }
 function ov2Sort_(k){if(String(_ov2Sort.k)===String(k))_ov2Sort.d*=-1;else{_ov2Sort.k=isNaN(k)?k:Number(k);_ov2Sort.d=(k==='last'||k==='mis'||k==='tdo')?-1:1;}renderTable();}
+/* 2026-11-18 川上さん「絞り込みは反映されてほしい」：印刷の題に、いまの絞り込みの条件を書く（表は絞り込んだ子だけ＝renderTable の rows） */
+function _ov2FltText_(){var a=[];try{
+  if(_filter==='today')a.push('今日やった');if(_filter==='not_today')a.push('今日まだ');
+  var ks=function(o){return Object.keys(o||{});};
+  if(ks(_gradeSel).length)a.push(ks(_gradeSel).join('・'));if(ks(_classSel).length)a.push(ks(_classSel).join('・'));
+  if(ks(_schoolSel).length)a.push(ks(_schoolSel).join('・'));if(ks(_courseSel).length)a.push(ks(_courseSel).join('・'));
+  if(ks(_matSel).length)a.push(ks(_matSel).map(function(k){return String(k).replace(/^[SM]:/,'');}).join('・'));
+  if(_lapSel)a.push('周回');if(_dupSel)a.push('重複');
+  if(_alertFilter)a.push(String(_AF_LABEL[_alertFilter]||_alertFilter));
+  var q=($('searchInput')&&$('searchInput').value||'').trim();if(q)a.push('名前「'+q+'」');
+}catch(e){}return a.length?'　絞り込み：'+a.join('／'):'';}
 function ov2Print_(){
   var root=document.createElement('div');root.id='ov2PrintRoot';
   ['ov2WatchCard','ov2ListCard'].forEach(function(id){var el=$(id);if(el){var c=el.cloneNode(true);c.removeAttribute('id');c.className=el.className+' '+id+'P';root.appendChild(c);}});
@@ -13520,7 +13532,8 @@ function ov2Print_(){
     '.ov2-p{display:none}',
     '#ov2PrintTtl{display:none}',
     '#ov2PrintRoot{display:none}',
-    '@media print{body.ov2print>*:not(#ov2PrintRoot){display:none!important}body.ov2print #ov2PrintRoot{display:block}body.ov2print{background:#fff}',
+    '.ov2-pbtn{color:var(--text,#1f2937)!important;border:1.5px solid #9aa3af!important;font-size:13.5px!important;font-weight:700;padding:7px 14px!important;white-space:nowrap}.ov2-pbtn:hover{background:var(--gray-light)}',   /* 2026-11-18 川上さん「印刷ボタンがみづらい」 */
+    '@media print{body.ov2print>*:not(#ov2PrintRoot){display:none!important}body.ov2print #ov2PrintRoot{display:block!important}body.ov2print{background:#fff}',
     'body.ov2print .ov2WatchCardP{break-after:page;page-break-after:always;border:none;padding:0;margin:0}body.ov2print .ov2ListCardP{border:none;padding:0;margin:0}',
     'body.ov2print #ov2PrintRoot [id=ov2PrintTtl],body.ov2print .ov2WatchCardP>div:first-child{display:block!important;font-size:11px;font-weight:800;margin:0 0 4px}',
     'body.ov2print .ov2-s{display:none!important}body.ov2print .ov2-p{display:inline!important}',
@@ -13537,7 +13550,7 @@ function ov2Print_(){
   if(ops&&ops.parentNode)ops.parentNode.insertBefore(wc,ops.nextSibling);
   var tw=$('tableWrap');
   if(tw){var lc=document.createElement('div');lc.className='ov2-card';lc.id='ov2ListCard';lc.innerHTML='<div id="ov2Wrap"></div>';tw.parentNode.insertBefore(lc,tw);}
-  var tb=document.querySelector('.topbarK');if(tb){var pb=document.createElement('button');pb.className='btn-ghost';pb.type='button';pb.textContent='🖨 この一覧を印刷';pb.title='A4 横・両面。表＝見た方がいい子・裏＝一覧';pb.onclick=ov2Print_;tb.appendChild(pb);}
+  var tb=document.querySelector('.topbarK');if(tb){var pb=document.createElement('button');pb.className='btn-ghost ov2-pbtn';pb.id='ov2PrintBtn';pb.type='button';pb.textContent='🖨 この一覧を印刷';pb.title='A4 横・両面。表＝見た方がいい子・裏＝一覧';pb.onclick=ov2Print_;tb.appendChild(pb);}
 })();
 /* ======================================================================
    【2026-11-18 先生画面の整理 段3】③深掘り（生徒の名前を押すと開く窓）に「この期間の学習」を足す
@@ -13630,7 +13643,7 @@ function _ov4Html_(s,items){
   var opts=_ov4Opts_(s);window._ov4OptsCur=opts;
   return '<table class="ov3-log"><tr><th>締め切り</th><th>教材・回</th><th>入り方</th><th>状態</th><th></th></tr>'+(rows||'<tr><td colspan="5" class="ov2-none">やることはありません</td></tr>')+'</table>'
     +'<div class="ov4-add"><select id="ov4Mat"><option value="">本をえらぶ</option>'+opts.map(function(o,i){return '<option value="'+i+'">'+esc(o.t)+'</option>';}).join('')+'</select>'
-    +'<select id="ov4Part" disabled><option value="">回をえらぶ</option></select><button type="button" class="btn-ghost" id="ov4AddBtn" disabled>＋ やることに足す</button><span id="ov4Msg" class="ov2-leg"></span></div>'
+    +'<select id="ov4Part" disabled><option value="">回をえらぶ</option></select><button type="button" class="btn-ghost" id="ov4AddBtn" disabled>＋ やることに追加</button><span id="ov4Msg" class="ov2-leg"></span></div>'
     +'<div class="ov2-leg">締め切りは入れた日から6日後。外した回は、生徒が A-1 をやり直しても自動では入りません。完了は締め切りの日まで出ます。</div>';
 }
 function _ov4Redraw_(){
@@ -13654,10 +13667,10 @@ function _ov4Redraw_(){
   });
   document.addEventListener('click',function(e){
     var rm=e.target.closest&&e.target.closest('[data-ov4rm]');
-    if(rm){rm.disabled=true;call({action:'todo_remove',id:rm.getAttribute('data-ov4rm')}).then(function(d){if(!d||!d.ok){rm.disabled=false;try{toast('外せませんでした：'+((d&&d.error)||''));}catch(e3){}return;}_ov4Redraw_();_ov4Load_(true);});return;}
-    if(e.target&&e.target.id==='ov4AddBtn'){var p=$('ov4Part'),b=e.target,m=$('ov4Msg');if(!p||!p.value)return;b.disabled=true;
+    if(rm){rm.disabled=true;rm.textContent='外し中…';call({action:'todo_remove',id:rm.getAttribute('data-ov4rm')}).then(function(d){if(!d||!d.ok){rm.disabled=false;rm.textContent='外す';try{toast('外せませんでした：'+((d&&d.error)||''));}catch(e3){}return;}_ov4Redraw_();_ov4Load_(true);});return;}
+    if(e.target&&e.target.id==='ov4AddBtn'){var p=$('ov4Part'),b=e.target,m=$('ov4Msg');if(!p||!p.value)return;b.disabled=true;var _b0=b.textContent;b.textContent='追加中…';if(m)m.textContent='';
       call({action:'todo_add',student_id:_ov4Sid,part_id:p.value}).then(function(d){
-        if(!d||!d.ok){b.disabled=false;if(m)m.textContent='足せませんでした：'+((d&&d.error)||'');return;}
+        b.textContent=_b0;if(!d||!d.ok){b.disabled=false;if(m)m.textContent='追加できませんでした：'+((d&&d.error)||'');return;}
         if(d.data&&d.data.exists){b.disabled=false;if(m)m.textContent='その回はもうやることに入っています';return;}
         _ov4Redraw_();_ov4Load_(true);});}
   });

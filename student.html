@@ -3030,7 +3030,7 @@ try{var q=location.search||'',tk='';try{tk=localStorage.getItem('kwt_token')||''
 <div id="ws-ov"><div class="subhead"><button class="btn-back" type="button" onclick="wsBack_()"><i class="ti ti-arrow-left"></i> <span><ruby>戻<rt class="uf">もど</rt></ruby>る</span></button><div class="subttl" id="ws-ttl"></div><button class="btn-back ws-reload" type="button" id="ws-reload" onclick="wsReload_()" style="margin-left:auto;flex:0 0 auto"><i class="ti ti-refresh"></i> <span><ruby>更新<rt class="uf">こうしん</rt></ruby></span></button></div><div id="ws-host"></div></div>
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec";
-var APP_VERSION="kwt-2026-11-18j"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
+var APP_VERSION="kwt-2026-11-18k"; /* バグ報告に自動添付するアプリ版。★デプロイのたびに必ずこの日付を上げる（原因究明で「実際に動いていた版」を特定するため。2026-07-11から更新漏れで固まっていた反省）2026-07-29 */
 var BUG_FAB_SCREENS=null; /* 報告ボタンを出す画面のid配列。null=全画面（テスト運用）。安定したら例:["scr-home"]に絞れる 2026-07-11 */
 /* ===== バグ報告の原因究明用：JSエラーのリングバッファ＋直近レスポンス要約を常時ためる（機微情報は入れない）2026-07-29 ===== */
 window.__kwtErrs=[]; window.__kwtNet={};
@@ -4220,7 +4220,7 @@ var HOME_CACHE_KEY='kwt_home_cache_v1';
 /* 【2026-11-18 18:3x 起動を速くする】ホーム（student_home／ログイン）の返事が来るまで、後回しにしてよい読み込みを待たせる。
    起動の直後に6つの問い合わせが同時に出て、1つ1つが 8〜16秒かかっていた（サーバーは同時に来ると遅くなる）。ホームを先に出す。
    待たせるのは「読むだけ」のもの。解き始める（student_today の start）・記録を送るものは待たせない。待つのは長くても8秒 */
-var _HG_DEFER_=/^(gg_unit|gg_records|ekmt_records|trio_stars|todo_list|todo_all|badges|icon_unlocks|nickname_status|review_due|advisor_summary)$/;
+var _HG_DEFER_=/^(gg_unit|gg_records|ekmt_records|trio_stars|todo_list|todo_all|badges|icon_unlocks|nickname_status|review_due|advisor_summary|notice_mine|quiz_list|overall_counter|team_feed|star_received|notes_summary)$/;   /* 18:4x 本番で測ると、お知らせ・確認テストの一覧・全体の数・チームの動き・届いた星・メモの6つがホームと同時に出ていた→足した（前回の分はすぐ出る＝callCached） */
 var _hgDone=false,_hgWait=[];
 function _hgOpen_(){if(_hgDone)return;_hgDone=true;var w=_hgWait;_hgWait=[];w.forEach(function(f){try{f();}catch(e){}});}
 setTimeout(_hgOpen_,8000);
@@ -13559,6 +13559,7 @@ function todoRender_(){
   /* 【2026-11-18 18:0x §11 の57〜59】やることは「今日のデイリー」と同じ形のカード1枚。今日のデイリーのカードのすぐ下に置く。
      丸＝1つのやること（済み＝✓・締め切りを過ぎた＝赤・次にやる回＝青く光る）。押すとその回が始まる。6つ以上は横に動かす */
   var w=$('todo-wrap');if(w)w.style.display='none';   /* 前の一覧（使わない・要素だけ残す） */
+  if((!_tdCh||(Date.now()-_tdChAt)>=600000)&&!_tdChP)setTimeout(function(){if(!_tdChP&&(!_tdCh||(Date.now()-_tdChAt)>=600000))_tdChLoad_();},3000);   /* 足す窓の一覧を裏で先に読む 18:4x */
   var it=(_todo&&_todo.items)||[];
   var road=document.querySelector('#tp-daily .dy-road:not(.td-card)');
   var card=$('todo-card');
@@ -13578,7 +13579,7 @@ function todoRender_(){
   var foot=it.length?('<ruby>押<rt class="uf">お</rt></ruby>すと、そこから<ruby>始<rt class="uf">はじ</rt></ruby>められる'+(dk.length?'・'+_nvRuby_('締(し)め切(き)り',true)+' '+_tdMd_(dk[0])+(dk.length>1?' ほか':''):'')):_nvRuby_('今(いま)はありません',true);
   card.innerHTML='<div class="dprog-t"><span>やること</span>'+(it.length?'<b>'+dn+'<span class="tot"> / '+it.length+' できた</span></b>':'')+'</div>'
     +(it.length?'<div class="dy-steps td-steps'+(it.length>5?' many':'')+'">'+h+'</div>':'')
-    +'<div class="dy-foot td-foot"><span>'+foot+'</span><button type="button" id="todo-addbtn">＋ '+_nvRuby_('足(た)す',true)+'</button></div>';
+    +'<div class="dy-foot td-foot"><span>'+foot+'</span><button type="button" id="todo-addbtn">＋ '+_nvRuby_('追加(ついか)',true)+'</button></div>';
 }
 function todoLoad_(force){
   if(!force&&_todo&&(Date.now()-_todoAt)<60000){todoRender_();return;}
@@ -13596,7 +13597,9 @@ function todoGo_(id){var t=null;((_todo&&_todo.items)||[]).forEach(function(x){i
   if(t.kind==='gg'){openGg_(t.material_id,t.mtitle||'ぐるぐる',{subj:t.subj||'',startPid:t.part_id});return;}
   startPractice(t.part_id);}
 /* ===== 【2026-11-18 やること 段4】自分で足す（§11 の54〜56） ===== */
-var _tdCh=null,_tdBk=null,_tdKind=null,_tdChAt=0;
+var _tdCh=null,_tdBk=null,_tdKind=null,_tdChAt=0,_tdChP=null;
+/* 18:4x 足す窓の一覧（todo_choices）は本番で14秒かかった。カードが出たら裏で先に読んでおく＝押したときには出ている。読み込み中に開いたら同じ読み込みを待つ（2回投げない） */
+function _tdChLoad_(){if(_tdChP)return _tdChP;_tdChP=call({action:'todo_choices'}).then(function(d){_tdChP=null;if(d&&d.ok){_tdCh=d.data.books||[];_tdChAt=Date.now();}return d;},function(){_tdChP=null;return null;});return _tdChP;}
 function _tdRemove_(x){if(!x.classList.contains('arm')){x.classList.add('arm');x.innerHTML=_nvRuby_('外(はず)す',true);setTimeout(function(){if(x&&x.classList){x.classList.remove('arm');x.innerHTML='<i class="ti ti-x"></i>';}},4000);return;}
   x.disabled=true;call({action:'todo_remove',id:x.getAttribute('data-tdx')}).then(function(d){if(!d||!d.ok){x.disabled=false;try{toast((d&&d.error)||'外せませんでした');}catch(e){}return;}todoLoad_(true);},function(){x.disabled=false;});}
 function _tdRmCell_(c){if(c.getAttribute('data-busy'))return;var tid=c.getAttribute('data-tdrm'),pid=c.getAttribute('data-tdpid');if(!tid)return;c.setAttribute('data-busy','1');c.innerHTML='<span class="td-spn"></span>'+_nvRuby_('外(はず)し中(ちゅう)',true);
@@ -13604,14 +13607,15 @@ function _tdRmCell_(c){if(c.getAttribute('data-busy'))return;var tid=c.getAttrib
     (_tdCh||[]).forEach(function(bk){bk.rows.forEach(function(r){r.cells.forEach(function(x){if(x.id===pid){x.st='';x.tid='';}});});});_tdSheetDraw_();var m2=$('td-sh-msg');if(m2)m2.innerHTML=_nvRuby_('やることから外(はず)しました',true);todoLoad_(true);},function(){c.removeAttribute('data-busy');});}
 function _tdSheetClose_(){var s=$('td-sh');if(s)s.remove();}
 function todoSheet_(){_tdSheetClose_();var s=document.createElement('div');s.id='td-sh';
-  s.innerHTML='<div class="td-sh"><div class="td-sh-hd"><span>'+_nvRuby_('やることを足(た)す',true)+'</span><button type="button" id="td-sh-x" aria-label="閉じる"><i class="ti ti-x"></i></button></div><div id="td-sh-b"><div class="loading">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div></div></div>';
+  s.innerHTML='<div class="td-sh"><div class="td-sh-hd"><span>'+_nvRuby_('やることを追加(ついか)',true)+'</span><button type="button" id="td-sh-x" aria-label="閉じる"><i class="ti ti-x"></i></button></div><div id="td-sh-b"><div class="loading">'+_nvRuby_('読(よ)み込(こ)み中(ちゅう)…',true)+'</div></div></div>';
   document.body.appendChild(s);
   if(_tdCh&&(Date.now()-_tdChAt)<600000)_tdSheetDraw_();   /* 前に読んだ一覧をすぐ出す（10分） */
-  call({action:'todo_choices'}).then(function(d){if(!$('td-sh'))return;if(!d||!d.ok){if(!_tdCh)$('td-sh-b').innerHTML='<div class="td-sh-msg">'+esc((d&&d.error)||'読み込めませんでした')+'</div>';return;}
-    _tdCh=d.data.books||[];_tdChAt=Date.now();_tdSheetDraw_();},function(){});}
+  if(_tdCh&&(Date.now()-_tdChAt)<120000)return;   /* 2分以内に読んだ（裏で先に読んだ）ものはそのまま使う＝取り直さない 18:4x */
+  _tdChLoad_().then(function(d){if(!$('td-sh'))return;if(!d||!d.ok){if(!_tdCh)$('td-sh-b').innerHTML='<div class="td-sh-msg">'+esc((d&&d.error)||'読み込めませんでした')+'</div>';return;}
+    _tdSheetDraw_();},function(){});}
 function _tdSheetDraw_(){var b=$('td-sh-b');if(!b)return;var bs=_tdCh||[];
   /* 【2026-11-18 18:3x 川上さん「見づらすぎ」】本のチップを全部並べない。種類（英検・架け橋／ぐるぐる／単元別／毎日学習）を4つの切りかえにして、その種類の本だけを1つの選ぶ欄に出す */
-  if(!bs.length){b.innerHTML='<div class="td-sh-msg">'+_nvRuby_('足(た)せる教材(きょうざい)がありません',true)+'</div>';return;}
+  if(!bs.length){b.innerHTML='<div class="td-sh-msg">'+_nvRuby_('追加(ついか)できる教材(きょうざい)がありません',true)+'</div>';return;}
   var KL=[['eiken','英検・架け橋'],['gg','ぐるぐる'],['tan','単元別'],['daily','毎日学習']].filter(function(k){return bs.some(function(x){return x.kind===k[0];});});
   if(!_tdKind||!KL.some(function(k){return k[0]===_tdKind;}))_tdKind=KL[0][0];
   var inK=bs.filter(function(x){return x.kind===_tdKind;});
@@ -13619,7 +13623,7 @@ function _tdSheetDraw_(){var b=$('td-sh-b');if(!b)return;var bs=_tdCh||[];
   var cur=null;inK.forEach(function(x){if(x.key===_tdBk)cur=x;});
   var lab={done:_nvRuby_('済(す)み',true),'in':_nvRuby_('入(はい)っている',true)};
   var cell=function(c){if(c.st==='mine')return '<div class="td-c mine" role="button" data-tdrm="'+esc(c.tid||'')+'" data-tdpid="'+esc(c.id)+'">'+(c.lab?esc(c.lab)+' ':'')+_nvRuby_('外(はず)す',true)+'</div>';
-    if(c.st)return '<div class="td-c '+c.st+'">'+(c.lab?esc(c.lab)+' ':'')+lab[c.st]+'</div>';return '<div class="td-c add" role="button" data-tdadd="'+esc(c.id)+'">＋ '+(c.lab?esc(c.lab):_nvRuby_('足(た)す',true))+'</div>';};
+    if(c.st)return '<div class="td-c '+c.st+'">'+(c.lab?esc(c.lab)+' ':'')+lab[c.st]+'</div>';return '<div class="td-c add" role="button" data-tdadd="'+esc(c.id)+'">＋ '+(c.lab?esc(c.lab):_nvRuby_('追加(ついか)',true))+'</div>';};
   var two=cur&&cur.rows.some(function(r){return r.cells.length>1;});
   b.innerHTML='<div class="td-kinds">'+KL.map(function(k){return '<button type="button" class="td-kd'+(k[0]===_tdKind?' on':'')+'" data-tdkd="'+k[0]+'">'+k[1]+'</button>';}).join('')+'</div>'
     +'<select class="td-bsel" id="td-bsel">'+inK.map(function(x){return '<option value="'+esc(x.key)+'"'+(x.key===_tdBk?' selected':'')+'>'+esc(x.title)+'</option>';}).join('')+'</select>'
@@ -13629,7 +13633,7 @@ function _tdSheetDraw_(){var b=$('td-sh-b');if(!b)return;var bs=_tdCh||[];
       return '<div class="td-rw'+(two?'':' one')+'"><span>'+esc(r.name)+'</span>'+r.cells.map(cell).join('')+(two&&r.cells.length<2?'<span></span>':'')+'</div>';}).join(''):'')+'</div>';}
 function _tdAdd_(c){if(c.getAttribute('data-busy'))return;c.setAttribute('data-busy','1');var id=c.getAttribute('data-tdadd');c.classList.add('busy');c.innerHTML='<span class="td-spn"></span>'+_nvRuby_('追加中(ついかちゅう)',true);var _m0=$('td-sh-msg');if(_m0)_m0.textContent='';
   call({action:'todo_add',part_id:id}).then(function(d){c.removeAttribute('data-busy');var m=$('td-sh-msg');
-    if(!d||!d.ok){c.classList.remove('busy');_tdSheetDraw_();var m3=$('td-sh-msg');if(m3)m3.textContent=(d&&d.error)||'足せませんでした。もう一度押してください';return;}
+    if(!d||!d.ok){c.classList.remove('busy');_tdSheetDraw_();var m3=$('td-sh-msg');if(m3)m3.textContent=(d&&d.error)||'追加できませんでした。もう一度押してください';return;}
     var _it0=d.data&&d.data.item;(_tdCh||[]).forEach(function(bk){bk.rows.forEach(function(r){r.cells.forEach(function(x){if(x.id===id){x.st='mine';x.tid=_it0?_it0.id:'';}});});});_tdSheetDraw_();
     var it=d.data&&d.data.item;if(it){todoToast_([it]);var m2=$('td-sh-msg');if(m2)m2.innerHTML='「'+esc(it.label)+'」を'+_nvRuby_('やることリストに追加(ついか)しました',true)+'（'+_tdMd_(it.due)+'まで）';}
     todoLoad_(true);},function(){c.removeAttribute('data-busy');_tdSheetDraw_();var m4=$('td-sh-msg');if(m4)m4.textContent='通信できませんでした。もう一度押してください';});}
