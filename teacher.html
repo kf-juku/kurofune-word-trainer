@@ -9225,7 +9225,7 @@ function sortMaterials_(arr){
   // 「教材ごと」タブ(renderMatTab)・まとめて割り当て・教材を追加 が同じこの1本を使う。
   var bo=_bookOrdMap_(arr);
   return (arr||[]).slice().sort(function(a,b){
-    var ta=_isUnitCtT_(a.content_type)?1:(a.content_type==='worksheet'?2:(a.content_type==='guruguru'?3:0)), tb=_isUnitCtT_(b.content_type)?1:(b.content_type==='worksheet'?2:(b.content_type==='guruguru'?3:0)); // ワークシートは単元別のあと 2026-10-17／ぐるぐるはその次 2026-11-02
+    var _tO={daily:0,eiken:0.5,test:1,worksheet:2,guruguru:3},ta=_tO[_matType(a)],tb=_tO[_matType(b)];   /* 英検・架け橋は毎日学習と単元別のあいだ 2026-11-18 */ // ワークシートは単元別のあと 2026-10-17／ぐるぐるはその次 2026-11-02
     if(ta!==tb)return ta-tb;
     var sa=_subjOrder(a.subject),sb=_subjOrder(b.subject);
     if(sa!==sb)return sa-sb;
@@ -9245,8 +9245,9 @@ function sortMaterials_(arr){
    シリーズ全選択□は見出しタイトルの左端、□以外のバナー全体クリックで開閉。
    分類は mtSeriesKey（サーバー series_key／_mSeries が控え）＝1か所判定。 */
 var _bulkOpen={}, _asgOpen={};
-function _matType(m){return _isUnitCtT_(m.content_type)?'test':(m.content_type==='worksheet'?'worksheet':(m.content_type==='guruguru'?'guruguru':'daily'));} /* worksheet＝単元ワークシート 2026-10-17／guruguru＝ぐるぐる 2026-11-02 */
-function _matTypeLabel(t){return t==='test'?'単元別対策':(t==='worksheet'?'ワークシート':(t==='guruguru'?'ぐるぐる':'毎日学習'));}
+function _matType(m){if(String(m.content_type||'')==='eiken'||/かけはし|架け橋/.test(String(m.title||'')))return 'eiken';   /* 2026-11-18 川上さん「かけはしと英検が単元別のままになっている」＝英検・架け橋は別の分類 */
+  return _isUnitCtT_(m.content_type)?'test':(m.content_type==='worksheet'?'worksheet':(m.content_type==='guruguru'?'guruguru':'daily'));} /* worksheet＝単元ワークシート 2026-10-17／guruguru＝ぐるぐる 2026-11-02 */
+function _matTypeLabel(t){return t==='eiken'?'英検・架け橋':t==='test'?'単元別対策':(t==='worksheet'?'ワークシート':(t==='guruguru'?'ぐるぐる':'毎日学習'));}
 function matGroupPool_(materials, assignedSet, q){
   var pool=sortMaterials_(materials).filter(function(m){
     /* 2026-11-03 ぐるぐる：割り当ての候補には出す（札「ぐるぐる」）。プリントの候補（renderPrintMaterials の _pmM）・練習プリント（_ppMats）・レポート（_rpMats）は呼ぶ側で外したまま */
@@ -9294,7 +9295,7 @@ function renderMatCand_(listEl,cfg){
       sec.innerHTML='<div class="mt-shead">'
         +'<span class="mt-selall" title="このシリーズを全部選ぶ"><span class="pk-cb'+(st==='all'?' on':(st==='part'?' part':''))+'">'+mark+'</span></span>'
         +'<span class="mt-caret">▶</span>'
-        +'<span class="mt-pill '+(tg.type==='test'?'test':(tg.type==='worksheet'?'ws':'daily'))+'">'+_matTypeLabel(tg.type)+'</span>'
+        +'<span class="mt-pill '+(tg.type==='test'||tg.type==='eiken'?'test':(tg.type==='worksheet'?'ws':'daily'))+'">'+_matTypeLabel(tg.type)+'</span>'
         +'<span class="mt-sname">'+esc(g.label)+'</span>'
         +'<span class="mt-ssub">'+g.items.length+'教材</span>'
         +'</div><div class="mt-sbody"></div>';
@@ -9316,12 +9317,12 @@ function renderMatSel_(listEl,cfg){
     tg.groups.forEach(function(g){
       if(g.solo){
         var m0=g.items[0];var r=document.createElement('div');r.className='pk-row';
-        r.innerHTML='<span class="mt-pill '+(tg.type==='test'?'test':(tg.type==='worksheet'?'ws':'daily'))+'">'+_matTypeLabel(tg.type)+'</span><span>'+esc(mtLabel(m0))+'</span><span class="pk-x">✕</span>';
+        r.innerHTML='<span class="mt-pill '+(tg.type==='test'||tg.type==='eiken'?'test':(tg.type==='worksheet'?'ws':'daily'))+'">'+_matTypeLabel(tg.type)+'</span><span>'+esc(mtLabel(m0))+'</span><span class="pk-x">✕</span>';
         r.querySelector('.pk-x').onclick=(function(id){return function(){cfg.onRemove(id);};})(String(m0.id));
         listEl.appendChild(r);return;
       }
       var head=document.createElement('div');head.className='mt-rgh';
-      head.innerHTML='<span class="mt-pill '+(tg.type==='test'?'test':(tg.type==='worksheet'?'ws':'daily'))+'">'+_matTypeLabel(tg.type)+'</span><span>'+esc(g.label)+'</span><span style="color:var(--text-light);font-weight:600;">'+g.items.length+'</span>';
+      head.innerHTML='<span class="mt-pill '+(tg.type==='test'||tg.type==='eiken'?'test':(tg.type==='worksheet'?'ws':'daily'))+'">'+_matTypeLabel(tg.type)+'</span><span>'+esc(g.label)+'</span><span style="color:var(--text-light);font-weight:600;">'+g.items.length+'</span>';
       listEl.appendChild(head);
       g.items.forEach(function(m){
         var r=document.createElement('div');r.className='pk-row';
@@ -9629,7 +9630,7 @@ function removeAssign(aid){
    B＝生徒の割当画面（assignModal）で教材にチェック→「選んだ教材を外す」。
    どちらも GAS は assignment_bulk_remove の1本＝単元別を外すと同じ教材の確認テストも外れる（記録は残る）。 */
 var remMat={};
-function _remPill_(m){return m.type==='test'?'<span class="asg-pill test">単元別対策</span>':(m.type==='worksheet'?'<span class="asg-pill ws">ワークシート</span>':'<span class="asg-pill daily">毎日学習</span>');}
+function _remPill_(m){return m.type==='test'?(_isEikenM_(m)?'<span class="asg-pill test">英検・架け橋</span>':'<span class="asg-pill test">単元別対策</span>'):(m.type==='worksheet'?'<span class="asg-pill ws">ワークシート</span>':'<span class="asg-pill daily">毎日学習</span>');}
 function _remConfirmMsg_(who,nMat){
   return who+nMat+'教材の割当と確認テストを外します。点数・進捗・間違いノートは残ります（もう一度割り当てれば続きから）。よろしいですか？';
 }
@@ -13461,20 +13462,20 @@ function ov2Render_(rows,base){
     if(kind==='all')cols=['daily','eiken','gg','tan'].map(function(k){return {key:k,lab:_OV2_KL[k]};});
     else{var m={};grows.forEach(function(s){var M=map[String(s.student_id)];Object.keys(M.books).forEach(function(k){var b=M.books[k];if(b.k===kind)m[b.ser]=(m[b.ser]||0)+1;});});cols=Object.keys(m).sort().map(function(x){return {key:x,lab:x,cnt:m[x]};});}
     var getB=function(M,c){var f=null;Object.keys(M.books).forEach(function(k){var b=M.books[k];if(b.k===kind&&b.ser===c.key)f=b;});return f;};
-    var sv=function(s,ci){var M=map[String(s.student_id)];if(ci==='last')return M.lastAgo==null?999:M.lastAgo;if(ci==='n7')return M.n7;if(ci==='r7')return M.r7==null?-1:M.r7;if(ci==='mis')return s.mistake_active||0;
+    var sv=function(s,ci){var M=map[String(s.student_id)];if(ci==='last')return M.lastAgo==null?999:M.lastAgo;if(ci==='n7')return M.n7;if(ci==='r7')return M.r7==null?-1:M.r7;if(ci==='mis')return s.mistake_active||0;if(ci==='tdo')return (typeof _ov4Left_==='function')?_ov4Left_(s):0;
       var c=cols[ci];if(!c)return 0;if(kind==='all'){var d=0,t=0;Object.keys(M.books).forEach(function(k){var b=M.books[k];if(b.k===c.key){d+=b.done;t+=b.tot;}});return t?d/t:-1;}var b=getB(M,c);return b&&b.tot?b.done/b.tot:-1;};
     if(_ov2Sort.k!=null)grows.sort(function(a,b){var x=sv(a,_ov2Sort.k),y=sv(b,_ov2Sort.k);return (x>y?1:x<y?-1:_nmCmp_(a,b))*_ov2Sort.d;});
     var th=function(lab,ci,cls){return '<th class="'+(cls||'')+'"'+(ci!=null?' onclick="ov2Sort_(\''+ci+'\')" style="cursor:pointer"':'')+'>'+lab+(ci!=null&&String(_ov2Sort.k)===String(ci)?(_ov2Sort.d>0?' ▲':' ▼'):'')+'</th>';};
     var h=(G[0]?'<div class="ov2-gsec">'+esc(G[0])+'（'+grows.length+'名）</div>':'')+'<table class="ov2-grid"><thead><tr>'+th('生徒',null,'stu')+th('最終学習','last')+th('直近7日<br>回数','n7')+th('直近7日<br>正答率','r7')
       +cols.map(function(c,i){return th(esc(c.lab)+(c.cnt?'<br><span class="ov2-leg">'+c.cnt+'人</span>':''),i);}).join('')
-      +(kind==='all'?th('デイリー',null,'gcol')+th('弱点<br><small>いま間違えている語</small>','mis'):'')+th('教材<br><small>指定</small>',null,'ov2-gearc')+'</tr></thead><tbody>';
+      +(kind==='all'?th('デイリー',null,'gcol')+th('弱点<br><small>いま間違えている語</small>','mis'):'')+th('やること','tdo')+th('教材<br><small>指定</small>',null,'ov2-gearc')+'</tr></thead><tbody>';
     grows.forEach(function(s){var M=map[String(s.student_id)];var sid=esc(String(s.student_id));
       h+='<tr class="'+(isInactive(s)?'row-inactive':'')+'" onclick="if(!event.target.closest(\'button\'))openStudentDetail(\''+sid+'\')">'
         +'<td class="stu"><div class="t-name">'+esc(s.name||'(無名)')+'</div><div class="ov2-sb">'+esc(s.grade||'')+'・'+esc(s.class_name||'')+'</div></td>'
         +'<td class="t-sub">'+lastStudiedCell(s)+'</td><td>'+(M.n7||'<span class="ov2-none">0</span>')+'</td><td>'+_ov2R7Cell_(M)+'</td>'
         +cols.map(function(c){return kind==='all'?_ov2CellKind_(M,c.key):_ov2CellBook_(M,getB(M,c));}).join('')
         +(kind==='all'?'<td class="gcol tdDly">'+dailyMarks_(s,'<br>')+'</td><td>'+(s.mistake_active>0?'<span class="badge badge-amber num">'+s.mistake_active+' 語</span>':'<span class="badge badge-gray">0</span>')+'</td>':'')
-        +'<td class="ov2-gearc">'+gearBtn(s)+'</td></tr>';});
+        +'<td class="ov4-c">'+(typeof _ov4Cell_==='function'?_ov4Cell_(s):'')+'</td><td class="ov2-gearc">'+gearBtn(s)+'</td></tr>';});
     html+=h+'</tbody></table>';
   });
   var legend=kind==='all'?'':'<div class="ov2-leg" style="margin-top:6px">マス＝'+(kind==='daily'?'10回ずつ':(kind==='eiken'?'回（A-1 と A-2 の両方が済んで ■）':'単元'))+'（■ 全部済み・◧ 途中・□ まだ）。マスにカーソルを当てると名前。「◯◯ まで」＝全部済んだいちばん先（ぐるぐるは手を付けたいちばん先・毎日学習は済んだいちばん先の回）。「抜け」＝それより前で終わっていない数。直近7日に記録が無いときは、最後の5回の正答率を灰色で出す'
@@ -13483,7 +13484,7 @@ function ov2Render_(rows,base){
   wrap.innerHTML=html+legend+(_ov2Sess?'':'<div class="ov2-leg">練習の記録を読み込み中…（読み込めたら直近7日の数が入ります）</div>');
   var pt=$('ov2PrintTtl');if(pt){var lab=kind==='all'?'全部（種類ごと）':_OV2_KL[kind];pt.textContent='クロトレ　'+lab+'　'+_ov2Md_(new Date(Date.now()+9*3600e3).toISOString())+' '+new Date().toTimeString().slice(0,5)+' 時点　'+rows.length+'名';}
 }
-function ov2Sort_(k){if(String(_ov2Sort.k)===String(k))_ov2Sort.d*=-1;else{_ov2Sort.k=isNaN(k)?k:Number(k);_ov2Sort.d=(k==='last'||k==='mis')?-1:1;}renderTable();}
+function ov2Sort_(k){if(String(_ov2Sort.k)===String(k))_ov2Sort.d*=-1;else{_ov2Sort.k=isNaN(k)?k:Number(k);_ov2Sort.d=(k==='last'||k==='mis'||k==='tdo')?-1:1;}renderTable();}
 function ov2Print_(){
   var root=document.createElement('div');root.id='ov2PrintRoot';
   ['ov2WatchCard','ov2ListCard'].forEach(function(id){var el=$(id);if(el){var c=el.cloneNode(true);c.removeAttribute('id');c.className=el.className+' '+id+'P';root.appendChild(c);}});
@@ -13591,6 +13592,94 @@ openStudentDetail=function(sid,focusKey){
 /* 練習の記録・点数表が後から届いたら、開いている深掘りも描き直す */
 var _ov3Ls0=_ov2LoadSess_;
 _ov2LoadSess_=function(force){var was=!!_ov2Sess;_ov3Ls0(force);if(!was){var t=setInterval(function(){if(_ov2Sess){clearInterval(t);_ov3Redraw_();}},800);setTimeout(function(){clearInterval(t);},30000);}};
+
+/* ======================================================================
+   【2026-11-18 やること 段3】先生画面：やること
+   ・③深掘り（名前を押す窓）＝「この期間の学習」の上に「やること」の欄。1つずつ［外す］／本と回を選んで［＋ やることに足す］（§11 の44）
+   ・②全員の一覧＝いちばん右の ⚙ の左に「やること」の列（まだ n・過ぎた n・完了 n）。並べ替えはまだの数
+   ・見た方がいい子に「📋 やることが残っている（締め切りを過ぎた）」を足す（テコ入れの次）
+   ・材料＝todo_all（全員・2分は取り直さない）／窓は todo_list（その子・開くたびに取る）
+   ====================================================================== */
+var _ov4All=null,_ov4At=0,_ov4Sid=null,_ov4Busy=false;
+var _OV4_SRC={auto:'自動',teacher:'先生',self:'自分で'};
+function _ov4Md_(d){var a=String(d||'').split('-');if(a.length!==3)return String(d||'');var w='日月火水木金土'.charAt(new Date(+a[0],+a[1]-1,+a[2]).getDay());return (+a[1])+'/'+(+a[2])+'('+w+')';}
+function _ov4Load_(force){
+  if(_ov4Busy)return;if(!force&&_ov4All&&(Date.now()-_ov4At)<120000)return;
+  _ov4Busy=true;_ov4At=Date.now();
+  call({action:'todo_all'}).then(function(d){_ov4Busy=false;if(d&&d.ok&&d.data){_ov4All=d.data;try{renderTable();}catch(e){}}},function(){_ov4Busy=false;});
+}
+function _ov4Of_(sid){return ((_ov4All&&_ov4All.by)||{})[String(sid)]||[];}
+function _ov4Left_(s){return _ov4Of_(s.student_id).filter(function(t){return t.state!=='done';}).length;}
+function _ov4Cell_(s){
+  if(!_ov4All)return '<span class="ov2-none">…</span>';
+  var a=_ov4Of_(s.student_id);if(!a.length)return '<span class="ov2-none">–</span>';
+  var left=a.filter(function(t){return t.state!=='done';}).length,late=a.filter(function(t){return t.state==='late';}).length,dn=a.length-left;
+  return (left?'<b>まだ '+left+'</b>':'<span class="ov2-none">まだ 0</span>')+(late?'<div class="ov4-late">過ぎた '+late+'</div>':'')+(dn?'<div class="ov2-leg">完了 '+dn+'</div>':'');
+}
+/* ③深掘りの「やること」 */
+function _ov4Opts_(s){
+  var o=[];
+  (s.materials_view||[]).forEach(function(m){if(!(m.parts||[]).length)return;o.push({k:'m:'+m.material_id,t:m.title,parts:(m.parts||[]).map(function(p){return {id:p.id,n:p.name};})});});
+  (s.gg_view||[]).forEach(function(g){var ps=[];(g.parts||[]).forEach(function(p){(p.rounds||[]).forEach(function(r){ps.push({id:'gg_'+p.pid+'_'+r.r,n:p.name+' '+r.r+(r.done?'（済み）':'')});});});if(ps.length)o.push({k:'g:'+g.material_id,t:g.title,parts:ps});});
+  return o;
+}
+function _ov4Html_(s,items){
+  var rows=(items||[]).map(function(t){
+    var st=t.state==='done'?'<span class="ov4-ok">完了</span>':(t.state==='late'?'<span class="ov4-late">締め切りを過ぎた</span>':'まだ');
+    return '<tr><td>'+_ov4Md_(t.due)+'まで</td><td>'+esc(t.label)+'</td><td>'+esc(_OV4_SRC[t.src]||t.src)+'</td><td>'+st+'</td><td><button type="button" class="btn-ghost ov4-rm" data-ov4rm="'+esc(t.id)+'">外す</button></td></tr>';}).join('');
+  var opts=_ov4Opts_(s);window._ov4OptsCur=opts;
+  return '<table class="ov3-log"><tr><th>締め切り</th><th>教材・回</th><th>入り方</th><th>状態</th><th></th></tr>'+(rows||'<tr><td colspan="5" class="ov2-none">やることはありません</td></tr>')+'</table>'
+    +'<div class="ov4-add"><select id="ov4Mat"><option value="">本をえらぶ</option>'+opts.map(function(o,i){return '<option value="'+i+'">'+esc(o.t)+'</option>';}).join('')+'</select>'
+    +'<select id="ov4Part" disabled><option value="">回をえらぶ</option></select><button type="button" class="btn-ghost" id="ov4AddBtn" disabled>＋ やることに足す</button><span id="ov4Msg" class="ov2-leg"></span></div>'
+    +'<div class="ov2-leg">締め切りは入れた日から6日後。外した回は、生徒が A-1 をやり直しても自動では入りません。完了は締め切りの日まで出ます。</div>';
+}
+function _ov4Redraw_(){
+  var el=$('ov4Body');if(!el||!_ov4Sid)return;var sid=_ov4Sid;var s=null;(_students||[]).forEach(function(x){if(String(x.student_id)===String(sid))s=x;});if(!s)return;
+  el.innerHTML='<div class="ov2-leg">読み込み中…</div>';
+  call({action:'todo_list',student_id:sid}).then(function(d){if(String(_ov4Sid)!==String(sid))return;var e2=$('ov4Body');if(!e2)return;
+    if(!d||!d.ok){e2.innerHTML='<div class="ov4-late">やることを読み込めませんでした：'+esc((d&&d.error)||'')+'</div>';return;}
+    e2.innerHTML=_ov4Html_(s,d.data.items||[]);});
+}
+(function(){
+  var css=document.createElement('style');css.textContent=[
+    '.ov4-late{color:var(--red,#c0392b);font-weight:700}.ov4-ok{color:#15803d;font-weight:700}',
+    '.ov4-add{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 4px}.ov4-add select{padding:5px 8px;border:1px solid var(--border);border-radius:8px;max-width:340px}',
+    '.ov4-rm{padding:3px 10px;font-size:12px}',
+    '#ov2Watch{grid-template-columns:repeat(4,minmax(220px,1fr))!important}body.ov2print #ov2Watch,body.ov2print .ov2WatchCardP #ov2Watch{grid-template-columns:repeat(4,1fr)!important}'
+  ].join('');document.head.appendChild(css);
+  document.addEventListener('change',function(e){
+    if(e.target&&e.target.id==='ov4Mat'){var o=(window._ov4OptsCur||[])[e.target.value],p=$('ov4Part'),b=$('ov4AddBtn');
+      p.innerHTML='<option value="">回をえらぶ</option>'+(o?o.parts.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.n)+'</option>';}).join(''):'');p.disabled=!o;b.disabled=true;}
+    if(e.target&&e.target.id==='ov4Part'){var b2=$('ov4AddBtn');if(b2)b2.disabled=!e.target.value;}
+  });
+  document.addEventListener('click',function(e){
+    var rm=e.target.closest&&e.target.closest('[data-ov4rm]');
+    if(rm){rm.disabled=true;call({action:'todo_remove',id:rm.getAttribute('data-ov4rm')}).then(function(d){if(!d||!d.ok){rm.disabled=false;try{toast('外せませんでした：'+((d&&d.error)||''));}catch(e3){}return;}_ov4Redraw_();_ov4Load_(true);});return;}
+    if(e.target&&e.target.id==='ov4AddBtn'){var p=$('ov4Part'),b=e.target,m=$('ov4Msg');if(!p||!p.value)return;b.disabled=true;
+      call({action:'todo_add',student_id:_ov4Sid,part_id:p.value}).then(function(d){
+        if(!d||!d.ok){b.disabled=false;if(m)m.textContent='足せませんでした：'+((d&&d.error)||'');return;}
+        if(d.data&&d.data.exists){b.disabled=false;if(m)m.textContent='その回はもうやることに入っています';return;}
+        _ov4Redraw_();_ov4Load_(true);});}
+  });
+})();
+/* ③：この期間の学習（ov3）の下にやることの欄 */
+var _ov4Open0=openStudentDetail;
+openStudentDetail=function(sid,focusKey){
+  _ov4Open0(sid,focusKey);
+  try{
+    _ov4Sid=sid;var root=$('sdBody');if(!root)return;var b3=root.querySelector('.ov3-box');
+    var box=document.createElement('div');box.className='ov3-box';box.innerHTML='<div class="sd2-h">やること</div><div id="ov4Body"></div>';
+    if(b3&&b3.parentNode)b3.parentNode.insertBefore(box,b3);   /* やることは「この期間の学習」の上（宿題を先に見る） */else{var band=root.querySelector('.sd2-band');if(band&&band.parentNode)band.parentNode.insertBefore(box,band.nextSibling);}
+    _ov4Redraw_();
+  }catch(e){try{console.error(e);}catch(e2){}}
+};
+/* ②：一覧を描く前に全員のやることを取る（2分は取り直さない）／見た方がいい子に「やることが残っている」 */
+var _ov4R0=ov2Render_;ov2Render_=function(){_ov4Load_(false);return _ov4R0.apply(this,arguments);};
+var _ov4W0=_ov2Watch_;_ov2Watch_=function(list,map){var c=_ov4W0(list,map),tdo=[];
+  (list||[]).forEach(function(s){if(s.is_teacher_account)return;var late=_ov4Of_(s.student_id).filter(function(t){return t.state==='late';});
+    if(late.length)tdo.push({s:s,why:late.slice(0,3).map(function(t){return t.label+'（'+_ov4Md_(t.due)+'まで）';}).concat(late.length>3?['ほか '+(late.length-3)]:[])});});
+  tdo.sort(function(a,b){return _ov4Of_(b.s.student_id).length-_ov4Of_(a.s.student_id).length;});
+  c.splice(1,0,['ov:tdo','📋 やることが残っている（締め切りを過ぎた）',tdo]);return c;};
 
 </script>
 </body>
