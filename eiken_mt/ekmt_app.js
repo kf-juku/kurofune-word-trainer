@@ -1265,7 +1265,7 @@ function __pval(j){const v=__PA[j];return v===undefined?'':(__PAPER==='ox'?(v===
 function __pnext(j){let n=j+1;while(n<TFL.length&&__PA[n]!==undefined)n++;if(n>=TFL.length){n=__PA.findIndex(v=>v===undefined);}return n;}
 /* 入れるマスが下のボタンに隠れないように、外側のスクロールを動かす（Shadow DOM の外の箱も見る） */
 function __pscroller(el,any){let n=el;while(n){n=n.parentElement||(n.getRootNode&&n.getRootNode().host)||null;if(!n||n===__realDoc.body||n===__realDoc.documentElement)break;const s=getComputedStyle(n);if(/(auto|scroll)/.test(s.overflowY)&&(any||n.scrollHeight>n.clientHeight))return n;}return null;}
-function __pshow(c,pad){try{const r=c.getBoundingClientRect(),pt=pad?pad.getBoundingClientRect().top:innerHeight,sc=__pscroller(c);let d=0;
+function __pshow(c,pad){try{const r=c.getBoundingClientRect(),pt=pad&&getComputedStyle(pad).position==='sticky'?pad.getBoundingClientRect().top:innerHeight,sc=__pscroller(c);let d=0;
  if(r.bottom>pt-12)d=r.bottom-(pt-12);else if(r.top<60)d=r.top-60;if(!d)return;if(sc)sc.scrollTop+=d;else window.scrollBy(0,d);}catch(e){}}
 function __drawPaper(ph){const T=TEST,ox=__PAPER==='ox',B=T.blocks;__tPerm(null);if(!__PA){__PA=TFL.map(()=>undefined);__PCUR=0;__pdLoad();}
  const nk=ox?2:Math.max(...TFL.map(x=>x.st.c.length));

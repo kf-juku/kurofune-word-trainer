@@ -1,4 +1,4 @@
-/* gg_app.js：ぐるぐる（数学）の生徒の画面。tools\gg_build.py が ws\ws_app.js（md5 d0c621bf9f7bddb1122c5c788b71159e）から作った。手で直さない（直すときは gg_build.py を直して作り直す）。
+/* gg_app.js：ぐるぐる（数学）の生徒の画面。tools\gg_build.py が ws\ws_app.js（md5 6763da8ab5e7a4a8501d2917477682c6）から作った。手で直さない（直すときは gg_build.py を直して作り直す）。
    使い方：ggMount(root, D, opt)。ws_app.js の wsMount と同じ形（D＝{UNIT_TITLE, PATS, TEST, POOL, BACKN}・opt.guru＝ぐるぐるの回・opt.book＝本の名前）。
    ↓ここから下は元の ws_app.js の頭の説明
    ws_app.js：単元ワークシート（数学）の生徒の画面。自動で作る（mkapp.py・元＝ジョブス用\道具\20261016_単元ワークシート中2数学\mock\m.html）。手で直さない
@@ -1285,7 +1285,7 @@ function __pval(j){const v=__PA[j];return v===undefined?'':(__PAPER==='ox'?(v===
 function __pnext(j){let n=j+1;while(n<TFL.length&&__PA[n]!==undefined)n++;if(n>=TFL.length){n=__PA.findIndex(v=>v===undefined);}return n;}
 /* 入れるマスが下のボタンに隠れないように、外側のスクロールを動かす（Shadow DOM の外の箱も見る） */
 function __pscroller(el,any){let n=el;while(n){n=n.parentElement||(n.getRootNode&&n.getRootNode().host)||null;if(!n||n===__realDoc.body||n===__realDoc.documentElement)break;const s=getComputedStyle(n);if(/(auto|scroll)/.test(s.overflowY)&&(any||n.scrollHeight>n.clientHeight))return n;}return null;}
-function __pshow(c,pad){try{const r=c.getBoundingClientRect(),pt=pad?pad.getBoundingClientRect().top:innerHeight,sc=__pscroller(c);let d=0;
+function __pshow(c,pad){try{const r=c.getBoundingClientRect(),pt=pad&&getComputedStyle(pad).position==='sticky'?pad.getBoundingClientRect().top:innerHeight,sc=__pscroller(c);let d=0;
  if(r.bottom>pt-12)d=r.bottom-(pt-12);else if(r.top<60)d=r.top-60;if(!d)return;if(sc)sc.scrollTop+=d;else window.scrollBy(0,d);}catch(e){}}
 function __drawPaper(ph){const T=TEST,ox=__PAPER==='ox',B=T.blocks;__tPerm(null);if(!__PA){__PA=TFL.map(()=>undefined);__PCUR=0;__pdLoad();}
  const nk=ox?2:Math.max(...TFL.map(x=>x.st.c.length));
