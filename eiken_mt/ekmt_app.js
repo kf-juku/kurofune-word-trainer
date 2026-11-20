@@ -1274,7 +1274,7 @@ function __drawPaper(ph){const T=TEST,ox=__PAPER==='ox',B=T.blocks;__tPerm(null)
  ph.innerHTML=`<div class="phone ppaper"><div class="prog"><span class="tag X">${T.tag||T.name}</span>　紙の答え（${ox?'○×入力':'自動採点'}）</div>
   <div class="pplead">${ox?'丸付けした解答用紙を見て、○×を入力しよう。':(TFL.some(x=>x.st.ord)?'解答用紙に書いた記号と、並べかえの英文を入力しよう。':'解答用紙に書いた記号を入力しよう。')}</div>${__pdN?`<div class="pdres"><span>前に入れたところから（${__pdN}／${TFL.length}）</span><button type="button" class="pdclr">最初から入れ直す</button></div>`:''}
   <div class="pck">${rows}</div><div class="tvh"></div><div class="tconf"></div>
-  <div class="ppad"><div class="pph"></div><div class="ppo" style="display:none"></div><div class="ppk${ox?' ox':''}" style="grid-template-columns:repeat(${keys.length},1fr)">${keys.map(([v,l])=>`<button type="button" data-v="${v}">${l}</button>`).join('')}</div>
+  <div class="ppad"><div class="pph"></div><div class="ppo" style="display:none"></div><div class="ppk${ox?' ox':''}" style="grid-template-columns:repeat(${keys.length>6?Math.ceil(keys.length/2):keys.length},1fr)">${keys.map(([v,l])=>`<button type="button" data-v="${v}">${l}</button>`).join('')}</div>
   <button class="next ppgo">${ox?'記録する':'採点する'}</button></div></div>`;
  K(ph);
  const upd=(scroll,keepO)=>{const u=__PA.filter(v=>v===undefined).length;
