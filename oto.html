@@ -47,7 +47,7 @@ body.ls{align-items:flex-start}
       名前の「~記号」は声の名前を縮めたもの。名前に / があればそれ自体がフォルダつきの道
    正＝ジョブス用\仕様書\要件定義書_練習プリントと単元ワークシート_Kurofune-Word-Trainer.md 1a・1-24 */
 var GAS_URL='https://script.google.com/macros/s/AKfycbwUP7g-Ki7RJbJ8g3w04E5CBorkxx-RUQF_cx_zeR0obuXYqlapTF2Fcc0IgiqgwkuLaA/exec';
-var VOICE={a:'_chirp3-hd-achernar',n:'_neural2-d',f:'_chirp3-hd-fenrir',d:'_chirp3-hd-despina',g:'_chirp3-hd-algenib'};
+var VOICE={a:'_chirp3-hd-achernar',n:'_neural2-d',f:'_chirp3-hd-fenrir',d:'_chirp3-hd-despina',g:'_chirp3-hd-algenib',l:'_chirp3-hd-leda',m:'_chirp3-hd-laomedeia',c:'_chirp3-hd-autonoe',e:'_chirp3-hd-callirrhoe',F:'_neural2-f',C:'_neural2-c',G:'_neural2-g',H:'_neural2-h'};   /* 2026-11-20 新しい声を足した＝teacher.html の PP_VOICE_ と同じ */
 var qs=new URLSearchParams(location.search);
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function aPath(p){p=String(p||'');if(!p)return '';if(!/^img\//.test(p))p='img/audio/'+p;if(!/\.mp3$/.test(p))p+='.mp3';return p;}
@@ -88,7 +88,7 @@ if(qs.get('m')&&qs.get('p')){
   /* ---- ② 今までの QR（音の名前が QR に入っている） ---- */
   var dir=String(qs.get('d')||''), list=String(qs.get('a')||'').split(',').filter(Boolean);
   var files=list.map(function(x){
-    x=x.replace(/~([a-z])/g,function(m,c){return VOICE[c]||m;});
+    x=x.replace(/~([a-zA-Z])/g,function(m,c){return VOICE[c]||m;});   /* 2026-11-20 大文字＝新しい声 F・C・G・H */
     if(x.indexOf('/')<0) x=(dir?dir+'/':'')+x;
     return 'img/audio/'+x+'.mp3';
   });

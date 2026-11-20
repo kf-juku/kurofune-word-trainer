@@ -12111,7 +12111,7 @@ function rpPdf(){ /* 2026-10-30 川上さん「推奨１で統一」＝印刷の
    ・中身は material_preview（with_qdata=1）で押したときのシートの最新から作る
    ・音は oto.html を QR で開く（ログインも GAS も使わない・56 A） */
 var PP_KANA_=['ア','イ','ウ','エ','オ','カ','キ','ク'];
-var PP_VOICE_={'_chirp3-hd-achernar':'~a','_neural2-d':'~n','_chirp3-hd-fenrir':'~f','_chirp3-hd-despina':'~d','_chirp3-hd-algenib':'~g'};
+var PP_VOICE_={'_chirp3-hd-achernar':'~a','_neural2-d':'~n','_chirp3-hd-fenrir':'~f','_chirp3-hd-despina':'~d','_chirp3-hd-algenib':'~g','_chirp3-hd-leda':'~l','_chirp3-hd-laomedeia':'~m','_chirp3-hd-autonoe':'~c','_chirp3-hd-callirrhoe':'~e','_neural2-f':'~F','_neural2-c':'~C','_neural2-g':'~G','_neural2-h':'~H'};   /* 2026-11-20 声の入れかえ（正本 §2）＝oto.html の VOICE と同じ */   /* 2026-11-20 新しい声を足した＝oto.html の VOICE と同じ */
 var _ppMats=[], _ppBusy=false;
 /* 教材えらび（練習プリント・テストを印刷）＝共通の部品 renderMatCand_。選んだ id は今までどおり $('ppMat').value に入れる＝範囲・印刷・PDF は変えない（2026-10-18） */
 var _ppMatOpen={};
@@ -12932,7 +12932,7 @@ function _ekMtStuHtml_(ts){var S=_ekMtStus_(ts);if(!S.length)return '';return '<
 function ekMtStuAll_(v){[].slice.call(document.querySelectorAll('.pp-ekms')).forEach(function(c){c.checked=!!v;});}
 /* ===== 英検・架け橋のまとめテストの紙（2026-11-15 ぐるぐるから分けた・川上さん「英検・架け橋とぐるぐるはもう分けてください」）=====
    部品＝eiken_mt/ekmt_paper.js の ekMtPaper（ぐるぐるの guru/gg_paper*.js は読まない）。紙の CSS は .ekp の中だけ（ぐるぐるの .ggp と別）。部品を直したら EKMT_V を上げる（index.html・student.html と同じ値） */
-var EKMT_V='20261119e',_ekprLibP=null;
+var EKMT_V='20261120a',_ekprLibP=null;
 function _ekprLibs_(){
   if(_ekprLibP)return _ekprLibP;
   _ekprLibP=new Promise(function(ok,ng){var sc=document.createElement('script');sc.src='eiken_mt/ekmt_paper.js?v='+EKMT_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error('eiken_mt/ekmt_paper.js'));};document.head.appendChild(sc);}).then(function(){_ekprCssOnce_();});
