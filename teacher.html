@@ -12956,7 +12956,7 @@ function _ekprCssOnce_(){
     +'.ekp .sh-qr svg.fs-qr{width:100%;height:auto;display:block}.ekp .sh-qr.has{border:0;flex-direction:column;gap:0}.ekp.ekmt-p .sq{padding:1.5px 0 2.5px}.ekp .sh-qr .ekqr-ls{font-size:7.5pt;font-weight:800;color:#111;white-space:nowrap;margin-bottom:.5mm;letter-spacing:0}.ekp .sh-qr .ekqr-cd{font-size:7pt;color:#111;letter-spacing:0;margin-top:.5mm;white-space:normal;text-align:center;line-height:1.15}.ekp .sh-qr.has{height:auto;min-height:17mm;width:22mm}.ekp .sh-qr.big.has{width:27mm}.ekp .sh-r{align-items:flex-end}'
     /* 印刷：紙の余白を @page で取り、.sheet は中身の大きさ（186×277mm）だけにする。紙の幅 210mm の箱のまま刷ると、ほかの紙（186mm）より広いので Chrome が全部のページを縮めて刷る（2026-11-03 試験で発覚） */
     /* ページからはみ出す物（KaTeX の \\underbrace の線は 40万 px の幅の図）があると、Chrome が全部のページを縮めて刷る＝ぐるぐる印刷のページははみ出しを切る */
-    +/* 2026-11-21 下の「表（裏に続く）」が刷ると切れていた：前は .sh-ft を 3mm 下へずらして紙の箱の外に出し、はみ出しを切る箱（.ekpr-pg）で切られていた。紙の箱を下に 3mm 伸ばして（下の余白 6mm）文字を箱の中に置く。画面で組む位置（下から 6mm）は前と同じ＝割り付けは変わらない */
+    /* 2026-11-21 下の「表（裏に続く）」が刷ると切れていた：前は .sh-ft を 3mm 下へずらして紙の箱の外に出し、はみ出しを切る箱（.ekpr-pg）で切られていた。紙の箱を下に 3mm 伸ばして（下の余白 6mm）文字を箱の中に置く。画面で組む位置（下から 6mm）は前と同じ＝割り付けは変わらない */
     +'@page ekp{size:A4 portrait;margin:11mm 10mm 6mm 14mm;@bottom-center{content:none}}'
     +'@media print{#printArea .ekp-doc{width:auto}#printArea .ekp-doc .sheet{page:ekp;width:186mm;height:279.5mm;padding:0;margin:0!important;box-shadow:none!important;break-after:page;page-break-after:always;overflow:visible}#printArea .ekp-doc .sh-ft{bottom:0;transform:none}#printArea .ekpr-pg{overflow:hidden!important}#printArea .ekp-doc:last-child .sheet:last-child{break-after:auto;page-break-after:auto}}';
   document.head.appendChild(st);
