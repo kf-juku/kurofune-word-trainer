@@ -621,28 +621,37 @@ FP.svg=function(size,cls,pad,H,fs){size=size||120;cls=cls||'gch';pad=pad===undef
  const cen=(()=>{const q=Object.values(this.pt).filter(v=>v.dot).map(v=>X(v.xy));return q.length?[q.reduce((s,p)=>s+p[0],0)/q.length,q.reduce((s,p)=>s+p[1],0)/q.length]:[size/2,Ht/2];})();
  later.filter(t=>t.k==='dim').forEach(t=>{const A=X(t.a),B=X(t.b),M=mid(A,B),u=unit(sub(B,A));let nv=[-u[1],u[0]];if((M[0]-cen[0])*nv[0]+(M[1]-cen[1])*nv[1]<0)nv=[-nv[0],-nv[1]];
   const w=String(t.t).length*fs*.32+6,P=[M[0]+nv[0]*(Math.abs(nv[0])*w+fs*.7),M[1]+nv[1]*(fs*.85)];o.push(`<text x="${n1(P[0])}" y="${n1(P[1]+fs*.36)}" text-anchor="middle" font-size="${fs-1}" font-weight="700"${t.col?` fill="${t.col}"`:''} ${SH}>${t.t}</text>`);labs.push(P);});
- const place=(P,cands,r,len)=>{let best=-1e9,bp=null;cands.forEach(a=>{const ar=a*Math.PI/180,c=[P[0]+Math.cos(ar)*r,P[1]-Math.sin(ar)*r];
-   let dmin=99;smp.forEach(q=>{dmin=Math.min(dmin,Math.hypot(c[0]-q[0],c[1]-q[1]));});dots.forEach(q=>{if(q!==P)dmin=Math.min(dmin,Math.hypot(c[0]-q[0],c[1]-q[1])*.8);});labs.forEach(q=>{dmin=Math.min(dmin,Math.hypot(c[0]-q[0],c[1]-q[1])*.6);});
-   const hw=fs*.45*(len||1),edge=Math.min(c[0]-hw,size-c[0]-hw,c[1]-fs*.55,Ht-c[1]-fs*.45);let s=dmin+(edge>=0?0:edge*3);if([60,120,240,300,45,135,225,315].includes(a))s+=.2;if(s>best){best=s;bp=c;}});return bp;};
+ const place=(P,cands,r,len,nb)=>{let best=-1e9,bp=null;cands.forEach(a=>{const ar=a*Math.PI/180,c=[P[0]+Math.cos(ar)*r,P[1]-Math.sin(ar)*r];
+   let dmin=99;smp.forEach(q=>{dmin=Math.min(dmin,Math.hypot(c[0]-q[0],c[1]-q[1]));});dots.forEach(q=>{if(q!==P)dmin=Math.min(dmin,Math.hypot(c[0]-q[0],c[1]-q[1])*.8);});let hit=0;labs.forEach(q=>{const dd=Math.hypot(c[0]-q[0],c[1]-q[1]);dmin=Math.min(dmin,dd*.6);if(dd<fs*1.15)hit=1;});/* 2026-11-21 番号どうしが重ならないように（C の型で ❹❺ が重なった） */
+   const hw=fs*.45*(len||1),edge=Math.min(c[0]-hw,size-c[0]-hw,c[1]-fs*.55,Ht-c[1]-fs*.45);let s=dmin+(edge>=0?0:edge*3);if([60,120,240,300,45,135,225,315].includes(a))s+=.2;if(hit&&nb)s-=100;if(s>best){best=s;bp=c;}});return bp;};
  const ALL=[];for(let a=0;a<360;a+=15)ALL.push(a);
  later.filter(t=>t.k==='txt').forEach(t=>{const P=X(t.at);labs.push(P);o.push(`<text x="${n1(P[0])}" y="${n1(P[1]+fs*.36)}" text-anchor="middle" font-size="${fs}" font-weight="700"${t.col?` fill="${t.col}"`:''} ${SH}>${t.t}</text>`);});
- later.filter(t=>t.k==='lab').forEach(t=>{const P=X(t.at),bp=place(P,ALL,fs*.95,String(t.t).length);labs.push(bp);o.push(`<text x="${n1(bp[0])}" y="${n1(bp[1]+fs*.36)}" text-anchor="middle" font-size="${fs}" font-weight="700"${t.red?` fill="${RED}"`:''} ${SH}>${t.t}</text>`);});
+ later.filter(t=>t.k==='lab').forEach(t=>{const fz=this.one?fs*1.35:fs,P=X(t.at),bp=place(P,ALL,fz*.95,String(t.t).length,1);labs.push(bp);o.push(`<text x="${n1(bp[0])}" y="${n1(bp[1]+fz*.36)}" text-anchor="middle" font-size="${fz}" font-weight="700"${t.red?` fill="${t.col||RED}"`:''} ${SH}>${t.t}</text>`);});
  this.order.forEach(k=>{const v=this.pt[k];if(!v.lab)return;const P=X(v.xy),bp=place(P,v.ld!==undefined?[v.ld]:ALL,fs*.78,1);labs.push(bp);
   const it=(v.lab==='ℓ'||v.lab==='m')?' font-style="italic"':'';o.push(`<text x="${n1(bp[0])}" y="${n1(bp[1]+fs*.36)}" text-anchor="middle" font-size="${fs}" font-weight="700"${it}${v.red?` fill="${RED}"`:''} ${SH}>${v.lab}</text>`);});
  return o.join('')+'</svg>';};
 /* ---- 作図の手順 ---- */
-function bis(F,s,num){const a=F.xy(s.a),b=F.xy(s.b),ca=s.ca?F.xy(s.ca):a,cb=s.cb?F.xy(s.cb):b,r=s.r||dist(a,b)*.72,rb=s.rb||r,ext=s.ext===undefined?14:s.ext;
+function bis(F,s,num,ord){const a=F.xy(s.a),b=F.xy(s.b),ca=s.ca?F.xy(s.ca):a,cb=s.cb?F.xy(s.cb):b,r=s.r||dist(a,b)*.72,rb=s.rb||r,ext=s.ext===undefined?14:s.ext;
  F.R('_M',mid(a,b));const I=cc(ca,r,cb,rb);
  if(I.length){const [X,Y]=I;F.R('_X',X);F.R('_Y',Y);F.arc2(ca,X,Y,ext);F.arc2(cb,X,Y,ext);
   if(s.draw===undefined||s.draw==='XY')F.line(X,Y,{w:'c'});else if(s.draw==='XA')F.line(X,a,{w:'c'});
+  /* 2026-11-21 フォレスタ中1 5-8 と同じ：❶＝A・B を中心にした2本の弧の両方・❷＝直線の先 */
+  if(ord&&!num){if(!s.lo)lab2(F,F.one&&s.draw!=='XA'?Y:X,[ca,cb],[r,rb],NB(s,0));const e=s.draw==='XA'?unit(sub(X,a)):unit(sub(X,Y)),E=add(X,e,dist(X,Y)*.22);F.fitp.push(add(X,e,dist(X,Y)*.3));if(s.draw!=='none')F.lab(E,NB(s,s.lo?0:1));}
   if(num){const t=deg(sub(X,ca));F.lab(add(ca,[Math.cos((t+ext*.6)*Math.PI/180),Math.sin((t+ext*.6)*Math.PI/180)],r),'❶');F.lab(add(Y,unit(sub(Y,X)),dist(X,Y)*.18),'❷');}
   return;}
  /* 弧が交わらない（半径が短い）：相手の中心の向きに ±50° の弧 */
- [[ca,cb,r],[cb,ca,rb]].forEach(([c,c2,rr])=>{const t=deg(sub(c2,c));F.arc(c,rr,t-50,t+50);});}
-function pon(F,s,num){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),r1=s.r1||dist(l1,l2)*.2;const [U,V]=lc(l1,l2,p,r1);F.R('_U',U);F.R('_V',V);
- F.arcat(p,U,14);F.arcat(p,V,14);bis(F,{a:U,b:V,r:s.r2||r1*1.5,draw:s.draw},false);if(num){F.lab(U,'❶');F.lab(F.xy('_X'),'❷');}}
-function pext(F,s,num){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),c=s.c1?F.xy(s.c1):p,H=foot(p,l1,l2);F.R('_H',H);
- const r1=s.r1||dist(p,H)*1.45,I=lc(l1,l2,c,r1);if(I.length<2)return;let [U,V]=I;
+ [[ca,cb,r],[cb,ca,rb]].forEach(([c,c2,rr])=>{const t=deg(sub(c2,c));F.arc(c,rr,t-50,t+50);if(ord&&!num&&!s.lo&&!(F.one&&c===cb))F.lab(add(c,dirv(t+40),rr),NB(s,0));});}
+/* 2026-11-21 作図の番号をフォレスタ（中1 5-10）の形に：❶＝大きな弧1本・❷＝×印の2本の弧の両方・❸＝直線の先。lab2＝×印の弧（中心 cs・半径 rs）の、×から少し外がわに ❷ を付ける */
+/* 2026-11-21 C の型（作図を2つ使う問題）：s.n0＝この手順の番号を何番から始めるか（0＝❶）。7番＝垂直二等分線 ❶❷ のあと垂線を n0:2 で ❸〜 */
+const NB=(s,i)=>'❶❷❸❹❺❻❼❽'[(s&&s.n0||0)+i];
+const dirv=t=>[Math.cos(t*Math.PI/180),Math.sin(t*Math.PI/180)];
+function lab2(F,X,cs,rs,t){if(F.one){if(t)F.lab(X,t);return;}cs.forEach((c,i)=>{const r=rs[i]||rs[0],a=deg(sub(X,c)),o=cs[1-i];const P1=add(c,dirv(a+24),r),P2=add(c,dirv(a-24),r);F.lab(o&&dist(P1,o)<dist(P2,o)?P2:P1,t);});}
+/* P を中心にして、ℓ と U・V で交わり n の側を通る大きな弧（half＝U の側から n まで） */
+function semi(F,p,U,V,n,half){const r=dist(p,U),tu=deg(sub(U,p)),tn=deg(n);let du=nd(tn-tu);const a0=tu-8*Math.sign(du),a1=half?tn+10*Math.sign(du):tu+2*du+8*Math.sign(du);F.arc(p,r,Math.min(a0,a1),Math.max(a0,a1));return add(p,dirv(tu+du*.55),r);}
+function pon(F,s,num,ord){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),r1=s.r1||dist(l1,l2)*.2;const [U,V]=lc(l1,l2,p,r1);F.R('_U',U);F.R('_V',V);
+ const r2=Math.max(s.r2||r1*1.5,(num||ord)?r1*2.3:0),X0=cc(U,r2,V,r2);let n=X0.length?unit(sub(X0[0],p)):[0,-1];if(s.sgn<0)n=[-n[0],-n[1]];const A1=semi(F,p,U,V,n,false);bis(F,{a:U,b:V,r:r2,draw:s.draw},false);if(num||ord){const X=F.xy('_X');if(s.lo){F.lab(add(X,unit(sub(X,p)),r1*1.05),NB(s,0));}else{F.lab(A1,NB(s,0));lab2(F,X,[U,V],[r2],NB(s,1));if(!s.noln){if(F.one){const E2=add(p,unit(sub(p,X)),r1*1.15);F.fitp.push(add(p,unit(sub(p,X)),r1*1.4));F.lab(E2,NB(s,2));}else F.lab(add(X,unit(sub(X,p)),r1*1.05),NB(s,2));}}F.fitp.push(add(X,unit(sub(X,p)),r1*1.3));}}
+function pext(F,s,num,ord){if(ord)num=true;const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),c=s.c1?F.xy(s.c1):p,H=foot(p,l1,l2);F.R('_H',H);
+ let r1=s.r1||dist(p,H)*1.45;{/* 2026-11-21 川上さん「1つ目の弧で点 B を通るのはたまたま。誤解を生む」：❶ の弧が三角形の頂点（直線の2点）をちょうど通らないように、近いときは半径を頂点の手前にする */const h0=dist(c,H),dm=Math.min(dist(c,l1),dist(c,l2));if(Math.abs(r1-dist(c,l1))<.45||Math.abs(r1-dist(c,l2))<.45)r1=(dm-h0)>1.2?h0+(dm-h0)*.45:h0*1.08;}const I=lc(l1,l2,c,r1);if(I.length<2)return;let [U,V]=I;
  /* ❶ の弧：中心から見て直線の側を通り、U・V の外へ少しのばす */
  const tu=deg(sub(U,c)),dd=nd(deg(sub(V,c))-tu);let a0=tu,a1=tu+dd;if(Math.abs(side(c,l1,l2))<1e-6*dist(l1,l2)){/* 中心が直線上：P と反対側の半円 */let nv=unit([-(l2[1]-l1[1]),l2[0]-l1[0]]);if(side(add(c,nv),l1,l2)*side(p,l1,l2)>0)nv=[-nv[0],-nv[1]];const md=deg(nv);a0=md-90;a1=md+90;}
  if(a1<a0){const z=a0;a0=a1;a1=z;}F.arc(c,s.r1d||r1,a0-12,a1+12);
@@ -653,7 +662,7 @@ function pext(F,s,num){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),c=s.c1?
  else{/* 交わらない：それぞれ、相手の中心とのまん中の向こう側に向けて短い弧 */const M=mid(cs[0],cs[1]),nv=unit([-(l2[1]-l1[1]),l2[0]-l1[0]]),k=side(add(M,nv),l1,l2)*sp<0?1:-1,T=add(M,nv,k*dist(cs[0],cs[1])*.6);
   [[cs[0],r2],[cs[1],r2b]].forEach(([cc_,rr])=>{const t=deg(sub(T,cc_)),spn=(s.span||22)*2.6/Math.max(rr,1.2);F.arc(cc_,rr,t-spn,t+spn);});F.R('_X',T);}
  if(s.draw===undefined||s.draw==='perp')F.line(p,H,{w:'c'});
- if(num){F.lab(add(c,[Math.cos((a0-6)*Math.PI/180),Math.sin((a0-6)*Math.PI/180)],r1),'❶');F.lab(F.xy('_X'),'❷');F.lab(add(p,unit(sub(p,H)),dist(p,H)*.35),'❸');}}
+ if(num){const X=F.xy('_X');if(s.lo){F.lab(add(X,unit(sub(X,p)),dist(p,H)*.4),NB(s,0));}else{F.lab(add(c,dirv(a0+(a1-a0)*.18),s.r1d||r1),'❶');lab2(F,X,cs,[r2,r2b],'❷');F.lab(add(X,unit(sub(X,p)),dist(p,H)*.4),'❸');}}}
 function abis(F,s,num){const o=F.xy(s.o),a=F.xy(s.a),b=F.xy(s.b),r1=s.r1||Math.min(dist(o,a),dist(o,b))*.55,U=add(o,unit(sub(a,o)),r1),V=add(o,unit(sub(b,o)),r1);F.R('_U',U);F.R('_V',V);
  F.arc2(o,U,V,10);const r2=s.r2||dist(U,V)*.8,r2b=s.r2b||r2,Xs=cc(U,r2,V,r2b).filter(q=>dist(q,o)>r1);if(!Xs.length)return;const X=Xs[0];F.R('_X',X);F.arcat(U,X,22,r2);F.arcat(V,X,22,r2b);
  if(s.draw===undefined||s.draw==='OX')F.ray(o,X,{w:'c'});if(num){F.lab(U,'❶');F.lab(X,'❷');}}
@@ -692,28 +701,50 @@ function NOTE(svg,notes){const num=v=>parseFloat(v),P={},L=[],T=[];let m;
    どの形も、最後の直線は P を通り ℓ に垂直（線の向きでは見分けられない。作図の跡＝弧で見分ける）。mode：
    'noarc'＝❶ の弧をかかずに、×印だけ／'c2P'＝❷ の弧の1つを P を中心にかいた／'tan'＝❶ の弧が ℓ に1点でふれるだけ／
    'bis'＝P と関係ない ℓ 上の2点で垂直二等分線の作図（大きな弧）／'one'＝❷ の弧が1つだけで×印が無い */
-function pextw(F,s){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),H=foot(p,l1,l2);F.R('_H',H);const h=dist(p,H),d=unit(sub(l2,l1)),n=unit(sub(H,p));
- const w=s.w||1.45,U=add(H,d,-w*h*.73),V=add(H,d,w*h*.73),X=add(H,n,(s.xd||1.1)*h),sp=s.span||22;
+function pextw(F,s,num,ord){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),H=foot(p,l1,l2);F.R('_H',H);const h=dist(p,H),d=unit(sub(l2,l1)),n=unit(sub(H,p));
+ let w=s.w||1.45;{const near=ww=>{const r=h*Math.hypot(1,ww*.73);return Math.abs(r-dist(p,l1))<.45||Math.abs(r-dist(p,l2))<.45;};for(let g=0;g<12&&near(w);g++)w-=.06;}const U=add(H,d,-w*h*.73),V=add(H,d,w*h*.73),X=add(H,n,(s.xd||1.1)*h),sp=s.span||22;
  const arc1=(r)=>{const tu=deg(sub(U,p)),dd=nd(deg(sub(V,p))-tu);let a0=tu,a1=tu+dd;if(a1<a0){const z=a0;a0=a1;a1=z;}F.arc(p,r,a0-12,a1+12);};
  if(s.mode==='noarc'){F.arcat(U,X,sp);F.arcat(V,X,sp);}
  else if(s.mode==='c2P'){arc1(dist(p,U));F.arcat(p,X,sp);F.arcat(U,X,sp);}
  else if(s.mode==='tan'){const t=deg(n);const ts=s.tspan||50;F.arc(p,h,t-ts,t+ts);F.arcat(U,X,sp);F.arcat(V,X,sp);}
  else if(s.mode==='bis'){const a=add(H,d,-h*1.05),b=add(H,d,h*1.05),r=dist(a,X);const I=cc(a,r,b,r);if(I.length){F.arc2(a,I[0],I[1],14);F.arc2(b,I[0],I[1],14);}}
  else if(s.mode==='one'){arc1(dist(p,U));F.arcat(U,X,sp*1.3);}
- F.line(p,X,{w:'c'});}
+ else if(s.mode==='rev'||s.mode==='lnfirst'){arc1(dist(p,U));F.arcat(U,X,sp);F.arcat(V,X,sp);}
+ F.line(p,X,{w:'c'});
+ /* 2026-11-21 川上さん「×のつけ方とその順番で、まちがいの選択肢は十分作れる」：選択肢の図（sp.ord）は、弧と線にかいた順の番号 ❶❷❸ を付ける。
+    'rev'＝弧は正しい形と同じで、×印の弧が ❶・P を中心にした弧が ❷（×印の弧の中心 U・V は ❶ でできる点なので、この順ではかけない） */
+ if(ord){const r=dist(p,U),tu=deg(sub(U,p)),tv=deg(sub(V,p)),A1=add(p,dirv(tu+nd(tv-tu)*.2),r),LE=add(X,n,h*.8),m=(F.fitp.push(add(X,n,h*1.0)),s.mode),XX=c=>lab2(F,X,c,c.map(q=>dist(q,X)),'');
+  const L2=(cs,t)=>lab2(F,X,cs,cs.map(q=>dist(q,X)),t);
+  if(m==='noarc'){L2([U,V],'❶');F.lab(LE,'❷');}
+  else if(m==='bis'){F.lab(add(H,d,-h*1.05),'❶');F.lab(LE,'❷');}
+  else if(m==='tan'){const t=deg(n),ts=s.tspan||50;F.lab(add(p,dirv(t-ts*.6),h),'❶');L2([U,V],'❷');F.lab(LE,'❸');}
+  else if(m==='rev'){L2([U,V],'❶');F.lab(A1,'❷');F.lab(LE,'❸');}
+  else if(m==='lnfirst'){F.lab(A1,'❶');L2([U,V],'❸');F.lab(LE,'❷');}   /* 'lnfirst'＝直線を ❷ でひいてから×印の弧を ❸（直線は×印の交点を通るので、この順ではひけない） */
+  else if(m==='one'){F.lab(A1,'❶');L2([U],'❷');F.lab(LE,'❸');}
+  else if(m==='c2P'){F.lab(A1,'❶');L2([p,U],'❷');F.lab(LE,'❸');}
+  else{F.lab(A1,'❶');L2([U,V],'❷');F.lab(LE,'❸');}}}
 /* 直線上の点 P を通る垂線の作図（正しい形と、手順がちがう形）。どれも最後の直線は P を通り ℓ に垂直（2026-11-09 系統K2）
    mode：'ok'／'noarc'＝❶ の印が無く×印だけ／'c2P'＝×印の弧の1つを P を中心にかいた／'one'＝❷ の弧が1つだけ／'same'＝❷ の半径を ❶ と同じにして弧が P でふれるだけ／'half'＝❶ の印が片側だけで、×印の弧の1つを P を中心にかいた */
-function ponw(F,s){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),d=unit(sub(l2,l1));let n=[-d[1],d[0]];if(s.sgn<0)n=[-n[0],-n[1]];
- const r1=s.r1||dist(l1,l2)*.2,U=add(p,d,-r1),V=add(p,d,r1),r2=r1*(s.k2||1.6),X=add(p,n,Math.sqrt(r2*r2-r1*r1)),sp=s.span||22,m=s.mode||'ok';F.R('_U',U);F.R('_V',V);F.R('_X',X);
- if(m!=='noarc'){F.arcat(p,U,14);if(m!=='half')F.arcat(p,V,14);}
- if(m==='ok'||m==='noarc'){F.arcat(U,X,sp,r2);F.arcat(V,X,sp,r2);}
+const m0=s=>s.mode||'ok';
+function ponw(F,s,num,ord){const p=F.xy(s.p),l1=F.xy(s.l[0]),l2=F.xy(s.l[1]),d=unit(sub(l2,l1));let n=[-d[1],d[0]];if(s.sgn<0)n=[-n[0],-n[1]];
+ const r1=s.r1||dist(l1,l2)*.2,U=add(p,d,-r1),V=add(p,d,r1),r2=r1*(ord&&m0(s)!=='same'?Math.max(s.k2||1.6,2.3):(s.k2||1.6)),X=add(p,n,Math.sqrt(r2*r2-r1*r1)),sp=s.span||22,m=s.mode||'ok';F.R('_U',U);F.R('_V',V);F.R('_X',X);
+ let A1=null;if(m!=='noarc')A1=semi(F,p,U,V,n,m==='half');   /* 2026-11-21 ❶ はフォレスタと同じく P を中心にした大きな弧1本（前は ℓ との交点のそばの小さな弧2つ） */
+ if(m==='ok'||m==='noarc'||m==='rev'||m==='lnfirst'){F.arcat(U,X,sp,r2);F.arcat(V,X,sp,r2);}
  else if(m==='c2P'||m==='half'){F.arcat(p,X,sp);F.arcat(U,X,sp,r2);}
  else if(m==='one'){F.arcat(U,X,sp*1.4,r2);}
  else if(m==='same'){const ss=s.sgn<0?-1:1,tU=deg(sub(p,U)),tV=deg(sub(p,V));if(ss>0){F.arc(U,r1,tU-8,tU+60);F.arc(V,r1,tV-60,tV+8);}else{F.arc(U,r1,tU-60,tU+8);F.arc(V,r1,tV-8,tV+60);}}
- F.line(p,X,{w:'c'});}
+ F.line(p,X,{w:'c'});
+ if(ord){const LE=add(X,n,r1*1.05),L2=(cs,t)=>lab2(F,X,cs,cs.map(q=>dist(q,X)),t);F.fitp.push(add(X,n,r1*1.3));
+  if(m==='noarc'){L2([U,V],'❶');F.lab(LE,'❷');}
+  else if(m==='rev'){L2([U,V],'❶');F.lab(A1,'❷');F.lab(LE,'❸');}
+  else if(m==='lnfirst'){F.lab(A1,'❶');L2([U,V],'❸');F.lab(LE,'❷');}
+  else if(m==='same'){F.lab(A1,'❶');F.lab(add(p,n,r1*.45),'❷');F.lab(LE,'❸');}
+  else if(m==='one'){F.lab(A1,'❶');L2([U],'❷');F.lab(LE,'❸');}
+  else if(m==='c2P'||m==='half'){F.lab(A1,'❶');L2([p,U],'❷');F.lab(LE,'❸');}
+  else{F.lab(A1,'❶');L2([U,V],'❷');F.lab(LE,'❸');}}}
 /* 60° の作図（正しい形と、手順がちがう形）。どれも半直線 OX は OB と 60° をつくる
    mode：'ok'／'noarc'＝❶ の弧が無く×印だけ／'one'＝❷ の弧が無い／'only2'＝❶ の弧が無く ❷ の弧だけ／'nomeet'＝❶ の弧が OB と交わっていない／'cB'＝❷ の弧の中心が U ではなく B */
-function a60w(F,s){const o=F.xy(s.o),b=F.xy(s.b),d=unit(sub(b,o)),r=s.r||dist(o,b)*.5,U=add(o,d,r),t0=deg(d),m=s.mode||'ok',sp=s.span||22;F.R('_U',U);
+function a60w(F,s,num,ord){const o=F.xy(s.o),b=F.xy(s.b),d=unit(sub(b,o)),r=s.r||dist(o,b)*.5,U=add(o,d,r),t0=deg(d),m=s.mode||'ok',sp=s.span||22;F.R('_U',U);
  const X=add(o,[Math.cos((t0+60)*Math.PI/180),Math.sin((t0+60)*Math.PI/180)],r);F.R('_X',X);const pa=t=>add(o,[Math.cos(t*Math.PI/180),Math.sin(t*Math.PI/180)],r);F.R('_N1',pa(t0+28));{const tx=deg(sub(X,U))+22;F.R('_N2',add(U,[Math.cos(tx*Math.PI/180),Math.sin(tx*Math.PI/180)],r));}
  if(m==='ok'||m==='one'||m==='cB')F.arc(o,r,t0-10,t0+80);
  if(m==='nomeet')F.arc(o,r,t0+28,t0+85);
@@ -721,7 +752,17 @@ function a60w(F,s){const o=F.xy(s.o),b=F.xy(s.b),d=unit(sub(b,o)),r=s.r||dist(o,
  if(m==='noarc'){F.arcat(o,X,sp,r);F.arcat(U,X,sp,r);}
  if(m==='only2')F.arcat(U,X,sp*1.6,r);
  if(m==='cB')F.arcat(b,X,sp,dist(b,X));
- F.ray(o,X,{w:'c'});if(s.lab)F.P(s.lab,add(o,unit(sub(X,o)),r*1.75),{dot:false});}
+ if(m==='rev'){F.arc(o,r,t0-10,t0+80);F.arcat(U,X,sp,r);}
+ F.ray(o,X,{w:'c'});if(s.lab)F.P(s.lab,add(o,unit(sub(X,o)),r*1.75),{dot:false});
+ /* 2026-11-21 フォレスタ中1 の作図と同じ番号：❶＝O を中心にした弧・❷＝U を中心にした弧・❸＝半直線の先。'rev'＝弧は正しい形と同じで、U を中心にした弧が ❶（U は ❶ の弧でできる点なので、この順ではかけない） */
+ if(ord){const RE=add(o,unit(sub(X,o)),r*1.55);F.fitp.push(add(o,unit(sub(X,o)),r*1.7));const A1=pa(t0+40),A2=add(U,dirv(deg(sub(X,U))+24),r);
+  if(m==='ok'){F.lab(A1,'❶');F.lab(A2,'❷');F.lab(RE,'❸');}
+  else if(m==='rev'){F.lab(A2,'❶');F.lab(A1,'❷');F.lab(RE,'❸');}
+  else if(m==='one'){F.lab(A1,'❶');F.lab(RE,'❷');}
+  else if(m==='only2'){F.lab(A2,'❶');F.lab(RE,'❷');}
+  else if(m==='nomeet'){F.lab(pa(t0+60),'❶');F.lab(A2,'❷');F.lab(RE,'❸');}
+  else if(m==='noarc'){lab2(F,X,[o,U],[r,r],'❶');F.lab(RE,'❷');}
+  else if(m==='cB'){F.lab(A1,'❶');F.lab(add(b,dirv(deg(sub(X,b))+12),dist(b,X)),'❷');F.lab(RE,'❸');}}}
 /* 2本の直線の交点に点をおく：{k:'meet', a:[点,点], b:[点,点], nm:'P', lab} */
 function meet(F,s){const p1=F.xy(s.a[0]),p2=F.xy(s.a[1]),q1=F.xy(s.b[0]),q2=F.xy(s.b[1]),d1=sub(p2,p1),d2=sub(q2,q1),den=d1[0]*d2[1]-d1[1]*d2[0];if(Math.abs(den)<1e-12)return;
  const t=((q1[0]-p1[0])*d2[1]-(q1[1]-p1[1])*d2[0])/den,P=add(p1,d1,t);F.R(s.nm,P);if(s.show!==false)F.P(s.nm.replace(/^_/,''),P,{lab:s.lab===undefined?s.nm.replace(/^_/,''):s.lab,red:!!s.red});}
@@ -736,7 +777,10 @@ function SAKU(sp){const F=new Fig();
   (sp.steps||[]).forEach(s=>Object.keys(s).forEach(k=>{if(isP(s[k]))s[k]=R(s[k]);}));(sp.txts||[]).forEach(q=>{const r=R([q[0],q[1]]);q[0]=r[0];q[1]=r[1];});}
  (sp.pts||[]).forEach(q=>F.P(q[0],[q[1],q[2]],q[3]));
  (sp.segs||[]).forEach(q=>F.seg(q[0],q[1],q[2]));(sp.lines||[]).forEach(q=>F.line(q[0],q[1],q[2]));(sp.rays||[]).forEach(q=>F.ray(q[0],q[1],q[2]));
- (sp.steps||[]).forEach(s=>{F.sfx=s.id||'';STEP[s.k](F,s,!!sp.num);F.sfx='';});
+ F.one=!!sp.one;/* 2026-11-21 11:59 川上さん「番号がぐちゃぐちゃ」：sp.one＝1つの手順に番号1つ */
+ (sp.steps||[]).forEach(s=>{F.sfx=s.id||'';const i0=F.it.length;STEP[s.k](F,s,!!sp.num,!!sp.ord);F.sfx='';
+  /* 2026-11-21 s.col＝この手順の弧と線の色・s.acol＝弧だけの色・s.lw＝線の太さ（作図を2つ使う問題で、どの線がどの作図かを色で分ける） */
+  if(s.col||s.acol||s.lw||s.dash)F.it.slice(i0).forEach(t=>{if(t.k==='arc'){const c=s.acol||s.col;if(c)t.o=Object.assign({},t.o,{col:c});}else if(t.k==='line'||t.k==='ray'||t.k==='seg'){t.o=Object.assign({},t.o,s.col?{col:s.col}:{},s.lw?{w:s.lw}:{},s.dash?{dash:1}:{});}/* s.dash＝白黒で刷っても見分けられるように、後にかく作図の直線を点線に */else if(t.k==='lab'&&s.col&&s.lo)t.col=s.col;});});
  (sp.show||[]).forEach(q=>F.P(q[1],F.xy(q[0]),q[2]));
  (sp.ra||[]).forEach(q=>F.ra(q[0],q[1],q[2]));(sp.tick||[]).forEach(q=>F.tick(q[0],q[1],q[2],q[3]));(sp.dims||[]).forEach(q=>F.dim(q[0],q[1],q[2],q[3]));
  (sp.labs||[]).forEach(q=>F.lab(q[0],q[1],q[2]));
