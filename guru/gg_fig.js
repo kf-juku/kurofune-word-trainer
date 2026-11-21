@@ -1651,7 +1651,7 @@ function walk(o){const {who,ap,h,dest,T1,D}=o;const ax=o.ax||AX(T1,[D]);const w0
  const fig=GQ({...ax,xu:'分',yu:'m',polys:[[[[0,0],[T1,D]]]],pts:[[T1,D]]});
  const fig1=GQ({...ax,xu:'分',yu:'m',polys:[[[[0,0],[T1,D]]]],pts:[[T1,D]],rings:[[T1,D]],dsh:[[T1,0,T1,D],[0,D,T1,D]],labs:[[T1,D,`(${T1}, ${D})`,'end',-12,-8,1]]});
  const xe=L.dl+D/L.u;
- const fig2=GQ({...ax,xu:'分',yu:'m',polys:[[[[0,0],[T1,D]]],[[[L.dl,0],[Math.min(xe,ax.xmax),L.u*(Math.min(xe,ax.xmax)-L.dl)]],1]],pts:[[L.dl,0]],rings:[[xm,ym]],labs:[[xm,ym,'追いつく','end',-12,-6,1],[L.dl,0,`(${L.dl}, 0)`,'start',6,-6,1],...NML(ax,[[who,[0,0],[T1,D],'u',.35],[L.who,[L.dl,0],[Math.min(xe,ax.xmax),L.u*(Math.min(xe,ax.xmax)-L.dl)],'d',.55]],'家',dest,D,xm)]});
+ const fig2=GQ({...ax,xu:'分',yu:'m',polys:[[[[0,0],[T1,D]]],[[[L.dl,0],[Math.min(xe,ax.xmax),L.u*(Math.min(xe,ax.xmax)-L.dl)]],1]],pts:[[L.dl,0],[T1,D]],rings:[[xm,ym]],labs:[[xm,ym,'追いつく','end',-12,-6,1],[L.dl,0,`(${L.dl}, 0)`,'start',6,-6,1],[T1,D,`(${T1}, ${D})`,'middle',0,-10,1],...NML(ax,[[who,[0,0],[T1,D],'u',.35],[L.who,[L.dl,0],[Math.min(xe,ax.xmax),L.u*(Math.min(xe,ax.xmax)-L.dl)],'d',.55]],'家',dest,D,xm)]});
  /* a4 速さ */
  const ok4=`分速 ${T(w0)} m`;
  const c4=PICK(ok4,[I(D/(T1+ax.xs),`分速 ${T(D/(T1+ax.xs))} m`),I(D/(T1-ax.xs),`分速 ${T(D/(T1-ax.xs))} m`),`分速 ${T(D)} m`,`分速 ${T(w0/10)} m`,`分速 ${T(w0*10)} m`,`分速 ${FRT(T1,D)} m`,`分速 ${T(w0*2)} m`,I(w0/2,`分速 ${T(w0/2)} m`),`分速 ${T1} m`]);
@@ -1670,8 +1670,8 @@ function walk(o){const {who,ap,h,dest,T1,D}=o;const ax=o.ax||AX(T1,[D]);const w0
   `>分速 ${L.u} m なので、${k5} 分で ${L.u*k5} m 進む → 点 \\((${L.dl+k5},\\ ${L.u*k5})\\) も通る。2つの点を結ぶ（点線）`,
   `手順2：2つのグラフの交点は、点 \\((${T(xm)},\\ ${T(ym)})\\)`,'>交点から軸へ点線をひいて、目もりを読む',
   `手順3：${who}が家を出発してから ${T(xm)} 分後。${ap}${h}時の ${T(xm)} 分後なので`,`答え　${ok5}`,...WM(c5,TM(ap,h,xm-L.dl),[`#まちがい：${L.who}が出発してからの時間を、\\(x\\) だと考えた`,`#❌ ${ap}${h}時に ${T(xm-L.dl)} 分をたして ${TM(ap,h,xm-L.dl)}`,`#\\(x\\) は${who}が家を出てからの時間。${ap}${h}時に ${T(xm)} 分をたす`])];
- const w5=onG?w5g:[fig2,'追いつく所 ＝ 2つのグラフの交点。2つの直線の式を連立方程式にして解く',`${who}の式`,`>原点を通る直線。傾き ＝ 速さ ＝ 分速 ${T(w0)}`,M(R`y=${N(w0)}x\quad\text{…①}`),
-  `${L.who}の式`,...LATER(C,{u:L.u,s:L.dl,lab:'②'}),
+ const w5=onG?w5g:[fig2,'追いつく所 ＝ 2つのグラフの交点。2つの直線の式を連立方程式にして解く',`${who}の式`,`>グラフは点 \\((${T1},\\ ${D})\\) を通る。${T1} 分で ${D} m 進むので、分速は \\(${D}\\div ${T1}=${N(w0)}\\)`,`>原点を通る直線。傾き ＝ 速さ ＝ 分速 ${T(w0)}`,M(R`y=${N(w0)}x\quad\text{…①}`),
+  `${L.who}の式`,...LATER(C,{u:L.u,s:L.dl,lab:'②',why:`${L.who}は ${L.dl} 分後に家（0 m）を出るので、${L.who}の直線は点 \\((${L.dl},\\ 0)\\) を通る`}),
   ...MEET(C,{l:[tm(w0,'x')],r:[tm(L.u,'x'),tm(b2)],rt:`${L.u}x-${L.u*L.dl}`,lt:`${N(w0)}x`}),
   `${who}が家を出発してから ${T(xm)} 分後。${ap}${h}時の ${T(xm)} 分後なので`,`答え　${ok5}`,...WM(c5,TM(ap,h,xm-L.dl),[`#まちがい：${L.who}が出発してからの時間を、\\(x\\) だと考えた`,`#❌ ${ap}${h}時に ${T(xm-L.dl)} 分をたして ${TM(ap,h,xm-L.dl)}`,`#\\(x\\) は${who}が家を出てからの時間。${ap}${h}時に ${T(xm)} 分をたす`])];
  const s5={ty:o.ty5||'a5',s:`${who}が家を出発してから ${L.dl} 分後に、${L.who}が${L.how}分速 ${L.u} m で家を出発し、同じ道を${dest}へ向かった。${L.who}が ${who}に追いつく時刻を求めなさい。`,c:C6(ok5,c5,o.p5),w:CL(w5),chk:{t:'walk5',T1,D,dl:L.dl,u:L.u,h,ans:xm}};
@@ -1681,7 +1681,7 @@ function SPEED(C,o){const f=R`\text{速さ}=\UA{\text{道のり}}\div\UB{\text{�
  return [BOX(ROUTE([[o.from,0],[o.to,1]],[[0,1,`${o.D} m`,`${o.T1} 分`]]),'!道のり ＝ 速さ × 時間'),M(f),`>${o.note}。代入する`,M(R`\text{速さ}=${U(R`\UA{${o.D}}\div\UB{${o.T1}}`,T(o.v))}`),DAI(C,f,s,false),M(R`\text{速さ}=${N(o.v)}`)];}
 /* あとから家を出る人の式：傾き u、点 (s, 0) を通る */
 function LATER(C,o){const u=o.u,s=o.s;const w=[M(R`y=\UA{a}x+b`),`>1分間に ${u} m 進むので、傾き \\(a\\) に ${u} を代入する`,M(R`y=\UA{${u}}x+b`),DAI(C,R`y=\UA{a}x+b`,R`y=\UA{${u}}x+b`,false),
-  M(R`\UA{y}=${u}\UB{x}+b`),`>${s} 分後に家（0 m）を出るので、点 \\((${s},\\ 0)\\) を通る → \\(x\\) に ${s}、\\(y\\) に 0 を代入する`,M(R`\UA{0}=${U(R`${u}\times\UB{${s}}`,u*s)}+b`)];
+  M(R`\UA{y}=${u}\UB{x}+b`),...(o.why?['>'+o.why]:[]),`>${s} 分後に家（0 m）を出るので、点 \\((${s},\\ 0)\\) を通る → \\(x\\) に ${s}、\\(y\\) に 0 を代入する`,M(R`\UA{0}=${U(R`${u}\times\UB{${s}}`,u*s)}+b`)];
  const r=SOLVE(C,[tm(0)],[tm(u*s),tm(1,'b')],'b',{});push(w,...r.w);
  push(w,`>\\(b\\) に ${T(-u*s)} を代入する`,M(R`y=${u}x\UA{-${u*s}}\quad\text{…${o.lab}}`));return w;}
 /* 2つの式の y を等しくして x を求める（① を ② の y に代入） */
@@ -1692,7 +1692,7 @@ function dotAB(o){const {AD,AB,v,k}=o;const cf=AD*v/2;const x0=k/cf;const tend=A
  const fig=RECT(AD,AB,AB*0.55,{id:o.id+'q',dims:1,w:170});
  const DER=C=>{const fa=R`\text{AP}=\UA{\text{速さ}}\times\UB{\text{時間}}`,sa=R`\text{AP}=\UA{${v}}\times\UB{x}`,fy=R`y=\UA{\text{底辺}}\times\UB{\text{高さ}}\times\dfrac{1}{2}`;
   return [M(fa),BOX(TBL([['時間（秒）','1','2',M('x')],['AP（cm）',String(v),String(2*v),M(`${v}x`)]]),`!秒速 ${v} cm：1秒間に ${v} cm 進む`),`>秒速 ${v} cm で \\(x\\) 秒進む。代入する`,M(R`\text{AP}=${U(R`\UA{${v}}\times\UB{x}`,`${v}x`)}`),DAI(C,fa,sa,false),M(R`\text{AP}=${v}x`),
-  RECT(AD,AB,AB*0.55,{id:o.id+'w',w:200,ad:`底辺 AD ＝ ${AD} cm`,adc:'#FF4B00',seg:`高さ AP ＝ ${v}x cm`,sc:'#005AFF',yel:1}),AREA,M(fy),`>底辺 AD ＝ ${AD}、高さ AP ＝ \\(${v}x\\) を代入する`,
+  RECT(AD,AB,AB*0.55,{id:o.id+'w',w:200,ad:`底辺 AD ＝ ${AD} cm`,adc:'#FF4B00',seg:`高さ AP ＝ ${v}x cm`,sc:'#005AFF',yel:1}),AREA,M(fy),'>長方形の角 A は 90° なので、AP は底辺 AD に垂直。だから高さは AP',`>底辺 AD ＝ ${AD}、高さ AP ＝ \\(${v}x\\) を代入する`,
   M(R`y=${U(R`\UA{${AD}}\times\UB{${v}x}`,`${AD*v}x`)}\times\dfrac{1}{2}`),M(R`y=${U(`${AD*v}x\\times\\dfrac{1}{2}`,`${N(cf)}x`)}`),M(R`y=${N(cf)}x`)];};
  const ok6=M(EQ(cf,0));
  const c6=PICK(ok6,[M(EQ(AD*v,0)),M(EQ(AD/2,0)),M(EQ(AB*v/2,0)),M(EQ(cf,AD)),M(EQ(v/2,0)),M(EQ(AD*AB/2,0))]);
@@ -1757,7 +1757,7 @@ function stop(o){const {who,ap,h,shop,dest,w1,t1,t2,w2,t3}=o;const d1=w1*t1,D=d1
   ...TWO(C,{x1:t2,y1:d1,x2:t3,y2:D,lab:'③',in:['①','②']}),/* 2026-11-21 係14（17:43 A ア）：式の番号は出てくる順。2点の連立 ①②、できた2本の直線 ③④ */
   `${S.who}の式`,BOX(TBL([['時間','1 時間（60 分）','1 分'],['道のり',`${T(S.kmh)} km ＝ ${T(S.kmh*1000)} m`,`${T(S.kmh*1000)}÷60 ＝ ${T(u)} m`]]),'!時速を分速に直す'),
   `>時速 ${T(S.kmh)} km ＝ 分速 ${T(u)} m。家に近づくので \\(y\\) は減る。傾き \\(a\\) に \\(-${N(u)}\\) を代入する`,M(R`y=\UA{-${N(u)}}x+b`),
-  ...LINE(C,{a:-u,x:S.s,y:D,lab:'④',pre:`${S.s} 分後に${dest}（${D} m）を出るので、`}),
+  ...LINE(C,{a:-u,x:S.s,y:D,lab:'④',pre:`${S.s} 分後に${dest}（${D} m）を出るので、`,why:`${S.who}は ${S.s} 分後（${TM(ap,h,S.s)}）に${dest}（家から ${D} m）を出るので、${S.who}の直線は点 \\((${S.s},\\ ${D})\\) を通る`}),/* 2026-11-21 係16：直線が通る点の理由の1行 */
   ...MEET(C,{L:['③','④'],l:[tm(w2,'x'),tm(b1)],r:[tm(-u,'x'),tm(b2)],lt:`${N(w2)}x${b1<0?'-'+N(-b1):'+'+N(b1)}`,rt:`-${N(u)}x+${N(b2)}`}),
   ...EVAL(C,'y',[tm(w2,'x'),tm(b1)],{x:[xm,UA]},{origNote:'家からの道のり \\(y\\) を求める。③ の式を書く',tag:R`\quad\text{…③}`}).w,
   `${ap}${h}時の ${T(xm)} 分後で、家から ${T(ym)} m`,`答え　${ok6}`,...WM(c6,A6(xm,D-ym),[`#まちがい：${dest}からの道のりを答えた`,`#❌ 家から \\(${N(D)}-${N(ym)}=${N(D-ym)}\\) m`,`#\\(y\\) は家からの道のり。答えは家から ${T(ym)} m`])];
@@ -1782,7 +1782,7 @@ function SLOPE(C,o){const {x1,y1,x2,y2}=o;const dy=y2-y1,dx=x2-x1,a=dy/dx;
   DAI(C,R`a=\dfrac{y\text{ の増加量}}{x\text{ の増加量}}`,R`a=(\UA{${y2}}-\UB{${y1}})\div(\UA{${x2}}-\UB{${x1}})`,false),BX.zouka(),M(R`a=${U(`${N(dy)}\\div ${N(dx)}`,N(a))}`),M(R`a=${N(a)}`),
   `>\\(a\\) に ${T(a)} を代入する`,M(R`y=\UA{${N(a)}}x+b`)];return w;}
 /* 傾き a の直線が点 (x, y) を通る → b を求めて、式 …lab */
-function LINE(C,o){const {a,x,y}=o;const w=[M(R`\UA{y}=${N(a)}\UB{x}+b`),`>${o.pre||''}点 \\((${x},\\ ${y})\\) を通る → \\(x\\) に ${x}、\\(y\\) に ${y} を代入する`,M(R`\UA{${y}}=${U(R`${N(a)}\times\UB{${x}}`,N(a*x))}+b`)];
+function LINE(C,o){const {a,x,y}=o;const w=[M(R`\UA{y}=${N(a)}\UB{x}+b`),...(o.why?['>'+o.why]:[]),`>${o.why?'':(o.pre||'')}点 \\((${x},\\ ${y})\\) を通る → \\(x\\) に ${x}、\\(y\\) に ${y} を代入する`,M(R`\UA{${y}}=${U(R`${N(a)}\times\UB{${x}}`,N(a*x))}+b`)];
  const r=SOLVE(C,[tm(y)],[tm(a*x),tm(1,'b')],'b',{});push(w,...r.w);const b=XW.qv(r.x);
  push(w,`>\\(b\\) に ${T(b)} を代入する`,M(R`y=${N(a)}x\UA{${b<0?'-'+N(-b):'+'+N(b)}}`+(o.lab?R`\quad\text{…${o.lab}}`:'')));return w;}
 /* ===== b7 直角三角形の動点：辺 CA 上の式と変域 ===== */
@@ -1796,7 +1796,7 @@ function tri(o){const {BC,CA,v}=o;const L=BC+CA,tc=BC/v,ta=L/v,hb=BC/2;const a=-
   `B から A までの道のりは、BC と CA の長さの和`,M(R`\text{BC}+\text{CA}=${U(`${BC}+${CA}`,L)}`),`>A に着くのは、BC と CA（${BC}＋${CA} ＝ ${L} cm）を進んだとき`,M(R`\text{時間}=${U(R`\UA{${L}}\div\UB{${v}}`,N(ta))}`),`辺 CA 上にあるのは ${T(tc)} 秒後から ${T(ta)} 秒後まで → \\(${N(tc)}\\leqq x\\leqq ${N(ta)}\\)`,
   BOX(NLINE([[0,'B'],[tc,'C'],[ta,'A']],[1,2]),'!変域：P が辺 CA 上にある時間（太い線。● はふくむ）'),
   TRI(BC,CA,sP,{id:o.id+'w',w:230,seg:`底辺 PA ＝ ${L}−${v}x`,sc:'#FF4B00',hb:`高さ BC ＝ ${BC}`,yel:1,path:''}),`>太い線が、P が進んだ道（B → C → P）。\\(x\\) 秒で ${v}×\\(x\\) ＝ \\(${v}x\\) cm 進む。PA は、B から A までの道のりから進んだ長さを引いて出す`,
-  M(R`\text{PA}=\UA{\text{B から A までの道のり}}-\UB{\text{進んだ長さ}}`),'>代入する',M(R`\text{PA}=\UA{${L}}-\UB{${v}x}`),AREA,M(R`y=\UA{\text{底辺}}\times\UB{\text{高さ}}\times\dfrac{1}{2}`),`>底辺 PA ＝ \\(${L}-${v}x\\)、高さ BC ＝ ${BC}（BC は CA と垂直）を代入する`,M(R`y=\UA{(${L}-${v}x)}\times\UB{${BC}}\times\dfrac{1}{2}`),
+  M(R`\text{PA}=\UA{\text{B から A までの道のり}}-\UB{\text{進んだ長さ}}`),'>代入する',M(R`\text{PA}=\UA{${L}}-\UB{${v}x}`),AREA,M(R`y=\UA{\text{底辺}}\times\UB{\text{高さ}}\times\dfrac{1}{2}`),'>∠C ＝ 90° なので、BC は底辺 PA（辺 CA の上）に垂直。だから高さは BC',`>底辺 PA ＝ \\(${L}-${v}x\\)、高さ BC ＝ ${BC}（BC は CA と垂直）を代入する`,M(R`y=\UA{(${L}-${v}x)}\times\UB{${BC}}\times\dfrac{1}{2}`),
   `>\\(${BC}\\times\\dfrac{1}{2}\\) を先に計算する`,M(R`y=(${L}-${v}x)\times${U(`${BC}\\times\\dfrac{1}{2}`,N(hb))}`),'>かけ算の順番を入れかえる',M(R`y=${AF(`両方に ×${N(hb)}`,N(hb))}(${AT(String(L))}${AT('-'+v+'x')})`),BX.bunpai(),
   '>分配法則でかっこをはずす',M(R`y=${N(b)}${UR('-'+N(-a)+'x')}`),M(EQ(a,b)),
   `答え　${ok}`,...WM(c,A(a,b,0,ta),[`#まちがい：変域を 0 秒からにした`,`#❌ \\(0\\leqq x\\leqq ${N(ta)}\\)`,`#変域は辺 CA の上にいる間だけ。辺 BC の上の時間（${T(tc)} 秒後まで）は入れない`])];
@@ -1872,7 +1872,7 @@ function round(o){const {who,ap,h,place,D,T1,T2}=o;const ax=o.ax||AX(T2,[D]);con
   `手順3：${ap}${h}時の ${T(xm)} 分後`,`答え　${ok6}`,...WM(c6,TM(ap,h,xm-S.s),[`#まちがい：${S.who}が出発してからの時間を、\\(x\\) だと考えた`,`#❌ ${ap}${h}時に ${T(xm-S.s)} 分をたして ${TM(ap,h,xm-S.s)}`,`#\\(x\\) は${who}が家を出てからの時間。${ap}${h}時に ${T(xm)} 分をたす`])];
  const w6=(full)=>{if(onG6)return w6g();const C={};return [GQ({...ax,xu:'分',yu:'m',polys:[[poly],[[[S.s,0],[Math.min(xe,ax.xmax),S.u*(Math.min(xe,ax.xmax)-S.s)]],1]],pts:[[S.s,0]],rings:[[xm,ym]],labs:[[xm,ym,'出会う','start',10,4,1],[S.s,0,`(${S.s}, 0)`,'start',6,-6,1],...NML(ax,[[who,[0,0],[T1,D],'u',.4],[S.who,[S.s,0],[Math.min(xe,ax.xmax),S.u*(Math.min(xe,ax.xmax)-S.s)],'d',.55]],'家',place,D,xm)]}),'出会う所 ＝ 2つのグラフの交点。2つの直線の式を連立方程式にして解く',`${who}の帰りの式`,
   ...(full?der(C,'③'):['>(2) で求めた式',M(R`${EQ(-g2,b)}\quad\text{…①}`)]),
-  `${S.who}の式`,...LATER(C,{u:S.u,s:S.s,lab:full?'④':'②'}),
+  `${S.who}の式`,...LATER(C,{u:S.u,s:S.s,lab:full?'④':'②',why:`${S.who}は ${S.s} 分後（${TM(ap,h,S.s)}）に家（0 m）を出るので、${S.who}の直線は点 \\((${S.s},\\ 0)\\) を通る`}),
   ...MEET(C,{L:full?['③','④']:['①','②'],l:[tm(-g2,'x'),tm(b)],r:[tm(S.u,'x'),tm(-S.u*S.s)],lt:`-${N(g2)}x+${N(b)}`,rt:`${S.u}x-${S.u*S.s}`}),
   `${ap}${h}時の ${T(xm)} 分後`,`答え　${ok6}`,...WM(c6,TM(ap,h,xm-S.s),[`#まちがい：${S.who}が出発してからの時間を、\\(x\\) だと考えた`,`#❌ ${ap}${h}時に ${T(xm-S.s)} 分をたして ${TM(ap,h,xm-S.s)}`,`#\\(x\\) は${who}が家を出てからの時間。${ap}${h}時に ${T(xm)} 分をたす`])];};
  const s6={ty:o.ty6||'c6',s:`${S.who}は${ap}${h}時${S.s}分に家を出発し、分速 ${S.u} m で同じ道を${place}へ向かった。${S.who}が ${who}と出会う時刻を求めなさい。`,c:C6(ok6,c6,o.p6),w:CL(w6(false)),chk:{t:'round6',D,T1,T2,s:S.s,u:S.u,ans:xm}};
