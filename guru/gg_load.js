@@ -15,6 +15,7 @@
      表紙の行の gg.rs（問題のある回の一覧。見本は ['A1'] だけ）があるパートは、その回がそろえば「問題あり」（無い回は gg_shell.js が「準備中」にする）。rs が無い行（数学）は今までどおり6回そろって「問題あり」。
      表紙の行の gg.min（分）・gg.meta（表紙の「何問・何分」の行）は parts[].min・parts[].meta に入る
    会話表現（2026-11-17 ぐるぐる英語）：表紙の行の gg.kaiwa が 1 のパートは units[].parts[].kaiwa・parts[].kaiwa＝true（gg_shell.js がローズの帯と札を付け、文法のパートの番号に数えない）
+   問題用紙の枚数（2026-11-23 紙の直し係P・川上さん「Aア」）：回の行の description の gg.sh が 2 の回は parts[].shR[回]＝2（guru\gg_paper.js が A4 両面2枚に組む）。無い回は1枚
    図の行（qtype ws_gg_fig）：大きい問題の SVG を別の行にしたもの。MathFig.ns.ggref.S(md5の頭12字) で引けるようにしてから描く */
 (function(G){
 var RS=['A1','A2','B1','B2','C1','C2'];
@@ -55,7 +56,7 @@ function ggBuildData(rows,opt){
         if(d.ready){var x=P[d.pid]={id:d.pid,subj:SJ,ready:true,grade:d.grade,unit:d.unit,ui:d.ui||0,no:d.kind==='ny'?d.ny.no:d.pi,name:d.name,catch:d.catch||'',cover:d.cover||[],types:d.types||{},kiso:d.kiso||{},meta_name:d.meta_name||'',rounds:{},rui:{},rowIds:{CV:String(pt.id)},point:{sections:[]}};
           if(d.kind==='ny')x.ny=true;else x.imp=ggImp_(d,pt);if(d.kaiwa)x.kaiwa=true;if(d.rs)x.rs=d.rs.slice();if(d.min)x.min=+d.min;if(d.meta)x.meta=d.meta;out.parts.push(x);}
         return;}
-      if(d.k==='RD'){var p=P[d.pid];if(!p)return;p.rowIds[d.r]=String(pt.id);(p.nqR=p.nqR||{})[d.r]=+d.nq||0;if(!LZ)p.rounds[d.r]=qs(pt.id,'ws_gg_q');return;}
+      if(d.k==='RD'){var p=P[d.pid];if(!p)return;p.rowIds[d.r]=String(pt.id);(p.nqR=p.nqR||{})[d.r]=+d.nq||0;if(+d.sh===2)(p.shR=p.shR||{})[d.r]=2;if(!LZ)p.rounds[d.r]=qs(pt.id,'ws_gg_q');return;}
       if(d.k==='RU'){var p2=P[d.pid];if(!p2)return;p2.rowIds.RU=String(pt.id);if(!LZ)ruiPut_(p2,qs(pt.id,'ws_gg_rui'));return;}
       if(d.k==='CT'){var c=CT[d.ct];if(!c){c=CT[d.ct]={id:d.ct,subj:SJ,grade:d.grade,ukey:(SJ==='en'?'en_':'')+d.grade+'_'+d.unit,unit:d.unit,ui:d.ui,kind:d.kind,rng:d.rng,upto:d.upto,name:d.name,ut:d.ut,after:d.after,rounds:{},rowIds:{},imp:false};out.cts.push(c);}if(ggImp_(d,pt))c.imp=true;
         var T={};Object.keys(d.test||{}).forEach(function(k){T[k]=d.test[k];});T.nq=+d.nq||0;T.items=LZ?null:qs(pt.id,'ws_gg_ct');c.rounds[d.r]=T;c.rowIds[d.r]=String(pt.id);return;}

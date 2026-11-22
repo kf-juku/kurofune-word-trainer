@@ -204,7 +204,7 @@ function M1N04_SEC(o){const r=o.r,a=o.a,a0=270-a/2,a1=270+a/2,K='#111',ca=o.ca==
  if(o.lr)sh.push({t:'seg',p:[0,0,pl[0],pl[1]],col:ca,lab:o.lr,side:[a0-90,18]});
  if(o.lc){const rr=r*(a<60?0.32:0.22);sh.push({t:'arc',c:[0,0],r:rr,a0,a1,col:cx});sh.push({t:'lab',p:[0,-rr],s:o.lc,col:cx||K,side:'b'});}
  return NETF(sh,Object.assign({aria:'おうぎ形の図'},o));}
-return {"M1N04_NETA":M1N04_NETA,"M1N04_SEC":M1N04_SEC};
+return {"M1N04_SEC":M1N04_SEC,"M1N04_NETA":M1N04_NETA};
 })();
 NS["gg_m1n05"]=(function(){
 const M1N05_ZU=(()=>{
@@ -215,20 +215,21 @@ const M1N05_ZU=(()=>{
  const nv=v=>n_(v);
 
  /* HIST({lo:最初の階級の下の端, w:階級の幅, f:[度数…], u:'分', ttl:'1組（30 人）', ymax, hl:[色をつける階級の番号], cnt:true（棒の上に度数）})
+    nyu:true＝入試（令和6 問3(イ) の図2）の形：グラフごとに上と右も閉じたわく・目もり線は数字のある所（2 人ごと）だけ・名前はグラフの上の真ん中。いくつかのヒストグラムを比べる問題では ymax と ph を全部同じ値で渡す（2026-11-21 F1）
     問題の図には hl・cnt を付けない（答えになるため）。rect class="hbar"（"bar" は gg_app の .wsp .bar{display:none} に当たって消えるので使わない・2026-11-08）。data-ax＝「左はしの x, 1 あたりの横の長さ, 0 人の y, 1 人あたりのたての長さ」 */
  const HIST=(o)=>{
   const f=o.f,n=f.length,bw=o.bw||30,mx=Math.max(...f);
   const ymax=o.ymax||(mx<=6?mx+1:(mx%2?mx+1:mx+2));const ph=o.ph||(ymax<=8?18:(ymax<=12?14:(ymax<=16?11:9)));
   const L=34,T=(o.ttl?46:22)+(o.cnt?4:0),PH=ymax*ph,base=T+PH,W=L+n*bw+44,H=base+30;
-  const pxu=bw/o.w;
+  const pxu=bw/o.w,NY=!!o.nyu,gx=NY?L+n*bw:L+n*bw+6;
   let s=`<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="ヒストグラム" data-k="h" data-h="${o.lo},${o.w},${f.join(',')}" data-ax="${L},${n_(pxu)},${base},${ph}">`;
-  if(o.ttl)s+=TX(4,14,o.ttl,{a:'start',fs:13});
-  for(let k=1;k<=ymax;k++)s+=LN(L,base-k*ph,L+n*bw+6,base-k*ph,{c:GRID,sw:1});
+  if(o.ttl)s+=NY?TX(L+n*bw/2,14,o.ttl,{fs:13}):TX(4,14,o.ttl,{a:'start',fs:13});
+  for(let k=1;k<=ymax;k++)if(!NY||k%2===0)s+=LN(L,base-k*ph,gx,base-k*ph,{c:NY?'#9ca3af':GRID,sw:1});
   f.forEach((v,i)=>{if(!v)return;const on=(o.hl||[]).indexOf(i)>=0;
    s+=`<rect class="hbar${on?' hl':''}" x="${n_(L+i*bw)}" y="${n_(base-v*ph)}" width="${bw}" height="${n_(v*ph)}" fill="${on?ON:BAR}" stroke="${on?RED:'#111'}" stroke-width="${on?2:1.2}"/>`;});
   if(o.cnt)f.forEach((v,i)=>{if(v)s+=TX(L+i*bw+bw/2,base-v*ph-4,String(v),{fs:12,c:(o.hl||[]).indexOf(i)>=0?RED:'#111',cls:'cnt',halo:true});});
-  s+=LN(L,base,L+n*bw+6,base,{sw:1.6})+LN(L,base,L,T-6,{sw:1.6});
-  const lt=ymax<=10?1:2;for(let k=0;k<=ymax;k+=lt)s+=TX(L-5,base-k*ph+4,String(k),{a:'end',fs:11,c:'#374151'});
+  s+=NY?LN(L,base,gx,base,{sw:1.6})+LN(L,base,L,base-PH,{sw:1.6})+LN(L,base-PH,gx,base-PH,{sw:1.2})+LN(gx,base-PH,gx,base,{sw:1.2}):LN(L,base,L+n*bw+6,base,{sw:1.6})+LN(L,base,L,T-6,{sw:1.6});
+  const lt=NY||ymax>10?2:1;for(let k=0;k<=ymax;k+=lt)s+=TX(L-5,base-k*ph+4,String(k),{a:'end',fs:11,c:'#374151'});
   s+=TX(L,T-10,'(人)',{fs:11,c:'#374151'});
   for(let i=0;i<=n;i++){s+=LN(L+i*bw,base,L+i*bw,base+4,{sw:1.2});s+=TX(L+i*bw,base+16,nv(o.lo+i*o.w),{fs:11,c:'#374151'});}
   s+=TX(L+n*bw+12,base+16,`(${o.u})`,{a:'start',fs:11,c:'#374151'});
@@ -969,9 +970,9 @@ const M2N12_ZU=(()=>{
   if(st==='x')s+=`<line x1="${n_(x+4)}" y1="${n_(y+5)}" x2="${n_(x+w-4)}" y2="${n_(y+h-5)}" stroke="${RED}" stroke-width="2.6" stroke-linecap="round"/><line x1="${n_(x+w-4)}" y1="${n_(y+5)}" x2="${n_(x+4)}" y2="${n_(y+h-5)}" stroke="${RED}" stroke-width="2.6" stroke-linecap="round"/>`;
   return s;};
  /* CARDS({n:6}) 問題の図：1〜n のカード */
- const CARDS=(o)=>{const n=(o&&o.n)||6,W=n*36+8,H=48;
+ const CARDS=(o)=>{const n=(o&&o.n)||6,W=n*36+8,H=48,gone=(o&&o.gone)||[];/* gone＝取り除いたカード（点線のわくだけ。入試 令和6 問5 の図2・図3 のかき方・2026-11-21 直し係F2） */
   let s=`<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="カードの図">`;
-  for(let k=1;k<=n;k++)s+=CARD(4+(k-1)*36+3,5,k,'');
+  for(let k=1;k<=n;k++)s+=CARD(4+(k-1)*36+3,5,k,gone.indexOf(k)>=0?'gone':'');
   return s+'</svg>';};
  /* STEP({rows:[{h:'見出し', gone:[前の操作までに取り除いたカード], x:[この操作で取り除くカード]}, …], end:'いちばん下の行の字'})
     カード＝ふつう：黒のわく／この操作で取り除く：× の印／前に取り除いた：点線のわくだけ。行と行の間に下向きの矢印 */
@@ -1014,9 +1015,38 @@ const M2N12_ZU=(()=>{
     s+=TX(cx+r*Math.cos(a),cy-r*Math.sin(a)+5,nm,{fs:14,c:col,halo:true});});
   }
   return s+'</svg>';};
- return {T,CARDS,STEP,POLY};
+
+ /* ===== 2026-11-21 直し係F2：入試（令和7 問5・令和5 問5）と同じ出し方の図 ===== */
+ /* おもり1個（暗い灰色に白い字） */
+ const OM=(x,y,w,h,t)=>`<rect x="${n_(x)}" y="${n_(y)}" width="${n_(w)}" height="${n_(h)}" fill="#4b5563" stroke="#111" stroke-width="1"/>`+`<text x="${n_(x+w/2)}" y="${n_(y+h/2+4)}" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">${t}</text>`;
+ /* OMO1({w:[軽い, 中, 重い], n:[軽いの個数, 中の個数]}) 図1：2つの列に積んだおもりと、重いおもり1個 */
+ const OMO1=(o)=>{const bw=36,bh=16,n1=o.n[0],n2=o.n[1],H=Math.max(n1,n2)*bh+12,W=bw*2+14+70+12;
+  let s=`<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="おもりの図" data-k="omo" data-w="${o.w.join(',')}" data-n="${o.n.join(',')}">`;
+  const base=H-4;
+  for(let i=0;i<n1;i++)s+=OM(4,base-(i+1)*bh,bw,bh,o.w[0]+'g');
+  for(let i=0;i<n2;i++)s+=OM(4+bw+8,base-(i+1)*bh,bw,bh,o.w[1]+'g');
+  s+=OM(4+bw*2+18,base-bh-2,66,bh+2,o.w[2]+'g');
+  return s+'</svg>';};
+ /* OMO2({w:[…], K:[軽い, 中, 重い 0/1], L:[軽い, 中, 重い 0/1]}) 例の図：K さん・L さんが取ったおもりをはかりにのせた図 */
+ const OMO2=(o)=>{const bw=26,bh=14,one=(who,v,x0,base)=>{let s=TX(x0+bw+3,14,who+'さん',{fs:12});let y=base;
+    if(v[2]){s+=OM(x0,y-bh-1,bw*2+4,bh+1,o.w[2]+'g');y-=bh+1;}
+    for(let i=0;i<v[0];i++)s+=OM(x0,y-(i+1)*bh,bw,bh,o.w[0]+'g');
+    for(let i=0;i<v[1];i++)s+=OM(x0+bw+4,y-(i+1)*bh,bw,bh,o.w[1]+'g');
+    const sx=x0+bw+2;s+=`<polygon points="${sx-34},${base+2} ${sx+34},${base+2} ${sx+40},${base+44} ${sx-40},${base+44}" fill="#fff" stroke="#111" stroke-width="1.3"/><circle cx="${sx}" cy="${base+24}" r="12" fill="#fff" stroke="#111" stroke-width="1.2"/><line x1="${sx}" y1="${base+24}" x2="${sx-7}" y2="${base+19}" stroke="#111" stroke-width="1.4"/>`;
+    return s;};
+  const top=Math.max(o.K[0],o.K[1],o.L[0],o.L[1])*bh+(o.K[2]||o.L[2]?bh+1:0)+24,H=top+50,W=200;
+  return `<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="はかりにのせた図">`+one('K',o.K,12,top)+one('L',o.L,112,top)+'</svg>';};
+ /* BLK({P:[下から上へ…], Q:[…], R:[…], n_:'図の名前'}) 場所 P・Q・R のブロック（空の場所は点線のわく） */
+ const BLK=(o)=>{const bw=26,bh=18,mx=Math.max(o.P.length,o.Q.length,o.R.length,1),H=mx*bh+46,W=3*78+10,base=H-28;
+  let s=`<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="ブロックの図" data-k="blk" data-p="${o.P.join(',')}" data-q="${o.Q.join(',')}" data-r="${o.R.join(',')}">`;
+  ['P','Q','R'].forEach((nm,k)=>{const x=10+k*78,st=o[nm];
+   s+=`<polygon points="${x},${base} ${x+bw+12},${base} ${x+bw+22},${base-8} ${x+10},${base-8}" fill="none" stroke="#6b7280" stroke-width="1.1" stroke-dasharray="3 2"/>`;
+   st.forEach((v,i)=>{const y=base-4-(i+1)*bh;s+=`<rect x="${x+6}" y="${y}" width="${bw}" height="${bh}" fill="#fff" stroke="#111" stroke-width="1.3"/>`+TX(x+6+bw/2,y+14,String(v),{fs:13});});
+   s+=TX(x+bw/2+10,H-8,'場所 '+nm,{fs:12});});
+  return s+'</svg>';};
+ return {T,CARDS,STEP,POLY,OMO1,OMO2,BLK};
 })();
-return {"M2N12_ZU_T":(...a)=>M2N12_ZU.T(...a),"M2N12_ZU_CARDS":(...a)=>M2N12_ZU.CARDS(...a),"M2N12_ZU_STEP":(...a)=>M2N12_ZU.STEP(...a)};
+return {"M2N12_ZU_T":(...a)=>M2N12_ZU.T(...a),"M2N12_ZU_CARDS":(...a)=>M2N12_ZU.CARDS(...a),"M2N12_ZU_STEP":(...a)=>M2N12_ZU.STEP(...a),"M2N12_ZU_OMO1":(...a)=>M2N12_ZU.OMO1(...a),"M2N12_ZU_OMO2":(...a)=>M2N12_ZU.OMO2(...a),"M2N12_ZU_BLK":(...a)=>M2N12_ZU.BLK(...a)};
 })();
 NS["gg_m2n13"]=(function(){
 const M2N13_ZU=(()=>{
@@ -1047,17 +1077,18 @@ const M2N13_ZU=(()=>{
   return s+'</svg>';};
 
  /* BOX({rows:[{t:'X', v:[最小値, 第1四分位数, 中央値, 第3四分位数, 最大値]}…] または v:[…]（1本・名前なし), lo, hi, st:小さい目もり, ls:数を書く目もり, u:'回', sm:true（選択肢の小さい図）, pw:横の長さ,
-        ann:true（解説：5つの値を書く）, br:[[行の番号, 左の値, 右の値, '字']…]（解説：区間のかっこ）, hv:[行の番号…]（解説：色をつける行）, lines:[値…]（解説：たての点線）})
+        ann:true（解説：5つの値を書く）, ql:true（解説：軸の下に第1・第2・第3四分位数と「前半の中央値・全体の中央値・後半の中央値」・2026-11-21）, br:[[行の番号, 左の値, 右の値, '字']…]（解説：区間のかっこ）, hv:[行の番号…]（解説：色をつける行）, lines:[値…]（解説：たての点線）})
     箱＝rect class="bx"・中央値＝line class="md"・左のひげ＝line class="wl"（x1＝最小値）・右のひげ＝line class="wr"（x2＝最大値）。data-v＝5つの値 */
  const BOX=(o)=>{
   const rows=o.rows||[{t:'',v:o.v}],sm=!!o.sm,hasT=rows.some(r=>r.t);
   const PW=o.pw||(sm?150:290),pxu=PW/(o.hi-o.lo);
-  const Lm=hasT?(o.tw||42):(sm?10:14),RH=sm?30:(o.ann?62:44),bh=sm?14:18,top=sm?4:(o.ann?8:8);
+  const Lm=hasT?(o.tw||42):(sm?10:14),RH=sm?30:(o.ann?62:44),bh=sm?14:18,top=sm?4:(o.fr?12:8);
   const brH=(o.br&&o.br.length)?26:0;
-  const rowsH=rows.length*(RH+brH);const ax=top+rowsH+2,W=Lm+PW+(sm?14:34),H=ax+(sm?18:22);
+  const rowsH=rows.length*(RH+brH);const ax=top+rowsH+2,W=Lm+PW+(sm?14:34),H=ax+(sm?18:22)+(o.ql?94:0);
   const X=v=>Lm+(v-o.lo)*pxu;
   let s=`<svg class="${sm?'gch':'gr'}" viewBox="0 0 ${n_(W)} ${n_(H)}" width="${n_(W)}" height="${n_(H)}" role="img" aria-label="箱ひげ図" data-k="b" data-ax="${n_(Lm)},${n_(pxu)},${o.lo}">`;
-  for(let v=o.lo;v<=o.hi+1e-9;v+=o.st)s+=LN(X(v),top,X(v),ax,{c:GRID,sw:Math.abs((v-o.lo)/o.ls-Math.round((v-o.lo)/o.ls))<1e-9?1.1:0.7,da:'2 2'});
+  if(o.fr){for(let v=o.lo+o.st;v<o.hi-1e-9;v+=o.st)s+=LN(X(v),top-4,X(v),ax,{c:'#6b7280',sw:0.8});s+=`<rect x="${n_(Lm)}" y="${top-4}" width="${n_(PW)}" height="${n_(ax-top+4)}" fill="none" stroke="#111" stroke-width="1.4"/>`;} /* fr＝入試（令和6 図3・令和7 図2）のかき方：わくで囲み、st ごとに実線の目もり線（2026-11-21 直し係F2） */
+  else for(let v=o.lo;v<=o.hi+1e-9;v+=o.st)s+=LN(X(v),top,X(v),ax,{c:GRID,sw:Math.abs((v-o.lo)/o.ls-Math.round((v-o.lo)/o.ls))<1e-9?1.1:0.7,da:'2 2'});
   (o.lines||[]).forEach(v=>{s+=LN(X(v),top,X(v),ax,{c:RED,sw:1.6,da:'5 3'});});
   rows.forEach((r,i)=>{
    const yc=top+i*(RH+brH)+(o.ann?RH-bh/2-6:RH/2),v=r.v,on=(o.hv||[]).indexOf(i)>=0;
@@ -1077,10 +1108,12 @@ const M2N13_ZU=(()=>{
   });
   s+=LN(Lm,ax,Lm+PW,ax,{sw:1.4});
   for(let v=o.lo;v<=o.hi+1e-9;v+=o.st){const big=Math.abs((v-o.lo)/o.ls-Math.round((v-o.lo)/o.ls))<1e-9;s+=LN(X(v),ax,X(v),ax+(big?4:2),{sw:1});if(big)s+=TX(X(v),ax+(sm?13:15),nv(v),{fs:sm?10:11,c:'#374151'});}
+  if(o.ql){const v=rows[0].v,NM=[['第1四分位数','前半の中央値'],['第2四分位数','全体の中央値'],['第3四分位数','後半の中央値']];
+   [1,2,3].forEach((q,j)=>{const x=X(v[q]),y=ax+34+j*30;s+=LN(x,ax+19,x,y-11,{c:GR,sw:1})+TX(x,y,NM[j][0],{fs:11,c:RED,cls:'qn',halo:true})+TX(x,y+14,NM[j][1],{fs:11,c:'#374151',cls:'zsub',halo:true});});}
   if(!sm&&o.u)s+=TX(Lm+PW+14,ax+15,`(${o.u})`,{a:'start',fs:11,c:'#374151'});
   return s+'</svg>';};
 
- /* SEQ({d:[小さい順の値…] または n:人数（値なし・何番目かだけ）, cw:1つの幅, u:'冊', show:'q'（四分位数3つ）|'m'（中央値だけ）, rng:[左の番号, 右の番号, '字']（解説：その範囲をかっこ）})
+ /* SEQ({d:[小さい順の値…] または n:人数（値なし・何番目かだけ）, cw:1つの幅, u:'冊', show:'q'（四分位数3つ）|'m'（中央値だけ）, rng:[左の番号, 右の番号, '字']（解説：その範囲をかっこ）, zen:true（解説の全体像：第1・第2・第3四分位数の下に「前半の中央値・全体の中央値・後半の中央値」・2026-11-21）})
     小さい順に並べた列。上に番号、まん中で前半・後半に分け、四分位数の場所に色・区切りの線。下に「第1四分位数」などと値（d があるとき）または何番目か */
  const SEQ=(o)=>{
   const d=o.d||null,n=d?d.length:o.n,show=o.show||'q';
@@ -1093,7 +1126,7 @@ const M2N13_ZU=(()=>{
   const marks=show==='q'?[['第1四分位数',q1],['中央値',md],['第3四分位数',q3]]:[['中央値',md]];
   const hot=new Set();marks.forEach(m=>{if(m[1].length===1)hot.add(m[1][0]);});
   const pairs=marks.filter(m=>m[1].length===2).map(m=>m[1][1]);
-  const lbH=d?34:32,H=yc+ch+12+(show==='q'?lbH*2:lbH)+(o.rng?26:0);
+  const lbH=o.zen?48:(d?34:32),H=yc+ch+12+(show==='q'?lbH*2:lbH)+(o.rng?26:0);
   let s=`<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="小さい順に並べたデータ" data-k="d" data-n="${n}"${d?` data-d="${d.join(',')}"`:''}>`;
   if(show==='q'){
    const brk=(a,b,t)=>{const x1=X(a)+2,x2=X(b+1)-2,y=topB-6;return LN(x1,y+5,x1,y,{c:GR,sw:1.2})+LN(x1,y,x2,y,{c:GR,sw:1.2})+LN(x2,y,x2,y+5,{c:GR,sw:1.2})+TX((x1+x2)/2,y-5,t,{fs:11,c:'#374151'});};
@@ -1111,15 +1144,69 @@ const M2N13_ZU=(()=>{
    if(lv)s+=LN(xc,yc+ch+5,xc,y0-10,{c:GR,sw:1});
    let val;if(d){const v=ps.length===1?d[ps[0]]:(d[ps[0]]+d[ps[1]])/2;val=nv(v)+(o.u?' '+o.u:'');}
    else val=ps.length===1?`${ps[0]+1}番目`:`${ps[0]+1}番目と${ps[1]+1}番目の平均`;
-   s+=TX(xc,y0,nm,{fs:11,c:RED,cls:'qn',halo:true});
-   s+=TX(xc,y0+(d?15:14),val,{fs:d?13:11,c:RED,cls:'qv',halo:true});});
+   s+=TX(xc,y0,o.zen&&show==='q'&&k===1?'第2四分位数':nm,{fs:11,c:RED,cls:'qn',halo:true});
+   if(o.zen&&show==='q')s+=TX(xc,y0+14,['前半の中央値','全体の中央値','後半の中央値'][k],{fs:11,c:'#374151',cls:'zsub',halo:true});
+   s+=TX(xc,y0+(o.zen&&show==='q'?29:(d?15:14)),val,{fs:d?13:11,c:RED,cls:'qv',halo:true});});
   if(o.rng){const [a,b,t]=o.rng;const y=H-22,x1=X(a-1)+2,x2=X(b)-2;
    for(let i=a-1;i<b;i++)s+=`<rect x="${n_(X(i)+2)}" y="${yc+ch+2}" width="${cw-4}" height="3" fill="${RED}"/>`;
    s+=LN(x1,y,x2,y,{c:RED,sw:1.8})+LN(x1,y-4,x1,y+4,{c:RED,sw:1.8})+LN(x2,y-4,x2,y+4,{c:RED,sw:1.8})+TX((x1+x2)/2,y+15,t,{fs:12,c:RED,cls:'brt',halo:true});}
   return s+'</svg>';};
- return {HIST,BOX,SEQ,n_};
+ /* SIRYO({t:'資料1', u:'人', rows:[[値…],[値…]]（わくの中に行ごとに並べる）, kv:[['平均値','23'],…]（rows の代わりに 名前と値の行）, cw:1つの幅})
+    入試（令和5 問3(イ)）の資料の出し方：上の行に名前と右に（単位：人）、その下にわくで囲んだ数の表（中の線は無い）。2026-11-21 決まり 2-2 */
+ const SIRYO=(o)=>{
+  const kv=o.kv||null,rows=kv||o.rows,nc=kv?2:Math.max(...rows.map(r=>r.length)),cw=o.cw||(kv?0:36),rh=26;
+  const fw=kv?150:Math.max(nc*cw+16,130),ut=o.u?`（単位：${o.u}）`:'';
+  const W=fw+2,top=22,H=top+rows.length*rh+12;
+  let s=`<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${o.t||'資料'}" data-k="t"${kv?'':` data-d="${rows.map(r=>r.join(',')).join(';')}"`}>`;
+  if(o.t)s+=TX(2,15,o.t,{a:'start',fs:13});
+  if(ut)s+=TX(W-2,15,ut,{a:'end',fs:12,c:'#374151'});
+  s+=`<rect x="1" y="${top}" width="${fw}" height="${rows.length*rh+10}" fill="#fff" stroke="#111" stroke-width="1.4"/>`;
+  rows.forEach((r,i)=>{const y=top+5+i*rh+18;
+   if(kv){s+=TX(14,y,r[0],{a:'start',fs:13})+TX(fw-16,y,String(r[1]),{a:'end',fs:14});}
+   else r.forEach((v,j)=>{s+=TX(1+8+j*cw+cw/2,y,nv(v),{fs:14});});});
+  return s+'</svg>';};
+
+ /* BOXF({v:[最小値, 第1四分位数, 中央値, 第3四分位数, 最大値], lo:10, hi:30, ls:5（数を書く目もり）, u:'人', sm:true（選択肢）})
+    入試（令和5 問3(イ)(ⅰ)）の箱ひげ図のかき方：1目もりごとの縦の線が入ったわくの中にかき、わくの下に 10・15・20…と目もりの数、右はしに（人）。2026-11-21 決まり 2-2 */
+ const BOXF=(o)=>{
+  const v=o.v,sm=!!o.sm,pxu=sm?8:12,L=sm?10:14,FH=sm?44:58,top=4,bh=Math.round(FH*0.42);
+  const PW=(o.hi-o.lo)*pxu,W=L+PW+(sm?30:40),H=top+FH+(sm?16:20),X=x=>L+(x-o.lo)*pxu,yc=top+FH/2;
+  let s=`<svg class="${sm?'gch':'gr'}" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="箱ひげ図" data-k="b" data-ax="${L},${pxu},${o.lo}">`;
+  for(let x=o.lo+1;x<o.hi;x++)s+=LN(X(x),top,X(x),top+FH,{c:'#6b7280',sw:0.7});
+  s+=`<rect x="${L}" y="${top}" width="${PW}" height="${FH}" fill="none" stroke="#111" stroke-width="1.4"/>`;
+  s+=`<g class="row" data-t="" data-v="${v.join(',')}">`;
+  s+=LN(X(v[0]),yc,X(v[1]),yc,{cls:'wl',sw:1.6})+LN(X(v[3]),yc,X(v[4]),yc,{cls:'wr',sw:1.6});
+  s+=LN(X(v[0]),yc-bh/4,X(v[0]),yc+bh/4,{sw:1.6})+LN(X(v[4]),yc-bh/4,X(v[4]),yc+bh/4,{sw:1.6});
+  s+=`<rect class="bx" x="${n_(X(v[1]))}" y="${n_(yc-bh/2)}" width="${n_(X(v[3])-X(v[1]))}" height="${bh}" fill="#fff" stroke="#111" stroke-width="1.6"/>`;
+  s+=LN(X(v[2]),yc-bh/2,X(v[2]),yc+bh/2,{cls:'md',sw:1.8})+'</g>';
+  for(let x=o.lo;x<=o.hi;x+=o.ls)s+=TX(X(x),top+FH+(sm?13:16),nv(x),{fs:sm?10:12,c:'#111'});
+  if(o.u)s+=TX(X(o.hi)+(sm?9:11),top+FH+(sm?13:16),`(${o.u})`,{a:'start',fs:sm?10:12,c:'#111'});
+  return s+'</svg>';};
+
+ /* HISTS({hs:[{ttl:'A中学校', f:[度数…]}…], lo:左はし, w:階級の幅, u:'分', ymax, yt:目もり線の間（2）, bw:棒の幅, ph:1人あたりの高さ})
+    入試（令和6 問3(イ) 図2）のかき方：3つのヒストグラムを1つのわくで囲む。それぞれの上に学校名だけ（人数は問題文に書く）、目もり線は yt 人ごと、
+    たて軸の数は yt ごと、横軸は lo から。それぞれの棒グラフにも上と右の線のあるわく。2026-11-21 直し係F2（決まり 2-2） */
+ const HISTS=(o)=>{
+  const hs=o.hs,n=hs[0].f.length,bw=o.bw||(n<=8?28:(n<=10?24:20)),mx=Math.max(...hs.flatMap(h=>h.f));
+  const yt=o.yt||2,ymax=o.ymax||Math.ceil(mx/yt)*yt,ph=o.ph||Math.max(5,Math.min(9,Math.round(112/ymax)));
+  const L=40,PW=n*bw,PH=ymax*ph,PANEL=PH+62,W=L+PW+48,H=hs.length*PANEL+8;
+  let s=`<svg class="gr" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="ヒストグラム">`;
+  s+=`<rect x="2" y="2" width="${W-4}" height="${H-4}" fill="none" stroke="#111" stroke-width="1.4"/>`;
+  hs.forEach((h,k)=>{
+   const top=k*PANEL+34,base=top+PH;
+   s+=`<g data-k="h" data-h="${o.lo},${o.w},${h.f.join(',')}" data-ax="${L},${n_(bw/o.w)},${base},${ph}">`;
+   s+=TX(L+PW/2,top-8,h.ttl,{fs:13});
+   for(let v=yt;v<=ymax;v+=yt)s+=LN(L,base-v*ph,L+PW,base-v*ph,{c:'#111',sw:0.7});
+   h.f.forEach((v,i)=>{if(!v)return;s+=`<rect class="hbar" x="${n_(L+i*bw)}" y="${n_(base-v*ph)}" width="${bw}" height="${n_(v*ph)}" fill="#a3a3a3" stroke="#111" stroke-width="1.1"/>`;});
+   s+=`<rect x="${L}" y="${top}" width="${PW}" height="${PH}" fill="none" stroke="#111" stroke-width="1.2"/>`;
+   for(let v=yt;v<=ymax;v+=yt)s+=TX(L-4,base-v*ph+4,String(v),{a:'end',fs:11});
+   if(o.lo!==0)s+=TX(L-4,base+4,'0',{a:'end',fs:11});s+=TX(L-22,top-10,'(人)',{fs:11});
+   for(let i=0;i<=n;i++){const x=o.lo+i*o.w;s+=TX(L+i*bw,base+15,nv(x),{fs:11});}
+   s+=TX(L+PW+10,base+15,`(${o.u})`,{a:'start',fs:11})+'</g>';});
+  return s+'</svg>';};
+ return {HIST,HISTS,BOX,BOXF,SIRYO,SEQ,n_};
 })();
-return {"M2N13_ZU_SEQ":(...a)=>M2N13_ZU.SEQ(...a),"M2N13_ZU_BOX":(...a)=>M2N13_ZU.BOX(...a),"M2N13_ZU_HIST":(...a)=>M2N13_ZU.HIST(...a)};
+return {"M2N13_ZU_SIRYO":(...a)=>M2N13_ZU.SIRYO(...a),"M2N13_ZU_SEQ":(...a)=>M2N13_ZU.SEQ(...a),"M2N13_ZU_BOX":(...a)=>M2N13_ZU.BOX(...a),"M2N13_ZU_BOXF":(...a)=>M2N13_ZU.BOXF(...a),"M2N13_ZU_HIST":(...a)=>M2N13_ZU.HIST(...a),"M2N13_ZU_HISTS":(...a)=>M2N13_ZU.HISTS(...a)};
 })();
 NS["gg_m2u4p3"]=(function(){
 const mi=v=>String(v).replace(/^-/,'−');
