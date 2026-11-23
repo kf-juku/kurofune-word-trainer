@@ -7180,7 +7180,7 @@ function _ggprCssOnce_(){
       else out+=sel.split(',').map(function(s){s=s.trim();return /(^|\s)\.ggp(\s|$|[.:#\[])/.test(s)?s:'.ggp '+s;}).join(',')+'{'+body+'}';
       i=j;}return out;};
   var st=document.createElement('style');st.id='ggPaperCss';
-  st.textContent=scope(String(ggPaper.css||'')+'\n'+String(ggPaper.cssEn||''))
+  st.textContent=scope((String(ggPaper.css||'')+'\n'+String(ggPaper.cssEn||'')).replace(/\/\*[\s\S]*?\*\//g,''))   /* 2026-11-23 CSS の中のコメントを先に外す（コメントのすぐ後ろに空白なしで .ggp が続くと、頭に .ggp を足して効かなくなっていた＝図をよけるわく .fbx・資料のわく付きの表・箱ひげ図の6択。円と相似の証明の穴埋め C-1 の紙で、証明のわくの線が図の下を通っていた） */
     +'.ggp-doc{width:210mm;background:#fff}.ggp-doc .sheet{box-shadow:none;margin:0}'
     +'.wsp .eqg.ggpr-n2{grid-template-columns:max-content max-content!important}.wsp .eqg.ggpr-n2>.eqn{grid-column:1/-1;padding-left:2em!important}.wsp .eqg.ggpr-stk{display:block!important}.wsp .eqg.ggpr-stk>*{display:block;text-align:left!important}.wsp .eqg.ggpr-stk>.eqr{padding-left:1em}.wsp .eqg.ggpr-stk>.eql:empty{display:none}'
     +'.ggp .sh-f .nm .ggpr-nm{font-size:15pt;font-weight:700;margin-left:2mm}'
