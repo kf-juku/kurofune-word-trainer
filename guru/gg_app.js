@@ -471,7 +471,7 @@ function wrapKC(el){const units=[];const walk=n=>{[...n.childNodes].forEach(ch=>
    else if(ch.classList.contains('bl')){ch.classList.add('kk');units.push(ch);}
    else if(ch.tagName.toLowerCase()!=='svg'&&!ch.classList.contains('kc')&&!ch.classList.contains('eqn'))walk(ch);}});};walk(el);return units;}
 let TRACE_RUN=0;const TRACE_MS=120;const KEYLB=/^(覚える|言葉の式|公式)$/;
-function traceEls(els,my,cap){return new Promise(res=>{let ri=0;let PER=0;if(cap){let n=0;els.forEach(e=>{n+=wrapKC(e).length;});PER=Math.max(12,Math.min(85,cap/Math.max(1,n)));}
+function traceEls(els,my,cap){return new Promise(res=>{let ri=0;let PER=0;if(cap){PER=85;setTimeout(()=>{if(my===TRACE_RUN)res(true);},cap);}
   const nextRow=()=>{if(my!==TRACE_RUN)return res(false);if(ri>=els.length)return res(true);
    const el=els[ri++];const units=cap?[...el.querySelectorAll('.kc,.kk')].filter(u=>u.classList.contains('kk')||u.textContent.trim()):wrapKC(el);if(!units.length)return nextRow();
    if(!cap){let i=0;const row=el.closest('.pr'),lbt=row&&row.querySelector('.lb')?row.querySelector('.lb').textContent.trim():'',key=KEYLB.test(lbt),SP=TRACE_MS*(key?1.3:1);
