@@ -1336,6 +1336,7 @@
   .mgg-grade{font-size:11px;font-weight:700;color:var(--text-muted);background:#fff;border-radius:8px;padding:1px 8px;}
   .mgnum{font-size:11px;font-weight:800;color:var(--text-muted);min-width:20px;text-align:center;flex-shrink:0;}
   .mglevel{font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;background:#eef2f7;color:#64748b;flex-shrink:0;}
+.ekdg{border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;margin:2px 0 12px;background:#fff}.ekdg-h{font-size:14px;margin-bottom:6px}.ekdg-r{display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid #eef0f3;font-size:13px}.ekdg-sn{width:13em;flex:none}.ekdg-ss{width:3.2em;flex:none;font-weight:800;text-align:right;margin-right:6px}.ekdg-ss.ok{color:#059669}.ekdg-ss.ng{color:#dc2626}.ekdg-cs{display:flex;flex-wrap:wrap;gap:4px}.ekdg-c{font:inherit;font-size:12px;font-weight:700;border:0;border-radius:6px;padding:3px 7px;cursor:pointer}.ekdg-c.l{background:#2563eb;color:#fff}.ekdg-c.p{background:#059669;color:#fff}.ekdg-c.f{outline:2px solid #f59e0b;outline-offset:1px}.ekdg-lg{font-size:11px;color:#6b7280;margin:4px 0 6px}.ekdg-t td.nm{width:8em}
 </style>
 <style>
 /* 先生ダッシュボード 見やすさ改善（2026-07-17）：元の構成のまま最小のレイアウト調整 */
@@ -5805,14 +5806,49 @@ function _ekMtMiss_(e){var x=e.ekmt||{};if(x.miss_no&&x.miss_no.length>=0&&Array
     if(ans.length&&ans.length!==it.length)return '前の版（'+ans.length+'問）のテストなので番号は出せません';   /* 2026-11-15 11-14 に問題の数を増やす前の記録に、今の問題の正解をあてない */
     it.forEach(function(q,j){var v=ans[j];if((v===null||v===undefined)&&typeof q.a==='string'){unk++;return;}if(v===null||v===undefined||String(v)!==String(q.a))out.push(q.no||(j+1));});
     var wr=(Number(e.total_count)||it.length)-(Number(e.correct_count)||0)-out.length;if(unk&&wr>0)out.push('並べかえ'+wr+'問（番号の記録なし）');return out;});}
+/* ===== スタート診断（2026-11-24・決まり ぐるぐる英語_作り方の決まり.md の E4・E13〜E15。見本＝KWT 直下 20261124_モック_スタート診断.html の③）=====
+   区切りごとに点と、パート番号の札（青＝学習する・緑の ✓＝診断で合格・黄色の枠＝先生が調整）。札を押すと確かめてから入れる・外す（ekmt_dg_set）。
+   正誤は提出のときの miss_no（まちがえた問題の番号）と eiken_mt の json の sp（出どころのパート）から数える。自動の判定は生徒アプリ（ekmt_app.js の __dgAuto）と同じ式 */
+var _ekDgSid_='';
+function _ekDgCalc_(D,miss){var G=D.T.diag,ms={},cnt={},got={};(miss||[]).forEach(function(n){ms[Number(n)]=1;});
+  (D.items||[]).forEach(function(it,j){var n=Number(it.sp);cnt[n]=(cnt[n]||0)+1;if(!ms[Number(it.no||j+1)])got[n]=(got[n]||0)+1;});
+  var L=[],sec=[];G.secs.forEach(function(s){var sc=0,tot=0;s.parts.forEach(function(n){sc+=got[n]||0;tot+=cnt[n]||0;});var pass=sc>=G.line;sec.push({sc:sc,tot:tot,pass:pass});
+    s.parts.forEach(function(n){var l=!pass;if(s.part){if(!pass&&(cnt[n]||0)>=G.all&&(got[n]||0)===cnt[n])l=false;if(pass&&(cnt[n]||0)-(got[n]||0)>=G.miss)l=true;}if(l)L.push(n);});});
+  return {L:L,sec:sec,cnt:cnt,got:got};}
+function _ekDgHtml_(e,D){var x=e.ekmt||{},G=D.T.diag,A=_ekDgCalc_(D,x.miss_no),dg=x.dg||null,learn={},adj=(dg&&dg.adj)||{};
+  (dg?dg.learn:A.L).forEach(function(n){learn[Number(n)]=1;});
+  var order=[];G.secs.forEach(function(s){s.parts.forEach(function(n){order.push(n);});});var LL=order.filter(function(n){return learn[n];}),f=LL[0];
+  var nm=function(n){return String((G.parts[n]||{}).name||'').replace(/（[\s\S]*$/,'');};
+  var ok=(D.items||[]).length-(x.miss_no||[]).length;
+  var grid=G.secs.map(function(s,si){var q=A.sec[si];return '<div class="ekdg-r"><span class="ekdg-sn">'+(si+1)+' '+esc(s.name)+'</span><span class="ekdg-ss '+(q.pass?'ok':'ng')+'">'+q.sc+'/'+q.tot+'</span><span class="ekdg-cs">'
+    +s.parts.map(function(n){var l=!!learn[n];return '<button type="button" class="ekdg-c '+(l?'l':'p')+(adj[n]?' f':'')+'" data-n="'+n+'" title="No.'+n+' '+esc(nm(n))+'（'+(A.got[n]||0)+'/'+(A.cnt[n]||0)+'）">'+(l?'':'✓')+n+'</button>';}).join('')+'</span></div>';}).join('');
+  var ak=Object.keys(adj);
+  return '<div class="ekdg"><div class="ekdg-h"><b>スタート診断</b>　'+esc(e.last_date||'')+'　<b>'+ok+'/'+(D.items||[]).length+'問</b>'+(e.attempt_count>1?' <span class="t-sub">'+e.attempt_count+'回目</span>':'')+'</div>'
+    +grid+'<div class="ekdg-lg">青＝学習する（'+LL.length+'本）・緑の ✓＝診断で合格・黄色の枠＝先生が調整'+(f?'　次は No.'+f+' '+esc(nm(f)):'')+(dg?'':'　<span class="t-sub">（生徒がまだ結果の画面を開いていない＝自動の判定）</span>')+'</div>'
+    +'<table class="sd2-tbl ab-tbl ekdg-t"><tbody><tr><td class="nm">先生の調整</td><td>'+(ak.length?ak.map(function(n){return esc(String(adj[n]))+' No.'+n+' を'+(learn[n]?'入れた':'外した');}).join('<br>'):'なし')+'</td></tr>'
+    +'<tr><td class="nm">見直し</td><td>'+(dg&&dg.ok?'済み':'まだ')+'</td></tr><tr><td class="nm">受け方</td><td>'+(x.paper==='sym'?'紙 → 自動採点':x.paper==='ox'?'紙 → ○×入力':'クロトレで解いた')+'</td></tr><tr><td class="nm">かかった時間</td><td>'+_ekMtMin_(x.el)+'</td></tr></tbody></table>'
+    +'<div class="t-sub" style="margin:4px 0 10px">番号の札を押すと「学習する」と「診断で合格」を入れかえられます（先生だけ）。</div></div>';}
+function _ekDgFill_(box,e){_ekMtJson_(e.part_id).then(function(D){box.innerHTML=_ekDgHtml_(e,D);
+  [].forEach.call(box.querySelectorAll('.ekdg-c'),function(c){c.onclick=function(){var n=Number(c.getAttribute('data-n')),l=c.classList.contains('l');
+    if(!window.confirm('No.'+n+' を「'+(l?'診断で合格':'学習する')+'」にしますか？'))return;
+    var x=e.ekmt||{},A=_ekDgCalc_(D,x.miss_no),cur={};((x.dg&&x.dg.learn)||A.L).forEach(function(k){cur[Number(k)]=1;});if(l)delete cur[n];else cur[n]=1;
+    var order=[];D.T.diag.secs.forEach(function(s){s.parts.forEach(function(k){order.push(k);});});var learn=order.filter(function(k){return cur[k];});
+    var au={};A.L.forEach(function(k){au[k]=1;});var adj=Object.assign({},(x.dg&&x.dg.adj)||{});var d=new Date();if(!!au[n]===!!cur[n])delete adj[n];else adj[n]=(d.getMonth()+1)+'/'+d.getDate();
+    c.disabled=true;c.textContent='…';
+    call({action:'ekmt_dg_set',student_id:e.student_id||_ekDgSid_,part_id:e.part_id,learn:JSON.stringify(learn),adj:JSON.stringify(adj)}).then(function(r){if(r&&r.ok){x.dg=r.data.dg;e.ekmt=x;_ekDgFill_(box,e);}else{alert((r&&r.error)||'保存できませんでした');_ekDgFill_(box,e);}},function(){alert('保存できませんでした（通信）');_ekDgFill_(box,e);});};});
+ },function(){box.innerHTML='<div class="t-sub">スタート診断の問題を読めませんでした</div>';});}
 function _ekMtFill_(list){
   var by={};(list||[]).forEach(function(e){(by[String(e.material_id)]=by[String(e.material_id)]||[]).push(e);});
   [].forEach.call(document.querySelectorAll('#sdEiken .ekmt-slot'),function(sl){
     var L=(by[sl.getAttribute('data-mid')]||[]).slice().sort(function(a,b){return String(a.part_id)<String(b.part_id)?-1:1;});
-    if(!L.length){sl.innerHTML='<div class="t-sub" style="margin:2px 0 8px">まとめテスト：まだ受けていません</div>';return;}
-    sl.innerHTML='<table class="sd2-tbl ab-tbl" style="margin-bottom:10px"><thead><tr><th>まとめテスト</th><th>点</th><th>合否</th><th>日付</th><th>かかった時間</th><th>まちがえた問題</th></tr></thead><tbody>'
+    var Dg=L.filter(function(e){return /-diag-A1$/.test(String(e.part_id));});L=L.filter(function(e){return !/-diag-A1$/.test(String(e.part_id));});
+    var hasDg=false;try{_EKMT_.forEach(function(t){if(/-diag$/.test(t.id)&&t.mid===sl.getAttribute('data-mid'))hasDg=true;});}catch(eD){}
+    var dgH=Dg.length?'<div class="ekdg-box"></div>':(hasDg?'<div class="t-sub" style="margin:2px 0 8px">スタート診断：まだ受けていません</div>':'');
+    if(!L.length){sl.innerHTML=dgH+'<div class="t-sub" style="margin:2px 0 8px">まとめテスト：まだ受けていません</div>';if(Dg.length)_ekDgFill_(sl.querySelector('.ekdg-box'),Dg[0]);return;}
+    sl.innerHTML=dgH+'<table class="sd2-tbl ab-tbl" style="margin-bottom:10px"><thead><tr><th>まとめテスト</th><th>点</th><th>合否</th><th>日付</th><th>かかった時間</th><th>まちがえた問題</th></tr></thead><tbody>'
       +L.map(function(e,i){var x=e.ekmt||{},r=Number(e.latest_rate);var pf=x.pass?'<span class="ab-c ok">合格</span>':(r>=80?'<span class="ab-c tr">80点以上・直し途中</span>':'<span class="ab-c no">不合格</span>');
         return '<tr><td class="nm">'+esc(_ekMtTitle_(e.part_id))+(e.attempt_count>1?' <span class="t-sub">'+e.attempt_count+'回目</span>':'')+'</td><td class="num"><b>'+(isNaN(r)?'-':r)+'</b>点</td><td>'+pf+'</td><td class="mt">'+esc(e.last_date||'')+'</td><td class="mt">'+_ekMtMin_(x.el)+'</td><td class="mt" data-mi="'+i+'">…</td></tr>';}).join('')+'</tbody></table>';
+    if(Dg.length)_ekDgFill_(sl.querySelector('.ekdg-box'),Dg[0]);
     L.forEach(function(e,i){_ekMtMiss_(e).then(function(m){var c=sl.querySelector('[data-mi="'+i+'"]');if(c)c.textContent=(typeof m==='string')?m:(m.length?m.join('・')+'番':'なし');},function(){var c=sl.querySelector('[data-mi="'+i+'"]');if(c)c.textContent='読めませんでした';});});
   });
 }
@@ -6245,7 +6281,7 @@ function openStudentDetail(sid,focusKey){
     var ents=(pack&&pack.entries)||[], mats=(pack&&pack.materials)||[];
     /* ワークシートのテストは「単元別（テスト対策）」に出さない＝3つ目の欄へ 2026-10-20 */
     var _wsM={};(s.materials_view||[]).concat(s.completed_view||[]).forEach(function(m){if(String(m.type)==='worksheet')_wsM[String(m.material_id)]=1;});
-    var _mtE=ents.filter(function(e){return /^mt-/.test(String(e.part_id||''));});ents=ents.filter(function(e){return !/^mt-/.test(String(e.part_id||''));});try{_ekMtFill_(_mtE);}catch(eMt){}
+    var _mtE=ents.filter(function(e){return /^mt-/.test(String(e.part_id||''));});ents=ents.filter(function(e){return !/^mt-/.test(String(e.part_id||''));});try{_ekDgSid_=sid;_ekMtFill_(_mtE);}catch(eMt){}
     var _ggE=ents.filter(function(e){return /^gg_/.test(String(e.part_id||''));});ents=ents.filter(function(e){return !/^gg_/.test(String(e.part_id||''));});try{_ggFill_(_ggE);}catch(eGg){}   /* 2026-11-16 ぐるぐるの回は「ぐるぐる（回ごと）」の欄へ */   /* 2026-11-14 英検のまとめテストは英検の欄へ（単元別に出さない） */
     var wsEnts=ents.filter(function(e){return e.ws||_wsM[String(e.material_id)];});ents=ents.filter(function(e){return !(e.ws||_wsM[String(e.material_id)]);});
     var _ekM={};(s.materials_view||[]).concat(s.completed_view||[]).forEach(function(m){if(_isEikenM_(m))_ekM[String(m.material_id)]=1;});ents=ents.filter(function(e){return !_ekM[String(e.material_id)];});   /* 英検の確認テスト（もう配らない）は出さない 2026-11-12 */
@@ -12918,7 +12954,7 @@ function _ppMakeMulti_(how,opt){   /* opt＝テストを単体で印刷（2026-1
 }
 /* ===== 英検のまとめテストの紙（2026-11-13・川上さん 17:30 質問B「ア」＝問題用紙と解答用紙を刷る。紙の答え合わせ（QR）はぐるぐると共通で次に作る）=====
    問題＝eiken_mt/<id>.json（生徒アプリと同じ）。紙の形＝eiken_mt/ekmt_paper.js の ekMtPaper.ctEn（2026-11-15 にぐるぐるの紙から写して分けた）。練習プリントの窓で英検の教材を選ぶと、範囲の上に出る */
-var _EKMT_=[{"id":"mt-eiken3-bunpo-1","mid":"mat-eiken3-bunpo","title":"まとめテスト①（第1〜5回）","vers":["A1","A2"]},{"id":"mt-eiken3-bunpo-2","mid":"mat-eiken3-bunpo","title":"まとめテスト②（第6〜8回）","vers":["A1","A2"]},{"id":"mt-eiken3-dokkai-1","mid":"mat-eiken3-dokkai","title":"まとめテスト①（第19〜23回）","vers":["A1","A2"]},{"id":"mt-eiken3-kaiwa-1","mid":"mat-eiken3-kaiwa","title":"まとめテスト①（第14〜18回）","vers":["A1","A2"]},{"id":"mt-eiken3-writing-1","mid":"mat-eiken3-writing","title":"まとめテスト（第9〜13回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-1","mid":"mat-eiken4-bunpo","title":"まとめテスト①（第1〜5回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-2","mid":"mat-eiken4-bunpo","title":"まとめテスト②（第6〜8回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-3","mid":"mat-eiken4-bunpo","title":"まとめテスト③（第9〜11回）","vers":["A1","A2"]},{"id":"mt-eiken4-dokkai-1","mid":"mat-eiken4-dokkai","title":"まとめテスト①（第17〜21回）","vers":["A1","A2"]},{"id":"mt-eiken4-kaiwa-1","mid":"mat-eiken4-kaiwa","title":"まとめテスト①（第12〜16回）","vers":["A1","A2"]},{"id":"mt-eiken5-bunpo-1","mid":"mat-eiken5-unit-01","title":"まとめテスト①（第1〜4回）","vers":["A1","A2"]},{"id":"mt-eiken5-bunpo-2","mid":"mat-eiken5-unit-01","title":"まとめテスト②（第5〜9回）","vers":["A1","A2"]},{"id":"mt-eiken5-kaiwa-1","mid":"mat-eiken5-scene","title":"まとめテスト①（第10〜14回）","vers":["A1","A2"]},{"id":"mt-kakehashi-1","mid":"mat-eiken5-kakehashi","title":"まとめテスト①（第0〜4回）","vers":["A1","A2"]},{"id":"mt-kakehashi-2","mid":"mat-eiken5-kakehashi","title":"まとめテスト②（第5〜8回）","vers":["A1","A2"]},{"id":"mt-kakehashi-3","mid":"mat-eiken5-kakehashi","title":"まとめテスト③（第9〜12回）","vers":["A1","A2"]},{"id":"mt-sd-eng-1","mid":"mat-sd-eng","title":"まとめテスト①（①〜⑧）","vers":["A1","A2"]},{"id":"mt-sd-eng-2","mid":"mat-sd-eng","title":"まとめテスト②（⑨〜⑯）","vers":["A1","A2"]}];
+var _EKMT_=[{"id":"mt-eiken3-bunpo-1","mid":"mat-eiken3-bunpo","title":"まとめテスト①（第1〜5回）","vers":["A1","A2"]},{"id":"mt-eiken3-bunpo-2","mid":"mat-eiken3-bunpo","title":"まとめテスト②（第6〜8回）","vers":["A1","A2"]},{"id":"mt-eiken3-dokkai-1","mid":"mat-eiken3-dokkai","title":"まとめテスト①（第19〜23回）","vers":["A1","A2"]},{"id":"mt-eiken3-kaiwa-1","mid":"mat-eiken3-kaiwa","title":"まとめテスト①（第14〜18回）","vers":["A1","A2"]},{"id":"mt-eiken3-writing-1","mid":"mat-eiken3-writing","title":"まとめテスト（第9〜13回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-1","mid":"mat-eiken4-bunpo","title":"まとめテスト①（第1〜5回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-2","mid":"mat-eiken4-bunpo","title":"まとめテスト②（第6〜8回）","vers":["A1","A2"]},{"id":"mt-eiken4-bunpo-3","mid":"mat-eiken4-bunpo","title":"まとめテスト③（第9〜11回）","vers":["A1","A2"]},{"id":"mt-eiken4-dokkai-1","mid":"mat-eiken4-dokkai","title":"まとめテスト①（第17〜21回）","vers":["A1","A2"]},{"id":"mt-eiken4-kaiwa-1","mid":"mat-eiken4-kaiwa","title":"まとめテスト①（第12〜16回）","vers":["A1","A2"]},{"id":"mt-eiken5-bunpo-1","mid":"mat-eiken5-unit-01","title":"まとめテスト①（第1〜4回）","vers":["A1","A2"]},{"id":"mt-eiken5-bunpo-2","mid":"mat-eiken5-unit-01","title":"まとめテスト②（第5〜9回）","vers":["A1","A2"]},{"id":"mt-eiken5-kaiwa-1","mid":"mat-eiken5-scene","title":"まとめテスト①（第10〜14回）","vers":["A1","A2"]},{"id":"mt-kakehashi-1","mid":"mat-eiken5-kakehashi","title":"まとめテスト①（第0〜4回）","vers":["A1","A2"]},{"id":"mt-kakehashi-2","mid":"mat-eiken5-kakehashi","title":"まとめテスト②（第5〜8回）","vers":["A1","A2"]},{"id":"mt-kakehashi-3","mid":"mat-eiken5-kakehashi","title":"まとめテスト③（第9〜12回）","vers":["A1","A2"]},{"id":"mt-sd-eng-1","mid":"mat-sd-eng","title":"まとめテスト①（①〜⑧）","vers":["A1","A2"]},{"id":"mt-sd-eng-2","mid":"mat-sd-eng","title":"まとめテスト②（⑨〜⑯）","vers":["A1","A2"]},{"id":"mt-sd-eng-diag","mid":"mat-sd-eng","title":"スタート診断","vers":["A1"]}];
 /* 英検のまとめテストの解答用紙の番号（2026-11-13）＝「GQ5-12345」：kwtGAS.gs の eikenMtCodeOf_ と同じ式（架け橋0・5級5・4級4・3級3）。解答用紙の QR＝このテストを開く／問題用紙の QR＝リスニングの音だけ（&listen=1） */
 function _ekMtCode_(rid){var s=String(rid||''),m=/^mt-(kakehashi|sd-eng|eiken([345]))-/.exec(s);if(!m)return '';var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}var t=String(Math.floor(h/9)%100000);while(t.length<5)t='0'+t;return 'GQ'+(m[1]==='kakehashi'?'0':m[1]==='sd-eng'?'6':m[2])+'-'+t;}
 /* 2026-11-24 英検タブのまとめテストの紙の版の印（川上さん 19:38「Yア」）：json の items（問題文・小問の文・選択肢・正解）から5字。ぐるぐるの ggVer（guru\gg_load.js）と同じ式を英検の側に写した（英検とぐるぐるは別物＝ぐるぐるの部品を読まない）。teacher.html と index.html に同じものを置く＝直すときは両方 */
@@ -12938,7 +12974,7 @@ function _ekMtStuHtml_(ts){var S=_ekMtStus_(ts);if(!S.length)return '';return '<
 function ekMtStuAll_(v){[].slice.call(document.querySelectorAll('.pp-ekms')).forEach(function(c){c.checked=!!v;});}
 /* ===== 英検・架け橋のまとめテストの紙（2026-11-15 ぐるぐるから分けた・川上さん「英検・架け橋とぐるぐるはもう分けてください」）=====
    部品＝eiken_mt/ekmt_paper.js の ekMtPaper（ぐるぐるの guru/gg_paper*.js は読まない）。紙の CSS は .ekp の中だけ（ぐるぐるの .ggp と別）。部品を直したら EKMT_V を上げる（index.html・student.html と同じ値） */
-var EKMT_V='20261124a',_ekprLibP=null;
+var EKMT_V='20261124b',_ekprLibP=null;
 function _ekprLibs_(){
   if(_ekprLibP)return _ekprLibP;
   _ekprLibP=new Promise(function(ok,ng){var sc=document.createElement('script');sc.src='eiken_mt/ekmt_paper.js?v='+EKMT_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error('eiken_mt/ekmt_paper.js'));};document.head.appendChild(sc);}).then(function(){_ekprCssOnce_();});
