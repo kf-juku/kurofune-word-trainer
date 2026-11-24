@@ -204,9 +204,9 @@ function headCt(c,T,R,GN,kind){if(c.ek)return headEk(c,T,R,GN,kind);const h=`<di
  return h+pt+`<div class="sh-ins">答えはすべて解答用紙に書きなさい。選ぶ問題は記号（ア〜エ）を、並び替えは英文を全部書きなさい。リスニングの音声は右上の QR から聞きます。</div>`;}
 
 /* 2026-11-13 英検のまとめテストの見出し（c.ek＝{book}）。形は章まとめテストと同じ・名前は「まとめテスト」 */
-function headEk(c,T,R,GN,kind){const lis=(T.items||[]).some(x=>/class="eau"/.test(String(x.q||''))||(x.steps||[]).some(s=>/class="eau"/.test(String(s.q||''))));const h=`<div class="sh-h"><div class="sh-l"><div class="sh-k">${esc(c.ek.book||'')}</div><div class="sh-tt">${esc(c.unit)}</div><div class="sh-ps">${kind==='a'?'解答用紙':'問題用紙'}</div></div><div class="sh-r"><div class="sh-rd">${R}</div><div class="sh-rt">${GN}問・${T.min||30}分・100点</div></div>${kind==='a'||lis?`<div class="sh-qr${kind==='a'?' big':''}">QR<br>${kind==='a'?'このテストを開く':'音声を聞く'}</div>`:''}</div>`;   /* 解答用紙＝このテストを開く QR（答え合わせ）／問題用紙＝リスニングがあるときだけ音の QR（11-13 川上さん「ア」）。QR は teacher.html の ekMtPrint_ が入れる */
+function headEk(c,T,R,GN,kind){const lis=(T.items||[]).some(x=>/class="eau"/.test(String(x.q||''))||(x.steps||[]).some(s=>/class="eau"/.test(String(s.q||''))));const h=`<div class="sh-h"><div class="sh-l"><div class="sh-k">${esc(c.ek.book||'')}</div><div class="sh-tt">${esc(c.unit)}</div><div class="sh-ps">${kind==='a'?'解答用紙':'問題用紙'}</div></div><div class="sh-r">${T.diag?'':`<div class="sh-rd">${R}</div>`}<div class="sh-rt">${GN}問・${T.min||30}分${T.diag?'':'・100点'}</div></div>${kind==='a'||lis?`<div class="sh-qr${kind==='a'?' big':''}">QR<br>${kind==='a'?'このテストを開く':'音声を聞く'}</div>`:''}</div>`;   /* 解答用紙＝このテストを開く QR（答え合わせ）／問題用紙＝リスニングがあるときだけ音の QR（11-13 川上さん「ア」）。QR は teacher.html の ekMtPrint_ が入れる */
  const pt=T.diag?`<div class="sh-pt">${(T.items||[]).length}問／制限時間：${T.min||30}分</div>`:`<div class="sh-pt">配点：${T.wpt||'各5点'}（100点満点・80点で合格）／制限時間：${T.min||30}分</div>`;   /* 2026-11-24 スタート診断は配点と合格を出さない */   /* 2026-11-24 40問（各2.5点）・25問（各4点）のテストでも「各5点」と出ていた */
- if(kind==='a')return h+`<div class="sh-f"><span class="b" style="width:24mm">　月　　日</span><span class="b nm">名前</span><span class="b sc"><span>点数</span><span>／100</span></span></div>${pt}<div class="sh-ins">選ぶ問題は記号（ア〜エ）を、並べかえは英文を全部、書きなさい。</div>`;
+ if(kind==='a')return h+`<div class="sh-f"><span class="b" style="width:24mm">　月　　日</span><span class="b nm">名前</span><span class="b sc"><span>${T.diag?'正解':'点数'}</span><span>${T.diag?'／'+GN:'／100'}</span></span></div>${pt}<div class="sh-ins">選ぶ問題は記号（ア〜エ）を、並べかえは英文を全部、書きなさい。</div>`;
  return h+pt+`<div class="sh-ins">答えはすべて解答用紙に書きなさい。${lis?'リスニングの問題は、右上の「リスニング用 QR」から音を聞きます（1問につき2回流れます）。':''}</div>`;}
 function itemC(it,ps,sec){const k=kindOf(it);
  const head=sec?`<div class="sh-sec">${sec}</div>`:'';
@@ -222,14 +222,16 @@ function itemC(it,ps,sec){const k=kindOf(it);
 
 function ctEn(GG,id,R,kind){const o=ctOf(GG,id,R);if(!o)return '';const {c,T,rd}=o;const GN=ctNQ(rd);const {BK,POS}=blocks(rd);
  const CALLC=c.ek?`${c.ek.book||''} ${c.unit} ${R}`:`章まとめテスト ${c.unit} ${c.rng||''} ${RD(R)}`;
- if(kind!=='a'){let prev='';const U=rd.map((it,i)=>{const k=SECK(it);let sec='';if(k!==prev){const pt=ptOf(it);sec=`${secName(it)}<small>（各${pt}点）</small>${/class="eau"/.test(String(it.q||''))?'<span class="ls-n">🎧 音は右上の QR（リスニング用）から聞く（1問2回）</span>':''}`;}prev=k;return itemC(it,POS[i],sec);});
+ if(kind!=='a'){let prev='';const U=rd.map((it,i)=>{const k=SECK(it);let sec='';if(k!==prev){const pt=ptOf(it);sec=`${secName(it)}${T.diag?'':`<small>（各${pt}点）</small>`}${/class="eau"/.test(String(it.q||''))?'<span class="ls-n">🎧 音は右上の QR（リスニング用）から聞く（1問2回）</span>':''}`;}prev=k;return itemC(it,POS[i],sec);});
   return `<div class="sheet ctq en" data-r="${R}" data-id="${id}" data-call="${esc(CALLC)}">${headCt(c,T,R,GN,'q')}<div class="sbody">${U.join('')}</div><div class="sh-ft">問題用紙</div></div>`;}
  /* 解答用紙：区切り（語句・文法・リスニング・並び替え・読解）ごとに、選ぶ問題は記号の枠を並べ、並び替えは4本線 */
  const S=[];let cur=null;
- BK.forEach(b=>{const it0=rd[b.items[0]];const k=SECK(it0);if(!cur||cur.k!==k){cur={k,name:secName(it0),pt:ptOf(it0),cells:[],n:0};S.push(cur);}
+ BK.forEach(b=>{const it0=rd[b.items[0]];const k=T.diag?('dg:'+it0.sec):SECK(it0);if(!cur||cur.k!==k){cur={k,name:secName(it0),pt:ptOf(it0),cells:[],n:0};S.push(cur);}
   b.items.forEach(i=>{const it=rd[i],ps=POS[i];if(it.ren){it.steps.forEach((s,si)=>{cur.cells.push({lab:`${ps.num}(${si+1})`});cur.n++;});return;}
    cur.cells.push({lab:ps.n>1?`${ps.num}(${ps.k+1})`:`${ps.num}`,it});cur.n++;});});
- const body=S.map(s=>{const hd=`<div class="sh-sec">${s.name}<small>（各${s.pt}点・${s.n}問）</small></div>`;
+ const body=S.map(s=>{const hd=`<div class="sh-sec">${s.name}<small>（${T.diag?'':`各${s.pt}点・`}${s.n}問）</small></div>`;
+  if(T.diag){const ch=s.cells.filter(x=>!x.it||kindOf(x.it)!=='order'),od=s.cells.filter(x=>x.it&&kindOf(x.it)==='order');   /* 2026-11-24 スタート診断：区切りごとに、記号の枠（1行10個）のあとに並べかえの線 */
+   return `<div class="su" data-k="dg">${hd}${ch.length?`<div class="eag" style="grid-template-columns:repeat(10,1fr)">${ch.map(x=>`<div class="eac"><span>${x.lab}</span></div>`).join('')}</div>`:''}${od.map(x=>ansLine(x.it,`<b>${x.lab}</b>`)).join('')}</div>`;}
   if(s.k==='order')return `<div class="su${c.ek&&s.n>5?' ekmany':''}" data-k="order">${hd}${s.cells.map(x=>ansLine(x.it,`<b>${x.lab}</b>`)).join('')}</div>`;
   return `<div class="su" data-k="${s.k}">${hd}<div class="eag">${s.cells.map(x=>`<div class="eac"><span>${x.lab}</span></div>`).join('')}</div></div>`;}).join('');
  return `<div class="sheet cta en" data-r="${R}" data-id="${id}">${headCt(c,T,R,GN,'a')}<div class="sbody">${body}</div><div class="sh-ft">解答用紙　1／1</div></div>`;}
@@ -251,7 +253,17 @@ function layCt(first){const pages=[first];let sh=first;
  if(pages.length%2){const w=document.createElement('div');w.className='sheet blank en';w.innerHTML='<div class="sh-ft">（白紙）</div>';sh.after(w);}
  return pages.length;}
 
-function layoutEn(root){root.querySelectorAll('.sheet.sf.en').forEach(layRound);root.querySelectorAll('.sheet.ctq.en:not(.cont)').forEach(layCt);
+/* 解答用紙が1枚に入らないとき（2026-11-24 スタート診断＝60問・並べかえ13問）：入らない区切りから後ろを2枚目へ。2枚目の頭は「解答用紙（続き）」。1枚に入る今までの解答用紙は何も変わらない */
+function layCa(first){const b0=first.querySelector('.sbody');if(!b0)return 1;const pages=[first];let sh=first;
+ for(let guard=0;guard<6;guard++){const b=sh.querySelector('.sbody');const lim=limOf(sh);const U=[...b.children];
+  const k=U.findIndex(u=>u.offsetTop+u.offsetHeight-b.offsetTop>lim);if(k<=0)break;
+  const nx=document.createElement('div');nx.className='sheet cta en cont';nx.dataset.r=first.dataset.r;nx.dataset.id=first.dataset.id;
+  const tt=(first.querySelector('.sh-tt')||{}).textContent||'';
+  nx.innerHTML=`<div class="sh-cont">${tt}　解答用紙（続き）</div><div class="sbody"></div><div class="sh-ft"></div>`;
+  sh.after(nx);const nb=nx.querySelector('.sbody');U.slice(k).forEach(x=>nb.appendChild(x));pages.push(nx);sh=nx;}
+ if(pages.length>1)pages.forEach((p,i)=>{p.querySelector('.sh-ft').textContent=`解答用紙　${i+1}／${pages.length}`;});
+ return pages.length;}
+function layoutEn(root){root.querySelectorAll('.sheet.sf.en').forEach(layRound);root.querySelectorAll('.sheet.ctq.en:not(.cont)').forEach(layCt);root.querySelectorAll('.sheet.cta.en:not(.cont)').forEach(layCa);
  root.querySelectorAll('.sheet.cta.en').forEach(sh=>{const b=sh.querySelector('.sbody');const U=[...b.children];const free=limOf(sh)-usedOf(sh);if(free>0&&U.length){const g=Math.min(free/U.length,6*3.78);U.forEach(u=>u.style.marginBottom=g+'px');}});}
 
 const CSS_EN=`

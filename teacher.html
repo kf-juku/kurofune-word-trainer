@@ -5796,7 +5796,7 @@ function sdEikenBlock_(s,fk){
    材料＝quiz_board（student_id で絞った返事）の行のうち part_id が mt- で始まるもの。ekmt＝{ans,el,miss_no,at,done,pass}（kwtGAS.gs ekMtBoardInfo_）。
    まちがえた番号＝提出のとき送った miss_no。11-14 18:5x より前の記録には無いので、残っている答え（ans）と問題の json（eiken_mt）の正解をくらべて出す。
    かかった時間＝提出のとき送った el（ミリ秒）。それより前の記録は「記録なし」 */
-function _ekMtTitle_(pid){var m=String(pid).match(/^(.+)-(A1|A2|B1|B2)$/);if(!m)return pid;var t=null;try{_EKMT_.forEach(function(x){if(x.id===m[1])t=x;});}catch(e){}return (t?t.title:m[1])+' '+m[2];}
+function _ekMtTitle_(pid){var m=String(pid).match(/^(.+)-(A1|A2|B1|B2)$/);if(!m)return pid;var t=null;try{_EKMT_.forEach(function(x){if(x.id===m[1])t=x;});}catch(e){}return (t?t.title:m[1])+(/-diag$/.test(m[1])?'':' '+m[2]);}
 function _ekMtMin_(ms){if(ms==null||ms==='')return '<span class="t-sub">記録なし</span>';var s=Math.round(ms/1000);return Math.floor(s/60)+'分'+String(s%60).padStart(2,'0')+'秒';}
 var _ekMtJ_={};
 function _ekMtJson_(pid){if(!_ekMtJ_[pid])_ekMtJ_[pid]=fetch('eiken_mt/'+pid+'.json?v='+EKMT_V,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('json '+r.status);return r.json();});return _ekMtJ_[pid];}
@@ -12974,7 +12974,7 @@ function _ekMtStuHtml_(ts){var S=_ekMtStus_(ts);if(!S.length)return '';return '<
 function ekMtStuAll_(v){[].slice.call(document.querySelectorAll('.pp-ekms')).forEach(function(c){c.checked=!!v;});}
 /* ===== 英検・架け橋のまとめテストの紙（2026-11-15 ぐるぐるから分けた・川上さん「英検・架け橋とぐるぐるはもう分けてください」）=====
    部品＝eiken_mt/ekmt_paper.js の ekMtPaper（ぐるぐるの guru/gg_paper*.js は読まない）。紙の CSS は .ekp の中だけ（ぐるぐるの .ggp と別）。部品を直したら EKMT_V を上げる（index.html・student.html と同じ値） */
-var EKMT_V='20261124b',_ekprLibP=null;
+var EKMT_V='20261125a',_ekprLibP=null;
 function _ekprLibs_(){
   if(_ekprLibP)return _ekprLibP;
   _ekprLibP=new Promise(function(ok,ng){var sc=document.createElement('script');sc.src='eiken_mt/ekmt_paper.js?v='+EKMT_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error('eiken_mt/ekmt_paper.js'));};document.head.appendChild(sc);}).then(function(){_ekprCssOnce_();});
