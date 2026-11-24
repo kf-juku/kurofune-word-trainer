@@ -137,6 +137,11 @@ function ggEnBox(l){l=String(l);if(l.charAt(0)==='&')l=l.slice(1);if(l.charAt(0)
     else h+='<div class="erl" style="'+EN_SERIF_+'font-size:15.5px;margin:2px 0 0 4px">'+enMk_(r)+'</div>';
     i++;}
   return '<div class="gbox gen" style="float:none;clear:both;max-width:none;margin:8px 0;padding:6px 12px 10px;border:1px solid #c9ced6;border-radius:8px;background:#f5f6f8;'+EN_PC_+'"><div class="gbh" style="font-size:12px;font-weight:700;color:#475569;margin:0 0 2px">'+n+'</div>'+h+'</div>';}
-G.ggBuildData=ggBuildData;G.ggFillWords=ggFillWords;G.ggMarkWrong=ggMk_;G.ggEnBox=ggEnBox;
+/* 2026-11-24 紙の版の印（川上さん「Vア」）：回の問題（問題文・小問の文・選択肢・正解）から5字の印を作る。先生画面が紙の QR に &v=印 を入れ、生徒アプリが紙の QR を読んだときに今の問題の印とくらべる。
+   図（<svg>・⟦F:…⟧）とタグと空白は数えない（先生画面は図を描いたデータ、生徒アプリは描かないデータで計算するため）。解説（w）は数えない＝解説だけの直しでは紙は古くならない */
+function ggVN_(t){return String(t==null?'':t).replace(/<svg[\s\S]*?<\/svg>/g,'').replace(/⟦[^⟧]*⟧/g,'').replace(/<[^>]+>/g,'').replace(/\s+/g,'');}
+function ggVer(items){var s='';(items||[]).forEach(function(it){var L=(it&&it.ren&&Array.isArray(it.steps))?[it].concat(it.steps):[it];L.forEach(function(x){if(!x)return;s+='|'+ggVN_(x.q)+'~'+ggVN_(x.s)+'~'+(Array.isArray(x.c)?x.c.map(ggVN_).join('^'):'')+'~'+(x.a==null?'':JSON.stringify(x.a));});});
+  var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return ('0000'+h.toString(36)).slice(-5);}
+G.ggBuildData=ggBuildData;G.ggFillWords=ggFillWords;G.ggMarkWrong=ggMk_;G.ggEnBox=ggEnBox;G.ggVer=ggVer;
 if(typeof module!=='undefined')module.exports={ggBuildData:ggBuildData,ggFillWords:ggFillWords,ggMarkWrong:ggMk_};
 })(typeof window!=='undefined'?window:globalThis);

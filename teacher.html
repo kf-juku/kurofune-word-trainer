@@ -7083,7 +7083,7 @@ function _wsLoadLibs_(){
    ノートの書き方の絵は guru/img/gg/*.svg（画面に出たときに読む）。部品を直したら GG_LIB_V を上げる
    2026-11-02 段3 速くした：開いたときは［中身］の最初の material_preview の返事（ぐるぐるは words を読まない＝parts の行と表紙の説明だけ）で一覧を出す（ggBuildData の lazy）。
    回・［確かめる］・章まとめを開いたときに、そのパートの行だけ gg_preview_part で読む（gg_shell.js の opt.loadParts → ggFillWords）。読んだパートはこの窓を閉じるまで覚えておく */
-var GG_LIB_V='20261124b',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの rect の class を bar→hbar＝gg_fig.js）。2026-11-04 ぐるぐる：20261104c（よくあるまちがいの枠と選んだ答えでの出し分け・矢印の2組目・紙の補足ボックスと矢印＝gg_app.js・gg_load.js・gg_shell.js）。20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
+var GG_LIB_V='20261124c',_ggLibP=null,_ggApi=null,_ggData=null,_ggDark=false,_ggRow0='',_ggMid='';   /* 2026-11-09 ぐるぐる：20261109a（棒グラフの rect の class を bar→hbar＝gg_fig.js）。2026-11-04 ぐるぐる：20261104c（よくあるまちがいの枠と選んだ答えでの出し分け・矢印の2組目・紙の補足ボックスと矢印＝gg_app.js・gg_load.js・gg_shell.js）。20261104a（左の見出しを1行に＝gg_shell.js）。20261103f（ぐるぐる印刷＝gg_shell.js の paperMount・gg_app.js の紙の配点・gg_paper.js・gg_paper_en.js・テストの放送2回）。20261103c（重要マーク ◆ の gg_shell.js・gg_load.js）。20261103b＝確かめる画面を外した gg_shell.js。student.html の GG_LIB_V と同じ値にする */
 function _ggLoadLibs_(){
   if(_ggLibP)return _ggLibP;
   var js=function(src){return new Promise(function(ok,ng){var sc=document.createElement('script');sc.src=src+'?v='+GG_LIB_V;sc.onload=function(){ok();};sc.onerror=function(){ng(new Error(src));};document.head.appendChild(sc);});};
@@ -7261,7 +7261,9 @@ function _ggCodeDup_(cd,rid){var D=_ggData||{},o=[];if(!cd)return o;
   return o;}
 function _ggCode_(rid,grade){var s=String(rid||''),m=/^gg_ct([a-z])\d/.exec(s);if(!m)return '';var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h+(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0;}var t=String(Math.floor(h/9)%100000);while(t.length<5)t='0'+t;return 'G'+m[1].toUpperCase()+_ggGradeNo_(s,grade)+'-'+t;}
 /* 解答用紙の QR を入れる。key＝名前入りの鍵（無ければ名前なし＝全員同じ紙）。英語の紙は .sh-qr、数学（アプリの紙）は .qr（_ptAsHead_ が真ん中に置いた所） */
-function _ggprQr_(pages,cd,key,ls){if(!cd)return;var url=cd.replace('-','')+(key?'&qa='+key:''),lab='<div class="ggqr-cd">'+esc(cd)+' '+_ptDayLab_()+' 刷</div>';
+/* 2026-11-24 紙の版の印（川上さん「Vア」）：v＝回の問題から作る5字（guru\gg_load.js の ggVer）。QR に &v= を入れ、生徒アプリが今の問題とくらべる（古い紙では答え合わせを開かない） */
+function _ggprVer_(x,isCt,R){try{var it=x&&x.rounds?(isCt?(x.rounds[R]&&x.rounds[R].items):x.rounds[R]):null;return (window.ggVer&&it&&it.length)?window.ggVer(it):'';}catch(e){return '';}}
+function _ggprQr_(pages,cd,key,ls,v){if(!cd)return;var url=cd.replace('-','')+(key?'&qa='+key:'')+(v?'&v='+v:''),lab='<div class="ggqr-cd">'+esc(cd)+' '+_ptDayLab_()+' 刷</div>';
   /* ls（2026-11-17 英語の章まとめテスト）：'listen'＝問題用紙の音だけの QR（&listen=1）・'ans'＝解答用紙の答え合わせの QR。上に「🎧 リスニング用」「✎ 答え合わせ用」と書く（英検のまとめテストの紙と同じ） */
   if(ls==='open')lab='<div class="ggqr-cd">'+esc(cd)+'</div>';   /* 通常回の紙は刷った日を出さない（見出しを高くしない。紙は答えの記録に使わず、番号は回で決まる） */
   var lsH=ls==='listen'?'<div class="ggqr-ls">🎧 リスニング用</div>':(ls==='ans'?'<div class="ggqr-ls">✎ 答え合わせ用</div>':(ls==='open'?'<div class="ggqr-ls">この回を開く</div>':''));
@@ -7281,8 +7283,8 @@ function _ggprDoc_(j,k){
     if(!meas.querySelector('.sheet')){document.body.removeChild(meas);return Promise.resolve([]);}
     if(k==='rq'){var rrid=(x.rowIds||{})[j.R]||'',rcd=_ggRdCode_(rrid,x.grade),rdp=_ggCodeDup_(rcd,rrid);   /* 2026-11-17 通常回の紙の QR（この回を開く・数学も英語も） */
       if(rdp.length){document.body.removeChild(meas);return Promise.reject(new Error('番号 '+rcd+'（'+rrid+'）が、ほかの行（'+rdp.join('・')+'）と同じです。刷るのを止めました。ジョブスに伝えてください'));}
-      _ggprQr_([meas],rcd,'','open');}
-    if(k==='cs')_ggprQr_([meas],_ggCode_((x.rowIds||{})[j.R]||'',x.grade),'',en?'ans':'');
+      _ggprQr_([meas],rcd,'','open',_ggprVer_(x,false,j.R));}
+    if(k==='cs')_ggprQr_([meas],_ggCode_((x.rowIds||{})[j.R]||'',x.grade),'',en?'ans':'',_ggprVer_(x,true,j.R));
     if(k==='cq'&&en&&isCt)_ggprQr_([meas],_ggCode_((x.rowIds||{})[j.R]||'',x.grade),'','listen');   /* 2026-11-17 問題用紙のリスニングの QR（リスニングがある回だけ枠がある） */
     try{ggPaper.KX(meas);}catch(e){}
     return fr.then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
@@ -7298,7 +7300,7 @@ function _ggprDoc_(j,k){
   return fr.then(function(){return new Promise(function(r){setTimeout(r,60);});}).then(function(){
     var r=_ppWsLayout_(api,k==='cs'?'s':(k==='cq'?'q':'a'),null,null,null,_ggprEqFit_);var pg=[].slice.call(r.meas.querySelectorAll('.pp-pg'));pg.forEach(function(p){r.meas.removeChild(p);p.classList.add('ggpr-pg');});document.body.removeChild(r.meas);
     try{hide.removeChild(root);}catch(e){}
-    if(k==='cs')_ggprQr_(pg,_ggCode_((x.rowIds||{})[j.R]||'',x.grade),'');
+    if(k==='cs')_ggprQr_(pg,_ggCode_((x.rowIds||{})[j.R]||'',x.grade),'',undefined,_ggprVer_(x,isCt,j.R));
     return pg;});
 }
 function ggPrMake_(how){
@@ -7324,7 +7326,7 @@ function ggPrMake_(how){
       return new Promise(function(r){setTimeout(r,30);}).then(function(){return _ggprDoc_(d.j,d.k);}).then(function(pg){if(!pg.length)return step();
         var put=function(ps){if(out.length%2===1)out.push(_ppBlankPg_());ps.forEach(function(p){out.push(p);});};
         if(d.k==='cs'&&S.length){var c=(_ggData.cts||[]).filter(function(x){return x.id===d.j.id;})[0],rid=c&&(c.rowIds||{})[d.j.R],cd=_ggCode_(rid,c&&c.grade);
-          S.forEach(function(s){var key=keys[rid+'|'+String(s.student_id)];if(!key)return;var ps=pg.map(function(p){return p.cloneNode(true);});_ggprQr_(ps,cd,key,String((c&&c.subj)||'')==='en'?'ans':'');_ggprName_(ps,s.name||s.nickname||'');put(ps);nm.named=(nm.named||0)+1;});}
+          S.forEach(function(s){var key=keys[rid+'|'+String(s.student_id)];if(!key)return;var ps=pg.map(function(p){return p.cloneNode(true);});_ggprQr_(ps,cd,key,String((c&&c.subj)||'')==='en'?'ans':'',_ggprVer_(c,true,d.j.R));_ggprName_(ps,s.name||s.nickname||'');put(ps);nm.named=(nm.named||0)+1;});}
         else put(pg);
         nm[d.k]=(nm[d.k]||0)+1;return step();});};return step();})
   .then(function(){
