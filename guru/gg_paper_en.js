@@ -147,7 +147,7 @@ function ctG(GG,c,T,R,kind){const rd=T.items;const GN=nqOf(rd);const {POS}=block
  return `<div class="sheet cta en gge" data-r="${R}" data-id="${id}">${headCtG(c,T,R,GN,'a')}<div class="sbody">${body}</div><div class="sh-ft">解答用紙　1／1</div></div>`;}
 
 /* ===== 解答解説（ぐるぐる英語の1回・章まとめテスト）：問題ごとに 正解（記号・2つ選ぶは記号2つ・並べかえは英文）と解説。リスニングは放送文と和訳も（答え合わせのあとに見る紙なので） ===== */
-function wLine(l,c){l=String(l==null?'':l);let m=/^#\{(\d+)\}(.*)$/.exec(l);if(m)return `<div class="wx"><b>${KANA6(+m[1])} を選んだ人</b>${m[2]}</div>`;
+function wLine(l,c){l=String(l==null?'':l);if(l.slice(0,2)==='&+')return '';if(l.charAt(0)==='&'){const bx=typeof window!=='undefined'&&window.ggEnBox?window.ggEnBox(l):null;return bx?`<div class="wbx">${bx}</div>`:'';}let m=/^#\{(\d+)\}(.*)$/.exec(l);if(m)return `<div class="wx"><b>${KANA6(+m[1])} を選んだ人</b>${m[2]}</div>`;
  if(l.charAt(0)==='#')return `<div class="wx">${l.slice(1)}</div>`;if(l.charAt(0)==='>')return `<div class="wu">${l.slice(1)}</div>`;return `<div class="wl">${l}</div>`;}
 const wHtml=(w,c)=>(w||[]).map(l=>wLine(l,c)).join('');
 function ansOf(st){if(st.ord)return `<span class="ae">${esc(st.a)}</span>${(st.ord.alt||[]).length?`<div class="aalt">別の正しい語順：${st.ord.alt.map(esc).join('　／　')}</div>`:''}`;
