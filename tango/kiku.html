@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>単語の音と答え合わせ</title>
+<!-- 2026-11-25 書き込みプリント 単語編の QR の先（決まり ぐるぐる英語_作り方の決まり.md の D16）。?r=回。中身＝sd_tango.json（生徒アプリ・先生の紙と同じ）。前の回の答えの順＝teacher.html の _tgOrd_ と同じ式 -->
+<style>
+body{margin:0;font-family:'Noto Sans JP','Hiragino Sans','Yu Gothic',sans-serif;background:#f6f7f9;color:#111}
+.w{max-width:560px;margin:0 auto;padding:18px 14px 40px}
+h1{font-size:19px;margin:4px 0 2px}.tip{color:#555;font-size:14px;margin-bottom:14px}
+h2{font-size:15px;margin:22px 0 8px}
+.c{background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.08);padding:4px 12px}
+.r{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid #eef0f3}.r:first-child{border-top:0}
+.r .n{width:22px;color:#6b7280;font-weight:700}.r .b{flex:1;min-width:0}
+.en{font-size:19px;font-weight:700;font-family:Arial,Helvetica,sans-serif;overflow-wrap:anywhere}.ja{font-size:13px;color:#444;margin-top:2px}
+button.p{flex:none;border:0;background:#2563eb;color:#fff;border-radius:999px;width:44px;height:44px;font-size:19px;cursor:pointer}
+button.all{border:0;background:#111;color:#fff;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;cursor:pointer;margin:2px 0 10px}
+.hide .en{filter:blur(7px)}.tg{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px}
+.ng{padding:30px 0;text-align:center;color:#555}
+</style></head><body><div class="w" id="w"><div class="ng">読み込み中…</div></div>
+<script>
+(function(){
+var W=document.getElementById('w'),no=parseInt((location.search.match(/[?&]r=(\d+)/)||[])[1],10),AU=null,Q=[];
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function ord(n){var a=[],i;for(i=1;i<n;i+=2)a.push(i);for(i=0;i<n;i+=2)a.push(i);return a;}
+function play(list){Q=list.slice();next();}
+function next(){if(AU){try{AU.pause();}catch(e){}}var s=Q.shift();if(!s)return;AU=new Audio('../'+s);AU.onended=function(){setTimeout(next,500);};AU.play().catch(function(){});}
+fetch('sd_tango.json?v=20261125a',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(D){
+  var rd=null,pv=null;D.rounds.forEach(function(r){if(r.no===no)rd=r;if(r.no===no-1)pv=r;});
+  if(!rd){W.innerHTML='<div class="ng">この QR の回が見つかりません</div>';return;}
+  var all=[];rd.items.forEach(function(it){all=all.concat(it.au||[]);});
+  var h='<h1>'+rd.no+'回目の単語</h1><div class="tip">'+esc(rd.tip)+'</div><button class="all" data-all="1">▶ 全部を続けて聞く</button><div class="c">'
+   +rd.items.map(function(it,i){return '<div class="r"><span class="n">'+(i+1)+'</span><div class="b"><div class="en">'+esc(it.en)+'</div><div class="ja">'+esc(it.yomi?it.yomi+'　':'')+esc(it.ja)+'</div></div><button class="p" data-i="'+i+'" aria-label="音を聞く">🔊</button></div>';}).join('')+'</div>';
+  if(pv){var cm='①②③④⑤⑥⑦⑧';h+='<h2>前の回（'+pv.no+'回目）の小テストの答え</h2><button class="tg" data-tg="1">答えを隠す</button><div class="c" id="ans">'
+   +ord(pv.items.length).map(function(k,j){var it=pv.items[k];return '<div class="r"><span class="n">'+cm.charAt(j)+'</span><div class="b"><div class="ja">'+esc(it.ja)+'</div><div class="en">'+esc(it.en)+'</div></div><button class="p" data-pv="'+k+'" aria-label="音を聞く">🔊</button></div>';}).join('')+'</div>';}
+  W.innerHTML=h;
+  W.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+    if(b.getAttribute('data-all'))play(all);
+    else if(b.hasAttribute('data-i'))play(rd.items[+b.getAttribute('data-i')].au||[]);
+    else if(b.hasAttribute('data-pv'))play(pv.items[+b.getAttribute('data-pv')].au||[]);
+    else if(b.getAttribute('data-tg')){var a=document.getElementById('ans'),on=a.classList.toggle('hide');b.textContent=on?'答えを見る':'答えを隠す';}});
+}).catch(function(){W.innerHTML='<div class="ng">読み込めませんでした。電波のよい所でもう一度開いてください</div>';});
+})();
+</script></body></html>

@@ -2821,7 +2821,7 @@ table.pt-tb{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12p
       <div id="ppMatW"><div class="pp-mth"><span class="pp-mlab">教材</span><span id="ppMatNow" class="pp-mnow"></span></div><input type="hidden" id="ppMat" value=""><input class="pk-search2" id="ppMatSearch" placeholder="教材名で探す" oninput="_ppMatDraw_()" autocomplete="off"><div class="pk-list pp-mlist" id="ppMatList"></div></div>
       </div><div class="pp-cr">
       <label id="ppDirW" style="display:none;">英単語　<select id="ppDir" style="font:inherit;padding:6px;"><option value="e2j">英語を見て和訳を書く</option><option value="j2e">和訳を見て英語を書く</option></select></label>
-      <div id="ppEkMtW" style="display:none;margin:0 0 10px"></div><div id="ppPartsW"><div class="pp-pth">範囲<span id="ppPartsN"></span><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(true)">全部選ぶ</button><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(false)">全部外す</button></div><div id="ppParts" class="pp-pts"></div></div>
+      <div id="ppEkMtW" style="display:none;margin:0 0 10px"></div><div id="ppTgW" style="display:none;margin:0 0 10px"></div><div id="ppPartsW"><div class="pp-pth">範囲<span id="ppPartsN"></span><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(true)">全部選ぶ</button><button type="button" class="btn-ghost pp-ptb" onclick="ppPartsAll_(false)">全部外す</button></div><div id="ppParts" class="pp-pts"></div></div>
       <div style="display:flex;align-items:center;gap:8px;"><div id="ppStat" style="color:var(--text-muted);min-height:1.4em;"></div><button type="button" id="ppStopB" class="btn-ghost pp-ptb" style="display:none;" onclick="ppStop_()">止める</button></div>
       <div class="pp-outs">
         <div class="pp-out"><span class="nm">問題用紙</span><button class="btn-primary" style="width:auto;" onclick="ppMake_('print_q')">🖨 印刷</button><button class="btn-primary btn-outlineK" style="width:auto;" onclick="ppMake_('pdf_q')">⬇ PDF</button></div>
@@ -5788,7 +5788,7 @@ function sdEikenBlock_(s,fk){
   if(!ms.length)return '';
   return ms.map(function(m){var pr=_abPairs_(m),miss=_abMissN_(m),on=fk&&(fk===String(m.material_id)||fk===_lvSerKey_(m));
     return '<details class="sd2-bk"'+(on?' open':'')+'><summary><span class="nm">'+esc(mtLabel(m))+(miss?'<span class="lv-ng">A-2 まだ '+miss+'</span>':'')+'</span><span class="cv">A-1 済み <b>'+pr.filter(function(x){return !x.ex&&x.a1;}).length+'</b>/'+pr.filter(function(x){return !x.ex;}).length+'</span><span class="cv">A-2 済み <b>'+pr.filter(function(x){return !x.ex&&x.a2;}).length+'</b>/'+pr.filter(function(x){return !x.ex;}).length+'</span><span class="car">▾</span></summary>'
-      +'<div class="in"><div class="ekmt-slot" data-mid="'+esc(String(m.material_id))+'"></div><table class="sd2-tbl ab-tbl"><thead><tr><th>パート</th><th>A-1</th><th>A-2</th></tr></thead><tbody>'
+      +'<div class="in"><div class="ekmt-slot" data-mid="'+esc(String(m.material_id))+'"></div>'+(String(m.material_id)==='mat-sd-eng'?'<div class="tg-slot"></div>':'')+'<table class="sd2-tbl ab-tbl"><thead><tr><th>パート</th><th>A-1</th><th>A-2</th></tr></thead><tbody>'
       +pr.map(function(x){return '<tr'+((!x.ex&&x.a1&&!x.a2)?' class="ab-miss"':'')+'><td class="nm">'+esc(x.name.replace(/\s*A-1\s*$/,''))+'</td>'+(x.ex?'<td colspan="2"><span class="ab-ex">説明</span> '+_abChip_(x.a1,x.a1t)+'</td>':'<td>'+_abChip_(x.a1,x.a1t)+'</td><td>'+_abChip_(x.a2,x.a2t)+'</td>')+'</tr>';}).join('')
       +'</tbody></table></div></details>';}).join('');
 }
@@ -5837,6 +5837,25 @@ function _ekDgFill_(box,e){_ekMtJson_(e.part_id).then(function(D){box.innerHTML=
     c.disabled=true;c.textContent='…';
     call({action:'ekmt_dg_set',student_id:e.student_id||_ekDgSid_,part_id:e.part_id,learn:JSON.stringify(learn),adj:JSON.stringify(adj)}).then(function(r){if(r&&r.ok){x.dg=r.data.dg;e.ekmt=x;_ekDgFill_(box,e);}else{alert((r&&r.error)||'保存できませんでした');_ekDgFill_(box,e);}},function(){alert('保存できませんでした（通信）');_ekDgFill_(box,e);});};});
  },function(){box.innerHTML='<div class="t-sub">スタート診断の問題を読めませんでした</div>';});}
+
+/* 2026-11-25 単語タブ（スタートダッシュ）：生徒の詳細の英検の本の中に、回ごとの練習・小テスト・やり直しを出す（決まり D17〜D19） */
+var _tgDataP=null;
+function _tgData_(){if(!_tgDataP)_tgDataP=fetch('tango/sd_tango.json?v=20261125a',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('json');return r.json();}).catch(function(e){_tgDataP=null;throw e;});return _tgDataP;}
+function _tgSc_(t){return (t&&t.n)?(t.ok+'/'+t.n+(t.ok<t.n&&t.miss&&t.miss.length?' <span class="t-sub">'+esc(t.miss.join('・'))+'</span>':'')):'<span class="t-sub">なし</span>';}
+function _tgFill_(list){
+  [].forEach.call(document.querySelectorAll('#sdEiken .tg-slot'),function(sl){
+    var L=(list||[]).filter(function(e){return e.tango;}).slice().sort(function(a,b){return String(a.part_id)<String(b.part_id)?-1:1;});
+    if(!L.length){sl.innerHTML='<div class="t-sub" style="margin:2px 0 8px">単語：まだやっていません</div>';return;}
+    _tgData_().then(function(D){var tip={};D.rounds.forEach(function(r){tip[r.no]=r.tip;});
+      var ok=L.filter(function(e){return quizOk_(e);}).length,red=L.filter(function(e){var x=e.tango.redo;return x&&x.need&&!x.clear;}).length;
+      sl.innerHTML='<div class="t-sub" style="margin:2px 0 6px">単語：'+L.length+'/'+D.rounds.length+'回　できた '+ok+'回　小テストのやり直しが残っている '+red+'回</div>'
+        +'<table class="sd2-tbl ab-tbl" style="margin-bottom:10px"><thead><tr><th>単語の回</th><th>練習（1周目）</th><th>小テスト 前の回</th><th>小テスト この回</th><th>やり直し</th><th>日付</th></tr></thead><tbody>'
+        +L.map(function(e){var x=e.tango,f=x.first||{},no=parseInt(String(e.part_id).slice(-2),10),pr=f.prac||{},r=Number(e.latest_rate),rd=x.redo||{};
+          var rdH=rd.need?(rd.clear?'<span class="ab-c ok">全問正解</span>':'<span class="ab-c no">残っている</span>')+(rd.n?' <span class="t-sub">'+rd.n+'回</span>':''):'<span class="t-sub">いらない</span>';
+          return '<tr'+((rd.need&&!rd.clear)?' class="ab-miss"':'')+'><td class="nm">'+no+'回目 <span class="t-sub">'+esc(tip[no]||'')+'</span></td><td>'+(pr.n?(pr.ok+'/'+pr.n+'　<b>'+(isNaN(r)?'-':r)+'</b>%'):'-')+(quizOk_(e)?' <span class="ab-c ok">できた</span>':'')+'</td><td>'+_tgSc_(f.test&&f.test.prev)+((f.test&&f.test.prev&&f.test.prev.n)?(f.test.prev.ok>=f.test.prev.n*0.8?' <span class="ab-c ok">合格</span>':' <span class="ab-c no">まだ</span>'):'')+'</td><td>'+_tgSc_(f.test&&f.test.cur)+'</td><td>'+rdH+'</td><td class="mt">'+esc(e.last_date||'')+'</td></tr>';}).join('')+'</tbody></table>';
+    },function(){sl.innerHTML='<div class="t-sub">単語の回の名前を読めませんでした</div>';});
+  });
+}
 function _ekMtFill_(list){
   var by={};(list||[]).forEach(function(e){(by[String(e.material_id)]=by[String(e.material_id)]||[]).push(e);});
   [].forEach.call(document.querySelectorAll('#sdEiken .ekmt-slot'),function(sl){
@@ -6281,7 +6300,7 @@ function openStudentDetail(sid,focusKey){
     var ents=(pack&&pack.entries)||[], mats=(pack&&pack.materials)||[];
     /* ワークシートのテストは「単元別（テスト対策）」に出さない＝3つ目の欄へ 2026-10-20 */
     var _wsM={};(s.materials_view||[]).concat(s.completed_view||[]).forEach(function(m){if(String(m.type)==='worksheet')_wsM[String(m.material_id)]=1;});
-    var _mtE=ents.filter(function(e){return /^mt-/.test(String(e.part_id||''));});ents=ents.filter(function(e){return !/^mt-/.test(String(e.part_id||''));});try{_ekDgSid_=sid;_ekMtFill_(_mtE);}catch(eMt){}
+    var _mtE=ents.filter(function(e){return /^mt-/.test(String(e.part_id||''));});ents=ents.filter(function(e){return !/^mt-/.test(String(e.part_id||''));});try{_ekDgSid_=sid;_ekMtFill_(_mtE);}catch(eMt){}var _tgE=ents.filter(function(e){return /^tg-/.test(String(e.part_id||''));});ents=ents.filter(function(e){return !/^tg-/.test(String(e.part_id||''));});try{_tgFill_(_tgE);}catch(eTg){}
     var _ggE=ents.filter(function(e){return /^gg_/.test(String(e.part_id||''));});ents=ents.filter(function(e){return !/^gg_/.test(String(e.part_id||''));});try{_ggFill_(_ggE);}catch(eGg){}   /* 2026-11-16 ぐるぐるの回は「ぐるぐる（回ごと）」の欄へ */   /* 2026-11-14 英検のまとめテストは英検の欄へ（単元別に出さない） */
     var wsEnts=ents.filter(function(e){return e.ws||_wsM[String(e.material_id)];});ents=ents.filter(function(e){return !(e.ws||_wsM[String(e.material_id)]);});
     var _ekM={};(s.materials_view||[]).concat(s.completed_view||[]).forEach(function(m){if(_isEikenM_(m))_ekM[String(m.material_id)]=1;});ents=ents.filter(function(e){return !_ekM[String(e.material_id)];});   /* 英検の確認テスト（もう配らない）は出さない 2026-11-12 */
@@ -12962,7 +12981,47 @@ function _ekMtVN_(t){return String(t==null?'':t).replace(/<svg[\s\S]*?<\/svg>/g,
 function _ekMtVer_(items){var s='';(items||[]).forEach(function(it){var L=(it&&it.ren&&Array.isArray(it.steps))?[it].concat(it.steps):[it];L.forEach(function(x){if(!x)return;s+='|'+_ekMtVN_(x.q)+'~'+_ekMtVN_(x.s)+'~'+(Array.isArray(x.c)?x.c.map(_ekMtVN_).join('^'):'')+'~'+(x.a==null?'':JSON.stringify(x.a));});});
   var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return ('0000'+h.toString(36)).slice(-5);}
 function _ekMtQr_(meas,cd,listen,key,v){[].slice.call(meas.querySelectorAll('.sh-qr')).forEach(function(q){q.classList.add('has');q.innerHTML='<div class="ekqr-ls">'+(listen?'🎧 リスニング用':'✎ 答え合わせ用')+'</div>'+fsQrHtml_(cd.replace('-','')+(key?'&qa='+key:'')+(v&&!listen?'&v='+v:''),!!listen)+'<div class="ekqr-cd">'+esc(cd)+' '+_ptDayLab_()+' 刷</div>';});}
-function _ppEkMtDraw_(){var w=$('ppEkMtW');if(!w)return;var sel=(_ppSel&&_ppSel.length)?_ppSel:[$('ppMat').value];
+
+/* ===== 単語タブ（スタートダッシュ）の書き込みプリント 単語編（2026-11-25・決まり ぐるぐる英語_作り方の決まり.md の D3・D7・D16）=====
+   練習プリントの窓で mat-sd-eng を選ぶと出る。1回＝A4 1枚（.pp-pg）。上＝前の回の小テスト（日本語＋4本線・順を変える）、下＝その回の 見る・なぞる・自分で書く。
+   QR＝tango/kiku.html?r=回（その回の音と、前の回の小テストの答え）。中身＝tango/sd_tango.json（生徒アプリと同じ） */
+var TG_KIKU_URL_='https://kf-juku.github.io/kurofune-word-trainer/tango/kiku.html?r=';
+function _tgOrd_(n){var a=[],i;for(i=1;i<n;i+=2)a.push(i);for(i=0;i<n;i+=2)a.push(i);return a;}   /* 習った順と変える（2・4・1・3・5番目…）。kiku.html と同じ式 */
+function _ppTgDraw_(){var w=$('ppTgW');if(!w)return;var sel=(_ppSel&&_ppSel.length)?_ppSel:[$('ppMat').value];
+  if(_ppTest||sel.indexOf('mat-sd-eng')<0){w.style.display='none';w.innerHTML='';return;}
+  var o='';for(var i=1;i<=35;i++)o+='<option value="'+i+'">'+i+'</option>';
+  w.style.display='';w.innerHTML='<div class="pp-pth">単語の書き込みプリント<span style="font-weight:400;color:var(--text-muted);margin-left:6px">1回＝A4 1枚（上に前の回の小テスト）</span></div>'
+   +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="ppTgA">'+o+'</select>回目〜<select id="ppTgB">'+o+'</select>回目'
+   +'<button type="button" class="btn-primary" style="width:auto" onclick="tgPrint_(\'print\')">🖨 単語を印刷</button><button type="button" class="btn-primary btn-outlineK" style="width:auto" onclick="tgPrint_(\'pdf\')">⬇ PDF</button><span id="ppTgSt" style="color:var(--text-muted);font-size:12px"></span></div>';}
+function _tgQr_(no){var m=null;try{m=qrModules_(TG_KIKU_URL_+no);}catch(e){m=null;}if(!m)return '<div class="tgpp-qrng">QRを作れませんでした</div>';
+  var n=m.length,q=4,d='';for(var y=0;y<n;y++)for(var x=0;x<n;x++)if(m[y][x])d+='M'+(x+q)+' '+(y+q)+'h1v1h-1z';
+  return '<svg class="tgpp-qr" viewBox="0 0 '+(n+q*2)+' '+(n+q*2)+'" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';}
+function _tgPage_(D,rd){var pv=null;D.rounds.forEach(function(r){if(r.no===rd.no-1)pv=r;});var cm='①②③④⑤⑥⑦⑧';
+  var h='<div class="tgpp-h"><div><div class="tgpp-t">中学英語スタートダッシュ　単語</div><div class="tgpp-r">'+rd.no+'回目　'+esc(rd.tip)+'</div></div>'
+   +'<div class="tgpp-hr"><div class="tgpp-nm">　　月　　日　名前<span></span></div><div class="tgpp-qrw">'+_tgQr_(rd.no)+'<div>音と答え合わせ</div></div></div></div>';
+  if(pv){h+='<div class="tgpp-s">前の回（'+pv.no+'回目）の小テスト　日本語を見て英語を書こう</div><table class="tgpp-tb tgpp-pv">'
+    +_tgOrd_(pv.items.length).map(function(k,j){return '<tr><td class="tgpp-ja">'+cm.charAt(j)+' '+esc(pv.items[k].ja)+'</td><td><span class="pp-l4 blk"></span></td></tr>';}).join('')+'</table>';}
+  var ph=rd.kind==='フレーズ';
+  h+='<div class="tgpp-s">'+(pv?'':'')+'見る・なぞる・自分で書く　<span class="tgpp-sm">（音は QR で聞けます）</span></div>';
+  if(ph){h+='<table class="tgpp-tb tgpp-ph">'+rd.items.map(function(it){return '<tr><td class="tgpp-en"><b>'+esc(it.en)+'</b><div>'+esc(it.ja)+'</div></td><td><div class="tgpp-lb">なぞる</div><span class="pp-l4 blk tgpp-tr"><i>'+esc(it.en)+'</i></span><div class="tgpp-lb">自分で書く</div><span class="pp-l4 blk"></span></td></tr>';}).join('')+'</table>';}
+  else{h+='<table class="tgpp-tb tgpp-w"><tr><th style="width:18%">英語</th><th style="width:20%">読み・意味</th><th>なぞる</th><th>自分で書く</th></tr>'+rd.items.map(function(it){return '<tr><td class="tgpp-en"><b>'+esc(it.en)+'</b></td><td class="tgpp-ym">'+esc(it.yomi||'')+'<div>'+esc(it.ja)+'</div></td><td><span class="pp-l4 blk tgpp-tr"><i>'+esc(it.en)+'</i></span></td><td><span class="pp-l4 blk"></span></td></tr>';}).join('')+'</table>';}
+  var hs=rd.items.filter(function(it){return it.hint;});if(hs.length)h+='<div class="tgpp-hint">'+hs.map(function(it){return '<div>ヒント（'+esc(it.en)+'）：'+esc(it.hint)+'</div>';}).join('')+'</div>';
+  var pg=document.createElement('div');pg.className='pp-pg tgpp';pg.innerHTML=h;return pg;}
+function _tgCssOnce_(){if(document.getElementById('tgPaperCss'))return;var st=document.createElement('style');st.id='tgPaperCss';
+  st.textContent='.tgpp{font-size:10.5pt;padding:0}.tgpp-h{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:0.6mm solid #111;padding-bottom:2mm}.tgpp-t{font-size:14pt;font-weight:800}.tgpp-r{font-size:12pt;font-weight:700;margin-top:1mm}.tgpp-hr{display:flex;gap:4mm;align-items:flex-start}.tgpp-nm{font-size:10.5pt;margin-top:2mm}.tgpp-nm span{display:inline-block;width:42mm;border-bottom:0.3mm solid #111;margin-left:2mm}.tgpp-qrw{text-align:center;font-size:7pt}.tgpp-qr{width:20mm;height:20mm;display:block}.tgpp-qrng{width:20mm;height:20mm;border:0.3mm dashed #555;font-size:7pt;display:flex;align-items:center;justify-content:center}'
+   +'.tgpp-s{font-weight:800;font-size:11pt;margin:5mm 0 1.5mm}.tgpp-sm{font-weight:400;font-size:9pt;color:#444}.tgpp-tb{width:100%;border-collapse:collapse}.tgpp-tb td,.tgpp-tb th{border:0.25mm solid #888;padding:1mm 2mm;vertical-align:middle}.tgpp-tb th{background:#f1f1f1;font-size:9pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+   +'.tgpp-pv .tgpp-ja{width:38%;font-size:11pt}.tgpp-en b{font-size:15pt;font-family:Arial,Helvetica,sans-serif}.tgpp-ph .tgpp-en{width:30%}.tgpp-ph .tgpp-en b{font-size:12.5pt}.tgpp-en div,.tgpp-ym div{font-size:10pt;margin-top:0.5mm}.tgpp-ym{font-size:9.5pt;color:#333}.tgpp-lb{font-size:7.5pt;color:#555;margin-top:0.5mm}'
+   +'.tgpp .pp-l4.blk{height:10mm;margin:1.2mm 0}.tgpp-tr{overflow:hidden}.tgpp-tr i{position:absolute;left:1.5mm;bottom:1.6mm;font-style:normal;font-family:Arial,Helvetica,sans-serif;font-size:7.2mm;line-height:1;color:#bdbdbd;white-space:nowrap;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+   +'.tgpp-hint{margin-top:2.5mm;font-size:9.5pt;line-height:1.6}';document.head.appendChild(st);}
+var _tgPDataP=null;
+function tgPrint_(how){var st=$('ppTgSt'),a=+$('ppTgA').value,b=+$('ppTgB').value;if(b<a){var t=a;a=b;b=t;}st.textContent='組んでいます…';
+  if(!_tgPDataP)_tgPDataP=fetch('tango/sd_tango.json?v=20261125a',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('tango/sd_tango.json');return r.json();});
+  _tgPDataP.then(function(D){_tgCssOnce_();var host=$('printArea');host.innerHTML='';var n=0;
+    D.rounds.forEach(function(rd){if(rd.no<a||rd.no>b)return;host.appendChild(_tgPage_(D,rd));n++;});
+    var msg=n+'回分／'+n+'ページ';st.textContent=msg;window.__tgDone={tot:n,a:a,b:b};if(how==='none')return;if(how==='pdf')st.textContent=msg+'　印刷の画面で送り先を「PDFに保存」にしてください';
+    printWhenImagesReady_(host,_rpToday().replace(/-/g,'')+'_単語の書き込みプリント_'+(a===b?a+'回目':a+'〜'+b+'回目'));
+  })['catch'](function(e){_tgPDataP=null;st.textContent='紙を組めませんでした：'+String(e&&e.message||e);});}
+function _ppEkMtDraw_(){try{_ppTgDraw_();}catch(eTg){}var w=$('ppEkMtW');if(!w)return;var sel=(_ppSel&&_ppSel.length)?_ppSel:[$('ppMat').value];
   var ts=_EKMT_.filter(function(t){return sel.indexOf(t.mid)>=0;});if(_ppTest||!ts.length){w.style.display='none';w.innerHTML='';return;}
   w.style.display='';w.innerHTML='<div class="pp-pth">まとめテスト<span style="font-weight:400;color:var(--text-muted);margin-left:6px">問題用紙と解答用紙（名前なし）を刷る</span></div>'
    +ts.map(function(t){return '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:2px 0"><span style="min-width:15em">'+esc(t.title)+'</span>'+t.vers.map(function(R){return '<label><input type="checkbox" class="pp-ekmt" value="'+esc(t.id+'-'+R)+'"><span>'+esc(R)+'</span></label>';}).join(' ')+'</div>';}).join('')
