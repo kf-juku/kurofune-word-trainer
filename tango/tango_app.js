@@ -9,7 +9,7 @@
 var CSS='.tg{font-family:inherit;color:#111;max-width:560px;margin:0 auto;padding:4px 2px 30px}.tg *{box-sizing:border-box}'
 +'.tg-st{display:flex;gap:4px;margin:4px 0 12px}.tg-st span{flex:1;text-align:center;font-size:11px;padding:5px 2px;border-radius:6px;background:#eef0f3;color:#6b7280;font-weight:700}.tg-st span.d{background:#d1fae5;color:#047857}.tg-st span.c{background:#2563eb;color:#fff}'
 +'.tg-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px;text-align:center}'
-+'.tg-cnt{font-size:12px;color:#6b7280}.tg-tip{font-size:13px;margin-top:2px}.tg-big{font-size:44px;font-weight:800;margin:10px 0 4px;word-break:break-word;line-height:1.15}.tg-big.ph{font-size:30px}'
++'.tg-cnt{font-size:12px;color:#6b7280}.tg-tip{font-size:13px;margin-top:2px}.tg-big{font-size:44px;font-weight:800;margin:10px 0 4px;word-break:break-word;line-height:1.15}.tg-big.tg-phr{font-size:30px}'
 +'.tg-yomi{font-size:16px;color:#374151}.tg-ja{font-size:20px;font-weight:700;margin-top:4px}'
 +'.tg-hint{margin-top:12px;font-size:14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px;text-align:left;line-height:1.6}'
 +'.tg-spk{display:inline-flex;align-items:center;gap:4px;margin-top:10px;border:1px solid #d1d5db;background:#fff;border-radius:999px;padding:7px 16px;font-size:14px;cursor:pointer}'
@@ -46,7 +46,7 @@ function mount(host,o){
   function head(){return '<div class="tg-cnt">'+o.no+'回目　'+esc(R.tip)+'</div>';}
   /* 1 見る */
   function see(){var it=R.items[st.i];
-    root.innerHTML=bar()+'<div class="tg-card">'+head()+'<div class="tg-cnt" style="margin-top:6px">'+(st.i+1)+' / '+R.items.length+'</div><div class="tg-big'+(isPh(it)?' ph':'')+'">'+esc(it.en)+'</div><div class="tg-yomi">'+esc(it.yomi)+'</div><div class="tg-ja">'+esc(it.ja)+'</div>'
+    root.innerHTML=bar()+'<div class="tg-card">'+head()+'<div class="tg-cnt" style="margin-top:6px">'+(st.i+1)+' / '+R.items.length+'</div><div class="tg-big'+(isPh(it)?' tg-phr':'')+'">'+esc(it.en)+'</div><div class="tg-yomi">'+esc(it.yomi)+'</div><div class="tg-ja">'+esc(it.ja)+'</div>'
       +'<button type="button" class="tg-spk">🔊 聞く</button>'+(it.hint?'<div class="tg-hint">'+esc(it.hint)+'</div>':'')+'</div>'
       +'<div class="tg-row">'+(st.i>0?'<button type="button" class="tg-btn sub" data-a="prev">← 前の語</button>':'')+'<button type="button" class="tg-btn" data-a="next">'+(st.i<R.items.length-1?'つぎの語へ':'なぞる')+'</button></div>';
     root.querySelector('.tg-spk').onclick=function(){play(it,base);};play(it,base);
@@ -106,8 +106,8 @@ function mount(host,o){
     var miss=st.res.filter(function(r){return !r.ok;});
     root.innerHTML='<div class="tg-res">'+(mode==='redo'?'<div class="tg-st"><span class="c">小テストのやり直し</span></div>':bar())+'<div class="tg-card">'+head()+(allOk?'<div class="tg-perf">全問正解！</div>':'')
       +'<div class="tg-two">'+(pv.length?'<div><div class="k">前の回の語</div><b>'+pOk+'</b> / '+pv.length+'</div>':'')+'<div><div class="k">'+(pv.length?'この回の語':'小テスト')+'</div><b>'+cOk+'</b> / '+cu.length+'</div></div>'
-      +(mode==='redo'?(allOk?'<div class="tg-tip">この回は、やり直しの段から外れます</div>':'<div class="tg-tip">まちがえた語を見直して、もう一度やってみよう</div>'):'')+'</div>'
-      +'<div class="tg-teach">先生に見せよう<small>まちがえた語を一緒に確かめよう</small></div>'
+      +(mode==='redo'?(allOk?'<div class="tg-tip">この回は「小テストのやり直し」から外れます</div>':'<div class="tg-tip">まちがえた語を見直して、もう一度やってみよう</div>'):'')+'</div>'
+      +'<div class="tg-teach">先生に見せよう<small>'+(miss.length?'まちがえた語を一緒に確かめよう':'点を見てもらおう')+'</small></div>'
       +(miss.length?'<div class="tg-ml">'+miss.map(function(r){return '<div><span class="x">×</span><span class="a">'+esc(r.en)+'</span><span>'+esc(r.ja)+'</span><span class="y">'+(r.prev?'前の回':'この回')+'</span></div>';}).join('')+'</div>':'')
       +'<div class="tg-row"><button type="button" class="tg-btn" data-a="close">一覧にもどる</button></div></div>';
     root.querySelector('[data-a=close]').onclick=function(){if(o.onClose)o.onClose();};

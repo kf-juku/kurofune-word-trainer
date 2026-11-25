@@ -5847,12 +5847,12 @@ function _tgFill_(list){
     var L=(list||[]).filter(function(e){return e.tango;}).slice().sort(function(a,b){return String(a.part_id)<String(b.part_id)?-1:1;});
     if(!L.length){sl.innerHTML='<div class="t-sub" style="margin:2px 0 8px">単語：まだやっていません</div>';return;}
     _tgData_().then(function(D){var tip={};D.rounds.forEach(function(r){tip[r.no]=r.tip;});
-      var ok=L.filter(function(e){return quizOk_(e);}).length,red=L.filter(function(e){var x=e.tango.redo;return x&&x.need&&!x.clear;}).length;
+      var ok=L.filter(function(e){return (e.status==='ok');}).length,red=L.filter(function(e){var x=e.tango.redo;return x&&x.need&&!x.clear;}).length;
       sl.innerHTML='<div class="t-sub" style="margin:2px 0 6px">単語：'+L.length+'/'+D.rounds.length+'回　できた '+ok+'回　小テストのやり直しが残っている '+red+'回</div>'
         +'<table class="sd2-tbl ab-tbl" style="margin-bottom:10px"><thead><tr><th>単語の回</th><th>練習（1周目）</th><th>小テスト 前の回</th><th>小テスト この回</th><th>やり直し</th><th>日付</th></tr></thead><tbody>'
         +L.map(function(e){var x=e.tango,f=x.first||{},no=parseInt(String(e.part_id).slice(-2),10),pr=f.prac||{},r=Number(e.latest_rate),rd=x.redo||{};
           var rdH=rd.need?(rd.clear?'<span class="ab-c ok">全問正解</span>':'<span class="ab-c no">残っている</span>')+(rd.n?' <span class="t-sub">'+rd.n+'回</span>':''):'<span class="t-sub">いらない</span>';
-          return '<tr'+((rd.need&&!rd.clear)?' class="ab-miss"':'')+'><td class="nm">'+no+'回目 <span class="t-sub">'+esc(tip[no]||'')+'</span></td><td>'+(pr.n?(pr.ok+'/'+pr.n+'　<b>'+(isNaN(r)?'-':r)+'</b>%'):'-')+(quizOk_(e)?' <span class="ab-c ok">できた</span>':'')+'</td><td>'+_tgSc_(f.test&&f.test.prev)+((f.test&&f.test.prev&&f.test.prev.n)?(f.test.prev.ok>=f.test.prev.n*0.8?' <span class="ab-c ok">合格</span>':' <span class="ab-c no">まだ</span>'):'')+'</td><td>'+_tgSc_(f.test&&f.test.cur)+'</td><td>'+rdH+'</td><td class="mt">'+esc(e.last_date||'')+'</td></tr>';}).join('')+'</tbody></table>';
+          return '<tr'+((rd.need&&!rd.clear)?' class="ab-miss"':'')+'><td class="nm">'+no+'回目 <span class="t-sub">'+esc(tip[no]||'')+'</span></td><td>'+(pr.n?(pr.ok+'/'+pr.n+'　<b>'+(isNaN(r)?'-':r)+'</b>%'):'-')+((e.status==='ok')?' <span class="ab-c ok">できた</span>':'')+'</td><td>'+_tgSc_(f.test&&f.test.prev)+((f.test&&f.test.prev&&f.test.prev.n)?(f.test.prev.ok>=f.test.prev.n*0.8?' <span class="ab-c ok">合格</span>':' <span class="ab-c no">まだ</span>'):'')+'</td><td>'+_tgSc_(f.test&&f.test.cur)+'</td><td>'+rdH+'</td><td class="mt">'+esc(e.last_date||'')+'</td></tr>';}).join('')+'</tbody></table>';
     },function(){sl.innerHTML='<div class="t-sub">単語の回の名前を読めませんでした</div>';});
   });
 }
@@ -13002,8 +13002,8 @@ function _tgPage_(D,rd){var pv=null;D.rounds.forEach(function(r){if(r.no===rd.no
   if(pv){h+='<div class="tgpp-s">前の回（'+pv.no+'回目）の小テスト　日本語を見て英語を書こう</div><table class="tgpp-tb tgpp-pv">'
     +_tgOrd_(pv.items.length).map(function(k,j){return '<tr><td class="tgpp-ja">'+cm.charAt(j)+' '+esc(pv.items[k].ja)+'</td><td><span class="pp-l4 blk"></span></td></tr>';}).join('')+'</table>';}
   var ph=rd.kind==='フレーズ';
-  h+='<div class="tgpp-s">'+(pv?'':'')+'見る・なぞる・自分で書く　<span class="tgpp-sm">（音は QR で聞けます）</span></div>';
-  if(ph){h+='<table class="tgpp-tb tgpp-ph">'+rd.items.map(function(it){return '<tr><td class="tgpp-en"><b>'+esc(it.en)+'</b><div>'+esc(it.ja)+'</div></td><td><div class="tgpp-lb">なぞる</div><span class="pp-l4 blk tgpp-tr"><i>'+esc(it.en)+'</i></span><div class="tgpp-lb">自分で書く</div><span class="pp-l4 blk"></span></td></tr>';}).join('')+'</table>';}
+  h+='<div class="tgpp-s">見る・なぞる・自分で書く　<span class="tgpp-sm">（音は QR で聞けます）</span></div>';
+  if(ph){h+='<table class="tgpp-tb tgpp-ph"><tr><th style="width:30%">英語・意味</th><th>上の線でなぞる・下の線に自分で書く</th></tr>'+rd.items.map(function(it){return '<tr><td class="tgpp-en"><b>'+esc(it.en)+'</b><div>'+esc(it.ja)+'</div></td><td><span class="pp-l4 blk tgpp-tr"><i>'+esc(it.en)+'</i></span><span class="pp-l4 blk"></span></td></tr>';}).join('')+'</table>';}   /* フレーズは長いので2本を縦に（A4 1枚に入るのを 11-25 に測った＝2回目で残り3mm） */
   else{h+='<table class="tgpp-tb tgpp-w"><tr><th style="width:18%">英語</th><th style="width:20%">読み・意味</th><th>なぞる</th><th>自分で書く</th></tr>'+rd.items.map(function(it){return '<tr><td class="tgpp-en"><b>'+esc(it.en)+'</b></td><td class="tgpp-ym">'+esc(it.yomi||'')+'<div>'+esc(it.ja)+'</div></td><td><span class="pp-l4 blk tgpp-tr"><i>'+esc(it.en)+'</i></span></td><td><span class="pp-l4 blk"></span></td></tr>';}).join('')+'</table>';}
   var hs=rd.items.filter(function(it){return it.hint;});if(hs.length)h+='<div class="tgpp-hint">'+hs.map(function(it){return '<div>ヒント（'+esc(it.en)+'）：'+esc(it.hint)+'</div>';}).join('')+'</div>';
   var pg=document.createElement('div');pg.className='pp-pg tgpp';pg.innerHTML=h;return pg;}
@@ -13012,7 +13012,7 @@ function _tgCssOnce_(){if(document.getElementById('tgPaperCss'))return;var st=do
    +'.tgpp-s{font-weight:800;font-size:11pt;margin:5mm 0 1.5mm}.tgpp-sm{font-weight:400;font-size:9pt;color:#444}.tgpp-tb{width:100%;border-collapse:collapse}.tgpp-tb td,.tgpp-tb th{border:0.25mm solid #888;padding:1mm 2mm;vertical-align:middle}.tgpp-tb th{background:#f1f1f1;font-size:9pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
    +'.tgpp-pv .tgpp-ja{width:38%;font-size:11pt}.tgpp-en b{font-size:15pt;font-family:Arial,Helvetica,sans-serif}.tgpp-ph .tgpp-en{width:30%}.tgpp-ph .tgpp-en b{font-size:12.5pt}.tgpp-en div,.tgpp-ym div{font-size:10pt;margin-top:0.5mm}.tgpp-ym{font-size:9.5pt;color:#333}.tgpp-lb{font-size:7.5pt;color:#555;margin-top:0.5mm}'
    +'.tgpp .pp-l4.blk{height:10mm;margin:1.2mm 0}.tgpp-tr{overflow:hidden}.tgpp-tr i{position:absolute;left:1.5mm;bottom:1.6mm;font-style:normal;font-family:Arial,Helvetica,sans-serif;font-size:7.2mm;line-height:1;color:#bdbdbd;white-space:nowrap;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
-   +'.tgpp-hint{margin-top:2.5mm;font-size:9.5pt;line-height:1.6}';document.head.appendChild(st);}
+   +'.tgpp-ph .pp-l4.blk{height:9.5mm;margin:1mm 0}.tgpp-hint{margin-top:2.5mm;font-size:9.5pt;line-height:1.6}';document.head.appendChild(st);}
 var _tgPDataP=null;
 function tgPrint_(how){var st=$('ppTgSt'),a=+$('ppTgA').value,b=+$('ppTgB').value;if(b<a){var t=a;a=b;b=t;}st.textContent='組んでいます…';
   if(!_tgPDataP)_tgPDataP=fetch('tango/sd_tango.json?v=20261125a',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('tango/sd_tango.json');return r.json();});
