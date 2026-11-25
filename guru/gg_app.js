@@ -246,6 +246,7 @@ window.ggMount=function(root,D,opt){
    const r=S.map(x=>{x=x||{};const v=x.rate,ok=v!=null&&v!==''&&isFinite(+v);return `<span class="gnyr"><b>${__gCvE([x.y,x.q].filter(Boolean).join(' '))}</b>${ok?`　神奈川県 ${(+v).toFixed(1)}%`:''}</span>`;}).join('<span class="gnysl">／</span>');
    const t=e.tag==='落とせない'?'k':e.tag==='差がつく'?'s':'';
    return `<div class="gcx gnyx"><span class="gcn">例${i+1}</span><div class="gcq">${e.q||''}</div>${S.length?`<div class="gnys">${r}${t?`<span class="gnyc ${t}">${e.tag}</span>`:''}</div>`:''}</div>`;}).join('');}
+ function __gPvCov(){const g=GURU,ex=__gCvEx(g.examples);return `<div class="gpvcov"><div class="gcc">${g.catch||''}</div>`+(ex?`<div class="gcl">${__gCvNY(g.examples)?'この回で解けるようになる入試問題':'こんな問題が解けるようになる'}</div><div class="gcxs">${ex}</div>`:'')+'</div>';}   /* 2026-11-25 Hア：プレビューの開始画面に出す表紙の中身 */
  function __gEntHead(){const g=GURU,R=TEST.ver||'A1',P=__gPrev();
   const ex=__gCvEx(g.examples);
   return __gCvHd()
@@ -1020,7 +1021,7 @@ function drawTestTaking(ph){const T=TEST,B=T.blocks,show=!LIVE();
  const head=GURU?`<div class="ghd"><div class="ghl"><span class="tag X">${T.tag||T.name}</span><span class="ghn">${__gPN()}　${TFL.length}問</span></div>${cur.s>0?`<div class="ghs gtt">${tTimeHtml()}</div>`:''}</div>`:`<div class="prog"><span class="tag X">${T.tag||T.name}</span>　${GURU?TFL.length+'問':TFL.length+'問（各'+T.pt+'点）'}${cur.s>0?'　'+tTimeHtml():''}</div>`;
  /* 開始画面 */
  if(cur.s===0){const d=LIVE()?tDraftLoad():null;
-  ph.innerHTML=`<div class="phone">${GURU?GBAR('guru',{k:0,n:TFL.length}):''}<div class="tstart"><div class="tsn">${T.name}</div><div class="tsr">${HEAD1()}</div>
+  ph.innerHTML=`<div class="phone">${GURU?GBAR('guru',{k:0,n:TFL.length}):''}${GURU&&!opt.live?__gPvCov():''}<div class="tstart"><div class="tsn">${T.name}</div><div class="tsr">${HEAD1()}</div>
   <table class="tsinfo"><tr><th>問題</th><td>${GURU&&__EN?TFL.length+'問':GURU?TFL.length+(GURU.hd&&GURU.hd.aft?'問（基礎 5問・入試の形 '+(TFL.length-5)+'問）':'問（'+(GURU.hd&&GURU.hd.unit==='小学校の総復習'?'基礎計算':'復習')+' 3問・'+__gPM()+' '+(TFL.length-3)+'問）'):B.length+'題（小問 '+TFL.length+'問）'}</td></tr>${GURU?'':`<tr><th>配点</th><td>${T.wpt?T.wpt:'各'+T.pt+'点'}（100点満点）</td></tr>`}<tr><th>制限時間</th><td>${T.min||20}分</td></tr></table>
   ${__EN?'<ul class="tsl"><li>リスニングがあります。</li><li>ノートと鉛筆を用意しよう。</li></ul>':'<ul class="tsl"><li>ノートと鉛筆を用意しよう。</li><li>計算はノートに書いてから答えを選ぼう。</li></ul>'}${GURU&&GURU.noteSvg?`<div class="gnr"><div class="gnrh">ノートの書き方</div><div class="gnri"><div class="gnrs" role="img" aria-label="ノートの例：左で解き、右側はあけておく">${GURU.noteSvg.start}</div><ol class="gnrl"><li>＝は縦にそろえる</li><li>途中式は1行ずつ書く</li><li>分数は2行で書く</li><li><b>右側は少しあけておく</b><span>たて線を1本引く。まちがえた問題を、あとでここに解き直す</span></li></ol></div></div>`:""}
   ${d?`<div class="tsd">前の続きがあります（答えた問題 ${d.ans.filter(a=>a!==undefined&&a!==null).length} / ${TFL.length}・${mmss(d.el)} 経過）</div><button class="next" data-a="cont">続きから</button> <button class="next sub" data-a="new">はじめから</button>`:`<button class="next tsgo" data-a="new">準備ができたらスタート</button>`}</div></div>`;
