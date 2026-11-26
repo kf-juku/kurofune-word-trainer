@@ -187,7 +187,13 @@ window.ggShellMount=function(root,GG,opt){
  function nyRow(q,oc,where){const x=NMS(q.name);const ttl=(where==='ny'?'':GKP_N)+(where==='ny'?`<span class="gkn"><span class="tg">${q.grade}</span>${x.main}</span>${x.sub?`<small>${x.sub}</small>`:''}<small>${NYAFT(q)} が終わったら挑戦</small>`:`<span class="gkn">${x.main}</span>${x.sub?`<small>${x.sub}</small>`:''}`);
   return q.ready&&P_(q.id)?guruRow(q.id,ttl,oc,'gkny'):soonRow(ttl,`data-ny="${q.id}"`,VIEW==='nys'&&SEL===q.id,'問題はまだ','gkny');}
  const nyDone=q=>q.ready&&P_(q.id)&&['A1','A2'].every(R=>rState(q.id,R).k==='done');
- function drawLeft(){if(!GR){GR=LS.get('grade')||MY_GRADE;if(!ASSIGNED.includes(GR))GR=MY_GRADE;}const all=BOOKS(),bks=all.filter(b=>b.grade===GR&&b.subj===SUBJ);
+ /* 2026-11-26 修正メモ箱（川上さん「前にやったところの続きから開いてる状態にしてほしい。間違えて前の単元やる子が多い」）：学年を選んだとき・一覧を開いたときに、
+    その学年でいちばん新しく解いたパート（A-1・A-2 まで終わっていれば次のパート）の本と行を開き、そこまで一覧を送る */
+ let FOCUS_TGT=null,FOCUS_ONCE=false;
+ function LASTP(g){let best=null,bt=0;PARTS.filter(x=>x.grade===g&&!x.ny&&SJ_(x)===SUBJ&&x.ready).forEach(x=>RS_ALL.forEach(R=>{if(!hasR(x.id,R))return;const S=tGet(x.id,R);if(!S||S.got==null)return;const t=Date.parse(String(S.at||''))||Date.parse(String(S.at||'').replace(/\//g,'-'))||1;if(t>bt){bt=t;best=x;}}));return best;}
+ function focusLast(g){const p=LASTP(g);if(!p)return false;let id=p.id;if(['A1','A2'].every(R=>!hasR(id,R)||rState(id,R).k==='done')){const u=GG.units.find(v=>v.parts.some(x=>x.id===id));if(u){const k=u.parts.findIndex(x=>x.id===id);let nx=u.parts[k+1];if(!nx){const us=GG.units.filter(v=>v.grade===u.grade&&SJ_(v)===SJ_(u));const nu=us[us.indexOf(u)+1];nx=nu&&nu.parts[0];}if(nx&&P_(nx.id)&&P_(nx.id).ready)id=nx.id;}}
+  const bk=BOOKS().find(b=>b.parts.some(x=>x.id===id));const ob=OPEN.get('bk')||DEF_BK();if(bk&&!ob.includes(bk.key)){ob.push(bk.key);OPEN.set('bk',ob);}const oc=OPEN.get('ch')||DEF_CH();if(!oc.includes(id)){oc.push(id);OPEN.set('ch',oc);}FOCUS_TGT=id;return true;}
+ function drawLeft(){if(!FOCUS_ONCE){FOCUS_ONCE=true;if(!SEL&&!PV){const g0=GR||LS.get('grade')||MY_GRADE;try{focusLast(ASSIGNED.includes(g0)?g0:MY_GRADE);}catch(e){}}}if(!GR){GR=LS.get('grade')||MY_GRADE;if(!ASSIGNED.includes(GR))GR=MY_GRADE;}const all=BOOKS(),bks=all.filter(b=>b.grade===GR&&b.subj===SUBJ);
   const SJH=SJS.length>1?`<span class="gsj" role="group" aria-label="教科">${SJS.map(k=>`<button type="button" class="${k===SUBJ?'on':''}" data-sj="${k}" aria-pressed="${k===SUBJ}">${SJN[k]}</button>`).join('')}</span>`:(SJN[SJS[0]]||'数学');
   /* 2026-11-04 01:17 川上さん「こんな2行にする必要あんの？」：左の見出しは1行（折り返さない）。「先生のプレビュー：記録しない」は先生画面の右の列と下の黒いバーに出ているので外した */
   let h=`<div class="lh" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b>ぐるぐる</b><span>${SJH}</span></div><div class="gtab">${['中1','中2','中3'].map(g=>{const has=ASSIGNED.includes(g);return `<button type="button" class="${g===GR?'on':''}" data-gr="${g}" ${has?'':'disabled'}>${g}</button>`;}).join('')}</div>`
@@ -218,7 +224,7 @@ window.ggShellMount=function(root,GG,opt){
   if(L.__h===h)return;
   const _st=L.scrollTop;L.innerHTML=h;L.__h=h;L.scrollTop=_st;
   const tg=(k,v)=>{const a=OPEN.get(k)||(k==='bk'?DEF_BK():DEF_CH());const i=a.indexOf(v);if(i<0)a.push(v);else a.splice(i,1);OPEN.set(k,a);};
-  L.querySelectorAll('[data-gr]').forEach(x=>x.onclick=()=>{GR=x.dataset.gr;LS.set('grade',GR);drawLeft();L.scrollTop=0;});
+  L.querySelectorAll('[data-gr]').forEach(x=>x.onclick=()=>{GR=x.dataset.gr;LS.set('grade',GR);let f=false;try{f=FLT==='all'&&focusLast(GR);}catch(e){}L.__h=null;drawLeft();if(!f)L.scrollTop=0;});
   L.querySelectorAll('[data-sj]').forEach(x=>x.onclick=()=>{if(SUBJ===x.dataset.sj)return;SUBJ=x.dataset.sj;LS.set('subj',SUBJ);SEL=null;VIEW='cover';CUR_R=null;render();L.scrollTop=0;});
   L.querySelectorAll('[data-flt]').forEach(x=>x.onclick=()=>{FLT=x.dataset.flt;LS.set('flt',FLT);drawLeft();L.scrollTop=0;});
   L.querySelectorAll('.nbook-head').forEach(x=>x.onclick=()=>{const b=x.parentNode;b.classList.toggle('open');tg('bk',b.dataset.bk);});
@@ -229,7 +235,8 @@ window.ggShellMount=function(root,GG,opt){
   L.querySelectorAll('[data-s]').forEach(x=>x.onclick=()=>{SEL=x.dataset.s;VIEW='struct';render();});
   L.querySelectorAll('[data-ny]').forEach(x=>x.onclick=()=>{SEL=x.dataset.ny;VIEW='nys';render();});
   L.querySelectorAll('[data-cr]').forEach(x=>x.onclick=()=>openCt(x.dataset.ct,x.dataset.cr));
-  const _sk=VIEW+'|'+SEL+'|'+CUR_R+'|'+GR+'|'+SUBJ+'|'+FLT;const on=L.__sk!==_sk&&(L.querySelector('.nqp.on,.nchap.on')||(SEL&&L.querySelector(`.qchw[data-ch="${SEL}"]`)));L.__sk=_sk;if(on){   /* 選んでいる所へ自動で寄せるのは、選んだものが変わったときだけ */const go=(n)=>{try{const r=on.getBoundingClientRect(),lr=L.getBoundingClientRect();if(!lr.height||!r.height){if(n<8)setTimeout(()=>go(n+1),150);return;}if(r.top<lr.top||r.bottom>lr.bottom)L.scrollTop+=r.top-lr.top-60;}catch(e){}};go(0);}}   /* 2026-11-17 開いた直後（画面の大きさがまだ0）でも、出てから寄せる */
+  const _sk=VIEW+'|'+SEL+'|'+CUR_R+'|'+GR+'|'+SUBJ+'|'+FLT;const on=L.__sk!==_sk&&(L.querySelector('.nqp.on,.nchap.on')||(SEL&&L.querySelector(`.qchw[data-ch="${SEL}"]`)));L.__sk=_sk;if(on){   /* 選んでいる所へ自動で寄せるのは、選んだものが変わったときだけ */const go=(n)=>{try{const r=on.getBoundingClientRect(),lr=L.getBoundingClientRect();if(!lr.height||!r.height){if(n<8)setTimeout(()=>go(n+1),150);return;}if(r.top<lr.top||r.bottom>lr.bottom)L.scrollTop+=r.top-lr.top-60;}catch(e){}};go(0);}
+  if(FOCUS_TGT&&FLT==='all'){const fe=L.querySelector(`.qchw[data-ch="${FOCUS_TGT}"]`);FOCUS_TGT=null;if(fe){const go2=(n)=>{try{const r=fe.getBoundingClientRect(),lr=L.getBoundingClientRect();if(!lr.height||!r.height){if(n<8)setTimeout(()=>go2(n+1),150);return;}if(L.scrollHeight>L.clientHeight+4)L.scrollTop+=r.top-lr.top-60;else fe.scrollIntoView({block:'center'});}catch(e){}};go2(0);}}}   /* 2026-11-17 開いた直後（画面の大きさがまだ0）でも、出てから寄せる */
  const inpart=v=>{if(v)root.setAttribute('data-inpart','');else root.removeAttribute('data-inpart');};
  if(PV)root.setAttribute('data-pv','');   /* 2026-11-18 川上さん 19:45 質問E：生徒の画面は幅に関係なく、回を開いたら左の一覧を隠す（［← 一覧］で戻す）。先生のプレビュー（data-pv）は見比べるので残す */
  function render(){LDTOK++;inpart(!!SEL||VIEW==='ct');drawLeft();if(!SEL){API=null;M.innerHTML='<div class="card"><div class="cv-note" style="margin:0">左の一覧から、学校で習ったパートを選ぼう。青い矢印は、次にやる回。</div></div>';return;}

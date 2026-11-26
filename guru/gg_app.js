@@ -240,12 +240,12 @@ window.ggMount=function(root,D,opt){
  /* 2026-11-09 表紙の例：cover が {A,B,C} の形（入試パターン）ならその回の分だけ・出どころの行と札つき。配列なら今までどおり */
  const __gCvNY=c=>!!c&&typeof c==='object'&&!Array.isArray(c);
  const __gCvE=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
- function __gCvEx(c){if(!__gCvNY(c))return (c||[]).map((c,i)=>`<div class="gcx"><span class="gcn">例${i+1}</span><div class="gcq">${c.q}</div></div>`).join('');
-  const L=c[String(TEST.ver||'A1').charAt(0)]||[];
-  return (Array.isArray(L)?L:[]).map((e,i)=>{e=e||{};const S=Array.isArray(e.src)?e.src:[];
-   const r=S.map(x=>{x=x||{};const v=x.rate,ok=v!=null&&v!==''&&isFinite(+v);return `<span class="gnyr"><b>${__gCvE([x.y,x.q].filter(Boolean).join(' '))}</b>${ok?`　神奈川県 ${(+v).toFixed(1)}%`:''}</span>`;}).join('<span class="gnysl">／</span>');
-   const t=e.tag==='落とせない'?'k':e.tag==='差がつく'?'s':'';
-   return `<div class="gcx gnyx"><span class="gcn">例${i+1}</span><div class="gcq">${e.q||''}</div>${S.length?`<div class="gnys">${r}${t?`<span class="gnyc ${t}">${e.tag}</span>`:''}</div>`:''}</div>`;}).join('');}
+ function __gCvSrc(e){const S=Array.isArray(e&&e.src)?e.src:[];if(!S.length)return '';const t=e.tag==='落とせない'?'k':e.tag==='差がつく'?'s':'';
+  return `<div class="gnys">`+S.map(x=>{x=x||{};const v=x.rate,ok=v!=null&&v!==''&&isFinite(+v);const y=String(x.y||'').replace(/追$/,' 追検査');return `<span class="gnyr"><b>${__gCvE([y,x.q].filter(Boolean).join(' '))}</b>　正答率 ${ok?(+v).toFixed(1)+'%':'不明'}</span>`;}).join('<span class="gnysl">／</span>')+(t?`<span class="gnyc ${t}">${e.tag}</span>`:'')+`</div>`;}
+ function __gCvEx(c){if(!__gCvNY(c)){const e=(c||[])[0];return e?`<div class="gcx"><span class="gcn">例</span><div class="gcq">${e.q}</div></div>`:'';}   /* 2026-11-26 例は1つ */
+  const L=(c[String(TEST.ver||'A1').charAt(0)]||[]).filter(Boolean),k=e=>(Array.isArray(e.src)?e.src:[]).map(x=>(x&&x.y)+'|'+(x&&x.q)).sort().join(',');
+  const E=L.length>1&&k(L[1])&&k(L[1])!==k(L[0])?L.slice(0,2):L.slice(0,1);   /* 形（出どころ）がちがうときだけ2つ・同じなら1つ */
+  return E.map((e,i)=>`<div class="gcx gnyx"><span class="gcn">${E.length>1?'例'+(i+1):'例'}</span><div class="gcq">${e.q||''}</div>${__gCvSrc(e)}</div>`).join('');}
  function __gPvCov(){const g=GURU,ex=__gCvEx(g.examples);return `<div class="gpvcov"><div class="gcc">${g.catch||''}</div>`+(ex?`<div class="gcl">${__gCvNY(g.examples)?'この回で解けるようになる入試問題':'こんな問題が解けるようになる'}</div><div class="gcxs">${ex}</div>`:'')+'</div>';}   /* 2026-11-25 Hア：プレビューの開始画面に出す表紙の中身 */
  function __gEntHead(){const g=GURU,R=TEST.ver||'A1',P=__gPrev();
   const ex=__gCvEx(g.examples);
