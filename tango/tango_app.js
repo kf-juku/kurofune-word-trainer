@@ -37,6 +37,8 @@ var ABC=(function(){
   function A(cx,cy,rx,ry,a0,a1,n){var o=[],k,N=n||Math.max(8,Math.round(Math.abs(a1-a0)/8));for(k=0;k<=N;k++){var t=(a0+(a1-a0)*k/N)*Math.PI/180;o.push([cx+rx*Math.cos(t),cy+ry*Math.sin(t)]);}return o;}
   function J(){var o=[];for(var i=0;i<arguments.length;i++){var p=arguments[i];if(o.length&&p.length&&Math.abs(o[o.length-1][0]-p[0][0])<1e-6&&Math.abs(o[o.length-1][1]-p[0][1])<1e-6)p=p.slice(1);o=o.concat(p);}return o;}
   var G={
+  /* 2026-11-26 19:20 川上さん「アルファベットに決まった書き順は無い。本をベースに、書きやすい一筆にする」：V・W・v・w・L・Z・a・d・q・g・b・p・h・n・m・r・u は一筆（縦の線は戻って山・丸に続ける） */
+  
   /* ===== 大文字（1本目〜3本目） ===== */
   A:{w:1,s:[L(.5,0,0,2),L(.5,0,1,2),L(.2,1.35,.8,1.35)]},
   B:{w:.82,s:[L(0,0,0,2),J(L(0,0,.42,0),A(.42,.5,.36,.5,-90,90),L(.42,1,0,1)),J(L(0,1,.46,1),A(.46,1.5,.36,.5,-90,90),L(.46,2,0,2))]},
@@ -49,7 +51,7 @@ var ABC=(function(){
   I:{w:.5,s:[L(.25,0,.25,2),L(0,0,.5,0),L(0,2,.5,2)]},
   J:{w:.7,s:[J(L(.65,0,.65,1.55),A(.35,1.55,.3,.45,0,170))]},
   K:{w:.85,s:[L(0,0,0,2),L(.85,0,0,1.15),L(.28,.85,.85,2)]},
-  L:{w:.7,s:[L(0,0,0,2),L(0,2,.7,2)]},
+  L:{w:.7,s:[L(0,0,0,2,.7,2)]},
   M:{w:1.05,s:[L(0,0,0,2),L(1.05,0,1.05,2),L(0,0,.525,2),L(1.05,0,.525,2)]},
   N:{w:.9,s:[L(0,0,0,2),L(.9,0,.9,2),L(0,0,.9,2)]},
   O:{w:1.05,s:[A(.525,1,.52,1,-90,-450)]},
@@ -59,35 +61,35 @@ var ABC=(function(){
   S:{w:.8,s:[J(A(.4,.5,.38,.48,-25,-270),A(.4,1.5,.38,.5,-90,155))]},
   T:{w:.9,s:[L(.45,0,.45,2),L(0,0,.9,0)]},
   U:{w:.9,s:[J(L(0,0,0,1.45),A(.45,1.45,.45,.55,180,0),L(.9,1.45,.9,0))]},
-  V:{w:.95,s:[L(0,0,.475,2),L(.95,0,.475,2)]},
-  W:{w:1.3,s:[L(0,0,.3,2),L(.65,0,.3,2),L(.65,0,1,2),L(1.3,0,1,2)]},
+  V:{w:.95,s:[L(0,0,.475,2,.95,0)]},
+  W:{w:1.3,s:[L(0,0,.3,2,.65,0,1,2,1.3,0)]},
   X:{w:.9,s:[L(0,0,.9,2),L(.9,0,0,2)]},
   Y:{w:.9,s:[L(0,0,.45,1),L(.9,0,.45,1),L(.45,1,.45,2)]},
-  Z:{w:.85,s:[L(0,0,.85,0),L(.85,0,0,2),L(0,2,.85,2)]},
+  Z:{w:.85,s:[L(0,0,.85,0,0,2,.85,2)]},
   /* ===== 小文字（2本目〜3本目・上は1本目・下は4本目） ===== */
-  a:{w:.72,s:[A(.33,1.5,.33,.5,-20,-380),L(.68,1,.68,2)]},
-  b:{w:.75,s:[L(0,0,0,2),A(.37,1.5,.37,.5,180,540)]},
+  a:{w:.72,s:[J(A(.33,1.5,.33,.5,-20,-380),L(.68,1,.68,2))]},
+  b:{w:.75,s:[J(L(0,0,0,2,0,1.5),A(.37,1.5,.37,.5,180,540))]},
   c:{w:.68,s:[A(.36,1.5,.34,.5,-40,-320)]},
-  d:{w:.75,s:[A(.38,1.5,.36,.5,-20,-380),L(.74,0,.74,2)]},
+  d:{w:.75,s:[J(A(.38,1.5,.36,.5,-20,-380),L(.74,0,.74,2))]},
   e:{w:.72,s:[J(L(.02,1.5,.7,1.5),A(.36,1.5,.34,.5,0,-310))]},
   f:{w:.55,s:[J(A(.42,.35,.18,.33,-30,-180),L(.24,.35,.24,2)),L(0,1,.5,1)]},
-  g:{w:.72,s:[A(.34,1.5,.33,.5,-20,-380),J(L(.68,1,.68,2.5),A(.36,2.5,.32,.42,0,165))]},
-  h:{w:.72,s:[L(0,0,0,2),J(A(.36,1.45,.36,.45,180,360),L(.72,1.45,.72,2))]},
+  g:{w:.72,s:[J(A(.34,1.5,.33,.5,-20,-380),L(.68,1,.68,2.5),A(.36,2.5,.32,.42,0,165))]},
+  h:{w:.72,s:[J(L(0,0,0,2,0,1.45),A(.36,1.45,.36,.45,180,360),L(.72,1.45,.72,2))]},
   i:{w:.2,s:[L(.1,1,.1,2),L(.1,.5,.1,.56)]},
   j:{w:.45,s:[J(L(.38,1,.38,2.5),A(.1,2.5,.28,.42,0,165)),L(.38,.5,.38,.56)]},
   k:{w:.7,s:[L(0,0,0,2),L(.65,1,0,1.6),L(.18,1.48,.7,2)]},
   l:{w:.2,s:[L(.1,0,.1,2)]},
-  m:{w:1.15,s:[L(0,1,0,2),J(A(.29,1.4,.29,.4,180,360),L(.58,1.4,.58,2),L(.58,2,.58,1.4),A(.86,1.4,.28,.4,180,360),L(1.14,1.4,1.14,2))]},
-  n:{w:.72,s:[L(0,1,0,2),J(A(.36,1.45,.36,.45,180,360),L(.72,1.45,.72,2))]},
+  m:{w:1.15,s:[J(L(0,1,0,2,0,1.4),A(.29,1.4,.29,.4,180,360),L(.58,1.4,.58,2,.58,1.4),A(.86,1.4,.28,.4,180,360),L(1.14,1.4,1.14,2))]},
+  n:{w:.72,s:[J(L(0,1,0,2,0,1.45),A(.36,1.45,.36,.45,180,360),L(.72,1.45,.72,2))]},
   o:{w:.75,s:[A(.375,1.5,.37,.5,-90,-450)]},
-  p:{w:.75,s:[L(0,1,0,3),A(.37,1.5,.37,.5,180,540)]},
-  q:{w:.75,s:[A(.36,1.5,.35,.5,-20,-380),L(.72,1,.72,3)]},
-  r:{w:.55,s:[L(0,1,0,2),A(.3,1.45,.3,.42,180,300)]},
+  p:{w:.75,s:[J(L(0,1,0,3,0,1.5),A(.37,1.5,.37,.5,180,540))]},
+  q:{w:.75,s:[J(A(.36,1.5,.35,.5,-20,-380),L(.72,1,.72,3))]},
+  r:{w:.55,s:[J(L(0,1,0,2,0,1.45),A(.3,1.45,.3,.42,180,300))]},
   s:{w:.62,s:[J(A(.31,1.25,.29,.24,-25,-270),A(.31,1.75,.29,.25,-90,155))]},
   t:{w:.5,s:[J(L(.18,.4,.18,1.8),A(.38,1.8,.2,.2,180,90),L(.38,2,.48,1.95)),L(0,1,.45,1)]},
-  u:{w:.72,s:[J(L(0,1,0,1.55),A(.35,1.55,.35,.45,180,0),L(.7,1.55,.7,1)),L(.7,1,.72,2)]},
-  v:{w:.72,s:[L(0,1,.36,2),L(.72,1,.36,2)]},
-  w:{w:1.05,s:[L(0,1,.25,2),L(.52,1,.25,2),L(.52,1,.79,2),L(1.05,1,.79,2)]},
+  u:{w:.72,s:[J(L(0,1,0,1.55),A(.35,1.55,.35,.45,180,0),L(.7,1.55,.7,1,.7,2))]},
+  v:{w:.72,s:[L(0,1,.36,2,.72,1)]},
+  w:{w:1.05,s:[L(0,1,.25,2,.52,1,.79,2,1.05,1)]},
   x:{w:.68,s:[L(0,1,.68,2),L(.68,1,0,2)]},
   y:{w:.72,s:[L(0,1,.36,2),L(.72,1,.15,3)]},
   z:{w:.68,s:[J(L(0,1,.68,1),L(.68,1,0,2),L(0,2,.68,2))]},
@@ -103,7 +105,7 @@ var ABC=(function(){
   /* 文字列 → 置いた字の並び。gap＝字のあいだ（単位） */
   function layout(txt,gap){var x=0,o=[];gap=gap==null?.28:gap;String(txt).replace(/[～~]/g,' ').split('').forEach(function(ch){var g=G[ch];if(!g){if(/[　-￿]/.test(ch))return;g=G[' '];}o.push({ch:ch,x:x,g:g});x+=g.w+gap;});return {items:o,w:Math.max(.1,x-gap)};}
   /* 描くための変換：箱 W×H に4本線（Y＝[1本目,2本目,3本目,4本目] の高さの割合）で、左右の余白 pad */
-  function fit(txt,W,H,Y,pad){var lay=layout(txt,/\s/.test(String(txt).trim())?.5:.75),u=(Y[2]-Y[0])*H/2;var sc=Math.min(u,(W-2*(pad||12))/lay.w);
+  function fit(txt,W,H,Y,pad){var lay=layout(txt,/\s/.test(String(txt).trim())?.5:.75),u=(Y[2]-Y[0])*H/2;/* 番号の丸が箱の外に切れないように、左右の余白は字の高さの2割以上（11-26 19:0x）*/var sc=Math.min(u,(W-2*Math.max(pad||12,24))/lay.w);
     var ox=(W-lay.w*sc)/2;function yy(v){var i=Math.floor(v),f=v-i;if(i>=3)return Y[3]*H+(v-3)*(Y[3]-Y[2])*H;return (Y[i]+(Y[i+1]-Y[i])*f)*H;}
     /* 縦の目盛りは4本線にそろえ、横は sc で縮める（字が細長くならないように、縦も同じ割合でちぢめる＝ちぢんだら線の真ん中にそろえる） */
     var k=sc/u;function P(x,y){var Y0=yy(y),Yb=yy(2);return [ox+x*sc,Yb+(Y0-Yb)*k];}
@@ -124,14 +126,15 @@ var ABC=(function(){
         g.fillStyle='#f97316';g.beginPath();g.moveTo(e1[0]+ex*h*.6,e1[1]+ey*h*.6);g.lineTo(e1[0]-ex*h*.6-ey*h*.7,e1[1]-ey*h*.6+ex*h*.7);g.lineTo(e1[0]-ex*h*.6+ey*h*.7,e1[1]-ey*h*.6-ex*h*.7);g.closePath();g.fill();}
       /* 番号：書き始めの点の、進む向きと反対側 */
       var c=[p[0]-dx*r*1.2-dy*r*.2,p[1]-dy*r*1.2+dx*r*.2],t=0;   /* 同じ所から始まる画の番号は重ならないようにずらす */
-      while(t<6&&used.some(function(u){return Math.hypot(u[0]-c[0],u[1]-c[1])<r*2.05;})){c=[c[0]-r*2.1,c[1]];t++;}used.push(c);g.fillStyle='#f97316';g.beginPath();g.arc(c[0],c[1],r,0,Math.PI*2);g.fill();g.fillStyle='#fff';g.fillText(String(s.si+1),c[0],c[1]+.5);});
+      used.push({c:c,n:s.si+1,ci:s.ci});});/* 2026-11-26 19:0x 川上さん「Wの書き順直して」：同じ所から始まる画の番号（W・w の 2 と 3 など）は、重なった組ごとに、書く順に左から右へ横に並べる。前は後の番号を左へずらしていて、w の 4 が 1 より左に出ていた */var grp=[];used.forEach(function(u){var G=null;grp.some(function(q){if(q[0].ci===u.ci&&q.some(function(v){return Math.hypot(v.c[0]-u.c[0],v.c[1]-u.c[1])<r*2.05;})){G=q;return true;}return false;});if(G)G.push(u);else grp.push([u]);});grp.forEach(function(q){var cx=q.reduce(function(a,v){return a+v.c[0];},0)/q.length,cy=Math.min.apply(null,q.map(function(v){return v.c[1];}));q.forEach(function(v,k){var x=q.length>1?cx+(k-(q.length-1)/2)*r*2.15:v.c[0],y=q.length>1?cy:v.c[1];g.fillStyle='#f97316';g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill();g.fillStyle='#fff';g.fillText(String(v.n),x,y+.5);});});
     g.restore();}
   /* 書き順を動かして見せる：1画ずつ線をのばす。done で終わり。返り＝止める関数 */
   function animate(g,S,redraw,done,msPer){var i=0,t0=0,stop=false,ms=msPer||520,win=g.canvas.ownerDocument.defaultView;
     function len(p){var L=0;for(var k=1;k<p.length;k++)L+=Math.hypot(p[k][0]-p[k-1][0],p[k][1]-p[k-1][1]);return L;}
     function part(p,f){var T=len(p)*f,o=[p[0]],L=0;for(var k=1;k<p.length;k++){var d=Math.hypot(p[k][0]-p[k-1][0],p[k][1]-p[k-1][1]);if(L+d>=T){var r=d?(T-L)/d:0;o.push([p[k-1][0]+(p[k][0]-p[k-1][0])*r,p[k-1][1]+(p[k][1]-p[k-1][1])*r]);break;}o.push(p[k]);L+=d;}return o;}
-    function frame(ts){if(stop)return;if(!t0)t0=ts;var f=Math.min(1,(ts-t0)/ms);redraw();g.save();g.strokeStyle='#2563eb';g.lineCap='round';g.lineJoin='round';g.lineWidth=Math.max(5,S.sc*.13);
-      for(var k=0;k<i;k++){path(g,S.list[k].pts);g.stroke();}if(i<S.list.length){path(g,part(S.list[i].pts,f));g.stroke();}g.restore();
+    /* 2026-11-26 19:30 川上さん「鉛筆マークもアニメーションで動かすのどう？」：書いている所に鉛筆の先を出す＝一筆の字で線を戻る所も、鉛筆が上へ戻るので分かる */function pencil(pt){var u=Math.max(14,S.sc*.5);g.save();g.translate(pt[0],pt[1]);g.rotate(-Math.PI/4);g.fillStyle='#f5d0a9';g.beginPath();g.moveTo(0,0);g.lineTo(u*.55,-u*.16);g.lineTo(u*.55,u*.16);g.closePath();g.fill();g.fillStyle='#374151';g.beginPath();g.moveTo(0,0);g.lineTo(u*.18,-u*.055);g.lineTo(u*.18,u*.055);g.closePath();g.fill();g.fillStyle='#facc15';g.fillRect(u*.55,-u*.16,u*1.25,u*.32);g.fillStyle='#9ca3af';g.fillRect(u*1.8,-u*.16,u*.14,u*.32);g.fillStyle='#f9a8d4';g.fillRect(u*1.94,-u*.16,u*.26,u*.32);g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=1;g.strokeRect(u*.55,-u*.16,u*1.65,u*.32);g.restore();}
+    function frame(ts){if(stop)return;if(!t0)t0=ts;/* 2026-11-26 19:23 川上さん「一筆書きは丸1だけだと分からないかも」：1画の時間を線の長さに合わせる（縦線1本＝ms。一筆の m・h などは長いぶんゆっくり動き、戻る所が見える） */var msI=Math.max(ms*.7,ms*len(S.list[i].pts)/(2*S.sc));var f=Math.min(1,(ts-t0)/msI);redraw();g.save();g.strokeStyle='#2563eb';g.lineCap='round';g.lineJoin='round';g.lineWidth=Math.max(5,S.sc*.13);
+      for(var k=0;k<i;k++){path(g,S.list[k].pts);g.stroke();}if(i<S.list.length){var pp=part(S.list[i].pts,f);path(g,pp);g.stroke();g.restore();pencil(pp[pp.length-1]);}else g.restore();
       if(f>=1){i++;t0=0;if(i>=S.list.length){if(done)done();return;}}win.requestAnimationFrame(frame);}
     if(S.list.length)win.requestAnimationFrame(frame);else if(done)done();
     return function(){stop=true;};}
