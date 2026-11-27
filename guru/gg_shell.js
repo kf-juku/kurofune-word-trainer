@@ -65,6 +65,17 @@ var CSS_IMP='.ncf-nm{position:relative;padding-left:1.05em}.ncf-nm>.imps{positio
  /* 2026-11-03 ぐるぐる英語：一覧の見出しの教科の切り替え［数学｜英語］ */
  +'.gsj{display:inline-flex;border:1.5px solid #2563eb;border-radius:999px;overflow:hidden;vertical-align:1px}.gsj button{font:inherit;font-size:13px;font-weight:700;min-height:30px;padding:0 12px;border:0;background:transparent;color:#2563eb;cursor:pointer}'
  +'.gsj button.on{background:#2563eb;color:#fff}:host([data-dk]) .gsj{border-color:#60a5fa}:host([data-dk]) .gsj button{color:#93c5fd}:host([data-dk]) .gsj button.on{background:#3b82f6;color:#0b1220}';
+/* 2026-11-27 一覧の見直し（KWT_生徒アプリ.md【2026-11-27】・UI標準 生徒UI_01 18-2〜18-4）：教科はタブ／章は箱にせず見出しの線／パートはカード／回のマスは矢印なし・青く塗るのは次の1マス */
+var CSS_V27='.lsj{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;margin:-4px -4px 12px;border-bottom:1px solid var(--line2)}.lsj button{font:inherit;font-size:15px;font-weight:700;padding:9px 0 7px;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--sub2);cursor:pointer}.lsj button.on{color:var(--ink);border-bottom-color:var(--ink)}'
+ +'.nbook,.nbook.open{background:transparent;border:0;box-shadow:none;border-radius:0;margin-bottom:6px;overflow:visible}.nbook-head{padding:12px 2px 8px;border-bottom:1px solid var(--line2)}.nbook.open>.nbook-head{background:transparent}.nbk-ic{display:none}.nbk-nm{font-size:16px}.nbook.open .nbk-arw{color:var(--sub2)}.nbk-detail{border-top:0;padding:10px 0 4px}'
+ +':host([data-dk]) .nbook.open{box-shadow:none}:host([data-dk]) .nbook.open>.nbook-head{background:transparent}:host([data-dk]) .nbook.open .nbk-arw{color:var(--sub2)}'
+ +'.qchw,.qchw.open{background:var(--cfff);border:1px solid var(--line2);border-left:4px solid var(--gold);border-radius:14px;margin:0 0 10px;overflow:hidden}.qchw:last-child,.qchw.open:last-child{border-bottom:1px solid var(--line2)}.qchw.open>.nchap:not([class*=gk]){background:transparent}.nchap{padding:11px 12px}.qchw.open>.nqparts{padding:0 10px 10px;border-top:0}.qchw.open .ncf-arw{color:var(--sub2)}'
+ +':host([data-dk]) .qchw.open{border-color:var(--line2);border-left-color:var(--gold);background:var(--cfff)}:host([data-dk]) .qchw.open>.nchap{background:transparent}:host([data-dk]) .qchw.open .ncf-arw{color:var(--sub2)}'
+ +'.qchw.gkny,.qchw.gkny.open{border-left-color:#0f766e}.qchw.gkct,.qchw.gkct.open{border-left-color:#b8860b}.qchw.gkkw,.qchw.gkkw.open{border-left-color:#db2777}.qchw.gkct>.nchap,.qchw.gkny>.nchap,.qchw.gkkw>.nchap{background:transparent!important;border-left:0;border-radius:0}.qchw.gkct>.nchap>.ncf-nm,.qchw.gkny>.nchap>.ncf-nm,.qchw.gkkw>.nchap>.ncf-nm{margin-left:0}'
+ +':host([data-dk]) .qchw.gkny{border-left-color:#2dd4bf}:host([data-dk]) .qchw.gkct{border-left-color:#d4a017}:host([data-dk]) .qchw.gkkw{border-left-color:#f472b6}'
+ +'.nqpr .nqp{background:var(--cfff);min-height:46px}.nqpr .nqp.cd{background:rgba(31,170,107,.11);border-color:transparent}.nqpr .nqp.cf{border:1.5px solid var(--accent)}.nqpr .nqp.cn{background:var(--accent);border-color:var(--accent);color:#fff}.nqp.cn .nqp-nm .rn{background:#fff;color:var(--accent);box-shadow:none}.nqp.cn .utag,.nqp.cn .utag.warn{color:#fff}.nqp.cn.on{background:var(--accent)}'
+ +'.nqp-nm{display:flex;align-items:center;gap:6px}.nwl{font-size:11.5px;font-weight:700;margin-left:auto;white-space:nowrap}'
+ +'.gtodo{display:block;width:100%;margin-top:8px;min-height:44px;border:1px dashed var(--line);border-radius:10px;background:transparent;font:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer}';
 /* ggMount（gg_app.js）の影に足す：表紙の題（.gcvs）・開始画面の名前（.tsn）・帯（.prog・.ghl）・完了の見出し（ぐるぐるの回＝.wr-top の札の左・章まとめテスト＝.wr-sub のテストの名前の左）。
    host の data-imp＝part（ぐるぐるの回）｜ct（章まとめテスト） */
 var CSS_APP_IMP=(function(){const B='content:"\u25c6";content:"\u25c6"/"重要マーク";color:#c2410c;font-size:.85em;',
@@ -75,7 +86,7 @@ window.ggShellMount=function(root,GG,opt){
  opt=opt||{};
  const sh=root.shadowRoot||root.attachShadow({mode:'open'});
  const KCSS=opt.katexCss||'ws/katex/katex.min.css';
- sh.innerHTML='<link rel="stylesheet" href="'+KCSS+'"><style>'+CSS+CSS_IMP+CSS_GK+CSS_ARR+'</style><div id="app"><nav id="left"></nav><main id="right"></main></div>';
+ sh.innerHTML='<link rel="stylesheet" href="'+KCSS+'"><style>'+CSS+CSS_IMP+CSS_GK+CSS_ARR+CSS_V27+'</style><div id="app"><nav id="left"></nav><main id="right"></main></div>';
  if(!root.getAttribute('lang'))root.setAttribute('lang','ja');
  const $id=id=>sh.getElementById(id);
  const PV=!!opt.preview;
@@ -164,7 +175,7 @@ window.ggShellMount=function(root,GG,opt){
  let FLT=(()=>{const f=LS.get('flt');return ['all','ny','ct'].includes(f)?f:'all';})();
  /* 2026-11-18 川上さん「A-1 と A-2 を2列に」（要件定義書_先生画面の再編 B・C）：回の一覧を A・B・C の1行ずつにし、-1 と -2 を横に2マス並べる。章まとめテストも同じ */
  const PAIRS=(RS,row)=>{const g=[];RS.forEach((R,i)=>{const L=String(R).charAt(0);let x=g.find(y=>y.L===L);if(!x){x={L:L,h:''};g.push(x);}x.h+=row(R,i);});return g.map(x=>`<div class="nqpr">${x.h}</div>`).join('');};
- function guruTag(st,id){if(st.k==='mada')return `<span class="utag">${IC.play}まだ</span>`;const pt=Math.round((st.S.got||0)/GPTof(id))+'/'+GNof(id)+'問';
+ function guruTag(st,id){if(st.k==='mada')return '';   /* 2026-11-27 「まだ」と書かない（UI標準 18-3） */const pt=Math.round((st.S.got||0)/GPTof(id))+'/'+GNof(id)+'問';
   if(st.k==='fx')return `<span class="utag warn">${IC.pen}<span>${pt}<small>解き直しの途中</small></span></span>`;   /* 2026-11-18 回の一覧を2マスにした＝マスに入るよう2段に */return `<span class="utag done">${IC.ck}できた ${pt}</span>`;}
  const DOTS=(on,cl,lb)=>`<div class="dprog-dots ${cl||''}${lb?' lb':''}" aria-label="${on.length}回のうち できた回 ${on.filter(Boolean).length}">${on.map((o,i)=>`<i class="${o?'on':''}">${lb?RD(lb[i]):''}</i>`).join('')}</div>`;   /* lb＝回の名前（2026-11-15） */
  const hasR=(id,R)=>{const p=P_(id);return !p||!p.rs||p.rs.includes(R);};   /* 2026-11-03 ぐるぐる英語：表紙の行の rs に無い回はまだ無い */
@@ -180,9 +191,10 @@ window.ggShellMount=function(root,GG,opt){
  const RS_ALL=RS;
  function guruRow(id,ttl,oc,cls){const RS=(P_(id)&&P_(id).kaiwa)?RS_ALL.slice(0,4):RS_ALL;   /* 2026-11-17 会話表現のパートは A-1〜B-2 の4回（決まり A11） */
   const st=RS.map(R=>rState(id,R)),on=st.map(x=>x.k==='done'),all=on.every(Boolean),nx=RS.find((R,i)=>!on[i]&&hasR(id,R))||RS.find(R=>hasR(id,R));
-  const row=(R,i)=>!hasR(id,R)?`<div class="nqp" style="cursor:default;opacity:.55"><div class="nqp-nm"><span class="rn ${/2$/.test(R)?'r2':'r1'}">${RD(R)}</span></div><span class="ncf-soon">準備中</span></div>`:`<div class="nqp ${VIEW==='ws'&&SEL===id&&CUR_R===R?'on':''}" data-p="${id}" data-r="${R}"><div class="nqp-nm"><span class="rn ${/2$/.test(R)?'r2':'r1'}">${RD(R)}</span></div>${guruTag(st[i],id)}${st[i].k==='done'?'':`<span class="ncf-go">${IC.go}</span>`}</div>`;
-  return `<div class="qchw ${cls||''} ${oc.includes(id)?'open':''}" data-ch="${id}"><div class="nchap" data-tg="${id}"><div class="ncf-nm">${ttl}${DOTS(on,'',RS)}</div>${all?`<span class="ncf-done">${IC.ok}</span>`:`<span class="ncf-go" data-go1="${id}" data-gor="${nx}" title="${RD(nx)} を解く">${IC.go}</span>`}<span class="ncf-arw">${IC.dn}</span></div>`
-   +`<div class="nqparts">${PAIRS(RS,row)}</div></div>`;}
+  const nw=RS.find((R,i)=>hasR(id,R)&&st[i].k==='fx')||nx;   /* 2026-11-27 青く塗るのは「いま押す」1マス＝解き直しの途中の回、なければ次にやる回（UI標準 18-4）。どのマスも押せる */
+  const row=(R,i)=>!hasR(id,R)?`<div class="nqp" style="cursor:default;opacity:.55"><div class="nqp-nm"><span class="rn ${/2$/.test(R)?'r2':'r1'}">${RD(R)}</span></div><span class="ncf-soon">準備中</span></div>`:`<div class="nqp ${st[i].k==='done'?'cd':st[i].k==='fx'?'cf':''} ${!all&&R===nw?'cn':''} ${VIEW==='ws'&&SEL===id&&CUR_R===R?'on':''}" data-p="${id}" data-r="${R}"><div class="nqp-nm"><span class="rn ${/2$/.test(R)?'r2':'r1'}">${RD(R)}</span>${!all&&R===nw?`<small class="nwl">${st[i].k==='fx'?'続きから':'つぎ'} →</small>`:''}</div>${guruTag(st[i],id)}</div>`;
+  return `<div class="qchw ${cls||''} ${oc.includes(id)?'open':''}" data-ch="${id}"><div class="nchap" data-tg="${id}"><div class="ncf-nm">${ttl}${DOTS(on,'',RS)}</div>${all?`<span class="ncf-done">${IC.ok}</span>`:''}<span class="ncf-arw">${IC.dn}</span></div>`
+   +`<div class="nqparts">${PAIRS(RS,row)}${(opt.todoAdd&&!PV)?`<button type="button" class="gtodo" data-todo="${id}">＋ やることに入れる</button>`:''}</div></div>`;}
  const soonRow=(ttl,attr,on,sm,cls)=>`<div class="qchw ${cls||''}"><div class="nchap ${on?'on':''}" ${attr}><div class="ncf-nm">${ttl}<small>${sm}</small></div><span class="ncf-soon">準備中</span></div></div>`;
  function nyRow(q,oc,where){const x=NMS(q.name);const ttl=(where==='ny'?'':GKP_N)+(where==='ny'?`<span class="gkn"><span class="tg">${q.grade}</span>${x.main}</span>${x.sub?`<small>${x.sub}</small>`:''}<small>${NYAFT(q)} が終わったら挑戦</small>`:`<span class="gkn">${x.main}</span>${x.sub?`<small>${x.sub}</small>`:''}`);
   return q.ready&&P_(q.id)?guruRow(q.id,ttl,oc,'gkny'):soonRow(ttl,`data-ny="${q.id}"`,VIEW==='nys'&&SEL===q.id,'問題はまだ','gkny');}
@@ -196,7 +208,8 @@ window.ggShellMount=function(root,GG,opt){
  function drawLeft(){if(!FOCUS_ONCE){FOCUS_ONCE=true;if(!SEL&&!PV){const g0=GR||LS.get('grade')||MY_GRADE;try{focusLast(ASSIGNED.includes(g0)?g0:MY_GRADE);}catch(e){}}}if(!GR){GR=LS.get('grade')||MY_GRADE;if(!ASSIGNED.includes(GR))GR=MY_GRADE;}const all=BOOKS(),bks=all.filter(b=>b.grade===GR&&b.subj===SUBJ);
   const SJH=SJS.length>1?`<span class="gsj" role="group" aria-label="教科">${SJS.map(k=>`<button type="button" class="${k===SUBJ?'on':''}" data-sj="${k}" aria-pressed="${k===SUBJ}">${SJN[k]}</button>`).join('')}</span>`:(SJN[SJS[0]]||'数学');
   /* 2026-11-04 01:17 川上さん「こんな2行にする必要あんの？」：左の見出しは1行（折り返さない）。「先生のプレビュー：記録しない」は先生画面の右の列と下の黒いバーに出ているので外した */
-  let h=`<div class="lh" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b>ぐるぐる</b><span>${SJH}</span></div><div class="gtab">${['中1','中2','中3'].map(g=>{const has=ASSIGNED.includes(g);return `<button type="button" class="${g===GR?'on':''}" data-gr="${g}" ${has?'':'disabled'}>${g}</button>`;}).join('')}</div>`
+  /* 2026-11-27 川上さん「数学と英語の切り替えボタンは気づかない。なんで青なんだよ」：教科は一覧のいちばん上のタブ（今の教科＝黒の太字と下線・青を使わない） */
+  let h=(SJS.length>1?`<div class="lsj" role="group" aria-label="教科">${SJS.map(k=>`<button type="button" class="${k===SUBJ?'on':''}" data-sj="${k}" aria-pressed="${k===SUBJ}">${SJN[k]}</button>`).join('')}</div>`:`<div class="lh" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b>ぐるぐる</b><span>${SJH}</span></div>`)+`<div class="gtab">${['中1','中2','中3'].map(g=>{const has=ASSIGNED.includes(g);return `<button type="button" class="${g===GR?'on':''}" data-gr="${g}" ${has?'':'disabled'}>${g}</button>`;}).join('')}</div>`
    +`<div class="lflt" role="group" aria-label="絞り込み">${[['all','全部'],['ny','入試パターン'],['ct','章まとめテスト']].map(([k,t])=>`<button type="button" class="${FLT===k?'on':''}" data-flt="${k}" aria-pressed="${FLT===k}">${t}</button>`).join('')}</div>`;
   const ob=OPEN.get('bk')||DEF_BK(),oc=OPEN.get('ch')||DEF_CH();const NY=(GG.ny||[]).filter(q=>SJ_(q)===SUBJ);
   if(FLT==='ny'){/* 学年のタブに関係なく、中1〜中3 の入試パターンを分野ごとに */
@@ -212,9 +225,9 @@ window.ggShellMount=function(root,GG,opt){
    bks.forEach(b=>{
     const rdy=b.parts.filter(p=>p.ready);
     const fin=rdy.filter(p=>['A1','A2'].every(R=>rState(p.id,R).k==='done')).length;
-    const meta=[b.cts.length?'章まとめテスト '+b.cts.map(c=>c.kind).join('・'):'',b.lin?`A-1・A-2 まで終わったパート ${fin} / ${rdy.length}`:'問題はまだ'].filter(Boolean).join('<br>');
+    const meta=b.lin?`A-1・A-2 まで終わったパート ${fin} / ${rdy.length}`:'問題はまだ';   /* 2026-11-27 章の見出しに「章まとめテスト」を書かない（章まとめテストのカードと見分けがつかなかった） */
     let rows='';
-    b.parts.forEach((p,pi)=>{const x=NMS(p.name),kg=b.parts.slice(0,pi).filter(y=>!y.kaiwa).length,mr=p.kaiwa?GKP_K+IMPS(p.imp):IMPS(p.imp)+`<span class="mr">${b.unit} ${MARU[kg]||'('+p.no+')'}</span>`;
+    b.parts.forEach((p,pi)=>{const x=NMS(p.name),kg=b.parts.slice(0,pi).filter(y=>!y.kaiwa).length,mr=p.kaiwa?GKP_K+IMPS(p.imp):IMPS(p.imp)+`<span class="mr">${MARU[kg]||'('+p.no+')'}</span>`;   /* 2026-11-27 章の名前は見出しにあるので、パートは「① 〜」だけ */
      if(p.ready)rows+=guruRow(p.id,mr+(p.kaiwa?`<span class="gkn">${x.main}</span>`:x.main)+(x.sub?`<small>${x.sub}</small>`:''),oc,p.kaiwa?'gkkw':'');
      else rows+=soonRow(mr+x.main+(x.sub?`<small>${x.sub}</small>`:''),`data-s="${p.id}"`,VIEW==='struct'&&SEL===p.id,b.subj==='en'?'問題はまだ':'ぐるぐるの型だけ（問題はまだ）');
      NY.filter(q=>q.after===p.id).forEach(q=>{rows+=nyRow(q,oc,'all');});
@@ -230,6 +243,7 @@ window.ggShellMount=function(root,GG,opt){
   L.querySelectorAll('.nbook-head').forEach(x=>x.onclick=()=>{const b=x.parentNode;b.classList.toggle('open');tg('bk',b.dataset.bk);});
   L.querySelectorAll('[data-tg]').forEach(x=>x.onclick=()=>{const w=x.closest('.qchw');w.classList.toggle('open');tg('ch',w.dataset.ch);if(w.classList.contains('open')&&!CT_(w.dataset.ch))prefetch('part',w.dataset.ch);});
   L.querySelectorAll('[data-r]').forEach(x=>x.onclick=()=>{const id=x.dataset.p;const w=x.closest('.qchw');if(w&&!w.classList.contains('open')){w.classList.add('open');tg('ch',id);}openRound(id,x.dataset.r);});
+  L.querySelectorAll('[data-todo]').forEach(x=>x.onclick=e=>{e.stopPropagation();try{opt.todoAdd(x.dataset.todo,RS_ALL.filter(R=>hasR(x.dataset.todo,R)).map(R=>rowOf(x.dataset.todo,R)));}catch(err){}});
   L.querySelectorAll('[data-go1]').forEach(x=>x.onclick=e=>{e.stopPropagation();openRound(x.dataset.go1,x.dataset.gor);});
   L.querySelectorAll('[data-cgo]').forEach(x=>x.onclick=e=>{e.stopPropagation();openCt(x.dataset.cgo,x.dataset.cgr);});
   L.querySelectorAll('[data-s]').forEach(x=>x.onclick=()=>{SEL=x.dataset.s;VIEW='struct';render();});
@@ -320,11 +334,11 @@ window.ggShellMount=function(root,GG,opt){
   const w=a.map((x,j)=>(S.ans||[])[j]!==x?j:-1).filter(j=>j>=0);const dn=w.every(j=>(S.seen||{})[j])&&(!w.length||((S.v===2?!!S.note:true)&&(!S.nq||S.redo)));
   return {k:dn?'done':'fx',S};}
  function ctLeftRow(c,oc,nop){   /* nop＝絞り込み「章まとめテスト」の中＝全部が章まとめなので札は出さない（色の帯だけ）2026-11-15 */const rs=CT_RS.filter(R=>c.rounds[R]);const sts=rs.map(R=>ctState(c,R));const ps=rs.find((R,i)=>sts[i].k==='pass');const T0=c.rounds[rs[0]]||{};
-  const tag=st=>st.k==='mada'?`<span class="utag">${IC.play}まだ</span>`:st.k==='pass'?`<span class="utag done">${IC.ck}できた ${st.S.got}点</span>`:st.k==='fx'?`<span class="utag warn">${IC.pen}<span>${st.S.got}点<small>解き直しの途中</small></span></span>`:`<span class="utag">${IC.pen}<span>${st.S.got}点<small>直し済み</small></span></span>`;
-  const row=(R,i)=>`<div class="nqp ${VIEW==='ct'&&SEL===c.id&&CUR_R===R?'on':''}" data-ct="${c.id}" data-cr="${R}"><div class="nqp-nm"><span class="rn ${/2$/.test(R)?'r2':'r1'}">${RD(R)}</span></div>${tag(sts[i])}${sts[i].k==='mada'||sts[i].k==='fx'?`<span class="ncf-go">${IC.go}</span>`:''}</div>`;
+  const tag=st=>st.k==='mada'?'':st.k==='pass'?`<span class="utag done">${IC.ck}できた ${st.S.got}点</span>`:st.k==='fx'?`<span class="utag warn">${IC.pen}<span>${st.S.got}点<small>解き直しの途中</small></span></span>`:`<span class="utag">${IC.pen}<span>${st.S.got}点<small>直し済み</small></span></span>`;
   const nx=rs[sts.findIndex(x=>x.k==='fx'||x.k==='mada')]||rs[sts.findIndex(x=>x.k!=='pass')]||rs[0];
+  const row=(R,i)=>`<div class="nqp ${sts[i].k==='pass'?'cd':sts[i].k==='fx'?'cf':''} ${!ps&&R===nx?'cn':''} ${VIEW==='ct'&&SEL===c.id&&CUR_R===R?'on':''}" data-ct="${c.id}" data-cr="${R}"><div class="nqp-nm"><span class="rn ${/2$/.test(R)?'r2':'r1'}">${RD(R)}</span>${!ps&&R===nx?`<small class="nwl">${sts[i].k==='fx'?'続きから':'つぎ'} →</small>`:''}</div>${tag(sts[i])}</div>`;   /* 2026-11-27 マスの矢印をなくし、青く塗るのは次の1マスだけ */
   const nm=String(c.name).replace(/^章まとめテスト\s*/,'');
-  return `<div class="qchw ctw gkct ${oc.includes(c.id)?'open':''}" data-ch="${c.id}"><div class="nchap" data-tg="${c.id}"><div class="ncf-nm">${nop?'':GKP_C}<span class="gkn">${IMPS(c.imp)}${nm}</span><small>1回 ${ctNq(c,rs[0])}問・${T0.min||30}分・80点で合格</small>${DOTS(sts.map(x=>x.k==='pass'),'d4',rs)}</div>${ps?`<span class="ncf-done">${IC.ok}</span>`:`<span class="ncf-go" data-cgo="${c.id}" data-cgr="${nx}" title="${RD(nx)} を解く">${IC.go}</span>`}<span class="ncf-arw">${IC.dn}</span></div>`
+  return `<div class="qchw ctw gkct ${oc.includes(c.id)?'open':''}" data-ch="${c.id}"><div class="nchap" data-tg="${c.id}"><div class="ncf-nm">${nop?'':GKP_C}<span class="gkn">${IMPS(c.imp)}${nm}</span><small>1回 ${ctNq(c,rs[0])}問・${T0.min||30}分・80点で合格</small>${DOTS(sts.map(x=>x.k==='pass'),'d4',rs)}</div>${ps?`<span class="ncf-done">${IC.ok}</span>`:''}<span class="ncf-arw">${IC.dn}</span></div>`
    +`<div class="nqparts">${PAIRS(rs,row)}</div></div>`;}
  /* 戻る所（back）：前の単元ワークシートの番号（m2c3u5p1 など）は外す。'gg:{パートid}:{型,型}' は類題をつなぐ所として残す */
  function ctNoBack(T){let n=0;const bad=b=>b&&!/^gg:/.test(b);T.items.forEach(it=>{if(bad(it.back)){n++;delete it.back;}(it.steps||[]).forEach(st=>{if(bad(st.back)){n++;delete st.back;}});});return n;}
