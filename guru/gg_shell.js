@@ -253,7 +253,7 @@ window.ggShellMount=function(root,GG,opt){
   if(FOCUS_TGT&&FLT==='all'){const fe=L.querySelector(`.qchw[data-ch="${FOCUS_TGT}"]`);FOCUS_TGT=null;if(fe){const go2=(n)=>{try{const r=fe.getBoundingClientRect(),lr=L.getBoundingClientRect();if(!lr.height||!r.height){if(n<8)setTimeout(()=>go2(n+1),150);return;}if(L.scrollHeight>L.clientHeight+4)L.scrollTop+=r.top-lr.top-60;else fe.scrollIntoView({block:'center'});}catch(e){}};go2(0);}}}   /* 2026-11-17 開いた直後（画面の大きさがまだ0）でも、出てから寄せる */
  const inpart=v=>{if(v)root.setAttribute('data-inpart','');else root.removeAttribute('data-inpart');};
  if(PV)root.setAttribute('data-pv','');   /* 2026-11-18 川上さん 19:45 質問E：生徒の画面は幅に関係なく、回を開いたら左の一覧を隠す（［← 一覧］で戻す）。先生のプレビュー（data-pv）は見比べるので残す */
- function render(){LDTOK++;inpart(!!SEL||VIEW==='ct');drawLeft();if(!SEL){API=null;M.innerHTML='<div class="card"><div class="cv-note" style="margin:0">左の一覧から、学校で習ったパートを選ぼう。青い矢印は、次にやる回。</div></div>';return;}
+ function render(){LDTOK++;inpart(!!SEL||VIEW==='ct');drawLeft();if(!SEL){API=null;M.innerHTML='<div class="card"><div class="cv-note" style="margin:0">左の一覧から、学校で習ったパートを選ぼう。青いマスが、次にやる回。</div></div>';return;}
   if(VIEW==='struct')return drawStruct();
   if(VIEW==='nys')return drawNyStruct();
   if(VIEW==='cover'){const p=P_(SEL);if(p&&p.ready)return openRound(SEL,nextR(SEL));return drawStruct();}}
