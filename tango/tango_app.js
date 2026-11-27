@@ -161,14 +161,14 @@ function mount(host,o){
   function curItem(){try{if(st.stage===5){var q=st.test[st.ti];return q&&q.it;}if(st.stage===2){return R.items[st.bq&&st.bq[0]];}if(st.stage===3||st.stage===4){return R.items[st.queue[0]];}return R.items[st.i];}catch(e){return null;}}
   function rpRow(){var w=doc.defaultView;return (w&&w.kwtReport)?'<div class="tg-rp"><button type="button" data-rp="1">⚠ おかしい所を知らせる</button></div>':'';}
   root.addEventListener('click',function(e){var b=e.target&&e.target.closest&&e.target.closest('[data-rp]');if(!b)return;var w=doc.defaultView,it=curItem();if(!w||!w.kwtReport)return;
-    w.kwtReport({screen:'単語タブ（中学英語スタートダッシュ）',where:'中学英語スタートダッシュ　単語　'+o.no+'回目　'+(STG[st.stage]||'')+(mode==='redo'?'（小テストのやり直し）':''),q:it?(it.en+'／'+it.ja):'',ids:{round:o.no,stage:st.stage,en:it&&it.en}});});
+    w.kwtReport({screen:'単語タブ（中学英語スタートダッシュ）',where:'中学英語スタートダッシュ　単語　No.'+o.no+'　'+(STG[st.stage]||'')+(mode==='redo'?'（小テストのやり直し）':''),q:it?(it.en+'／'+it.ja):'',ids:{round:o.no,stage:st.stage,en:it&&it.en}});});
   function bar(){return bar0()+rpRow();}
   function bar0(){return '<div class="tg-st">'+STG.map(function(t,k){if(mode==='redo'&&k<5)return '';return '<span class="'+(k<st.stage?'d':k===st.stage?'c':'')+'">'+(mode==='redo'?'小テストのやり直し':(k+1)+' '+t)+'</span>';}).join('')+'</div>';}
   /* 2026-11-26 修正メモ箱「途中でやめたら続きから再開できない」：画面が変わるたびに今の場所を端末に残し、開き直したら「続きから／はじめから」を選べる（o.skey があるときだけ・14日まで・結果まで行ったら消す） */
   function sv(){if(!o.skey)return;try{st.el=Date.now()-st.t0;localStorage.setItem(o.skey,JSON.stringify({v:2,at:Date.now(),mode:mode,no:o.no,n:R.items.length,st:st}));}catch(e){}}
   function svClear(){if(!o.skey)return;try{localStorage.removeItem(o.skey);}catch(e){}}
   function svLoad(){if(!o.skey)return null;try{var x=JSON.parse(localStorage.getItem(o.skey)||'null');if(!x||x.v!==2||x.mode!==mode||x.no!==o.no||x.n!==R.items.length||Date.now()-x.at>14*864e5)return null;var t=x.st;if(!t||typeof t.stage!=='number')return null;if(t.stage===0&&t.i===0)return null;return t;}catch(e){return null;}}
-  function head(){return '<div class="tg-cnt">'+o.no+'回目　'+esc(R.tip)+'</div>';}
+  function head(){return '<div class="tg-cnt">No.'+o.no+'　'+esc(R.tip)+'</div>';}
   /* 1 見る */
   function see(){sv();var it=R.items[st.i];
     root.innerHTML=bar()+'<div class="tg-card">'+head()+'<div class="tg-cnt" style="margin-top:6px">'+(st.i+1)+' / '+R.items.length+'</div><div class="tg-big'+(isPh(it)?' tg-phr':'')+'">'+esc(it.en)+'</div><div class="tg-yomi">'+esc(it.yomi)+'</div><div class="tg-ja">'+esc(it.ja)+'</div>'

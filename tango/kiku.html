@@ -27,9 +27,9 @@ fetch('sd_tango.json?v=20261125a',{cache:'no-cache'}).then(function(r){if(!r.ok)
   var rd=null,pv=null;D.rounds.forEach(function(r){if(r.no===no)rd=r;if(r.no===no-1)pv=r;});
   if(!rd){W.innerHTML='<div class="ng">この QR の回が見つかりません</div>';return;}
   var all=[];rd.items.forEach(function(it){all=all.concat(it.au||[]);});
-  var h='<h1>'+rd.no+'回目の単語</h1><div class="tip">'+esc(rd.tip)+'</div><button class="all" data-all="1">▶ 全部を続けて聞く</button><div class="c">'
+  var h='<h1>単語 No.'+rd.no+'</h1><div class="tip">'+esc(rd.tip)+'</div><button class="all" data-all="1">▶ 全部を続けて聞く</button><div class="c">'
    +rd.items.map(function(it,i){return '<div class="r"><span class="n">'+(i+1)+'</span><div class="b"><div class="en">'+esc(it.en)+'</div><div class="ja">'+esc(it.yomi?it.yomi+'　':'')+esc(it.ja)+'</div></div><button class="p" data-i="'+i+'" aria-label="音を聞く">🔊</button></div>';}).join('')+'</div>';
-  if(pv){var cm='①②③④⑤⑥⑦⑧';h+='<h2>前の回（'+pv.no+'回目）の小テストの答え</h2><button class="tg" data-tg="1">答えを隠す</button><div class="c" id="ans">'
+  if(pv){var cm='①②③④⑤⑥⑦⑧';h+='<h2>前の回（No.'+pv.no+'）の小テストの答え</h2><button class="tg" data-tg="1">答えを隠す</button><div class="c" id="ans">'
    +ord(pv.items.length).map(function(k,j){var it=pv.items[k];return '<div class="r"><span class="n">'+cm.charAt(j)+'</span><div class="b"><div class="ja">'+esc(it.ja)+'</div><div class="en">'+esc(it.en)+'</div></div><button class="p" data-pv="'+k+'" aria-label="音を聞く">🔊</button></div>';}).join('')+'</div>';}
   W.innerHTML=h;
   W.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
