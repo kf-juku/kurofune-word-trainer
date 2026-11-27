@@ -4657,7 +4657,7 @@ function fsAnsRowHtml_(it,no){
     ?('<span class="fs-rd">'+esc(it.reading_hint)+'</span>'):'';
   /* 【2026-09-13j・段E】語順は「覚え方」の欄に語ごとの意味（gloss）を出す。
      問題の側に出すと、並べ替える前に訳が全部見えて練習にならない */
-  var kai=String(it.kaisetsu||'');
+  var kai=String(it.kaisetsu||'');if(sdKaiIs_(kai))kai=sdKaiPaper_(kai);   /* 2026-11-27 スタートダッシュの新しい形の解説は、紙では箱を出さず文字の行だけ */
   if(_pqKind_(it)==='order'){ var gl=_pqGlossText_(it); if(gl) kai=(kai?(kai+'　'):'')+gl; }
   var kaiH=esc(kai).replace(/\n/g,'<br>');   /* 解説は3行。改行を紙でも残す（2026-10-02） */
   if(_pqKind_(it)==='read'){   /* 読解（2026-09-30・4-54④）＝解説＋質問の意味（rq）＋答えのありか（黄色）。問題用紙には出さない */
@@ -12228,7 +12228,81 @@ function _roLine_(sp,ans,mm){mm=mm||170;var pre=sp.pre?'<span class="pp-rofx">'+
 /* A-1・A-2・説明（パートの id で見分ける：'-a2' で終わる＝A-2／同じ教材に id＋'-a2' がある＝A-1／どちらでもない＝説明）。ids＝{パートid:1} */
 function _abKindOf_(pid,ids){pid=String(pid||'');if(/-a2$/.test(pid))return 'a2';if(ids&&ids[pid+'-a2'])return 'a1';return 'ex';}
 function _ppOneWord_(a){a=String(a||'');if(/[。、，．]/.test(a))return false;if(/[A-Za-z]/.test(a))return !/\s/.test(a.trim());return a.length<=12;}
-function _ppKai_(s){return esc(String(s||'').replace(/\{\{([^|}]*)\|([^}]*)\}\}/g,'$1（$2）').replace(/\[\[|\]\]/g,'')).replace(/\n/g,' ／ ');}
+/* 2026-11-27 スタートダッシュ（英検タブ・文法）の解説の新しい形（ぐるぐる英語_作り方の決まり.md C23）。
+   箱の描き方は guru\gg_load.js の ggEnBox（2026-11-24）を写した（英検タブはぐるぐるのファイルを呼ばない＝00_いまの入口 始める前に 6）。
+   足したもの：「%:」の行＝語順の札（役:語。役＝dare・suru・desu・nani・doko・itsu＝パートのはじめのカードと同じ色の下線）。
+   解説（words の kaisetsu）の行：
+     正解：…（1行目。この行があるときだけ新しい形で描く）
+     ふつうの行＝この問題ではどうなるか
+     &[札]…＝箱（中身まで入っている）／&+[札]…＝［もっと見る］の中の箱
+     #[選択肢]理由＝ほかの選択肢がちがう理由
+     !語|理由＝並べかえの使わない語
+   sdKaiHtml_(t,{paper:1}) は紙用＝箱を出さず、文字の行だけ。 */
+var SDK_TAG_={'文法':1,'くらべる':1,'熟語・表現':1,'表':1};
+var SDK_PC_='-webkit-print-color-adjust:exact;print-color-adjust:exact;';
+var SDK_MK_='background:linear-gradient(transparent 45%,#fde68a 45%);font-weight:700;color:#111;'+SDK_PC_;
+var SDK_BX_='border:2px solid #374151;border-radius:3px;padding:0 3px;font-weight:700;color:#111;background:#fde68a;'+SDK_PC_;
+var SDK_SERIF_="font-family:'Times New Roman','DejaVu Serif',serif;";
+var SDK_ROLE_={dare:'#e0708a',suru:'#3f7fd6',desu:'#3f7fd6',nani:'#d98a2b',doko:'#5aa86b',itsu:'#8a6fd0'};
+function sdkEsc_(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function sdkMk_(t){return sdkEsc_(t).replace(/==(.+?)==/g,'<span class="emk" style="'+SDK_MK_+'">$1</span>');}
+function sdkCell_(t){t=String(t);var m=/^\[(.+)\]$/.exec(t.trim());if(m)return {h:'<span class="ebx" style="'+SDK_BX_+'">'+sdkMk_(m[1])+'</span>',bx:1};return {h:sdkMk_(t),bx:0};}
+function sdkFuda_(t){t=String(t);if(!t)return '';var m=/^([a-z]+):(.+)$/.exec(t);var c=(m&&SDK_ROLE_[m[1]])||'#cbd5e1';return '<span style="font-size:11.5px;padding:0 2px;border-bottom:2px solid '+c+';color:#374151;font-family:sans-serif;'+SDK_PC_+'">'+sdkEsc_(m?m[2]:t)+'</span>';}
+function sdkGrid_(rows){var R=rows.map(function(r){var f=r.charAt(1)===':';return {f:f,c:r.slice(f?2:1).split('/')};});var nc=Math.max.apply(null,R.map(function(r){return r.c.length;}))-1;var h='',gr=1,prev=-1;
+  var L='position:absolute;top:6px;border-top:2px solid #374151;';
+  R.forEach(function(rr,ri){var r=rr.c;
+    if(rr.f){r.slice(1).forEach(function(c,k){h+='<span style="grid-row:'+gr+';grid-column:'+(k+2)+';white-space:nowrap;line-height:1.2;padding:0 0 4px">'+sdkFuda_(c)+'</span>';});gr++;return;}
+    var cs=r.slice(1).map(sdkCell_);var bi=-1;cs.forEach(function(c,k){if(c.bx&&bi<0)bi=k;});
+    if(ri>0&&prev>=0&&bi>=0&&bi!==prev){var a=Math.min(prev,bi),b=Math.max(prev,bi);
+      for(var k=a;k<=b;k++){var inner='';
+        if(k===prev){inner+='<span style="'+L+(prev<bi?'left:50%;right:-5px;':'left:-5px;right:50%;')+'"></span><span style="position:absolute;left:calc(50% - 1px);top:-3px;height:10px;border-left:2px solid #374151;"></span>';}
+        else if(k===bi){inner+='<span style="'+L+(prev<bi?'left:-5px;right:50%;':'left:50%;right:-5px;')+'"></span><span style="position:absolute;left:calc(50% - 5px);top:6px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:9px solid #374151;"></span>';}
+        else inner+='<span style="'+L+'left:-5px;right:-5px;"></span>';
+        h+='<span style="position:relative;height:16px;grid-row:'+gr+';grid-column:'+(k+2)+'">'+inner+'</span>';}
+      gr++;}
+    h+='<span style="grid-row:'+gr+';grid-column:1;font-family:sans-serif;font-size:11.5px;color:#6b7280;white-space:nowrap;align-self:center">'+sdkEsc_(r[0]||'')+'</span>';
+    cs.forEach(function(c,k){h+='<span style="grid-row:'+gr+';grid-column:'+(k+2)+';white-space:nowrap;padding:3px 0 0;color:#111">'+c.h+'</span>';});
+    gr++;prev=bi;});
+  return '<div style="display:grid;grid-template-columns:auto repeat('+nc+',auto) 1fr;column-gap:10px;align-items:center;margin:2px 0 4px;overflow-x:auto;'+SDK_SERIF_+'font-size:16.5px">'+h+'</div>';}
+function sdkTab_(rows){var h='<table style="border-collapse:collapse;margin:4px 0;font-size:14.5px;color:#111">';rows.forEach(function(r){var th=r.slice(0,2)!=='^^';var cs=r.slice(th?1:2).split('/');
+  h+='<tr>'+cs.map(function(c){return th?'<th style="border:1px solid #cbd5e1;padding:3px 10px;text-align:left;background:#eef2f7;font-size:12.5px;'+SDK_PC_+'">'+sdkMk_(c)+'</th>':'<td style="border:1px solid #cbd5e1;padding:3px 10px;text-align:left">'+sdkMk_(c)+'</td>';}).join('')+'</tr>';});return h+'</table>';}
+function sdkBox_(l){var m=/^\[([^\]]+)\]/.exec(l);if(!m||!SDK_TAG_[m[1]])return '';var R=l.slice(m[0].length).split('|');var h='',i=0;
+  while(i<R.length){var r=R[i];
+    if(r.charAt(0)==='%'){var g=[];while(i<R.length&&R[i].charAt(0)==='%')g.push(R[i++]);h+=sdkGrid_(g);continue;}
+    if(r.charAt(0)==='^'){var t=[];while(i<R.length&&R[i].charAt(0)==='^')t.push(R[i++]);h+=sdkTab_(t);continue;}
+    if(r.charAt(0)==='=')h+='<div style="font-size:14px;margin:4px 0 6px;color:#111">'+sdkMk_(r.slice(1))+'</div>';
+    else if(r.charAt(0)==='~')h+='<div style="display:inline-block;font-size:12px;color:#475569;border:1.5px dotted #94a3b8;border-radius:8px;padding:2px 8px;margin:4px 0 2px;background:#fff">'+sdkMk_(r.slice(1))+'</div>';
+    else if(r==='-')h+='<div style="border-top:1px dashed #cbd5e1;margin:8px 0"></div>';
+    else h+='<div style="'+SDK_SERIF_+'font-size:15.5px;margin:2px 0 0 4px;color:#111">'+sdkMk_(r)+'</div>';
+    i++;}
+  return '<div class="sdk-box" style="margin:8px 0;padding:6px 12px 10px;border:1px solid #c9ced6;border-radius:8px;background:#f5f6f8;text-align:left;white-space:normal;'+SDK_PC_+'"><div style="font-size:12px;font-weight:700;color:#475569;margin:0 0 2px">'+m[1]+'</div>'+h+'</div>';}
+function sdKaiIs_(t){return /^正解：/.test(String(t||''));}
+function sdKaiHtml_(t,o){o=o||{};var L=String(t||'').split('\n');if(!/^正解：/.test(L[0]||''))return null;var h='',wm=[],un=[],mo=[];
+  L.forEach(function(l){if(!l)return;
+    if(l.indexOf('正解：')===0){h+='<div class="sdk-t sdk-ok" style="font-weight:700">'+sdkEsc_(l)+'</div>';return;}
+    if(l.slice(0,2)==='&+'){if(!o.paper)mo.push(sdkBox_(l.slice(2)));return;}
+    if(l.charAt(0)==='&'){if(!o.paper)h+=sdkBox_(l.slice(1));return;}
+    if(l.charAt(0)==='#'){var m=/^#\[([^\]]*)\](.*)$/.exec(l);if(m)wm.push('<div class="sdk-t"><b style="display:inline-block;min-width:3.2em;margin-right:6px">'+sdkEsc_(m[1])+'</b>'+sdkEsc_(m[2])+'</div>');return;}
+    if(l.charAt(0)==='!'){var p=l.slice(1).split('|');un.push('<div class="sdk-t">使わない語：<b>'+sdkEsc_(p[0])+'</b><span style="color:#dc2626;font-weight:700;margin-left:2px">×</span>'+(p[1]?'　'+sdkEsc_(p[1]):'')+'</div>');return;}
+    h+='<div class="sdk-t" style="margin:2px 0 4px">'+sdkEsc_(l)+'</div>';});
+  if(mo.length)h+='<button type="button" class="sdk-more" style="display:inline-block;border:1px solid #cbd5e1;background:#fff;border-radius:8px;padding:3px 12px;font:inherit;font-size:13px;cursor:pointer;margin:2px 0;color:#111" onclick="event.stopPropagation();var b=this.nextElementSibling;b.hidden=!b.hidden;this.textContent=b.hidden?\'もっと見る ⌄\':\'閉じる ⌃\'">もっと見る ⌄</button><div hidden>'+mo.join('')+'</div>';
+  if(wm.length)h+='<div style="border:1.5px solid #f59e0b;border-radius:8px;padding:6px 10px;margin:8px 0 0;text-align:left"><div style="font-size:12px;color:#92400e;font-weight:700;margin-bottom:2px">ほかの選択肢がちがう理由</div>'+wm.join('')+'</div>';
+  if(un.length)h+='<div style="margin:6px 0 0">'+un.join('')+'</div>';
+  return '<div class="sdk" style="white-space:normal;text-align:left;color:#111;font-size:14px;line-height:1.6">'+h+'</div>';}
+/* 文字だけの長さ（なぞりの時間を決める）＝正解・この問題ではどうなるか・選択肢の理由・使わない語 */
+function sdKaiTextLen_(t){return String(t||'').split('\n').filter(function(l){return l&&l.charAt(0)!=='&';}).join('').replace(/^#\[[^\]]*\]/gm,'').length;}
+/* 画面の解説のなぞり（1文字85ミリ秒＝ほかの解説と同じ）。文字の行（.sdk-t）だけを1字ずつ .kc にして下線を伸ばす。箱は最初から見せる */
+function sdKaiTrace_(el,ms){try{kaiTraceStop_();}catch(e){}
+  var cs=[];[].forEach.call(el.querySelectorAll('.sdk-t'),function(t){var tw=document.createTreeWalker(t,NodeFilter.SHOW_TEXT,null,false),ns=[],n;while((n=tw.nextNode()))ns.push(n);
+    ns.forEach(function(tn){var f=document.createDocumentFragment();String(tn.nodeValue).split('').forEach(function(ch){var s=document.createElement('span');s.className='kc';s.textContent=ch;f.appendChild(s);cs.push(s);});tn.parentNode.replaceChild(f,tn);});});
+  if(!cs.length)return;var per=Math.max(26,ms/cs.length),i=0;
+  _kaiTId=setInterval(function(){if(i>0&&cs[i-1])cs[i-1].classList.remove('cur');if(i<cs.length){cs[i].classList.add('read','cur');i++;}else{kaiTraceStop_();if(cs[cs.length-1])cs[cs.length-1].classList.remove('cur');}},per);}
+/* 紙（練習プリント・チェックプリントの答え）＝箱を出さず、この問題ではどうなるか と 選択肢の理由 を1行に */
+function sdKaiPaper_(t){var L=String(t||'').split('\n');if(!/^正解：/.test(L[0]||''))return null;var a=[];
+  L.slice(1).forEach(function(l){if(!l||l.charAt(0)==='&')return;var m=/^#\[([^\]]*)\](.*)$/.exec(l);if(m){a.push(m[1]+'：'+m[2]);return;}if(l.charAt(0)==='!'){var p=l.slice(1).split('|');a.push('使わない語 '+p[0]+(p[1]?'：'+p[1]:''));return;}a.push(l);});
+  return a.join(' ／ ');}
+
+function _ppKai_(s){if(sdKaiIs_(s))return esc(sdKaiPaper_(s));return esc(String(s||'').replace(/\{\{([^|}]*)\|([^}]*)\}\}/g,'$1（$2）').replace(/\[\[|\]\]/g,'')).replace(/\n/g,' ／ ');}
 /* 答えを 15.5pt で書いたときの幅（mm）＋書き始めと終わりの余り 6mm。canvas で測る */
 var _ppAnsNow='',_ppCv=null;function _ppNeedMm_(s){s=String(s||'');if(!s)return 0;try{if(!_ppCv)_ppCv=document.createElement('canvas').getContext('2d');_ppCv.font='15.5pt "Noto Sans JP","Noto Sans CJK JP","Hiragino Sans","Yu Gothic",sans-serif';return _ppCv.measureText(s).width/3.7795+6;}catch(e){return s.length*3+6;}}
 function _ppL4_(w){var n=Math.ceil(_ppNeedMm_(_ppAnsNow));if(n>w)w=Math.min(n,170);return '<span class="pp-l4" style="width:'+w+'mm"></span>';}   /* 4本線は、答えを書ききれる長さより短くしない */
