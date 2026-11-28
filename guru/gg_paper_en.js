@@ -121,7 +121,12 @@ function layRoundG(sf){const sb=sf.nextElementSibling;const B1=sf.querySelector(
  let z=0,over=flow();
  while(over>0&&z<3){[sf,sb].forEach(s=>{s.classList.remove('z'+z);s.classList.add('z'+(z+1));});z++;over=flow();}
  sf.dataset.z=z;sf.dataset.k=B1.children.length;
- if(over>0){sf.dataset.over=Math.round(over);return;}
+ if(over>0){sf.dataset.over=Math.round(over);
+  /* 2026-11-28 字を詰めても裏に入らないときは、黙って切らずに続きの紙へ送る（前は .sheet の overflow:hidden で下が紙に出なかった＝中1① C-1 の裏の 14番）。先生画面は data-over で知らせる */
+  let sh=sb;for(let g=0;g<4;g++){const b=sh.querySelector('.sbody'),lim=limOf(sh),U=[...b.children],k=U.findIndex(u=>u.offsetTop+u.offsetHeight-b.offsetTop>lim);if(k<0)break;
+   const nx=document.createElement('div');nx.className=sb.className+' cont';nx.innerHTML='<div class="sh-cont">（裏の続き）</div><div class="sbody"></div>'+(sb.querySelector('.sh-ft')?'<div class="sh-ft">'+sb.querySelector('.sh-ft').innerHTML+'（続き）</div>':'');
+   sh.after(nx);const nb=nx.querySelector('.sbody');U.slice(Math.max(1,k)).forEach(x=>nb.appendChild(x));if(k===0)break;sh=nx;}
+  return;}
  delete sf.dataset.over;
  /* 余った高さは問題のあいだに少しずつ配る（1問 5mm まで）。書く所を窮屈にしない */
  [sf,sb].forEach(sh=>{const b=sh.querySelector('.sbody');const U=[...b.children];if(!U.length)return;const free=limOf(sh)-usedOf(sh);if(free<=0)return;const g=Math.min(free/U.length,5*3.78);U.forEach(u=>u.style.marginBottom=g+'px');});}
@@ -210,10 +215,18 @@ function layCt(first){const pages=[first];let sh=first;
   const k=U.findIndex(u=>u.offsetTop+u.offsetHeight-b.offsetTop>lim);if(k<0)break;
   /* .su がまるごと1ページより高いときは、その中の .sq ごとに分ける（区切りの頭は前の紙に残さない） */
   const nx=document.createElement('div');nx.className=first.className+' cont';const LAB=first.dataset.lab||'問題用紙';nx.dataset.r=first.dataset.r;nx.dataset.id=first.dataset.id;
-  nx.innerHTML=`<div class="sh-cont">${first.dataset.call}　${LAB}（続き）</div><div class="sbody"></div><div class="sh-ft"></div>`;
+  nx.innerHTML=`<div class="sh-cont">${first.dataset.call}　${LAB}（続き）</div><div class="sbody"></div><div class="sh-ft">　</div>`;   /* 2026-11-28 下の行は組んだあとに字が入る。空のままだと高さが0で、入る所を1行分（約4mm）多く見積もっていた */
   sh.after(nx);const nb=nx.querySelector('.sbody');
   if(k===0){/* 1つ目から入らない＝.sq で分ける */const u=U[0];const Q=[...u.querySelectorAll(':scope>.sq')];const j=Q.findIndex(q=>q.offsetTop+q.offsetHeight-b.offsetTop>lim);
-   if(j<=0){U.slice(1).forEach(x=>nb.appendChild(x));}else{const u2=u.cloneNode(false);Q.slice(j).forEach(q=>u2.appendChild(q));nb.appendChild(u2);U.slice(1).forEach(x=>nb.appendChild(x));}}
+   /* 2026-11-28 1つの小問（.sq）が1ページより高いとき（読解の解説など）は、その中の段で分けて続きのページへ送る。前は下が切れて紙に出なかった（中1① B-1・B-2・C-1 の 14番） */
+   let cut=false;if(j===0&&Q[0]){const bt=b.getBoundingClientRect().top;
+    /* 段の中を下へたどり、ページの下をこえる最初の段で分ける。分けた後ろは同じ入れ物の写しに入れて続きのページへ */
+    const tail=el=>{const C=[...el.children].filter(c=>c.getBoundingClientRect().height>0);const ci=C.findIndex(c=>c.getBoundingClientRect().bottom-bt>lim);if(ci<0)return null;
+     const D=C[ci];if(D.children.length>=1&&(D.tagName!=='TABLE'||D.offsetHeight>lim-40)&&D.getBoundingClientRect().top-bt<lim-40){const t=tail(D);if(t){const e2=el.cloneNode(false);e2.appendChild(t);C.slice(ci+1).forEach(c=>e2.appendChild(c));return e2;}}   /* こえる段の中でも分けられるなら中で分ける（ページを埋める）。子が1つだけの段（解説の箱 .wbx など）も中へたどる。表（table）は中で分けない（列の幅が変わって高さがずれ、見出しの行も消える）。ただし1ページより高い表だけは行で分ける */
+     if(ci===0)return null;
+     const e2=el.cloneNode(false);C.slice(ci).forEach(c=>e2.appendChild(c));return e2;};
+    const q2=tail(Q[0]);if(q2){q2.classList.add('qcont');const u2=u.cloneNode(false);u2.appendChild(q2);Q.slice(1).forEach(x=>u2.appendChild(x));nb.appendChild(u2);U.slice(1).forEach(x=>nb.appendChild(x));cut=true;}}
+   if(cut){}else if(j<=0){U.slice(1).forEach(x=>nb.appendChild(x));}else{const u2=u.cloneNode(false);Q.slice(j).forEach(q=>u2.appendChild(q));nb.appendChild(u2);U.slice(1).forEach(x=>nb.appendChild(x));}}
   else U.slice(k).forEach(x=>nb.appendChild(x));
   pages.push(nx);sh=nx;}
  const LAB0=first.dataset.lab||'問題用紙';pages.forEach((p,i)=>{p.querySelector('.sh-ft').textContent=`${LAB0}　${i+1}／${pages.length}`;});
