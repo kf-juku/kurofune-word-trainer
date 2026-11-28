@@ -34,7 +34,7 @@ window.ggMount=function(root,D,opt){
     lpT=setTimeout(()=>{lpT=0;if(!hit.isConnected||!hit.classList.contains('done'))return;if(!window.confirm('先生用のコマンドです。\n実行してよいですか？'))return;
      const k=hit.dataset.ak||hit.dataset.au,g=__eAG();delete g[k];__eAS(g);hit.classList.remove('done');hit.disabled=false;__eRst(hit);},2500);},true);
    sh.addEventListener('pointerup',lpC,true);sh.addEventListener('pointermove',e=>{if(lpT&&(Math.abs(e.clientX-lpX)>12||Math.abs(e.clientY-lpY)>12))lpC();},true);__realDoc.addEventListener('scroll',lpC,true);}
-  if(__eT){const mark=()=>{const g=__eAG();sh.querySelectorAll('.eau[data-ak]').forEach(b=>{if(b.dataset.au&&!b.classList.contains('t2')){b.classList.add('t2');if(!b.classList.contains('on'))__eLab(b,'放送を聞く','押すと2回流れます。押せるのは1回だけ',0);}if(g[b.dataset.ak]&&!b.classList.contains('on')&&!b.classList.contains('done'))__eDone(b);});};   /* done の付いたボタンは描き直さない（描き直すと見張りがまた動いて止まらなくなる） */
+  if(__eT){const mark=()=>{const g=__eAG();sh.querySelectorAll('.eau[data-ak]').forEach(b=>{if(b.closest('.wr-q'))return;if(b.dataset.au&&!b.classList.contains('t2')){b.classList.add('t2');if(!b.classList.contains('on'))__eLab(b,'放送を聞く','押すと2回流れます。押せるのは1回だけ',0);}if(g[b.dataset.ak]&&!b.classList.contains('on')&&!b.classList.contains('done'))__eDone(b);});};   /* done の付いたボタンは描き直さない（描き直すと見張りがまた動いて止まらなくなる） */
    try{new MutationObserver(mark).observe(sh,{childList:true,subtree:true});}catch(x){}setTimeout(mark,0);
    sh.addEventListener('click',function(e){const n=e.target&&e.target.closest?e.target.closest('[data-a=new]'):null;if(n){try{localStorage.removeItem(__eAK());}catch(x){}}},true);}   /* 「はじめから」「準備ができたらスタート」＝新しく受ける：放送の回数を戻す（「続きから」は戻さない） */
   try{const __eNo=()=>{sh.querySelectorAll('.eau').forEach(b=>{const t=b.firstChild;if(t&&t.nodeType===3&&/^\s*▶\s*/.test(t.nodeValue))t.nodeValue=t.nodeValue.replace(/^\s*▶\s*/,'');});};new MutationObserver(__eNo).observe(sh,{childList:true,subtree:true});setTimeout(__eNo,0);}catch(x){}   /* 2026-11-18 Kア ▶ を出さない */
@@ -56,7 +56,7 @@ window.ggMount=function(root,D,opt){
     const h=t.closest('.ejon .een[data-ja],.ejon .edoct[data-ja],.ejon tr[data-ja],.ejon .ejtr');if(!h)return;e.preventDefault();e.stopPropagation();
     const g=h.matches('tr[data-ja]')?h.nextElementSibling:h;if(g)g.classList.toggle('ejo');},true);}catch(x){}
   sh.addEventListener('click',function(e){const b=e.target&&e.target.closest?e.target.closest('.eau'):null;if(!b||!b.dataset.au||b.disabled)return;
-   if(__eT){if(b.classList.contains('on'))return;if(sh.querySelector('.eau.on'))return;const k=b.dataset.ak||b.dataset.au;const g=__eAG();if(g[k]){__eDone(b);return;}   /* 使用済みにするのは、音が実際に鳴り始めたとき（2026-11-14）。鳴らなかったときは回数を減らさない */
+   if(__eT&&!b.closest('.wr-q')){if(b.classList.contains('on'))return;if(sh.querySelector('.eau.on'))return;const k=b.dataset.ak||b.dataset.au;const g=__eAG();if(g[k]){__eDone(b);return;}   /* 使用済みにするのは、音が実際に鳴り始めたとき（2026-11-14）。鳴らなかったときは回数を減らさない */
     __eStop();b.classList.add('on');try{sh.querySelectorAll('.eau').forEach(x=>{if(x!==b)x.classList.add('eau-lock');});}catch(x){}const src=b.dataset.au;const el=new Audio();let n=0;const mine=__eTok;const alive=()=>mine===__eTok&&root.isConnected;
     const fail=nm=>{if(mine!==__eTok)return;__eStop();b.classList.remove('on');__eLab(b,'放送を聞く','音が出ませんでした。もう一度押してください'+(nm?'（'+nm+'）':''));};   /* 2026-11-14 端末が断った理由（NotAllowedError など）を小さく出す */
     const one=()=>{if(!alive()){__eStop();return;}n++;__eLab(b,n+'回目を放送中','2回のうち'+n+'回目'+(n===2?'（最後）':''),n);__eA=__eAu(opt.audioBase||'',src,el);__eBar(b);

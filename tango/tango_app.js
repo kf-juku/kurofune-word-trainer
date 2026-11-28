@@ -15,6 +15,7 @@ var CSS='.tg{font-family:inherit;color:#111;max-width:560px;margin:0 auto;paddin
 +'.tg-spk{display:inline-flex;align-items:center;gap:4px;margin-top:10px;border:1px solid #d1d5db;background:#fff;border-radius:999px;padding:7px 16px;font-size:14px;cursor:pointer}'
 +'.tg-row{display:flex;gap:8px;margin-top:14px}.tg-btn{flex:1;padding:13px;border:0;border-radius:10px;background:#111;color:#fff;font-size:16px;font-weight:700;cursor:pointer}.tg-btn.sub{background:#fff;color:#111;border:1px solid #d1d5db}.tg-btn:disabled{opacity:.4}'
 +'.tg-q{font-size:15px;font-weight:700;text-align:left;margin-bottom:10px}'
++'.tg-cells{position:absolute;left:8px;right:8px;top:12%;bottom:9%;display:flex;gap:4px;pointer-events:none}.tg-cells span{flex:1;border:2px dashed #93c5fd;border-radius:8px}'
 +'.tg-tr{position:relative;width:100%;height:210px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;touch-action:none;overflow:hidden}.tg-tr canvas{position:absolute;inset:0;width:100%;height:100%}'
 +'.tg-chc{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tg-chc button{font:inherit;font-size:17px;padding:14px 8px;border:1px solid #d1d5db;border-radius:10px;background:#fff;cursor:pointer}.tg-chc button.ok{border:2px solid #059669;background:#ecfdf5}.tg-chc button.ng{border:2px solid #dc2626;background:#fef2f2}'
 +'.tg-slots{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:6px 0 12px;min-height:50px}.tg-slots span{min-width:38px;height:46px;padding:0 6px;border:2px dashed #93c5fd;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700}.tg-slots span.f{border-style:solid;border-color:#2563eb;background:#eff6ff}.tg-slots span.fix{border:0;min-width:10px;padding:0 1px}'
@@ -200,7 +201,7 @@ function mount(host,o){
     cv.addEventListener('pointermove',function(e){if(!cur)return;var q=pt(e);cur.push(q);mark(q);full();});
     ['pointerup','pointercancel','pointerleave'].forEach(function(t){cv.addEventListener(t,function(){if(cur){cur=null;changed();}});});
     full();
-    return {clear:function(){ink=[];recount();full();changed();},undo:function(){ink.pop();recount();full();changed();},show:function(v){show=v;full();},cover:cover,
+    return {ink:function(){return ink;},W:function(){return W;},clear:function(){ink=[];recount();full();changed();},undo:function(){ink.pop();recount();full();changed();},show:function(v){show=v;full();},cover:cover,
       demo:function(){if(stopA)stopA();stopA=ABC.animate(g,S,function(){lines();ABC.drawGuide(g,S,'#e5e7eb');},function(){stopA=null;full();if(o.onDemoEnd)o.onDemoEnd();},380);},
       skip:endDemo,stop:function(){if(stopA){stopA();stopA=null;}}};}
   /* 2 なぞる（D15・D23・2026-11-26 15:45 川上さん）：開いたら書き順が動く（その間は［スキップ］だけ）→ 書く段＝［書き順を見る］［1つ戻す］［全部消す］［できた］。
@@ -223,7 +224,7 @@ function mount(host,o){
     q('[data-a=clr]').onclick=function(){P.clear();};
     okB.onclick=function(){if(okB.disabled)return;P.stop();if(st.i<R.items.length-1){st.i++;trace();}else{st.stage=2;st.bq=null;blind();}};}
   /* 3 見ないで書く（D24）：日本語と音だけで、4本線に指で書く → ［答えを見る］で書き順の線を重ねる → 自分で「できた／まちがえた」。まちがえた語は最後にもう一度。記録は1周目の「できた」の数 */
-  function blind(){if(!st.bq){st.bq=R.items.map(function(x,k){return k;});st.bf={};}sv();
+  function blind(){if(!st.bq){st.bq=shuffle(R.items.map(function(x,k){return k;}));st.bf={};}sv();   /* 2026-11-28 修正メモ箱：数字など仲間の語が順番どおりだと答えが読める＝なぞったあとは順を混ぜる */
     if(!st.bq.length){st.stage=3;startQ('m');return;}
     var k=st.bq[0],it=R.items[k];
     root.innerHTML=bar()+'<div class="tg-card"><div class="tg-q">英語を見ないで書いてみよう</div><div class="tg-bj">'+esc(it.ja)+'</div><button type="button" class="tg-spk" data-a="au">🔊 聞く</button>'
@@ -231,10 +232,16 @@ function mount(host,o){
       +'<div class="tg-row3" data-r="1"><button type="button" class="tg-btn sub" data-a="undo">1つ戻す</button><button type="button" class="tg-btn sub" data-a="clr">全部消す</button><button type="button" class="tg-btn" data-a="see">答えを見る</button></div>'
       +'<div class="tg-row3" data-r="2" hidden><button type="button" class="tg-btn sub" data-a="ng">まちがえた</button><button type="button" class="tg-btn" data-a="ok">できた</button></div>'
       +'<div class="tg-cnt" style="margin-top:8px">のこり '+st.bq.length+' 語</div></div>';
-    play(it,base);var P=pad(root.querySelector('canvas'),it.en,'blank');
+    /* 2026-11-28 修正メモ箱（質問A ア）：1語の語は文字の数だけ箱を置く。全部の箱に書けたら［答えを見る］が押せる（形の判定はしない＝合っているかは見本とくらべて自分で押す） */
+    var PC=pieces(it),NB=(PC.kind==='c'&&PC.ans.length<=12)?PC.ans.length:0;
+    if(NB){var tr=root.querySelector('.tg-tr'),cl=doc.createElement('div');cl.className='tg-cells';cl.innerHTML=PC.ans.map(function(){return '<span></span>';}).join('');tr.appendChild(cl);}
+    var seeB=root.querySelector('[data-a=see]');
+    function filled(){if(!NB)return true;var w=P.W()-16,c=PC.ans.map(function(){return 0;});P.ink().forEach(function(L){L.forEach(function(q){var i=Math.floor((q[0]-8)/(w/NB));if(i>=0&&i<NB)c[i]++;});});return c.every(function(x){return x>=3;});}
+    function upd(){var f=filled();seeB.disabled=!f;seeB.textContent=f?'答えを見る':'箱に1文字ずつ書こう';}
+    play(it,base);var P=pad(root.querySelector('canvas'),it.en,'blank',{onInk:function(){upd();}});upd();
     root.querySelector('[data-a=au]').onclick=function(){play(it,base);};
     root.querySelector('[data-a=clr]').onclick=function(){P.clear();};root.querySelector('[data-a=undo]').onclick=function(){P.undo();};
-    root.querySelector('[data-a=see]').onclick=function(){P.show(true);root.querySelector('.tg-ans').textContent=it.en;root.querySelector('[data-r="1"]').hidden=true;root.querySelector('[data-r="2"]').hidden=false;play(it,base);};
+    root.querySelector('[data-a=see]').onclick=function(){if(seeB.disabled)return;var cl2=root.querySelector('.tg-cells');if(cl2)cl2.style.opacity='.35';P.show(true);root.querySelector('.tg-ans').textContent=it.en;root.querySelector('[data-r="1"]').hidden=true;root.querySelector('[data-r="2"]').hidden=false;play(it,base);};
     function judge(ok){if(!(k in st.bf))st.bf[k]=ok?1:0;st.bq.shift();if(!ok)st.bq.push(k);blind();}
     root.querySelector('[data-a=ok]').onclick=function(){judge(true);};
     root.querySelector('[data-a=ng]').onclick=function(){judge(false);};}
@@ -252,19 +259,25 @@ function mount(host,o){
     root.querySelectorAll('.tg-chc button').forEach(function(b){b.onclick=function(){var ok=b.textContent===it.ja;root.querySelectorAll('.tg-chc button').forEach(function(x){x.disabled=true;if(x.textContent===it.ja)x.classList.add('ok');});if(!ok)b.classList.add('ng');
       var fb=root.querySelector('.tg-fb');fb.className='tg-fb '+(ok?'ok':'ng');fb.textContent=ok?'正解！':'正しくは「'+it.ja+'」。あとでもう一度出ます';play(it,base);fin(k,ok,root.querySelector('.tg-card'));};});}
   /* 英語を書く（意味を見て1文字ずつ・フレーズは語ずつ）。test＝小テスト（1回きり） */
-  function spell(k,test,item,cb){var it=item||R.items[k],P=pieces(it),pos=0,miss=false,used={};
+  function spell(k,test,item,cb){var it=item||R.items[k],P=pieces(it),done=false;
     var extra=P.kind==='c'?shuffle('aeiouyrstnlmdbcgkph'.split('').filter(function(c){return P.ans.map(function(x){return x.toLowerCase();}).indexOf(c)<0;}),k+3).slice(0,3):[];
     if(P.kind==='w'){(D.rounds||[]).some(function(r){return r.items.some(function(x){if(extra.length>=2)return true;if(x.en===it.en||!isPh(x))return false;var w=(x.en.match(/[A-Za-z']+/g)||[]).filter(function(y){return P.ans.indexOf(y)<0;});if(w[0]&&extra.indexOf(w[0])<0)extra.push(w[0]);return false;});});}
-    var tiles=shuffle(P.ans.concat(extra),k+11);
-    function slotsHtml(){var n=0;return P.fix.map(function(c){var isAns=P.kind==='c'?/[A-Za-z]/.test(c):/[A-Za-z]/.test(c);if(!isAns)return '<span class="fix">'+esc(c===' '?' ':c)+'</span>';var i=n++;return '<span class="'+(i<pos?'f':'')+'">'+(i<pos?esc(P.ans[i]):'')+'</span>';}).join('');}
-    root.innerHTML=bar()+'<div class="tg-card">'+(test?'<div class="tg-cnt">小テスト　'+(st.ti+1)+' / '+st.test.length+(st.nPrev?(st.ti<st.nPrev?'（前回）':'（今回）'):'')+'</div>':'')+'<div class="tg-q">「'+esc(it.ja)+'」を英語で書こう'+(P.kind==='c'?'（1文字ずつ選ぶ）':'（語を順に選ぶ）')+'</div><div class="tg-slots">'+slotsHtml()+'</div><div class="tg-tiles">'+tiles.map(function(t,i){return '<button type="button" data-i="'+i+'">'+esc(t)+'</button>';}).join('')+'</div><div class="tg-fb"></div></div>';
+    var tiles=shuffle(P.ans.concat(extra),k+11),fill=P.ans.map(function(){return null;});   /* fill[i]＝i番目の箱に入れた札の番号 */
+    /* 2026-11-28 修正メモ箱：1文字まちがえた時点で×にしていた＝全部の箱が埋まってから採点。入れた札は箱を押すと外せる。画面が出たら音を1回流し、［聞く］で何度でも */
+    function slotsHtml(){var n=0;return P.fix.map(function(c){if(!/[A-Za-z]/.test(c))return '<span class="fix">'+esc(c===' '?' ':c)+'</span>';var i=n++,f=fill[i];return '<span class="'+(f!=null?'f':'')+'" data-s="'+i+'">'+(f!=null?esc(tiles[f]):'')+'</span>';}).join('');}
+    root.innerHTML=bar()+'<div class="tg-card">'+(test?'<div class="tg-cnt">小テスト　'+(st.ti+1)+' / '+st.test.length+(st.nPrev?(st.ti<st.nPrev?'（前回）':'（今回）'):'')+'</div>':'')+'<div class="tg-q">「'+esc(it.ja)+'」を英語で書こう'+(P.kind==='c'?'（1文字ずつ選ぶ）':'（語を順に選ぶ）')+'</div><button type="button" class="tg-spk" data-a="au" style="margin:0 auto 6px">🔊 聞く</button><div class="tg-slots">'+slotsHtml()+'</div><div class="tg-tiles">'+tiles.map(function(t,i){return '<button type="button" data-i="'+i+'">'+esc(t)+'</button>';}).join('')+'</div><div class="tg-cnt tg-sh">'+'入れた'+(P.kind==='c'?'文字':'語')+'は、箱を押すと外せる</div><div class="tg-fb"></div></div>';
     var card=root.querySelector('.tg-card');
-    root.querySelectorAll('.tg-tiles button').forEach(function(b){b.onclick=function(){if(pos>=P.ans.length)return;var t=tiles[+b.dataset.i],want=P.ans[pos];
-      if(t===want||(P.kind==='c'&&pos===0&&t.toLowerCase()===want.toLowerCase())){b.disabled=true;pos++;root.querySelector('.tg-slots').innerHTML=slotsHtml();
-        if(pos>=P.ans.length){var fb=root.querySelector('.tg-fb');var ok=!miss;fb.className='tg-fb '+(ok?'ok':'ng');fb.textContent=ok?'正解！':'できた。まちがえた所があったので、あとでもう一度出ます';if(test)fb.textContent=ok?'正解！':'正しくは '+it.en;play(it,base);
-          root.querySelectorAll('.tg-tiles button').forEach(function(x){x.disabled=true;});if(test){cb(ok);}else fin(k,ok,card);}}
-      else{miss=true;b.classList.remove('ng');void b.offsetWidth;b.classList.add('ng');
-        if(test){var you=P.ans.slice(0,pos).concat([t]).join(P.kind==='c'?'':' ');var fb2=root.querySelector('.tg-fb');fb2.className='tg-fb ng';fb2.textContent='×　正しくは '+it.en;pos=P.ans.length;root.querySelector('.tg-slots').innerHTML=P.fix.map(function(c){return '<span class="'+(/[A-Za-z]/.test(c)?'f':'fix')+'">'+esc(c===' '?' ':c)+'</span>';}).join('');root.querySelectorAll('.tg-tiles button').forEach(function(x){x.disabled=true;});play(it,base);cb(false,you);}}};});}
+    root.querySelector('[data-a=au]').onclick=function(){play(it,base);};play(it,base);
+    function draw(){root.querySelector('.tg-slots').innerHTML=slotsHtml();root.querySelectorAll('.tg-tiles button').forEach(function(b){b.disabled=done||fill.indexOf(+b.dataset.i)>=0;});
+      root.querySelectorAll('.tg-slots span[data-s]').forEach(function(sp){sp.onclick=function(){if(done)return;var i=+sp.dataset.s;if(fill[i]==null)return;fill[i]=null;draw();};});}
+    function judge(){done=true;var got=fill.map(function(f){return tiles[f];});
+      var ok=got.every(function(t,i){var w=P.ans[i];return t===w||(P.kind==='c'&&i===0&&t.toLowerCase()===w.toLowerCase());});
+      draw();var sh=root.querySelector('.tg-sh');if(sh)sh.remove();
+      var fb=root.querySelector('.tg-fb');fb.className='tg-fb '+(ok?'ok':'ng');
+      if(test){fb.textContent=ok?'正解！':'×　正しくは '+it.en;play(it,base);cb(ok,ok?'':got.join(P.kind==='c'?'':' '));}
+      else{fb.textContent=ok?'正解！':'正しくは '+it.en+'。あとでもう一度出ます';play(it,base);fin(k,ok,card);}}
+    root.querySelectorAll('.tg-tiles button').forEach(function(b){b.onclick=function(){if(done)return;var i=fill.indexOf(null);if(i<0)return;fill[i]=+b.dataset.i;draw();if(fill.indexOf(null)<0)judge();};});
+    draw();}
   /* 5 小テスト：前の回の5語（順を変えて先に）＋その回の5語（D17）。やり直しも同じ10問 */
   function startTest(){var pv=PREV?shuffle(PREV.items.map(function(x){return {it:x,prev:1};}),o.no*31):[],cu=shuffle(R.items.map(function(x){return {it:x,prev:0};}),o.no*17);
     st.test=pv.concat(cu);st.nPrev=pv.length;st.ti=0;st.res=[];tq();}

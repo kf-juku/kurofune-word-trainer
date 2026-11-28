@@ -130,7 +130,7 @@ function ggEnBox(l){l=String(l);if(l.charAt(0)==='&')l=l.slice(1);if(l.charAt(0)
   while(i<R.length){var r=R[i];
     if(r.charAt(0)==='%'){var g=[];while(i<R.length&&R[i].charAt(0)==='%')g.push(R[i++]);h+=enGrid_(g);continue;}
     if(r.charAt(0)==='^'){var t=[];while(i<R.length&&R[i].charAt(0)==='^')t.push(R[i++]);h+=enTab_(t);continue;}
-    if(r.charAt(0)==='=')h+='<div class="eru" style="font-size:14px;margin:4px 0 6px">'+enMk_(r.slice(1))+'</div>';
+    if(r.charAt(0)==='='&&r.charAt(1)!=='=')h+='<div class="eru" style="font-size:14px;margin:4px 0 6px">'+enMk_(r.slice(1))+'</div>';
     else if(r.charAt(0)==='~')h+='<div class="efu" style="display:inline-block;font-size:12px;color:#475569;border:1.5px dotted #94a3b8;border-radius:8px;padding:2px 8px;margin:4px 0 2px;background:#fff">'+enMk_(r.slice(1))+'</div>';
     else if(r==='-')h+='<div class="esp" style="border-top:1px dashed #cbd5e1;margin:8px 0"></div>';
     else if(r.charAt(0)==='<')h+='<div class="gbfig">'+r+'</div>';
